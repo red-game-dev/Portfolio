@@ -1,16 +1,18 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+
+module.exports = {
   reactStrictMode: true,
   swcMinify: true,
   eslint: {
-    dirs: ['styles', 'pages', 'src', 'tests']
+    dirs: ['src', '__tests__/src']
+  },
+  i18n: {
+    locales: ["en"],
+    defaultLocale: "en",
   },
   compiler: {
     removeConsole: {
       exclude: ['error'],
     },
-    styledComponents: true,
-  },
+  }
 }
-
-module.exports = nextConfig

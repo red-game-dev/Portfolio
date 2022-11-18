@@ -35,7 +35,6 @@ const VideoBackgroundTexture = tw.div`absolute top-0 left-0 w-full h-full z-[2]`
 export const Cover = ({ intro, image = "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg" }: any) => (
     <Section id="section-started">
       <VideoContainer
-        className="jarallax"
         style={{ backgroundImage: `url(${image})` }}
       >
         <VideoBackgroundMask />

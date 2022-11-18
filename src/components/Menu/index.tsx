@@ -31,7 +31,7 @@ const MenuContainer = styled.div(({ active = false }: MenuProps) => [
 ]);
 
 const MenuButton = styled.div(({ active = false }: MenuProps) => [
-  tw`m-4 w-[30px] h-[20px] top-2 right-0 absolute lg:invisible transition-[all 0.3s ease 0s] rotate-0 z-10`,
+  tw`m-2 w-[30px] h-[20px] top-0 right-0 absolute lg:invisible transition-[all 0.3s ease 0s] rotate-0 z-10`,
   tw`before:content-['']
     after:content-['']
     before:absolute
@@ -72,7 +72,7 @@ const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
 
 export const Menu = ({ active }: MenuProps) => (
   <>
-    <MenuButton active={active} className="menu-btn" />
+    <MenuButton active={active} />
     <MenuContainer active={active}>
       <MenuList>
           <MenuItem href="#section-started" selected={true}>

@@ -2,6 +2,11 @@ import { FC } from "react";
 
 import tw, { styled } from "twin.macro";
 
+interface TextProps {
+  title?: string;
+  paragraphs: string[];
+}
+
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Content = tw.div`relative text-base ml-[-1px] p-[35px] bg-[#101010] border-solid border-l-[1px] border-[#4bffa5]`;
@@ -13,11 +18,6 @@ const ClearContainer = tw.div`clear-both`;
 const Paragraph = styled.div(() => [
   tw`break-words first:mt-0`,
 ]);
-
-interface TextProps {
-  title?: string;
-  paragraphs: string[];
-}
 
 export const Text: FC<TextProps> = ({ title, paragraphs = [] }: TextProps) => (
     <Section id="section-custom-text">

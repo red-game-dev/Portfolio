@@ -33,7 +33,13 @@ export const Projects: FC<ProjectsProps> = ({ projects = [] }: ProjectsProps) =>
       <Content>
         <Title>Projects</Title>
         <List>
-          {projects.map((project: any, index: number) => (<Project key={index} {...project} />))}
+          {projects.map((project: any, index: number) => (<Project
+            key={`${project.title.replace(/\s/, "")}-${index}`}
+            {...project}
+            withRandomBorder={index % 3 === 0}
+            isFullBorder={((project.length - 1 / 2) % 1) > 0 && index === (project.length - 1)}
+            isFullWidth={((project.length - 1 / 2) % 1) > 0 && index === (project.length - 1)}
+          />))}
         </List>
         <ClearContainer />
       </Content>

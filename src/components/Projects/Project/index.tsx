@@ -1,6 +1,6 @@
 import { FC, useCallback } from "react";
 
-import tw from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import Image from "next/image";
 
@@ -16,11 +16,35 @@ interface ProjectProps {
   link: string;
   from: string;
   to?: string;
+  withRandomBorder?: boolean;
+  isFullBorder?: boolean;
+  isFullWidth?: boolean;
 }
 
-const Item = tw.div`relative text-center text-sm float-left w-full lg:w-1/2 m-0 p-[0 50px 100px 50px]`;
+interface ItemProps {
+  isFullWidth?: boolean;
+}
 
-const OuterImageWrapper = tw.div`relative overflow-hidden block text-xs`;
+interface OuterImageWrapperProps {
+  withRandomBorder?: boolean;
+  isFullBorder?: boolean;
+}
+
+
+const Item = styled.div(({ isFullWidth }: ItemProps) => [
+  tw`relative text-center text-sm float-left w-full lg:w-1/2 m-0 p-[0 50px 100px 50px]
+  `,
+  isFullWidth && tw`lg:w-full`
+]);
+
+const OuterImageWrapper = styled.div(({ withRandomBorder, isFullBorder }: OuterImageWrapperProps) => [
+  tw`relative overflow-hidden block text-xs rounded-lg border-[#4bffa5] border-double
+  hover:animate-[border-transition 1s ease-out 0s infinite]
+  `,
+  !withRandomBorder && tw`border-b-[1px]`,
+  withRandomBorder && tw`border-r-[1px]`,
+  isFullBorder && tw`border-[0px] border-b-[1px]`,
+]);
 
 const OuterImageInfo = tw.span`absolute text-center w-full h-full block left-0 top-0`;
 
@@ -40,7 +64,11 @@ const OuterImageContentWrapper = tw.span`table table-fixed h-full w-full relativ
 
 const OuterImageDetail = tw.span`table-cell align-middle`;
 
-export const Project: FC<ProjectProps> = ({ title, category, intro, techStack, link, image, responsabilities, from, to }: ProjectProps) => {
+export const Project: FC<ProjectProps> = ({
+  title, category, intro, techStack, link, image,
+  responsabilities, from, to,
+  withRandomBorder, isFullBorder, isFullWidth
+}: ProjectProps) => {
   const { setModal } = useModalStateHook();
 
   const onTapCallback = useCallback(() => {
@@ -59,8 +87,10 @@ export const Project: FC<ProjectProps> = ({ title, category, intro, techStack, l
   }, [category, from, image, intro, link, responsabilities, setModal, techStack, title, to]);
 
   return (
-    <Item className="box-item">
-      <OuterImageWrapper>
+    <Item isFullWidth={isFullWidth}>
+      <OuterImageWrapper
+        withRandomBorder={withRandomBorder}
+        isFullBorder={isFullBorder}>
         <div
           className="hover-animated"
         >

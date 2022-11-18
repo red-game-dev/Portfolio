@@ -13,6 +13,10 @@ const createJestConfig = nextJest({ dir: './' })
 // Any custom config you want to pass to Jest
 const customJestConfig = {
   preset: 'ts-jest',
+  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|js?|tsx?|ts?)$',
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': '<rootDir>/node_modules/babel-jest',
+  },
   collectCoverage: true,
   // on node 14.x coverage provider v8 offers good speed and more or less good report
   coverageProvider: 'v8',

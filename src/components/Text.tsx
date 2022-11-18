@@ -1,3 +1,5 @@
+import { FC } from "react";
+
 import tw, { styled } from "twin.macro";
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
@@ -12,10 +14,15 @@ const Paragraph = styled.div(() => [
   tw`break-words first:mt-0`,
 ]);
 
-export const Text = ({ title, paragraphs = [] }: any) => (
+interface TextProps {
+  title?: string;
+  paragraphs: string[];
+}
+
+export const Text: FC<TextProps> = ({ title, paragraphs = [] }: TextProps) => (
     <Section id="section-custom-text">
       <Content>
-        <Title>{ title }</Title>
+        { title && <Title>{ title }</Title> }
         <div>
           {paragraphs.map((text: string, index: number) => (
             <Paragraph key={index}>{text}</Paragraph>

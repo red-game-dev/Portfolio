@@ -16,7 +16,7 @@ export const Modal = () => {
 
   return modalContent && (
     <PopupBox id="popup-1" ref={domNode}>
-      <Content className="content">
+      <Content>
         {modalContent?.type === "project" && <ProjectModal />}
       </Content>
     </PopupBox>

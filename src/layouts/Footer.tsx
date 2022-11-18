@@ -31,7 +31,7 @@ const Footer: FC = () => (
     <FooterContainer>
       <SocialMediaList>
         <FollowMeButton>Follow Me</FollowMeButton>
-        <SocialMediaItem href="https://www.pinterest.com/" target="_blank" className="icon fab fa-linkedin" />
+        <SocialMediaItem href="https://www.pinterest.com/" target="_blank" className="fab fa-linkedin" />
       </SocialMediaList>
     </FooterContainer>
   );

@@ -91,11 +91,9 @@ export const Project: FC<ProjectProps> = ({
       <OuterImageWrapper
         withRandomBorder={withRandomBorder}
         isFullBorder={isFullBorder}>
-        <div
-          className="hover-animated"
-        >
+        <div>
           <Image src={image} width="1000" height="300" alt="" />
-          <OuterImageInfo className="circle" onClick={onTapCallback} >
+          <OuterImageInfo onClick={onTapCallback} >
             <OuterImageContentWrapper>
               <OuterImageDetail>
                 <OuterImageInfoIcon className="fas fa-plus" />

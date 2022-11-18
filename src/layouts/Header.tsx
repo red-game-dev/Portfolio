@@ -68,12 +68,12 @@ const Header: FC<HeaderProps> = ({ title = "" }: HeaderProps) => {
   const words = title.split(" ");
 
   return (
-    <HeaderContainer className={"header desktopHeader"}
+    <HeaderContainer className={"header"}
       role="presentation"
       onClick={toggleTap}>
       <HeaderContent>
-        <LogoContainer className="hover-masks-logo">
-          <LogoContents className="mask-content">
+        <LogoContainer>
+          <LogoContents>
             <span className="mask-lnk">
               { words.map((word: string, index: number) => {
                 if (index === words.length - 1) {

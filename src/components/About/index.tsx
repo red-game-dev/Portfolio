@@ -81,11 +81,11 @@ export const About: FC<AboutProps> = ({ description, residence, isFlexible, jobT
             </ListItem>
           </List>
           <div>
-            <Button href="#" className="hover-animated">
+            <Button href="#">
               <AnimatedCircle />
               <InnerButtonText>Download CV</InnerButtonText>
             </Button>
-            <Button href="#" className="hover-animated">
+            <Button href="#">
               <AnimatedCircle />
               <InnerButtonText>LinkedIn</InnerButtonText>
             </Button>

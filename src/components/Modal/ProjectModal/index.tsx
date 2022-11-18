@@ -73,7 +73,7 @@ export const ProjectModal: FC = () => {
       <PopupBoxImage
         style={{ backgroundImage: `url(${modalContent.image})` }}
       />
-      <CloseButton onClick={onClose} className="hover-animated">
+      <CloseButton onClick={onClose}>
         <AnimatedCircle />
         <InnerButtonText>Close</InnerButtonText>
       </CloseButton>
@@ -117,7 +117,7 @@ export const ProjectModal: FC = () => {
           )
         }
         <ButtonsWrapper>
-          <ButtonLink href={modalContent.link} target="_blank" className="hover-animated">
+          <ButtonLink href={modalContent.link} target="_blank">
             <AnimatedCircle />
             <InnerButtonText>View Project</InnerButtonText>
           </ButtonLink>

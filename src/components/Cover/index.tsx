@@ -5,15 +5,15 @@ import Link from "next/link";
 import TypingAnimation from "@/components/TypingAnimation";
 
 const Introduction = styled.h1(() => [
-  tw`m-0 absolute text-white break-words left-0 pr-12 text-base 
+  tw`m-0 absolute text-white break-words left-0 px-5 lg:pr-12 text-base 
     bottom-[30px]
     lg:text-lg lg:left-[calc(20% + 35px)] lg:bottom-[50px] lg:max-w-[560px]
     [& > strong]:text-[#4bffa5]`
 ]);
 
-const Section = tw.div`relative overflow-hidden h-screen m-0 py-0 px-[30px] lg:p-0 z-[7] `;
+const Section = tw.div`relative overflow-hidden h-screen m-0 z-[7] `;
 
-const Content = tw.div`relative top-0 left-0 z-[2] table table w-full h-full align-middle`;
+const Content = tw.div`absolute top-0 left-0 z-[2] table table w-full h-full align-middle text-justify`;
 
 const TitleWrapper = tw.div`relative top-0 left-0 z-[2] table-fixed table-cell w-full h-full align-middle`;
 
@@ -26,7 +26,7 @@ const ScrollerLink = styled(Link)(() => [
 
 const ScrollerIcon = tw.i`relative bottom-[10px]`;
 
-const VideoContainer = tw.div`ml-0 left-0 absolute top-0 h-full bg-no-repeat bg-center bg-cover lg:left-1/2 lg:ml-[-50vw] lg:w-screen`;
+const VideoContainer = tw.div`w-full h-full left-0 top-0 bg-fixed bg-cover bg-center flex justify-center items-center w-screen`;
 
 const VideoBackgroundMask = tw.div`absolute top-0 left-0 w-full h-full opacity-40 z-[2] bg-[#101010]`;
 

@@ -5,7 +5,6 @@ import tw from "twin.macro";
 import { AppLoader, AppLoadingLines } from "@/components/AppLoader";
 import { Modal } from "@/components/Modal";
 
-import { stickyNav } from "../utils/utils";
 import Footer from "./Footer";
 import Header from "./Header";
 
@@ -18,12 +17,7 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
-  useEffect(() => {
-    window.addEventListener("scroll", stickyNav);
-  }, []);
-
-return (
+const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => (
     <Fragment>
       <Modal />
       <AppLoader />
@@ -37,6 +31,5 @@ return (
       </Container>
     </Fragment>
   );
-};
 
 export default Layout;

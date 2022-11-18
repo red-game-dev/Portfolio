@@ -22,7 +22,7 @@ function changeCollision(elementId: string, onCollision: (value: boolean) => voi
   return;
 }
 
-export default function useCollisionSize(elementId: string, onCollision?: (value: boolean) => void) {
+export default function useCollision(elementId: string, onCollision?: (value: boolean) => void) {
   const isSSR = typeof window === "undefined";
   const [collision, setCollision] = React.useState(false);
 

@@ -4,7 +4,7 @@ import tw, { styled } from "twin.macro";
 
 import { CircularProgress } from "@/components/Progress/Circular";
 import { LinearProgress } from "@/components/Progress/Linear";
-import useCollisionSize from "@/hooks/useCollision";
+import useCollision from "@/hooks/useCollision";
 
 interface Skill {
   name: string;
@@ -33,7 +33,7 @@ const List = styled.ul(({ isCircle }: ListProps) => [
 ]);
 
 export const Skills: FC<SkillsProps> = ({ title, skills = [] as Skill[], isCircle = false }: SkillsProps) => {
-  const [isVisibleElement] = useCollisionSize(`section-skills-${title.replace(/\s/, "")}`);
+  const [isVisibleElement] = useCollision(`section-skills-${title.replace(/\s/, "")}`);
 
   return (
     <Section id={`section-skills-${title.replace(/\s/, "")}`}>

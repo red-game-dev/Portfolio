@@ -42,7 +42,7 @@ const TypingAnimation: FC<TypingAnimationProps> = ({ typingData }: TypingAnimati
 
 return (
     <Subtitle
-      id="subtitle"
+      id="typing-title"
       ref={el}
     ></Subtitle>
   );

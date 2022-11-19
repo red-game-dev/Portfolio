@@ -1,9 +1,26 @@
 import { FC } from "react";
 
-import tw, { styled } from "twin.macro";
+import tw, { css, styled } from "twin.macro";
 
 import Image from "next/image";
 import Link from "next/link";
+
+import useCollision from "@/hooks/useCollision";
+import { useToBinary } from "@/hooks/useToBinary";
+
+interface AboutProps {
+  description: string;
+  residence: string;
+  isFlexible: boolean;
+  jobType: string;
+  phone: string;
+  email: string;
+}
+
+interface CharacterProps {
+  delay: number;
+  canAnimate?: boolean;
+}
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
@@ -47,51 +64,74 @@ const InnerButtonText = tw.div`relative py-0 px-7 block z-[2] pointer-events-non
 
 const AnimatedCircle = tw.div`absolute w-full h-full block`;
 
-interface AboutProps {
-  description: string;
-  residence: string;
-  isFlexible: boolean;
-  jobType: string;
-  phone: string;
-  email: string;
-}
+const HitPointEnd = tw.div`relative w-[10px] h-[10px] left-1/2 z-[0] bottom-[10rem] lg:bottom-[13rem]`;
 
-export const About: FC<AboutProps> = ({ description, residence, isFlexible, jobType, phone, email }: AboutProps) => (
-    <Section id="section-about">
-      <Title>About</Title>
-      <Content>
-        <SectionImage src="/images/man_r.jpg" alt="" width="200" height="200" />
-        <DescriptionContainer>
-          <Paragraph>{ description }</Paragraph>
-          <List >
-            <ListItem>
-              <strong>Residence:</strong> { residence }
-            </ListItem>
-            <ListItem>
-              <strong>Job seeking:</strong> { isFlexible ? "Flexible" : "Immediately" }
-            </ListItem>
-            <ListItem>
-              <strong>Job Type:</strong> { jobType }
-            </ListItem>
-            <ListItem>
-              <strong>Phone:</strong>{ phone }
-            </ListItem>
-            <ListItem>
-              <strong>E-mail:</strong> { email }
-            </ListItem>
-          </List>
-          <div>
-            <Button href="#">
-              <AnimatedCircle />
-              <InnerButtonText>Download CV</InnerButtonText>
-            </Button>
-            <Button href="#">
-              <AnimatedCircle />
-              <InnerButtonText>LinkedIn</InnerButtonText>
-            </Button>
-          </div>
-        </DescriptionContainer>
-        <ClearContainer />
-      </Content>
-    </Section>
+const Character = styled.span(({ delay = 0, canAnimate }: CharacterProps) => [
+  tw`relative text-[#b7b7b7] mt-0 hover:animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`,
+  canAnimate && tw`mt-[-10px] transition-all animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]
+  `,
+  canAnimate && css`
+    animation-delay: ${delay}s
+  `,
+]);
+
+export const About: FC<AboutProps> = ({ description, residence, isFlexible, jobType, phone, email }: AboutProps) => {
+  const [hasArrivedToDescription] = useCollision("section-about-hit-point-end");
+  const convertedDescription = useToBinary(description);
+
+  return (
+    <>
+      <Section id="section-about">
+        <Title>About</Title>
+        <Content>
+          <SectionImage src="https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg" alt="" width="200" height="200" />
+          <DescriptionContainer>
+            <Paragraph>
+              {
+                convertedDescription
+                  .slice(0, description.length)
+                  .split("")
+                  .map((char, index) => (
+                    <Character
+                      canAnimate={hasArrivedToDescription}
+                      delay={(0.5 + index / 10)}
+                      key={index}
+                    >{hasArrivedToDescription ? description.charAt(index) : char}
+                    </Character>))
+              }
+            </Paragraph>
+            <List >
+              <ListItem>
+                <strong>Residence:</strong> {residence}
+              </ListItem>
+              <ListItem>
+                <strong>Job seeking:</strong> {isFlexible ? "Flexible" : "Immediately"}
+              </ListItem>
+              <ListItem>
+                <strong>Job Type:</strong> {jobType}
+              </ListItem>
+              <ListItem>
+                <strong>Phone:</strong>{phone}
+              </ListItem>
+              <ListItem>
+                <strong>E-mail:</strong> {email}
+              </ListItem>
+            </List>
+            <div>
+              <Button href="#">
+                <AnimatedCircle />
+                <InnerButtonText>Download CV</InnerButtonText>
+              </Button>
+              <Button href="#">
+                <AnimatedCircle />
+                <InnerButtonText>LinkedIn</InnerButtonText>
+              </Button>
+            </div>
+          </DescriptionContainer>
+          <ClearContainer />
+        </Content>
+      </Section>
+      <HitPointEnd id="section-about-hit-point-end" />
+    </>
   );
+};

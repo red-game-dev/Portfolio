@@ -194,7 +194,6 @@ blockquote {
 @keyframes move-text {
   0% {
     bottom: -0.2em;
-    opacity: 1;
   }
   
   50% {
@@ -203,20 +202,19 @@ blockquote {
 
   100% {
     bottom: 0;
-    opacity: 1;
   }
 }
 
 @keyframes text-color {
   0% {
-    color: #4bffa5
+    color: #4bffa5;
   }
   
   50% {
-    color: #0e5b34
+    color: #0e5b34;
   }
 
   100% {
-    color: white
+    color: white;
   }
 }

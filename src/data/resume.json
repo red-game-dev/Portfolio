@@ -1,5 +1,5 @@
 {
-  "intro": "Hello, I’m <strong>Redeemer Pace</strong>, Frontend Engineer, Backend Engineer, Game Developer, App Developer, Software Engineer, Tech Consultant and \n\r Architect Based in Malta",
+  "intro": "Hello! I’m <strong>Redeemer Pace</strong>, lets get to know me?",
   "details": {
     "name": "Redeemer Pace",
     "description": "Highly experienced as Software Engineer, Game Development, Web Development, Tech Consultancy, Architecture, Managing, Marketing. Looking forward to learn more where I can I improve my knowledge & new challenges",
@@ -7,6 +7,7 @@
     "jobType": "B2B / Full-time",
     "phone": "+356 79323059",
     "email": "red.pace.dev@gmail.com",
+    "image": "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
     "isFlexible": true
   },
   "services": [
@@ -336,8 +337,5 @@
       "from": "Apr 2019",
       "to": "Apr 2019"
     }
-  ],
-  "map": {
-    "link": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6465.385296671284!2d14.520819699999999!3d35.88104815!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x130e5b2e126a1d09%3A0x96b8fec6449bd390!2sCospicua!5e0!3m2!1sen!2smt!4v1667345598619!5m2!1sen!2smt"
-  }
+  ]
 }

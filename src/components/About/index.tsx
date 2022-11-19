@@ -15,6 +15,7 @@ interface AboutProps {
   jobType: string;
   phone: string;
   email: string;
+  image: string;
 }
 
 interface CharacterProps {
@@ -45,7 +46,7 @@ const ListItem = tw.li`inline-block align-top w-full lg:w-1/2 m-[0 0 6px 0] [&>s
 const ClearContainer = tw.div`clear-both`;
 
 const Button = styled(Link)(() => [
-  tw`relative bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
+  tw`relative w-full lg:w-auto bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
      inline-block align-middle text-center text-sm lg:text-base leading-9 lg:leading-9`,
   tw`h-[44px] my-[0px] mx-[0.5rem] mb-[10px] text-[#4bffa5] border-[#101010] border-r-[#4bffa5]
      hover:text-white 
@@ -88,7 +89,7 @@ margin-top: 0;
   animation-delay: 0s!important;
 }`;
 
-export const About: FC<AboutProps> = ({ description, residence, isFlexible, jobType, phone, email }: AboutProps) => {
+export const About: FC<AboutProps> = ({ description, image, residence, isFlexible, jobType, phone, email }: AboutProps) => {
   const [hasArrivedToDescription] = useCollision("section-about-hit-point-end");
   const convertedDescription = useToBinary(description);
   const CharactersList = useMemo(() => convertedDescription
@@ -108,7 +109,7 @@ export const About: FC<AboutProps> = ({ description, residence, isFlexible, jobT
       <Section id="section-about">
         <Title>About</Title>
         <Content>
-          <SectionImage src="https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg" alt="" width="200" height="500" />
+          <SectionImage src={image} alt="" width="200" height="500" />
           <DescriptionContainer>
             <Paragraph>
               { CharactersList }

@@ -16,6 +16,7 @@ export default function Home() {
     <Layout title="Redeemer Pace">
         <Cover intro={resumeData.intro} />
         <About
+          image={resumeData.details.image}
           description={resumeData.details.description}
           residence={resumeData.details.residence}
           jobType={resumeData.details.jobType}

@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useMemo, memo, ReactNode } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -18,8 +18,8 @@ interface AboutProps {
 }
 
 interface CharacterProps {
+  canAnimate: boolean;
   delay: number;
-  canAnimate?: boolean;
 }
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
@@ -66,18 +66,42 @@ const AnimatedCircle = tw.div`absolute w-full h-full block`;
 
 const HitPointEnd = tw.div`relative w-[10px] h-[10px] left-1/2 z-[0] bottom-[10rem] lg:bottom-[13rem]`;
 
-const Character = styled.span(({ delay = 0, canAnimate }: CharacterProps) => [
-  tw`relative text-[#b7b7b7] mt-0 hover:animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`,
-  canAnimate && tw`mt-[-10px] transition-all animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]
-  `,
-  canAnimate && css`
-    animation-delay: ${delay}s
-  `,
-]);
+const Character = styled.span.attrs<CharacterProps>(({ delay = 0, canAnimate }) => ({
+  className: `${canAnimate ? "active" : ""}`,
+  style: {
+    ...canAnimate ? {
+      animation: `move-text 0.75s forwards ${delay}s, text-color 0.75s forwards ${delay}s, border-transition 1s ease-in-out 0s`
+    } : {}
+  }
+}))<CharacterProps>`
+position: relative;
+color: #b7b7b7;
+margin-top: 0;
+
+&.active {
+  transition: all;
+  margin-top: -10px;
+}
+
+&:hover {
+  animation: move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s;
+  animation-delay: 0s!important;
+}`;
 
 export const About: FC<AboutProps> = ({ description, residence, isFlexible, jobType, phone, email }: AboutProps) => {
   const [hasArrivedToDescription] = useCollision("section-about-hit-point-end");
   const convertedDescription = useToBinary(description);
+  const CharactersList = useMemo(() => convertedDescription
+    .slice(0, description.length)
+    .split("")
+    .map((char, index) => (
+      <Character
+        canAnimate={hasArrivedToDescription}
+        delay={(0.5 + index / 10)}
+        key={index}
+      >
+        {hasArrivedToDescription ? description.charAt(index) : char}
+      </Character>)), [convertedDescription, description, hasArrivedToDescription]);
 
   return (
     <>
@@ -87,18 +111,7 @@ export const About: FC<AboutProps> = ({ description, residence, isFlexible, jobT
           <SectionImage src="https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg" alt="" width="200" height="500" />
           <DescriptionContainer>
             <Paragraph>
-              {
-                convertedDescription
-                  .slice(0, description.length)
-                  .split("")
-                  .map((char, index) => (
-                    <Character
-                      canAnimate={hasArrivedToDescription}
-                      delay={(0.5 + index / 10)}
-                      key={index}
-                    >{hasArrivedToDescription ? description.charAt(index) : char}
-                    </Character>))
-              }
+              { CharactersList }
             </Paragraph>
             <List >
               <ListItem>

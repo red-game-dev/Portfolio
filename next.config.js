@@ -14,5 +14,10 @@ module.exports = {
     removeConsole: {
       exclude: ['error'],
     },
-  }
+  },
+  images: {
+    domains: [
+      'launcher.goz.fun',
+    ],
+  },
 }

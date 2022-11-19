@@ -84,7 +84,7 @@ export const About: FC<AboutProps> = ({ description, residence, isFlexible, jobT
       <Section id="section-about">
         <Title>About</Title>
         <Content>
-          <SectionImage src="https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg" alt="" width="200" height="200" />
+          <SectionImage src="https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg" alt="" width="200" height="500" />
           <DescriptionContainer>
             <Paragraph>
               {

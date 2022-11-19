@@ -66,7 +66,7 @@ const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
   tw`w-full lg:w-auto m-4 p-4 py-8 lg:p-0 lg:m-0 inline text-base leading-loose text-white font-semibold 
       lg:px-4 border-dotted border-2 border-[#121212ed] border-[transparent] border-r-[#4bffa5]
      opacity-50 relative align-top overflow-hidden hover:text-white hover:opacity-100`,
-  selected && tw`text-white opacity-100`,
+  selected && tw`text-white opacity-100 animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`,
   css`
     transition: color 0.7s cubic-bezier(0.165, 0.85, 0.45, 1);
   `
@@ -77,15 +77,27 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnSectionAbout] = useCollision("section-about");
   const [isOnSectionHistory] = useCollision("section-history");
   const [isOnSectionServices] = useCollision("section-services");
+  const [isOnProjectsSection] = useCollision("section-projects");
   const [isOnSectionTechSkills] = useCollision("section-skills-TechSkills");
+  const [isOnSectionToolsSkills] = useCollision("section-skills-ToolsSkills");
+  const [isOnSectionDesignSkills] = useCollision("section-skills-DesignSkills");
+  const [isOnSectionLanguageSkills] = useCollision("section-skills-LanguageSkills");
+  const [isOnSectionKnowladgeSkills] = useCollision("section-skills-KnowladgeSkills");
+
+  const isOnSkillsSection = (isOnSectionTechSkills || isOnSectionToolsSkills ||
+    isOnSectionDesignSkills || isOnSectionLanguageSkills ||
+    isOnSectionKnowladgeSkills);
+  const isOnBeginningSection = isOnSectionStarted ||
+  (!isOnProjectsSection && !isOnSectionAbout &&
+    !isOnSectionAbout && !isOnSectionHistory &&
+    !isOnSectionServices && !isOnSkillsSection);
 
   return (
     <>
       <MenuButton active={active} />
       <MenuContainer active={active}>
         <MenuList>
-          <MenuItem href="#section-started" selected={isOnSectionStarted || 
-            (!isOnSectionAbout && !isOnSectionAbout && !isOnSectionHistory && !isOnSectionServices && !isOnSectionTechSkills)}>
+          <MenuItem href="#section-started" selected={isOnBeginningSection}>
             Beginning
           </MenuItem>
           <MenuItem href="#section-about" selected={isOnSectionAbout}>
@@ -97,8 +109,11 @@ export const Menu = ({ active }: MenuProps) => {
           <MenuItem href="#section-services" selected={isOnSectionServices}>
             What can I offer
           </MenuItem>
-          <MenuItem href="#section-skills-TechSkills" selected={isOnSectionTechSkills}>
+          <MenuItem href="#section-skills-TechSkills" selected={isOnSkillsSection}>
             Skills
+          </MenuItem>
+          <MenuItem href="#section-projects" selected={isOnProjectsSection}>
+            Achievements
           </MenuItem>
         </MenuList>
       </MenuContainer>

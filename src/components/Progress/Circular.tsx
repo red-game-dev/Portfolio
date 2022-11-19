@@ -61,9 +61,9 @@ const Percentage: FC<PercentageProps> = ({
         strokeDasharray={canAnimate ? (size * 2 * Math.PI) : 250}
         strokeDashoffset={canAnimate ? (size * 2 * Math.PI) - score / 100 * (size * 2 * Math.PI) : 250}
         className={
-          `text-[#4bffa5] delay-1000 duration-1000 ease-linear opacity-0 ${
+          `text-[#4bffa5] delay-1000 duration-1000 ease-linear ${
             canAnimate ?
-            "transition-[stroke-dashoffset] opacity-100" :
+            "transition-[stroke-dashoffset]" :
             "transition-none duration-[0] delay-[0]"
           }`
         }

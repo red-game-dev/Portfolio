@@ -24,6 +24,10 @@ body {
 	text-rendering: optimizeLegibility;
 }
 
+body::-webkit-scrollbar {
+	display: none;
+}
+
 body.scroll_hidden {
 	overflow: hidden;
 	height: 100vh;

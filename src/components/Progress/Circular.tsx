@@ -46,19 +46,20 @@ const Percentage: FC<PercentageProps> = ({
 }: PercentageProps) => (
   <div>
     <ItemPercentageFill />
-    <ItemPercentageBar x-cloak aria-hidden="true">
+    <ItemPercentageBar aria-hidden="true">
       <circle
         className="text-[#404040]"
-        stroke-width="5"
+        strokeWidth="5"
         stroke="currentColor"
         fill="transparent"
         r={size}
         cx={size}
         cy={size}
         />
+        {`${canAnimate} ${(size * 2 * Math.PI) - score / 100 * (size * 2 * Math.PI)}`}
       <circle
-        stroke-dasharray={canAnimate ? (size * 2 * Math.PI) : 250}
-        stroke-dashoffset={canAnimate ? (size * 2 * Math.PI) - score / 100 * (size * 2 * Math.PI) : 250}
+        strokeDasharray={canAnimate ? (size * 2 * Math.PI) : 250}
+        strokeDashoffset={canAnimate ? (size * 2 * Math.PI) - score / 100 * (size * 2 * Math.PI) : 250}
         className={
           `text-[#4bffa5] delay-1000 duration-1000 ease-linear opacity-0 ${
             canAnimate ?
@@ -66,8 +67,8 @@ const Percentage: FC<PercentageProps> = ({
             "transition-none duration-[0] delay-[0]"
           }`
         }
-        stroke-width="5"
-        stroke-linecap="round"
+        strokeWidth="5"
+        strokeLinecap="round"
         stroke="currentColor"
         fill="transparent"
         r={size}

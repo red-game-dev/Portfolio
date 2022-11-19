@@ -29,7 +29,7 @@ const ClearContainer = tw.div`clear-both`;
 const List = tw.div`relative mx-[-50px] flex flex-row flex-wrap justify-evenly`;
 
 export const Projects: FC<ProjectsProps> = ({ projects = [] }: ProjectsProps) => (
-    <Section id="section-portfolio">
+    <Section id="section-projects">
       <Content>
         <Title>Projects</Title>
         <List>

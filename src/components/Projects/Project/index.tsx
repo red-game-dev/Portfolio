@@ -44,15 +44,11 @@ const OuterImageWrapper = styled.div(({ withRandomBorder, isFullBorder }: OuterI
   isFullBorder && tw`border-[0px] border-b-[1px]`,
 ]);
 
-const OuterImageInfo = tw.span`absolute text-center w-full h-full block left-0 top-0`;
-
-const OuterImageInfoIcon = tw.span`absolute top-[20px] right-[20px] text-base text-[#101010] font-normal
+const OuterImageInfo = tw.span`absolute text-center w-full h-full block left-0 top-0 
 opacity-0 translate-y-[-15px] transition-[all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1) 0s]
-hover:opacity-60 hover:translate-y-0 hover:transition-[all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1) 0.35s]`;
+hover:opacity-90 hover:translate-y-0 hover:transition-[all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1) 0.35s]`;
 
-const OuterImageInfoDescription = tw.span`relative py-[10px] px-[20px] block opacity-0 
-translate-y-[-15px] transition-[all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1) 0s]
-hover:top-0 hover:opacity-100 hover:translate-y-0 hover:transition-[all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1) 0.35s]`;
+const OuterImageInfoDescription = tw.span`relative py-[10px] px-[20px] block`;
 
 const OuterImageInfoName = styled.span(() => [
   tw`block text-lg font-medium text-white break-words`,
@@ -103,7 +99,6 @@ export const Project: FC<ProjectProps> = ({
           <OuterImageInfo onClick={onTapCallback} >
             <OuterImageContentWrapper>
               <OuterImageDetail>
-                <OuterImageInfoIcon className="fas fa-plus" />
                 <OuterImageInfoDescription>
                   <OuterImageInfoCategory>{category}</OuterImageInfoCategory>
                   <OuterImageInfoName>{title}</OuterImageInfoName>

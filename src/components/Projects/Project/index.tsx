@@ -1,6 +1,6 @@
 import { FC, useCallback } from "react";
 
-import tw, { styled } from "twin.macro";
+import tw, { css, styled } from "twin.macro";
 
 import Image from "next/image";
 
@@ -32,15 +32,13 @@ interface OuterImageWrapperProps {
 
 
 const Item = styled.div(({ isFullWidth }: ItemProps) => [
-  tw`relative text-center text-sm float-left w-full lg:w-1/2 m-0 p-[0 50px 100px 50px]
-  `,
+  tw`relative text-center text-sm float-left w-full lg:w-1/2 m-0 p-[0 50px 100px 50px]`,
   isFullWidth && tw`lg:w-full`
 ]);
 
 const OuterImageWrapper = styled.div(({ withRandomBorder, isFullBorder }: OuterImageWrapperProps) => [
   tw`relative overflow-hidden block text-xs rounded-lg border-[#4bffa5] border-double
-  hover:animate-[border-transition 1s ease-out 0s infinite]
-  `,
+  hover:animate-[border-transition 1s ease-out 0s infinite] hover:[& > img]:blur-sm`,
   !withRandomBorder && tw`border-b-[1px]`,
   withRandomBorder && tw`border-r-[1px]`,
   isFullBorder && tw`border-[0px] border-b-[1px]`,
@@ -56,9 +54,19 @@ const OuterImageInfoDescription = tw.span`relative py-[10px] px-[20px] block opa
 translate-y-[-15px] transition-[all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1) 0s]
 hover:top-0 hover:opacity-100 hover:translate-y-0 hover:transition-[all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1) 0.35s]`;
 
-const OuterImageInfoName = tw.span`block text-lg font-medium text-[#101010] break-words`;
+const OuterImageInfoName = styled.span(() => [
+  tw`block text-lg font-medium text-white break-words`,
+  css`
+    text-shadow: -1px -2px 1px #4bffa5
+  `
+]);
 
-const OuterImageInfoCategory = tw.span`block text-sm opacity-60 text-[#101010] m-0`;
+const OuterImageInfoCategory = styled.span(() => [
+  tw`block text-sm opacity-60 text-gray-100 m-0`,
+  css`
+    text-shadow: -1px -2px 1px #4bffa5
+  `
+]);
 
 const OuterImageContentWrapper = tw.span`table table-fixed h-full w-full relative left-0 top-0 z-[2]`;
 
@@ -91,7 +99,6 @@ export const Project: FC<ProjectProps> = ({
       <OuterImageWrapper
         withRandomBorder={withRandomBorder}
         isFullBorder={isFullBorder}>
-        <div>
           <Image src={image} width="1000" height="300" alt="" />
           <OuterImageInfo onClick={onTapCallback} >
             <OuterImageContentWrapper>
@@ -104,7 +111,6 @@ export const Project: FC<ProjectProps> = ({
               </OuterImageDetail>
             </OuterImageContentWrapper>
           </OuterImageInfo>
-        </div>
       </OuterImageWrapper>
     </Item>
   );

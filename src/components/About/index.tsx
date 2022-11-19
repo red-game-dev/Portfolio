@@ -45,6 +45,8 @@ const ListItem = tw.li`inline-block align-top w-full lg:w-1/2 m-[0 0 6px 0] [&>s
 
 const ClearContainer = tw.div`clear-both`;
 
+const ButtonsContainer = tw.div`text-center`;
+
 const Button = styled(Link)(() => [
   tw`relative w-full lg:w-auto bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
      inline-block align-middle text-center text-sm lg:text-base leading-9 lg:leading-9`,
@@ -131,7 +133,7 @@ export const About: FC<AboutProps> = ({ description, image, residence, isFlexibl
                 <strong>E-mail:</strong> {email}
               </ListItem>
             </List>
-            <div>
+            <ButtonsContainer>
               <Button href="#">
                 <AnimatedCircle />
                 <InnerButtonText>Download CV</InnerButtonText>
@@ -140,7 +142,7 @@ export const About: FC<AboutProps> = ({ description, image, residence, isFlexibl
                 <AnimatedCircle />
                 <InnerButtonText>LinkedIn</InnerButtonText>
               </Button>
-            </div>
+            </ButtonsContainer>
           </DescriptionContainer>
           <ClearContainer />
         </Content>

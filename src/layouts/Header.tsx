@@ -26,7 +26,7 @@ const HeaderContainer = styled.header(({ isFixed }: HeaderContainerProps) => [
 const HeaderContent = tw.div`w-full relative`;
 
 const LogoContainer = styled.div(() => [
-  tw`relative overflow-hidden top-0 w-[150px] text-base leading-loose font-semibold text-white opacity-50 whitespace-nowrap z-[5] lg:top-12`,
+  tw`relative overflow-hidden top-0 w-[150px] text-base leading-loose font-semibold text-white opacity-50 whitespace-nowrap z-[5] lg:top-8`,
   css`
     .mask-lnk {
       position: relative;

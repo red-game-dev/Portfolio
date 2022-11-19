@@ -2,6 +2,8 @@ import tw, { css, styled } from "twin.macro";
 
 import Link from "next/link";
 
+import useCollision from "@/hooks/useCollision";
+
 interface MenuProps {
   active?: boolean;
 }
@@ -53,7 +55,7 @@ const MenuButton = styled.div(({ active = false }: MenuProps) => [
   active && tw`rotate-45`,
 ]);
 
-const MenuList = styled.ul(() => [
+const MenuList = styled.nav(() => [
   tw`flex flex-col justify-evenly lg:justify-end text-center list-none p-0 m-0 lg:flex-row lg:text-right`,
   css`
     transition: opacity 0.35s cubic-bezier(0.165, 0.85, 0.45, 1);
@@ -70,24 +72,36 @@ const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
   `
 ]);
 
-export const Menu = ({ active }: MenuProps) => (
-  <>
-    <MenuButton active={active} />
-    <MenuContainer active={active}>
-      <MenuList>
-          <MenuItem href="#section-started" selected={true}>
-            Home
+export const Menu = ({ active }: MenuProps) => {
+  const [isOnSectionStarted] = useCollision("section-scroller-link");
+  const [isOnSectionAbout] = useCollision("section-about");
+  const [isOnSectionHistory] = useCollision("section-history");
+  const [isOnSectionServices] = useCollision("section-services");
+  const [isOnSectionTechSkills] = useCollision("section-skills-TechSkills");
+
+  return (
+    <>
+      <MenuButton active={active} />
+      <MenuContainer active={active}>
+        <MenuList>
+          <MenuItem href="#section-started" selected={isOnSectionStarted || 
+            (!isOnSectionAbout && !isOnSectionAbout && !isOnSectionHistory && !isOnSectionServices && !isOnSectionTechSkills)}>
+            Beginning
           </MenuItem>
-          <MenuItem href="#section-about">
-            Resume
+          <MenuItem href="#section-about" selected={isOnSectionAbout}>
+            Who I am
           </MenuItem>
-          <MenuItem href="#section-portfolio">
-            Works
+          <MenuItem href="#section-history" selected={isOnSectionHistory}>
+            My History
           </MenuItem>
-          <MenuItem href="#section-contacts">
-            Contact
+          <MenuItem href="#section-services" selected={isOnSectionServices}>
+            What can I offer
           </MenuItem>
-      </MenuList>
-    </MenuContainer>
-  </>
-);
+          <MenuItem href="#section-skills-TechSkills" selected={isOnSectionTechSkills}>
+            Skills
+          </MenuItem>
+        </MenuList>
+      </MenuContainer>
+    </>
+  );
+};

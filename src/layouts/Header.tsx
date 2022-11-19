@@ -91,7 +91,7 @@ const Header: FC<HeaderProps> = ({ title = "" }: HeaderProps) => {
                 return (<span key={`word-${index}`}> {word}</span>);
               })}
             </span>
-            <Link href="#section-started" className="mask-lnk mask-lnk-hover">
+            <Link href="#section-about" className="mask-lnk mask-lnk-hover">
               Download <strong>CV</strong>
             </Link>
           </LogoContents>

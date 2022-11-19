@@ -46,7 +46,7 @@ export const Cover = ({ intro, image = "https://launcher.goz.fun/resources/image
             <TypingAnimation />
           </TitleWrapper>
       </Content>
-      <ScrollerLink href="#section-about">
+      <ScrollerLink href="#section-about" id="section-scroller-link">
         <ScrollerIcon className="fas fa-chevron-down" />
       </ScrollerLink>
     </Section>

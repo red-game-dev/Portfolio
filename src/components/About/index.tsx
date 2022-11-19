@@ -1,6 +1,6 @@
-import { FC, useMemo, memo, ReactNode } from "react";
+import { FC, useMemo } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import Image from "next/image";
 import Link from "next/link";

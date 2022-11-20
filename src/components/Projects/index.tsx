@@ -3,10 +3,11 @@ import { FC } from "react";
 import tw from "twin.macro";
 
 import { Project } from "@/components/Projects/Project";
-import { ProjectDetail } from "types/projects";
+import { PortfolioData } from "@/data/resume";
+
 
 interface ProjectsProps {
-  projects: ProjectDetail[];
+  projects: Array<PortfolioData["projects"]>;
 }
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;

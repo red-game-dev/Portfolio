@@ -7,41 +7,30 @@ import { Resume } from "@/components/Resume";
 import { Services } from "@/components/Services";
 import { Skills } from "@/components/Skills";
 import { Text } from "@/components/Text";
-import { Detail } from "types/details";
-import { ProjectDetail } from "types/projects";
-import { Skill } from "types/skills";
 
-import resumeData from "../data/resume.json";
+import { portfolioData  } from "../data/resume";
 import Layout from "../layouts/Layout";
 
 export default function Home() {
-  const { image, description, jobType, residence, phone, email, isFlexible } = resumeData.details as unknown as Detail;
-
   return (
     <Layout title="Redeemer Pace">
-      <Cover intro={resumeData.intro} />
+      <Cover intro={portfolioData.intro} />
       <About
-        image={image}
-        description={description}
-        residence={residence}
-        jobType={jobType}
-        phone={phone}
-        email={email}
-        isFlexible={isFlexible}
+        {...portfolioData.details}
       />
       <Services
-        services={resumeData.services}
+        services={portfolioData.services}
       />
       <Resume
-        education={resumeData.education}
-        experience={resumeData.experience}
+        education={portfolioData.education}
+        experience={portfolioData.experience}
       />
-      <Skills title="Tech Skills" skills={resumeData.skills.tech as unknown as Skill[]} isCircle={true} />
-      <Skills title="Tools Skills" skills={resumeData.skills.tools as unknown as Skill[]} isCircle={true} />
-      <Skills title="Design Skills" skills={resumeData.skills.design as unknown as Skill[]} />
-      <Skills title="Language Skills" skills={resumeData.skills.language as unknown as Skill[]} />
-      <Skills title="Knowladge Skills" skills={resumeData.skills.expertise as unknown as Skill[]} isCircle={true} />
-      <Projects projects={resumeData.projects as ProjectDetail[]} />
+      <Skills title="Tech Skills" skills={portfolioData.skills.tech} isCircle={true} />
+      <Skills title="Tools Skills" skills={portfolioData.skills.tools} isCircle={true} />
+      <Skills title="Design Skills" skills={portfolioData.skills.design} />
+      <Skills title="Language Skills" skills={portfolioData.skills.language} />
+      <Skills title="Knowladge Skills" skills={portfolioData.skills.expertise} isCircle={true} />
+      <Projects projects={portfolioData.projects} />
       <Text
         title="Custom Text"
         paragraphs={

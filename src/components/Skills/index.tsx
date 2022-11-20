@@ -5,16 +5,12 @@ import tw, { styled } from "twin.macro";
 import { CircularProgress } from "@/components/Progress/Circular";
 import { LinearProgress } from "@/components/Progress/Linear";
 import useCollision from "@/hooks/useCollision";
-
-interface Skill {
-  name: string;
-  score: number;
-}
+import { Skill } from "types/skills";
 
 interface SkillsProps {
   title: string;
   skills: Skill[];
-  isCircle: boolean;
+  isCircle?: boolean;
 }
 
 interface ListProps {

@@ -5,7 +5,7 @@ import tw, { styled } from "twin.macro";
 import { CircularProgress } from "@/components/Progress/Circular";
 import { LinearProgress } from "@/components/Progress/Linear";
 import useCollision from "@/hooks/useCollision";
-import { Skill } from "types/skills";
+import { Skill } from "@/types/skills";
 
 interface SkillsProps {
   title: string;

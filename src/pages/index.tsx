@@ -7,9 +7,8 @@ import { Resume } from "@/components/Resume";
 import { Services } from "@/components/Services";
 import { Skills } from "@/components/Skills";
 import { Text } from "@/components/Text";
-
-import { portfolioData  } from "../data/resume";
-import Layout from "../layouts/Layout";
+import { portfolioData  } from "@/data/resume";
+import Layout from "@/layouts/Layout";
 
 export default function Home() {
   return (

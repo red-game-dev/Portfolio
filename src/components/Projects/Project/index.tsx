@@ -5,7 +5,8 @@ import tw, { css, styled } from "twin.macro";
 import Image from "next/image";
 
 import { useModalStateHook } from "@/components/Modal/hooks/useModalStateHook";
-import { ProjectDetail } from "types/projects";
+
+import { ProjectDetail } from "@/types/projects";
 
 interface ProjectProps extends ProjectDetail {
   withRandomBorder?: boolean;

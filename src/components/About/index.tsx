@@ -7,7 +7,8 @@ import Link from "next/link";
 
 import useCollision from "@/hooks/useCollision";
 import { useToBinary } from "@/hooks/useToBinary";
-import { Detail } from "types/details";
+
+import { Detail } from "@/types/details";
 
 
 interface CharacterProps {

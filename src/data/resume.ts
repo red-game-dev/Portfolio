@@ -1,8 +1,8 @@
-import { Detail } from "types/details";
-import { ProjectDetail } from "types/projects";
-import { Resume } from "types/resume";
-import { Service } from "types/services";
-import { Skill } from "types/skills";
+import { Detail } from "@/types/details";
+import { ProjectDetail } from "@/types/projects";
+import { Resume } from "@/types/resume";
+import { Service } from "@/types/services";
+import { Skill } from "@/types/skills";
 
 export interface PortfolioData {
   intro: string;
@@ -165,7 +165,7 @@ export const portfolioData = {
         score: 90
       },
       {
-        name: "Typescript",
+        name: "@/typescript",
         score: 90
       },
       {

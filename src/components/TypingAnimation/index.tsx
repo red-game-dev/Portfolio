@@ -1,40 +1,29 @@
-import { useEffect, useRef, FC } from "react";
+import { FC } from "react";
 
 import tw from "twin.macro";
-import Typed from "typed.js";
+
+import { useType } from "@/components/TypingAnimation/hooks/useType";
 
 const Subtitle = tw.h1`
   text-white text-6xl w-full m-auto text-center
-  [& > strong]:text-[#4bffa5]`;
+  [& > span]:text-[#4bffa5] [& > span]:font-bold`;
 
 interface TypingAnimationProps {
-  typingData?: string[];
+  typingData: string[];
 }
 
 const TypingAnimation: FC<TypingAnimationProps> = ({ typingData }: TypingAnimationProps) => {
-  const el = useRef<HTMLHeadingElement | null>(null);
+  const currentLetters = useType(typingData);
 
-  useEffect(() => {
-    const typed = new Typed(el.current as HTMLHeadingElement, {
-      strings: typingData,
-      typeSpeed: 100,
-      backSpeed: 100,
-      backDelay: 100,
-      smartBackspace: true,
-      loop: true,
-      showCursor: false,
-    });
-
-    return () => {
-      typed.destroy();
-    };
-  }, [typingData]);
-
-return (
-    <Subtitle
-      id="typing-title"
-      ref={el}
-    ></Subtitle>
+  return (
+    <>
+      <Subtitle
+        id="typing-title"
+        dangerouslySetInnerHTML={{
+          __html: currentLetters
+        }}
+      />
+    </>
   );
 };
 

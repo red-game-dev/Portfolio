@@ -5,9 +5,11 @@ import {
   SocialProfileJsonLd,
   ProfilePageJsonLd,
   LogoJsonLd,
-  NewsArticleJsonLd
+  NewsArticleJsonLd,
+  ProductJsonLd
 } from "next-seo";
 
+import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
 
 interface SeoProps {
@@ -25,25 +27,25 @@ export const SEO = ({ url }: SeoProps) => (
         type: "profile",
         locale: "en_UK",
         url,
-        siteName: `${seoDetails.title} | ${seoDetails.details.name}`,
+        siteName: `${seoDetails.title} | ${portfolioData.details.name}`,
         profile: {
-          firstName: seoDetails.details.name.split(" ")[0],
-          lastName: seoDetails.details.name.split(" ")[1],
-          username: seoDetails.socialMedia.byUsername.twitter,
+          firstName: portfolioData.details.name.split(" ")[0],
+          lastName: portfolioData.details.name.split(" ")[1],
+          username: portfolioData.socialMedia.byUsername.twitter,
           gender: "male",
         },
         images: [
           {
-            url: seoDetails.details.image,
+            url: portfolioData.details.image,
             width: 850,
             height: 650,
-            alt: `${seoDetails.socialMedia.byUsername.twitter} Profile Photo`,
+            alt: `${portfolioData.socialMedia.byUsername.twitter} Profile Photo`,
           },
         ],
       }}
       twitter={{
-        handle: seoDetails.socialMedia.byUsername.twitter,
-        site: seoDetails.socialMedia.byUsername.twitter,
+        handle: portfolioData.socialMedia.byUsername.twitter,
+        site: portfolioData.socialMedia.byUsername.twitter,
         cardType: "summary_large_image",
       }}
       additionalLinkTags={[
@@ -68,24 +70,24 @@ export const SEO = ({ url }: SeoProps) => (
       additionalMetaTags={[
         {
           name: "application-name",
-          content: `${seoDetails.title} | ${seoDetails.details.name}`
+          content: `${seoDetails.title} | ${portfolioData.details.name}`
         }
       ]}
     />
     <LogoJsonLd
-      logo={seoDetails.details.image}
+      logo={portfolioData.details.image}
       url={url}
     />
     <SocialProfileJsonLd
       type="Person"
-      name={seoDetails.details.name}
+      name={portfolioData.details.name}
       url={url}
       sameAs={[
-        `https://www.facebook.com/${seoDetails.socialMedia.byUsername.facebook}`,
-        `https://www.linkedin.com/in/${seoDetails.socialMedia.byUsername.linkedIn}`,
-        `https://www.instagram.com/${seoDetails.socialMedia.byUsername.instagram}`,
-        `https://twitter.com/${seoDetails.socialMedia.byUsername.twitter}`,
-        `https://www.youtube.com/${seoDetails.socialMedia.byProjectsUsername.gameYt}`
+        `https://www.facebook.com/${portfolioData.socialMedia.byUsername.facebook}`,
+        `https://www.linkedin.com/in/${portfolioData.socialMedia.byUsername.linkedIn}`,
+        `https://www.instagram.com/${portfolioData.socialMedia.byUsername.instagram}`,
+        `https://twitter.com/${portfolioData.socialMedia.byUsername.twitter}`,
+        `https://www.youtube.com/${portfolioData.socialMedia.byProjectsUsername.gameYt}`
       ]}
     />
     <ProfilePageJsonLd
@@ -120,14 +122,14 @@ export const SEO = ({ url }: SeoProps) => (
     />
     <CorporateContactJsonLd
       url={url}
-      logo={seoDetails.details.image}
+      logo={portfolioData.details.image}
       contactPoint={[
         {
-          telephone: seoDetails.details.phone,
+          telephone: portfolioData.details.phone,
           contactType: "Contact",
-          email: seoDetails.details.email,
+          email: portfolioData.details.email,
           areaServed: "EU",
-          availableLanguage: [seoDetails.skills.language.map((skill) => skill.name)],
+          availableLanguage: [portfolioData.skills.language.map((skill) => skill.name)],
         },
       ]}
     />
@@ -135,15 +137,15 @@ export const SEO = ({ url }: SeoProps) => (
       mainEntity={[
         {
           questionName: "When is the best time to reach me?",
-          acceptedAnswerText: seoDetails.details.contactTime,
+          acceptedAnswerText: portfolioData.details.contactTime,
         },
         {
           questionName: "What is my preferred job type?",
-          acceptedAnswerText: seoDetails.details.jobType,
+          acceptedAnswerText: portfolioData.details.jobType,
         },
         {
           questionName: "What are my expertise? ",
-          acceptedAnswerText: seoDetails.skills.expertise.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.expertise.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
         },
         {
           questionName: "Looking at the moment?",
@@ -155,20 +157,20 @@ export const SEO = ({ url }: SeoProps) => (
         },
         {
           questionName: "What programming languages do I use?",
-          acceptedAnswerText: seoDetails.skills.tech.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.tech.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
         },
         {
           questionName: "What design tools do I use?",
-          acceptedAnswerText: seoDetails.skills.design.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.design.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
         },
         {
           questionName: "What general tools do I use?",
-          acceptedAnswerText: seoDetails.skills.tools.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.tools.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
         },
       ]}
     />
     {
-      seoDetails.projects.map((project, index) => (
+      portfolioData.projects.map((project, index) => (
         <NewsArticleJsonLd
           key={`project-${index}`}
           url={`${url}/#section-projects`}
@@ -176,17 +178,28 @@ export const SEO = ({ url }: SeoProps) => (
           images={[project.image]}
           section={project.category}
           keywords={`${project.title},${project.category},${project.techStack.join(",")}`}
-          datePublished={project.from}
-          dateModified={project.from}
-          authorName={seoDetails.details.name}
-          publisherName={project.title}
-          publisherLogo="https://www.example.com/photos/logo.jpg"
+          authorName={portfolioData.details.name}
+          publisherName={portfolioData.details.name}
+          publisherLogo={portfolioData.details.image}
           description={project.intro}
           body={project.responsabilities.length
             ? `${project.intro} \n\n Tech Stack: ${project.techStack.join(",")}`
             : `${project.intro} \n\n Responsabilities: ${project.responsabilities.join(",")}. \n\n Tech Stack: ${project.techStack.join(",")}`}
           isAccessibleForFree={true}
+          datePublished={project.from}
           dateCreated={project.from}
+        />
+      ))
+    }
+    {
+      portfolioData.services.map((service, index) => (
+        <ProductJsonLd
+          key={`service-${index}`}
+          type="service"
+          productName={service.title}
+          description={service.description}
+          manufacturerName={portfolioData.details.name}
+          manufacturerLogo={portfolioData.details.image}
         />
       ))
     }

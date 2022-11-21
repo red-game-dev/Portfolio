@@ -35,7 +35,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
       <Script src="https://kit.fontawesome.com/54dc1ed9f3.js" crossOrigin="anonymous" />
 
-      <SEO url={process.env.HOST} />
+      <SEO url={process.env.HOST || "#"} />
 
       <GlobalStyles />
       <RecoilRoot>

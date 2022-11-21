@@ -133,16 +133,21 @@ export const AppLoader: FC = () => {
   const { isLoading, setIsLoading, isReady, setIsReady } = useAppLoaderStateHook();
 
   useEffect(() => {
-    setTimeout(() => {
+    const timeoutReady = setTimeout(() => {
       if (!isReady) {
         setIsReady(true);
       }
     }, 3000);
-    setTimeout(() => {
+    const timeoutLoading = setTimeout(() => {
       if (isLoading) {
         setIsLoading(false);
       }
     }, 1000);
+
+    return () => {
+      clearInterval(timeoutReady);
+      clearInterval(timeoutLoading);
+    };
   }, [isReady, isLoading, setIsReady, setIsLoading]);
 
   return (

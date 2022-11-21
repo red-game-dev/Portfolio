@@ -30,6 +30,30 @@ export const portfolioData: PortfolioData = {
     services: {
       title: "Services",
       description: ["Looking for top-notch service? You're at the right place!"]
+    },
+    design: {
+      title: "Design Skill",
+      description: ["Design perhaps not my main expertise, yet I handled a lot of designs throughout my experience"]
+    },
+    language: {
+      title: "Language Skill",
+      description: ["Most of the time I do communicate more using english, sometimes more than my mother tongue"]
+    },
+    tech: {
+      title: "Tech Skill",
+      description: ["Have an overview of my expertise in tech, is there any skills that interest you?"]
+    },
+    tools: {
+      title: "Tools Skill",
+      description: ["Generally I do use a lot of tools, although some may use less and some may use more according to the occasion of current work"]
+    },
+    expertise: {
+      title: "Expertise",
+      description: ["Various of roles I do expertise at, each one will give you an overview of knowledge overall"]
+    },
+    projects: {
+      title: "Projects",
+      description: ["Lets speak about projects, have a small overview of few huge projects!"]
     }
   },
   details: {

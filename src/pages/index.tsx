@@ -25,11 +25,11 @@ export default function Home() {
         education={portfolioData.education}
         experience={portfolioData.experience}
       />
-      <Skills title="Tech Skills" skills={portfolioData.skills.tech} isCircle={true} />
-      <Skills title="Tools Skills" skills={portfolioData.skills.tools} isCircle={true} />
-      <Skills title="Design Skills" skills={portfolioData.skills.design} />
-      <Skills title="Language Skills" skills={portfolioData.skills.language} />
-      <Skills title="Knowladge Skills" skills={portfolioData.skills.expertise} isCircle={true} />
+      <Skills skills={portfolioData.skills.tech} intro={portfolioData.sections.tech} isCircle={true} />
+      <Skills skills={portfolioData.skills.tools} intro={portfolioData.sections.tools} isCircle={true} />
+      <Skills skills={portfolioData.skills.design} intro={portfolioData.sections.design} />
+      <Skills skills={portfolioData.skills.language} intro={portfolioData.sections.language} />
+      <Skills skills={portfolioData.skills.expertise} intro={portfolioData.sections.expertise} isCircle={true} />
       <Projects projects={portfolioData.projects} />
       <Text
         title="Custom Text"

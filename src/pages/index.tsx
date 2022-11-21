@@ -12,10 +12,12 @@ import Layout from "@/layouts/Layout";
 
 export default function Home() {
   return (
-    <Layout title="Redeemer Pace">
+    <Layout title={portfolioData.details.name}>
       <Cover intro={portfolioData.intro} image={portfolioData.cover} typingsTitles={portfolioData.typingsTitles} />
       <About
         {...portfolioData.details}
+        linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
+        cvUrl={portfolioData.cv}
       />
       <Services
         services={portfolioData.services}
@@ -32,13 +34,8 @@ export default function Home() {
       <Skills skills={portfolioData.skills.expertise} intro={portfolioData.sections.expertise} isCircle={true} />
       <Projects projects={portfolioData.projects} intro={portfolioData.sections.projects} />
       <Text
-        title="Custom Text"
-        paragraphs={
-          [
-            "Test 1",
-            "Test 2"
-          ]
-        }
+        title={portfolioData.sections.conclusion.title}
+        paragraphs={portfolioData.sections.conclusion.description}
       />
     </Layout>
   );

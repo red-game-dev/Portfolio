@@ -4,6 +4,10 @@ import tw, { css, styled } from "twin.macro";
 
 import Link from "next/link";
 
+interface FooterProps {
+  linkedInUsername: string;
+}
+
 const FooterContainer = styled.footer(() => [
   tw`p-0 fixed bottom-0 left-12 right-12 w-auto h-1 z-[10] hidden lg:block`
 ]);
@@ -27,11 +31,11 @@ const SocialMediaItem = styled(Link)(() => [
 ]);
 
 
-const Footer: FC = () => (
+const Footer: FC<FooterProps> = ({ linkedInUsername }: FooterProps) => (
     <FooterContainer>
       <SocialMediaList>
         <FollowMeButton>Follow Me</FollowMeButton>
-        <SocialMediaItem href="https://www.pinterest.com/" target="_blank" className="fab fa-linkedin" />
+        <SocialMediaItem href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" className="fab fa-linkedin" />
       </SocialMediaList>
     </FooterContainer>
   );

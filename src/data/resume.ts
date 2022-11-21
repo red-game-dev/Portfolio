@@ -8,6 +8,7 @@ import { Skill } from "@/types/skills";
 export interface PortfolioData {
   intro: string;
   cover: string;
+  cv: string;
   typingsTitles: string[];
   details: Detail;
   sections: {
@@ -24,11 +25,23 @@ export interface PortfolioData {
     expertise: Skill[];
   };
   projects: ProjectDetail[];
+  socialMedia: {
+    byUsername: {
+      twitter: string;
+      instagram: string;
+      facebook: string;
+      linkedIn: string;
+    };
+    byProjectsUsername: {
+      gameYt: string;
+    };
+  };
 }
 
 export const portfolioData: PortfolioData = {
   intro: "Hello! I’m <strong>Redeemer Pace</strong>, lets get to know me?",
   cover: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
+  cv: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
   typingsTitles: [
     "Your next <strong>Frontend Engineer</strong>",
     "Your next <strong>Backend Engineer</strong>",
@@ -44,19 +57,19 @@ export const portfolioData: PortfolioData = {
       description: ["Looking for top-notch service? You're at the right place!"]
     },
     design: {
-      title: "Design Skill",
+      title: "Design Skills",
       description: ["Design perhaps not my main expertise, yet I handled a lot of designs throughout my experience"]
     },
     language: {
-      title: "Language Skill",
+      title: "Language Skills",
       description: ["Most of the time I do communicate more using english, sometimes more than my mother tongue"]
     },
     tech: {
-      title: "Tech Skill",
+      title: "Tech Skills",
       description: ["Have an overview of my expertise in tech, is there any skills that interest you?"]
     },
     tools: {
-      title: "Tools Skill",
+      title: "Tools Skills",
       description: ["Generally I do use a lot of tools, although some may use less and some may use more according to the occasion of current work"]
     },
     expertise: {
@@ -66,6 +79,14 @@ export const portfolioData: PortfolioData = {
     projects: {
       title: "Projects",
       description: ["Lets speak about projects, have a small overview of few huge projects!"]
+    },
+    conclusion: {
+      title: "Wow!",
+      description: [`
+        You made it till the end, how was it the journey about me? Should you require to reach out to me, 
+        ideally would be after 4.30 PM CET (Malta) business days. 
+        I look forward for to our conversation near the future conversation!
+      `]
     }
   },
   details: {
@@ -73,10 +94,11 @@ export const portfolioData: PortfolioData = {
     description: `Highly experienced as Software Engineer, Game Development, Web Development, Tech Consultancy, Architecture, Managing, 
     Marketing. Looking forward to learn more where I can I improve my knowledge & new challenges`,
     residence: "Maltese",
-    jobType: "B2B / Full-time",
+    jobType: "B2B / Employment",
     phone: "+356 79323059",
     email: "red.pace.dev@gmail.com",
-    image: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
+    image: "/images/profile.png",
+    contactTime: "After 4.30 PM CET (Malta) business days",
     isFlexible: true
   },
   services: [
@@ -102,6 +124,11 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Business Consultancy",
+      icon: "fas fa-code",
+      description: ""
+    },
+    {
+      title: "Marketing",
       icon: "fas fa-code",
       description: ""
     }
@@ -211,7 +238,7 @@ export const portfolioData: PortfolioData = {
         score: 90
       },
       {
-        name: "@/typescript",
+        name: "Typescript",
         score: 90
       },
       {
@@ -343,6 +370,10 @@ export const portfolioData: PortfolioData = {
         score: 75
       },
       {
+        name: "Manging",
+        score: 70
+      },
+      {
         name: "Designing",
         score: 40
       }
@@ -417,5 +448,16 @@ export const portfolioData: PortfolioData = {
       from: "Apr 2019",
       to: "Apr 2019"
     }
-  ]
+  ],
+  socialMedia: {
+    byUsername: {
+      twitter: "@red_game_dev",
+      instagram: "adventure.redmt",
+      facebook: "traveller.redmt",
+      linkedIn: "redeemer-pace-685692b9"
+    },
+    byProjectsUsername: {
+      gameYt: "@godsofzushin"
+    }
+  }
 };

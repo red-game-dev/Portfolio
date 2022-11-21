@@ -7,4 +7,5 @@ export interface Detail {
   image: string;
   name: string;
   isFlexible: boolean;
+  contactTime: string;
 }

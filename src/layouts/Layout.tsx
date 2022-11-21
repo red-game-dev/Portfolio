@@ -7,6 +7,7 @@ import { Modal } from "@/components/Modal";
 
 import Footer from "./Footer";
 import Header from "./Header";
+import { portfolioData  } from "@/data/resume";
 
 const Container = tw.div`relative m-0 overflow-hidden before:z-[8] before:pointer-events-none`;
 
@@ -26,7 +27,7 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => (
           <Wrapper>
             {children}
           </Wrapper>
-        <Footer />
+        <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
         <AppLoadingLines />
       </Container>
     </Fragment>

@@ -20,6 +20,9 @@ module.exports = {
       exclude: ['error'],
     },
   },
+  env: {
+    HOST: process.env.HOST,
+  },
   images: {
     domains: [
       'launcher.goz.fun',

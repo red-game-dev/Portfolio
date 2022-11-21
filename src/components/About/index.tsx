@@ -7,8 +7,12 @@ import Link from "next/link";
 
 import useCollision from "@/hooks/useCollision";
 import { useToBinary } from "@/hooks/useToBinary";
-import { Detail as AboutProps } from "@/types/details";
+import { Detail } from "@/types/details";
 
+interface AboutProps extends Detail {
+  linkedInUsername: string;
+  cvUrl: string;
+}
 
 interface CharacterProps {
   canAnimate: boolean;
@@ -83,7 +87,7 @@ margin-top: 0;
   animation-delay: 0s!important;
 }`;
 
-export const About: FC<AboutProps> = ({ description, image, residence, isFlexible, jobType, phone, email }: AboutProps) => {
+export const About: FC<AboutProps> = ({ description, image, residence, isFlexible, jobType, phone, email, contactTime, cvUrl, linkedInUsername }: AboutProps) => {
   const [hasArrivedToDescription] = useCollision("section-about-hit-point-end");
   const convertedDescription = useToBinary(description);
   const CharactersList = useMemo(() => convertedDescription
@@ -113,10 +117,10 @@ export const About: FC<AboutProps> = ({ description, image, residence, isFlexibl
                 <strong>Residence:</strong> {residence}
               </ListItem>
               <ListItem>
-                <strong>Job seeking:</strong> {isFlexible ? "Flexible" : "Immediately"}
+                <strong>Seeking:</strong> {isFlexible ? "Flexible" : "Immediately"}
               </ListItem>
               <ListItem>
-                <strong>Job Type:</strong> {jobType}
+                <strong>Type:</strong> {jobType}
               </ListItem>
               <ListItem>
                 <strong>Phone:</strong>{phone}
@@ -124,13 +128,16 @@ export const About: FC<AboutProps> = ({ description, image, residence, isFlexibl
               <ListItem>
                 <strong>E-mail:</strong> {email}
               </ListItem>
+              <ListItem>
+                <strong>Contact Time:</strong> {contactTime}
+              </ListItem>
             </List>
             <ButtonsContainer>
-              <Button href="#">
+              <Button href={cvUrl} target="_blank">
                 <AnimatedCircle />
                 <InnerButtonText>Download CV</InnerButtonText>
               </Button>
-              <Button href="#">
+              <Button href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank">
                 <AnimatedCircle />
                 <InnerButtonText>LinkedIn</InnerButtonText>
               </Button>

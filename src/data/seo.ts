@@ -1,5 +1,6 @@
 import { portfolioData }  from "@/data/resume";
 import { Detail as ProfileDetails } from "@/types/details";
+import { ProjectDetail } from "@/types/projects";
 import { Skill } from "@/types/skills";
 
 interface Details {
@@ -14,6 +15,7 @@ interface Details {
     tools: Skill[];
     expertise: Skill[];
   };
+  projects: ProjectDetail[];
   socialMedia: {
     byUsername: {
       twitter: string;
@@ -37,6 +39,7 @@ const seoDetails: Details = {
   `,
   socialMedia: portfolioData.socialMedia,
   skills: portfolioData.skills,
+  projects: portfolioData.projects,
 };
 
 export default seoDetails;

@@ -1,4 +1,12 @@
-import { DefaultSeo, CorporateContactJsonLd, FAQPageJsonLd, SocialProfileJsonLd, ProfilePageJsonLd } from "next-seo";
+import {
+  DefaultSeo,
+  CorporateContactJsonLd,
+  FAQPageJsonLd,
+  SocialProfileJsonLd,
+  ProfilePageJsonLd,
+  LogoJsonLd,
+  NewsArticleJsonLd
+} from "next-seo";
 
 import seoDetails from "@/data/seo";
 
@@ -63,6 +71,10 @@ export const SEO = ({ url }: SeoProps) => (
           content: `${seoDetails.title} | ${seoDetails.details.name}`
         }
       ]}
+    />
+    <LogoJsonLd
+      logo={seoDetails.details.image}
+      url={url}
     />
     <SocialProfileJsonLd
       type="Person"
@@ -155,5 +167,28 @@ export const SEO = ({ url }: SeoProps) => (
         },
       ]}
     />
+    {
+      seoDetails.projects.map((project, index) => (
+        <NewsArticleJsonLd
+          key={`project-${index}`}
+          url={`${url}/#section-projects`}
+          title={project.title}
+          images={[project.image]}
+          section={project.category}
+          keywords={`${project.title},${project.category},${project.techStack.join(",")}`}
+          datePublished={project.from}
+          dateModified={project.from}
+          authorName={seoDetails.details.name}
+          publisherName={project.title}
+          publisherLogo="https://www.example.com/photos/logo.jpg"
+          description={project.intro}
+          body={project.responsabilities.length
+            ? `${project.intro} \n\n Tech Stack: ${project.techStack.join(",")}`
+            : `${project.intro} \n\n Responsabilities: ${project.responsabilities.join(",")}. \n\n Tech Stack: ${project.techStack.join(",")}`}
+          isAccessibleForFree={true}
+          dateCreated={project.from}
+        />
+      ))
+    }
   </>
 );

@@ -1,11 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, RefObject } from "react";
 
-const useClickOutside = (handler: any) => {
-  const domNode = useRef<any>();
+const useClickOutside = <TElement>(handler: () => void): RefObject<TElement> => {
+  const domNode = useRef<TElement>();
 
   useEffect(() => {
-    const maybeHandler = (event: any) => {
-      if (!domNode.current?.contains(event.target)) {
+    const maybeHandler = (event: Event) => {
+      if (!(domNode.current as HTMLElement)?.contains(event?.target as Node)) {
         handler();
       }
     };
@@ -17,7 +17,7 @@ const useClickOutside = (handler: any) => {
     };
   });
 
-  return domNode;
+  return domNode as RefObject<TElement>;
 };
 
 export default useClickOutside;

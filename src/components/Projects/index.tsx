@@ -26,12 +26,12 @@ export const Projects: FC<ProjectsProps> = ({ projects = [], intro }: ProjectsPr
       <Content>
         <Text title={intro.title} paragraphs={intro.description} isSection={false} />
         <List>
-          {projects.map((project: any, index: number) => (<Project
+          {projects.map((project: ProjectDetail, index: number) => (<Project
             key={`${project.title.replace(/\s/, "")}-${index}`}
             {...project}
             withRandomBorder={index % 3 === 0}
-            isFullBorder={((project.length - 1 / 2) % 1) > 0 && index === (project.length - 1)}
-            isFullWidth={((project.length - 1 / 2) % 1) > 0 && index === (project.length - 1)}
+            isFullBorder={((projects.length - 1 / 2) % 1) > 0 && index === (projects.length - 1)}
+            isFullWidth={((projects.length - 1 / 2) % 1) > 0 && index === (projects.length - 1)}
           />))}
         </List>
         <ClearContainer />

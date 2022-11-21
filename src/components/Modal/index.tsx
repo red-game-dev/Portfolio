@@ -29,7 +29,7 @@ const PopupBox = styled.div(({ isVisible }: PopupBoxProps) => [
 
 export const Modal = () => {
   const { modalContent, setModal } = useModalStateHook();
-  const domNode: any = useClickOutside(() => {
+  const domNode = useClickOutside<HTMLDivElement>(() => {
     setModal(null);
   });
 

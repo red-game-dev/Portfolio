@@ -1,5 +1,6 @@
 import { ServerStyleSheet } from "styled-components";
 
+import { AppProps } from "next/app";
 import Document, { DocumentContext, Html, Head, Main, NextScript } from "next/document";
 
 export default class MyDocument extends Document {
@@ -10,7 +11,7 @@ export default class MyDocument extends Document {
     try {
       ctx.renderPage = () =>
         originalRenderPage({
-          enhanceApp: (App: any) => (props: any) => sheet.collectStyles(
+          enhanceApp: (App) => (props: AppProps) => sheet.collectStyles(
             <Html>
               <Head />
                 <body>

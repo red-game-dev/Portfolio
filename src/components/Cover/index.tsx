@@ -4,6 +4,11 @@ import Link from "next/link";
 
 import TypingAnimation from "@/components/TypingAnimation";
 
+interface CoverProps {
+  image: string;
+  intro: string;
+}
+
 const Introduction = styled.h1(() => [
   tw`m-0 absolute text-white break-words left-0 px-5 lg:pr-12 text-base 
     bottom-[30px]
@@ -32,7 +37,7 @@ const VideoBackgroundMask = tw.div`absolute top-0 left-0 w-full h-full opacity-4
 
 const VideoBackgroundTexture = tw.div`absolute top-0 left-0 w-full h-full z-[2]`;
 
-export const Cover = ({ intro, image = "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg" }: any) => (
+export const Cover = ({ intro, image }: CoverProps) => (
     <Section id="section-started">
       <VideoContainer
         style={{ backgroundImage: `url(${image})` }}

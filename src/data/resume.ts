@@ -7,6 +7,7 @@ import { Skill } from "@/types/skills";
 
 export interface PortfolioData {
   intro: string;
+  cover: string;
   details: Detail;
   sections: {
     [x: string]: SectionIntros;
@@ -26,6 +27,7 @@ export interface PortfolioData {
 
 export const portfolioData: PortfolioData = {
   intro: "Hello! I’m <strong>Redeemer Pace</strong>, lets get to know me?",
+  cover: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
   sections: {
     services: {
       title: "Services",

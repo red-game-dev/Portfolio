@@ -5,7 +5,7 @@ import tw, { css, styled } from "twin.macro";
 import Image from "next/image";
 
 import { useModalStateHook } from "@/components/Modal/hooks/useModalStateHook";
-
+import { ModalType } from "@/types/modal";
 import { ProjectDetail } from "@/types/projects";
 
 interface ProjectProps extends ProjectDetail {
@@ -70,7 +70,7 @@ export const Project: FC<ProjectProps> = ({
 
   const onTapCallback = useCallback(() => {
     setModal({
-      type: "project",
+      type: ModalType.PROJECT,
       title,
       intro,
       category,

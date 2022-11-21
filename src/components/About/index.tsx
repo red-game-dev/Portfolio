@@ -7,8 +7,7 @@ import Link from "next/link";
 
 import useCollision from "@/hooks/useCollision";
 import { useToBinary } from "@/hooks/useToBinary";
-
-import { Detail } from "@/types/details";
+import { Detail as AboutProps } from "@/types/details";
 
 
 interface CharacterProps {
@@ -84,7 +83,7 @@ margin-top: 0;
   animation-delay: 0s!important;
 }`;
 
-export const About: FC<Detail> = ({ description, image, residence, isFlexible, jobType, phone, email }: Detail) => {
+export const About: FC<AboutProps> = ({ description, image, residence, isFlexible, jobType, phone, email }: AboutProps) => {
   const [hasArrivedToDescription] = useCollision("section-about-hit-point-end");
   const convertedDescription = useToBinary(description);
   const CharactersList = useMemo(() => convertedDescription

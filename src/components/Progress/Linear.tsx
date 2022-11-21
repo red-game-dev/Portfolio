@@ -4,9 +4,14 @@ interface ItemPercentageProps {
   score?: number;
   canAnimate?: boolean;
 }
-
 interface ItemInnerPercenteProps {
   isVisible?: boolean;
+}
+
+interface LinearProgressProps {
+  title: string;
+  score: number;
+  canAnimate?: boolean;
 }
 
 const Item = tw.li`relative p-[35px 0 0 0]`;
@@ -31,7 +36,7 @@ export const LinearProgress = ({
   title,
   score,
   canAnimate,
-}: any) => (
+}: LinearProgressProps) => (
     <Item>
       <ItemTitle>{ title }</ItemTitle>
       <ItemProgressContainer>

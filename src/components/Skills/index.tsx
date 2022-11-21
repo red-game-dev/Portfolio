@@ -36,7 +36,7 @@ export const Skills: FC<SkillsProps> = ({ intro, skills = [] as Skill[], isCircl
       <Content>
         <Text title={intro.title} paragraphs={intro.description} isSection={false} />
         <List isCircle={isCircle}>
-            {skills.map((skill: any, index: number) => (
+            {skills.map((skill: Skill, index: number) => (
               isCircle
                 ? <CircularProgress key={`${skill.name.replace(/\s/, "")}-${index}`}
                     canAnimate={isVisibleElement}
@@ -46,8 +46,7 @@ export const Skills: FC<SkillsProps> = ({ intro, skills = [] as Skill[], isCircl
                 : <LinearProgress key={`${skill.name.replace(/\s/, "")}-${index}`}
                     canAnimate={isVisibleElement}
                     title={skill.name}
-                    score={skill.score}
-                    size={40} />
+                    score={skill.score} />
             ))}
         </List>
       </Content>

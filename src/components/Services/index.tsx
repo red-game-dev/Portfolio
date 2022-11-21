@@ -24,7 +24,7 @@ export const Services = ({ services = [], intro }: ServicesProps) => (
       <Text title={intro.title} paragraphs={intro.description} isSection={false} />
       <Content>
         <List>
-          {services.map((service: any, index: number) => (
+          {services.map((service: Service, index: number) => (
             <BoxTile
               key={`${service.title.replace(/\s/, "")}-${index}`}
               withRandomBorder={index % 3 === 0}

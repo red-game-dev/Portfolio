@@ -2,9 +2,14 @@ import {
   atom
 } from "recoil";
 
-export interface ModalStateProps {
-  [x: string]: any;
+import { ModalType } from "@/types/modal";
+import { ProjectDetail } from "@/types/projects";
+
+interface ModalProjectState extends ProjectDetail {
+  type: ModalType;
 }
+
+export type ModalStateProps = ModalProjectState;
 
 export const AppModalState = atom<ModalStateProps | null>({
   key: "ModalAtom",

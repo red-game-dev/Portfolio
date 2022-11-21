@@ -7,6 +7,7 @@ import TypingAnimation from "@/components/TypingAnimation";
 interface CoverProps {
   image: string;
   intro: string;
+  typingsTitles: string[];
 }
 
 const Introduction = styled.h1(() => [
@@ -37,7 +38,7 @@ const VideoBackgroundMask = tw.div`absolute top-0 left-0 w-full h-full opacity-4
 
 const VideoBackgroundTexture = tw.div`absolute top-0 left-0 w-full h-full z-[2]`;
 
-export const Cover = ({ intro, image }: CoverProps) => (
+export const Cover = ({ intro, image, typingsTitles }: CoverProps) => (
     <Section id="section-started">
       <VideoContainer
         style={{ backgroundImage: `url(${image})` }}
@@ -48,7 +49,7 @@ export const Cover = ({ intro, image }: CoverProps) => (
       <Content>
           <Introduction dangerouslySetInnerHTML={{ __html: intro }} />
           <TitleWrapper>
-            <TypingAnimation />
+            <TypingAnimation typingData={typingsTitles} />
           </TitleWrapper>
       </Content>
       <ScrollerLink href="#section-about" id="section-scroller-link">

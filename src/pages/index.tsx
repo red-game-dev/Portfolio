@@ -13,7 +13,7 @@ import Layout from "@/layouts/Layout";
 export default function Home() {
   return (
     <Layout title="Redeemer Pace">
-      <Cover intro={portfolioData.intro} image={portfolioData.cover} />
+      <Cover intro={portfolioData.intro} image={portfolioData.cover} typingsTitles={portfolioData.typingsTitles} />
       <About
         {...portfolioData.details}
       />

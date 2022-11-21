@@ -5,5 +5,6 @@ export interface Detail {
   phone: string;
   email: string;
   image: string;
+  name: string;
   isFlexible: boolean;
 }

@@ -1,13 +1,17 @@
 import { Detail } from "@/types/details";
 import { ProjectDetail } from "@/types/projects";
 import { Resume } from "@/types/resume";
+import { SectionIntros } from "@/types/sections-intros";
 import { Service } from "@/types/services";
 import { Skill } from "@/types/skills";
 
 export interface PortfolioData {
   intro: string;
   details: Detail;
-  services: Service;
+  sections: {
+    [x: string]: SectionIntros;
+  };
+  services: Service[];
   education: Resume[];
   experience: Resume[];
   skills: {
@@ -20,8 +24,14 @@ export interface PortfolioData {
   projects: ProjectDetail[];
 }
 
-export const portfolioData = {
+export const portfolioData: PortfolioData = {
   intro: "Hello! I’m <strong>Redeemer Pace</strong>, lets get to know me?",
+  sections: {
+    services: {
+      title: "Services",
+      description: ["Looking for top-notch service? You're at the right place!"]
+    }
+  },
   details: {
     name: "Redeemer Pace",
     description: `Highly experienced as Software Engineer, Game Development, Web Development, Tech Consultancy, Architecture, Managing, 
@@ -311,7 +321,7 @@ export const portfolioData = {
       since during the weekends I do aim to work on interesting game updates which does grow my knowledge significantly. 
       Please be sure to check under "Work Experience" to learn further about the project details.`,
       responsabilities: [],
-      techStack: "",
+      techStack: [""],
       link: "https://goz.fun",
       from: "Apr 2015"
     },
@@ -372,4 +382,4 @@ export const portfolioData = {
       to: "Apr 2019"
     }
   ]
-} as unknown as PortfolioData;
+};

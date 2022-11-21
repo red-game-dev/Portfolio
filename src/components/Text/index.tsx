@@ -20,7 +20,7 @@ const Paragraph = styled.div(() => [
 ]);
 
 export const Text: FC<TextProps> = ({ title, paragraphs = [] }: TextProps) => (
-    <Section id="section-custom-text">
+    <Section id={`section-${(title || paragraphs[0]?.slice(0, 10)).replace(/\s/, "-")}`}>
       <Content>
         { title && <Title>{ title }</Title> }
         <div>

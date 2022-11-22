@@ -13,6 +13,7 @@ export interface PortfolioData {
   typingsTitles: string[];
   details: Detail;
   github: Github[];
+  stackoverflow: string;
   sections: {
     [x: string]: SectionIntros;
   };
@@ -58,6 +59,7 @@ export const portfolioData: PortfolioData = {
       link: "https://github.com/animemixedworldgithub"
     }
   ],
+  stackoverflow: "https://stackoverflow.com/users/15786039/ired-game-dev",
   typingsTitles: [
     "Your next <strong>Frontend Engineer</strong>",
     "Your next <strong>Backend Engineer</strong>",

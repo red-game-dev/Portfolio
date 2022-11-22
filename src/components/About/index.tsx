@@ -14,6 +14,7 @@ interface AboutProps extends Detail {
   linkedInUsername: string;
   cvUrl: string;
   github: Github[];
+  stackoverflow: string;
 }
 
 interface CharacterProps {
@@ -94,7 +95,7 @@ margin-top: 0;
 export const About: FC<AboutProps> = ({
   description, image, residence,
   isFlexible, jobType, phone, email,
-  contactTime, cvUrl, github, linkedInUsername
+  contactTime, cvUrl, github, stackoverflow, linkedInUsername
 }: AboutProps) => {
   const [hasArrivedToDescription] = useCollision("section-about-hit-point-end");
   const convertedDescription = useToBinary(description);
@@ -157,6 +158,10 @@ export const About: FC<AboutProps> = ({
                   </Button>
                 ))
               }
+              <Button href={stackoverflow} target="_blank">
+                <AnimatedCircle />
+                <InnerButtonText className="fa-brands fa-stack-overflow">StackOverflow</InnerButtonText>
+              </Button>
             </ButtonsContainer>
           </DescriptionContainer>
           <ClearContainer />

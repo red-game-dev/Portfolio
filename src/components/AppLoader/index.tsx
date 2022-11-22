@@ -134,16 +134,12 @@ export const AppLoadingLines: FC = () => {
 };
 
 const LoaderBackground = styled.div(({ isLoading }: LoaderBackgroundProps) => [
-  tw`fixed w-full h-full left-0 top-0 visible overflow-visible z-[12] bg-[#101010]`,
+  tw`fixed w-full h-screen left-0 top-0 flex justify-center items-center visible z-[12] bg-[#101010]`,
   !isLoading && tw`invisible`,
 ]);
 
 const LoadingBackgroundLetter = tw.div`
-relative flex inline-flex flex-row-reverse flex-nowrap 
-left-[38.5%] lg:left-[30%] top-1/2 w-4 lg:w-28 h-6
-animate-[blur-text 500ms infinite linear] 
-hover:animate-[move-text 2s forwards, text-color 2s forwards, border-transition 2s ease-in-out 0s] 
-text-[#4bffa5] text-base lg:text-8xl
+w-[5px] h-[100px] bg-wave m-[10px] animate-[wave 1s linear infinite]
 
 [&:nth-child(2)]:delay-[100ms]
 [&:nth-child(3)]:delay-[200ms]
@@ -151,6 +147,9 @@ text-[#4bffa5] text-base lg:text-8xl
 [&:nth-child(5)]:delay-[400ms]
 [&:nth-child(6)]:delay-[500ms]
 [&:nth-child(7)]:delay-[600ms]
+[&:nth-child(8)]:delay-[700ms]
+[&:nth-child(9)]:delay-[800ms]
+[&:nth-child(10)]:delay-[900ms]
 `;
 
 export const AppLoader: FC = () => {
@@ -177,12 +176,16 @@ export const AppLoader: FC = () => {
   return (
     <>
       <LoaderBackground isLoading={isLoading}>
-        <LoadingBackgroundLetter>W</LoadingBackgroundLetter>
-        <LoadingBackgroundLetter>E</LoadingBackgroundLetter>
-        <LoadingBackgroundLetter></LoadingBackgroundLetter>
-        <LoadingBackgroundLetter>G</LoadingBackgroundLetter>
-        <LoadingBackgroundLetter>O</LoadingBackgroundLetter>
-        <LoadingBackgroundLetter>!</LoadingBackgroundLetter>
+        <LoadingBackgroundLetter />
+        <LoadingBackgroundLetter />
+        <LoadingBackgroundLetter />
+        <LoadingBackgroundLetter />
+        <LoadingBackgroundLetter />
+        <LoadingBackgroundLetter />
+        <LoadingBackgroundLetter />
+        <LoadingBackgroundLetter />
+        <LoadingBackgroundLetter />
+        <LoadingBackgroundLetter />
       </LoaderBackground>
       <PreloadingContainer isLoading={isLoading}>
         <PreloadingCentralized>

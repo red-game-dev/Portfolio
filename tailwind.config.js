@@ -15,6 +15,9 @@ module.exports = {
       },
       backgroundPosition: {
         'fittable-mobile': `53% 100%`
+      },
+      backgroundImage: {
+        'wave':  'linear-gradient(45deg, #1E6944, #4bffa5)'
       }
     },
   },

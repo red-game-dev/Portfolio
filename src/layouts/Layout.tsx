@@ -19,7 +19,7 @@ interface LayoutProps {
 }
 
 const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => (
-    <Fragment>
+    <>
       <Modal />
       <AppLoader />
       <Container>
@@ -30,7 +30,7 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => (
         <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
         <AppLoadingLines />
       </Container>
-    </Fragment>
+    </>
   );
 
 export default Layout;

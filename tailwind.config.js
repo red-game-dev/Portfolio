@@ -13,6 +13,9 @@ module.exports = {
       height: {
         'endless-width': '1000%',
       },
+      backgroundPosition: {
+        'fittable-mobile': `53% 100%`
+      }
     },
   },
   plugins: [

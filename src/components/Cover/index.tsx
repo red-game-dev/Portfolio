@@ -32,7 +32,7 @@ const ScrollerLink = styled(Link)(() => [
 
 const ScrollerIcon = tw.i`relative bottom-[10px]`;
 
-const VideoContainer = tw.div`blur-sm w-full h-full left-0 top-0 bg-fixed bg-cover bg-center flex justify-center items-center w-screen`;
+const VideoContainer = tw.div`blur-sm w-full h-full left-0 top-0 bg-fixed bg-cover lg:bg-center bg-fittable-mobile flex justify-center items-center w-screen`;
 
 const VideoBackgroundMask = tw.div`absolute top-0 left-0 w-full h-full opacity-40 z-[2] bg-[#101010]`;
 

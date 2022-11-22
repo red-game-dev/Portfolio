@@ -6,6 +6,7 @@ import {
 import { createGlobalStyle } from "styled-components";
 import tw, { theme, GlobalStyles as BaseStyles } from "twin.macro";
 
+import { Analytics } from "@vercel/analytics/react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import Script from "next/script";
@@ -40,6 +41,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <GlobalStyles />
       <RecoilRoot>
         <Component {...pageProps} />
+        <Analytics />
       </RecoilRoot>
     </>
   );

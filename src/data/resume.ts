@@ -63,11 +63,14 @@ export const portfolioData: PortfolioData = {
   typingsTitles: [
     "Your next <strong>Frontend Engineer</strong>",
     "Your next <strong>Backend Engineer</strong>",
+    "Your next <strong>Architect</strong>",
     "Your next <strong>Game Developer</strong>",
+    "Your next <strong>Game Consultant</strong>",
     "Your next <strong>App Developer</strong>",
     "Your next <strong>Software Engineer</strong>",
     "Your next <strong>Tech Consultant</strong>",
-    "Your next <strong>Architect</strong>",
+    "Your next <strong>Business Consultant</strong>",
+    "Your next <strong>Marketing Consultant</strong>",
   ],
   sections: {
     services: {
@@ -146,7 +149,7 @@ export const portfolioData: PortfolioData = {
       description: ""
     },
     {
-      title: "Marketing",
+      title: "Marketing Consultancy",
       icon: "fa-duotone fa-shop",
       description: ""
     }

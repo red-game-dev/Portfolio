@@ -40,8 +40,8 @@ export interface PortfolioData {
 
 export const portfolioData: PortfolioData = {
   intro: "Hello! I’m <strong>Redeemer Pace</strong>, lets get to know me?",
-  cover: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
-  cv: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
+  cover: "/images/cover-picture.jpg",
+  cv: "https://drive.google.com/file/d/1k2FJG0ZpKA76eCUg_mb1TlncqzOLsACg/view?usp=sharing",
   typingsTitles: [
     "Your next <strong>Frontend Engineer</strong>",
     "Your next <strong>Backend Engineer</strong>",
@@ -381,7 +381,7 @@ export const portfolioData: PortfolioData = {
   },
   projects: [
     {
-      image: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
+      image: "/images/chapter5-cover.jpg",
       title: "Gods of Zushin",
       category: "Game | MMORPG",
       intro: `An achievement on it's own and personally is part of my work experience as well, 
@@ -393,7 +393,7 @@ export const portfolioData: PortfolioData = {
       from: "Apr 2015"
     },
     {
-      image: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
+      image: "/images/socialnetwork-amw.png",
       title: "AMW - Social Network & Game",
       category: "Social Network, Game",
       intro: `Although this project was discontinued, I did manage back then to raise a 
@@ -408,12 +408,12 @@ export const portfolioData: PortfolioData = {
         "Furthermore can be discussed about this project"
       ],
       techStack: ["PHP", "JS", "HTML", "Python", "WebGL & Canvas"],
-      link: "https://goz.fun",
+      link: "https://drive.google.com/drive/folders/1jN-Xhfiro3UJppRLVehG8UIytjFJVVtl?usp=share_link",
       from: "Apr 2015",
       to: "Apr 2019"
     },
     {
-      image: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
+      image: "/images/chapter3.jpg",
       title: "GOZ Chapter 3",
       category: "Marketing, Patch Intro, MMORPG",
       intro: `After first 2 chapters, I started to improve my marketing skills and 
@@ -421,11 +421,11 @@ export const portfolioData: PortfolioData = {
       responsabilities: [],
       techStack: ["ReactJS"],
       link: "https://chapter3.goz.fun",
-      from: "Apr 2019",
-      to: "Apr 2019"
+      from: "Apr 2018",
+      to: "Apr 2018"
     },
     {
-      image: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
+      image: "/images/chapter4.jpg",
       title: "GOZ Chapter 4",
       category: "Promoting the new Patch",
       intro: `After first 2 chapters, I started to improve my marketing skills
@@ -437,16 +437,16 @@ export const portfolioData: PortfolioData = {
       to: "Apr 2019"
     },
     {
-      image: "https://launcher.goz.fun/resources/images/chapter-5-discover-of-new-lands-reverse-top-logos.jpg",
+      image: "/images/otherprojects.png",
       title: "Other Projects",
       category: "Different industries",
       intro: `Generally made many more projects, which I try my best to 
       keep my knowledge active and acquire more, therefore could introduce valuable knowledge to companies I work for.`,
       responsabilities: [],
       techStack: ["ReactJS", "Unity", "Angular", "C/C++"],
-      link: "https://chapter4.goz.fun",
-      from: "Apr 2019",
-      to: "Apr 2019"
+      link: "https://drive.google.com/drive/folders/0B1gPxpJpFGW5SGhXeS1pTzA4Tmc?resourcekey=0-amvzxbZpCBhf7bV-GVUmTg&usp=share_link",
+      from: "Jan 2013",
+      to: "Jan 2022"
     }
   ],
   socialMedia: {

@@ -4,10 +4,10 @@ import tw from "twin.macro";
 
 import { AppLoader, AppLoadingLines } from "@/components/AppLoader";
 import { Modal } from "@/components/Modal";
+import { portfolioData  } from "@/data/resume";
 
 import Footer from "./Footer";
 import Header from "./Header";
-import { portfolioData  } from "@/data/resume";
 
 const Container = tw.div`relative m-0 overflow-hidden before:z-[8] before:pointer-events-none`;
 

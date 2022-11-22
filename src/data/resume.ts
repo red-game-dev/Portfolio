@@ -386,9 +386,42 @@ export const portfolioData: PortfolioData = {
       category: "Game | MMORPG",
       intro: `An achievement on it's own and personally is part of my work experience as well, 
       since during the weekends I do aim to work on interesting game updates which does grow my knowledge significantly. 
-      Please be sure to check under "Work Experience" to learn further about the project details.`,
-      responsabilities: [],
-      techStack: [""],
+      Please be sure to check under "Work Experience" to learn further about the project details.
+      
+      I started since I started to studying, the main aim was to
+      improve my skills in various of sectors. This project took me 4 and half years to
+      completely finish it, yet is still ongoing with new improvements, new features every 6
+      months to 1 year patches. The game uses various of programming languages, but thats just the tip of the iceberg.`,
+      responsabilities: [
+        "Maintain & Develop scalable solution",
+        "Architecture of the whole Game Engine",
+        "Design 3D/2D Modeling, Textures and such using Maya (Most of models were bought as it is time consuming)",
+        "Introducing multiple payment methods such as Stripe, PayPal and many more",
+        "Introducing Algorithms, Custom Compression & Custom Cryptographies for enterprise security, yet remain scalable",
+        "Marketing using various of Social Media's and their ads tools",
+        "Introducing new ways to increase profit such as Shopify for market branded items of the game",
+        "Manging community",
+        "Managing teams of Moderators, Event Coordinators, Game Developer",
+        `Leading a company as a CEO, and as well technical aspect as CTO. 
+         Initially I handled a lot as well financial and other needs and as 'One-man' army, 
+         yet I've other members who does game testing, design, and such`,
+        "Financial Bugdet allocation",
+        "Monitor Social Technology Trends",
+        "Identifiying possible opportunities of risks for business",
+        "Maintain high security standards & follow all required processes for keeping the player safe at all times",
+        "Monitor, evaluate & keep up to date with the regulations",
+        "Monitor Analytics",
+        "Lead and motivate",
+        "Innovate innovative features to build an truly amazing game for the players",
+        "Making high-quality investing decisions",
+        "Create strategy for improve the business",
+        "Review financial and non-financial reports",
+        "Build trust relations with key partners and stakeholders",
+        "Maintain a deep knowledge of the markets and industry",
+        "Analyze problematic situations and occurrences and provide solutions",
+        "Furthermore can be discussed about this project",
+      ],
+      techStack: ["C/C++", "Lua", "Python", "VueJS", "PHP Laravel", "C#", "Electron (Old Launcher)", "Cloudflare", "DigitalOcean", "AWS"],
       link: "https://goz.fun",
       from: "Apr 2015"
     },
@@ -405,9 +438,28 @@ export const portfolioData: PortfolioData = {
         while no limits were added such as for levels, enchancements and so on.`,
         `Included various of features such as auction, ads system similar to facebook, 
         character interaction as RPG, publish your own creations, chats and more`,
-        "Furthermore can be discussed about this project"
+        "Marketing using various of Social Media's and their ads tools",
+        "Monitor Analytics",
+        "Furthermore can be discussed about this project",
+        "Manging community",
+        "Managing teams of Moderators, Event Coordinators",
+        `Leading a company as a CEO, and as well technical aspect as CTO. 
+         Initially I handled a lot as well financial and other needs and as 'One-man' army, 
+         yet I've other members who does game testing, design, and such`,
+        "Financial Bugdet allocation (The site was free, although maintaining it was expensive)",
+        "Monitor Social Technology Trends",
+        "Maintain high security standards & follow all required processes for keeping the player safe at all times",
+        "Monitor, evaluate & keep up to date with the regulations",
+        "Monitor Analytics",
+        "Lead and motivate",
+        "Innovate innovative features to build an truly amazing network for the users",
+        "Making high-quality investing decisions",
+        "Create strategy for improve the social network",
+        "Maintain a deep knowledge of other possible competitors",
+        "Analyze problematic situations and occurrences and provide solutions",
+        "Furthermore can be discussed about this project",
       ],
-      techStack: ["PHP", "JS", "HTML", "Python", "WebGL & Canvas"],
+      techStack: ["PHP", "My Own Frameworks (PHP, JS)", "JS (JQuery, Backbone)", "Python", "WebGL & Canvas", "HTML", "CSS", "Cloudflare", "DigitalOcean", "AWS"],
       link: "https://drive.google.com/drive/folders/1jN-Xhfiro3UJppRLVehG8UIytjFJVVtl?usp=share_link",
       from: "Apr 2015",
       to: "Apr 2019"
@@ -418,8 +470,12 @@ export const portfolioData: PortfolioData = {
       category: "Marketing, Patch Intro, MMORPG",
       intro: `After first 2 chapters, I started to improve my marketing skills and 
       therefore introduced landing page for the pre-release of the new chapter.`,
-      responsabilities: [],
-      techStack: ["ReactJS"],
+      responsabilities: [
+        "Develop & Maintain an introductive site for acquire new players",
+        "Monitor Analytics",
+        "Marketing using various of Social Media's and their ads tools"
+      ],
+      techStack: ["ReactJS", "Static Site"],
       link: "https://chapter3.goz.fun",
       from: "Apr 2018",
       to: "Apr 2018"
@@ -430,8 +486,12 @@ export const portfolioData: PortfolioData = {
       category: "Promoting the new Patch",
       intro: `After first 2 chapters, I started to improve my marketing skills
        and therefore introduced landing page for the pre-release of the new chapter.`,
-      responsabilities: [],
-      techStack: ["ReactJS"],
+      responsabilities: [
+        "Develop & Maintain an introductive site for acquire new players",
+        "Monitor Analytics",
+        "Marketing using various of Social Media's and their ads tools"
+      ],
+      techStack: ["ReactJS", "Static Site"],
       link: "https://chapter4.goz.fun",
       from: "Apr 2019",
       to: "Apr 2019"
@@ -442,8 +502,11 @@ export const portfolioData: PortfolioData = {
       category: "Different industries",
       intro: `Generally made many more projects, which I try my best to 
       keep my knowledge active and acquire more, therefore could introduce valuable knowledge to companies I work for.`,
-      responsabilities: [],
-      techStack: ["ReactJS", "Unity", "Angular", "C/C++"],
+      responsabilities: [
+        "Architecting the whole solution from scratch",
+        "Acquire knowledge and improve overtime"
+      ],
+      techStack: ["ReactJS", "Unity", "Angular", "C/C++", "PHP", "NodeJS", "Flutter", "Python"],
       link: "https://drive.google.com/drive/folders/0B1gPxpJpFGW5SGhXeS1pTzA4Tmc?resourcekey=0-amvzxbZpCBhf7bV-GVUmTg&usp=share_link",
       from: "Jan 2013",
       to: "Jan 2022"

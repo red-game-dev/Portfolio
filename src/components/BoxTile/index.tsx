@@ -2,12 +2,14 @@ import { FC } from "react";
 
 import tw, { styled } from "twin.macro";
 
+import { Text } from "@/components/Text";
+
 interface BoxTileProps {
   title: string;
   subtitle?: string;
   activeSubtitle?: boolean;
   icon?: string;
-  description?: string;
+  description?: string[] | string;
   isFullBorder?: boolean;
   withRandomBorder?: boolean;
   isFullWidth?: boolean;
@@ -38,8 +40,6 @@ hover:animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-trans
 
 const ItemTitle = tw.div`text-lg m-[15px 0] text-[#eee] font-semibold text-center w-full`;
 
-const ItemDescription = tw.div`text-[#c3c3c3] text-justify`;
-
 const ItemSubtitle = styled.div(({ active = false }: SubtitleProps) => [
   tw`relative m-[0 0 5px 0] inline-block text-xs text-[#999]`,
   active && tw`text-[#4bffa5] font-medium`
@@ -51,6 +51,13 @@ export const BoxTile: FC<BoxTileProps> = ({ isFullBorder, withRandomBorder, isFu
     { subtitle && <ItemSubtitle active={activeSubtitle}>{ subtitle }</ItemSubtitle> }
     { icon && <Icon className={icon} /> }
     <ItemTitle>{ title }</ItemTitle>
-    <ItemDescription>{ description }</ItemDescription>
+    {
+      description && (
+        <Text
+          paragraphs={typeof description === "object" ? description : [description]}
+          isSection={false}
+        />
+      )
+    }
   </Item>
 );

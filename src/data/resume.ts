@@ -155,52 +155,81 @@ export const portfolioData: PortfolioData = {
     {
       title: "Frontend Engineer, Chiliz",
       from: "Nov 2019",
-      description: `Nativescript, Vuejs, Webpack, Jest tests, Redux-observables, RxJs, Java/Kotlin, 
-      Swift, React-Native, React, Ionic, Flutter.`
+      description: [
+        `Working with blockchain and sports company as Frontend Engineer and Unofficially Tech Lead. 
+        Furthermore we can discuss about achievements.`,
+        `Tech Stack:  Nativescript, Vuejs, Webpack, Jest tests, Redux-observables, RxJs, Java/Kotlin, 
+        Swift, React-Native, React, Ionic, Flutter, Architecture.`
+      ]
     },
     {
       title: "Chief Techonology Officer, CoinOn",
       from: "Nov 2021",
       to: "Jan 2022",
-      description: `Nativescript, Vuejs, Webpack, Jest tests, Redux-observables, 
-      RxJs, Java/Kotlin, Swift, React-Native, React, Ionic, Flutter.`
+      description: [
+        "Delivered a full scale solution of website, mobile app and a blockchain infrastructure.",
+        "Tech Stack: Flutter, NodeJs, Rust (Substrate), VueJs Nuxt."
+      ],
     },
     {
       title: "Founder, CEO & CTO, Gods of Zushin",
       from: "Apr 2015",
-      description: "C/C++, Lua, Python, VueJS, PHP Laravel, NodeJs, C#"
+      description: [
+        "An achievement on it's own with over 5 years in production environment.",
+        "A Game MMORPG project developed during studies to enhance my knowledge in various of areas, which can be discuss.",
+        `Tech Stack: C/C++, Lua, SQL, Python, VueJS, PHP Laravel, NodeJs, C#, Algorithms, Cryptographies, Compressions, Architecture,
+        Photopshop, Illustrator`
+      ],
     },
     {
       title: "Software Developer, KPMG",
       from: "Feb 2019",
       to: "Sep 2019",
-      description: "PHP - Laravel, VueJS, Angular, React, C# ASP.NET, C/C++"
+      description: [
+        "Being hired by KPMG is one big achievement on it's own, as it is one of the big 4 firm in auditing.",
+        "Tech Stack: PHP - Laravel, VueJS, Angular, NodeJS, React, C# ASP.NET, C/C++, Architecture"
+      ]
     },
     {
       title: "Frontend Developer, AuthenticGaming",
       from: "Jul 2017",
       to: "Jan 2019",
-      description: "React, Redux, Redux-observables, RxJs, Backbone, Canvas, NodeJS"
+      description: [
+        `One of the companies that given me a lot of experiences throughout the years. 
+        This company is an iGaming Company, which was my first experience in iGaming.`,
+        "React, Redux, Redux-observables, MongoDB, Kafka, SignalR, NodeJS, RxJs, Backbone, Canvas, PixJS / Vanilla JS Canvas, NodeJS"
+      ]
     }
   ],
   education: [
     {
+      title: "Online Courses",
+      description: [
+        "These courses has helped me enchance further knowledge for both pratical and theoretical",
+        `Courses: Python, Architecture, Leadership, VueJS, Angular, React, Laravel, React Native, Ionic, NativeScript, 
+        AI, Blockchain (Solidity, Substrate, Rust, Solana) and many more`
+      ],
+      from: "Sep 2017",
+    },
+    {
       title: "Bachelor of Science (Honours) in Multimedia Software Development, MCAST",
-      description: `Although last year wasnt completed, I was able to learn a lot of interesting subjects. \n 
-      Coursework - C#, Blender, Game Development, Photoshop, Web Development, PHP, Maltese, English, Maths, 
-      2D Animation with After Effects`,
+      description: [
+        "Although last year wasnt completed, I was able to learn a lot of interesting subjects",
+        `Courses: C#, Blender, Game Development, Photoshop, Web Development, PHP, Maltese, English, Maths, 
+        2D Animation with After Effects`
+      ],
       from: "Sep 2015",
       to: "Jun 2017"
     },
     {
       title: "Extended Diploma Computer Software Engineering, MCAST",
-      description: "Coursework - C#, Blender, Photoshop, Web Development, PHP, Maltese, English, Maths, 2D Animation with After Effects",
+      description: ["Courses: C#, Blender, Photoshop, Web Development, PHP, Maltese, English, Maths, 2D Animation with After Effects"],
       from: "Sep 2013",
       to: "Jun 2015"
     },
     {
       title: "Diploma Computer Software Engineering, MCAST",
-      description: "Coursework - C#, Blender, Photoshop, Web Development, PHP, Maltese, English, Maths, 2D Animation with After Effects",
+      description: ["Courses: C#, Blender, Photoshop, Web Development, PHP, Maltese, English, Maths, 2D Animation with After Effects"],
       from: "Sep 2011",
       to: "Jun 2013"
     }
@@ -342,11 +371,15 @@ export const portfolioData: PortfolioData = {
         score: 5
       },
       {
+        name: "Visual Studio 2003-2022",
+        score: 99
+      },
+      {
         name: "VS Code",
         score: 90
       },
       {
-        name: "JetBeans Tools",
+        name: "JetBrains Tools",
         score: 70
       },
       {

@@ -122,32 +122,32 @@ export const portfolioData: PortfolioData = {
   services: [
     {
       title: "Frontend Enginering",
-      icon: "fas fa-code",
+      icon: "fa-duotone fa-browser",
       description: ""
     },
     {
       title: "Backend Enginering",
-      icon: "fas fa-code",
+      icon: "fa-duotone fa-server",
       description: ""
     },
     {
       title: "Tech Consultancy",
-      icon: "fas fa-code",
+      icon: "fa-duotone fa-presentation-screen",
       description: ""
     },
     {
       title: "Game Consultancy",
-      icon: "fas fa-code",
+      icon: "fa-duotone fa-gamepad-modern",
       description: ""
     },
     {
       title: "Business Consultancy",
-      icon: "fas fa-code",
+      icon: "fa-duotone fa-chart-simple",
       description: ""
     },
     {
       title: "Marketing",
-      icon: "fas fa-code",
+      icon: "fa-duotone fa-shop",
       description: ""
     }
   ],

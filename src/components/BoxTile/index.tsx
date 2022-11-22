@@ -33,7 +33,8 @@ const Item = styled.div(({ withRandomBorder, isFullBorder, isFullWidth }: ItemCo
   !isFullWidth && tw`lg:w-[45%]`
 ]);
 
-const Icon = tw.i`text-xl text-[#4bffa5] font-normal text-center w-full`;
+const Icon = tw.i`text-xl text-[#4bffa5] font-normal text-center w-full 
+hover:animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`;
 
 const ItemTitle = tw.div`text-lg m-[15px 0] text-[#eee] font-semibold text-center w-full`;
 

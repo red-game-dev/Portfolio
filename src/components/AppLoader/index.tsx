@@ -1,8 +1,12 @@
-import { FC, Fragment, useEffect } from "react";
+import { FC, useEffect } from "react";
 
 import tw, { styled } from "twin.macro";
 
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
+
+interface LoaderBackgroundProps {
+  isLoading: boolean;
+}
 
 interface PreloaderContainerProps {
   isLoading?: boolean;
@@ -129,6 +133,26 @@ export const AppLoadingLines: FC = () => {
   );
 };
 
+const LoaderBackground = styled.div(({ isLoading }: LoaderBackgroundProps) => [
+  tw`fixed w-full h-full left-0 top-0 visible overflow-visible z-[12] bg-[#101010]`,
+  !isLoading && tw`invisible`,
+]);
+
+const LoadingBackgroundLetter = tw.div`
+relative flex inline-flex flex-row-reverse flex-nowrap 
+left-[38.5%] lg:left-[30%] top-1/2 w-4 lg:w-28 h-6
+animate-[blur-text 500ms infinite linear] 
+hover:animate-[move-text 2s forwards, text-color 2s forwards, border-transition 2s ease-in-out 0s] 
+text-[#4bffa5] text-base lg:text-8xl
+
+[&:nth-child(2)]:delay-[100ms]
+[&:nth-child(3)]:delay-[200ms]
+[&:nth-child(4)]:delay-[300ms]
+[&:nth-child(5)]:delay-[400ms]
+[&:nth-child(6)]:delay-[500ms]
+[&:nth-child(7)]:delay-[600ms]
+`;
+
 export const AppLoader: FC = () => {
   const { isLoading, setIsLoading, isReady, setIsReady } = useAppLoaderStateHook();
 
@@ -151,7 +175,15 @@ export const AppLoader: FC = () => {
   }, [isReady, isLoading, setIsReady, setIsLoading]);
 
   return (
-    <Fragment>
+    <>
+      <LoaderBackground isLoading={isLoading}>
+        <LoadingBackgroundLetter>W</LoadingBackgroundLetter>
+        <LoadingBackgroundLetter>E</LoadingBackgroundLetter>
+        <LoadingBackgroundLetter></LoadingBackgroundLetter>
+        <LoadingBackgroundLetter>G</LoadingBackgroundLetter>
+        <LoadingBackgroundLetter>O</LoadingBackgroundLetter>
+        <LoadingBackgroundLetter>!</LoadingBackgroundLetter>
+      </LoaderBackground>
       <PreloadingContainer isLoading={isLoading}>
         <PreloadingCentralized>
           <PreloadingSpinner>
@@ -160,6 +192,6 @@ export const AppLoader: FC = () => {
           </PreloadingSpinner>
         </PreloadingCentralized>
       </PreloadingContainer>
-    </Fragment>
+    </>
   );
 };

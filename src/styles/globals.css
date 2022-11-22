@@ -223,3 +223,33 @@
     color: white;
   }
 }
+
+
+@keyframes move {
+  0% {
+    left:0;
+    opacity:0;
+  }
+	35% {
+		left: 41%; 
+		transform:rotate(0deg);
+		opacity:1;
+	}
+	65% {
+		left:59%; 
+		transform:rotate(0deg); 
+		opacity:1;
+	}
+	100% {
+		left:100%; 
+		transform:rotate(-180deg);
+		opacity:0;
+	}
+}
+
+
+
+@keyframes blur-text {
+  0% {filter: blur(0px);}
+  100% {filter: blur(4px);}
+}

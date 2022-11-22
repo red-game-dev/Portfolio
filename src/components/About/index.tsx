@@ -8,10 +8,12 @@ import Link from "next/link";
 import useCollision from "@/hooks/useCollision";
 import { useToBinary } from "@/hooks/useToBinary";
 import { Detail } from "@/types/details";
+import { Github } from "@/types/general";
 
 interface AboutProps extends Detail {
   linkedInUsername: string;
   cvUrl: string;
+  github: Github[];
 }
 
 interface CharacterProps {
@@ -53,13 +55,15 @@ const Button = styled(Link)(() => [
      before:w-[0px]
      before:h-[0px]
      before:bg-[#3ebf69]
+     before:left-0
+     hover:before:text-white
      hover:animate-[border-transition 1s ease-out 0s infinite]
      hover:before:transition-[5s all linear]
      hover:before:h-full
      hover:before:w-full`
 ]);
 
-const InnerButtonText = tw.div`relative py-0 px-7 block z-[2] pointer-events-none`;
+const InnerButtonText = tw.div`relative py-0 px-7 block z-[2] pointer-events-none before:pr-2`;
 
 const AnimatedCircle = tw.div`absolute w-full h-full block`;
 
@@ -87,7 +91,11 @@ margin-top: 0;
   animation-delay: 0s!important;
 }`;
 
-export const About: FC<AboutProps> = ({ description, image, residence, isFlexible, jobType, phone, email, contactTime, cvUrl, linkedInUsername }: AboutProps) => {
+export const About: FC<AboutProps> = ({
+  description, image, residence,
+  isFlexible, jobType, phone, email,
+  contactTime, cvUrl, github, linkedInUsername
+}: AboutProps) => {
   const [hasArrivedToDescription] = useCollision("section-about-hit-point-end");
   const convertedDescription = useToBinary(description);
   const CharactersList = useMemo(() => convertedDescription
@@ -135,12 +143,20 @@ export const About: FC<AboutProps> = ({ description, image, residence, isFlexibl
             <ButtonsContainer>
               <Button href={cvUrl} target="_blank">
                 <AnimatedCircle />
-                <InnerButtonText>Download CV</InnerButtonText>
+                <InnerButtonText className="fa-brands fa-google-drive">Download CV</InnerButtonText>
               </Button>
               <Button href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank">
                 <AnimatedCircle />
-                <InnerButtonText>LinkedIn</InnerButtonText>
+                <InnerButtonText className="fa-brands fa-linkedin">LinkedIn</InnerButtonText>
               </Button>
+              {
+                github.map(({ name, link }, index: number) => (
+                  <Button key={`github-${index}`} href={link} target="_blank">
+                    <AnimatedCircle />
+                    <InnerButtonText  className="fa-brands fa-github">{ name }</InnerButtonText>
+                  </Button>
+                ))
+              }
             </ButtonsContainer>
           </DescriptionContainer>
           <ClearContainer />

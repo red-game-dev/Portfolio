@@ -18,6 +18,7 @@ export default function Home() {
         {...portfolioData.details}
         linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
         cvUrl={portfolioData.cv}
+        github={portfolioData.github}
       />
       <Services
         services={portfolioData.services}

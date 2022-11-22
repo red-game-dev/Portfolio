@@ -1,4 +1,5 @@
 import { Detail } from "@/types/details";
+import { Github } from "@/types/general";
 import { ProjectDetail } from "@/types/projects";
 import { Resume } from "@/types/resume";
 import { SectionIntros } from "@/types/sections-intros";
@@ -11,6 +12,7 @@ export interface PortfolioData {
   cv: string;
   typingsTitles: string[];
   details: Detail;
+  github: Github[];
   sections: {
     [x: string]: SectionIntros;
   };
@@ -42,6 +44,20 @@ export const portfolioData: PortfolioData = {
   intro: "Hello! I’m <strong>Redeemer Pace</strong>, lets get to know me?",
   cover: "/images/cover-picture.jpg",
   cv: "https://drive.google.com/file/d/1k2FJG0ZpKA76eCUg_mb1TlncqzOLsACg/view?usp=sharing",
+  github: [
+    {
+      name: "Me",
+      link: "https://github.com/red-game-dev"
+    },
+    {
+      name: "GOZ",
+      link: "https://github.com/AMW-Game-Entertainment"
+    },
+    {
+      name: "SN",
+      link: "https://github.com/animemixedworldgithub"
+    }
+  ],
   typingsTitles: [
     "Your next <strong>Frontend Engineer</strong>",
     "Your next <strong>Backend Engineer</strong>",

@@ -71,7 +71,7 @@ export const ProjectModal: FC = () => {
   return (
     <>
       <PopupBoxImage
-        style={{ backgroundImage: `url(${modalContent.image})` }}
+        style={{ backgroundImage: `url(${modalContent.image}), url(${modalContent.image.replace(".webp", ".jpg")})` }}
       />
       <CloseButton onClick={onClose}>
         <AnimatedCircle />

@@ -41,7 +41,7 @@ const VideoBackgroundTexture = tw.div`absolute top-0 left-0 w-full h-full z-[2]`
 export const Cover = ({ intro, image, typingsTitles }: CoverProps) => (
     <Section id="section-started">
       <VideoContainer
-        style={{ backgroundImage: `url(${image})` }}
+        style={{ backgroundImage: `url(${image}), url(${image.replace(".webp", ".jpg")})` }}
       >
         <VideoBackgroundMask />
         <VideoBackgroundTexture id="grained_container" />

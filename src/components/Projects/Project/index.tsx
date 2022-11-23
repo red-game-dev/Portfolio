@@ -2,8 +2,7 @@ import { FC, useCallback } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import Image from "next/image";
-
+import { Image } from "@/components/Image";
 import { useModalStateHook } from "@/components/Modal/hooks/useModalStateHook";
 import { ModalType } from "@/types/modal";
 import { ProjectDetail } from "@/types/projects";
@@ -88,7 +87,7 @@ export const Project: FC<ProjectProps> = ({
       <OuterImageWrapper
         withRandomBorder={withRandomBorder}
         isFullBorder={isFullBorder}>
-          <Image src={image} width="1000" height="300" alt="" />
+          <Image src={image} width="1000" height="300" alt="" fallbackSrc={image.replace(".webp", ".jpg")} />
           <OuterImageInfo onClick={onTapCallback} >
             <OuterImageContentWrapper>
               <OuterImageDetail>

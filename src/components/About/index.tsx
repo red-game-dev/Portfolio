@@ -2,9 +2,9 @@ import { FC, useMemo } from "react";
 
 import tw, { styled } from "twin.macro";
 
-import Image from "next/image";
 import Link from "next/link";
 
+import { Image } from "@/components/Image";
 import useCollision from "@/hooks/useCollision";
 import { useToBinary } from "@/hooks/useToBinary";
 import { Detail } from "@/types/details";
@@ -116,7 +116,7 @@ export const About: FC<AboutProps> = ({
       <Section id="section-about">
         <Title>About</Title>
         <Content>
-          <SectionImage src={image} alt="" width="200" height="500" />
+          <SectionImage src={image} alt="" width="200" height="500" fallbackSrc={image.replace(".webp", ".jpg")} />
           <DescriptionContainer>
             <Paragraph>
               { CharactersList }

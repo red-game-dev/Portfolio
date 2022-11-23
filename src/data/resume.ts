@@ -43,7 +43,7 @@ export interface PortfolioData {
 
 export const portfolioData: PortfolioData = {
   intro: "Hello! I’m <strong>Redeemer Pace</strong>, lets get to know me?",
-  cover: "/images/cover-picture.jpg",
+  cover: "/images/cover-picture.webp",
   cv: "https://drive.google.com/file/d/1k2FJG0ZpKA76eCUg_mb1TlncqzOLsACg/view?usp=sharing",
   github: [
     {
@@ -118,7 +118,7 @@ export const portfolioData: PortfolioData = {
     jobType: "B2B / Employment",
     phone: "+356 79323059",
     email: "red.pace.dev@gmail.com",
-    image: "/images/profile.png",
+    image: "/images/profile.webp",
     contactTime: "After 4.30 PM CET (Malta) business days",
     isFlexible: true
   },
@@ -435,7 +435,7 @@ export const portfolioData: PortfolioData = {
   },
   projects: [
     {
-      image: "/images/chapter5-cover.jpg",
+      image: "/images/chapter5-cover.webp",
       title: "Gods of Zushin",
       category: "Game | MMORPG",
       intro: `An achievement on it's own and personally is part of my work experience as well, 
@@ -480,7 +480,7 @@ export const portfolioData: PortfolioData = {
       from: "Apr 2015"
     },
     {
-      image: "/images/socialnetwork-amw.png",
+      image: "/images/socialnetwork-amw.webp",
       title: "AMW - Social Network & Game",
       category: "Social Network, Game",
       intro: `Although this project was discontinued, I did manage back then to raise a 
@@ -519,7 +519,7 @@ export const portfolioData: PortfolioData = {
       to: "Apr 2019"
     },
     {
-      image: "/images/chapter3.jpg",
+      image: "/images/chapter3.webp",
       title: "GOZ Chapter 3",
       category: "Marketing, Patch Intro, MMORPG",
       intro: `After first 2 chapters, I started to improve my marketing skills and 
@@ -535,7 +535,7 @@ export const portfolioData: PortfolioData = {
       to: "Apr 2018"
     },
     {
-      image: "/images/chapter4.jpg",
+      image: "/images/chapter4.webp",
       title: "GOZ Chapter 4",
       category: "Promoting the new Patch",
       intro: `After first 2 chapters, I started to improve my marketing skills
@@ -551,7 +551,7 @@ export const portfolioData: PortfolioData = {
       to: "Apr 2019"
     },
     {
-      image: "/images/otherprojects.png",
+      image: "/images/otherprojects.webp",
       title: "Other Projects",
       category: "Different industries",
       intro: `Generally made many more projects, which I try my best to 

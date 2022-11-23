@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { default as NextJsImage, ImageProps as ImageNextJsProps } from "next/image";
 
@@ -6,7 +6,7 @@ interface ImageProps extends ImageNextJsProps {
   fallbackSrc: string;
 }
 
-export const Image = ({
+export const Image: FC<ImageProps> = ({
   fallbackSrc,
   alt,
   src,
@@ -22,7 +22,7 @@ export const Image = ({
     <NextJsImage
       alt={alt || "Image"}
       onError={() => setWithFallbackImage(true)}
-      src={withFallbackImage ? fallback : src}
+      src={withFallbackImage ? fallbackSrc : src}
       {...props}
     />
   );

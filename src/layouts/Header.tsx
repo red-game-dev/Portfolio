@@ -74,7 +74,7 @@ const Header: FC<HeaderProps> = ({ title = "" }: HeaderProps) => {
   const toggleTap = useCallback(() => setToggle(!toggle), [toggle]);
   const [collision] = useCollision("typing-title");
   const words = title.split(" ");
-  const { scrollY = -1 } = window || {};
+  const { scrollY = -1 } = typeof window === "undefined" ? {} : window;
 
   return (
     <HeaderContainer role="presentation"

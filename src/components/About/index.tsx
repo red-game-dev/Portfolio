@@ -68,8 +68,6 @@ const InnerButtonText = tw.div`relative py-0 px-7 block z-[2] pointer-events-non
 
 const AnimatedCircle = tw.div`absolute w-full h-full block`;
 
-const HitPointEnd = tw.div`relative w-[10px] h-[10px] left-1/2 z-[0] bottom-[12rem] lg:bottom-[13rem]`;
-
 const Character = styled.span.attrs<CharacterProps>(({ delay = 0, canAnimate }) => ({
   className: `${canAnimate ? "active" : ""}`,
   style: {
@@ -77,7 +75,7 @@ const Character = styled.span.attrs<CharacterProps>(({ delay = 0, canAnimate }) 
       animation: `move-text 0.75s forwards ${delay}s, text-color 0.75s forwards ${delay}s, border-transition 1s ease-in-out 0s`
     } : {}
   }
-}))<CharacterProps>`
+})) <CharacterProps>`
 position: relative;
 color: #b7b7b7;
 margin-top: 0;
@@ -97,7 +95,7 @@ export const About: FC<AboutProps> = ({
   isFlexible, jobType, phone, email,
   contactTime, cvUrl, github, stackoverflow, linkedInUsername
 }: AboutProps) => {
-  const [hasArrivedToDescription] = useCollision("section-about-hit-point-end");
+  const [hasArrivedToDescription] = useCollision("section-scroller-link");
   const convertedDescription = useToBinary(description);
   const CharactersList = useMemo(() => convertedDescription
     .slice(0, description.length)
@@ -112,62 +110,59 @@ export const About: FC<AboutProps> = ({
       </Character>)), [convertedDescription, description, hasArrivedToDescription]);
 
   return (
-    <>
-      <Section id="section-about">
-        <Title>About</Title>
-        <Content>
-          <SectionImage src={image} alt="" width="200" height="500" fallbackSrc={image.replace(".webp", ".jpg")} />
-          <DescriptionContainer>
-            <Paragraph>
-              { CharactersList }
-            </Paragraph>
-            <List >
-              <ListItem>
-                <strong>Residence:</strong> {residence}
-              </ListItem>
-              <ListItem>
-                <strong>Seeking:</strong> {isFlexible ? "Flexible" : "Immediately"}
-              </ListItem>
-              <ListItem>
-                <strong>Type:</strong> {jobType}
-              </ListItem>
-              <ListItem>
-                <strong>Phone:</strong>{phone}
-              </ListItem>
-              <ListItem>
-                <strong>E-mail:</strong> {email}
-              </ListItem>
-              <ListItem>
-                <strong>Contact Time:</strong> {contactTime}
-              </ListItem>
-            </List>
-            <ButtonsContainer>
-              <Button href={cvUrl} target="_blank">
-                <AnimatedCircle />
-                <InnerButtonText className="fa-brands fa-google-drive" aria-label="Download My CV">Download CV</InnerButtonText>
-              </Button>
-              <Button href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" aria-label="View LinkedIn">
-                <AnimatedCircle />
-                <InnerButtonText className="fa-brands fa-linkedin">LinkedIn</InnerButtonText>
-              </Button>
-              {
-                github.map(({ name, link }, index: number) => (
-                  <Button key={`github-${index}`} href={link} target="_blank" aria-label={`Github ${name}`}>
-                    <AnimatedCircle />
-                    <InnerButtonText  className="fa-brands fa-github">{ name }</InnerButtonText>
-                  </Button>
-                ))
-              }
-              <Button href={stackoverflow} target="_blank">
-                <AnimatedCircle />
-                <InnerButtonText className="fa-brands fa-stack-overflow">StackOverflow</InnerButtonText>
-              </Button>
-            </ButtonsContainer>
-          </DescriptionContainer>
-          <ClearContainer />
-        </Content>
-      </Section>
-      <HitPointEnd id="section-about-hit-point-end" />
-    </>
+    <Section id="section-about">
+      <Title>About</Title>
+      <Content>
+        <SectionImage src={image} alt="" width="200" height="500" fallbackSrc={image.replace(".webp", ".jpg")} />
+        <DescriptionContainer>
+          <Paragraph>
+            {CharactersList}
+          </Paragraph>
+          <List >
+            <ListItem>
+              <strong>Residence:</strong> {residence}
+            </ListItem>
+            <ListItem>
+              <strong>Seeking:</strong> {isFlexible ? "Flexible" : "Immediately"}
+            </ListItem>
+            <ListItem>
+              <strong>Type:</strong> {jobType}
+            </ListItem>
+            <ListItem>
+              <strong>Phone:</strong>{phone}
+            </ListItem>
+            <ListItem>
+              <strong>E-mail:</strong> {email}
+            </ListItem>
+            <ListItem>
+              <strong>Contact Time:</strong> {contactTime}
+            </ListItem>
+          </List>
+          <ButtonsContainer>
+            <Button href={cvUrl} target="_blank">
+              <AnimatedCircle />
+              <InnerButtonText className="fa-brands fa-google-drive" aria-label="Download My CV">Download CV</InnerButtonText>
+            </Button>
+            <Button href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" aria-label="View LinkedIn">
+              <AnimatedCircle />
+              <InnerButtonText className="fa-brands fa-linkedin">LinkedIn</InnerButtonText>
+            </Button>
+            {
+              github.map(({ name, link }, index: number) => (
+                <Button key={`github-${index}`} href={link} target="_blank" aria-label={`Github ${name}`}>
+                  <AnimatedCircle />
+                  <InnerButtonText className="fa-brands fa-github">{name}</InnerButtonText>
+                </Button>
+              ))
+            }
+            <Button href={stackoverflow} target="_blank">
+              <AnimatedCircle />
+              <InnerButtonText className="fa-brands fa-stack-overflow">StackOverflow</InnerButtonText>
+            </Button>
+          </ButtonsContainer>
+        </DescriptionContainer>
+        <ClearContainer />
+      </Content>
+    </Section>
   );
 };

@@ -62,10 +62,6 @@ export const SEO = ({ url }: SeoProps) => (
           href: "/favicon.ico",
           sizes: "76x76"
         },
-        {
-          rel: "manifest",
-          href: "/manifest.json"
-        },
       ]}
       additionalMetaTags={[
         {

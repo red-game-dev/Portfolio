@@ -52,7 +52,7 @@ export const Cover = ({ intro, image, typingsTitles }: CoverProps) => (
             <TypingAnimation typingData={typingsTitles} />
           </TitleWrapper>
       </Content>
-      <ScrollerLink href="#section-about" id="section-scroller-link">
+      <ScrollerLink href="#section-about" id="section-scroller-link" aria-label="Scroll to know me">
         <ScrollerIcon className="fas fa-chevron-down" />
       </ScrollerLink>
     </Section>

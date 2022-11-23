@@ -117,7 +117,7 @@ export const ProjectModal: FC = () => {
           )
         }
         <ButtonsWrapper>
-          <ButtonLink href={modalContent.link} target="_blank">
+          <ButtonLink href={modalContent.link} target="_blank" aria-label="View Project">
             <AnimatedCircle />
             <InnerButtonText>View Project</InnerButtonText>
           </ButtonLink>

@@ -144,15 +144,15 @@ export const About: FC<AboutProps> = ({
             <ButtonsContainer>
               <Button href={cvUrl} target="_blank">
                 <AnimatedCircle />
-                <InnerButtonText className="fa-brands fa-google-drive">Download CV</InnerButtonText>
+                <InnerButtonText className="fa-brands fa-google-drive" aria-label="Download My CV">Download CV</InnerButtonText>
               </Button>
-              <Button href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank">
+              <Button href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" aria-label="View LinkedIn">
                 <AnimatedCircle />
                 <InnerButtonText className="fa-brands fa-linkedin">LinkedIn</InnerButtonText>
               </Button>
               {
                 github.map(({ name, link }, index: number) => (
-                  <Button key={`github-${index}`} href={link} target="_blank">
+                  <Button key={`github-${index}`} href={link} target="_blank" aria-label={`Github ${name}`}>
                     <AnimatedCircle />
                     <InnerButtonText  className="fa-brands fa-github">{ name }</InnerButtonText>
                   </Button>

@@ -97,22 +97,22 @@ export const Menu = ({ active }: MenuProps) => {
       <MenuButton active={active} />
       <MenuContainer active={active}>
         <MenuList>
-          <MenuItem href="#section-started" selected={isOnBeginningSection}>
+          <MenuItem href="#section-started" selected={isOnBeginningSection} aria-label="Beginning">
             Beginning
           </MenuItem>
-          <MenuItem href="#section-about" selected={isOnSectionAbout}>
+          <MenuItem href="#section-about" selected={isOnSectionAbout} aria-label="Who I am">
             Who I am
           </MenuItem>
-          <MenuItem href="#section-history" selected={isOnSectionHistory}>
+          <MenuItem href="#section-history" selected={isOnSectionHistory} aria-label="My History">
             My History
           </MenuItem>
-          <MenuItem href="#section-services" selected={isOnSectionServices}>
+          <MenuItem href="#section-services" selected={isOnSectionServices} aria-label="What can I offer">
             What can I offer
           </MenuItem>
-          <MenuItem href="#section-skills-TechSkills" selected={isOnSkillsSection}>
+          <MenuItem href="#section-skills-TechSkills" selected={isOnSkillsSection} aria-label="Skills">
             Skills
           </MenuItem>
-          <MenuItem href="#section-projects" selected={isOnProjectsSection}>
+          <MenuItem href="#section-projects" selected={isOnProjectsSection} aria-label="Achievements">
             Achievements
           </MenuItem>
         </MenuList>

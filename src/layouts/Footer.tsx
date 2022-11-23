@@ -35,7 +35,7 @@ const Footer: FC<FooterProps> = ({ linkedInUsername }: FooterProps) => (
     <FooterContainer>
       <SocialMediaList>
         <FollowMeButton>Follow Me</FollowMeButton>
-        <SocialMediaItem href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" className="fab fa-linkedin" />
+        <SocialMediaItem href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" className="fab fa-linkedin" aria-label="Follow me on LinkedIn" />
       </SocialMediaList>
     </FooterContainer>
   );

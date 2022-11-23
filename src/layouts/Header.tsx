@@ -13,7 +13,7 @@ interface HeaderContainerProps {
 
 const HeaderContainer = styled.header(({ isFixed }: HeaderContainerProps) => [
   tw`
-    flex items-center justify-between m-0 lg:m-auto py-0 px-[30px] fixed lg:p-[50px] top-6 left-0 right-0 w-full z-[8]
+    flex items-center justify-between m-0 lg:m-auto py-0 px-[30px] bg-transparent border-b-[transparent] fixed lg:p-[50px] top-6 left-0 right-0 w-full z-[8]
     after:content-[''] after:relative after:block after:clear-both
   `,
   css` 
@@ -74,10 +74,11 @@ const Header: FC<HeaderProps> = ({ title = "" }: HeaderProps) => {
   const toggleTap = useCallback(() => setToggle(!toggle), [toggle]);
   const [collision] = useCollision("typing-title");
   const words = title.split(" ");
+  const { scrollY = -1 } = window || {};
 
   return (
     <HeaderContainer role="presentation"
-      isFixed={collision}
+      isFixed={collision || scrollY === 0}
       onClick={toggleTap}>
       <HeaderContent>
         <LogoContainer>

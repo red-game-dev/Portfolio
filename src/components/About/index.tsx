@@ -68,7 +68,7 @@ const InnerButtonText = tw.div`relative py-0 px-7 block z-[2] pointer-events-non
 
 const AnimatedCircle = tw.div`absolute w-full h-full block`;
 
-const HitPointEnd = tw.div`relative w-[10px] h-[10px] left-1/2 z-[0] bottom-[11rem] lg:bottom-[13rem]`;
+const HitPointEnd = tw.div`relative w-[10px] h-[10px] left-1/2 z-[0] bottom-[12rem] lg:bottom-[13rem]`;
 
 const Character = styled.span.attrs<CharacterProps>(({ delay = 0, canAnimate }) => ({
   className: `${canAnimate ? "active" : ""}`,

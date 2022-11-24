@@ -44,7 +44,7 @@ const Percentage: FC<PercentageProps> = ({
   canAnimate,
   size = 40
 }: PercentageProps) => (
-  <div>
+  <>
     <ItemPercentageFill />
     <ItemPercentageBar aria-hidden="true">
       <circle
@@ -76,7 +76,7 @@ const Percentage: FC<PercentageProps> = ({
         cy={size}
       />
   </ItemPercentageBar>
-</div>
+</>
 );
 
 export const CircularProgress: FC<CircularProgressProps> = ({

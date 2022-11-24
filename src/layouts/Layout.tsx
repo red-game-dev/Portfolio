@@ -1,4 +1,4 @@
-import { FC, Fragment } from "react";
+import { FC } from "react";
 
 import tw from "twin.macro";
 
@@ -32,8 +32,8 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
             {children}
           </Wrapper>
         <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
-        <AppLoadingLines />
       </Container>
+      <AppLoadingLines />
     </>
   );
 };

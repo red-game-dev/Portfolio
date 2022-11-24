@@ -35,7 +35,7 @@ const SectionImage = styled(Image)(() => [
 const DescriptionContainer = tw.div`ml-[10px] lg:ml-[195px]`;
 
 const Paragraph = styled.div(() => [
-  tw`break-words first:mt-0`,
+  tw`break-words first:mt-0 first:mb-3 first:text-center`,
 ]);
 
 const List = tw.ul`list-none m-0 p-0 my-[20px]`;
@@ -91,14 +91,15 @@ margin-top: 0;
 }`;
 
 export const About: FC<AboutProps> = ({
-  description, image, residence,
+  intro, description, image, residence,
   isFlexible, jobType, phone, email,
   contactTime, cvUrl, github, stackoverflow, linkedInUsername
 }: AboutProps) => {
   const [hasArrivedToDescription] = useCollision("section-scroller-link");
-  const convertedDescription = useToBinary(description);
-  const CharactersList = useMemo(() => convertedDescription
-    .slice(0, description.length)
+  const convertedIntro = useToBinary(intro);
+  const convertedDescription = useToBinary(intro);
+  const IntroCharactersList = useMemo(() => convertedIntro
+    .slice(0, intro.length)
     .split("")
     .map((char, index) => (
       <Character
@@ -106,8 +107,15 @@ export const About: FC<AboutProps> = ({
         delay={(0.5 + index / 10)}
         key={index}
       >
+        {hasArrivedToDescription ? intro.charAt(index) : char}
+      </Character>)), [convertedIntro, intro, hasArrivedToDescription]);
+  const DescriptionCharactersList = useMemo(() => convertedDescription
+    .slice(0, description.length)
+    .split("")
+    .map((char, index) => (
+      <>
         {hasArrivedToDescription ? description.charAt(index) : char}
-      </Character>)), [convertedDescription, description, hasArrivedToDescription]);
+      </>)), [convertedDescription, description, hasArrivedToDescription]);
 
   return (
     <Section id="section-about">
@@ -116,7 +124,10 @@ export const About: FC<AboutProps> = ({
         <SectionImage src={image} alt="" width="200" height="500" fallbackSrc={image.replace(".webp", ".jpg")} />
         <DescriptionContainer>
           <Paragraph>
-            {CharactersList}
+            {IntroCharactersList}
+          </Paragraph>
+          <Paragraph>
+            {DescriptionCharactersList}
           </Paragraph>
           <List >
             <ListItem>

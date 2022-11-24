@@ -1,4 +1,5 @@
 export interface Detail {
+  intro: string;
   description: string;
   residence: string;
   jobType: string;

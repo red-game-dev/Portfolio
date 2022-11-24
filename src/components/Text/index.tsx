@@ -31,18 +31,16 @@ const Title = tw.div`relative m-[0 0 30px 0] lg:m-[0 0 35px 0] inline-block alig
 const ClearContainer = tw.div`clear-both`;
 
 const Paragraph = styled.div(() => [
-  tw`break-words first:mt-0`,
+  tw`break-words w-full first:mt-0`,
 ]);
 
 export const Text: FC<TextProps> = ({ title, paragraphs = [], isSection = true }: TextProps) => (
     <Section id={`section-${(title || paragraphs[0]?.slice(0, 10)).replace(/\s/, "-")}`} isSection={isSection}>
       <Content isSection={isSection}>
         { title && <Title>{ title }</Title> }
-        <div>
-          {paragraphs.map((text: string, index: number) => (
-            <Paragraph key={index}>{text}</Paragraph>
-          ))}
-        </div>
+        {paragraphs.map((text: string, index: number) => (
+          <Paragraph key={index}>{text}</Paragraph>
+        ))}
         <ClearContainer />
       </Content>
     </Section>

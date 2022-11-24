@@ -49,7 +49,7 @@ const AnimatedCircle = tw.div`absolute w-full h-full block`;
 
 const PopupBoxImage = styled(Image)(() => [
   tw`h-[560px] w-full`,
-])
+]);
 
 const PopupBoxContent = tw.div`p-8 lg:p-16`;
 

@@ -5,6 +5,7 @@ import tw, { styled } from "twin.macro";
 import Link from "next/link";
 
 import { BoxTile } from "@/components/BoxTile";
+import { Image } from "@/components/Image";
 import { useModalStateHook } from "@/components/Modal/hooks/useModalStateHook";
 
 const ButtonsWrapper = tw.div`mt-10`;
@@ -46,9 +47,11 @@ const InnerButtonText = tw.div`relative py-0 px-7 block z-[2] pointer-events-non
 
 const AnimatedCircle = tw.div`absolute w-full h-full block`;
 
-const PopupBoxImage = tw.div`h-[560px] bg-no-repeat bg-cover bg-center`;
+const PopupBoxImage = styled(Image)(() => [
+  tw`h-[560px] w-full`,
+])
 
-const PopupBoxContent = tw.div`p-[30px]`;
+const PopupBoxContent = tw.div`p-8 lg:p-16`;
 
 const PopupBoxTitle = tw.h4`py-4 font-medium text-xl text-white`;
 
@@ -71,7 +74,11 @@ export const ProjectModal: FC = () => {
   return (
     <>
       <PopupBoxImage
-        style={{ backgroundImage: `url(${modalContent.image}), url(${modalContent.image.replace(".webp", ".jpg")})` }}
+        src={modalContent.image}
+        fallbackSrc={modalContent.image.replace(".webp", ".jpg")}
+        alt="Project Image"
+        height={560}
+        width={1000}
       />
       <CloseButton onClick={onClose}>
         <AnimatedCircle />

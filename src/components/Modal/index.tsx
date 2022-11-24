@@ -4,7 +4,7 @@ import { useModalStateHook } from "@/components/Modal/hooks/useModalStateHook";
 import { ProjectModal } from "@/components/Modal/ProjectModal";
 import useClickOutside from "@/hooks/useClickOutside";
 
-const Content = tw.div`relative text-base ml-[-1px] md:p-[25px] lg:p-[35px] bg-[#101010] border-[1px] border-r-[0px] border-solid border-[rgba(255, 255, 255, 0.07)]`;
+const Content = tw.div`relative text-base ml-[-1px] bg-[#101010] border-[1px] border-r-[0px] border-solid border-[rgba(255, 255, 255, 0.07)]`;
 
 interface PopupBoxProps {
   isVisible?: boolean;

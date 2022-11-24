@@ -2,7 +2,12 @@
 
 const { join } = require('path')
 
-module.exports = {
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+  openAnalyzer: false,
+})
+
+module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   swcMinify: true,
   sassOptions: {
@@ -24,9 +29,4 @@ module.exports = {
     HOST: process.env.HOST,
     DEBUG: process.env.DEBUG,
   },
-  images: {
-    domains: [
-      'launcher.goz.fun',
-    ],
-  },
-}
+})

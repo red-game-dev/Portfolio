@@ -113,9 +113,8 @@ export const About: FC<AboutProps> = ({
     .slice(0, description.length)
     .split("")
     .map((char, index) => (
-      <>
-        {hasArrivedToDescription ? description.charAt(index) : char}
-      </>)), [convertedDescription, description, hasArrivedToDescription]);
+        (hasArrivedToDescription ? description.charAt(index) : char))),
+        [convertedDescription, description, hasArrivedToDescription]);
 
   return (
     <Section id="section-about">

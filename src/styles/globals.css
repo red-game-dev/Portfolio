@@ -40,6 +40,10 @@
 /* body::-webkit-scrollbar {
 	display: none;
 } */	
+
+	.loader-bg {
+		display: flex;
+	}
 }
 
 
@@ -246,8 +250,6 @@
 		opacity:0;
 	}
 }
-
-
 
 @keyframes blur-text {
   0% {filter: blur(0px);}

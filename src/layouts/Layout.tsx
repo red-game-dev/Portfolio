@@ -8,6 +8,7 @@ import { portfolioData  } from "@/data/resume";
 
 import Footer from "./Footer";
 import Header from "./Header";
+import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
 
 const Container = tw.div`relative m-0 overflow-hidden before:z-[8] before:pointer-events-none`;
 
@@ -18,11 +19,14 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => (
+const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
+  const { isLoading } = useAppLoaderStateHook();
+
+  return (
     <>
       <Modal />
       <AppLoader />
-      <Container>
+      <Container style={isLoading ? { display: 'none'} : {}}>
         <Header title={title} />
           <Wrapper>
             {children}
@@ -31,6 +35,7 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => (
         <AppLoadingLines />
       </Container>
     </>
-  );
+  )
+};
 
 export default Layout;

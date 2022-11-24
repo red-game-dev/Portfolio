@@ -41,7 +41,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <GlobalStyles />
       <RecoilRoot>
         <Component {...pageProps} />
-        <Analytics />
+        <Analytics debug={process.env.DEBUG} />
       </RecoilRoot>
     </>
   );

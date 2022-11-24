@@ -134,8 +134,8 @@ export const AppLoadingLines: FC = () => {
 };
 
 const LoaderBackground = styled.div(({ isLoading }: LoaderBackgroundProps) => [
-  tw`fixed w-full h-screen left-0 top-0 flex justify-center items-center visible z-[12] bg-[#101010]`,
-  !isLoading && tw`invisible`,
+  tw`fixed w-full h-screen left-0 top-0 flex justify-center items-center z-[12] bg-[#101010]`,
+  !isLoading && tw`hidden`,
 ]);
 
 const LoadingBackgroundLetter = tw.div`
@@ -175,7 +175,7 @@ export const AppLoader: FC = () => {
 
   return (
     <>
-      <LoaderBackground isLoading={isLoading}>
+      <LoaderBackground isLoading={isLoading} className="loader-bg">
         <LoadingBackgroundLetter />
         <LoadingBackgroundLetter />
         <LoadingBackgroundLetter />

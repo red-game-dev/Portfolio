@@ -22,6 +22,7 @@ module.exports = {
   },
   env: {
     HOST: process.env.HOST,
+    DEBUG: process.env.DEBUG,
   },
   images: {
     domains: [

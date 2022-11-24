@@ -36,29 +36,23 @@ const OuterImageWrapper = styled.div(({ withRandomBorder, isFullBorder }: OuterI
   isFullBorder && tw`border-[0px] border-b-[1px]`,
 ]);
 
-const OuterImageInfo = tw.span`absolute text-center w-full h-full block left-0 top-0 
+const OuterImageInfo = tw.div`absolute flex flex-col justify-center text-center w-full h-full left-0 top-0 z-[2]
 opacity-0 translate-y-[-15px] transition-[all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1) 0s]
 hover:opacity-90 hover:translate-y-0 hover:transition-[all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1) 0.35s]`;
 
-const OuterImageInfoDescription = tw.span`relative py-[10px] px-[20px] block`;
-
 const OuterImageInfoName = styled.span(() => [
-  tw`block text-lg font-medium text-white break-words`,
+  tw`w-full text-center text-lg font-medium text-white break-words`,
   css`
     text-shadow: -1px -2px 1px #4bffa5
   `
 ]);
 
 const OuterImageInfoCategory = styled.span(() => [
-  tw`block text-sm opacity-60 text-gray-100 m-0`,
+  tw`w-full text-center text-sm opacity-60 text-gray-100 m-0`,
   css`
     text-shadow: -1px -2px 1px #4bffa5
   `
 ]);
-
-const OuterImageContentWrapper = tw.span`table table-fixed h-full w-full relative left-0 top-0 z-[2]`;
-
-const OuterImageDetail = tw.span`table-cell align-middle`;
 
 export const Project: FC<ProjectProps> = ({
   title, category, intro, techStack, link, image,
@@ -89,14 +83,8 @@ export const Project: FC<ProjectProps> = ({
         isFullBorder={isFullBorder}>
           <Image src={image} width="1000" height="300" alt="" fallbackSrc={image.replace(".webp", ".jpg")} />
           <OuterImageInfo onClick={onTapCallback} >
-            <OuterImageContentWrapper>
-              <OuterImageDetail>
-                <OuterImageInfoDescription>
-                  <OuterImageInfoCategory>{category}</OuterImageInfoCategory>
-                  <OuterImageInfoName>{title}</OuterImageInfoName>
-                </OuterImageInfoDescription>
-              </OuterImageDetail>
-            </OuterImageContentWrapper>
+            <OuterImageInfoCategory>{category}</OuterImageInfoCategory>
+            <OuterImageInfoName>{title}</OuterImageInfoName>
           </OuterImageInfo>
       </OuterImageWrapper>
     </Item>

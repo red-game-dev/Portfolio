@@ -44,6 +44,10 @@
 	.loader-bg {
 		display: flex;
 	}
+
+	.cover-container {
+		clip-path: inset(0 0 0 0);
+	}
 }
 
 

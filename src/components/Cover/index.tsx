@@ -2,6 +2,7 @@ import tw, { styled } from "twin.macro";
 
 import Link from "next/link";
 
+import { Image } from "@/components/Image";
 import TypingAnimation from "@/components/TypingAnimation";
 
 interface CoverProps {
@@ -32,20 +33,35 @@ const ScrollerLink = styled(Link)(() => [
 
 const ScrollerIcon = tw.i`relative bottom-[10px]`;
 
-const VideoContainer = tw.div`blur-sm w-full h-full left-0 top-0 bg-fixed bg-cover lg:bg-center bg-fittable-mobile flex justify-center items-center w-screen`;
+const CoverContainer = tw.div`relative h-screen w-full`;
 
-const VideoBackgroundMask = tw.div`absolute top-0 left-0 w-full h-full opacity-40 z-[2] bg-[#101010]`;
+const CoverContent = tw.div`fixed h-full w-full left-0 top-0`;
 
-const VideoBackgroundTexture = tw.div`absolute top-0 left-0 w-full h-full z-[2]`;
+const CoverImage = styled(Image)(() => [
+  tw`blur-sm w-full`
+]);
+
+
+const CoverBackgroundMask = tw.div`absolute top-0 left-0 w-full h-full opacity-40 z-[2] bg-[#101010]`;
+
+const CoverBackgroundTexture = tw.div`absolute top-0 left-0 w-full h-full z-[2]`;
 
 export const Cover = ({ intro, image, typingsTitles }: CoverProps) => (
     <Section id="section-started">
-      <VideoContainer
-        style={{ backgroundImage: `url(${image}), url(${image.replace(".webp", ".jpg")})` }}
-      >
-        <VideoBackgroundMask />
-        <VideoBackgroundTexture id="grained_container" />
-      </VideoContainer>
+      <CoverContainer className="cover-container">
+        <CoverContent>
+          <CoverImage
+            src={image}
+            alt="Cover Photo"
+            fallbackSrc={image.replace(".webp", ".jpg")}
+            layout="fill"
+            objectFit="cover"
+            sizes="100vw"
+          />
+          <CoverBackgroundMask />
+          <CoverBackgroundTexture id="grained_container" />
+        </CoverContent>
+      </CoverContainer>
       <Content>
           <Introduction dangerouslySetInnerHTML={{ __html: intro }} />
           <TitleWrapper>

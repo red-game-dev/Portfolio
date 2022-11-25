@@ -66,7 +66,7 @@ const Button = styled(Link)(() => [
      hover:before:w-full`
 ]);
 
-const InnerButtonText = tw.div`relative py-0 px-7 block z-[2] pointer-events-none before:pr-2`;
+const InnerButtonText = tw.div`relative py-0 pl-1 pr-7 block z-[2] pointer-events-none before:pr-2`;
 
 const AnimatedCircle = tw.div`absolute w-full h-full block`;
 
@@ -154,15 +154,14 @@ export const About: FC<AboutProps> = ({
             <Button href={cvUrl} target="_blank">
               <AnimatedCircle />
               <InnerButtonText aria-label="Download My CV">
-                <FontAwesomeIcon icon={faGoogleDrive} />
-                Download CV
+                <FontAwesomeIcon icon={faGoogleDrive} /> {" "}
+                CV
               </InnerButtonText>
             </Button>
             <Button href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" aria-label="View LinkedIn">
               <AnimatedCircle />
               <InnerButtonText>
                 <FontAwesomeIcon icon={faLinkedinIn} />
-                LinkedIn
               </InnerButtonText>
             </Button>
             {
@@ -170,7 +169,7 @@ export const About: FC<AboutProps> = ({
                 <Button key={`github-${index}`} href={link} target="_blank" aria-label={`Github ${name}`}>
                   <AnimatedCircle />
                   <InnerButtonText>
-                    <FontAwesomeIcon icon={faGithub} />
+                    <FontAwesomeIcon icon={faGithub} /> {" "}
                     {name}
                   </InnerButtonText>
                 </Button>
@@ -180,7 +179,6 @@ export const About: FC<AboutProps> = ({
               <AnimatedCircle />
               <InnerButtonText>
                 <FontAwesomeIcon icon={faStackOverflow} />
-                StackOverflow
               </InnerButtonText>
             </Button>
           </ButtonsContainer>

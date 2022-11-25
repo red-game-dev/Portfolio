@@ -38,7 +38,7 @@ const CoverContainer = tw.div`relative h-screen w-full`;
 const CoverContent = tw.div`fixed h-full w-full left-0 top-0`;
 
 const CoverImage = styled(Image)(() => [
-  tw`blur-sm w-full`
+  tw`blur-sm w-full h-full object-cover`
 ]);
 
 
@@ -54,8 +54,8 @@ export const Cover = ({ intro, image, typingsTitles }: CoverProps) => (
             src={image}
             alt="Cover Photo"
             fallbackSrc={image.replace(".webp", ".jpg")}
-            layout="fill"
-            objectFit="cover"
+            width={1000}
+            height={1000}
             sizes="100vw"
           />
           <CoverBackgroundMask />

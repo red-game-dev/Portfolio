@@ -2,13 +2,15 @@ import { FC } from "react";
 
 import tw, { styled } from "twin.macro";
 
+import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
+
 import { Text } from "@/components/Text";
 
 interface BoxTileProps {
   title: string;
   subtitle?: string;
   activeSubtitle?: boolean;
-  icon?: string;
+  icon?: FontAwesomeIconProps["icon"];
   description?: string[] | string;
   isFullBorder?: boolean;
   withRandomBorder?: boolean;
@@ -35,8 +37,10 @@ const Item = styled.div(({ withRandomBorder, isFullBorder, isFullWidth }: ItemCo
   !isFullWidth && tw`lg:w-[45%]`
 ]);
 
-const Icon = tw.i`text-xl text-[#4bffa5] font-normal text-center w-full 
-hover:animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`;
+const Icon = styled(FontAwesomeIcon)(() => [
+  tw`text-xl text-[#4bffa5] font-normal text-center w-full 
+hover:animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`
+]);
 
 const ItemTitle = tw.div`text-lg m-[15px 0] text-[#eee] font-semibold text-center w-full`;
 
@@ -49,7 +53,7 @@ const ItemSubtitle = styled.div(({ active = false }: SubtitleProps) => [
 export const BoxTile: FC<BoxTileProps> = ({ isFullBorder, withRandomBorder, isFullWidth, title, subtitle, activeSubtitle, description, icon }: BoxTileProps) => (
   <Item withRandomBorder={withRandomBorder} isFullBorder={isFullBorder} isFullWidth={isFullWidth}>
     { subtitle && <ItemSubtitle active={activeSubtitle}>{ subtitle }</ItemSubtitle> }
-    { icon && <Icon className={icon} /> }
+    { icon && <Icon icon={icon} /> }
     <ItemTitle>{ title }</ItemTitle>
     {
       description && (

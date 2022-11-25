@@ -6,12 +6,16 @@ import {
 import { createGlobalStyle } from "styled-components";
 import tw, { theme, GlobalStyles as BaseStyles } from "twin.macro";
 
+import { config } from "@fortawesome/fontawesome-svg-core";
 import { Analytics } from "@vercel/analytics/react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import Script from "next/script";
+
+import "@fortawesome/fontawesome-svg-core/styles.css";
 
 import { SEO } from "@/components/SEO";
+
+config.autoAddCss = false;
 
 
 const CustomStyles = createGlobalStyle({
@@ -33,8 +37,6 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
       </Head>
-
-      <Script src="https://kit.fontawesome.com/6f05505e5b.js" crossOrigin="anonymous" />
 
       <SEO url={process.env.HOST || "#"} />
 

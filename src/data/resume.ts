@@ -1,3 +1,12 @@
+import {
+  faBrowser,
+  faServer,
+  faPresentationScreen,
+  faGamepadModern,
+  faChartSimple,
+  faShop
+} from "@fortawesome/pro-duotone-svg-icons";
+
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
 import { ProjectDetail } from "@/types/projects";
@@ -5,6 +14,7 @@ import { Resume } from "@/types/resume";
 import { SectionIntros } from "@/types/sections-intros";
 import { Service } from "@/types/services";
 import { Skill } from "@/types/skills";
+
 
 export interface PortfolioData {
   intro: string;
@@ -127,32 +137,32 @@ export const portfolioData: PortfolioData = {
   services: [
     {
       title: "Frontend Enginering",
-      icon: "fa-duotone fa-browser",
+      icon: faBrowser,
       description: ""
     },
     {
       title: "Backend Enginering",
-      icon: "fa-duotone fa-server",
+      icon: faServer,
       description: ""
     },
     {
       title: "Tech Consultancy",
-      icon: "fa-duotone fa-presentation-screen",
+      icon: faPresentationScreen,
       description: ""
     },
     {
       title: "Game Consultancy",
-      icon: "fa-duotone fa-gamepad-modern",
+      icon: faGamepadModern,
       description: ""
     },
     {
       title: "Business Consultancy",
-      icon: "fa-duotone fa-chart-simple",
+      icon: faChartSimple,
       description: ""
     },
     {
       title: "Marketing Consultancy",
-      icon: "fa-duotone fa-shop",
+      icon: faShop,
       description: ""
     }
   ],

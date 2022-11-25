@@ -2,6 +2,8 @@ import { FC, useMemo } from "react";
 
 import tw, { styled } from "twin.macro";
 
+import { faLinkedinIn, faGoogleDrive, faGithub, faStackOverflow } from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 
 import { Image } from "@/components/Image";
@@ -151,23 +153,35 @@ export const About: FC<AboutProps> = ({
           <ButtonsContainer>
             <Button href={cvUrl} target="_blank">
               <AnimatedCircle />
-              <InnerButtonText className="fa-brands fa-google-drive" aria-label="Download My CV">Download CV</InnerButtonText>
+              <InnerButtonText aria-label="Download My CV">
+                <FontAwesomeIcon icon={faGoogleDrive} />
+                Download CV
+              </InnerButtonText>
             </Button>
             <Button href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" aria-label="View LinkedIn">
               <AnimatedCircle />
-              <InnerButtonText className="fa-brands fa-linkedin">LinkedIn</InnerButtonText>
+              <InnerButtonText>
+                <FontAwesomeIcon icon={faLinkedinIn} />
+                LinkedIn
+              </InnerButtonText>
             </Button>
             {
               github.map(({ name, link }, index: number) => (
                 <Button key={`github-${index}`} href={link} target="_blank" aria-label={`Github ${name}`}>
                   <AnimatedCircle />
-                  <InnerButtonText className="fa-brands fa-github">{name}</InnerButtonText>
+                  <InnerButtonText>
+                    <FontAwesomeIcon icon={faGithub} />
+                    {name}
+                  </InnerButtonText>
                 </Button>
               ))
             }
             <Button href={stackoverflow} target="_blank">
               <AnimatedCircle />
-              <InnerButtonText className="fa-brands fa-stack-overflow">StackOverflow</InnerButtonText>
+              <InnerButtonText>
+                <FontAwesomeIcon icon={faStackOverflow} />
+                StackOverflow
+              </InnerButtonText>
             </Button>
           </ButtonsContainer>
         </DescriptionContainer>

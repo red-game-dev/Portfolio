@@ -1,5 +1,6 @@
-import React, { lazy, Suspense } from "react";
-import dynamic from 'next/dynamic'
+import React, { Suspense } from "react";
+
+import dynamic from "next/dynamic";
 
 import { About } from "@/components/About";
 import { Cover } from "@/components/Cover";
@@ -12,7 +13,7 @@ import { portfolioData } from "@/data/resume";
 
 const Layout = dynamic(() => import("@/layouts/Layout"), {
   suspense: true,
-})
+});
 
 export default function Home() {
   return (

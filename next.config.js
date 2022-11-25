@@ -10,6 +10,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   swcMinify: true,
+  trailingSlash: true,
   sassOptions: {
     includePaths: [join(__dirname, 'src/styles')],
   },

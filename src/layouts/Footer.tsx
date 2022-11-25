@@ -2,6 +2,8 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 
 interface FooterProps {
@@ -30,6 +32,8 @@ const SocialMediaItem = styled(Link)(() => [
   `
 ]);
 
+const Icon = styled(FontAwesomeIcon)(() => tw`relative right-2`);
+
 
 const Footer: FC<FooterProps> = ({ linkedInUsername }: FooterProps) => (
   <FooterContainer>
@@ -37,10 +41,9 @@ const Footer: FC<FooterProps> = ({ linkedInUsername }: FooterProps) => (
       <FollowMeButton>Follow Me</FollowMeButton>
       <SocialMediaItem
         href={`https://www.linkedin.com/in/${linkedInUsername}`}
-        target="_blank"
-        className="fab fa-linkedin"
-        aria-hidden
-        aria-label="Follow me on LinkedIn" />
+        target="_blank">
+          <Icon icon={faLinkedinIn} />
+        </SocialMediaItem>
     </SocialMediaList>
   </FooterContainer>
 );

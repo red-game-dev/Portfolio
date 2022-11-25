@@ -46,7 +46,7 @@ const Percentage: FC<PercentageProps> = ({
 }: PercentageProps) => (
   <>
     <ItemPercentageFill />
-    <ItemPercentageBar aria-hidden>
+    <ItemPercentageBar aria-hidden="false">
       <circle
         className="text-[#404040]"
         strokeWidth="5"

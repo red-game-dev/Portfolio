@@ -54,9 +54,8 @@ export const Cover = ({ intro, image, typingsTitles }: CoverProps) => (
             src={image}
             alt="Cover Photo"
             fallbackSrc={image.replace(".webp", ".jpg")}
-            width={1000}
-            height={1000}
             sizes="100vw"
+            fill
           />
           <CoverBackgroundMask />
           <CoverBackgroundTexture id="grained_container" />

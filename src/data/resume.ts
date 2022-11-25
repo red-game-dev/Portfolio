@@ -124,7 +124,7 @@ export const portfolioData: PortfolioData = {
     name: "Redeemer Pace",
     intro: "Highly experienced, knowledgeable, dedicated, innovator",
     description: `
-    Experienced as Software Engineer, Game Development, Web Development, Tech Consultancy, Architecture, Managing, 
+    Over 10 years experienced as Software Engineer, Game Development, Web Development, Tech Consultancy, Architecture, Managing, 
     Marketing. Looking forward to learn more where I can I improve my knowledge & new challenges`,
     residence: "Maltese",
     jobType: "B2B / Employment",
@@ -561,6 +561,22 @@ export const portfolioData: PortfolioData = {
       link: "https://chapter4.goz.fun",
       from: "Apr 2019",
       to: "Apr 2019"
+    },
+    {
+      image: "/images/portfolio.webp",
+      title: "My Portfolio",
+      category: "Self-Promotion",
+      intro: "An interactive portfolio to learn further about myself & what I can offer. Interested? Reach out!",
+      responsabilities: [
+        "Develop & Maintain an introductive site",
+        "Monitor Analytics",
+        "Make sure high performance is in place",
+        "Handle clients"
+      ],
+      techStack: ["NextJS", "React", "Styled Components", "Tailwind", "Fontawesome", "Recoil", "Static Site"],
+      link: "https://redgame.dev",
+      from: "Nov 2022",
+      to: "Nov 2022"
     },
     {
       image: "/images/otherprojects.webp",

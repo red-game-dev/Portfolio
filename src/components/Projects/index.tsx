@@ -30,8 +30,8 @@ export const Projects: FC<ProjectsProps> = ({ projects = [], intro }: ProjectsPr
             key={`${project.title.replace(/\s/, "")}-${index}`}
             {...project}
             withRandomBorder={index % 3 === 0}
-            isFullBorder={((projects.length - 1 / 2) % 1) > 0 && index === (projects.length - 1)}
-            isFullWidth={((projects.length - 1 / 2) % 1) > 0 && index === (projects.length - 1)}
+            isFullBorder={projects.length % 2 > 0 && index === (projects.length - 1)}
+            isFullWidth={projects.length % 2 > 0 && index === (projects.length - 1)}
           />))}
         </List>
         <ClearContainer />

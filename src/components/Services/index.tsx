@@ -28,7 +28,7 @@ export const Services = ({ services = [], intro }: ServicesProps) => (
             <BoxTile
               key={`${service.title.replace(/\s/, "")}-${index}`}
               withRandomBorder={index % 3 === 0}
-              isFullBorder={((services.length - 1 / 2) % 1) > 0 && index === (services.length - 1)}
+              isFullBorder={(services.length % 2) > 0 && index === (services.length - 1)}
               icon={service.icon}
               title={service.title}
               description={service.description}

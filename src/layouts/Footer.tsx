@@ -32,12 +32,17 @@ const SocialMediaItem = styled(Link)(() => [
 
 
 const Footer: FC<FooterProps> = ({ linkedInUsername }: FooterProps) => (
-    <FooterContainer>
-      <SocialMediaList>
-        <FollowMeButton>Follow Me</FollowMeButton>
-        <SocialMediaItem href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" className="fab fa-linkedin" aria-label="Follow me on LinkedIn" />
-      </SocialMediaList>
-    </FooterContainer>
-  );
+  <FooterContainer>
+    <SocialMediaList>
+      <FollowMeButton>Follow Me</FollowMeButton>
+      <SocialMediaItem
+        href={`https://www.linkedin.com/in/${linkedInUsername}`}
+        target="_blank"
+        className="fab fa-linkedin"
+        aria-hidden
+        aria-label="Follow me on LinkedIn" />
+    </SocialMediaList>
+  </FooterContainer>
+);
 
 export default Footer;

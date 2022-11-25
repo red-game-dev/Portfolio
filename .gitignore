@@ -43,4 +43,4 @@ node_modules
 !.vscode
 /out
 eslint-results.sarif
-analyze
+analyze/nodejs.html

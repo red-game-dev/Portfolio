@@ -46,12 +46,12 @@ const ListItem = tw.li`inline-block align-top w-full lg:w-1/2 m-[0 0 6px 0] [&>s
 
 const ClearContainer = tw.div`clear-both`;
 
-const ButtonsContainer = tw.div`text-center`;
+const ButtonsContainer = tw.div`flex flex-row flex-wrap text-center`;
 
 const Button = styled(Link)(() => [
-  tw`relative w-full lg:w-auto bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
+  tw`relative w-full lg:w-24 bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
      inline-block align-middle text-center text-sm lg:text-base leading-9 lg:leading-9`,
-  tw`h-[44px] my-[0px] mx-[0.5rem] mb-[10px] text-[#4bffa5] border-[#101010] border-r-[#4bffa5]
+  tw`h-[44px] my-[0px] mx-[0.5rem] lg:ml-0 mb-[10px] text-[#4bffa5] border-[#101010] border-r-[#4bffa5]
      hover:text-white 
      before:content=['']
      before:absolute
@@ -66,7 +66,11 @@ const Button = styled(Link)(() => [
      hover:before:w-full`
 ]);
 
-const InnerButtonText = tw.div`relative py-0 pl-1 pr-7 block z-[2] pointer-events-none before:pr-2`;
+const InnerButtonText = tw.span`relative z-[2] pointer-events-none before:pr-2`;
+
+const InnerButtonIcon = styled(FontAwesomeIcon)(() => [
+  tw`relative z-[2] pointer-events-none before:pr-2`
+]);
 
 const AnimatedCircle = tw.div`absolute w-full h-full block`;
 
@@ -151,35 +155,31 @@ export const About: FC<AboutProps> = ({
             </ListItem>
           </List>
           <ButtonsContainer>
-            <Button href={cvUrl} target="_blank">
+            <Button href={cvUrl} target="_blank" aria-label="Download My CV">
               <AnimatedCircle />
-              <InnerButtonText aria-label="Download My CV">
-                <FontAwesomeIcon icon={faGoogleDrive} /> {" "}
+              <InnerButtonIcon icon={faGoogleDrive} /> {" "}
+              <InnerButtonText>
                 CV
               </InnerButtonText>
             </Button>
             <Button href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" aria-label="View LinkedIn">
               <AnimatedCircle />
-              <InnerButtonText>
-                <FontAwesomeIcon icon={faLinkedinIn} />
-              </InnerButtonText>
+              <InnerButtonIcon icon={faLinkedinIn} />
             </Button>
             {
               github.map(({ name, link }, index: number) => (
                 <Button key={`github-${index}`} href={link} target="_blank" aria-label={`Github ${name}`}>
                   <AnimatedCircle />
+                  <InnerButtonIcon icon={faGithub} /> {" "}
                   <InnerButtonText>
-                    <FontAwesomeIcon icon={faGithub} /> {" "}
                     {name}
                   </InnerButtonText>
                 </Button>
               ))
             }
-            <Button href={stackoverflow} target="_blank">
+            <Button href={stackoverflow} target="_blank" aria-label="View StackOverflow">
               <AnimatedCircle />
-              <InnerButtonText>
-                <FontAwesomeIcon icon={faStackOverflow} />
-              </InnerButtonText>
+              <InnerButtonIcon icon={faStackOverflow} />
             </Button>
           </ButtonsContainer>
         </DescriptionContainer>

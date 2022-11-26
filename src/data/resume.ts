@@ -128,7 +128,7 @@ export const portfolioData: PortfolioData = {
   },
   details: {
     name: "Redeemer Pace",
-    intro: "Highly experienced, knowledgeable, dedicated, innovator",
+    intro: "Highly experienced, dedicated, innovator",
     description: `
     Over 10 years experienced as Software Engineer, Game Development, Web Development, Tech Consultancy, Architecture, Managing, 
     Marketing. Looking forward to learn more where I can I improve my knowledge & new challenges`,

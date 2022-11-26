@@ -46,7 +46,7 @@ const ListItem = tw.li`inline-block align-top w-full lg:w-1/2 m-[0 0 6px 0] [&>s
 
 const ClearContainer = tw.div`clear-both`;
 
-const ButtonsContainer = tw.div`flex flex-row flex-wrap text-center`;
+const ButtonsContainer = tw.div`flex flex-row flex-wrap text-center justify-center`;
 
 const Button = styled(Link)(() => [
   tw`relative w-full lg:w-24 bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
@@ -124,7 +124,7 @@ export const About: FC<AboutProps> = ({
 
   return (
     <Section id="section-about">
-      <Title>About</Title>
+      <Title>Who I am?</Title>
       <Content>
         <SectionImage src={image} alt="" width="200" height="500" fallbackSrc={image.replace(".webp", ".jpg")} />
         <DescriptionContainer>
@@ -154,6 +154,7 @@ export const About: FC<AboutProps> = ({
               <strong>Contact Time:</strong> {contactTime}
             </ListItem>
           </List>
+        </DescriptionContainer>
           <ButtonsContainer>
             <Button href={cvUrl} target="_blank" aria-label="Download My CV">
               <AnimatedCircle />
@@ -182,7 +183,6 @@ export const About: FC<AboutProps> = ({
               <InnerButtonIcon icon={faStackOverflow} />
             </Button>
           </ButtonsContainer>
-        </DescriptionContainer>
         <ClearContainer />
       </Content>
     </Section>

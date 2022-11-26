@@ -113,7 +113,7 @@ export const Menu = ({ active }: MenuProps) => {
             Skills
           </MenuItem>
           <MenuItem href="#section-projects" selected={isOnProjectsSection} aria-label="Achievements">
-            Achievements
+            Projects & Achievements
           </MenuItem>
         </MenuList>
       </MenuContainer>

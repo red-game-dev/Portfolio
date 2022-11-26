@@ -84,7 +84,7 @@ export const portfolioData: PortfolioData = {
   ],
   sections: {
     services: {
-      title: "Services",
+      title: "What can I offer?",
       description: ["Looking for top-notch service? You're at the right place!"]
     },
     design: {
@@ -108,7 +108,7 @@ export const portfolioData: PortfolioData = {
       description: ["Various of roles I do expertise at, each one will give you an overview of knowledge overall"]
     },
     projects: {
-      title: "Projects",
+      title: "Projects & Achievements",
       description: ["Lets speak about projects, have a small overview of few huge projects!"]
     },
     recommendations: {
@@ -128,7 +128,7 @@ export const portfolioData: PortfolioData = {
   },
   details: {
     name: "Redeemer Pace",
-    intro: "Experienced, trusted, innovator",
+    intro: "Experienced, trusted",
     description: `
     Over 10 years of highly experienced as Software Engineer, Game Development, Web Development, Tech Consultancy, Architecture, Managing, 
     Marketing. At an early age of 7 years old started development as my hobby, which did taught me things the difficult way. 

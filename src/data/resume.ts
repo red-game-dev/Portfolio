@@ -128,9 +128,9 @@ export const portfolioData: PortfolioData = {
   },
   details: {
     name: "Redeemer Pace",
-    intro: "Highly experienced, trusted, innovator",
+    intro: "Experienced, trusted, innovator",
     description: `
-    Over 10 years experienced as Software Engineer, Game Development, Web Development, Tech Consultancy, Architecture, Managing, 
+    Over 10 years of highly experienced as Software Engineer, Game Development, Web Development, Tech Consultancy, Architecture, Managing, 
     Marketing. At an early age of 7 years old started development as my hobby, which did taught me things the difficult way. 
     Whats next? Looking forward to learn more where I can I improve my knowledge & new challenges, because life without a challenge is not fun!`,
     residence: "Maltese",

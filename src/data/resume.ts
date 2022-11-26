@@ -111,6 +111,12 @@ export const portfolioData: PortfolioData = {
       title: "Projects",
       description: ["Lets speak about projects, have a small overview of few huge projects!"]
     },
+    recommendations: {
+      title: "Looking for recommendations",
+      description: [
+        "Got recommendation letters from top companies such as KPMG, AuthenticGaming and more! Furthermore this can be viewed on request",
+      ]
+    },
     conclusion: {
       title: "Wow!",
       description: [`
@@ -118,7 +124,7 @@ export const portfolioData: PortfolioData = {
         ideally would be after 4.30 PM CET (Malta) business days. 
         I look forward for to our conversation near the future conversation!
       `]
-    }
+    },
   },
   details: {
     name: "Redeemer Pace",
@@ -300,11 +306,23 @@ export const portfolioData: PortfolioData = {
         score: 90
       },
       {
+        name: "Angular",
+        score: 56
+      },
+      {
+        name: "JQuery",
+        score: 99
+      },
+      {
+        name: "WebGL",
+        score: 80
+      },
+      {
         name: "Typescript",
         score: 90
       },
       {
-        name: "NodeJS",
+        name: "JS / NodeJS",
         score: 90
       },
       {
@@ -314,6 +332,10 @@ export const portfolioData: PortfolioData = {
       {
         name: "React-Native",
         score: 80
+      },
+      {
+        name: "Ionic",
+        score: 70
       },
       {
         name: "NativeScript",
@@ -344,10 +366,6 @@ export const portfolioData: PortfolioData = {
         score: 65
       },
       {
-        name: "Angular",
-        score: 40
-      },
-      {
         name: "HTML / CSS",
         score: 100
       },
@@ -366,6 +384,30 @@ export const portfolioData: PortfolioData = {
       {
         name: "Algorithms",
         score: 65
+      },
+      {
+        name: "Encryption & Compressions",
+        score: 80
+      },
+      {
+        name: "Golang",
+        score: 10
+      },
+      {
+        name: "Rust / Substrate",
+        score: 34
+      },
+      {
+        name: "C#",
+        score: 59
+      },
+      {
+        name: "Kotlin / Java",
+        score: 55
+      },
+      {
+        name: "Swift",
+        score: 40
       }
     ],
     tools: [
@@ -404,7 +446,27 @@ export const portfolioData: PortfolioData = {
       {
         name: "XCode",
         score: 20
-      }
+      },
+      {
+        name: "SVN",
+        score: 90
+      },
+      {
+        name: "Cloudflare",
+        score: 90
+      },
+      {
+        name: "AWS",
+        score: 55
+      },
+      {
+        name: "GCP",
+        score: 40
+      },
+      {
+        name: "Docker",
+        score: 80
+      },
     ],
     expertise: [
       {
@@ -604,5 +666,5 @@ export const portfolioData: PortfolioData = {
     byProjectsUsername: {
       gameYt: "@godsofzushin"
     }
-  }
+  },
 };

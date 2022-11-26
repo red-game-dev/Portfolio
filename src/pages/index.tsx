@@ -42,6 +42,10 @@ export default function Home() {
         <Skills skills={portfolioData.skills.expertise} intro={portfolioData.sections.expertise} isCircle={true} />
         <Projects projects={portfolioData.projects} intro={portfolioData.sections.projects} />
         <Text
+          title={portfolioData.sections.recommendations.title}
+          paragraphs={portfolioData.sections.recommendations.description}
+        />
+        <Text
           title={portfolioData.sections.conclusion.title}
           paragraphs={portfolioData.sections.conclusion.description}
         />

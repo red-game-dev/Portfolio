@@ -103,7 +103,7 @@ export const About: FC<AboutProps> = ({
 }: AboutProps) => {
   const [hasArrivedToDescription] = useCollision("section-scroller-link");
   const convertedIntro = useToBinary(intro);
-  const convertedDescription = useToBinary(intro);
+  const convertedDescription = useToBinary(description);
   const IntroCharactersList = useMemo(() => convertedIntro
     .slice(0, intro.length)
     .split("")

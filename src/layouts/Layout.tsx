@@ -12,8 +12,6 @@ import Header from "./Header";
 
 const Container = tw.div`relative m-0 overflow-hidden before:z-[8] before:pointer-events-none`;
 
-const Wrapper = tw.div`relative`;
-
 interface LayoutProps {
   title: string;
   children: React.ReactNode;
@@ -28,9 +26,7 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
       <AppLoader />
       <Container style={isLoading ? { display: "none"} : {}}>
         <Header title={title} />
-          <Wrapper>
-            {children}
-          </Wrapper>
+          {children}
         <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
       </Container>
       <AppLoadingLines />

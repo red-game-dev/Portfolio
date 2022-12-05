@@ -67,12 +67,12 @@ export const Cover = ({ intro, image, typingsTitles }: CoverProps) => (
       </CoverContent>
     </CoverContainer>
     <Content>
-      <Introduction dangerouslySetInnerHTML={{ __html: intro }} />
+      <Introduction dangerouslySetInnerHTML={{ __html: intro }} id="section-intro" />
       <TitleWrapper>
         <TypingAnimation typingData={typingsTitles} />
       </TitleWrapper>
     </Content>
-    <ScrollerLink href="#section-about" id="section-scroller-link" aria-label="Learn more about me">
+    <ScrollerLink href="#section-about" aria-label="Learn more about me">
       <ScrollerIcon icon={faChevronDown} />
     </ScrollerLink>
   </Section>

@@ -101,7 +101,7 @@ export const About: FC<AboutProps> = ({
   isFlexible, jobType, phone, email,
   contactTime, cvUrl, github, stackoverflow, linkedInUsername
 }: AboutProps) => {
-  const [hasArrivedToDescription] = useCollision("section-scroller-link");
+  const [hasArrivedToIntro] = useCollision("section-intro");
   const convertedIntro = useToBinary(intro);
   const convertedDescription = useToBinary(description);
   const IntroCharactersList = useMemo(() => convertedIntro
@@ -109,18 +109,18 @@ export const About: FC<AboutProps> = ({
     .split("")
     .map((char, index) => (
       <Character
-        canAnimate={hasArrivedToDescription}
+        canAnimate={!hasArrivedToIntro}
         delay={(0.5 + index / 10)}
         key={index}
       >
-        {hasArrivedToDescription ? intro.charAt(index) : char}
-      </Character>)), [convertedIntro, intro, hasArrivedToDescription]);
+        {hasArrivedToIntro ? char : intro.charAt(index)}
+      </Character>)), [convertedIntro, intro, hasArrivedToIntro]);
   const DescriptionCharactersList = useMemo(() => convertedDescription
     .slice(0, description.length)
     .split("")
     .map((char, index) => (
-        (hasArrivedToDescription ? description.charAt(index) : char))),
-        [convertedDescription, description, hasArrivedToDescription]);
+        (hasArrivedToIntro ? char : description.charAt(index)))),
+        [convertedDescription, description, hasArrivedToIntro]);
 
   return (
     <Section id="section-about">

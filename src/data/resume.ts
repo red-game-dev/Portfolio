@@ -177,6 +177,7 @@ export const portfolioData: PortfolioData = {
     {
       title: "Frontend Engineer, Chiliz",
       from: "Nov 2019",
+      to: "Nov 2022",
       description: [
         `Working with blockchain and sports company as Frontend Engineer and Unofficially Tech Lead. 
         Furthermore we can discuss about achievements.`,

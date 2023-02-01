@@ -175,6 +175,14 @@ export const portfolioData: PortfolioData = {
   ],
   experience: [
     {
+      title: "Senior Frontend Engineer, reNFT Labs",
+      from: "Jan 2023",
+      description: [
+        "Interesting company which provides renting of NFT's, with integrations to various of industries such as Games!.",
+        "Tech Stack:  React, NextJs"
+      ]
+    },
+    {
       title: "Frontend Engineer, Chiliz",
       from: "Nov 2019",
       to: "Nov 2022",

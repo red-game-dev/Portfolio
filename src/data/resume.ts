@@ -418,6 +418,10 @@ export const portfolioData: PortfolioData = {
       {
         name: "Swift",
         score: 40
+      },
+      {
+        name: "Ruby on Rails",
+        score: 70
       }
     ],
     tools: [

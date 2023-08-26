@@ -7,6 +7,7 @@ export interface Detail {
   email: string;
   image: string;
   name: string;
+  location: string;
   isFlexible: boolean;
   contactTime: string;
 }

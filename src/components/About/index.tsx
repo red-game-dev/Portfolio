@@ -16,6 +16,7 @@ interface AboutProps extends Detail {
   linkedInUsername: string;
   cvUrl: string;
   github: Github[];
+  location: string;
   stackoverflow: string;
 }
 
@@ -98,7 +99,7 @@ margin-top: 0;
 
 export const About: FC<AboutProps> = ({
   intro, description, image, residence,
-  isFlexible, jobType, phone, email,
+  isFlexible, jobType, phone, email, location,
   contactTime, cvUrl, github, stackoverflow, linkedInUsername
 }: AboutProps) => {
   const [hasArrivedToIntro] = useCollision("section-intro");
@@ -140,6 +141,9 @@ export const About: FC<AboutProps> = ({
             </ListItem>
             <ListItem>
               <strong>Seeking:</strong> {isFlexible ? "Flexible" : "Immediately"}
+            </ListItem>
+            <ListItem>
+              <strong>Location:</strong> {location}
             </ListItem>
             <ListItem>
               <strong>Type:</strong> {jobType}

@@ -96,7 +96,7 @@ export const portfolioData: PortfolioData = {
       description: ["Most of the time I do communicate more using english, sometimes more than my mother tongue"]
     },
     tech: {
-      title: "Tech Skills",
+      title: "Programming Languages & Frameworks Skills",
       description: ["Have an overview of my expertise in tech, is there any skills that interest you?"]
     },
     tools: {
@@ -134,12 +134,13 @@ export const portfolioData: PortfolioData = {
     Marketing. At an early age of 7 years old started development as my hobby, which did taught me things the difficult way. 
     Whats next? Looking forward to learn more where I can I improve my knowledge & new challenges, because life without a challenge is not fun!`,
     residence: "Maltese",
-    jobType: "B2B / Employment",
+    location: "Remote Worldwide, Hybrid & on Site Cayman Islands",
+    jobType: "B2B (C2C, Individual Freelance) / Full-Time / Part-Time / Temporary",
     phone: "+356 79323059",
     email: "red.pace.dev@gmail.com",
     image: "/images/profile.webp",
-    contactTime: "After 4.30 PM CET (Malta) business days",
-    isFlexible: true
+    contactTime: "After 4.30 PM CET / After 6 EST",
+    isFlexible: false
   },
   services: [
     {
@@ -228,7 +229,7 @@ export const portfolioData: PortfolioData = {
       description: [
         `One of the companies that given me a lot of experiences throughout the years. 
         This company is an iGaming Company, which was my first experience in iGaming.`,
-        "React, Redux, Redux-observables, MongoDB, Kafka, SignalR, NodeJS, RxJs, Backbone, Canvas, PixJS / Vanilla JS Canvas, NodeJS"
+        "Tech Stack: React, Redux, Redux-observables, MongoDB, Kafka, SignalR, NodeJS, RxJs, Backbone, Canvas, PixJS / Vanilla JS Canvas, NodeJS"
       ]
     }
   ],
@@ -280,16 +281,20 @@ export const portfolioData: PortfolioData = {
         score: 40
       },
       {
+        name: "InVision",
+        score: 50
+      },
+      {
         name: "Figma",
-        score: 40
+        score: 70
       },
       {
         name: "Blender",
-        score: 60
+        score: 40
       },
       {
         name: "Maya",
-        score: 60
+        score: 40
       }
     ],
     language: [
@@ -309,7 +314,7 @@ export const portfolioData: PortfolioData = {
     tech: [
       {
         name: "Vue",
-        score: 100
+        score: 90
       },
       {
         name: "React",
@@ -317,7 +322,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Angular",
-        score: 56
+        score: 40
       },
       {
         name: "JQuery",
@@ -332,32 +337,40 @@ export const portfolioData: PortfolioData = {
         score: 90
       },
       {
-        name: "JS / NodeJS",
+        name: "Javascript",
         score: 90
+      },
+      {
+        name: "NodeJS",
+        score: 60
       },
       {
         name: "Flutter",
-        score: 40
+        score: 50
       },
       {
-        name: "React-Native",
-        score: 80
-      },
-      {
-        name: "Ionic",
+        name: "React Native",
         score: 70
       },
       {
+        name: "Ionic",
+        score: 20
+      },
+      {
+        name: "Cordova",
+        score: 20
+      },
+      {
         name: "NativeScript",
-        score: 90
+        score: 80
       },
       {
         name: "C/C++",
-        score: 90
+        score: 70
       },
       {
         name: "Python",
-        score: 85
+        score: 70
       },
       {
         name: "Lua",
@@ -368,20 +381,28 @@ export const portfolioData: PortfolioData = {
         score: 90
       },
       {
-        name: "MySQL",
-        score: 100
+        name: "Laravel",
+        score: 60
+      },
+      {
+        name: "Sympfony",
+        score: 40
+      },
+      {
+        name: "SQL",
+        score: 90
       },
       {
         name: "NoSQL",
-        score: 65
+        score: 90
       },
       {
         name: "HTML / CSS",
-        score: 100
+        score: 90
       },
       {
         name: "LESS / SASS",
-        score: 75
+        score: 70
       },
       {
         name: "Bash",
@@ -389,39 +410,127 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Electron",
-        score: 30
-      },
-      {
-        name: "Algorithms",
-        score: 65
-      },
-      {
-        name: "Encryption & Compressions",
-        score: 80
+        score: 40
       },
       {
         name: "Golang",
         score: 10
       },
       {
-        name: "Rust / Substrate",
-        score: 34
+        name: "Rust",
+        score: 40
       },
       {
-        name: "C#",
+        name: "C#, .NET",
         score: 59
       },
       {
-        name: "Kotlin / Java",
-        score: 55
+        name: "Kotlin",
+        score: 40
+      },
+      {
+        name: "Java",
+        score: 40
       },
       {
         name: "Swift",
-        score: 40
+        score: 20
       },
       {
         name: "Ruby on Rails",
         score: 70
+      },
+      {
+        name: "Linq",
+        score: 30
+      },
+      {
+        name: "Solidity",
+        score: 50
+      },
+      {
+        name: "Solana",
+        score: 30
+      },
+      {
+        name: "RxJS",
+        score: 90
+      },
+      {
+        name: "Etherjs",
+        score: 60
+      },
+      {
+        name: "Linq",
+        score: 30
+      },
+      {
+        name: "Wagmi (React)",
+        score: 70
+      },
+      {
+        name: "State Management",
+        score: 90
+      },
+      {
+        name: "Firebase",
+        score: 70
+      },
+      {
+        name: "NextJs",
+        score: 90
+      },
+      {
+        name: "Graphql",
+        score: 70
+      },
+      {
+        name: "Gatsby",
+        score: 40
+      },
+      {
+        name: "Backbone",
+        score: 60
+      },
+      {
+        name: "Kafka",
+        score: 50
+      },
+      {
+        name: "SignalR",
+        score: 50
+      },
+      {
+        name: "SocketIo",
+        score: 90
+      },
+      {
+        name: "Ssh",
+        score: 90
+      },
+      {
+        name: "OpenSSL",
+        score: 60
+      },
+      {
+        name: "Canvas",
+        score: 90
+      },
+      {
+        name: "PixiJs",
+        score: 40
+      },
+      {
+        name: "Ramda",
+        score: 60
+      },
+      {
+        name: "TheGraph",
+        score: 50
+      },
+      {
+        name: "Alchemy",
+        score: 60
       }
     ],
     tools: [
@@ -431,15 +540,19 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Unity",
-        score: 65
+        score: 70
       },
       {
         name: "Unreal Engine",
-        score: 45
+        score: 30
       },
       {
         name: "Sky Engine",
         score: 5
+      },
+      {
+        name: "Nuxt",
+        score: 50
       },
       {
         name: "Visual Studio 2003-2022",
@@ -471,15 +584,39 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "AWS",
-        score: 55
+        score: 30
       },
       {
         name: "GCP",
         score: 40
       },
       {
+        name: "Digital Ocean",
+        score: 90
+      },
+      {
+        name: "OVH Cloud",
+        score: 90
+      },
+      {
+        name: "Vercel",
+        score: 70
+      },
+      {
+        name: "Fastlane",
+        score: 30
+      },
+      {
+        name: "Google Store & Apple Store",
+        score: 90
+      },
+      {
         name: "Docker",
         score: 80
+      },
+      {
+        name: "Wordpress",
+        score: 67
       },
     ],
     expertise: [
@@ -490,6 +627,14 @@ export const portfolioData: PortfolioData = {
       {
         name: "Backend Engineer",
         score: 75
+      },
+      {
+        name: "Tech Lead",
+        score: 55
+      },
+      {
+        name: "Engineer Manager",
+        score: 30
       },
       {
         name: "Game Engineer",
@@ -518,7 +663,15 @@ export const portfolioData: PortfolioData = {
       {
         name: "Designing",
         score: 40
-      }
+      },
+      {
+        name: "Algorithms",
+        score: 65
+      },
+      {
+        name: "Encryption & Compressions",
+        score: 80
+      },
     ]
   },
   projects: [

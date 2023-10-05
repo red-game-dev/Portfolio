@@ -7,11 +7,11 @@ interface Details {
 }
 
 const seoDetails: Details = {
-  title: "Portfoilio",
+  title: "Portfolio",
   titleTemplate: `%s | ${portfolioData.details.name}`,
   description: `
-    Let's get to know me! Expertise in Frontend Engineering,
-    Backend Engineering, Game Development, Architect, Game Consultancy, Tech Consuultancy, Buisness Consultancy, Manging & Marketing
+    Let's get to know each other! I have expertise in Frontend Engineering,
+    Backend Engineering, Game Development, Architecture, Game Consultancy, Tech Consultancy, Business Consultancy, Management, and Marketing.
   `,
 };
 

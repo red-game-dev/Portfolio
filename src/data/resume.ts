@@ -52,7 +52,7 @@ export interface PortfolioData {
 }
 
 export const portfolioData: PortfolioData = {
-  intro: "Hello! I’m <strong>Redeemer Pace</strong>, lets get to know me?",
+  intro: "Hello! I’m <strong>Redeemer Pace</strong>. Let's get to know each other, shall we?",
   cover: "/images/cover-picture.webp",
   cv: "https://drive.google.com/file/d/1k2FJG0ZpKA76eCUg_mb1TlncqzOLsACg/view?usp=sharing",
   github: [
@@ -89,40 +89,39 @@ export const portfolioData: PortfolioData = {
     },
     design: {
       title: "Design Skills",
-      description: ["Design perhaps not my main expertise, yet I handled a lot of designs throughout my experience"]
+      description: ["Design may not be my main expertise, but I've handled numerous designs throughout my career."]
     },
     language: {
       title: "Language Skills",
-      description: ["Most of the time I do communicate more using english, sometimes more than my mother tongue"]
+      description: ["Most of the time, I communicate primarily in English, sometimes even more than in my mother tongue."]
     },
     tech: {
       title: "Programming Languages & Frameworks Skills",
-      description: ["Have an overview of my expertise in tech, is there any skills that interest you?"]
+      description: ["Have an overview of my expertise in tech. Are there any skills that interest you?"]
     },
     tools: {
       title: "Tools Skills",
-      description: ["Generally I do use a lot of tools, although some may use less and some may use more according to the occasion of current work"]
+      description: ["I generally use a variety of tools. Some I use less often, and some more, depending on the current task."]
     },
     expertise: {
       title: "Expertise",
-      description: ["Various of roles I do expertise at, each one will give you an overview of knowledge overall"]
+      description: ["I have expertise in various roles; each provides a snapshot of my overall knowledge."]
     },
     projects: {
       title: "Projects & Achievements",
-      description: ["Lets speak about projects, have a small overview of few huge projects!"]
+      description: ["Let's discuss my projects. Here's a brief overview of some significant ones."]
     },
     recommendations: {
-      title: "Looking for recommendations",
+      title: "Recommendations",
       description: [
-        "Got recommendation letters from top companies such as KPMG, AuthenticGaming and more! Furthermore this can be viewed on request",
+        "I have recommendation letters from top companies such as KPMG, AuthenticGaming, and more! These can be viewed upon request.",
       ]
     },
     conclusion: {
       title: "Wow!",
       description: [`
-        You made it till the end, how was it the journey about me? Should you require to reach out to me, 
-        ideally would be after 4.30 PM CET (Malta) business days. 
-        I look forward for to our conversation near the future conversation!
+        You made it to the end! How did you find my journey? 
+        If you'd like to reach out, the best time would be after 4:30 PM CET on business days. I look forward to our future conversation!
       `]
     },
   },
@@ -179,7 +178,7 @@ export const portfolioData: PortfolioData = {
       title: "Senior Frontend Engineer, reNFT Labs",
       from: "Jan 2023",
       description: [
-        "Interesting company which provides renting of NFT's, with integrations to various of industries such as Games!.",
+        "An interesting company that offers NFT rentals, integrating with various industries like gaming.",
         "Tech Stack:  React, NextJs"
       ]
     },
@@ -188,8 +187,8 @@ export const portfolioData: PortfolioData = {
       from: "Nov 2019",
       to: "Nov 2022",
       description: [
-        `Working with blockchain and sports company as Frontend Engineer and Unofficially Tech Lead. 
-        Furthermore we can discuss about achievements.`,
+        `Worked with a blockchain and sports company as a Frontend Engineer and an unofficial Tech Lead. 
+        We can discuss achievements further.`,
         `Tech Stack:  Nativescript, Vuejs, Webpack, Jest tests, Redux-observables, RxJs, Java/Kotlin, 
         Swift, React-Native, React, Ionic, Flutter, Architecture.`
       ]
@@ -763,8 +762,8 @@ export const portfolioData: PortfolioData = {
       image: "/images/chapter3.webp",
       title: "GOZ Chapter 3",
       category: "Marketing, Patch Intro, MMORPG",
-      intro: `After first 2 chapters, I started to improve my marketing skills and 
-      therefore introduced landing page for the pre-release of the new chapter.`,
+      intro: `After the first two chapters, 
+      I honed my marketing skills and introduced a landing page for the pre-release of the new chapter.`,
       responsabilities: [
         "Develop & Maintain an introductive site for acquire new players",
         "Monitor Analytics",

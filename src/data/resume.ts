@@ -4,7 +4,9 @@ import {
   faPresentationScreen,
   faGamepadModern,
   faChartSimple,
-  faShop
+  faShop,
+  faMessage,
+  faPlane,
 } from "@fortawesome/pro-duotone-svg-icons";
 
 import { Detail } from "@/types/details";
@@ -171,6 +173,16 @@ export const portfolioData: PortfolioData = {
       title: "Marketing Consultancy",
       icon: faShop,
       description: ""
+    },
+    {
+      title: "Build Custom GPT",
+      icon: faMessage,
+      description: ""
+    },
+    {
+      title: "TasteTravellers Advertisment",
+      icon: faPlane,
+      description: ""
     }
   ],
   experience: [
@@ -203,12 +215,22 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
+      title: "Founder, CEO at TasteTravellers",
+      from: "Feb 2018",
+      description: [
+        "Our popular travel page & community",
+        `We focus on bringing authentic travel experiences to their audience and 
+        we're engaged in creating and sharing high-quality content related to food, drinks, travel destinations, and accommodations.`,
+        "Tech Stack: Shopify"
+      ],
+    },
+    {
       title: "Founder, CEO & CTO, Gods of Zushin",
       from: "Apr 2015",
       description: [
         "An achievement on it's own with over 5 years in production environment.",
         "A Game MMORPG project developed during studies to enhance my knowledge in various of areas, which can be discuss.",
-        `Tech Stack: C/C++, Lua, SQL, Python, VueJS, PHP Laravel, NodeJs, C#, Algorithms, Cryptographies, Compressions, Architecture,
+        `Tech Stack: C/C++, Lua, SQL, Python, VueJS, PHP Laravel, NodeJs, C#, Algorithms, Cryptography, Compressions, Architecture,
         Photopshop, Illustrator`
       ],
     },
@@ -617,6 +639,10 @@ export const portfolioData: PortfolioData = {
         name: "Wordpress",
         score: 67
       },
+      {
+        name: "Shopify",
+        score: 50
+      },
     ],
     expertise: [
       {
@@ -652,11 +678,11 @@ export const portfolioData: PortfolioData = {
         score: 50
       },
       {
-        name: "Enterpreneur",
+        name: "Entrepreneur",
         score: 75
       },
       {
-        name: "Manging",
+        name: "Managing",
         score: 70
       },
       {
@@ -686,7 +712,7 @@ export const portfolioData: PortfolioData = {
       improve my skills in various of sectors. This project took me 4 and half years to
       completely finish it, yet is still ongoing with new improvements, new features every 6
       months to 1 year patches. The game uses various of programming languages, but thats just the tip of the iceberg.`,
-      responsabilities: [
+      responsibilities: [
         "Maintain & Develop scalable solution",
         "Architecture of the whole Game Engine",
         "Design 3D/2D Modeling, Textures and such using Maya (Most of models were bought as it is time consuming)",
@@ -725,7 +751,7 @@ export const portfolioData: PortfolioData = {
       category: "Social Network, Game",
       intro: `Although this project was discontinued, I did manage back then to raise a 
       huge community related to Anime, Manga, Cosplay, Gaming. `,
-      responsabilities: [
+      responsibilities: [
         "This was a social network similar to Facebook & google plus",
         "A small enjoyable game as part of the network, that when you interact you would earn points to build your customized character. ",
         `Each character could be customized any way you would like it to be, 
@@ -759,12 +785,44 @@ export const portfolioData: PortfolioData = {
       to: "Apr 2019"
     },
     {
+      image: "/images/tastetravellers-cover.webp",
+      title: "TasteTravellers",
+      category: "Media",
+      intro: `I am a comprehensive travel companion for those enchanted by the allure of exploration and adventure. 
+      My presence spans across various digital platforms, each offering unique ways to engage with the travel experience.
+      Facebook page, TasteTravellers - https://www.facebook.com/tastetravellersmt, 
+      Facebook group, TasteTravellers - Travel the Globe - https://www.facebook.com/groups/911770150334644). 
+      On Instagram, follow @tastestravellers - https://www.instagram.com/@tastestravellers
+      TasteTravellers - https://www.youtube.com/@tastetravellers
+      TasteTravellers Store, accessible at tastetravellers.store - https://www.tastetravellers.store).`,
+      responsibilities: [
+        "Content Creation and Curation",
+        "Community Engagement",
+        "Photography and Visual Storytelling",
+        "Travel Blogging",
+        "E-commerce Management",
+        "Marketing and Promotion",
+        "Audience Growth",
+        "Quality Assurance",
+        "Feedback Analysis",
+        "Collaborations and Partnerships",
+        "Travel Research and Planning",
+        "Legal and Ethical Compliance",
+        "Building the roadmap & Vision",
+        "Advertising and Promoting travel-related companies partnered with us",
+        "Advertise our content on a budget"
+      ],
+      techStack: ["Shopify"],
+      link: "https://www.facebook.com/tastetravellersmt",
+      from: "Feb 2018"
+    },
+    {
       image: "/images/chapter3.webp",
       title: "GOZ Chapter 3",
       category: "Marketing, Patch Intro, MMORPG",
       intro: `After the first two chapters, 
       I honed my marketing skills and introduced a landing page for the pre-release of the new chapter.`,
-      responsabilities: [
+      responsibilities: [
         "Develop & Maintain an introductive site for acquire new players",
         "Monitor Analytics",
         "Marketing using various of Social Media's and their ads tools"
@@ -780,7 +838,7 @@ export const portfolioData: PortfolioData = {
       category: "Promoting the new Patch",
       intro: `After first 2 chapters, I started to improve my marketing skills
        and therefore introduced landing page for the pre-release of the new chapter.`,
-      responsabilities: [
+      responsibilities: [
         "Develop & Maintain an introductive site for acquire new players",
         "Monitor Analytics",
         "Marketing using various of Social Media's and their ads tools"
@@ -795,7 +853,7 @@ export const portfolioData: PortfolioData = {
       title: "My Portfolio",
       category: "Self-Promotion",
       intro: "An interactive portfolio to learn further about myself & what I can offer. Interested? Reach out!",
-      responsabilities: [
+      responsibilities: [
         "Develop & Maintain an introductive site",
         "Monitor Analytics",
         "Make sure high performance is in place",
@@ -812,7 +870,7 @@ export const portfolioData: PortfolioData = {
       category: "Different industries",
       intro: `Generally made many more projects, which I try my best to 
       keep my knowledge active and acquire more, therefore could introduce valuable knowledge to companies I work for.`,
-      responsabilities: [
+      responsibilities: [
         "Architecting the whole solution from scratch",
         "Acquire knowledge and improve overtime"
       ],

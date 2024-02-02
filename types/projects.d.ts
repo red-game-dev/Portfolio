@@ -3,7 +3,7 @@ export interface ProjectDetail {
   title: string;
   category: string;
   intro: string;
-  responsabilities: string[];
+  responsibilities: string[];
   techStack: string[];
   link: string;
   from: string;

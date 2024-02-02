@@ -96,11 +96,11 @@ export const ProjectModal: FC = () => {
           description={modalContent.intro}
         />
         {
-          modalContent?.responsabilities?.length > 0 && (
+          modalContent?.responsibilities?.length > 0 && (
             <>
-              <PopupBoxTitle>A walk through of responsabilities</PopupBoxTitle>
+              <PopupBoxTitle>A walk through of responsibilities</PopupBoxTitle>
               <PopupBoxList>
-                {modalContent?.responsabilities?.map((item: string, index: number) => (
+                {modalContent?.responsibilities?.map((item: string, index: number) => (
                   <PopupBoxListItem key={`${item.replace(/\s/, "")}-${index}`}>
                     {item}
                   </PopupBoxListItem>

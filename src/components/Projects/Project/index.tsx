@@ -56,7 +56,7 @@ const OuterImageInfoCategory = styled.span(() => [
 
 export const Project: FC<ProjectProps> = ({
   title, category, intro, techStack, link, image,
-  responsabilities, from, to,
+  responsibilities, from, to,
   withRandomBorder, isFullBorder, isFullWidth
 }: ProjectProps) => {
   const { setModal } = useModalStateHook();
@@ -70,11 +70,11 @@ export const Project: FC<ProjectProps> = ({
       techStack,
       link,
       image,
-      responsabilities,
+      responsibilities,
       from,
       to
     });
-  }, [category, from, image, intro, link, responsabilities, setModal, techStack, title, to]);
+  }, [category, from, image, intro, link, responsibilities, setModal, techStack, title, to]);
 
   return (
     <Item isFullWidth={isFullWidth}>

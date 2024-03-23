@@ -54,22 +54,23 @@ export interface PortfolioData {
 }
 
 export const portfolioData: PortfolioData = {
-  intro: "Hello! I’m <strong>Redeemer Pace</strong>. Let's get to know each other, shall we?",
+  intro:
+    "Hello! I’m <strong>Redeemer Pace</strong>. Let's get to know each other, shall we?",
   cover: "/images/cover-picture.webp",
   cv: "https://drive.google.com/file/d/1k2FJG0ZpKA76eCUg_mb1TlncqzOLsACg/view?usp=sharing",
   github: [
     {
       name: "Me",
-      link: "https://github.com/red-game-dev"
+      link: "https://github.com/red-game-dev",
     },
     {
       name: "GOZ",
-      link: "https://github.com/AMW-Game-Entertainment"
+      link: "https://github.com/AMW-Game-Entertainment",
     },
     {
       name: "SN",
-      link: "https://github.com/animemixedworldgithub"
-    }
+      link: "https://github.com/animemixedworldgithub",
+    },
   ],
   stackoverflow: "https://stackoverflow.com/users/15786039/ired-game-dev",
   typingsTitles: [
@@ -87,44 +88,60 @@ export const portfolioData: PortfolioData = {
   sections: {
     services: {
       title: "What can I offer?",
-      description: ["Looking for top-notch service? You're at the right place!"]
+      description: [
+        "Looking for top-notch service? You're at the right place!",
+      ],
     },
     design: {
       title: "Design Skills",
-      description: ["Design may not be my main expertise, but I've handled numerous designs throughout my career."]
+      description: [
+        "Design may not be my main expertise, but I've handled numerous designs throughout my career.",
+      ],
     },
     language: {
       title: "Language Skills",
-      description: ["Most of the time, I communicate primarily in English, sometimes even more than in my mother tongue."]
+      description: [
+        "Most of the time, I communicate primarily in English, sometimes even more than in my mother tongue.",
+      ],
     },
     tech: {
       title: "Programming Languages & Frameworks Skills",
-      description: ["Have an overview of my expertise in tech. Are there any skills that interest you?"]
+      description: [
+        "Have an overview of my expertise in tech. Are there any skills that interest you?",
+      ],
     },
     tools: {
       title: "Tools Skills",
-      description: ["I generally use a variety of tools. Some I use less often, and some more, depending on the current task."]
+      description: [
+        "I generally use a variety of tools. Some I use less often, and some more, depending on the current task.",
+      ],
     },
     expertise: {
       title: "Expertise",
-      description: ["I have expertise in various roles; each provides a snapshot of my overall knowledge."]
+      description: [
+        "I have expertise in various roles; each provides a snapshot of my overall knowledge.",
+      ],
     },
     projects: {
       title: "Projects & Achievements",
-      description: ["Let's discuss my projects. Here's a brief overview of some significant ones."]
+      description: [
+        "Let's discuss my projects. Here's a brief overview of some significant ones.",
+      ],
     },
     recommendations: {
       title: "Recommendations",
       description: [
         "I have recommendation letters from top companies such as KPMG, AuthenticGaming, and more! These can be viewed upon request.",
-      ]
+      ],
     },
     conclusion: {
       title: "Wow!",
-      description: [`
+      description: [
+        `
         You made it to the end! How did you find my journey? 
         If you'd like to reach out, the best time would be after 4:30 PM CET on business days. I look forward to our future conversation!
-      `]
+      `,
+      ],
     },
   },
   details: {
@@ -136,54 +153,55 @@ export const portfolioData: PortfolioData = {
     Whats next? Looking forward to learn more where I can I improve my knowledge & new challenges, because life without a challenge is not fun!`,
     residence: "Maltese",
     location: "Remote Worldwide, Hybrid & on Site Cayman Islands",
-    jobType: "B2B (C2C, Individual Freelance) / Full-Time / Part-Time / Temporary",
+    jobType:
+      "B2B (C2C, Individual Freelance) / Full-Time / Part-Time / Temporary",
     phone: "+356 79323059",
     email: "red.pace.dev@gmail.com",
     image: "/images/profile.webp",
     contactTime: "After 4.30 PM CET / After 6 EST",
-    isFlexible: false
+    isFlexible: false,
   },
   services: [
     {
       title: "Frontend Enginering",
       icon: faBrowser,
-      description: ""
+      description: "",
     },
     {
       title: "Backend Enginering",
       icon: faServer,
-      description: ""
+      description: "",
     },
     {
       title: "Tech Consultancy",
       icon: faPresentationScreen,
-      description: ""
+      description: "",
     },
     {
       title: "Game Consultancy",
       icon: faGamepadModern,
-      description: ""
+      description: "",
     },
     {
       title: "Business Consultancy",
       icon: faChartSimple,
-      description: ""
+      description: "",
     },
     {
       title: "Marketing Consultancy",
       icon: faShop,
-      description: ""
+      description: "",
     },
     {
       title: "Build Custom GPT",
       icon: faMessage,
-      description: ""
+      description: "",
     },
     {
-      title: "TasteTravellers Advertisment",
+      title: "TasteTravellers Collaborations",
       icon: faPlane,
-      description: ""
-    }
+      description: "",
+    },
   ],
   experience: [
     {
@@ -191,8 +209,16 @@ export const portfolioData: PortfolioData = {
       from: "Jan 2023",
       description: [
         "An interesting company that offers NFT rentals, integrating with various industries like gaming.",
-        "Tech Stack:  React, NextJs"
-      ]
+        "Tech Stack:  React, NextJs",
+      ],
+    },
+    {
+      title: "Founder & CEO of RedArc Studio Ltd",
+      from: "Jan 2023",
+      description: [
+        "Expert Software Development & Consultancy Solutions for Your Business Growth",
+        "Tech Stack: Frontend Engineering, Backend Engineering, Tech Consultancy, Game Consultancy, Build Custom GPT",
+      ],
     },
     {
       title: "Frontend Engineer, Chiliz",
@@ -202,8 +228,8 @@ export const portfolioData: PortfolioData = {
         `Worked with a blockchain and sports company as a Frontend Engineer and an unofficial Tech Lead. 
         We can discuss achievements further.`,
         `Tech Stack:  Nativescript, Vuejs, Webpack, Jest tests, Redux-observables, RxJs, Java/Kotlin, 
-        Swift, React-Native, React, Ionic, Flutter, Architecture.`
-      ]
+        Swift, React-Native, React, Ionic, Flutter, Architecture.`,
+      ],
     },
     {
       title: "Chief Techonology Officer, CoinOn",
@@ -211,7 +237,7 @@ export const portfolioData: PortfolioData = {
       to: "Jan 2022",
       description: [
         "Delivered a full scale solution of website, mobile app and a blockchain infrastructure.",
-        "Tech Stack: Flutter, NodeJs, Rust (Substrate), VueJs Nuxt."
+        "Tech Stack: Flutter, NodeJs, Rust (Substrate), VueJs Nuxt.",
       ],
     },
     {
@@ -221,7 +247,7 @@ export const portfolioData: PortfolioData = {
         "Our popular travel page & community",
         `We focus on bringing authentic travel experiences to their audience and 
         we're engaged in creating and sharing high-quality content related to food, drinks, travel destinations, and accommodations.`,
-        "Tech Stack: Shopify"
+        "Tech Stack: Shopify",
       ],
     },
     {
@@ -231,7 +257,7 @@ export const portfolioData: PortfolioData = {
         "An achievement on it's own with over 5 years in production environment.",
         "A Game MMORPG project developed during studies to enhance my knowledge in various of areas, which can be discuss.",
         `Tech Stack: C/C++, Lua, SQL, Python, VueJS, PHP Laravel, NodeJs, C#, Algorithms, Cryptography, Compressions, Architecture,
-        Photopshop, Illustrator`
+        Photopshop, Illustrator`,
       ],
     },
     {
@@ -240,8 +266,8 @@ export const portfolioData: PortfolioData = {
       to: "Sep 2019",
       description: [
         "Being hired by KPMG is one big achievement on it's own, as it is one of the big 4 firm in auditing.",
-        "Tech Stack: PHP - Laravel, VueJS, Angular, NodeJS, React, C# ASP.NET, C/C++, Architecture"
-      ]
+        "Tech Stack: PHP - Laravel, VueJS, Angular, NodeJS, React, C# ASP.NET, C/C++, Architecture",
+      ],
     },
     {
       title: "Frontend Developer, AuthenticGaming",
@@ -250,9 +276,9 @@ export const portfolioData: PortfolioData = {
       description: [
         `One of the companies that given me a lot of experiences throughout the years. 
         This company is an iGaming Company, which was my first experience in iGaming.`,
-        "Tech Stack: React, Redux, Redux-observables, MongoDB, Kafka, SignalR, NodeJS, RxJs, Backbone, Canvas, PixJS / Vanilla JS Canvas, NodeJS"
-      ]
-    }
+        "Tech Stack: React, Redux, Redux-observables, MongoDB, Kafka, SignalR, NodeJS, RxJs, Backbone, Canvas, PixJS / Vanilla JS Canvas, NodeJS",
+      ],
+    },
   ],
   education: [
     {
@@ -260,444 +286,449 @@ export const portfolioData: PortfolioData = {
       description: [
         "These courses has helped me enchance further knowledge for both pratical and theoretical",
         `Courses: Python, Architecture, Leadership, VueJS, Angular, React, Laravel, React Native, Ionic, NativeScript, 
-        AI, Blockchain (Solidity, Substrate, Rust, Solana) and many more`
+        AI, Blockchain (Solidity, Substrate, Rust, Solana) and many more`,
       ],
       from: "Sep 2017",
     },
     {
-      title: "Bachelor of Science (Honours) in Multimedia Software Development, MCAST",
+      title:
+        "Bachelor of Science (Honours) in Multimedia Software Development, MCAST",
       description: [
         "Although last year wasnt completed, I was able to learn a lot of interesting subjects",
         `Courses: C#, Blender, Game Development, Photoshop, Web Development, PHP, Maltese, English, Maths, 
-        2D Animation with After Effects`
+        2D Animation with After Effects`,
       ],
       from: "Sep 2015",
-      to: "Jun 2017"
+      to: "Jun 2017",
     },
     {
       title: "Extended Diploma Computer Software Engineering, MCAST",
-      description: ["Courses: C#, Blender, Photoshop, Web Development, PHP, Maltese, English, Maths, 2D Animation with After Effects"],
+      description: [
+        "Courses: C#, Blender, Photoshop, Web Development, PHP, Maltese, English, Maths, 2D Animation with After Effects",
+      ],
       from: "Sep 2013",
-      to: "Jun 2015"
+      to: "Jun 2015",
     },
     {
       title: "Diploma Computer Software Engineering, MCAST",
-      description: ["Courses: C#, Blender, Photoshop, Web Development, PHP, Maltese, English, Maths, 2D Animation with After Effects"],
+      description: [
+        "Courses: C#, Blender, Photoshop, Web Development, PHP, Maltese, English, Maths, 2D Animation with After Effects",
+      ],
       from: "Sep 2011",
-      to: "Jun 2013"
-    }
+      to: "Jun 2013",
+    },
   ],
   skills: {
     design: [
       {
         name: "Photoshop",
-        score: 80
+        score: 80,
       },
       {
         name: "Illustrator",
-        score: 60
+        score: 60,
       },
       {
         name: "Adobe XD",
-        score: 40
+        score: 40,
       },
       {
         name: "InVision",
-        score: 50
+        score: 50,
       },
       {
         name: "Figma",
-        score: 70
+        score: 70,
       },
       {
         name: "Blender",
-        score: 40
+        score: 40,
       },
       {
         name: "Maya",
-        score: 40
-      }
+        score: 40,
+      },
     ],
     language: [
       {
         name: "Maltese",
-        score: 100
+        score: 100,
       },
       {
         name: "English",
-        score: 90
+        score: 90,
       },
       {
         name: "Italian",
-        score: 70
-      }
+        score: 70,
+      },
     ],
     tech: [
       {
         name: "Vue",
-        score: 90
+        score: 90,
       },
       {
         name: "React",
-        score: 90
+        score: 90,
       },
       {
         name: "Angular",
-        score: 40
+        score: 40,
       },
       {
         name: "JQuery",
-        score: 99
+        score: 99,
       },
       {
         name: "WebGL",
-        score: 80
+        score: 80,
       },
       {
         name: "Typescript",
-        score: 90
+        score: 90,
       },
       {
         name: "Javascript",
-        score: 90
+        score: 90,
       },
       {
         name: "NodeJS",
-        score: 60
+        score: 60,
       },
       {
         name: "Flutter",
-        score: 50
+        score: 50,
       },
       {
         name: "React Native",
-        score: 70
+        score: 70,
       },
       {
         name: "Ionic",
-        score: 20
+        score: 20,
       },
       {
         name: "Cordova",
-        score: 20
+        score: 20,
       },
       {
         name: "NativeScript",
-        score: 80
+        score: 80,
       },
       {
         name: "C/C++",
-        score: 70
+        score: 70,
       },
       {
         name: "Python",
-        score: 70
+        score: 70,
       },
       {
         name: "Lua",
-        score: 50
+        score: 50,
       },
       {
         name: "PHP",
-        score: 90
+        score: 90,
       },
       {
         name: "Laravel",
-        score: 60
+        score: 60,
       },
       {
         name: "Sympfony",
-        score: 40
+        score: 40,
       },
       {
         name: "SQL",
-        score: 90
+        score: 90,
       },
       {
         name: "NoSQL",
-        score: 90
+        score: 90,
       },
       {
         name: "HTML / CSS",
-        score: 90
+        score: 90,
       },
       {
         name: "LESS / SASS",
-        score: 70
+        score: 70,
       },
       {
         name: "Bash",
-        score: 80
+        score: 80,
       },
       {
         name: "Electron",
-        score: 40
+        score: 40,
       },
       {
         name: "Golang",
-        score: 10
+        score: 10,
       },
       {
         name: "Rust",
-        score: 40
+        score: 40,
       },
       {
         name: "C#, .NET",
-        score: 59
+        score: 59,
       },
       {
         name: "Kotlin",
-        score: 40
+        score: 40,
       },
       {
         name: "Java",
-        score: 40
+        score: 40,
       },
       {
         name: "Swift",
-        score: 20
+        score: 20,
       },
       {
         name: "Ruby on Rails",
-        score: 70
+        score: 70,
       },
       {
         name: "Linq",
-        score: 30
+        score: 30,
       },
       {
         name: "Solidity",
-        score: 50
+        score: 50,
       },
       {
         name: "Solana",
-        score: 30
+        score: 30,
       },
       {
         name: "RxJS",
-        score: 90
+        score: 90,
       },
       {
         name: "Etherjs",
-        score: 60
+        score: 60,
       },
       {
         name: "Linq",
-        score: 30
+        score: 30,
       },
       {
         name: "Wagmi (React)",
-        score: 70
+        score: 70,
       },
       {
         name: "State Management",
-        score: 90
+        score: 90,
       },
       {
         name: "Firebase",
-        score: 70
+        score: 70,
       },
       {
         name: "NextJs",
-        score: 90
+        score: 90,
       },
       {
         name: "Graphql",
-        score: 70
+        score: 70,
       },
       {
         name: "Gatsby",
-        score: 40
+        score: 40,
       },
       {
         name: "Backbone",
-        score: 60
+        score: 60,
       },
       {
         name: "Kafka",
-        score: 50
+        score: 50,
       },
       {
         name: "SignalR",
-        score: 50
+        score: 50,
       },
       {
         name: "SocketIo",
-        score: 90
+        score: 90,
       },
       {
         name: "Ssh",
-        score: 90
+        score: 90,
       },
       {
         name: "OpenSSL",
-        score: 60
+        score: 60,
       },
       {
         name: "Canvas",
-        score: 90
+        score: 90,
       },
       {
         name: "PixiJs",
-        score: 40
+        score: 40,
       },
       {
         name: "Ramda",
-        score: 60
+        score: 60,
       },
       {
         name: "TheGraph",
-        score: 50
+        score: 50,
       },
       {
         name: "Alchemy",
-        score: 60
-      }
+        score: 60,
+      },
     ],
     tools: [
       {
         name: "Git",
-        score: 90
+        score: 90,
       },
       {
         name: "Unity",
-        score: 70
+        score: 70,
       },
       {
         name: "Unreal Engine",
-        score: 30
+        score: 30,
       },
       {
         name: "Sky Engine",
-        score: 5
+        score: 5,
       },
       {
         name: "Nuxt",
-        score: 50
+        score: 50,
       },
       {
         name: "Visual Studio 2003-2022",
-        score: 99
+        score: 99,
       },
       {
         name: "VS Code",
-        score: 90
+        score: 90,
       },
       {
         name: "JetBrains Tools",
-        score: 70
+        score: 70,
       },
       {
         name: "Android Studo",
-        score: 50
+        score: 50,
       },
       {
         name: "XCode",
-        score: 20
+        score: 20,
       },
       {
         name: "SVN",
-        score: 90
+        score: 90,
       },
       {
         name: "Cloudflare",
-        score: 90
+        score: 90,
       },
       {
         name: "AWS",
-        score: 30
+        score: 30,
       },
       {
         name: "GCP",
-        score: 40
+        score: 40,
       },
       {
         name: "Digital Ocean",
-        score: 90
+        score: 90,
       },
       {
         name: "OVH Cloud",
-        score: 90
+        score: 90,
       },
       {
         name: "Vercel",
-        score: 70
+        score: 70,
       },
       {
         name: "Fastlane",
-        score: 30
+        score: 30,
       },
       {
         name: "Google Store & Apple Store",
-        score: 90
+        score: 90,
       },
       {
         name: "Docker",
-        score: 80
+        score: 80,
       },
       {
         name: "Wordpress",
-        score: 67
+        score: 67,
       },
       {
         name: "Shopify",
-        score: 50
+        score: 50,
       },
     ],
     expertise: [
       {
         name: "Frontend Engineer",
-        score: 100
+        score: 100,
       },
       {
         name: "Backend Engineer",
-        score: 75
+        score: 75,
       },
       {
         name: "Tech Lead",
-        score: 55
+        score: 55,
       },
       {
         name: "Engineer Manager",
-        score: 30
+        score: 30,
       },
       {
         name: "Game Engineer",
-        score: 80
+        score: 80,
       },
       {
         name: "Tech Consultancy",
-        score: 75
+        score: 75,
       },
       {
         name: "Architecture",
-        score: 80
+        score: 80,
       },
       {
         name: "Marketing",
-        score: 50
+        score: 50,
       },
       {
         name: "Entrepreneur",
-        score: 75
+        score: 75,
       },
       {
         name: "Managing",
-        score: 70
+        score: 70,
       },
       {
         name: "Designing",
-        score: 40
+        score: 40,
       },
       {
         name: "Algorithms",
-        score: 65
+        score: 65,
       },
       {
         name: "Encryption & Compressions",
-        score: 80
+        score: 80,
       },
-    ]
+    ],
   },
   projects: [
     {
@@ -741,9 +772,20 @@ export const portfolioData: PortfolioData = {
         "Analyze problematic situations and occurrences and provide solutions",
         "Furthermore can be discussed about this project",
       ],
-      techStack: ["C/C++", "Lua", "Python", "VueJS", "PHP Laravel", "C#", "Electron (Old Launcher)", "Cloudflare", "DigitalOcean", "AWS"],
+      techStack: [
+        "C/C++",
+        "Lua",
+        "Python",
+        "VueJS",
+        "PHP Laravel",
+        "C#",
+        "Electron (Old Launcher)",
+        "Cloudflare",
+        "DigitalOcean",
+        "AWS",
+      ],
       link: "https://goz.fun",
-      from: "Apr 2015"
+      from: "Apr 2015",
     },
     {
       image: "/images/socialnetwork-amw.webp",
@@ -779,10 +821,21 @@ export const portfolioData: PortfolioData = {
         "Analyze problematic situations and occurrences and provide solutions",
         "Furthermore can be discussed about this project",
       ],
-      techStack: ["PHP", "My Own Frameworks (PHP, JS)", "JS (JQuery, Backbone)", "Python", "WebGL & Canvas", "HTML", "CSS", "Cloudflare", "DigitalOcean", "AWS"],
+      techStack: [
+        "PHP",
+        "My Own Frameworks (PHP, JS)",
+        "JS (JQuery, Backbone)",
+        "Python",
+        "WebGL & Canvas",
+        "HTML",
+        "CSS",
+        "Cloudflare",
+        "DigitalOcean",
+        "AWS",
+      ],
       link: "https://drive.google.com/drive/folders/1jN-Xhfiro3UJppRLVehG8UIytjFJVVtl?usp=share_link",
       from: "Apr 2015",
-      to: "Apr 2019"
+      to: "Apr 2019",
     },
     {
       image: "/images/tastetravellers-cover.webp",
@@ -810,11 +863,11 @@ export const portfolioData: PortfolioData = {
         "Legal and Ethical Compliance",
         "Building the roadmap & Vision",
         "Advertising and Promoting travel-related companies partnered with us",
-        "Advertise our content on a budget"
+        "Advertise our content on a budget",
       ],
       techStack: ["Shopify"],
       link: "https://www.facebook.com/tastetravellersmt",
-      from: "Feb 2018"
+      from: "Feb 2018",
     },
     {
       image: "/images/chapter3.webp",
@@ -825,12 +878,12 @@ export const portfolioData: PortfolioData = {
       responsibilities: [
         "Develop & Maintain an introductive site for acquire new players",
         "Monitor Analytics",
-        "Marketing using various of Social Media's and their ads tools"
+        "Marketing using various of Social Media's and their ads tools",
       ],
       techStack: ["ReactJS", "Static Site"],
       link: "https://chapter3.goz.fun",
       from: "Apr 2018",
-      to: "Apr 2018"
+      to: "Apr 2018",
     },
     {
       image: "/images/chapter4.webp",
@@ -841,28 +894,37 @@ export const portfolioData: PortfolioData = {
       responsibilities: [
         "Develop & Maintain an introductive site for acquire new players",
         "Monitor Analytics",
-        "Marketing using various of Social Media's and their ads tools"
+        "Marketing using various of Social Media's and their ads tools",
       ],
       techStack: ["ReactJS", "Static Site"],
       link: "https://chapter4.goz.fun",
       from: "Apr 2019",
-      to: "Apr 2019"
+      to: "Apr 2019",
     },
     {
       image: "/images/portfolio.webp",
       title: "My Portfolio",
       category: "Self-Promotion",
-      intro: "An interactive portfolio to learn further about myself & what I can offer. Interested? Reach out!",
+      intro:
+        "An interactive portfolio to learn further about myself & what I can offer. Interested? Reach out!",
       responsibilities: [
         "Develop & Maintain an introductive site",
         "Monitor Analytics",
         "Make sure high performance is in place",
-        "Handle clients"
+        "Handle clients",
       ],
-      techStack: ["NextJS", "React", "Styled Components", "Tailwind", "Fontawesome", "Recoil", "Static Site"],
+      techStack: [
+        "NextJS",
+        "React",
+        "Styled Components",
+        "Tailwind",
+        "Fontawesome",
+        "Recoil",
+        "Static Site",
+      ],
       link: "https://redgame.dev",
       from: "Nov 2022",
-      to: "Nov 2022"
+      to: "Nov 2022",
     },
     {
       image: "/images/otherprojects.webp",
@@ -872,23 +934,32 @@ export const portfolioData: PortfolioData = {
       keep my knowledge active and acquire more, therefore could introduce valuable knowledge to companies I work for.`,
       responsibilities: [
         "Architecting the whole solution from scratch",
-        "Acquire knowledge and improve overtime"
+        "Acquire knowledge and improve overtime",
       ],
-      techStack: ["ReactJS", "Unity", "Angular", "C/C++", "PHP", "NodeJS", "Flutter", "Python"],
+      techStack: [
+        "ReactJS",
+        "Unity",
+        "Angular",
+        "C/C++",
+        "PHP",
+        "NodeJS",
+        "Flutter",
+        "Python",
+      ],
       link: "https://drive.google.com/drive/folders/0B1gPxpJpFGW5SGhXeS1pTzA4Tmc?resourcekey=0-amvzxbZpCBhf7bV-GVUmTg&usp=share_link",
       from: "Jan 2013",
-      to: "Jan 2022"
-    }
+      to: "Jan 2022",
+    },
   ],
   socialMedia: {
     byUsername: {
       twitter: "@red_game_dev",
       instagram: "adventure.redmt",
       facebook: "traveller.redmt",
-      linkedIn: "redeemer-pace-685692b9"
+      linkedIn: "redeemer-pace-685692b9",
     },
     byProjectsUsername: {
-      gameYt: "@godsofzushin"
-    }
+      gameYt: "@godsofzushin",
+    },
   },
 };

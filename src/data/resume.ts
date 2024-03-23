@@ -213,6 +213,26 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
+      title: "Founder, CEO at TasteTravellers",
+      from: "Feb 2018",
+      description: [
+        "Our popular travel page & community",
+        `We focus on bringing authentic travel experiences to their audience and 
+        we're engaged in creating and sharing high-quality content related to food, drinks, travel destinations, and accommodations.`,
+        "Tech Stack: Shopify",
+      ],
+    },
+    {
+      title: "Founder, CEO & CTO, Gods of Zushin",
+      from: "Apr 2015",
+      description: [
+        "An achievement on it's own with over 5 years in production environment.",
+        "A Game MMORPG project developed during studies to enhance my knowledge in various of areas, which can be discuss.",
+        `Tech Stack: C/C++, Lua, SQL, Python, VueJS, PHP Laravel, NodeJs, C#, Algorithms, Cryptography, Compressions, Architecture,
+        Photopshop, Illustrator`,
+      ],
+    },
+    {
       title: "Founder & CEO of RedArc Studio Ltd",
       from: "Jan 2023",
       description: [
@@ -238,26 +258,6 @@ export const portfolioData: PortfolioData = {
       description: [
         "Delivered a full scale solution of website, mobile app and a blockchain infrastructure.",
         "Tech Stack: Flutter, NodeJs, Rust (Substrate), VueJs Nuxt.",
-      ],
-    },
-    {
-      title: "Founder, CEO at TasteTravellers",
-      from: "Feb 2018",
-      description: [
-        "Our popular travel page & community",
-        `We focus on bringing authentic travel experiences to their audience and 
-        we're engaged in creating and sharing high-quality content related to food, drinks, travel destinations, and accommodations.`,
-        "Tech Stack: Shopify",
-      ],
-    },
-    {
-      title: "Founder, CEO & CTO, Gods of Zushin",
-      from: "Apr 2015",
-      description: [
-        "An achievement on it's own with over 5 years in production environment.",
-        "A Game MMORPG project developed during studies to enhance my knowledge in various of areas, which can be discuss.",
-        `Tech Stack: C/C++, Lua, SQL, Python, VueJS, PHP Laravel, NodeJs, C#, Algorithms, Cryptography, Compressions, Architecture,
-        Photopshop, Illustrator`,
       ],
     },
     {

@@ -233,14 +233,6 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      title: "Founder & CEO of RedArc Studio Ltd",
-      from: "Jan 2023",
-      description: [
-        "Expert Software Development & Consultancy Solutions for Your Business Growth",
-        "Tech Stack: Frontend Engineering, Backend Engineering, Tech Consultancy, Game Consultancy, Build Custom GPT",
-      ],
-    },
-    {
       title: "Frontend Engineer, Chiliz",
       from: "Nov 2019",
       to: "Nov 2022",

@@ -205,11 +205,20 @@ export const portfolioData: PortfolioData = {
   ],
   experience: [
     {
-      title: "Senior Frontend Engineer, reNFT Labs",
-      from: "Jan 2023",
+      title: "Senior Full Engineer, HyperPlay Labs",
+      from: "Oct 2023",
       description: [
         "An interesting company that offers NFT rentals, integrating with various industries like gaming.",
-        "Tech Stack:  React, NextJs",
+        "Tech Stack:  React, NextJs, Electron, Architecture",
+      ],
+    },
+    {
+      title: "Senior Frontend Engineer, reNFT Labs",
+      from: "Jan 2023",
+      to: "Aug 2023",
+      description: [
+        "An interesting company that offers NFT rentals, integrating with various industries like gaming.",
+        "Tech Stack:  React, NextJs, Architecture",
       ],
     },
     {

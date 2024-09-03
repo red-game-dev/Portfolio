@@ -38,6 +38,7 @@ export interface PortfolioData {
     tech: Skill[];
     tools: Skill[];
     expertise: Skill[];
+    teamplayer: Skill[];
   };
   projects: ProjectDetail[];
   socialMedia: {
@@ -122,6 +123,12 @@ export const portfolioData: PortfolioData = {
         "I have expertise in various roles; each provides a snapshot of my overall knowledge.",
       ],
     },
+    teamplayer: {
+      title: "Team Player",
+      description: [
+        "While skills are important, being a team player is essential for success of the team. We're together in this and we solve things together.",
+      ],
+    },
     projects: {
       title: "Projects & Achievements",
       description: [
@@ -148,17 +155,19 @@ export const portfolioData: PortfolioData = {
     name: "Redeemer Pace",
     intro: "Experienced, trusted",
     description: `
-    Over 10 years of highly experienced as Software Engineer, Game Development, Web Development, Tech Consultancy, Architecture, Managing, 
-    Marketing. At an early age of 7 years old started development as my hobby, which did taught me things the difficult way. 
-    Whats next? Looking forward to learn more where I can I improve my knowledge & new challenges, because life without a challenge is not fun!`,
+    With over 10 years of experience as a Software Engineer, specializing in Game Development, Web Development, Tech Consultancy, Architecture, and Marketing, 
+    I have developed a strong foundation in the tech industry. 
+    My journey began at the early age of 7 when I started programming as a hobby, which taught me valuable lessons through challenging experiences. What's next? 
+    I am passionate about innovation, continuous learning, and contributing to the tech community. I look forward to one day 
+    creating a successful startup, provided the right investment opportunities arise.`,
     residence: "Maltese",
-    location: "Remote Worldwide, Hybrid & on Site Cayman Islands",
+    location: "Remote Worldwide, Hybrid & on Site Thailand",
     jobType:
       "B2B (C2C, Individual Freelance) / Full-Time / Part-Time / Temporary",
     phone: "+356 79323059",
     email: "red.pace.dev@gmail.com",
     image: "/images/profile.webp",
-    contactTime: "After 4.30 PM CET / After 6 EST",
+    contactTime: "Anytime in any timezone",
     isFlexible: false,
   },
   services: [
@@ -174,6 +183,16 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Tech Consultancy",
+      icon: faPresentationScreen,
+      description: "",
+    },
+    {
+      title: "Engineering Manager",
+      icon: faPresentationScreen,
+      description: "",
+    },
+    {
+      title: "Tech Lead/Team Lead",
       icon: faPresentationScreen,
       description: "",
     },
@@ -728,6 +747,36 @@ export const portfolioData: PortfolioData = {
       {
         name: "Encryption & Compressions",
         score: 80,
+      },
+    ],
+    teamplayer: [
+      {
+        name: "Team work",
+        score: 100,
+      },
+      {
+        name: "Face to Face Communication",
+        score: 100,
+      },
+      {
+        name: "Remote Communication",
+        score: 100,
+      },
+      {
+        name: "Mentoring",
+        score: 90,
+      },
+      {
+        name: "Managing",
+        score: 90,
+      },
+      {
+        name: "Company Culture Follower",
+        score: 100,
+      },
+      {
+        name: "Contribute Ideas",
+        score: 100,
       },
     ],
   },

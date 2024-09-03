@@ -39,6 +39,7 @@ export default function Home() {
         <Skills skills={portfolioData.skills.tools} intro={portfolioData.sections.tools} isCircle={true} />
         <Skills skills={portfolioData.skills.design} intro={portfolioData.sections.design} />
         <Skills skills={portfolioData.skills.language} intro={portfolioData.sections.language} />
+        <Skills skills={portfolioData.skills.teamplayer} intro={portfolioData.sections.teamplayer} />
         <Skills skills={portfolioData.skills.expertise} intro={portfolioData.sections.expertise} isCircle={true} />
         <Projects projects={portfolioData.projects} intro={portfolioData.sections.projects} />
         <Text

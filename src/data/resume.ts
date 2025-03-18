@@ -7,6 +7,7 @@ import {
   faShop,
   faMessage,
   faPlane,
+  faCog
 } from "@fortawesome/pro-duotone-svg-icons";
 
 import { Detail } from "@/types/details";
@@ -219,6 +220,11 @@ export const portfolioData: PortfolioData = {
     {
       title: "TasteTravellers Collaborations",
       icon: faPlane,
+      description: "",
+    },
+    {
+      title: "AI Generated APP? We can fix, especially if under attack",
+      icon: faCog,
       description: "",
     },
   ],

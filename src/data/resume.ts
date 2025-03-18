@@ -223,7 +223,7 @@ export const portfolioData: PortfolioData = {
       description: "",
     },
     {
-      title: "AI Generated APP? We can fix, especially if under attack",
+      title: "AI Generated APP? Lets fix, especially if under attack",
       icon: faCog,
       description: "",
     },

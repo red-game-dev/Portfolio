@@ -102,7 +102,7 @@ export const SEO = ({ url }: SeoProps) => (
         {
           position: 3,
           name: "My Skills",
-          item: `${url}/#section-skills-TechSkills`,
+          item: `${url}/#section-skills-ProgrammingLanguagesFrameworksSkills`,
         },
         {
           position: 4,

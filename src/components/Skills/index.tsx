@@ -28,11 +28,15 @@ const List = styled.ul(({ isCircle }: ListProps) => [
   isCircle && tw`flex flex-row flex-wrap justify-evenly `
 ]);
 
+// Titles become DOM ids, so anything that is not safe in an id has to go — not just the first space.
+export const toSkillsSectionId = (title: string) => `section-skills-${title.replace(/[^a-zA-Z0-9]/g, "")}`;
+
 export const Skills: FC<SkillsProps> = ({ intro, skills = [] as Skill[], isCircle = false }: SkillsProps) => {
-  const [isVisibleElement] = useCollision(`section-skills-${intro.title.replace(/\s/, "")}`);
+  const sectionId = toSkillsSectionId(intro.title);
+  const [isVisibleElement] = useCollision(sectionId);
 
   return (
-    <Section id={`section-skills-${intro.title.replace(/\s/, "")}`}>
+    <Section id={sectionId}>
       <Content>
         <Text title={intro.title} paragraphs={intro.description} isSection={false} />
         <List isCircle={isCircle}>

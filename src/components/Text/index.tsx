@@ -34,8 +34,13 @@ const Paragraph = styled.div(() => [
   tw`break-words w-full first:mt-0`,
 ]);
 
+// Only standalone sections get an id, and titles are stripped to id-safe characters. The old
+// fallback of slicing a paragraph produced ids containing spaces and "&", and collided whenever
+// two nested tiles happened to start with the same ten characters.
+const toTextSectionId = (title: string) => `section-${title.replace(/[^a-zA-Z0-9]/g, "")}`;
+
 export const Text: FC<TextProps> = ({ title, paragraphs = [], isSection = true }: TextProps) => (
-    <Section id={`section-${(title || paragraphs[0]?.slice(0, 10)).replace(/\s/, "-")}`} isSection={isSection}>
+    <Section id={isSection && title ? toTextSectionId(title) : undefined} isSection={isSection}>
       <Content isSection={isSection}>
         { title && <Title>{ title }</Title> }
         {paragraphs.map((text: string, index: number) => (

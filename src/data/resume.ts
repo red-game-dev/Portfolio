@@ -1008,10 +1008,6 @@ export const portfolioData: PortfolioData = {
         score: 75,
       },
       {
-        name: "Managing",
-        score: 70,
-      },
-      {
         name: "Designing",
         score: 40,
       },

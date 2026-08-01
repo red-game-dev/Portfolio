@@ -20,7 +20,7 @@ export const Image: FC<ImageProps> = ({
 
   return (
     <NextJsImage
-      alt={alt || "Image"}
+      alt={alt}
       onError={() => setWithFallbackImage(true)}
       src={withFallbackImage ? fallbackSrc : src}
       {...props}

@@ -16,17 +16,21 @@ interface SeoProps {
   url: string;
 }
 
+// next.config sets trailingSlash, so the served URL always ends in a slash. The
+// canonical has to match it exactly, otherwise it points at a redirect.
+const toCanonical = (url: string) => (url.endsWith("/") ? url : `${url}/`);
+
 export const SEO = ({ url }: SeoProps) => (
   <>
     <DefaultSeo
       title={seoDetails.title}
       titleTemplate={seoDetails.titleTemplate}
       description={seoDetails.description}
-      canonical={url}
+      canonical={toCanonical(url)}
       openGraph={{
         type: "profile",
         locale: "en_UK",
-        url,
+        url: toCanonical(url),
         siteName: `${seoDetails.title} | ${portfolioData.details.name}`,
         profile: {
           firstName: portfolioData.details.name.split(" ")[0],

@@ -29,7 +29,7 @@ const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[
 
 const Content = tw.div`relative text-base ml-[-1px] md:p-[25px] lg:p-[35px] bg-[#101010] border-solid border-l-[1px] border-[#4bffa5]`;
 
-const Title = tw.div`relative m-[0 0 30px 0] lg:m-[0 0 35px 35px] inline-block align-top text-2xl font-semibold	text-white transition-[all 0.3s ease 0s]`;
+const Title = tw.h2`relative m-[0 0 30px 0] lg:m-[0 0 35px 35px] inline-block align-top text-2xl font-semibold	text-white transition-[all 0.3s ease 0s]`;
 
 const SectionImage = styled(Image)(() => [
   tw`float-left mr-[17px] ml-[9px] lg:mr-0 lg:ml-0 w-[160px] text-[0px]`
@@ -98,7 +98,7 @@ margin-top: 0;
 }`;
 
 export const About: FC<AboutProps> = ({
-  intro, description, image, residence,
+  name, intro, description, image, residence,
   isFlexible, jobType, phone, email, location,
   contactTime, cvUrl, github, stackoverflow, linkedInUsername
 }: AboutProps) => {
@@ -127,7 +127,7 @@ export const About: FC<AboutProps> = ({
     <Section id="section-about">
       <Title>Who I am?</Title>
       <Content>
-        <SectionImage src={image} alt="" width="200" height="500" fallbackSrc={image.replace(".webp", ".jpg")} />
+        <SectionImage src={image} alt={`${name}, ${intro}`} width="200" height="500" fallbackSrc={image.replace(".webp", ".jpg")} />
         <DescriptionContainer>
           <Paragraph>
             {IntroCharactersList}
@@ -172,12 +172,12 @@ export const About: FC<AboutProps> = ({
               <InnerButtonIcon icon={faLinkedinIn} />
             </Button>
             {
-              github.map(({ name, link }, index: number) => (
-                <Button key={`github-${index}`} href={link} target="_blank" aria-label={`Github ${name}`}>
+              github.map(({ name: repoName, link }, index: number) => (
+                <Button key={`github-${index}`} href={link} target="_blank" aria-label={`Github ${repoName}`}>
                   <AnimatedCircle />
                   <InnerButtonIcon icon={faGithub} /> {" "}
                   <InnerButtonText>
-                    {name}
+                    {repoName}
                   </InnerButtonText>
                 </Button>
               ))

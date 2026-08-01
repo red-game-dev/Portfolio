@@ -48,7 +48,7 @@ const Icon = styled(FontAwesomeIcon)(() => [
 hover:animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`
 ]);
 
-const ItemTitle = tw.div`text-lg m-[15px 0] text-[#eee] font-semibold text-center w-full`;
+const ItemTitle = tw.h3`text-lg m-[15px 0] text-[#eee] font-semibold text-center w-full`;
 
 const ItemSubtitle = styled.div(({ active = false }: SubtitleProps) => [
   tw`relative m-[0 0 5px 0] inline-block text-xs text-[#999]`,

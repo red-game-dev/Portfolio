@@ -14,7 +14,7 @@ const Content = tw.div`flex flex-row flex-wrap
 relative text-base ml-[-1px] md:p-[25px] lg:p-[35px] bg-[#101010] border-[1px] border-r-[0px] 
 border-solid border-[rgba(255, 255, 255, 0.07)]`;
 
-const Title = tw.div`relative my-[30px] lg:my-[35px] inline-block align-top text-2xl font-semibold	text-white transition-[all 0.3s ease 0s]`;
+const Title = tw.h2`relative my-[30px] lg:my-[35px] inline-block align-top text-2xl font-semibold	text-white transition-[all 0.3s ease 0s]`;
 
 const List = tw.div`flex flex-wrap flex-row justify-center lg:w-1/2 h-full`;
 

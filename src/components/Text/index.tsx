@@ -26,7 +26,7 @@ const Content = styled.div(({ isSection }: ContentProps) => [
   isSection && tw`border-solid border-l-[1px] border-b-[1px] border-l-[#4bffa5]`
 ]);
 
-const Title = tw.div`relative m-[0 0 30px 0] lg:m-[0 0 35px 0] inline-block align-top text-2xl font-semibold	text-white transition-[all 0.3s ease 0s]`;
+const Title = tw.h2`relative m-[0 0 30px 0] lg:m-[0 0 35px 0] inline-block align-top text-2xl font-semibold	text-white transition-[all 0.3s ease 0s]`;
 
 const ClearContainer = tw.div`clear-both`;
 

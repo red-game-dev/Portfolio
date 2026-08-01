@@ -197,7 +197,7 @@ export const portfolioData: PortfolioData = {
     My journey began at the early age of 7 when I started programming as a hobby, which taught me valuable lessons through challenging experiences. What's next?
     I am passionate about innovation, continuous learning, and contributing to the tech community. I look forward to one day
     creating a successful startup, provided the right investment opportunities arise.
-    Over the past year I've integrated AI as leverage across every layer of my architecture and engineering work — from parallel-agent research and codebase
+    Over the past year I've integrated AI as leverage across every layer of my architecture and engineering work, from parallel-agent research and codebase
     analysis to ADR-driven documentation of AI-assisted decisions across a 90+ person delivery organisation.`,
     residence: "Maltese",
     location: "Remote (worldwide), Hybrid & On-Site (Switzerland, Europe in general, US)",
@@ -251,7 +251,7 @@ export const portfolioData: PortfolioData = {
       description: "",
     },
     {
-      title: "Build Custom GPT",
+      title: "Enterprise AI Enablement",
       icon: faMessage,
       description: "",
     },
@@ -277,7 +277,7 @@ export const portfolioData: PortfolioData = {
         "Sitting on architecture governance across product, marketing, DevOps, content, and engineering teams.",
       ],
       bullets: [
-        `Designed and built the CMS Adapter API — anti-corruption layer with handler registry, BFF pattern, versioned response contract,
+        `Designed and built the CMS Adapter API, an anti-corruption layer with handler registry, BFF pattern, versioned response contract,
         HMAC-signed authentication, and versioned preview tokens`,
         `Authored 11 numbered Architecture Decision Records covering adapter architecture, versioning, cache invalidation, BFF dispatcher,
         feature-flag integration, authentication, media handling, editor plugin, email templating, and trunk-based Strapi config`,

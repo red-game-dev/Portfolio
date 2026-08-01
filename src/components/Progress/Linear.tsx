@@ -18,7 +18,7 @@ const Item = tw.li`relative pt-[35px]`;
 
 // Title and score share a row. The score used to be absolutely positioned above
 // the right end of the bar, which collided with the title as soon as the title
-// wrapped to a second line — and it tracked the fill, so no amount of padding
+// wrapped to a second line, and it tracked the fill, so no amount of padding
 // on the title could reserve space for it.
 const ItemHeader = tw.div`flex flex-row items-baseline justify-between gap-4 mb-[10px]`;
 

@@ -18,25 +18,25 @@ npx jest -t "it works" --watchAll=false      # single test by name
 ANALYZE=true npm run build                   # bundle analysis (@next/bundle-analyzer, does not auto-open)
 ```
 
-`npm install` pulls `@fortawesome/pro-*` packages, which require an authenticated FontAwesome Pro npm registry token. It lives in the machine's global `~/.npmrc` (`@fortawesome:registry` + `_authToken`) — deliberately **not** a project `.npmrc`, since `.gitignore` does not exclude one and this repo is public.
+`npm install` pulls `@fortawesome/pro-*` packages, which require an authenticated FontAwesome Pro npm registry token. It lives in the machine's global `~/.npmrc` (`@fortawesome:registry` + `_authToken`), deliberately **not** a project `.npmrc`, since `.gitignore` does not exclude one and this repo is public.
 
-Use Node 22+ (`.nvmrc` pins 22.6.0, `engines` allows `22.x || 24.x`). Node 23 is not a Vercel target and triggers an `Exit handler never called!` bug in npm 10.9 that aborts installs midway and leaves `node_modules` corrupt; `rm -rf node_modules` and reinstall on 22/24 to recover. Run `nvm use` before any npm command — the global default here is 23.
+Use Node 22+ (`.nvmrc` pins 22.6.0, `engines` allows `22.x || 24.x`). Node 23 is not a Vercel target and triggers an `Exit handler never called!` bug in npm 10.9 that aborts installs midway and leaves `node_modules` corrupt; `rm -rf node_modules` and reinstall on 22/24 to recover. Run `nvm use` before any npm command; the global default here is 23.
 
 ## Verifying changes
 
-**Verify against the deployed Vercel preview using the Playwright MCP tools — not a local dev server or local build.** Push the branch, let the preview deploy, then drive Playwright against the preview URL and read its console. Local runs are slow, crash-prone on this machine, and do not reflect what actually ships.
+**Verify against the deployed Vercel preview using the Playwright MCP tools, not a local dev server or local build.** Push the branch, let the preview deploy, then drive Playwright against the preview URL and read its console. Local runs are slow, crash-prone on this machine, and do not reflect what actually ships.
 
 `next dev` and `next build` share `.next`, and a dev server started over a production build dies with `ENOENT: .next/fallback-build-manifest.json`. If you do run locally, `rm -rf .next` between the two.
 
 `.playwright-mcp/` holds console logs and page snapshots from those runs and is gitignored.
 
-Hydration mismatches only surface in the browser console, so they are invisible to `tsc`, `next lint`, `next build` and jest — all four can be green while the page is broken at runtime. The console check is the only thing that catches them.
+Hydration mismatches only surface in the browser console, so they are invisible to `tsc`, `next lint`, `next build` and jest. All four can be green while the page is broken at runtime. The console check is the only thing that catches them.
 
 ## Architecture
 
 ### Content is data, not markup
 
-All site content lives in `src/data/resume.ts` as the `portfolioData` object (~1000 lines), typed by `PortfolioData` using the interfaces in `types/*.d.ts`. `src/pages/index.tsx` is purely composition: it slices `portfolioData` and passes the pieces into section components. **To change what the site says, edit `src/data/resume.ts`** — components should stay content-free.
+All site content lives in `src/data/resume.ts` as the `portfolioData` object (~1000 lines), typed by `PortfolioData` using the interfaces in `types/*.d.ts`. `src/pages/index.tsx` is purely composition: it slices `portfolioData` and passes the pieces into section components. **To change what the site says, edit `src/data/resume.ts`**. Components should stay content-free.
 
 `src/components/SEO` derives all JSON-LD (profile, FAQ, per-project `NewsArticle`, per-service `Product`) from the same `portfolioData`, so adding a project or service automatically extends structured data.
 
@@ -44,7 +44,7 @@ All site content lives in `src/data/resume.ts` as the `portfolioData` object (~1
 
 Each section component renders `id="section-*"` on its outer element. `src/hooks/useCollision.ts` polls scroll position for a given element id and returns whether it is on screen; `src/components/Menu` uses one `useCollision` call per section to highlight the active dot, and `Skills` components use it to trigger progress-bar animation.
 
-Skill section ids are **derived from the intro title** by `toSkillsSectionId()` in `src/components/Skills/index.tsx`, which strips every non-alphanumeric character (`"AI Tools & Enablement"` → `section-skills-AIToolsEnablement`). `Menu` and `SEO` hardcode the resulting ids, so **renaming a skills section title in `resume.ts` silently breaks the matching nav highlight and the SEO breadcrumb** — grep for the old id when you do.
+Skill section ids are **derived from the intro title** by `toSkillsSectionId()` in `src/components/Skills/index.tsx`, which strips every non-alphanumeric character (`"AI Tools & Enablement"` → `section-skills-AIToolsEnablement`). `Menu` and `SEO` hardcode the resulting ids, so **renaming a skills section title in `resume.ts` silently breaks the matching nav highlight and the SEO breadcrumb**, so grep for the old id when you do.
 
 ### Styling: twin.macro + styled-components + Tailwind
 
@@ -75,7 +75,7 @@ Components call the `use*StateHook`, never `useRecoilState` directly. Currently 
 
 ### Loading and modal flow
 
-`Layout` (dynamically imported with `suspense: true` from `index.tsx`) renders `<Modal />` and `<AppLoader />` outside the content container and hides the container while `isLoading`. `AppLoader` flips `isLoading` off after 1s and `isReady` on after 3s via `setTimeout` — the intro animation is time-based, not load-event-based. Project cards call `setModal({ type: ModalType.PROJECT, ... })`; `Modal` renders `ProjectModal` when `modalContent.type === "project"` and closes via the `useClickOutside` hook.
+`Layout` (dynamically imported with `suspense: true` from `index.tsx`) renders `<Modal />` and `<AppLoader />` outside the content container and hides the container while `isLoading`. `AppLoader` flips `isLoading` off after 1s and `isReady` on after 3s via `setTimeout`, so the intro animation is time-based, not load-event-based. Project cards call `setModal({ type: ModalType.PROJECT, ... })`; `Modal` renders `ProjectModal` when `modalContent.type === "project"` and closes via the `useClickOutside` hook.
 
 ### Images
 
@@ -88,12 +88,13 @@ Enforced by `.eslintrc.json` (typescript-eslint `recommended-requiring-type-chec
 - Double quotes, semicolons required, `curly` always, `eqeqeq` smart.
 - `import/order`: react first → other external → `@/*` internal, blank line between groups, alphabetized case-insensitively.
 - Path aliases (`tsconfig.json`): `@/components/*`, `@/pages/*`, `@/layouts/*`, `@/hooks/*`, `@/data/*`, `@/styles/*` map into `src/`, but **`@/types/*` maps to the root-level `types/` directory**, not `src/types`.
-- TS `strict: true`; several unsafe-* rules are deliberately off, but `no-floating-promises`/`no-explicit-any` are too — don't assume they'll catch mistakes.
+- TS `strict: true`; several unsafe-* rules are deliberately off, but `no-floating-promises`/`no-explicit-any` are too, so don't assume they'll catch mistakes.
 - Commits follow `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` prefixes. **Do not add `Co-Authored-By` trailers.**
+- **Never use em dashes.** Not in site content, code comments, docs, or commit messages. Use a comma, a full stop, or a colon.
 
 ## Gotchas
 
-- `src/pages/_document.tsx` collects styled-components styles via `ServerStyleSheet` and loads Roboto (which `globals.css` asks for). It replaced a misnamed, malformed `_documents.tsx` whose `enhanceApp` returned a whole `<Html>` tree — that file was never picked up by Next, so before this the app shipped no SSR styles and never loaded its font. Keep the standard `enhanceApp: (App) => (props) => sheet.collectStyles(<App {...props} />)` shape.
+- `src/pages/_document.tsx` collects styled-components styles via `ServerStyleSheet` and loads Roboto (which `globals.css` asks for). It replaced a misnamed, malformed `_documents.tsx` whose `enhanceApp` returned a whole `<Html>` tree. That file was never picked up by Next, so before this the app shipped no SSR styles and never loaded its font. Keep the standard `enhanceApp: (App) => (props) => sheet.collectStyles(<App {...props} />)` shape.
 - Test coverage is a placeholder (`__tests__/src/pages/index.test.tsx` asserts `1 === 1`) and `__tests__/setups/jest.setup.js` is empty. Jest is wired up (jsdom, `next/jest`, tsconfig path mapping, style/file mocks in `__tests__/__mocks__/`) but nothing real is tested yet.
 - `.env.production` and `.env.test` are committed and define `HOST`, `DEBUG`, `ANALYZE`. There is no `.env.development`, so `process.env.HOST` is undefined under `npm run dev` and `SEO`'s canonical URL falls back to `"#"`. Only `HOST` and `DEBUG` are exposed to the client (via `env` in `next.config.js`).
 - `next.config.js` sets `trailingSlash: true` and strips all `console.*` except `console.error` from production builds.

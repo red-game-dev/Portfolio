@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 
 let plugin = require('tailwindcss/plugin')
+let defaultTheme = require('tailwindcss/defaultTheme')
 
 module.exports = {
   content: [
@@ -10,6 +11,12 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // Preflight emits `body { font-family: inherit }`, which wins over the
+      // body rule in globals.css because twin injects it later. Roboto has to
+      // be the Tailwind sans stack or it never applies.
+      fontFamily: {
+        sans: ['Roboto', ...defaultTheme.fontFamily.sans],
+      },
       height: {
         'endless-width': '1000%',
       },

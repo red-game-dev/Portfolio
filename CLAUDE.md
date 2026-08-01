@@ -9,9 +9,9 @@ Single-page personal portfolio (Redeemer Pace) built on Next.js **Pages Router**
 ## Commands
 
 ```bash
-npm run dev                                  # dev server (localhost:3000)
+npm run dev                                  # dev server (localhost:3000), webpack not Turbopack
 npm run build && npm start                   # production build / serve
-npm run lint                                 # next lint --fix over src/ and __tests__/src/ (dirs set in next.config.js)
+npm run lint                                 # eslint --fix over src/ and __tests__/src/
 npm test                                     # jest --watch (watch mode only)
 npx jest __tests__/src/pages/index.test.tsx --watchAll=false   # single test file
 npx jest -t "it works" --watchAll=false      # single test by name
@@ -25,6 +25,8 @@ Use Node 22+ (`.nvmrc` pins 22.6.0, `engines` allows `22.x || 24.x`). Node 23 is
 ## Verifying changes
 
 **Verify against the deployed Vercel preview using the Playwright MCP tools, not a local dev server or local build.** Push the branch, let the preview deploy, then drive Playwright against the preview URL and read its console. Local runs are slow, crash-prone on this machine, and do not reflect what actually ships.
+
+**Both `dev` and `build` pass `--webpack`.** Next 16 defaults to Turbopack, which cannot run Babel macros, and twin.macro is a Babel macro. Dropping the flag breaks every `tw` template literal. This is also why `next/font` is unusable here, so Roboto stays an external stylesheet.
 
 `next dev` and `next build` share `.next`, and a dev server started over a production build dies with `ENOENT: .next/fallback-build-manifest.json`. If you do run locally, `rm -rf .next` between the two.
 

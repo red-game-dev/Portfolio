@@ -13,9 +13,6 @@ module.exports = withBundleAnalyzer({
   sassOptions: {
     includePaths: [join(__dirname, 'src/styles')],
   },
-  eslint: {
-    dirs: ['src', '__tests__/src']
-  },
   i18n: {
     locales: ["en"],
     defaultLocale: "en",

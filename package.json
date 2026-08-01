@@ -4,10 +4,10 @@
     "node": "22.x || 24.x"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint --fix",
+    "lint": "eslint src __tests__/src --fix",
     "test": "jest --watch",
     "fix:links": "npx @next/codemod new-link ."
   },
@@ -20,9 +20,9 @@
     "@fortawesome/pro-solid-svg-icons": "^6.2.1",
     "@fortawesome/pro-thin-svg-icons": "^6.2.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
-    "@next/bundle-analyzer": "^15.5.21",
+    "@next/bundle-analyzer": "^16.2.12",
     "@vercel/analytics": "^0.1.5",
-    "next": "^15.5.21",
+    "next": "^16.2.12",
     "next-seo": "^5.14.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",

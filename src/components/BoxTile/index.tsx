@@ -3,6 +3,7 @@ import { FC } from "react";
 import tw, { styled } from "twin.macro";
 
 import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 
 import { Text } from "@/components/Text";
 
@@ -14,6 +15,9 @@ interface BoxTileProps {
   description?: string[] | string;
   bullets?: string[];
   tags?: string[];
+  link?: string;
+  linkLabel?: string;
+  linkIcon?: FontAwesomeIconProps["icon"];
   isFullBorder?: boolean;
   withRandomBorder?: boolean;
   isFullWidth?: boolean;
@@ -60,10 +64,19 @@ const TagList = tw.ul`list-none flex flex-row flex-wrap gap-2 p-0 mt-[15px] mb-0
 const TagListItem = tw.li`text-xs leading-none text-[#4bffa5] bg-[#1d1d1d] rounded-full py-[6px] px-[10px]
 border-[1px] border-solid border-[#2f6b4d]`;
 
+const CallToAction = styled(Link)(() => [
+  tw`relative mt-[15px] bg-transparent font-medium border-2 cursor-pointer border-solid no-underline
+     inline-flex flex-row items-center gap-2 align-middle text-center text-sm leading-9
+     h-[44px] py-0 px-5 text-[#4bffa5] border-[#101010] border-r-[#4bffa5]
+     hover:text-white hover:animate-[border-transition 1s ease-out 0s infinite]`,
+]);
+
+const CallToActionArrow = tw.span`text-base leading-none`;
+
 
 export const BoxTile: FC<BoxTileProps> = ({
   isFullBorder, withRandomBorder, isFullWidth, title, subtitle,
-  activeSubtitle, description, bullets, tags, icon
+  activeSubtitle, description, bullets, tags, icon, link, linkLabel, linkIcon
 }: BoxTileProps) => (
   <Item withRandomBorder={withRandomBorder} isFullBorder={isFullBorder} isFullWidth={isFullWidth}>
     { subtitle && <ItemSubtitle active={activeSubtitle}>{ subtitle }</ItemSubtitle> }
@@ -97,6 +110,15 @@ export const BoxTile: FC<BoxTileProps> = ({
             </TagListItem>
           ))}
         </TagList>
+      )
+    }
+    {
+      link && (
+        <CallToAction href={link} target="_blank" aria-label={linkLabel || title}>
+          { linkIcon && <FontAwesomeIcon icon={linkIcon} /> }
+          { linkLabel }
+          <CallToActionArrow aria-hidden="true">&rarr;</CallToActionArrow>
+        </CallToAction>
       )
     }
   </Item>

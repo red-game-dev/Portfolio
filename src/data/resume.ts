@@ -1,3 +1,4 @@
+import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
 import {
   faBrowser,
   faServer,
@@ -59,6 +60,8 @@ export interface PortfolioData {
     };
   };
 }
+
+const LINKEDIN_USERNAME = "redeemer-pace-685692b9";
 
 export const portfolioData: PortfolioData = {
   intro:
@@ -261,9 +264,12 @@ export const portfolioData: PortfolioData = {
       description: "",
     },
     {
-      title: "AI Generated APP? Lets fix, especially if under attack",
+      title: "AI Generated App? Let's fix it, especially if under attack",
       icon: faCog,
-      description: "",
+      description: "Urgent help?",
+      link: `https://www.linkedin.com/in/${LINKEDIN_USERNAME}`,
+      linkLabel: "Connect on LinkedIn",
+      linkIcon: faLinkedinIn,
     },
   ],
   experience: [
@@ -1471,7 +1477,7 @@ export const portfolioData: PortfolioData = {
       twitter: "@red_game_dev",
       instagram: "adventure.redmt",
       facebook: "traveller.redmt",
-      linkedIn: "redeemer-pace-685692b9",
+      linkedIn: LINKEDIN_USERNAME,
     },
     byProjectsUsername: {
       gameYt: "@godsofzushin",

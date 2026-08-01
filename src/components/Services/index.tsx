@@ -32,6 +32,9 @@ export const Services = ({ services = [], intro }: ServicesProps) => (
               icon={service.icon}
               title={service.title}
               description={service.description}
+              link={service.link}
+              linkLabel={service.linkLabel}
+              linkIcon={service.linkIcon}
             />
           ))}
         </List>

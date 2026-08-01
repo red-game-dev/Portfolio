@@ -1,5 +1,8 @@
 {
   "private": true,
+  "engines": {
+    "node": "22.x || 24.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -19,7 +22,7 @@
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@next/bundle-analyzer": "^13.0.5",
     "@vercel/analytics": "^0.1.5",
-    "next": "latest",
+    "next": "13.0.1",
     "next-seo": "^5.14.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",

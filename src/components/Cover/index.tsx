@@ -57,7 +57,7 @@ export const Cover = ({ intro, image, typingsTitles }: CoverProps) => (
       <CoverContent>
         <CoverImage
           src={image}
-          alt="Cover Photo"
+          alt=""
           fallbackSrc={image.replace(".webp", ".jpg")}
           sizes="100vw"
           fill

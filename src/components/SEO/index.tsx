@@ -16,17 +16,21 @@ interface SeoProps {
   url: string;
 }
 
+// next.config sets trailingSlash, so the served URL always ends in a slash. The
+// canonical has to match it exactly, otherwise it points at a redirect.
+const toCanonical = (url: string) => (url.endsWith("/") ? url : `${url}/`);
+
 export const SEO = ({ url }: SeoProps) => (
   <>
     <DefaultSeo
       title={seoDetails.title}
       titleTemplate={seoDetails.titleTemplate}
       description={seoDetails.description}
-      canonical={url}
+      canonical={toCanonical(url)}
       openGraph={{
         type: "profile",
         locale: "en_UK",
-        url,
+        url: toCanonical(url),
         siteName: `${seoDetails.title} | ${portfolioData.details.name}`,
         profile: {
           firstName: portfolioData.details.name.split(" ")[0],
@@ -102,7 +106,7 @@ export const SEO = ({ url }: SeoProps) => (
         {
           position: 3,
           name: "My Skills",
-          item: `${url}/#section-skills-TechSkills`,
+          item: `${url}/#section-skills-ProgrammingLanguagesFrameworksSkills`,
         },
         {
           position: 4,
@@ -179,8 +183,8 @@ export const SEO = ({ url }: SeoProps) => (
           publisherLogo={portfolioData.details.image}
           description={project.intro}
           body={project.responsibilities.length
-            ? `${project.intro} \n\n Tech Stack: ${project.techStack.join(",")}`
-            : `${project.intro} \n\n Responsibilities: ${project.responsibilities.join(",")}. \n\n Tech Stack: ${project.techStack.join(",")}`}
+            ? `${project.intro} \n\n Responsibilities: ${project.responsibilities.join(",")}. \n\n Tech Stack: ${project.techStack.join(",")}`
+            : `${project.intro} \n\n Tech Stack: ${project.techStack.join(",")}`}
           isAccessibleForFree={true}
           datePublished={project.from}
           dateCreated={project.from}

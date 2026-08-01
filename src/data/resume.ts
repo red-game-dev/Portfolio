@@ -1,3 +1,4 @@
+import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
 import {
   faBrowser,
   faServer,
@@ -38,6 +39,11 @@ export interface PortfolioData {
     language: Skill[];
     tech: Skill[];
     tools: Skill[];
+    frontend: Skill[];
+    testing: Skill[];
+    integrations: Skill[];
+    observability: Skill[];
+    ai: Skill[];
     expertise: Skill[];
     teamplayer: Skill[];
   };
@@ -54,6 +60,8 @@ export interface PortfolioData {
     };
   };
 }
+
+const LINKEDIN_USERNAME = "redeemer-pace-685692b9";
 
 export const portfolioData: PortfolioData = {
   intro:
@@ -118,6 +126,37 @@ export const portfolioData: PortfolioData = {
         "I generally use a variety of tools. Some I use less often, and some more, depending on the current task.",
       ],
     },
+    frontend: {
+      title: "Frontend Ecosystem",
+      description: [
+        "The tooling and patterns I reach for when building and governing a frontend at scale, rather than a single app.",
+      ],
+    },
+    testing: {
+      title: "Testing & Quality",
+      description: [
+        "Quality is not a phase at the end. These are the practices I introduce and keep alive across a codebase.",
+      ],
+    },
+    integrations: {
+      title: "Enterprise Integrations & Platforms",
+      description: [
+        "Third-party platform boundaries and integrations I have designed or architected across Conrad and prior roles.",
+      ],
+    },
+    observability: {
+      title: "Observability & Analytics",
+      description: [
+        "Knowing what production is actually doing, and giving the business the numbers it needs to decide.",
+      ],
+    },
+    ai: {
+      title: "AI Tools & Enablement",
+      description: [
+        `AI is part of how I architect and deliver, not a side experiment. Here's what I use and how far I take it,
+        from parallel-agent research to documenting AI-assisted decisions for a whole delivery organisation.`,
+      ],
+    },
     expertise: {
       title: "Expertise",
       description: [
@@ -156,13 +195,15 @@ export const portfolioData: PortfolioData = {
     name: "Redeemer Pace",
     intro: "Experienced, trusted",
     description: `
-    With over 10 years of experience as a Software Engineer, specializing in Game Development, Web Development, Tech Consultancy, Architecture, and Marketing, 
-    I have developed a strong foundation in the tech industry. 
-    My journey began at the early age of 7 when I started programming as a hobby, which taught me valuable lessons through challenging experiences. What's next? 
-    I am passionate about innovation, continuous learning, and contributing to the tech community. I look forward to one day 
-    creating a successful startup, provided the right investment opportunities arise.`,
+    With over 10 years of experience as a Software Engineer, specializing in Game Development, Web Development, Tech Consultancy, Architecture, and Marketing,
+    I have developed a strong foundation in the tech industry.
+    My journey began at the early age of 7 when I started programming as a hobby, which taught me valuable lessons through challenging experiences. What's next?
+    I am passionate about innovation, continuous learning, and contributing to the tech community. I look forward to one day
+    creating a successful startup, provided the right investment opportunities arise.
+    Over the past year I've integrated AI as leverage across every layer of my architecture and engineering work, from parallel-agent research and codebase
+    analysis to ADR-driven documentation of AI-assisted decisions across a 90+ person delivery organisation.`,
     residence: "Maltese",
-    location: "Remote Worldwide, Hybrid & on Site Thailand",
+    location: "Remote (worldwide), Hybrid & On-Site (Switzerland, Europe in general, US)",
     jobType:
       "B2B (C2C, Individual Freelance) / Full-Time / Part-Time / Temporary",
     phone: "+356 79323059",
@@ -173,12 +214,12 @@ export const portfolioData: PortfolioData = {
   },
   services: [
     {
-      title: "Frontend Enginering",
+      title: "Frontend Engineering",
       icon: faBrowser,
       description: "",
     },
     {
-      title: "Backend Enginering",
+      title: "Backend Engineering",
       icon: faServer,
       description: "",
     },
@@ -213,7 +254,7 @@ export const portfolioData: PortfolioData = {
       description: "",
     },
     {
-      title: "Build Custom GPT",
+      title: "Enterprise AI Enablement",
       icon: faMessage,
       description: "",
     },
@@ -223,18 +264,108 @@ export const portfolioData: PortfolioData = {
       description: "",
     },
     {
-      title: "AI Generated APP? Lets fix, especially if under attack",
+      title: "AI-Generated App Rescue & Hardening",
       icon: faCog,
-      description: "",
+      description: `Shipped fast with AI and now it is buggy, insecure, leaking data, or actively under attack?
+      I audit the codebase, close the holes, and get it stable enough to trust in production. Urgent help?`,
+      link: `https://www.linkedin.com/in/${LINKEDIN_USERNAME}`,
+      linkLabel: "Connect on LinkedIn",
+      linkIcon: faLinkedinIn,
     },
   ],
   experience: [
     {
+      title: "Lead Software Architect / Enterprise Architect, Conrad Electronic Group",
+      from: "Nov 2025",
+      description: [
+        "Conrad Electronic is a European electronics retailer operating across 16 markets, DACH-led.",
+        `Leading software architecture across a 90+ person delivery organisation for the migration from Adobe Experience Manager
+        to a Nuxt SSR + headless CMS stack, reporting to the Head of Engineering (A&R / SEFE / PDP).`,
+        "Sitting on architecture governance across product, marketing, DevOps, content, and engineering teams.",
+      ],
+      bullets: [
+        `Designed and built the CMS Adapter API, an anti-corruption layer with handler registry, BFF pattern, versioned response contract,
+        HMAC-signed authentication, and versioned preview tokens`,
+        `Authored 11 numbered Architecture Decision Records covering adapter architecture, versioning, cache invalidation, BFF dispatcher,
+        feature-flag integration, authentication, media handling, editor plugin, email templating, and trunk-based Strapi config`,
+        `Built the full C4 diagram set (System Context, Container, Component, Dynamic, Deployment, System Landscape) as draw.io sources
+        with automated Confluence export`,
+        "Per-country feature-flag rollout via Istio VirtualService so individual markets migrate independently under monitoring and rollback",
+        "Three-layer feature-flag architecture on OpenFeature + GO Feature Flag",
+        "Provider-agnostic switching between AEM and Strapi through a single environment flag (NUXT_PUBLIC_CMS_PROVIDER)",
+        "Designed and built the Conrad CMS Editor plugin for the Strapi admin (cross-locale copy, focal-point picker, diff preview, git-diff-style readouts)",
+        "Real production-grade preview surface driven by Strapi admin (viewport matrix, audience matrix, market matrix, per-block Render As)",
+        "Evaluated 30 CMS platforms against scored criteria for vendor selection",
+        `Led the architectural use and evaluation of AI tooling (Claude Code Max CLI, Gemini Enterprise, Strapi MCP, Figma AI) across the delivery
+        organisation, including the ADR-driven documentation pattern for AI-assisted decisions`,
+        `Third-party integration boundary mapping across 8 external systems (Zendesk, RWS TMS, SendGrid via PHP, Cliplister DAM, OCI Procurement,
+        Adobe Target, Insider, Kameleoon)`,
+        `Analytics integration design (GA4, server-side GTM, Usercentrics, BigQuery + Looker Studio consumption for pilot-country and
+        rollback decisions)`,
+      ],
+      techStack: [
+        "AEM",
+        "Strapi v5",
+        "Nuxt 4",
+        "Vue.js",
+        "TypeScript",
+        "Node.js",
+        "Cloudflare Workers",
+        "Varnish",
+        "Istio",
+        "GKE",
+        "Helm",
+        "Aiven Postgres",
+        "OpenFeature",
+        "GO Feature Flag",
+        "Kameleoon",
+        "Insider",
+        "Cidaas OIDC",
+        "SendGrid",
+        "Adobe Target",
+        "Zendesk",
+        "SAP Ariba",
+        "Oracle OCI",
+        "Cliplister",
+        "RWS TMS",
+        "PIM (Elasticsearch)",
+        "Grafana / Faro",
+        "OpenTelemetry",
+        "Pyroscope",
+        "Datadog",
+        "GA4",
+        "SGTM",
+        "Usercentrics",
+        "BigQuery",
+        "Looker Studio",
+        "Claude Code",
+        "Gemini Enterprise",
+      ],
+    },
+    {
       title: "Senior Full Engineer, HyperPlay Labs",
       from: "Oct 2023",
+      to: "Nov 2025",
       description: [
-        "An interesting company that offers NFT rentals, integrating with various industries like gaming.",
-        "Tech Stack:  React, NextJs, Electron, Architecture",
+        `HyperPlay is the world's first Web3 game launcher, pioneering how decentralized games are discovered,
+        played, and integrated with crypto ecosystems.`,
+        "Scope: Product Architecture, Web3 Platform Delivery, Electron, Mobile, and Developer Experience.",
+      ],
+      techStack: [
+        "Next.js (App Router, SSR)",
+        "React",
+        "React Native",
+        "Node.js",
+        "Electron",
+        "PostgreSQL",
+        "GraphQL",
+        "Rust",
+        "Solidity",
+        "C/C++",
+        "SASS",
+        "AWS",
+        "Microservices",
+        "Vercel Enterprise",
       ],
     },
     {
@@ -243,7 +374,20 @@ export const portfolioData: PortfolioData = {
       to: "Aug 2023",
       description: [
         "An interesting company that offers NFT rentals, integrating with various industries like gaming.",
-        "Tech Stack:  React, NextJs, Architecture",
+        "Scope: Frontend Architecture, Product Collaboration, Web3 Marketplace, and Technical Decisions.",
+      ],
+      techStack: [
+        "React",
+        "Next.js (SSR)",
+        "Radix UI",
+        "Wagmi",
+        "GraphQL",
+        "Alchemy",
+        "The Graph Protocol",
+        "Azrael",
+        "Sylvester",
+        "Solana",
+        "Solidity",
       ],
     },
     {
@@ -253,7 +397,9 @@ export const portfolioData: PortfolioData = {
         "Our popular travel page & community",
         `We focus on bringing authentic travel experiences to their audience and 
         we're engaged in creating and sharing high-quality content related to food, drinks, travel destinations, and accommodations.`,
-        "Tech Stack: Shopify",
+      ],
+      techStack: [
+        "Shopify",
       ],
     },
     {
@@ -262,28 +408,77 @@ export const portfolioData: PortfolioData = {
       description: [
         "An achievement on it's own with over 5 years in production environment.",
         "A Game MMORPG project developed during studies to enhance my knowledge in various of areas, which can be discuss.",
-        `Tech Stack: C/C++, Lua, SQL, Python, VueJS, PHP Laravel, NodeJs, C#, Algorithms, Cryptography, Compressions, Architecture,
-        Photopshop, Illustrator`,
+      ],
+      techStack: [
+        "C/C++",
+        "C#",
+        "Lua",
+        "Python",
+        "Node.js",
+        "PHP (Laravel)",
+        "Vue.js",
+        "SQL",
+        "Cryptography & Compression",
+        "Stripe",
+        "PayPal",
+        "DigitalOcean",
+        "Cloudflare",
+        "Maya",
+        "Illustrator",
       ],
     },
     {
-      title: "Frontend Engineer, Chiliz",
+      title: "Mobile Core Engineer / Architect, Chiliz",
       from: "Nov 2019",
       to: "Nov 2022",
       description: [
-        `Worked with a blockchain and sports company as a Frontend Engineer and an unofficial Tech Lead. 
-        We can discuss achievements further.`,
-        `Tech Stack:  Nativescript, Vuejs, Webpack, Jest tests, Redux-observables, RxJs, Java/Kotlin, 
-        Swift, React-Native, React, Ionic, Flutter, Architecture.`,
+        `A blockchain and sports company building a gamified fan engagement platform with real-time rewards,
+        NFT integrations, and immersive mobile and web experiences.`,
+        `My official title was Mobile Core Engineer, but the practical scope expanded into architecture and
+        technical leadership: architecture direction, implementation standards, delivery alignment, and core
+        platform decisions across 7 product squads and 30+ engineers.`,
+        "Introduced Test Driven Development org-wide, reaching 95%+ coverage on the frontend and mobile codebases.",
+      ],
+      techStack: [
+        "NativeScript",
+        "Vue.js",
+        "Webpack",
+        "RxJS",
+        "Redux Observables",
+        "React",
+        "React Native",
+        "Jest",
+        "Ionic",
+        "Flutter",
+        "Java/Kotlin",
+        "Swift",
+        "C/C++",
+        "Solidity",
       ],
     },
     {
-      title: "Chief Techonology Officer, CoinOn",
+      title: "Chief Technology Officer, CoinOn",
       from: "Nov 2021",
       to: "Jan 2022",
       description: [
         "Delivered a full scale solution of website, mobile app and a blockchain infrastructure.",
-        "Tech Stack: Flutter, NodeJs, Rust (Substrate), VueJs Nuxt.",
+      ],
+      techStack: [
+        "Flutter",
+        "Node.js",
+        "Next.js (SSR)",
+        "Vue.js / Nuxt",
+        "Rust (Substrate)",
+        "Kotlin",
+        "Swift",
+        "NativeScript",
+        "C/C++",
+        "Solidity",
+        "Solana",
+        "Polkadot (parachains)",
+        "PixiJS",
+        "AWS",
+        "Vercel",
       ],
     },
     {
@@ -292,7 +487,17 @@ export const portfolioData: PortfolioData = {
       to: "Sep 2019",
       description: [
         "Being hired by KPMG is one big achievement on it's own, as it is one of the big 4 firm in auditing.",
-        "Tech Stack: PHP - Laravel, VueJS, Angular, NodeJS, React, C# ASP.NET, C/C++, Architecture",
+      ],
+      techStack: [
+        "PHP (Laravel)",
+        "Vue.js",
+        "Angular",
+        "React",
+        "Node.js",
+        "PixiJS",
+        "Native Canvas",
+        "C# (ASP.NET)",
+        "C/C++",
       ],
     },
     {
@@ -302,7 +507,19 @@ export const portfolioData: PortfolioData = {
       description: [
         `One of the companies that given me a lot of experiences throughout the years. 
         This company is an iGaming Company, which was my first experience in iGaming.`,
-        "Tech Stack: React, Redux, Redux-observables, MongoDB, Kafka, SignalR, NodeJS, RxJs, Backbone, Canvas, PixJS / Vanilla JS Canvas, NodeJS",
+      ],
+      techStack: [
+        "React",
+        "Redux",
+        "Redux Observables",
+        "RxJS",
+        "Backbone.js",
+        "HTML5 Canvas",
+        "PixiJS",
+        "Node.js (WebSockets)",
+        "MongoDB",
+        "Kafka",
+        "SignalR",
       ],
     },
   ],
@@ -364,7 +581,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Figma",
-        score: 70,
+        score: 80,
       },
       {
         name: "Blender",
@@ -392,6 +609,14 @@ export const portfolioData: PortfolioData = {
     tech: [
       {
         name: "Vue",
+        score: 95,
+      },
+      {
+        name: "Nuxt / Nuxt 4",
+        score: 90,
+      },
+      {
+        name: "Strapi v5",
         score: 90,
       },
       {
@@ -412,7 +637,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Typescript",
-        score: 90,
+        score: 95,
       },
       {
         name: "Javascript",
@@ -420,7 +645,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "NodeJS",
-        score: 60,
+        score: 85,
       },
       {
         name: "Flutter",
@@ -468,7 +693,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "SQL",
-        score: 90,
+        score: 95,
       },
       {
         name: "NoSQL",
@@ -537,10 +762,6 @@ export const portfolioData: PortfolioData = {
       {
         name: "Etherjs",
         score: 60,
-      },
-      {
-        name: "Linq",
-        score: 30,
       },
       {
         name: "Wagmi (React)",
@@ -614,6 +835,46 @@ export const portfolioData: PortfolioData = {
     tools: [
       {
         name: "Git",
+        score: 95,
+      },
+      {
+        name: "Adobe Experience Manager (AEM)",
+        score: 75,
+      },
+      {
+        name: "Cloudflare Workers",
+        score: 85,
+      },
+      {
+        name: "Varnish",
+        score: 75,
+      },
+      {
+        name: "Istio",
+        score: 70,
+      },
+      {
+        name: "GKE / Kubernetes",
+        score: 75,
+      },
+      {
+        name: "Helm",
+        score: 65,
+      },
+      {
+        name: "Aiven Postgres",
+        score: 60,
+      },
+      {
+        name: "OpenFeature",
+        score: 75,
+      },
+      {
+        name: "GO Feature Flag",
+        score: 75,
+      },
+      {
+        name: "draw.io / C4 model",
         score: 90,
       },
       {
@@ -627,10 +888,6 @@ export const portfolioData: PortfolioData = {
       {
         name: "Sky Engine",
         score: 5,
-      },
-      {
-        name: "Nuxt",
-        score: 50,
       },
       {
         name: "Visual Studio 2003-2022",
@@ -666,7 +923,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "GCP",
-        score: 40,
+        score: 70,
       },
       {
         name: "Digital Ocean",
@@ -690,7 +947,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Docker",
-        score: 80,
+        score: 90,
       },
       {
         name: "Wordpress",
@@ -712,7 +969,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Tech Lead",
-        score: 55,
+        score: 80,
       },
       {
         name: "Engineer Manager",
@@ -728,7 +985,19 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Architecture",
-        score: 80,
+        score: 95,
+      },
+      {
+        name: "Enterprise Architecture",
+        score: 90,
+      },
+      {
+        name: "Platform Engineering",
+        score: 85,
+      },
+      {
+        name: "AI Enablement / AI-Assisted Engineering",
+        score: 95,
       },
       {
         name: "Marketing",
@@ -737,10 +1006,6 @@ export const portfolioData: PortfolioData = {
       {
         name: "Entrepreneur",
         score: 75,
-      },
-      {
-        name: "Managing",
-        score: 70,
       },
       {
         name: "Designing",
@@ -770,11 +1035,11 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Mentoring",
-        score: 90,
+        score: 100,
       },
       {
         name: "Managing",
-        score: 90,
+        score: 95,
       },
       {
         name: "Company Culture Follower",
@@ -783,6 +1048,208 @@ export const portfolioData: PortfolioData = {
       {
         name: "Contribute Ideas",
         score: 100,
+      },
+      {
+        name: "Executive Stakeholder Communication",
+        score: 90,
+      },
+      {
+        name: "Written Documentation & Architecture Communication",
+        score: 90,
+      },
+      {
+        name: "Cross-functional Collaboration",
+        score: 90,
+      },
+      {
+        name: "Strategic Decision-making",
+        score: 90,
+      },
+      {
+        name: "Async / Documentation-first Working",
+        score: 90,
+      },
+    ],
+    frontend: [
+      {
+        name: "SSR / SSG",
+        score: 90,
+      },
+      {
+        name: "Design Systems",
+        score: 90,
+      },
+      {
+        name: "pnpm",
+        score: 90,
+      },
+      {
+        name: "Micro-frontends",
+        score: 85,
+      },
+      {
+        name: "Tailwind v4",
+        score: 85,
+      },
+      {
+        name: "Radix UI",
+        score: 85,
+      },
+      {
+        name: "shadcn-vue / shadcn-ui",
+        score: 75,
+      },
+      {
+        name: "Turborepo",
+        score: 70,
+      },
+      {
+        name: "NX",
+        score: 70,
+      },
+    ],
+    testing: [
+      {
+        name: "Playwright",
+        score: 90,
+      },
+      {
+        name: "Storybook",
+        score: 90,
+      },
+      {
+        name: "Jest",
+        score: 90,
+      },
+      {
+        name: "TDD (Test Driven Development)",
+        score: 90,
+      },
+    ],
+    integrations: [
+      {
+        name: "Insider (CDP & personalisation)",
+        score: 80,
+      },
+      {
+        name: "SendGrid",
+        score: 80,
+      },
+      {
+        name: "Kameleoon (A/B testing)",
+        score: 75,
+      },
+      {
+        name: "Cidaas OIDC",
+        score: 75,
+      },
+      {
+        name: "Adobe Target",
+        score: 70,
+      },
+      {
+        name: "SAP (customer master data)",
+        score: 65,
+      },
+      {
+        name: "SAP Ariba (procurement punch-out)",
+        score: 65,
+      },
+      {
+        name: "PIM (Elasticsearch)",
+        score: 65,
+      },
+      {
+        name: "Oracle OCI Procurement",
+        score: 60,
+      },
+      {
+        name: "Zendesk",
+        score: 60,
+      },
+      {
+        name: "Cliplister DAM",
+        score: 55,
+      },
+      {
+        name: "RWS TMS (translation management)",
+        score: 55,
+      },
+    ],
+    observability: [
+      {
+        name: "Google Analytics 4",
+        score: 85,
+      },
+      {
+        name: "Grafana / Grafana Faro",
+        score: 80,
+      },
+      {
+        name: "OpenTelemetry",
+        score: 75,
+      },
+      {
+        name: "Server-side GTM",
+        score: 75,
+      },
+      {
+        name: "Usercentrics",
+        score: 75,
+      },
+      {
+        name: "Looker Studio",
+        score: 75,
+      },
+      {
+        name: "Datadog",
+        score: 70,
+      },
+      {
+        name: "BigQuery",
+        score: 70,
+      },
+      {
+        name: "Pyroscope",
+        score: 60,
+      },
+    ],
+    ai: [
+      {
+        name: "Claude Code Max CLI",
+        score: 95,
+      },
+      {
+        name: "Architecture + Codebase Analysis Workflows",
+        score: 95,
+      },
+      {
+        name: "Agentic Implementation with Human-in-the-loop Review",
+        score: 95,
+      },
+      {
+        name: "ADR-driven Documentation for AI-assisted Decisions",
+        score: 90,
+      },
+      {
+        name: "Parallel Sub-agent Orchestration for Multi-source Audits",
+        score: 85,
+      },
+      {
+        name: "Gemini Enterprise",
+        score: 85,
+      },
+      {
+        name: "ChatGPT / GPT-4",
+        score: 80,
+      },
+      {
+        name: "Strapi MCP",
+        score: 70,
+      },
+      {
+        name: "Figma AI",
+        score: 60,
       },
     ],
   },
@@ -975,7 +1442,6 @@ export const portfolioData: PortfolioData = {
         "Styled Components",
         "Tailwind",
         "Fontawesome",
-        "Recoil",
         "Static Site",
       ],
       link: "https://redgame.dev",
@@ -1012,7 +1478,7 @@ export const portfolioData: PortfolioData = {
       twitter: "@red_game_dev",
       instagram: "adventure.redmt",
       facebook: "traveller.redmt",
-      linkedIn: "redeemer-pace-685692b9",
+      linkedIn: LINKEDIN_USERNAME,
     },
     byProjectsUsername: {
       gameYt: "@godsofzushin",

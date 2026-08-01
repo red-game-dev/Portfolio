@@ -44,3 +44,5 @@ node_modules
 /out
 eslint-results.sarif
 analyze/nodejs.html
+# playwright mcp artifacts
+.playwright-mcp/

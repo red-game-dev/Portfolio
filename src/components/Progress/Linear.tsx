@@ -14,9 +14,15 @@ interface LinearProgressProps {
   canAnimate?: boolean;
 }
 
-const Item = tw.li`relative p-[35px 0 0 0]`;
+const Item = tw.li`relative pt-[35px]`;
 
-const ItemTitle = tw.div`text-base font-medium text-[#eee] m-[0 0 10px 0]`;
+// Title and score share a row. The score used to be absolutely positioned above
+// the right end of the bar, which collided with the title as soon as the title
+// wrapped to a second line, and it tracked the fill, so no amount of padding
+// on the title could reserve space for it.
+const ItemHeader = tw.div`flex flex-row items-baseline justify-between gap-4 mb-[10px]`;
+
+const ItemTitle = tw.div`text-base font-medium text-[#eee] min-w-0 break-words`;
 
 const ItemProgressContainer = tw.div`relative w-full block h-[1px] bg-white/10`;
 
@@ -27,8 +33,8 @@ const ItemPercentage = styled.div(({ score = 0, canAnimate }: ItemPercentageProp
 ]);
 
 const ItemInnerPercente = styled.div(({ isVisible = false }: ItemInnerPercenteProps) => [
-  tw`absolute top-[-34px] opacity-0 right-0 font-semibold text-base delay-1000 duration-1000 ease-linear transition-all`,
-  !isVisible && tw`w-0 transition-none duration-[0] delay-[0]`,
+  tw`flex-shrink-0 opacity-0 font-semibold text-base delay-1000 duration-1000 ease-linear transition-opacity`,
+  !isVisible && tw`transition-none duration-[0] delay-[0]`,
   isVisible && tw`opacity-100`
 ]);
 
@@ -38,11 +44,12 @@ export const LinearProgress = ({
   canAnimate,
 }: LinearProgressProps) => (
     <Item>
-      <ItemTitle>{ title }</ItemTitle>
+      <ItemHeader>
+        <ItemTitle>{ title }</ItemTitle>
+        <ItemInnerPercente isVisible={canAnimate}>{score}%</ItemInnerPercente>
+      </ItemHeader>
       <ItemProgressContainer>
-        <ItemPercentage score={score} canAnimate={canAnimate}>
-          <ItemInnerPercente isVisible={canAnimate}>{score}%</ItemInnerPercente>
-        </ItemPercentage>
+        <ItemPercentage score={score} canAnimate={canAnimate} />
       </ItemProgressContainer>
     </Item>
   );

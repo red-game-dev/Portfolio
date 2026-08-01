@@ -76,7 +76,7 @@ export const ProjectModal: FC = () => {
       <PopupBoxImage
         src={modalContent.image}
         fallbackSrc={modalContent.image.replace(".webp", ".jpg")}
-        alt="Project Image"
+        alt={`${modalContent.title}, ${modalContent.category}`}
         height={560}
         width={1000}
       />

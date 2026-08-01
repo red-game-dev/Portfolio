@@ -1,22 +1,16 @@
-import {
-  useRecoilState
-} from "recoil";
+import { useContext } from "react";
 
 import {
-  AppLoaderLoadingState
-} from "@/components/AppLoader/atoms/LoadingAtom";
-import {
-  AppLoaderReadyState
-} from "@/components/AppLoader/atoms/ReadyAtom";
+  AppLoaderContext,
+  AppLoaderState
+} from "@/components/AppLoader/context/AppLoaderContext";
 
-export const useAppLoaderStateHook = () => {
-  const [isLoading, setIsLoading] = useRecoilState(AppLoaderLoadingState);
-  const [isReady, setIsReady] = useRecoilState(AppLoaderReadyState);
+export const useAppLoaderStateHook = (): AppLoaderState => {
+  const context = useContext(AppLoaderContext);
 
-  return {
-    isLoading,
-    setIsLoading,
-    isReady,
-    setIsReady
-  };
+  if (!context) {
+    throw new Error("useAppLoaderStateHook must be used inside an AppLoaderProvider");
+  }
+
+  return context;
 };

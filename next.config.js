@@ -9,13 +9,9 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 module.exports = withBundleAnalyzer({
   reactStrictMode: true,
-  swcMinify: true,
   trailingSlash: true,
   sassOptions: {
     includePaths: [join(__dirname, 'src/styles')],
-  },
-  eslint: {
-    dirs: ['src', '__tests__/src']
   },
   i18n: {
     locales: ["en"],

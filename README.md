@@ -13,7 +13,6 @@ The summary outcome of lighthouse can be found in `analyze/*.pdf`
 - Styled Components
 - Tailwind
 - Fontawesome
-- Recoil
 
 ## Live
 

@@ -81,7 +81,7 @@ export const Project: FC<ProjectProps> = ({
       <OuterImageWrapper
         withRandomBorder={withRandomBorder}
         isFullBorder={isFullBorder}>
-          <Image src={image} width="1000" height="300" alt="" fallbackSrc={image.replace(".webp", ".jpg")} />
+          <Image src={image} width="1000" height="300" alt={`${title}, ${category}`} fallbackSrc={image.replace(".webp", ".jpg")} />
           <OuterImageInfo onClick={onTapCallback} >
             <OuterImageInfoCategory>{category}</OuterImageInfoCategory>
             <OuterImageInfoName>{title}</OuterImageInfoName>

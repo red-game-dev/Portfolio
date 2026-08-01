@@ -11,9 +11,7 @@ import { Skills } from "@/components/Skills";
 import { Text } from "@/components/Text";
 import { portfolioData } from "@/data/resume";
 
-const Layout = dynamic(() => import("@/layouts/Layout"), {
-  suspense: true,
-});
+const Layout = dynamic(() => import("@/layouts/Layout"));
 
 export default function Home() {
   return (

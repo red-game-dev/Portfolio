@@ -214,12 +214,12 @@ export const portfolioData: PortfolioData = {
   },
   services: [
     {
-      title: "Frontend Enginering",
+      title: "Frontend Engineering",
       icon: faBrowser,
       description: "",
     },
     {
-      title: "Backend Enginering",
+      title: "Backend Engineering",
       icon: faServer,
       description: "",
     },
@@ -264,9 +264,10 @@ export const portfolioData: PortfolioData = {
       description: "",
     },
     {
-      title: "AI Generated App? Let's fix it, especially if under attack",
+      title: "AI-Generated App Rescue & Hardening",
       icon: faCog,
-      description: "Urgent help?",
+      description: `Shipped fast with AI and now it is buggy, insecure, leaking data, or actively under attack?
+      I audit the codebase, close the holes, and get it stable enough to trust in production. Urgent help?`,
       link: `https://www.linkedin.com/in/${LINKEDIN_USERNAME}`,
       linkLabel: "Connect on LinkedIn",
       linkIcon: faLinkedinIn,
@@ -427,12 +428,16 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      title: "Frontend Engineer, Chiliz",
+      title: "Mobile Core Engineer / Architect, Chiliz",
       from: "Nov 2019",
       to: "Nov 2022",
       description: [
-        `Worked with a blockchain and sports company as a Frontend Engineer and an unofficial Tech Lead. 
-        We can discuss achievements further.`,
+        `A blockchain and sports company building a gamified fan engagement platform with real-time rewards,
+        NFT integrations, and immersive mobile and web experiences.`,
+        `My official title was Mobile Core Engineer, but the practical scope expanded into architecture and
+        technical leadership: architecture direction, implementation standards, delivery alignment, and core
+        platform decisions across 7 product squads and 30+ engineers.`,
+        "Introduced Test Driven Development org-wide, reaching 95%+ coverage on the frontend and mobile codebases.",
       ],
       techStack: [
         "NativeScript",
@@ -452,7 +457,7 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      title: "Chief Techonology Officer, CoinOn",
+      title: "Chief Technology Officer, CoinOn",
       from: "Nov 2021",
       to: "Jan 2022",
       description: [

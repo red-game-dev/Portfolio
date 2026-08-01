@@ -1336,7 +1336,6 @@ export const portfolioData: PortfolioData = {
         "Styled Components",
         "Tailwind",
         "Fontawesome",
-        "Recoil",
         "Static Site",
       ],
       link: "https://redgame.dev",

@@ -1,17 +1,16 @@
-import {
-  useRecoilState
-} from "recoil";
+import { useContext } from "react";
 
 import {
-  AppModalState,
-  ModalStateProps
-} from "@/components/Modal/atoms/ModalAtom";
+  ModalContext,
+  ModalState
+} from "@/components/Modal/context/ModalContext";
 
-export const useModalStateHook = () => {
-  const [modalContent, setModal] = useRecoilState<ModalStateProps | null>(AppModalState);
+export const useModalStateHook = (): ModalState => {
+  const context = useContext(ModalContext);
 
-  return {
-    modalContent,
-    setModal,
-  };
+  if (!context) {
+    throw new Error("useModalStateHook must be used inside a ModalProvider");
+  }
+
+  return context;
 };

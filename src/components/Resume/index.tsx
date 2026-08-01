@@ -34,6 +34,8 @@ export const Resume = ({ education, experience }: ResumeProps) => (
                   activeSubtitle={!work.to}
                   title={work.title}
                   description={work.description}
+                  bullets={work.bullets}
+                  tags={work.techStack}
                 />
               ))
             }

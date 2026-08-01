@@ -37,6 +37,11 @@ export default function Home() {
         />
         <Skills skills={portfolioData.skills.tech} intro={portfolioData.sections.tech} isCircle={true} />
         <Skills skills={portfolioData.skills.tools} intro={portfolioData.sections.tools} isCircle={true} />
+        <Skills skills={portfolioData.skills.frontend} intro={portfolioData.sections.frontend} />
+        <Skills skills={portfolioData.skills.testing} intro={portfolioData.sections.testing} />
+        <Skills skills={portfolioData.skills.integrations} intro={portfolioData.sections.integrations} />
+        <Skills skills={portfolioData.skills.observability} intro={portfolioData.sections.observability} />
+        <Skills skills={portfolioData.skills.ai} intro={portfolioData.sections.ai} />
         <Skills skills={portfolioData.skills.design} intro={portfolioData.sections.design} />
         <Skills skills={portfolioData.skills.language} intro={portfolioData.sections.language} />
         <Skills skills={portfolioData.skills.teamplayer} intro={portfolioData.sections.teamplayer} />

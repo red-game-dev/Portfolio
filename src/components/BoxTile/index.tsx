@@ -12,6 +12,8 @@ interface BoxTileProps {
   activeSubtitle?: boolean;
   icon?: FontAwesomeIconProps["icon"];
   description?: string[] | string;
+  bullets?: string[];
+  tags?: string[];
   isFullBorder?: boolean;
   withRandomBorder?: boolean;
   isFullWidth?: boolean;
@@ -49,8 +51,20 @@ const ItemSubtitle = styled.div(({ active = false }: SubtitleProps) => [
   active && tw`text-[#4bffa5] font-medium`
 ]);
 
+const BulletList = tw.ul`list-[circle] text-sm pl-[20px] mt-[15px] mb-0 marker:text-[#4bffa5]`;
 
-export const BoxTile: FC<BoxTileProps> = ({ isFullBorder, withRandomBorder, isFullWidth, title, subtitle, activeSubtitle, description, icon }: BoxTileProps) => (
+const BulletListItem = tw.li`text-[#bbb] mb-[6px] break-words`;
+
+const TagList = tw.ul`list-none flex flex-row flex-wrap gap-2 p-0 mt-[15px] mb-0`;
+
+const TagListItem = tw.li`text-xs leading-none text-[#4bffa5] bg-[#1d1d1d] rounded-full py-[6px] px-[10px]
+border-[1px] border-solid border-[#2f6b4d]`;
+
+
+export const BoxTile: FC<BoxTileProps> = ({
+  isFullBorder, withRandomBorder, isFullWidth, title, subtitle,
+  activeSubtitle, description, bullets, tags, icon
+}: BoxTileProps) => (
   <Item withRandomBorder={withRandomBorder} isFullBorder={isFullBorder} isFullWidth={isFullWidth}>
     { subtitle && <ItemSubtitle active={activeSubtitle}>{ subtitle }</ItemSubtitle> }
     { icon && <Icon icon={icon} /> }
@@ -61,6 +75,28 @@ export const BoxTile: FC<BoxTileProps> = ({ isFullBorder, withRandomBorder, isFu
           paragraphs={typeof description === "object" ? description : [description]}
           isSection={false}
         />
+      )
+    }
+    {
+      Boolean(bullets?.length) && (
+        <BulletList>
+          {bullets?.map((bullet: string, index: number) => (
+            <BulletListItem key={`${bullet.replace(/\s/, "")}-${index}`}>
+              {bullet}
+            </BulletListItem>
+          ))}
+        </BulletList>
+      )
+    }
+    {
+      Boolean(tags?.length) && (
+        <TagList>
+          {tags?.map((tag: string, index: number) => (
+            <TagListItem key={`${tag.replace(/\s/, "")}-${index}`}>
+              {tag}
+            </TagListItem>
+          ))}
+        </TagList>
       )
     }
   </Item>

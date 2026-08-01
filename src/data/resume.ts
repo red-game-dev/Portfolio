@@ -340,8 +340,25 @@ export const portfolioData: PortfolioData = {
       from: "Oct 2023",
       to: "Nov 2025",
       description: [
-        "An interesting company that offers NFT rentals, integrating with various industries like gaming.",
-        "Tech Stack:  React, NextJs, Electron, Architecture",
+        `HyperPlay is the world's first Web3 game launcher, pioneering how decentralized games are discovered,
+        played, and integrated with crypto ecosystems.`,
+        "Scope: Product Architecture, Web3 Platform Delivery, Electron, Mobile, and Developer Experience.",
+      ],
+      techStack: [
+        "Next.js (App Router, SSR)",
+        "React",
+        "React Native",
+        "Node.js",
+        "Electron",
+        "PostgreSQL",
+        "GraphQL",
+        "Rust",
+        "Solidity",
+        "C/C++",
+        "SASS",
+        "AWS",
+        "Microservices",
+        "Vercel Enterprise",
       ],
     },
     {
@@ -350,7 +367,20 @@ export const portfolioData: PortfolioData = {
       to: "Aug 2023",
       description: [
         "An interesting company that offers NFT rentals, integrating with various industries like gaming.",
-        "Tech Stack:  React, NextJs, Architecture",
+        "Scope: Frontend Architecture, Product Collaboration, Web3 Marketplace, and Technical Decisions.",
+      ],
+      techStack: [
+        "React",
+        "Next.js (SSR)",
+        "Radix UI",
+        "Wagmi",
+        "GraphQL",
+        "Alchemy",
+        "The Graph Protocol",
+        "Azrael",
+        "Sylvester",
+        "Solana",
+        "Solidity",
       ],
     },
     {
@@ -360,7 +390,9 @@ export const portfolioData: PortfolioData = {
         "Our popular travel page & community",
         `We focus on bringing authentic travel experiences to their audience and 
         we're engaged in creating and sharing high-quality content related to food, drinks, travel destinations, and accommodations.`,
-        "Tech Stack: Shopify",
+      ],
+      techStack: [
+        "Shopify",
       ],
     },
     {
@@ -369,8 +401,23 @@ export const portfolioData: PortfolioData = {
       description: [
         "An achievement on it's own with over 5 years in production environment.",
         "A Game MMORPG project developed during studies to enhance my knowledge in various of areas, which can be discuss.",
-        `Tech Stack: C/C++, Lua, SQL, Python, VueJS, PHP Laravel, NodeJs, C#, Algorithms, Cryptography, Compressions, Architecture,
-        Photopshop, Illustrator`,
+      ],
+      techStack: [
+        "C/C++",
+        "C#",
+        "Lua",
+        "Python",
+        "Node.js",
+        "PHP (Laravel)",
+        "Vue.js",
+        "SQL",
+        "Cryptography & Compression",
+        "Stripe",
+        "PayPal",
+        "DigitalOcean",
+        "Cloudflare",
+        "Maya",
+        "Illustrator",
       ],
     },
     {
@@ -380,8 +427,22 @@ export const portfolioData: PortfolioData = {
       description: [
         `Worked with a blockchain and sports company as a Frontend Engineer and an unofficial Tech Lead. 
         We can discuss achievements further.`,
-        `Tech Stack:  Nativescript, Vuejs, Webpack, Jest tests, Redux-observables, RxJs, Java/Kotlin, 
-        Swift, React-Native, React, Ionic, Flutter, Architecture.`,
+      ],
+      techStack: [
+        "NativeScript",
+        "Vue.js",
+        "Webpack",
+        "RxJS",
+        "Redux Observables",
+        "React",
+        "React Native",
+        "Jest",
+        "Ionic",
+        "Flutter",
+        "Java/Kotlin",
+        "Swift",
+        "C/C++",
+        "Solidity",
       ],
     },
     {
@@ -390,7 +451,23 @@ export const portfolioData: PortfolioData = {
       to: "Jan 2022",
       description: [
         "Delivered a full scale solution of website, mobile app and a blockchain infrastructure.",
-        "Tech Stack: Flutter, NodeJs, Rust (Substrate), VueJs Nuxt.",
+      ],
+      techStack: [
+        "Flutter",
+        "Node.js",
+        "Next.js (SSR)",
+        "Vue.js / Nuxt",
+        "Rust (Substrate)",
+        "Kotlin",
+        "Swift",
+        "NativeScript",
+        "C/C++",
+        "Solidity",
+        "Solana",
+        "Polkadot (parachains)",
+        "PixiJS",
+        "AWS",
+        "Vercel",
       ],
     },
     {
@@ -399,7 +476,17 @@ export const portfolioData: PortfolioData = {
       to: "Sep 2019",
       description: [
         "Being hired by KPMG is one big achievement on it's own, as it is one of the big 4 firm in auditing.",
-        "Tech Stack: PHP - Laravel, VueJS, Angular, NodeJS, React, C# ASP.NET, C/C++, Architecture",
+      ],
+      techStack: [
+        "PHP (Laravel)",
+        "Vue.js",
+        "Angular",
+        "React",
+        "Node.js",
+        "PixiJS",
+        "Native Canvas",
+        "C# (ASP.NET)",
+        "C/C++",
       ],
     },
     {
@@ -409,7 +496,19 @@ export const portfolioData: PortfolioData = {
       description: [
         `One of the companies that given me a lot of experiences throughout the years. 
         This company is an iGaming Company, which was my first experience in iGaming.`,
-        "Tech Stack: React, Redux, Redux-observables, MongoDB, Kafka, SignalR, NodeJS, RxJs, Backbone, Canvas, PixJS / Vanilla JS Canvas, NodeJS",
+      ],
+      techStack: [
+        "React",
+        "Redux",
+        "Redux Observables",
+        "RxJS",
+        "Backbone.js",
+        "HTML5 Canvas",
+        "PixiJS",
+        "Node.js (WebSockets)",
+        "MongoDB",
+        "Kafka",
+        "SignalR",
       ],
     },
   ],
@@ -966,67 +1065,67 @@ export const portfolioData: PortfolioData = {
     ],
     frontend: [
       {
-        name: "SSR / SSG (Nuxt SSR at Conrad, Next.js SSR at HyperPlay/reNFT)",
+        name: "SSR / SSG",
         score: 90,
       },
       {
-        name: "Design Systems (Conrad, HyperPlay, Chiliz — built + governed)",
+        name: "Design Systems",
         score: 90,
       },
       {
-        name: "pnpm (workspace management at Conrad + HyperPlay)",
+        name: "pnpm",
         score: 90,
       },
       {
-        name: "Micro-frontends (Chiliz V2 core mobile + web)",
+        name: "Micro-frontends",
         score: 85,
       },
       {
-        name: "Tailwind v4 (Conrad storefront)",
+        name: "Tailwind v4",
         score: 85,
       },
       {
-        name: "Radix UI (reNFT V2 marketplace)",
+        name: "Radix UI",
         score: 85,
       },
       {
-        name: "shadcn-vue / shadcn-ui (Conrad component library)",
+        name: "shadcn-vue / shadcn-ui",
         score: 75,
       },
       {
-        name: "Turborepo (Conrad monorepo, NX 22-based)",
+        name: "Turborepo",
         score: 70,
       },
       {
-        name: "NX (Conrad storefront monorepo)",
+        name: "NX",
         score: 70,
       },
     ],
     testing: [
       {
-        name: "Playwright (end-to-end tests, reNFT V2 + Conrad POC, cross-viewport / cross-locale coverage)",
+        name: "Playwright",
         score: 90,
       },
       {
-        name: "Storybook (component documentation + interaction tests, HyperPlay + reNFT + Conrad)",
+        name: "Storybook",
         score: 90,
       },
       {
-        name: "Jest (frontend + mobile test suites, 95%+ coverage established at Chiliz)",
+        name: "Jest",
         score: 90,
       },
       {
-        name: "TDD (introduced org-wide at Chiliz, reached 95%+ coverage on frontend/mobile)",
+        name: "TDD (Test Driven Development)",
         score: 90,
       },
     ],
     integrations: [
       {
-        name: "Insider (CDP + personalisation + audience segmentation)",
+        name: "Insider (CDP & personalisation)",
         score: 80,
       },
       {
-        name: "SendGrid (email delivery via PHP + email templating pipeline)",
+        name: "SendGrid",
         score: 80,
       },
       {
@@ -1034,77 +1133,77 @@ export const portfolioData: PortfolioData = {
         score: 75,
       },
       {
-        name: "Cidaas OIDC (enterprise identity provider)",
+        name: "Cidaas OIDC",
         score: 75,
       },
       {
-        name: "Adobe Target (architected as Kameleoon replacement path)",
+        name: "Adobe Target",
         score: 70,
       },
       {
-        name: "SAP (customer master data via customer group codes for B2B/B2C classification)",
+        name: "SAP (customer master data)",
         score: 65,
       },
       {
-        name: "SAP Ariba (B2B procurement punch-out integration)",
+        name: "SAP Ariba (procurement punch-out)",
         score: 65,
       },
       {
-        name: "PIM (Elasticsearch-backed product data boundary)",
+        name: "PIM (Elasticsearch)",
         score: 65,
       },
       {
-        name: "Oracle OCI Procurement (Open Catalog Interface, e-procurement)",
+        name: "Oracle OCI Procurement",
         score: 60,
       },
       {
-        name: "Zendesk (support CMS integration boundary + scope-out rationale)",
+        name: "Zendesk",
         score: 60,
       },
       {
-        name: "Cliplister DAM (digital asset management integration)",
+        name: "Cliplister DAM",
         score: 55,
       },
       {
-        name: "RWS TMS (translation management, Spring Boot bridge)",
+        name: "RWS TMS (translation management)",
         score: 55,
       },
     ],
     observability: [
       {
-        name: "Google Analytics 4 (event pipeline design, event schema)",
+        name: "Google Analytics 4",
         score: 85,
       },
       {
-        name: "Grafana / Grafana Faro (authored Datadog → Faro migration ADR)",
+        name: "Grafana / Grafana Faro",
         score: 80,
       },
       {
-        name: "OpenTelemetry (RED metrics, span attributes, adapter instrumentation)",
+        name: "OpenTelemetry",
         score: 75,
       },
       {
-        name: "Server-side GTM (collect.conrad.de, Usercentrics consent gating)",
+        name: "Server-side GTM",
         score: 75,
       },
       {
-        name: "Usercentrics (consent mode, GDPR tracking gating)",
+        name: "Usercentrics",
         score: 75,
       },
       {
-        name: "Looker Studio (per-country WBR dashboards, structured extraction)",
+        name: "Looker Studio",
         score: 75,
       },
       {
-        name: "Datadog (analysed existing setup + migration ADR)",
+        name: "Datadog",
         score: 70,
       },
       {
-        name: "BigQuery (analytics data warehouse consumption)",
+        name: "BigQuery",
         score: 70,
       },
       {
-        name: "Pyroscope (profiling on PDP SSR)",
+        name: "Pyroscope",
         score: 60,
       },
     ],

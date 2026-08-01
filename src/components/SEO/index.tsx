@@ -179,8 +179,8 @@ export const SEO = ({ url }: SeoProps) => (
           publisherLogo={portfolioData.details.image}
           description={project.intro}
           body={project.responsibilities.length
-            ? `${project.intro} \n\n Tech Stack: ${project.techStack.join(",")}`
-            : `${project.intro} \n\n Responsibilities: ${project.responsibilities.join(",")}. \n\n Tech Stack: ${project.techStack.join(",")}`}
+            ? `${project.intro} \n\n Responsibilities: ${project.responsibilities.join(",")}. \n\n Tech Stack: ${project.techStack.join(",")}`
+            : `${project.intro} \n\n Tech Stack: ${project.techStack.join(",")}`}
           isAccessibleForFree={true}
           datePublished={project.from}
           dateCreated={project.from}

@@ -20,7 +20,17 @@ ANALYZE=true npm run build                   # bundle analysis (@next/bundle-ana
 
 `npm install` pulls `@fortawesome/pro-*` packages, which require an authenticated FontAwesome Pro npm registry token. It lives in the machine's global `~/.npmrc` (`@fortawesome:registry` + `_authToken`) — deliberately **not** a project `.npmrc`, since `.gitignore` does not exclude one and this repo is public.
 
-Use Node 22+ (`.nvmrc` pins 22). Node 23 in particular triggers an `Exit handler never called!` bug in npm 10.9 that aborts installs midway and leaves `node_modules` corrupt; `rm -rf node_modules` and reinstall on 22/24 to recover.
+Use Node 22+ (`.nvmrc` pins 22.6.0, `engines` allows `22.x || 24.x`). Node 23 is not a Vercel target and triggers an `Exit handler never called!` bug in npm 10.9 that aborts installs midway and leaves `node_modules` corrupt; `rm -rf node_modules` and reinstall on 22/24 to recover. Run `nvm use` before any npm command — the global default here is 23.
+
+## Verifying changes
+
+**Verify against the deployed Vercel preview using the Playwright MCP tools — not a local dev server or local build.** Push the branch, let the preview deploy, then drive Playwright against the preview URL and read its console. Local runs are slow, crash-prone on this machine, and do not reflect what actually ships.
+
+`next dev` and `next build` share `.next`, and a dev server started over a production build dies with `ENOENT: .next/fallback-build-manifest.json`. If you do run locally, `rm -rf .next` between the two.
+
+`.playwright-mcp/` holds console logs and page snapshots from those runs and is gitignored.
+
+Hydration mismatches only surface in the browser console, so they are invisible to `tsc`, `next lint`, `next build` and jest — all four can be green while the page is broken at runtime. The console check is the only thing that catches them.
 
 ## Architecture
 
@@ -79,7 +89,7 @@ Enforced by `.eslintrc.json` (typescript-eslint `recommended-requiring-type-chec
 - `import/order`: react first → other external → `@/*` internal, blank line between groups, alphabetized case-insensitively.
 - Path aliases (`tsconfig.json`): `@/components/*`, `@/pages/*`, `@/layouts/*`, `@/hooks/*`, `@/data/*`, `@/styles/*` map into `src/`, but **`@/types/*` maps to the root-level `types/` directory**, not `src/types`.
 - TS `strict: true`; several unsafe-* rules are deliberately off, but `no-floating-promises`/`no-explicit-any` are too — don't assume they'll catch mistakes.
-- Commits follow `feat:` / `fix:` / `chore:` prefixes.
+- Commits follow `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` prefixes. **Do not add `Co-Authored-By` trailers.**
 
 ## Gotchas
 

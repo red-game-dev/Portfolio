@@ -6,7 +6,6 @@ import tw, { theme, GlobalStyles as BaseStyles } from "twin.macro";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import { Analytics } from "@vercel/analytics/react";
 import type { AppProps } from "next/app";
-import Head from "next/head";
 
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
@@ -33,9 +32,6 @@ const GlobalStyles = () => (
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
-      <Head>
-      </Head>
-
       <SEO url={process.env.HOST || "#"} />
 
       <GlobalStyles />

@@ -16,7 +16,6 @@ import { SEO } from "@/components/SEO";
 
 config.autoAddCss = false;
 
-
 const CustomStyles = createGlobalStyle({
   body: {
     WebkitTapHighlightColor: theme`colors.purple.500`,

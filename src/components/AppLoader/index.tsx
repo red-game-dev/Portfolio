@@ -64,26 +64,31 @@ const LineCol = styled.div(({ isReady, isLoading = true }: LineProps) => [
   first:before:delay-[2.9s]
   first:after:top-0
   first:after:bottom-auto
+  first:after:origin-top
   first:after:delay-[0.9s]
 
   [&:nth-child(2)]:before:delay-[2.7s]
   [&:nth-child(2)]:after:top-auto
   [&:nth-child(2)]:after:bottom-0
+  [&:nth-child(2)]:after:origin-bottom
   [&:nth-child(2)]:after:delay-[0.7s]
 
   [&:nth-child(3)]:before:delay-[2.2s]
   [&:nth-child(3)]:after:top-0
   [&:nth-child(3)]:after:bottom-auto
+  [&:nth-child(3)]:after:origin-top
   [&:nth-child(3)]:after:delay-[0.2s]
 
   [&:nth-child(4)]:before:delay-[2.5s]
   [&:nth-child(4)]:after:top-auto
   [&:nth-child(4)]:after:bottom-0
+  [&:nth-child(4)]:after:origin-bottom
   [&:nth-child(4)]:after:delay-[0.5s]
 
   [&:nth-child(5)]:before:delay-[3s]
   [&:nth-child(5)]:after:top-0
   [&:nth-child(5)]:after:bottom-auto
+  [&:nth-child(5)]:after:origin-top
   [&:nth-child(5)]:after:delay-[1s]
 
   before:content['']
@@ -91,20 +96,31 @@ const LineCol = styled.div(({ isReady, isLoading = true }: LineProps) => [
   before:left-0
   before:top-0
   before:w-[1px]
-  before:h-[0%]
+  before:h-full
+  before:origin-top
+  before:scale-y-0
   before:bg-[rgba(255, 255, 255, 0.07)]
-  before:transition-[height 1s cubic-bezier(0.165, 0.85, 0.45, 1) 0s]
+  before:transition-transform
+  before:duration-1000
+  before:ease-[cubic-bezier(0.165,0.85,0.45,1)]
   after:content['']
   after:absolute
   after:left-0
   after:top-0
   after:w-full
   after:h-full
+  after:origin-top
+  after:scale-y-100
   after:bg-[#1E1E1E]
   after:z-[12]
-  after:transition-[height 1s cubic-bezier(0.165, 0.85, 0.45, 1) 0s]`,
+  after:transition-transform
+  after:duration-1000
+  after:ease-[cubic-bezier(0.165,0.85,0.45,1)]`,
   isReady && tw`z-[11]`,
-  !isLoading && tw`after:h-[0%] before:h-full first:after:h-[0%] last:after:h-[0%]`,
+  // Animating scaleY instead of height keeps this off the layout path entirely.
+  // Transforms are excluded from Cumulative Layout Shift; height changes are not,
+  // and the bottom-anchored panels moved their top edge on every frame.
+  !isLoading && tw`after:scale-y-0 before:scale-y-100`,
 ]);
 
 const PreloadingContainer = styled.div(({ isLoading = true }: PreloaderContainerProps) => [

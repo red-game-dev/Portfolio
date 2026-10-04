@@ -22,7 +22,7 @@ import { ProjectDetail } from "@/types/projects";
 import { Resume } from "@/types/resume";
 import { SectionIntros } from "@/types/sections-intros";
 import { Service } from "@/types/services";
-import { Skill } from "@/types/skills";
+import { Skill, SkillArea } from "@/types/skills";
 
 
 export interface PortfolioData {
@@ -52,6 +52,7 @@ export interface PortfolioData {
     expertise: Skill[];
     teamplayer: Skill[];
   };
+  skillAreas: SkillArea[];
   projects: ProjectDetail[];
   aiUsage: PortfolioAiUsage;
   socialMedia: {
@@ -175,6 +176,13 @@ export const portfolioData: PortfolioData = {
       title: "Expertise",
       description: [
         "I have expertise in various roles; each provides a snapshot of my overall knowledge.",
+      ],
+    },
+    skillAreas: {
+      title: "More Skills by Area",
+      description: [
+        `What I build with beyond the scored skills above, grouped by area. These are in production on my own platform or at clients,
+        so they are listed rather than rated.`,
       ],
     },
     teamplayer: {
@@ -1267,6 +1275,96 @@ export const portfolioData: PortfolioData = {
       },
     ],
   },
+  skillAreas: [
+    {
+      label: "Payments & Fintech",
+      items: [
+        "Stripe, including Connect payouts",
+        "PayPal",
+        "Subscriptions",
+        "Payment provider abstraction and routing",
+        "Double entry ledgers",
+        "Idempotency",
+        "Signed and verified webhooks",
+        "Reconciliation",
+        "Multi currency and FX",
+        "Tax",
+      ],
+    },
+    {
+      label: "Auth & Security",
+      items: [
+        "OAuth 2",
+        "Running an OIDC provider",
+        "JWT",
+        "Two factor (TOTP)",
+        "Role based access control",
+        "CSP and security headers",
+        "Security audits and hardening",
+        "Secrets handling",
+      ],
+    },
+    {
+      label: "Compliance & Web Standards",
+      items: [
+        "PCI scope (SAQ-A)",
+        "KYC and AML",
+        "GDPR",
+        "PSD2",
+        "DSA ad transparency",
+        "Cookie consent",
+        "SEO",
+        "Accessibility and WCAG",
+        "Internationalisation across 32 locales",
+        "PWA and service workers",
+      ],
+    },
+    {
+      label: "Observability",
+      items: [
+        "Sentry",
+        "Structured logging with Pino",
+        "StatsD metrics",
+        "Session replay",
+        "Lighthouse and Lighthouse CI",
+      ],
+    },
+    {
+      label: "CI/CD & Release",
+      items: [
+        "GitHub Actions",
+        "GitLab CI",
+        "Git hooks with Husky",
+        "Changesets",
+        "Chromatic",
+        "Docker Compose",
+        "Supply chain scanning in CI",
+      ],
+    },
+    {
+      label: "Backend & Data",
+      items: [
+        "NestJS",
+        "Express",
+        "AdonisJS",
+        "PostgreSQL",
+        "Redis",
+        "Supabase",
+        "gRPC",
+        "OpenAPI",
+        "MariaDB and T-SQL",
+      ],
+    },
+    {
+      label: "AI & Machine Learning",
+      items: [
+        "TensorFlow",
+        "Recommendation, ads and feed ranking models",
+        "MCP, custom and published servers",
+        "Agent skills, subagents and slash commands",
+      ],
+    },
+  ],
   projects: [
     {
       image: "/images/chapter5-cover.webp",

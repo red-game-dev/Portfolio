@@ -89,10 +89,11 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnSectionLanguageSkills] = useCollision("section-skills-LanguageSkills");
   const [isOnSectionExpertise] = useCollision("section-skills-Expertise");
   const [isOnAiUsageSection] = useCollision(SECTION_IDS.aiUsage);
+  const [isOnSkillAreasSection] = useCollision(SECTION_IDS.skillAreas);
 
   const isOnSkillsSection = (isOnSectionTechSkills || isOnSectionToolsSkills ||
     isOnSectionAiSkills || isOnSectionDesignSkills || isOnSectionLanguageSkills ||
-    isOnSectionExpertise);
+    isOnSectionExpertise || isOnSkillAreasSection);
   const isOnBeginningSection = isOnSectionStarted ||
   (!isOnProjectsSection && !isOnSectionAbout &&
     !isOnSectionAbout && !isOnSectionHistory &&

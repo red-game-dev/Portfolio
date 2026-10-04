@@ -4,6 +4,7 @@ import { Cover } from "@/components/Cover";
 import { Projects } from "@/components/Projects";
 import { Resume } from "@/components/Resume";
 import { Services } from "@/components/Services";
+import { SkillAreas } from "@/components/SkillAreas";
 import { Skills } from "@/components/Skills";
 import { Text } from "@/components/Text";
 import { portfolioData } from "@/data/resume";
@@ -44,6 +45,7 @@ export default function Home() {
       <Skills skills={portfolioData.skills.language} intro={portfolioData.sections.language} />
       <Skills skills={portfolioData.skills.teamplayer} intro={portfolioData.sections.teamplayer} />
       <Skills skills={portfolioData.skills.expertise} intro={portfolioData.sections.expertise} isCircle={true} />
+      <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
       <Projects projects={portfolioData.projects} intro={portfolioData.sections.projects} />
       <Text
         title={portfolioData.sections.recommendations.title}

@@ -1736,6 +1736,20 @@ export const portfolioData: PortfolioData = {
       tags: ["Double entry", "Idempotency", "Reconciliation"],
     },
     {
+      area: "Payments & security",
+      title: "A budget anyone could drain",
+      summary: [
+        `Ad impressions were billed on an idempotency key the client supplied, with nothing binding it to the server, so any signed
+        in user could drain a campaign's budget.`,
+      ],
+      points: [
+        "The fix: the server mints a signed, single use token that lives about 90 seconds, and billing accepts only that",
+        "The first fix silently broke the seven day conversion window, so a second, longer lived token restored it",
+        "Billing was reordered so the only step that can refuse a charge runs first",
+      ],
+      tags: ["Idempotency", "Signed tokens", "Ads billing"],
+    },
+    {
       area: "Identity & security",
       title: "A consent flow no API test could see",
       summary: ["I had an opt in end to end test given a real fixture instead of leaving it skipped."],

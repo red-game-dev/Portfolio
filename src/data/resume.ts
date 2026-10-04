@@ -321,8 +321,12 @@ export const portfolioData: PortfolioData = {
         HMAC-signed authentication, and versioned preview tokens`,
         `Authored 11 numbered Architecture Decision Records covering adapter architecture, versioning, cache invalidation, BFF dispatcher,
         feature-flag integration, authentication, media handling, editor plugin, email templating, and trunk-based Strapi config`,
-        `Built the full C4 diagram set (System Context, Container, Component, Dynamic, Deployment, System Landscape) as draw.io sources
-        with automated Confluence export`,
+        `Kept the CMS adapter framework free by construction: 69 TypeScript files with zero Vue or Nuxt imports, one typed contract,
+        Strapi, AEM and backend for frontend providers chosen by feature flag, and a block registry that uses TypeScript exhaustiveness
+        so no block type ships unregistered`,
+        `Built the full C4 set, 14 diagrams across system landscape (customer, authoring and storefront views), context, container,
+        component, deployment and dynamic, as draw.io sources with automated Confluence export, plus a C4 model guide for the team`,
+        "Wrote the migration timeline and roadmap, a numbered decision log and a handover guide alongside the diagrams",
         "Per-country feature-flag rollout via Istio VirtualService so individual markets migrate independently under monitoring and rollback",
         "Three-layer feature-flag architecture on OpenFeature + GO Feature Flag",
         "Provider-agnostic switching between AEM and Strapi through a single environment flag (NUXT_PUBLIC_CMS_PROVIDER)",
@@ -436,6 +440,8 @@ export const portfolioData: PortfolioData = {
         `Designed for enterprise volume and built so infrastructure can be switched: keyset pagination against declared indexes,
         bounded scans, batched fan out, and every host behind an adapter as well`,
         "Lean dependencies: most domain packages run on a handful of third party libraries, and the cross cutting machinery is written in house",
+        `Plain TypeScript core: only 6 of about 1,600 domain, engine, service and package files import React, Next.js or NestJS, and
+        framework code sits in adapters and entry points`,
         "26 packages and 6 apps, 168 migrations, 32 locales and close to 400 pull requests",
         "2,100+ test files, including 165 end to end specs and 77 architecture tests",
         "600+ staging scripts exercise the money paths, with every money moving step behind an explicit flag",
@@ -1646,13 +1652,29 @@ export const portfolioData: PortfolioData = {
       title: "No vendor lock-in, by design",
       summary: ["I design so a vendor can be replaced without rewriting the product."],
       points: [
-        "At Conrad: one CMS adapter with AEM and Strapi behind it, and a feature flag to switch per market",
+        `At Conrad: one typed CMS adapter contract with Strapi, AEM and a backend for frontend provider behind it, chosen by a feature
+        flag, so adding a provider does not change consumer code`,
         `On my own platform: 37 adapter contracts across payments, storage, auth, notifications, CMS, real time and infrastructure,
         so a provider can be added, run in parallel and switched by configuration`,
         `A written cut over procedure: add the provider, run both, switch, retire, with expand and contract for anything that holds
         state so no data is lost in the move`,
       ],
       tags: ["Adapters", "Feature flags", "Expand and contract"],
+    },
+    {
+      area: "Architecture",
+      title: "Frameworks at the edges",
+      summary: [
+        `Frameworks change faster than business rules, so the rules do not depend on them. The same principle holds in two unrelated
+        codebases.`,
+      ],
+      points: [
+        "On my own platform, only 6 of about 1,600 domain, engine, service and package files import React, Next.js or NestJS",
+        "Framework code lives in named places: NestJS and Next.js adapters, and separate backend, frontend, headless and PWA entry points",
+        "React hooks bind to framework free services and carry as little logic as possible",
+        "At Conrad the CMS adapter is 69 TypeScript files with zero Vue or Nuxt imports",
+      ],
+      tags: ["Plain TypeScript core", "Adapters", "A binding per runtime"],
     },
     {
       area: "Architecture",

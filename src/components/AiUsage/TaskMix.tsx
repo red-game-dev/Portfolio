@@ -83,7 +83,7 @@ const Row = styled.li(() => [
     grid-template-areas: "label value" "bits bits";
 
     @media (min-width: 1024px) {
-      grid-template-columns: 15rem minmax(0, 1fr) 3rem;
+      grid-template-columns: 15rem minmax(0, 1fr) 4.5rem;
       grid-template-areas: "label bits value";
     }
 
@@ -117,11 +117,11 @@ export const TaskMix: FC<AiUsageMixView> = ({ title, description, tasks, notes, 
               <DecodedText text={task.name} isActive={isInView} delay={rowIndex * rowDelayMs} />
             </RowLabel>
             <RowValue>
-              <DecodedText text={task.label} isActive={isInView} delay={rowIndex * rowDelayMs + task.share * bitDelayMs} />
+              <DecodedText text={task.label} isActive={isInView} delay={rowIndex * rowDelayMs + task.litCells * bitDelayMs} />
             </RowValue>
             <Bits aria-hidden="true" style={{ gridTemplateColumns: `repeat(${trackLength}, minmax(0, 1fr))` }}>
               {Array.from({ length: trackLength }, (_, bitIndex) => {
-                const isLit = isInView && bitIndex < task.share;
+                const isLit = isInView && bitIndex < task.litCells;
 
                 return (
                   <Bit
@@ -130,7 +130,7 @@ export const TaskMix: FC<AiUsageMixView> = ({ title, description, tasks, notes, 
                     data-lit={isLit}
                     style={{ transitionDelay: `${rowIndex * rowDelayMs + bitIndex * bitDelayMs}ms` }}
                   >
-                    <BitDigit>{bitIndex < task.share ? "1" : "0"}</BitDigit>
+                    <BitDigit>{bitIndex < task.litCells ? "1" : "0"}</BitDigit>
                   </Bit>
                 );
               })}

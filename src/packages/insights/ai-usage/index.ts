@@ -3,9 +3,9 @@ export { AiUsageValidationError } from "./domain/AiUsageValidationError";
 export { isAiUsageContent, isAiUsageTask } from "./guards/isAiUsageContent";
 export { AiUsageViewMapper } from "./mappers/AiUsageViewMapper";
 export { AiUsageService } from "./services/AiUsageService";
-export { formatShare, sortByShareDescending, sumShares } from "./utils/shares";
+export { formatCountFloor, scaleToCells, sortByCountDescending } from "./utils/counts";
 export { AiUsageContentValidator } from "./validators/AiUsageContentValidator";
-export { TaskShareValidator } from "./validators/TaskShareValidator";
+export { TaskCountValidator } from "./validators/TaskCountValidator";
 export type {
   AiUsageAgents,
   AiUsageAreaGroup,

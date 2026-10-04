@@ -1802,29 +1802,28 @@ export const portfolioData: PortfolioData = {
       label: "At least 33,000 prompts to my main coding agent on one machine alone, February to October 2026.",
     },
     mix: {
-      title: "What I use it for",
+      title: "AI is in the loop on all of it",
       description: [
-        `At least 33,000 prompts to my main coding agent between February and October 2026, about 4,100 a month, and that is
-        one machine alone: my other PC, where the game work happens, is not counted. Around half are short steering turns like
-        "continue" or "recheck", which is normal for long agent sessions. The rest break down roughly like this.`,
+        "Where 33,000+ prompts went, on one machine, February to October 2026.",
       ],
       tasks: [
-        { name: "Feature implementation and coding", share: 30 },
-        { name: "Code review, PRs and git", share: 15 },
-        { name: "Debugging and fixing", share: 12 },
-        { name: "Docs, stakeholder updates and decks", share: 12 },
-        { name: "Deploys, infrastructure and migrations", share: 9 },
-        { name: "Data, analytics and research", share: 7 },
-        { name: "Testing and verification", share: 6 },
-        { name: "Architecture and planning", share: 5 },
-        { name: "Security and compliance", share: 4 },
+        { name: "Feature implementation and coding", count: 7916 },
+        { name: "Code review, PRs and git", count: 3428 },
+        { name: "Debugging and fixing", count: 3085 },
+        { name: "Docs, stakeholder updates and decks", count: 2847 },
+        { name: "Deploys, infrastructure and migrations", count: 2248 },
+        { name: "Data, analytics and research", count: 1791 },
+        { name: "Testing and verification", count: 1486 },
+        { name: "Architecture and planning", count: 1368 },
+        { name: "Security and compliance", count: 1087 },
       ],
       notes: [
-        "Each lit bit is one percent. The split comes from sorting prompt text by keyword, so read it as approximate.",
-        `It covers my main coding agent only. In 2026 ChatGPT takes most of my architecture research, stakeholder communication
-        and product thinking, and that is not counted here.`,
-        `The mix moves with the work. On architecture and consulting, docs and stakeholder updates rise to about 28%.
-        On a verification heavy branch, testing on the deployed build alone took about 30%.`,
+        `Counts come from sorting prompt text by keyword, so they are approximate floors. A prompt can count in more than one row,
+        so the rows do not add up to the total.`,
+        `About half of all prompts are short steering turns like "continue" or "recheck", which sit outside these rows. It is one
+        machine only, and ChatGPT carries much of my architecture research and stakeholder writing, which is not counted here.`,
+        `The mix moves with the work: architecture and consulting lean towards docs and stakeholder updates, and a verification
+        heavy branch leans towards testing on the deployed build.`,
       ],
     },
     areas: {

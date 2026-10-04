@@ -5,8 +5,8 @@ export interface AiUsageIntro {
 
 export interface AiUsageTask {
   name: string;
-  // Whole percentage points.
-  share: number;
+  // Measured prompts for this kind of work. A prompt can fall in more than one row, so counts never sum to a total.
+  count: number;
 }
 
 export interface AiUsageScreen {
@@ -88,12 +88,14 @@ export interface AiUsageContent<TIcon = unknown> extends AiUsageSections<TIcon> 
 }
 
 export interface AiUsageTaskView extends AiUsageTask {
+  // The count as a floor, for example "3,050+".
   label: string;
+  // Lit cells out of trackLength, scaled to the largest row and never below one.
+  litCells: number;
 }
 
 export interface AiUsageMixView extends Omit<AiUsageMix, "tasks"> {
   tasks: AiUsageTaskView[];
-  // Cells per row. The largest share fills its row, so one cell is always one percentage point.
   trackLength: number;
 }
 

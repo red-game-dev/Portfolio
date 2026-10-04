@@ -1,35 +1,34 @@
 import {
   AiUsageContentValidator,
   AiUsageValidationError,
-  TaskShareValidator
+  TaskCountValidator
 } from "@/packages/insights/ai-usage";
 
 import { createAiUsageContent } from "./fixtures/content";
 
 describe("insights/ai-usage validators", () => {
-  const validator = new TaskShareValidator();
+  const validator = new TaskCountValidator();
 
-  test("accepts whole, positive shares that add up to 100", () => {
-    expect(validator.validate([{ name: "A", share: 70 }, { name: "B", share: 30 }]).isValid).toBe(true);
+  test("accepts whole, positive counts with unique names", () => {
+    expect(validator.validate([{ name: "A", count: 7916 }, { name: "B", count: 1087 }]).isValid).toBe(true);
   });
 
-  test("reports a total that is off", () => {
-    expect(validator.validate([{ name: "A", share: 70 }, { name: "B", share: 27 }]).errors).toEqual(["shares must add up to 100, got 97"]);
+  test("counts do not have to add up to anything", () => {
+    expect(validator.validate([{ name: "A", count: 3 }, { name: "B", count: 4 }]).isValid).toBe(true);
   });
 
-  test("reports fractional, zero and negative shares by name", () => {
+  test("reports fractional, zero and negative counts by name", () => {
     const { errors } = validator.validate([
-      { name: "Half", share: 50.5 },
-      { name: "Zero", share: 0 },
-      { name: "Negative", share: -1 },
-      { name: "Rest", share: 50.5 },
+      { name: "Half", count: 10.5 },
+      { name: "Zero", count: 0 },
+      { name: "Negative", count: -1 },
     ]);
 
-    expect(errors.filter((error) => error.includes("needs a whole, positive share"))).toHaveLength(4);
+    expect(errors.filter((error) => error.includes("needs a whole, positive count"))).toHaveLength(3);
   });
 
   test("reports repeated task names", () => {
-    const { errors } = validator.validate([{ name: "A", share: 50 }, { name: "A", share: 50 }]);
+    const { errors } = validator.validate([{ name: "A", count: 50 }, { name: "A", count: 50 }]);
 
     expect(errors).toContain("task names must be unique, repeated: A");
   });
@@ -38,12 +37,8 @@ describe("insights/ai-usage validators", () => {
     expect(validator.validate([]).isValid).toBe(false);
   });
 
-  test("the total is configurable", () => {
-    expect(new TaskShareValidator(10).validate([{ name: "A", share: 10 }]).isValid).toBe(true);
-  });
-
   test("assertValid throws the domain error with every message", () => {
-    expect(() => validator.assertValid([{ name: "A", share: 1 }])).toThrow(AiUsageValidationError);
+    expect(() => validator.assertValid([{ name: "A", count: 0 }])).toThrow(AiUsageValidationError);
   });
 
   test("the content validator composes the task rules with the section rules", () => {

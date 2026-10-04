@@ -23,11 +23,11 @@ import {
   AiUsageTimeline
 } from "../domain/types";
 
-// Shape only. Business rules, such as shares adding up, belong to the validators.
+// Shape only. Business rules, such as counts being whole and positive, belong to the validators.
 
 export const isAiUsageTask = (value: unknown): value is AiUsageTask => isRecord(value)
   && isText(value.name)
-  && isFiniteNumber(value.share);
+  && isFiniteNumber(value.count);
 
 const isIntro = (value: unknown): value is AiUsageIntro => isRecord(value)
   && isText(value.title)

@@ -1,5 +1,4 @@
 import { portfolioData } from "@/data/resume";
-import { sumShares } from "@/packages/insights/ai-usage";
 import { aiUsageService } from "@/services/ai-usage";
 import { PortfolioAiUsageSource } from "@/services/ai-usage/PortfolioAiUsageSource";
 
@@ -12,8 +11,10 @@ describe("portfolio AI usage content", () => {
     expect(() => aiUsageService.getView()).not.toThrow();
   });
 
-  test("the task breakdown adds up to exactly 100", () => {
-    expect(sumShares(portfolioData.aiUsage.mix.tasks)).toBe(100);
+  test("every published count label is a true floor of its measured count", () => {
+    aiUsageService.getView().mix.tasks.forEach((task) => {
+      expect(Number(task.label.replace(/[^0-9]/g, ""))).toBeLessThanOrEqual(task.count);
+    });
   });
 
   test("the source joins the section intro with the section content", () => {

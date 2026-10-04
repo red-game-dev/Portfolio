@@ -7,9 +7,9 @@ export const createAiUsageContent = (overrides: Partial<AiUsageContent<string>> 
     title: "What I use it for",
     description: ["Breakdown"],
     tasks: [
-      { name: "Review", share: 25 },
-      { name: "Coding", share: 60 },
-      { name: "Docs", share: 15 },
+      { name: "Review", count: 3428 },
+      { name: "Coding", count: 7916 },
+      { name: "Docs", count: 1087 },
     ],
     notes: ["Approximate"],
   },

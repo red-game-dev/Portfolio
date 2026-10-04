@@ -1,21 +1,35 @@
 import { Mapper } from "@/packages/core/domain";
 
+import { AI_USAGE_CONFIG } from "../config";
 import { AiUsageContent, AiUsageMix, AiUsageMixView, AiUsageView } from "../domain/types";
-import { formatShare, sortByShareDescending } from "../utils/shares";
+import { formatCountFloor, scaleToCells, sortByCountDescending } from "../utils/counts";
 
 export class AiUsageViewMapper<TIcon = unknown> extends Mapper<AiUsageContent<TIcon>, AiUsageView<TIcon>> {
+  private readonly barCells: number;
+  private readonly countStep: number;
+
+  constructor(barCells: number = AI_USAGE_CONFIG.barCells, countStep: number = AI_USAGE_CONFIG.countStep) {
+    super();
+    this.barCells = barCells;
+    this.countStep = countStep;
+  }
+
   public map(content: AiUsageContent<TIcon>): AiUsageView<TIcon> {
     return { ...content, mix: this.toMixView(content.mix) };
   }
 
   public toMixView(mix: AiUsageMix): AiUsageMixView {
-    const tasks = sortByShareDescending(mix.tasks);
+    const tasks = sortByCountDescending(mix.tasks);
+    const max = tasks[0]?.count ?? 0;
 
     return {
       ...mix,
-      // The largest share fills its row exactly, which keeps one cell equal to one percentage point.
-      trackLength: tasks[0]?.share ?? 0,
-      tasks: tasks.map((task) => ({ ...task, label: formatShare(task.share) })),
+      trackLength: this.barCells,
+      tasks: tasks.map((task) => ({
+        ...task,
+        label: formatCountFloor(task.count, this.countStep),
+        litCells: scaleToCells(task.count, max, this.barCells),
+      })),
     };
   }
 }

@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import tw from "twin.macro";
 
-import { Panel, PanelText, PanelTitle } from "@/components/AiUsage/styles";
+import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import { TagGroups } from "@/components/TagGroups";
 import { AiUsageAreas } from "@/packages/insights/ai-usage";
 

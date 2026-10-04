@@ -3,7 +3,8 @@ import { FC, useRef } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { AI_USAGE_MOTION } from "@/components/AiUsage/config";
-import { Panel, PanelTitle, PlayStateProps } from "@/components/AiUsage/styles";
+import { PlayStateProps } from "@/components/AiUsage/styles";
+import { Panel, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageTimeline } from "@/packages/insights/ai-usage";
 

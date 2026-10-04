@@ -5,7 +5,8 @@ import tw, { css, styled } from "twin.macro";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { AI_USAGE_MOTION } from "@/components/AiUsage/config";
-import { Panel, PanelText, PanelTitle, PlayStateProps } from "@/components/AiUsage/styles";
+import { PlayStateProps } from "@/components/AiUsage/styles";
+import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageAgents } from "@/packages/insights/ai-usage";
 import { AiUsageIcon } from "@/types/ai-usage";

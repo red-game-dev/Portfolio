@@ -27,8 +27,11 @@ export default function Home() {
         stackoverflow={portfolioData.stackoverflow}
       />
       <Services
-        services={portfolioData.services}
+        groups={portfolioData.serviceGroups}
+        actions={portfolioData.serviceActions}
         intro={portfolioData.sections.services}
+        email={portfolioData.details.email}
+        linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
       />
       <Resume
         education={portfolioData.education}

@@ -198,7 +198,7 @@ export const SEO = ({ url }: SeoProps) => (
       ))
     }
     {
-      portfolioData.services.map((service, index) => (
+      portfolioData.serviceGroups.flatMap((group) => group.services).map((service, index) => (
         <ProductJsonLd
           key={`service-${index}`}
           type="service"

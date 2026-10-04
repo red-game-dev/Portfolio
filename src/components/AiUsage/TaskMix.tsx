@@ -3,8 +3,8 @@ import { FC, useRef } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { AI_USAGE_MOTION } from "@/components/AiUsage/config";
-import { Panel, PanelText, PanelTitle } from "@/components/AiUsage/styles";
 import { DecodedText } from "@/components/DecodedText";
+import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageMixView } from "@/packages/insights/ai-usage";
 

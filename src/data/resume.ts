@@ -357,7 +357,7 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      title: "Senior Full Engineer, HyperPlay Labs",
+      title: "Senior Full Stack Engineer, HyperPlay Labs",
       from: "Oct 2023",
       to: "Nov 2025",
       description: [
@@ -420,7 +420,7 @@ export const portfolioData: PortfolioData = {
       title: "Founder, CEO & CTO, Gods of Zushin",
       from: "Apr 2015",
       description: [
-        "An achievement on it's own with over 5 years in production environment.",
+        "An achievement on its own with over 5 years in production environment.",
         "A Game MMORPG project developed during studies to enhance my knowledge in various of areas, which can be discuss.",
       ],
       techStack: [
@@ -496,11 +496,11 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      title: "Software Developer, KPMG",
+      title: "Software Engineer / Technical Lead for Client Projects, KPMG",
       from: "Feb 2019",
       to: "Sep 2019",
       description: [
-        "Being hired by KPMG is one big achievement on it's own, as it is one of the big 4 firm in auditing.",
+        "Being hired by KPMG is one big achievement on its own, as it is one of the big 4 firm in auditing.",
       ],
       techStack: [
         "PHP (Laravel)",
@@ -515,7 +515,7 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      title: "Frontend Developer, AuthenticGaming",
+      title: "Frontend Game Engineer, AuthenticGaming",
       from: "Jul 2017",
       to: "Jan 2019",
       description: [
@@ -541,7 +541,7 @@ export const portfolioData: PortfolioData = {
     {
       title: "Online Courses",
       description: [
-        "These courses has helped me enchance further knowledge for both pratical and theoretical",
+        "These courses have helped me enhance further knowledge for both practical and theoretical",
         `Courses: Python, Architecture, Leadership, VueJS, Angular, React, Laravel, React Native, Ionic, NativeScript, 
         AI, Blockchain (Solidity, Substrate, Rust, Solana) and many more`,
       ],
@@ -551,7 +551,7 @@ export const portfolioData: PortfolioData = {
       title:
         "Bachelor of Science (Honours) in Multimedia Software Development, MCAST",
       description: [
-        "Although last year wasnt completed, I was able to learn a lot of interesting subjects",
+        "Although last year wasn't completed, I was able to learn a lot of interesting subjects",
         `Courses: C#, Blender, Game Development, Photoshop, Web Development, PHP, Maltese, English, Maths, 
         2D Animation with After Effects`,
       ],
@@ -702,7 +702,7 @@ export const portfolioData: PortfolioData = {
         score: 60,
       },
       {
-        name: "Sympfony",
+        name: "Symfony",
         score: 40,
       },
       {
@@ -774,7 +774,7 @@ export const portfolioData: PortfolioData = {
         score: 90,
       },
       {
-        name: "Etherjs",
+        name: "Ethers.js",
         score: 60,
       },
       {
@@ -916,7 +916,7 @@ export const portfolioData: PortfolioData = {
         score: 70,
       },
       {
-        name: "Android Studo",
+        name: "Android Studio",
         score: 50,
       },
       {
@@ -1030,7 +1030,7 @@ export const portfolioData: PortfolioData = {
         score: 65,
       },
       {
-        name: "Encryption & Compressions",
+        name: "Encryption & Compression",
         score: 80,
       },
     ],
@@ -1272,7 +1272,7 @@ export const portfolioData: PortfolioData = {
       image: "/images/chapter5-cover.webp",
       title: "Gods of Zushin",
       category: "Game | MMORPG",
-      intro: `An achievement on it's own and personally is part of my work experience as well, 
+      intro: `An achievement on its own and personally is part of my work experience as well, 
       since during the weekends I do aim to work on interesting game updates which does grow my knowledge significantly. 
       Please be sure to check under "Work Experience" to learn further about the project details.
       
@@ -1288,19 +1288,19 @@ export const portfolioData: PortfolioData = {
         "Introducing Algorithms, Custom Compression & Custom Cryptographies for enterprise security, yet remain scalable",
         "Marketing using various of Social Media's and their ads tools",
         "Introducing new ways to increase profit such as Shopify for market branded items of the game",
-        "Manging community",
+        "Managing community",
         "Managing teams of Moderators, Event Coordinators, Game Developer",
         `Leading a company as a CEO, and as well technical aspect as CTO. 
          Initially I handled a lot as well financial and other needs and as 'One-man' army, 
          yet I've other members who does game testing, design, and such`,
-        "Financial Bugdet allocation",
+        "Financial Budget allocation",
         "Monitor Social Technology Trends",
-        "Identifiying possible opportunities of risks for business",
+        "Identifying possible opportunities of risks for business",
         "Maintain high security standards & follow all required processes for keeping the player safe at all times",
         "Monitor, evaluate & keep up to date with the regulations",
         "Monitor Analytics",
         "Lead and motivate",
-        "Innovate innovative features to build an truly amazing game for the players",
+        "Innovate innovative features to build a truly amazing game for the players",
         "Making high-quality investing decisions",
         "Create strategy for improve the business",
         "Review financial and non-financial reports",
@@ -1334,24 +1334,24 @@ export const portfolioData: PortfolioData = {
         "This was a social network similar to Facebook & google plus",
         "A small enjoyable game as part of the network, that when you interact you would earn points to build your customized character. ",
         `Each character could be customized any way you would like it to be, 
-        while no limits were added such as for levels, enchancements and so on.`,
+        while no limits were added such as for levels, enhancements and so on.`,
         `Included various of features such as auction, ads system similar to facebook, 
         character interaction as RPG, publish your own creations, chats and more`,
         "Marketing using various of Social Media's and their ads tools",
         "Monitor Analytics",
         "Furthermore can be discussed about this project",
-        "Manging community",
+        "Managing community",
         "Managing teams of Moderators, Event Coordinators",
         `Leading a company as a CEO, and as well technical aspect as CTO. 
          Initially I handled a lot as well financial and other needs and as 'One-man' army, 
          yet I've other members who does game testing, design, and such`,
-        "Financial Bugdet allocation (The site was free, although maintaining it was expensive)",
+        "Financial Budget allocation (The site was free, although maintaining it was expensive)",
         "Monitor Social Technology Trends",
         "Maintain high security standards & follow all required processes for keeping the player safe at all times",
         "Monitor, evaluate & keep up to date with the regulations",
         "Monitor Analytics",
         "Lead and motivate",
-        "Innovate innovative features to build an truly amazing network for the users",
+        "Innovate innovative features to build a truly amazing network for the users",
         "Making high-quality investing decisions",
         "Create strategy for improve the social network",
         "Maintain a deep knowledge of other possible competitors",
@@ -1661,10 +1661,10 @@ export const portfolioData: PortfolioData = {
       title: "How I got here",
       milestones: [
         {
-          period: "Around 2019",
+          period: "Up to 2019",
           title: "Machine learning before LLMs",
-          description: `For small part time clients I built TensorFlow models for suggestions and recommendations, ads, and social
-          media feed ranking. They went live.`,
+          description: `From personal TensorFlow experiments to shipped models for small part time clients around 2019: suggestions
+          and recommendations, ads, and social media feed ranking.`,
         },
         {
           period: "Before ChatGPT",

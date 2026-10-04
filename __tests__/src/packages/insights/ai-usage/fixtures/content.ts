@@ -13,10 +13,17 @@ export const createAiUsageContent = (overrides: Partial<AiUsageContent<string>> 
     ],
     notes: ["Approximate"],
   },
+  areas: {
+    title: "Subjects I use it on",
+    description: ["Overlapping"],
+    groups: [{ label: "Hundreds of prompts each", items: ["Testing", "SEO"] }],
+    notes: ["Performance has no row in the task split"],
+  },
   agents: {
     title: "How I work with agents",
     description: ["Stages"],
     stages: [{ name: "Context", icon: "file", principles: [{ title: "Rules", description: "A context file per repo" }] }],
+    examples: { title: "Caught in review", items: [{ title: "A flow", description: "Found on the deployed build" }] },
     footer: "Footer",
   },
   timeline: {

@@ -166,9 +166,9 @@ export const portfolioData: PortfolioData = {
     aiUsage: {
       title: "How I use AI day to day",
       description: [
-        `I have used AI coding tools since before ChatGPT, and today they are part of almost every task I work on,
-        from writing code to preparing a stakeholder update. Here is what that looks like in numbers, the rules I work by,
-        and how I got here.`,
+        `I built machine learning models before LLMs and used AI coding tools before ChatGPT. Today AI is part of almost every
+        task I work on, from writing code to preparing a stakeholder update. Here is what that looks like in numbers, the rules
+        I work by, and how I got here.`,
       ],
     },
     expertise: {
@@ -1489,15 +1489,15 @@ export const portfolioData: PortfolioData = {
   ],
   aiUsage: {
     screen: {
-      message: ["33,000+ prompts", "Feb to Oct 2026"],
-      label: "33,000+ prompts to my main coding agent between February and October 2026.",
+      message: ["33,000+ prompts", "on one machine", "Feb to Oct 2026"],
+      label: "At least 33,000 prompts to my main coding agent on one machine alone, February to October 2026.",
     },
     mix: {
       title: "What I use it for",
       description: [
-        `Over 33,000 prompts to my main coding agent between February and October 2026, about 4,100 a month.
-        Around half are short steering turns like "continue" or "recheck", which is normal for long agent sessions.
-        The rest break down roughly like this.`,
+        `At least 33,000 prompts to my main coding agent between February and October 2026, about 4,100 a month, and that is
+        one machine alone: my other PC, where the game work happens, is not counted. Around half are short steering turns like
+        "continue" or "recheck", which is normal for long agent sessions. The rest break down roughly like this.`,
       ],
       tasks: [
         { name: "Feature implementation and coding", share: 30 },
@@ -1515,7 +1515,55 @@ export const portfolioData: PortfolioData = {
         `It covers my main coding agent only. In 2026 ChatGPT takes most of my architecture research, stakeholder communication
         and product thinking, and that is not counted here.`,
         `The mix moves with the work. On architecture and consulting, docs and stakeholder updates rise to about 28%.
-        On product engineering, coding, review and debugging take a bigger share.`,
+        On a verification heavy branch, testing on the deployed build alone took about 30%.`,
+      ],
+    },
+    areas: {
+      title: "Subjects I use it on",
+      description: [
+        "The same prompts sorted by subject instead of by kind of work. Subjects overlap, so these do not add up to anything.",
+      ],
+      groups: [
+        {
+          label: "Over a thousand prompts each",
+          items: [
+            "Database and migrations",
+            "Testing, unit to end to end",
+            "Ads and feed ranking",
+            "UI and design systems",
+            "CMS and content modelling",
+            "Stakeholder docs and decks",
+            "Authentication and identity",
+            "CI/CD and hosting",
+          ],
+        },
+        {
+          label: "Hundreds of prompts each",
+          items: [
+            "Data analysis and audits",
+            "Architecture and design docs",
+            "KYC, AML, tax and legal compliance",
+            "Ledgers, wallets and treasury",
+            "Payments and subscriptions",
+            "Performance and optimisation",
+            "Analytics and tracking",
+            "Caching and CDN",
+            "Blockchain",
+            "Cost and vendor evaluation",
+            "Translations across locales",
+            "Observability",
+            "Mobile and offline",
+            "Security hardening",
+            "Real time streams",
+            "Developer platform and SDK design",
+            "SEO",
+          ],
+        },
+      ],
+      notes: [
+        `Performance profiling and optimisation, especially for canvas and other compute heavy apps, has no row in the task split
+        above: it is usually phrased as a bug, a test or a refactor, so a keyword split cannot isolate it.`,
+        "Canvas and game work barely shows here because most of it happened on my other PC, which is not counted.",
       ],
     },
     agents: {
@@ -1535,7 +1583,8 @@ export const portfolioData: PortfolioData = {
             },
             {
               title: "Confidentiality first",
-              description: "I check a tool's confidentiality model before it touches company code, and secrets never enter an agent's context.",
+              description: `I check a tool's confidentiality model before it touches company code. Every tool an agent gets is scoped
+              to read or write, secrets are checked by name only, and no sensitive data goes to the model.`,
             },
           ],
         },
@@ -1544,8 +1593,9 @@ export const portfolioData: PortfolioData = {
           icon: faRobot,
           principles: [
             {
-              title: "No production access",
-              description: "Agents never get write access to production and never see production data.",
+              title: "Production is a deliberate step",
+              description: `Staging and production are separate connections I choose explicitly. Subagents never write to production,
+              and migrations are applied only on my go and proven afterwards.`,
             },
             {
               title: "Synthetic data at real volume",
@@ -1563,7 +1613,8 @@ export const portfolioData: PortfolioData = {
             },
             {
               title: "Proof before acceptance",
-              description: "Work is accepted on evidence, such as Playwright runs and API responses.",
+              description: `Work is accepted on evidence from the deployed build, such as Playwright runs and API responses, with test
+              data created through the real API instead of seeded.`,
             },
           ],
         },
@@ -1575,15 +1626,46 @@ export const portfolioData: PortfolioData = {
               title: "A person reviews every change",
               description: "Nothing merges without a human review, and features nobody asked for come back out.",
             },
+            {
+              title: "Decisions are written down",
+              description: `Every open choice comes to me as a question with a recommendation and trade offs, and my answer is recorded
+              as a numbered decision. One branch holds over 800 of them.`,
+            },
           ],
         },
       ],
+      examples: {
+        title: "Caught in review",
+        items: [
+          {
+            title: "A consent flow no API test could see",
+            description: `I had a skipped end to end test made real. On the deployed build it exposed three breaks in a "sign in with"
+            consent flow, plus a way for a guest session to grant consent through a direct API call. All fixed with tests.`,
+          },
+          {
+            title: "Live secrets marked as unused",
+            description: `Repo instructions called two secrets dead and said to delete them. They were still live on the demo and
+            production deploys. "No longer used" now means on every deployed branch.`,
+          },
+          {
+            title: "One listener, registered twice",
+            description: `A review page showed that a new pull request had absorbed an older open one. Merging both would have
+            registered the same listener twice.`,
+          },
+        ],
+      },
       footer: `The same setup serves engineers with reviews, migrations, tests and deploys,
       and it serves product and analysis stakeholders too.`,
     },
     timeline: {
       title: "How I got here",
       milestones: [
+        {
+          period: "Around 2019",
+          title: "Machine learning before LLMs",
+          description: `For small part time clients I built TensorFlow models for suggestions and recommendations, ads, and social
+          media feed ranking. They went live.`,
+        },
         {
           period: "Before ChatGPT",
           title: "Tabnine",
@@ -1617,18 +1699,31 @@ export const portfolioData: PortfolioData = {
           period: "Nov 2025 to present",
           title: "Conrad Electronic Group",
           description: `I drive AI enablement for the CMS migration, working with 90+ people across engineering, QA, product, content,
-          SRE and up to CTO level. That covers Gemini Enterprise and Gemini CLI as the company tooling, MCP servers I wrote myself,
-          an evaluation of Strapi's MCP server and of the AEM MCP options (I recommended against the AEM ones), a supply chain
-          security check across the storefront repositories, and a human review before anything AI generated reaches Confluence
-          or a pull request.`,
+          SRE and up to CTO level. That covers Gemini Enterprise and Gemini CLI as the company tooling, a presentation to the team
+          on how MCP and skills help with Gemini and Claude models, an evaluation of Strapi's MCP server and of the AEM MCP options
+          (I recommended against the AEM ones), a supply chain check across the storefront repositories after the axios compromise,
+          written up as an advisory for the team, and a human review before anything AI generated reaches Confluence or a pull
+          request.`,
           isCurrent: true,
         },
         {
           period: "2026",
           title: "My own platform",
-          description: `Claude Code is my main engineering tool on a large TypeScript monorepo: 25 packages, 160+ Postgres migrations,
-          payments, ledgers, an ads engine and real time streams. I wrote the skills, slash commands, subagents and MCP integrations
-          around it.`,
+          description: `Claude Code is my main engineering tool on a large TypeScript monorepo: 26 packages and 6 apps, 2,100+ test
+          files, 168 migrations, 32 locales and close to 400 pull requests. Around it sit 21 skills adapted from an open source
+          collection and extended with my own, including an engineering discipline skill of four phases and 28 gates, a design
+          review subagent, and private published pages that keep the working record: decision registers, review pages teammates
+          use as their fix list, and live trackers.`,
+          isCurrent: true,
+        },
+        {
+          period: "Ongoing",
+          title: "Gods of Zushin, my MMORPG",
+          description: `I use AI to build features, write up in game events and debug support cases. For support I copy only the
+          non sensitive data for that case into a sandbox of my own and let the agent work there, never on live data. Before off
+          the shelf MCP servers existed I built my own for logging, audit and SQL access; now I use and configure the published
+          ones. In September 2026 I also ran an owner authorised, read only security assessment of its public surface and wrote
+          the hardening runbook.`,
           isCurrent: true,
         },
       ],

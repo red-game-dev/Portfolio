@@ -150,9 +150,19 @@ const PrincipleTitle = tw.strong`block mb-[2px] font-medium text-[#eee]`;
 
 const PrincipleText = tw.span`block text-[#999]`;
 
+const Examples = tw.div`mt-[32px] pt-[24px] border-0 border-t-[1px] border-solid border-[#1E1E1E]`;
+
+const ExamplesTitle = tw.h4`m-[0 0 16px 0] text-base font-semibold text-white`;
+
+const ExampleList = tw.ul`list-none m-0 p-0 grid gap-[18px] lg:grid-cols-3`;
+
+const Example = tw.li`pl-[14px] text-sm border-0 border-l-[1px] border-solid border-[#4bffa5]`;
+
 const Footer = tw.p`m-[28px 0 0 0] max-w-[70ch] text-sm text-[#888]`;
 
-export const AgentPipeline: FC<AiUsageAgents<AiUsageIcon>> = ({ title, description, stages, footer }: AiUsageAgents<AiUsageIcon>) => {
+export const AgentPipeline: FC<AiUsageAgents<AiUsageIcon>> = ({
+  title, description, stages, examples, footer,
+}: AiUsageAgents<AiUsageIcon>) => {
   const flowRef = useRef<HTMLDivElement>(null);
   // Live, not latched: the loop stops whenever the diagram is off screen.
   const isActive = useInView(flowRef, { once: false, threshold: 0 });
@@ -200,6 +210,17 @@ export const AgentPipeline: FC<AiUsageAgents<AiUsageIcon>> = ({ title, descripti
           </Stage>
         ))}
       </Stages>
+      <Examples>
+        <ExamplesTitle>{examples.title}</ExamplesTitle>
+        <ExampleList>
+          {examples.items.map((example) => (
+            <Example key={example.title}>
+              <PrincipleTitle>{example.title}</PrincipleTitle>
+              <PrincipleText>{example.description}</PrincipleText>
+            </Example>
+          ))}
+        </ExampleList>
+      </Examples>
       <Footer>{footer}</Footer>
     </Panel>
   );

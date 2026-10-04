@@ -49,7 +49,7 @@ describe("insights/ai-usage validators", () => {
   test("the content validator composes the task rules with the section rules", () => {
     const content = createAiUsageContent({
       screen: { message: [], label: "" },
-      agents: { title: "t", description: [], stages: [], footer: "" },
+      agents: { title: "t", description: [], stages: [], examples: { title: "e", items: [] }, footer: "" },
     });
     const { errors } = new AiUsageContentValidator().validate(content);
 

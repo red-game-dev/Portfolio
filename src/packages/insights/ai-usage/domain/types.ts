@@ -23,9 +23,28 @@ export interface AiUsageMix {
   notes: string[];
 }
 
+export interface AiUsageAreaGroup {
+  // A volume band such as "Over a thousand prompts each". Bands, not exact counts.
+  label: string;
+  items: string[];
+}
+
+// Subjects rather than kinds of work. They overlap, so unlike the task mix they never sum to a whole.
+export interface AiUsageAreas {
+  title: string;
+  description: string[];
+  groups: AiUsageAreaGroup[];
+  notes: string[];
+}
+
 export interface AiUsagePrinciple {
   title: string;
   description: string;
+}
+
+export interface AiUsageExamples {
+  title: string;
+  items: AiUsagePrinciple[];
 }
 
 // `TIcon` is whatever the host renders icons with (an SVG definition, a name, a component), so the
@@ -40,6 +59,7 @@ export interface AiUsageAgents<TIcon = unknown> {
   title: string;
   description: string[];
   stages: Array<AiUsageStage<TIcon>>;
+  examples: AiUsageExamples;
   footer: string;
 }
 
@@ -58,6 +78,7 @@ export interface AiUsageTimeline {
 export interface AiUsageSections<TIcon = unknown> {
   screen: AiUsageScreen;
   mix: AiUsageMix;
+  areas: AiUsageAreas;
   agents: AiUsageAgents<TIcon>;
   timeline: AiUsageTimeline;
 }

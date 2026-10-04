@@ -9,7 +9,10 @@ import {
 
 import {
   AiUsageAgents,
+  AiUsageAreaGroup,
+  AiUsageAreas,
   AiUsageContent,
+  AiUsageExamples,
   AiUsageIntro,
   AiUsageMilestone,
   AiUsageMix,
@@ -40,9 +43,23 @@ const isMix = (value: unknown): value is AiUsageMix => isRecord(value)
   && isArrayOf(isAiUsageTask)(value.tasks)
   && isTextArray(value.notes);
 
+const isAreaGroup = (value: unknown): value is AiUsageAreaGroup => isRecord(value)
+  && isText(value.label)
+  && isTextArray(value.items);
+
+const isAreas = (value: unknown): value is AiUsageAreas => isRecord(value)
+  && isText(value.title)
+  && isTextArray(value.description)
+  && isArrayOf(isAreaGroup)(value.groups)
+  && isTextArray(value.notes);
+
 const isPrinciple = (value: unknown): value is AiUsagePrinciple => isRecord(value)
   && isText(value.title)
   && isText(value.description);
+
+const isExamples = (value: unknown): value is AiUsageExamples => isRecord(value)
+  && isText(value.title)
+  && isArrayOf(isPrinciple)(value.items);
 
 // The icon is opaque to the domain, so only its presence is checked.
 const isStage = (value: unknown): value is AiUsageStage => isRecord(value)
@@ -54,6 +71,7 @@ const isAgents = (value: unknown): value is AiUsageAgents => isRecord(value)
   && isText(value.title)
   && isTextArray(value.description)
   && isArrayOf(isStage)(value.stages)
+  && isExamples(value.examples)
   && isText(value.footer);
 
 const isMilestone = (value: unknown): value is AiUsageMilestone => isRecord(value)
@@ -70,5 +88,6 @@ export const isAiUsageContent = <TIcon = unknown>(value: unknown): value is AiUs
   && isIntro(value.intro)
   && isScreen(value.screen)
   && isMix(value.mix)
+  && isAreas(value.areas)
   && isAgents(value.agents)
   && isTimeline(value.timeline);

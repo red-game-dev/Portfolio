@@ -8,7 +8,10 @@ export { AiUsageContentValidator } from "./validators/AiUsageContentValidator";
 export { TaskShareValidator } from "./validators/TaskShareValidator";
 export type {
   AiUsageAgents,
+  AiUsageAreaGroup,
+  AiUsageAreas,
   AiUsageContent,
+  AiUsageExamples,
   AiUsageIntro,
   AiUsageMilestone,
   AiUsageMix,

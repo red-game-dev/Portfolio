@@ -81,7 +81,9 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnSectionAbout] = useCollision("section-about");
   const [isOnSectionHistory] = useCollision("section-history");
   const [isOnSectionServices] = useCollision("section-services");
-  const [isOnProjectsSection] = useCollision("section-projects");
+  const [isOnProjectsOnly] = useCollision("section-projects");
+  const [isOnCaseStudiesSection] = useCollision(SECTION_IDS.caseStudies);
+  const isOnProjectsSection = isOnProjectsOnly || isOnCaseStudiesSection;
   const [isOnSectionTechSkills] = useCollision(TECH_SKILLS_SECTION_ID);
   const [isOnSectionToolsSkills] = useCollision("section-skills-ToolsSkills");
   const [isOnSectionAiSkills] = useCollision("section-skills-AIToolsEnablement");

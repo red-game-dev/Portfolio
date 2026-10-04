@@ -24,3 +24,16 @@ describe("skill areas content", () => {
     expect(items.filter((item) => scored.has(normalise(item)))).toEqual([]);
   });
 });
+
+describe("portfolio copy", () => {
+  test("no case study repeats a title and each one has points to read", () => {
+    const titles = portfolioData.caseStudies.map((caseStudy) => caseStudy.title);
+
+    expect(new Set(titles).size).toBe(titles.length);
+    expect(portfolioData.caseStudies.every((caseStudy) => caseStudy.points.length > 0)).toBe(true);
+  });
+
+  test("nothing in the portfolio data uses an em dash", () => {
+    expect(JSON.stringify(portfolioData)).not.toContain(String.fromCharCode(0x2014));
+  });
+});

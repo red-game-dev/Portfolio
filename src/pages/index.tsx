@@ -1,5 +1,6 @@
 import { About } from "@/components/About";
 import { AiUsage } from "@/components/AiUsage";
+import { CaseStudies } from "@/components/CaseStudies";
 import { Cover } from "@/components/Cover";
 import { Projects } from "@/components/Projects";
 import { Resume } from "@/components/Resume";
@@ -47,6 +48,7 @@ export default function Home() {
       <Skills skills={portfolioData.skills.expertise} intro={portfolioData.sections.expertise} isCircle={true} />
       <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
       <Projects projects={portfolioData.projects} intro={portfolioData.sections.projects} />
+      <CaseStudies caseStudies={portfolioData.caseStudies} intro={portfolioData.sections.caseStudies} />
       <Text
         title={portfolioData.sections.recommendations.title}
         paragraphs={portfolioData.sections.recommendations.description}

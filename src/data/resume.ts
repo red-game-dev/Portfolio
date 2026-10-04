@@ -16,6 +16,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 
 import { PortfolioAiUsage } from "@/types/ai-usage";
+import { CaseStudy } from "@/types/case-studies";
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
 import { ProjectDetail } from "@/types/projects";
@@ -54,6 +55,7 @@ export interface PortfolioData {
   };
   skillAreas: SkillArea[];
   projects: ProjectDetail[];
+  caseStudies: CaseStudy[];
   aiUsage: PortfolioAiUsage;
   socialMedia: {
     byUsername: {
@@ -192,6 +194,12 @@ export const portfolioData: PortfolioData = {
       title: "Team Player",
       description: [
         "While skills are important, being a team player is essential for success of the team. We're together in this and we solve things together.",
+      ],
+    },
+    caseStudies: {
+      title: "Case Studies",
+      description: [
+        "Problems from my own platform and client work, what I did about them, and what changed.",
       ],
     },
     projects: {
@@ -1630,6 +1638,127 @@ export const portfolioData: PortfolioData = {
       link: "https://drive.google.com/drive/folders/0B1gPxpJpFGW5SGhXeS1pTzA4Tmc?resourcekey=0-amvzxbZpCBhf7bV-GVUmTg&usp=share_link",
       from: "Jan 2013",
       to: "Jan 2022",
+    },
+  ],
+  caseStudies: [
+    {
+      area: "Architecture",
+      title: "No vendor lock-in, by design",
+      summary: ["I design so a vendor can be replaced without rewriting the product."],
+      points: [
+        "At Conrad: one CMS adapter with AEM and Strapi behind it, and a feature flag to switch per market",
+        `On my own platform: 37 adapter contracts across payments, storage, auth, notifications, CMS, real time and infrastructure,
+        so a provider can be added, run in parallel and switched by configuration`,
+        `A written cut over procedure: add the provider, run both, switch, retire, with expand and contract for anything that holds
+        state so no data is lost in the move`,
+      ],
+      tags: ["Adapters", "Feature flags", "Expand and contract"],
+    },
+    {
+      area: "Architecture",
+      title: "Designed for enterprise volume",
+      summary: [
+        `A query that is fine against 200 rows is an outage against 20 million, so every change is written for volume, not for the
+        row count on staging.`,
+      ],
+      points: [
+        "Keyset pagination against declared indexes, filtering in SQL, bounded scans, and one query for N ids instead of N queries",
+        "Fan out is batched and bounded, and append only tables have a retention purge that is actually wired",
+        `Cache discipline: what lives in Redis and what stays in Postgres, expiry and stampede protection, behaviour when Redis is
+        down, and never caching an authorisation decision`,
+        "Twenty engines on one registry base, so a new provider, bid strategy, moderation source or flag backend is a registration, not a rewrite",
+        "Offline first on the client: an outbox for queued writes, declared read caches and IndexedDB behind the database adapter",
+      ],
+      tags: ["Keyset pagination", "Redis", "Offline first"],
+    },
+    {
+      area: "Architecture",
+      title: "Infrastructure that can be switched",
+      summary: ["Hosts are vendors too, so they sit behind adapters like everything else."],
+      points: [
+        "An infrastructure package with adapters for deploy targets, environment variables and source control",
+        `One CLI where supporting a new host means adding an adapter, designed through 84 recorded decisions covering provisioning,
+        moving between hosts with a cost comparison, build runners and secrets`,
+        "All 14 hosting service environments moved off config files onto recorded settings",
+        "The same cut over procedure as any vendor: add the host, run both, switch, retire",
+      ],
+      tags: ["Adapters", "CLI", "Decision records"],
+    },
+    {
+      area: "Architecture",
+      title: "Lean dependencies, written in house where it counts",
+      summary: ["Every library is a long term cost and a supply chain risk, so the platform keeps them few."],
+      points: [
+        "Most domain packages run on a handful of third party libraries: payments on 8, auth on 5, CMS on 2, and infrastructure and the SDK on none",
+        `The cross cutting machinery is written in house: event bus, job scheduler over Postgres, idempotency at three layers, the
+        registry engine, real time transports, offline outbox, feature flags and the infrastructure CLI, with no message broker or
+        queue library`,
+        "What does get in passes a blocklist that fails the install, a supply chain scan in CI and a line by line lockfile review",
+      ],
+      tags: ["Supply chain", "Dependencies", "In house engines"],
+    },
+    {
+      area: "Payments & compliance",
+      title: "A refund rule the schema did not show",
+      summary: [
+        `In a refunds review the agent flagged that a payer could change their country to unlock instant statutory refunds. I knew
+        the country locks once set, so the finding was re-scoped to the real gap: the country is self declared at onboarding and
+        never checked against the payment.`,
+      ],
+      points: [
+        "The fix: a jurisdiction snapshot written on every charge at checkout",
+        "The rule kept since: check a cheat path against the write path's guards, not the schema",
+      ],
+      tags: ["Refunds", "Jurisdiction", "Code review"],
+    },
+    {
+      area: "Payments & compliance",
+      title: "Jurisdiction agnostic money paths",
+      summary: ["Tax, refund and compliance rules resolve per jurisdiction instead of being hardcoded for one market."],
+      points: [
+        "Tax runs through providers behind one contract, from Stripe Tax to manual and zero rate",
+        "Exchange rates come from providers too, so multi currency is a configuration, not a rewrite",
+        "Each charge records the jurisdiction it was taken under, so later rules apply to the facts at the time",
+        "Compliance per jurisdiction is one of the gates every feature passes in my engineering discipline skill",
+      ],
+      tags: ["Tax", "Multi currency and FX", "KYC and AML"],
+    },
+    {
+      area: "Payments",
+      title: "Ledgers and money paths tested the way users hit them",
+      summary: ["Money movement is the one part of a product that cannot be wrong, so it is tested through the real surface."],
+      points: [
+        "Double entry ledgers with idempotent writes and reconciliation",
+        "Every test action goes through the real API or UI; the database only verifies the effect",
+        "600+ staging scripts run the money paths on synthetic data at real volumes, with every money moving step behind an explicit flag",
+        "A suspected bug is confirmed through the endpoint, never through the schema",
+      ],
+      tags: ["Double entry", "Idempotency", "Reconciliation"],
+    },
+    {
+      area: "Identity & security",
+      title: "A consent flow no API test could see",
+      summary: ["I had an opt in end to end test given a real fixture instead of leaving it skipped."],
+      points: [
+        `On the deployed build it showed three breaks in a "sign in with" consent flow that API tests could not see, because they
+        call the provider with a token instead of a browser`,
+        `Two more edge cases were fixed at once instead of deferred: a fresh sign in request that looped, and a guest identity that
+        could reach consent, including through a direct API call`,
+        "The API now refuses to start without the secret that gives each client app its own user identifier, so two apps cannot link the same person",
+      ],
+      tags: ["OIDC", "End to end tests", "Playwright"],
+    },
+    {
+      area: "Agent workflow",
+      title: "Decisions that survive long agent sessions",
+      summary: ["Long agent sessions lose context. Decisions should not."],
+      points: [
+        "Every open choice comes to me as a multiple choice question with a recommendation and trade offs, and my answer is recorded as a numbered decision",
+        "Registers are private published pages, regenerated from data files at every landing, and agents search them before asking me anything",
+        "One register holds 84 infrastructure decisions; one branch's register passed 800",
+        "Review pages work the same way: findings against the real code, numbered fix steps, and a definition of done the re-review checks",
+      ],
+      tags: ["Decision records", "Context engineering", "Code review"],
     },
   ],
   aiUsage: {

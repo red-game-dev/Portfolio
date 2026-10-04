@@ -2,5 +2,6 @@
 // drift apart. Older sections still hardcode theirs; move them here as they are touched.
 export const SECTION_IDS = {
   aiUsage: "section-ai-usage",
+  caseStudies: "section-case-studies",
   skillAreas: "section-skills-areas",
 } as const;

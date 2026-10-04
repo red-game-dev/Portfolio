@@ -91,6 +91,7 @@ export const portfolioData: PortfolioData = {
   ],
   stackoverflow: "https://stackoverflow.com/users/15786039/ired-game-dev",
   typingsTitles: [
+    "Your next <strong>Architect who ships with AI agents</strong>",
     "Your next <strong>Frontend Engineer</strong>",
     "Your next <strong>Backend Engineer</strong>",
     "Your next <strong>Architect</strong>",
@@ -170,6 +171,8 @@ export const portfolioData: PortfolioData = {
         `I built machine learning models before LLMs and used AI coding tools before ChatGPT. Today AI is part of almost every
         task I work on, from writing code to preparing a stakeholder update. Here is what that looks like in numbers, the rules
         I work by, and how I got here.`,
+        `I have also built integrations and internal tooling on the GPT, Claude and Gemini APIs for content, classification, data
+        extraction and agent workflows, across my own products, client work and Conrad.`,
       ],
     },
     expertise: {
@@ -222,8 +225,8 @@ export const portfolioData: PortfolioData = {
     My journey began at the early age of 7 when I started programming as a hobby, which taught me valuable lessons through challenging experiences. What's next?
     I am passionate about innovation, continuous learning, and contributing to the tech community. I look forward to one day
     creating a successful startup, provided the right investment opportunities arise.
-    Over the past year I've integrated AI as leverage across every layer of my architecture and engineering work, from parallel-agent research and codebase
-    analysis to ADR-driven documentation of AI-assisted decisions across a 90+ person delivery organisation.`,
+    I am a software architect first, and I ship with AI agents: I design the context, rules and checks they work within, and a person reviews
+    every change they make. The "How I use AI" section shows how that works day to day.`,
     residence: "Maltese",
     location: "Remote (worldwide), Hybrid & On-Site (Switzerland, Europe in general, US)",
     jobType:
@@ -413,6 +416,44 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
+      title: "Founder & Architect, Own Products",
+      from: "2025",
+      description: [
+        "My own products, built on one TypeScript platform: payments, double entry ledgers, an ads engine and real time streams.",
+        'I architect it and ship it with AI agents, inside the context, rules, checks and reviews described in the "How I use AI" section.',
+      ],
+      bullets: [
+        `Every external vendor sits behind an adapter: 37 contracts across payments, storage, auth, notifications, CMS, ads,
+        moderation, real time, feature flags and infrastructure, so a provider can be added, run in parallel and switched by configuration`,
+        `Designed for enterprise volume and built so infrastructure can be switched: keyset pagination against declared indexes,
+        bounded scans, batched fan out, and every host behind an adapter as well`,
+        "Lean dependencies: most domain packages run on a handful of third party libraries, and the cross cutting machinery is written in house",
+        "26 packages and 6 apps, 168 migrations, 32 locales and close to 400 pull requests",
+        "2,100+ test files, including 165 end to end specs and 77 architecture tests",
+        "600+ staging scripts exercise the money paths, with every money moving step behind an explicit flag",
+        "Acts as an OIDC provider for client apps, with consent and a separate user identifier per app",
+        `Agent setup: 21 skills adapted from an open source collection and extended, 475 memory files, 3,200 lines of repo
+        instructions and a design review subagent`,
+      ],
+      techStack: [
+        "TypeScript",
+        "NestJS",
+        "Next.js",
+        "PostgreSQL",
+        "Supabase",
+        "Drizzle",
+        "Redis",
+        "Stripe",
+        "Cloudflare R2",
+        "Railway",
+        "Vercel",
+        "Sentry",
+        "Playwright",
+        "Vitest",
+        "Claude Code",
+      ],
+    },
+    {
       title: "Founder, CEO at TasteTravellers",
       from: "Feb 2018",
       description: [
@@ -509,8 +550,13 @@ export const portfolioData: PortfolioData = {
       to: "Sep 2019",
       description: [
         "Being hired by KPMG is one big achievement on its own, as it is one of the big 4 firm in auditing.",
+        `KPMG placed me with clients as a consultant, in a software architect and hands on engineering role, including pharmatech
+        and iGaming clients.`,
+        `For clients I also built machine learning models in TensorFlow for suggestions and recommendations, ads, and social media
+        feed ranking, and they went live.`,
       ],
       techStack: [
+        "TensorFlow",
         "PHP (Laravel)",
         "Vue.js",
         "Angular",
@@ -1360,6 +1406,7 @@ export const portfolioData: PortfolioData = {
       items: [
         "TensorFlow",
         "Recommendation, ads and feed ranking models",
+        "LLM APIs (GPT, Claude, Gemini)",
         "MCP, custom and published servers",
         "Agent skills, subagents and slash commands",
       ],
@@ -1684,6 +1731,12 @@ export const portfolioData: PortfolioData = {
               description: `I check a tool's confidentiality model before it touches company code. Every tool an agent gets is scoped
               to read or write, secrets are checked by name only, and no sensitive data goes to the model.`,
             },
+            {
+              title: "Context that outlives the session",
+              description: `I wrote tooling that trims multi gigabyte transcripts without deleting them, builds a digest and topic index
+              per archived session, searches across all of them, and serves that history through a read only MCP server with its
+              own evals.`,
+            },
           ],
         },
         {
@@ -1698,6 +1751,11 @@ export const portfolioData: PortfolioData = {
             {
               title: "Synthetic data at real volume",
               description: "Money and customer paths run on synthetic data at production volumes, so scale problems show up before release.",
+            },
+            {
+              title: "Agents with limits",
+              description: `Subagents research and edit but never build or commit; the main session builds once. Parallel runs are capped
+              at about five agents, after one large run used a whole session quota.`,
             },
           ],
         },
@@ -1736,9 +1794,9 @@ export const portfolioData: PortfolioData = {
         title: "Caught in review",
         items: [
           {
-            title: "A consent flow no API test could see",
-            description: `I had a skipped end to end test made real. On the deployed build it exposed three breaks in a "sign in with"
-            consent flow, plus a way for a guest session to grant consent through a direct API call. All fixed with tests.`,
+            title: "A pattern violation in the generator",
+            description: `Nine domain services used a shared base class directly instead of a subclass of their own. Each was wrapped in
+            its own class, and the code generator template that kept emitting the violation was fixed too.`,
           },
           {
             title: "Live secrets marked as unused",
@@ -1761,8 +1819,8 @@ export const portfolioData: PortfolioData = {
         {
           period: "Up to 2019",
           title: "Machine learning before LLMs",
-          description: `From personal TensorFlow experiments to shipped models for small part time clients around 2019: suggestions
-          and recommendations, ads, and social media feed ranking.`,
+          description: `From personal TensorFlow experiments to shipped models for the clients KPMG placed me with as a consultant:
+          suggestions and recommendations, ads, and social media feed ranking.`,
         },
         {
           period: "Before ChatGPT",

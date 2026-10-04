@@ -170,11 +170,10 @@ export const portfolioData: PortfolioData = {
     aiUsage: {
       title: "How I use AI day to day",
       description: [
-        `I built machine learning models before LLMs and used AI coding tools before ChatGPT. Today AI is part of almost every
-        task I work on, from writing code to preparing a stakeholder update. Here is what that looks like in numbers, the rules
-        I work by, and how I got here.`,
-        `I have also built integrations and internal tooling on the GPT, Claude and Gemini APIs for content, classification, data
-        extraction and agent workflows, across my own products, client work and Conrad.`,
+        `I built machine learning models before LLMs and used AI coding tools before ChatGPT, and I have built integrations and
+        internal tooling on the GPT, Claude and Gemini APIs for content, classification, data extraction and agent workflows, across
+        my own products, client work and Conrad. Today AI is part of almost every task I work on, from writing code to preparing a
+        stakeholder update. Here is what that looks like in numbers, the rules I work by, and how I got here.`,
       ],
     },
     expertise: {

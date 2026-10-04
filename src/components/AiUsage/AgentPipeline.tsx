@@ -127,14 +127,7 @@ const Node = styled.div((props: PlayStateProps) => [
   playState(props),
 ]);
 
-const Stages = styled.ol(({ count }: StageCountProps) => [
-  tw`list-none m-0 p-0 grid gap-[24px] md:grid-cols-2`,
-  css`
-    @media (min-width: 1024px) {
-      grid-template-columns: repeat(${count}, minmax(0, 1fr));
-    }
-  `,
-]);
+const Stages = tw.ol`list-none m-0 p-0 grid gap-[24px] md:grid-cols-2 md:gap-x-[35px]`;
 
 const Stage = tw.li`relative pt-[16px] border-0 border-t-[1px] border-solid border-[#1E1E1E]`;
 
@@ -192,7 +185,7 @@ export const AgentPipeline: FC<AiUsageAgents<AiUsageIcon>> = ({
           ))}
         </Nodes>
       </Flow>
-      <Stages count={count}>
+      <Stages>
         {stages.map((stage, index) => (
           <Stage key={stage.name}>
             <StageName>

@@ -2,19 +2,26 @@ import {
   faArrowRightArrowLeft,
   faBrainCircuit,
   faBullhorn,
+  faChessKnight,
+  faCode,
   faCog,
+  faCompassDrafting,
+  faCrown,
   faCreditCard,
   faCubes,
+  faDragon,
   faFileLines,
   faGamepadModern,
   faGaugeHigh,
   faLayerGroup,
   faPlane,
   faRobot,
+  faServer,
   faShieldCheck,
   faShieldHalved,
   faSitemap,
   faUserCheck,
+  faUsersGear,
   faWandMagicSparkles
 } from "@fortawesome/pro-duotone-svg-icons";
 
@@ -23,9 +30,11 @@ import { CaseStudy, CaseStudyFilters, PlatformDiagrams } from "@/types/case-stud
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
+import { Journey } from "@/types/journey";
 import { ProjectDetail } from "@/types/projects";
 import { Recommendation } from "@/types/recommendations";
 import { Resume } from "@/types/resume";
+import { Roster } from "@/types/roster";
 import { SectionIntros } from "@/types/sections-intros";
 import { ServiceActions, ServiceGroup } from "@/types/services";
 import { Skill, SkillArea } from "@/types/skills";
@@ -34,6 +43,7 @@ import { Skill, SkillArea } from "@/types/skills";
 export interface PortfolioData {
   intro: string;
   headline: Headline;
+  journey: Journey;
   cover: string;
   cv: string;
   typingsTitles: string[];
@@ -61,7 +71,9 @@ export interface PortfolioData {
     teamplayer: Skill[];
   };
   skillAreas: SkillArea[];
+  roster: Roster;
   projects: ProjectDetail[];
+  projectAchievementLabel: string;
   caseStudies: CaseStudy[];
   caseStudyFilters: CaseStudyFilters;
   platformDiagrams: PlatformDiagrams;
@@ -93,11 +105,20 @@ export const portfolioData: PortfolioData = {
     availability: "Maltese citizen, EU work rights, open to relocation, available now.",
     cvLabel: "Download CV",
     emailLabel: "Email me",
-    audiencesLabel: "Hiring for",
+    audiencesLabel: "Hire me for",
     audiences: [
       { audience: "payments", label: "Payments" },
       { audience: "ai", label: "AI engineering" },
       { audience: "architecture", label: "Architecture" },
+    ],
+  },
+  journey: {
+    zoneLabel: "Zone",
+    zones: [
+      { zone: "matrix", title: "The Matrix" },
+      { zone: "ai", title: "The AI Layer" },
+      { zone: "universe", title: "The Universe" },
+      { zone: "mmo", title: "The Game World" },
     ],
   },
   cover: "/images/cover-picture.webp",
@@ -224,6 +245,13 @@ export const portfolioData: PortfolioData = {
       title: "Case Studies",
       description: [
         "Problems from my own platform and client work, what I did about them, and what changed.",
+      ],
+    },
+    roster: {
+      title: "Characters I Play",
+      description: [
+        `Every role I have held, as a character in my own party. Level is the years in that role, measured from real dates.
+        Stats are my own scores.`,
       ],
     },
     projects: {
@@ -1486,6 +1514,126 @@ export const portfolioData: PortfolioData = {
       },
     ],
   },
+  roster: {
+    asOf: "Oct 2026",
+    labels: {
+      level: "Level",
+      years: "years in the role",
+      since: "since",
+      guilds: "Guilds",
+      abilities: "Abilities",
+    },
+    characters: [
+      {
+        characterClass: "CEO",
+        icon: faCrown,
+        tenures: [
+          { company: "Gods of Zushin", from: "Apr 2015" },
+          { company: "TasteTravellers", from: "Feb 2018" },
+          { company: "Own products", from: "2025" },
+        ],
+        stats: [
+          { name: "Entrepreneur", value: 75 },
+          { name: "Marketing", value: 50 },
+        ],
+        abilities: ["Product direction", "Paid acquisition", "Community building", "Monetisation"],
+      },
+      {
+        characterClass: "CTO",
+        icon: faChessKnight,
+        tenures: [
+          { company: "Gods of Zushin", from: "Apr 2015" },
+          { company: "CoinOn", from: "Nov 2021", to: "Jan 2022" },
+        ],
+        stats: [
+          { name: "Architecture", value: 95 },
+          { name: "Platform Engineering", value: 85 },
+        ],
+        abilities: ["Technology roadmap", "Cybersecurity", "Infrastructure", "Executive team"],
+      },
+      {
+        characterClass: "Product Owner",
+        icon: faCompassDrafting,
+        tenures: [
+          { company: "Gods of Zushin", from: "Apr 2015" },
+          { company: "CoinOn", from: "Nov 2021", to: "Jan 2022" },
+          { company: "Own products", from: "2025" },
+        ],
+        stats: [
+          { name: "Strategic Decision-making", value: 90 },
+          { name: "Executive Stakeholder Communication", value: 90 },
+        ],
+        abilities: ["Roadmaps", "Monetisation", "Stakeholder alignment", "Zero to one"],
+      },
+      {
+        characterClass: "Architect",
+        icon: faSitemap,
+        tenures: [
+          { company: "KPMG", from: "Feb 2019", to: "Sep 2019" },
+          { company: "Chiliz", from: "Nov 2019", to: "Nov 2022" },
+          { company: "HyperPlay", from: "Oct 2023", to: "Nov 2025" },
+          { company: "Conrad", from: "Nov 2025" },
+          { company: "Own products", from: "2025" },
+        ],
+        stats: [
+          { name: "Architecture", value: 95 },
+          { name: "Enterprise Architecture", value: 90 },
+        ],
+        abilities: ["C4 and ADRs", "Adapters", "Migrations", "Scale design"],
+      },
+      {
+        characterClass: "Tech Lead",
+        icon: faUsersGear,
+        tenures: [
+          { company: "KPMG", from: "Feb 2019", to: "Sep 2019" },
+          { company: "Chiliz", from: "Nov 2019", to: "Nov 2022" },
+        ],
+        stats: [
+          { name: "Tech Lead", value: 80 },
+          { name: "Mentoring", value: 100 },
+        ],
+        abilities: ["Code review", "Delivery alignment", "Standards", "Mentoring"],
+      },
+      {
+        characterClass: "Frontend Engineer",
+        icon: faCode,
+        tenures: [
+          { company: "AuthenticGaming", from: "Jul 2017", to: "Jan 2019" },
+          { company: "KPMG", from: "Feb 2019", to: "Sep 2019" },
+          { company: "Chiliz", from: "Nov 2019", to: "Nov 2022" },
+          { company: "reNFT", from: "Jan 2023", to: "Aug 2023" },
+          { company: "HyperPlay", from: "Oct 2023", to: "Nov 2025" },
+        ],
+        stats: [{ name: "Frontend Engineer", value: 100 }],
+        abilities: ["React", "Vue", "Canvas and WebGL", "Design systems"],
+      },
+      {
+        characterClass: "Backend Engineer",
+        icon: faServer,
+        tenures: [
+          { company: "Gods of Zushin", from: "Apr 2015" },
+          { company: "CoinOn", from: "Nov 2021", to: "Jan 2022" },
+          { company: "HyperPlay", from: "Oct 2023", to: "Nov 2025" },
+          { company: "Own products", from: "2025" },
+        ],
+        stats: [{ name: "Backend Engineer", value: 75 }],
+        abilities: ["Node.js and NestJS", "PostgreSQL", "Laravel", "Real time"],
+      },
+      {
+        characterClass: "Game Engineer",
+        icon: faDragon,
+        tenures: [
+          { company: "Gods of Zushin", from: "Apr 2015" },
+          { company: "AuthenticGaming", from: "Jul 2017", to: "Jan 2019" },
+        ],
+        stats: [
+          { name: "Game Engineer", value: 80 },
+          { name: "Encryption & Compression", value: 80 },
+        ],
+        abilities: ["C/C++ engine", "Lua", "PixiJS", "Multiplayer"],
+      },
+    ],
+  },
   skillAreas: [
     {
       label: "Payments & Fintech",
@@ -1577,6 +1725,7 @@ export const portfolioData: PortfolioData = {
       ],
     },
   ],
+  projectAchievementLabel: "Achievement unlocked",
   projects: [
     {
       image: "/images/chapter5-cover.webp",

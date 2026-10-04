@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC, useRef } from "react";
 
 import tw, { styled } from "twin.macro";
 
@@ -6,9 +6,9 @@ import { faLinkedinIn, faGoogleDrive, faGithub, faStackOverflow } from "@fortawe
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 
+import { DecodedText } from "@/components/DecodedText";
 import { Image } from "@/components/Image";
-import useCollision from "@/hooks/useCollision";
-import { useToBinary } from "@/hooks/useToBinary";
+import useInView from "@/hooks/useInView";
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
 
@@ -20,10 +20,6 @@ interface AboutProps extends Detail {
   stackoverflow: string;
 }
 
-interface CharacterProps {
-  canAnimate: boolean;
-  delay: number;
-}
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
@@ -75,65 +71,28 @@ const InnerButtonIcon = styled(FontAwesomeIcon)(() => [
 
 const AnimatedCircle = tw.div`absolute w-full h-full block`;
 
-const Character = styled.span.attrs<CharacterProps>(({ delay = 0, canAnimate }) => ({
-  className: `${canAnimate ? "active" : ""}`,
-  style: {
-    ...canAnimate ? {
-      animation: `move-text 0.75s forwards ${delay}s, text-color 0.75s forwards ${delay}s, border-transition 1s ease-in-out 0s`
-    } : {}
-  }
-})) <CharacterProps>`
-position: relative;
-color: #b7b7b7;
-margin-top: 0;
-
-&.active {
-  transition: all;
-  margin-top: -10px;
-}
-
-&:hover {
-  animation: move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s;
-  animation-delay: 0s!important;
-}`;
+// The bio decodes from binary once the section is on screen: the Matrix zone's way of saying hello.
+const DESCRIPTION_DECODE_MS = 2600;
 
 export const About: FC<AboutProps> = ({
   name, intro, description, image, residence,
   isFlexible, jobType, phone, email, location,
   contactTime, cvUrl, github, stackoverflow, linkedInUsername
 }: AboutProps) => {
-  const [hasArrivedToIntro] = useCollision("section-intro");
-  const convertedIntro = useToBinary(intro);
-  const convertedDescription = useToBinary(description);
-  const IntroCharactersList = useMemo(() => convertedIntro
-    .slice(0, intro.length)
-    .split("")
-    .map((char, index) => (
-      <Character
-        canAnimate={!hasArrivedToIntro}
-        delay={(0.5 + index / 10)}
-        key={index}
-      >
-        {hasArrivedToIntro ? char : intro.charAt(index)}
-      </Character>)), [convertedIntro, intro, hasArrivedToIntro]);
-  const DescriptionCharactersList = useMemo(() => convertedDescription
-    .slice(0, description.length)
-    .split("")
-    .map((char, index) => (
-        (hasArrivedToIntro ? char : description.charAt(index)))),
-        [convertedDescription, description, hasArrivedToIntro]);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(contentRef, { threshold: 0.2 });
 
   return (
     <Section id="section-about">
       <Title>Who I am?</Title>
-      <Content>
+      <Content ref={contentRef}>
         <SectionImage src={image} alt={`${name}, ${intro}`} width="200" height="500" fallbackSrc={image.replace(".webp", ".jpg")} />
         <DescriptionContainer>
           <Paragraph>
-            {IntroCharactersList}
+            <DecodedText text={intro} isActive={isInView} />
           </Paragraph>
           <Paragraph>
-            {DescriptionCharactersList}
+            <DecodedText text={description.trim().replace(/\s+/g, " ")} isActive={isInView} delay={300} duration={DESCRIPTION_DECODE_MS} />
           </Paragraph>
           <List >
             <ListItem>

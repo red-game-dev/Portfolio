@@ -10,8 +10,9 @@ interface DecodeProgress {
 }
 
 // Starts as bits and resolves into `text` left to right once `isActive` turns true. Server and
-// first client render both show the bits, so hydration always matches.
-export const useDecodedText = (text: string, isActive: boolean, delay = 0) => {
+// first client render both show the bits, so hydration always matches. `duration` caps the whole
+// reveal for long text, which would otherwise take a character time per character.
+export const useDecodedText = (text: string, isActive: boolean, delay = 0, duration?: number) => {
   const mask = useMemo(() => toBinaryMask(text), [text]);
   const length = useMemo(() => Array.from(text).length, [text]);
   const [progress, setProgress] = useState<DecodeProgress>({ revealed: 0, tick: 0 });
@@ -29,11 +30,12 @@ export const useDecodedText = (text: string, isActive: boolean, delay = 0) => {
 
     let frameId = 0;
     let startedAt: number | null = null;
+    const characterMs = duration ? Math.min(DECODE_TIMING.characterMs, duration / Math.max(1, length)) : DECODE_TIMING.characterMs;
 
     const step = (time: number) => {
       startedAt = startedAt ?? time;
 
-      const revealed = Math.min(length, Math.max(0, Math.floor((time - startedAt - delay) / DECODE_TIMING.characterMs)));
+      const revealed = Math.min(length, Math.max(0, Math.floor((time - startedAt - delay) / characterMs)));
       const tick = Math.floor((time - startedAt) / DECODE_TIMING.tickMs);
 
       setProgress((previous) => (previous.revealed === revealed && previous.tick === tick ? previous : { revealed, tick }));
@@ -46,7 +48,7 @@ export const useDecodedText = (text: string, isActive: boolean, delay = 0) => {
     frameId = requestAnimationFrame(step);
 
     return () => cancelAnimationFrame(frameId);
-  }, [delay, isActive, length]);
+  }, [delay, duration, isActive, length]);
 
   return decodeFrame(text, mask, progress.revealed, progress.tick);
 };

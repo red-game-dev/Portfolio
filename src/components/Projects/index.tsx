@@ -11,6 +11,7 @@ import { SectionIntros } from "@/types/sections-intros";
 interface ProjectsProps {
   projects: ProjectDetail[];
   intro: SectionIntros;
+  achievementLabel: string;
 }
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
@@ -21,7 +22,7 @@ const ClearContainer = tw.div`clear-both`;
 
 const List = tw.div`relative mx-[-50px] p-[25px] lg:p-[35px] flex flex-row flex-wrap justify-evenly`;
 
-export const Projects: FC<ProjectsProps> = ({ projects = [], intro }: ProjectsProps) => (
+export const Projects: FC<ProjectsProps> = ({ projects = [], intro, achievementLabel }: ProjectsProps) => (
     <Section id="section-projects">
       <Content>
         <Text title={intro.title} paragraphs={intro.description} isSection={false} />
@@ -29,6 +30,7 @@ export const Projects: FC<ProjectsProps> = ({ projects = [], intro }: ProjectsPr
           {projects.map((project: ProjectDetail, index: number) => (<Project
             key={`${project.title.replace(/\s/, "")}-${index}`}
             {...project}
+            achievementLabel={achievementLabel}
             withRandomBorder={index % 3 === 0}
             isFullBorder={projects.length % 2 > 0 && index === (projects.length - 1)}
             isFullWidth={projects.length % 2 > 0 && index === (projects.length - 1)}

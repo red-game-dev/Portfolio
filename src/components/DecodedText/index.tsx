@@ -8,13 +8,14 @@ interface DecodedTextProps {
   text: string;
   isActive: boolean;
   delay?: number;
+  duration?: number;
 }
 
 const ReadableText = tw.span`sr-only`;
 
 // Assistive tech and crawlers get the real text straight away; the bits are decoration.
-export const DecodedText: FC<DecodedTextProps> = ({ text, isActive, delay = 0 }: DecodedTextProps) => {
-  const visibleText = useDecodedText(text, isActive, delay);
+export const DecodedText: FC<DecodedTextProps> = ({ text, isActive, delay = 0, duration }: DecodedTextProps) => {
+  const visibleText = useDecodedText(text, isActive, delay, duration);
 
   return (
     <>

@@ -5,6 +5,7 @@ import { Cover } from "@/components/Cover";
 import { Projects } from "@/components/Projects";
 import { Recommendations } from "@/components/Recommendations";
 import { Resume } from "@/components/Resume";
+import { Roster } from "@/components/Roster";
 import { Services } from "@/components/Services";
 import { SkillAreas } from "@/components/SkillAreas";
 import { Skills } from "@/components/Skills";
@@ -56,15 +57,19 @@ export default function Home() {
       <Skills skills={portfolioData.skills.design} intro={portfolioData.sections.design} />
       <Skills skills={portfolioData.skills.language} intro={portfolioData.sections.language} />
       <Skills skills={portfolioData.skills.teamplayer} intro={portfolioData.sections.teamplayer} />
-      <Skills skills={portfolioData.skills.expertise} intro={portfolioData.sections.expertise} isCircle={true} />
       <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
-      <Projects projects={portfolioData.projects} intro={portfolioData.sections.projects} />
       <CaseStudies
         caseStudies={portfolioData.caseStudies}
         intro={portfolioData.sections.caseStudies}
         diagrams={portfolioData.platformDiagrams}
         filters={portfolioData.caseStudyFilters}
         audiences={portfolioData.headline.audiences}
+      />
+      <Roster intro={portfolioData.sections.roster} {...portfolioData.roster} />
+      <Projects
+        projects={portfolioData.projects}
+        intro={portfolioData.sections.projects}
+        achievementLabel={portfolioData.projectAchievementLabel}
       />
       <Recommendations
         intro={portfolioData.sections.recommendations}

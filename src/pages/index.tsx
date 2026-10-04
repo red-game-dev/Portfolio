@@ -1,4 +1,5 @@
 import { About } from "@/components/About";
+import { AiUsage } from "@/components/AiUsage";
 import { Cover } from "@/components/Cover";
 import { Projects } from "@/components/Projects";
 import { Resume } from "@/components/Resume";
@@ -7,6 +8,10 @@ import { Skills } from "@/components/Skills";
 import { Text } from "@/components/Text";
 import { portfolioData } from "@/data/resume";
 import Layout from "@/layouts/Layout";
+import { aiUsageService } from "@/services/ai-usage";
+
+// Runs at build time during static generation, so content that fails validation fails the build.
+const aiUsage = aiUsageService.getView();
 
 export default function Home() {
   return (
@@ -34,6 +39,7 @@ export default function Home() {
       <Skills skills={portfolioData.skills.integrations} intro={portfolioData.sections.integrations} />
       <Skills skills={portfolioData.skills.observability} intro={portfolioData.sections.observability} />
       <Skills skills={portfolioData.skills.ai} intro={portfolioData.sections.ai} />
+      <AiUsage {...aiUsage} />
       <Skills skills={portfolioData.skills.design} intro={portfolioData.sections.design} />
       <Skills skills={portfolioData.skills.language} intro={portfolioData.sections.language} />
       <Skills skills={portfolioData.skills.teamplayer} intro={portfolioData.sections.teamplayer} />

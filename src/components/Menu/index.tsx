@@ -2,6 +2,7 @@ import tw, { css, styled } from "twin.macro";
 
 import Link from "next/link";
 
+import { SECTION_IDS } from "@/config/sections";
 import useCollision from "@/hooks/useCollision";
 
 // Kept in sync with the id Skills derives from `sections.tech.title`.
@@ -87,6 +88,7 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnSectionDesignSkills] = useCollision("section-skills-DesignSkills");
   const [isOnSectionLanguageSkills] = useCollision("section-skills-LanguageSkills");
   const [isOnSectionExpertise] = useCollision("section-skills-Expertise");
+  const [isOnAiUsageSection] = useCollision(SECTION_IDS.aiUsage);
 
   const isOnSkillsSection = (isOnSectionTechSkills || isOnSectionToolsSkills ||
     isOnSectionAiSkills || isOnSectionDesignSkills || isOnSectionLanguageSkills ||
@@ -94,7 +96,7 @@ export const Menu = ({ active }: MenuProps) => {
   const isOnBeginningSection = isOnSectionStarted ||
   (!isOnProjectsSection && !isOnSectionAbout &&
     !isOnSectionAbout && !isOnSectionHistory &&
-    !isOnSectionServices && !isOnSkillsSection);
+    !isOnSectionServices && !isOnSkillsSection && !isOnAiUsageSection);
 
   return (
     <>
@@ -115,6 +117,9 @@ export const Menu = ({ active }: MenuProps) => {
           </MenuItem>
           <MenuItem href={`#${TECH_SKILLS_SECTION_ID}`} selected={isOnSkillsSection} aria-label="Skills">
             Skills
+          </MenuItem>
+          <MenuItem href={`#${SECTION_IDS.aiUsage}`} selected={isOnAiUsageSection} aria-label="How I use AI">
+            How I use AI
           </MenuItem>
           <MenuItem href="#section-projects" selected={isOnProjectsSection} aria-label="Achievements">
             Projects & Achievements

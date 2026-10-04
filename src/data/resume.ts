@@ -8,9 +8,14 @@ import {
   faShop,
   faMessage,
   faPlane,
-  faCog
+  faCog,
+  faFileLines,
+  faRobot,
+  faShieldCheck,
+  faUserCheck
 } from "@fortawesome/pro-duotone-svg-icons";
 
+import { PortfolioAiUsage } from "@/types/ai-usage";
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
 import { ProjectDetail } from "@/types/projects";
@@ -48,6 +53,7 @@ export interface PortfolioData {
     teamplayer: Skill[];
   };
   projects: ProjectDetail[];
+  aiUsage: PortfolioAiUsage;
   socialMedia: {
     byUsername: {
       twitter: string;
@@ -155,6 +161,14 @@ export const portfolioData: PortfolioData = {
       description: [
         `AI is part of how I architect and deliver, not a side experiment. Here's what I use and how far I take it,
         from parallel-agent research to documenting AI-assisted decisions for a whole delivery organisation.`,
+      ],
+    },
+    aiUsage: {
+      title: "How I use AI day to day",
+      description: [
+        `I have used AI coding tools since before ChatGPT, and today they are part of almost every task I work on,
+        from writing code to preparing a stakeholder update. Here is what that looks like in numbers, the rules I work by,
+        and how I got here.`,
       ],
     },
     expertise: {
@@ -1473,6 +1487,153 @@ export const portfolioData: PortfolioData = {
       to: "Jan 2022",
     },
   ],
+  aiUsage: {
+    screen: {
+      message: ["33,000+ prompts", "Feb to Oct 2026"],
+      label: "33,000+ prompts to my main coding agent between February and October 2026.",
+    },
+    mix: {
+      title: "What I use it for",
+      description: [
+        `Over 33,000 prompts to my main coding agent between February and October 2026, about 4,100 a month.
+        Around half are short steering turns like "continue" or "recheck", which is normal for long agent sessions.
+        The rest break down roughly like this.`,
+      ],
+      tasks: [
+        { name: "Feature implementation and coding", share: 30 },
+        { name: "Code review, PRs and git", share: 15 },
+        { name: "Debugging and fixing", share: 12 },
+        { name: "Docs, stakeholder updates and decks", share: 12 },
+        { name: "Deploys, infrastructure and migrations", share: 9 },
+        { name: "Data, analytics and research", share: 7 },
+        { name: "Testing and verification", share: 6 },
+        { name: "Architecture and planning", share: 5 },
+        { name: "Security and compliance", share: 4 },
+      ],
+      notes: [
+        "Each lit bit is one percent. The split comes from sorting prompt text by keyword, so read it as approximate.",
+        `It covers my main coding agent only. In 2026 ChatGPT takes most of my architecture research, stakeholder communication
+        and product thinking, and that is not counted here.`,
+        `The mix moves with the work. On architecture and consulting, docs and stakeholder updates rise to about 28%.
+        On product engineering, coding, review and debugging take a bigger share.`,
+      ],
+    },
+    agents: {
+      title: "How I work with agents",
+      description: [
+        "Every change goes through the same four stages, and each stage has rules the agent cannot skip.",
+      ],
+      stages: [
+        {
+          name: "Context",
+          icon: faFileLines,
+          principles: [
+            {
+              title: "The contract matters more than the prompt",
+              description: `Each repo has a context file with hard rules, reference docs the agent reads first,
+              a memory of one fact per file and a handoff note per session.`,
+            },
+            {
+              title: "Confidentiality first",
+              description: "I check a tool's confidentiality model before it touches company code, and secrets never enter an agent's context.",
+            },
+          ],
+        },
+        {
+          name: "Agent",
+          icon: faRobot,
+          principles: [
+            {
+              title: "No production access",
+              description: "Agents never get write access to production and never see production data.",
+            },
+            {
+              title: "Synthetic data at real volume",
+              description: "Money and customer paths run on synthetic data at production volumes, so scale problems show up before release.",
+            },
+          ],
+        },
+        {
+          name: "Checks",
+          icon: faShieldCheck,
+          principles: [
+            {
+              title: "Dependencies are screened",
+              description: "Every install passes a supply chain blocklist, and a match fails the install.",
+            },
+            {
+              title: "Proof before acceptance",
+              description: "Work is accepted on evidence, such as Playwright runs and API responses.",
+            },
+          ],
+        },
+        {
+          name: "Human review",
+          icon: faUserCheck,
+          principles: [
+            {
+              title: "A person reviews every change",
+              description: "Nothing merges without a human review, and features nobody asked for come back out.",
+            },
+          ],
+        },
+      ],
+      footer: `The same setup serves engineers with reviews, migrations, tests and deploys,
+      and it serves product and analysis stakeholders too.`,
+    },
+    timeline: {
+      title: "How I got here",
+      milestones: [
+        {
+          period: "Before ChatGPT",
+          title: "Tabnine",
+          description: "Code completion with Tabnine gave me an early, realistic sense of what AI assistance could and could not do.",
+        },
+        {
+          period: "Early 2023",
+          title: "ChatGPT at reNFT",
+          description: `I started using ChatGPT seriously for frontend and backend work, from authentication and API design to serverless
+          architecture. I wrote a small CLI that built a short context file for a project (architecture, directory layout, key files),
+          choosing what went into it with company safety and privacy in mind. The rest was manual: paste the context, adjust,
+          create the files by hand.`,
+        },
+        {
+          period: "Later in 2023",
+          title: "Cursor, Claude and Gemini",
+          description: "I picked each one up as it appeared and have kept current since.",
+        },
+        {
+          period: "Oct 2023 to Nov 2025",
+          title: "HyperPlay",
+          description: "AI across frontend, backend, Electron and mobile work.",
+        },
+        {
+          period: "Feb 2025",
+          title: "Project instruction sets",
+          description: `I started writing detailed instructions for AI assisted development: architecture constraints, security
+          requirements and conventions, so the model works inside the project instead of guessing at it.`,
+        },
+        {
+          period: "Nov 2025 to present",
+          title: "Conrad Electronic Group",
+          description: `I drive AI enablement for the CMS migration, working with 90+ people across engineering, QA, product, content,
+          SRE and up to CTO level. That covers Gemini Enterprise and Gemini CLI as the company tooling, MCP servers I wrote myself,
+          an evaluation of Strapi's MCP server and of the AEM MCP options (I recommended against the AEM ones), a supply chain
+          security check across the storefront repositories, and a human review before anything AI generated reaches Confluence
+          or a pull request.`,
+          isCurrent: true,
+        },
+        {
+          period: "2026",
+          title: "My own platform",
+          description: `Claude Code is my main engineering tool on a large TypeScript monorepo: 25 packages, 160+ Postgres migrations,
+          payments, ledgers, an ads engine and real time streams. I wrote the skills, slash commands, subagents and MCP integrations
+          around it.`,
+          isCurrent: true,
+        },
+      ],
+    },
+  },
   socialMedia: {
     byUsername: {
       twitter: "@red_game_dev",

@@ -9,6 +9,7 @@ import {
   ProductJsonLd
 } from "next-seo";
 
+import { SECTION_IDS } from "@/config/sections";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
 
@@ -110,11 +111,16 @@ export const SEO = ({ url }: SeoProps) => (
         },
         {
           position: 4,
+          name: "How I use AI",
+          item: `${url}/#${SECTION_IDS.aiUsage}`,
+        },
+        {
+          position: 5,
           name: "Achievements",
           item: `${url}/#section-projects`,
         },
         {
-          position: 5,
+          position: 6,
           name: "What can I offer",
           item: `${url}/#section-services`,
         },

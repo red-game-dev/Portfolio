@@ -1,1 +1,3 @@
-export const useToBinary = (text: string) => [...text].map((letter) => letter.charCodeAt(0).toString(2)).join(" ");
+import { toBinary } from "@/packages/encoding/binary";
+
+export const useToBinary = (text: string) => toBinary(text);

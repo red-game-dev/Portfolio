@@ -36,6 +36,7 @@ const customJestConfig = {
       "<rootDir>/webdriverio/",
       "<rootDir>/__tests__/__mocks__/",
       "<rootDir>/__tests__/setups/",
+      "/fixtures/",
   ],
   moduleNameMapper: {
       ...pathsToModuleNameMapper(paths, { prefix: "<rootDir>/" }),

@@ -1,0 +1,41 @@
+# Packages
+
+Self-contained modules that know nothing about this portfolio. Each one lives at `src/packages/<domain>/<name>`, exposes its public API from `index.ts`, and could be published as its own npm package with no change beyond its import specifiers.
+
+## Rules
+
+Enforced by ESLint (`no-restricted-imports` override in `.eslintrc.json`):
+
+- A package never imports app code: no `@/components`, `@/config`, `@/data`, `@/hooks`, `@/layouts`, `@/pages`, `@/services`, `@/styles` or `@/types`.
+- A package imports another package only through its entry point (`@/packages/<domain>/<name>`), never a file inside it.
+- No React, styled-components or twin.macro. Framework bindings live in `src/components/*`, so a package works the same from a game loop, a worker or another framework.
+
+Inside a package the folders follow one vocabulary, so any of them reads the same:
+
+| Folder | Holds |
+|---|---|
+| `config/` | Defaults and the resolver that merges host overrides over them |
+| `domain/` | Types, errors and the interfaces (ports) other layers depend on |
+| `core/` | The classes that do the work |
+| `guards/` | Runtime shape checks for data crossing a boundary |
+| `validators/` | Business rules, returning every error instead of stopping at the first |
+| `mappers/` | One-way transforms from one shape to another |
+| `services/` | Orchestration of the above for a caller |
+| `sources/`, `schedulers/`, `renderers/` | Swappable implementations of a port |
+| `utils/` | Small pure functions with no state |
+
+## Catalogue
+
+| Package | What it gives you |
+|---|---|
+| `accessibility/motion` | The reduced motion preference, safe to call during server rendering |
+| `animation/frame-loop` | `FrameLoop` base class with fixed rate stepping and clamping, plus `AnimationFrameScheduler`, `TimeoutScheduler` and `ManualScheduler` |
+| `core/content` | `ContentSource` port, `InMemoryContentSource`, and the `ContentService` base that runs source, guard, validator and mapper in order |
+| `core/domain` | `Validator` and `Mapper` base classes, `ValidationError`, primitive guards |
+| `effects/binary-rain` | Falling binary rain that assembles a message, built on `frame-loop` and `graphics/canvas` |
+| `encoding/binary` | Text to binary, same length masks, and the frame by frame decode used for text reveals |
+| `graphics/canvas` | `CanvasRenderer` base for DPR aware surfaces and `GlyphAtlas` for GPU friendly text drawing |
+| `insights/ai-usage` | Domain model, guard, validators, mapper and service for an AI usage breakdown, independent of any icon library or content store |
+| `math/random` | Seedable random source for repeatable visuals and tests |
+
+Tests mirror this tree under `__tests__/src/packages/`.

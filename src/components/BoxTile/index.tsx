@@ -11,6 +11,8 @@ interface BoxTileProps {
   title: string;
   subtitle?: string;
   activeSubtitle?: boolean;
+  // A single result line shown under the title.
+  highlight?: string;
   icon?: FontAwesomeIconProps["icon"];
   description?: string[] | string;
   bullets?: string[];
@@ -55,6 +57,8 @@ const ItemSubtitle = styled.div(({ active = false }: SubtitleProps) => [
   active && tw`text-[#4bffa5] font-medium`
 ]);
 
+const Highlight = tw.p`m-[0 0 12px 0] text-sm font-medium text-[#4bffa5] break-words`;
+
 const BulletList = tw.ul`list-[circle] text-sm pl-[20px] mt-[15px] mb-0 marker:text-[#4bffa5]`;
 
 const BulletListItem = tw.li`text-[#bbb] mb-[6px] break-words`;
@@ -76,12 +80,13 @@ const CallToActionArrow = tw.span`text-base leading-none`;
 
 export const BoxTile: FC<BoxTileProps> = ({
   isFullBorder, withRandomBorder, isFullWidth, title, subtitle,
-  activeSubtitle, description, bullets, tags, icon, link, linkLabel, linkIcon
+  activeSubtitle, highlight, description, bullets, tags, icon, link, linkLabel, linkIcon
 }: BoxTileProps) => (
   <Item withRandomBorder={withRandomBorder} isFullBorder={isFullBorder} isFullWidth={isFullWidth}>
     { subtitle && <ItemSubtitle active={activeSubtitle}>{ subtitle }</ItemSubtitle> }
     { icon && <Icon icon={icon} /> }
     <ItemTitle>{ title }</ItemTitle>
+    { highlight && <Highlight>{ highlight }</Highlight> }
     {
       description && (
         <Text

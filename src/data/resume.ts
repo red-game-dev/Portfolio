@@ -19,10 +19,12 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 
 import { PortfolioAiUsage } from "@/types/ai-usage";
-import { CaseStudy } from "@/types/case-studies";
+import { CaseStudy, CaseStudyFilters, PlatformDiagrams } from "@/types/case-studies";
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
+import { Headline } from "@/types/headline";
 import { ProjectDetail } from "@/types/projects";
+import { Recommendation } from "@/types/recommendations";
 import { Resume } from "@/types/resume";
 import { SectionIntros } from "@/types/sections-intros";
 import { ServiceActions, ServiceGroup } from "@/types/services";
@@ -31,6 +33,7 @@ import { Skill, SkillArea } from "@/types/skills";
 
 export interface PortfolioData {
   intro: string;
+  headline: Headline;
   cover: string;
   cv: string;
   typingsTitles: string[];
@@ -60,6 +63,9 @@ export interface PortfolioData {
   skillAreas: SkillArea[];
   projects: ProjectDetail[];
   caseStudies: CaseStudy[];
+  caseStudyFilters: CaseStudyFilters;
+  platformDiagrams: PlatformDiagrams;
+  recommendations: Recommendation[];
   aiUsage: PortfolioAiUsage;
   socialMedia: {
     byUsername: {
@@ -79,8 +85,23 @@ const LINKEDIN_USERNAME = "redeemer-pace-685692b9";
 export const portfolioData: PortfolioData = {
   intro:
     "Hello! I’m <strong>Redeemer Pace</strong>. Let's get to know each other, shall we?",
+  headline: {
+    lines: [
+      "Software architect who ships with AI agents. Payments, ledgers and platform architecture.",
+      "Open to architect, lead and AI engineering roles, full time or B2B.",
+    ],
+    availability: "Maltese citizen, EU work rights, open to relocation, available now.",
+    cvLabel: "Download CV",
+    emailLabel: "Email me",
+    audiencesLabel: "Hiring for",
+    audiences: [
+      { audience: "payments", label: "Payments" },
+      { audience: "ai", label: "AI engineering" },
+      { audience: "architecture", label: "Architecture" },
+    ],
+  },
   cover: "/images/cover-picture.webp",
-  cv: "https://drive.google.com/file/d/1k2FJG0ZpKA76eCUg_mb1TlncqzOLsACg/view?usp=sharing",
+  cv: "/cv/redeemer-pace-cv.pdf",
   github: [
     {
       name: "Me",
@@ -214,7 +235,7 @@ export const portfolioData: PortfolioData = {
     recommendations: {
       title: "Recommendations",
       description: [
-        "I have recommendation letters from top companies such as KPMG, AuthenticGaming, and more! These can be viewed upon request.",
+        "I have recommendation letters from KPMG, Authentic Gaming, reNFT and more, and I can share them on request. A few lines from them:",
       ],
     },
     conclusion: {
@@ -437,6 +458,7 @@ export const portfolioData: PortfolioData = {
     {
       title: "Lead Software Architect / Enterprise Architect, Conrad Electronic Group",
       from: "Nov 2025",
+      outcome: "Roughly 5M+ monthly users, working with 90+ people up to CTO level",
       description: [
         "Conrad Electronic is a European electronics retailer operating across 16 markets, DACH-led.",
         `Leading software architecture across a 90+ person delivery organisation for the migration from Adobe Experience Manager
@@ -557,6 +579,7 @@ export const portfolioData: PortfolioData = {
     {
       title: "Founder & Architect, Own Products",
       from: "2025",
+      outcome: "26 packages and 6 apps, 2,100+ tests and 37 adapter contracts",
       description: [
         "My own products, built on one TypeScript platform: payments, double entry ledgers, an ads engine and real time streams.",
         'I architect it and ship it with AI agents, inside the context, rules, checks and reviews described in the "How I use AI" section.',
@@ -634,6 +657,7 @@ export const portfolioData: PortfolioData = {
     {
       title: "Mobile Core Engineer / Architect, Chiliz",
       from: "Nov 2019",
+      outcome: "Around 2M users, 7 product squads and 30+ engineers",
       to: "Nov 2022",
       description: [
         `A blockchain and sports company building a gamified fan engagement platform with real-time rewards,
@@ -1773,6 +1797,72 @@ export const portfolioData: PortfolioData = {
       to: "Jan 2022",
     },
   ],
+  caseStudyFilters: {
+    label: "Show case studies for",
+    allLabel: "Everything",
+  },
+  platformDiagrams: {
+    title: "The platform at a glance",
+    description: ["Two views of my own platform, unnamed: where vendors and hosts plug in, and how money moves through it."],
+    adapters: {
+      title: "Every vendor behind an adapter",
+      core: "Domain core in plain TypeScript",
+      contracts: "37 adapter contracts",
+      seams: [
+        { name: "Payments", detail: "Stripe gateway, tax and FX providers" },
+        { name: "Storage & media", detail: "Cloudflare R2, Supabase, scanning" },
+        { name: "Database", detail: "Drizzle, Supabase, SQL, IndexedDB" },
+        { name: "Auth", detail: "OAuth, OIDC, passwordless" },
+        { name: "Notifications", detail: "Email, SMS and push" },
+        { name: "CMS", detail: "Strapi, Contentful, Sanity, Storyblok" },
+        { name: "Ads", detail: "Own network, external slots" },
+        { name: "Moderation", detail: "Four provider adapters" },
+        { name: "Real time", detail: "SSE, WebSocket, Redis backplane" },
+        { name: "Feature flags", detail: "API, database, file, memory, Redis" },
+        { name: "Hosts", detail: "Deploy targets, env vars, source control" },
+        { name: "Frameworks", detail: "NestJS and Next.js adapters" },
+      ],
+      caption: "Every vendor and host sits behind an adapter, so a provider can be added, run in parallel and switched by configuration.",
+    },
+    moneyFlow: {
+      title: "How money moves",
+      steps: [
+        { name: "Checkout", detail: "A jurisdiction snapshot is written on every charge" },
+        { name: "Gateway adapter", detail: "Provider agnostic, Stripe today" },
+        { name: "Signed webhook", detail: "Verified before anything moves" },
+        { name: "Idempotent handler", detail: "One effect per event, however often it arrives" },
+        { name: "Double entry ledger", detail: "Every movement balanced" },
+        { name: "Reconciliation", detail: "The ledger checked against the provider" },
+        { name: "Payout", detail: "Holds above a threshold need a second admin's approval" },
+      ],
+      inputs: [
+        { name: "Tax providers", detail: "Per region, behind one contract" },
+        { name: "Exchange rates", detail: "Provider based FX for multi currency" },
+      ],
+      caption: "Money paths are tested through the real API, on synthetic data at real volume.",
+    },
+  },
+  recommendations: [
+    {
+      quote: `The breadth of his knowledge about software, systems and architecture is excellent and has shown to be valuable beyond the
+      scope of front end work.`,
+      role: "Lead Front End Developer",
+      company: "reNFT",
+      date: "August 2023",
+    },
+    {
+      quote: "Redeemer is a solver of problems at heart and an absolute pleasure to work with.",
+      role: "Lead Front End Developer",
+      company: "reNFT",
+      date: "August 2023",
+    },
+    {
+      quote: "As a software engineer, Redeemer would be a true asset to that position and it comes with my heartfelt recommendation.",
+      role: "Head of Frontend",
+      company: "Authentic Gaming",
+      date: "January 2019",
+    },
+  ],
   caseStudies: [
     {
       area: "Architecture",
@@ -1787,6 +1877,7 @@ export const portfolioData: PortfolioData = {
         state so no data is lost in the move`,
       ],
       tags: ["Adapters", "Feature flags", "Expand and contract"],
+      audiences: ["architecture"],
     },
     {
       area: "Architecture",
@@ -1802,6 +1893,7 @@ export const portfolioData: PortfolioData = {
         "At Conrad the CMS adapter is 69 TypeScript files with zero Vue or Nuxt imports",
       ],
       tags: ["Plain TypeScript core", "Adapters", "A binding per runtime"],
+      audiences: ["architecture"],
     },
     {
       area: "Architecture",
@@ -1819,6 +1911,7 @@ export const portfolioData: PortfolioData = {
         "Offline first on the client: an outbox for queued writes, declared read caches and IndexedDB behind the database adapter",
       ],
       tags: ["Keyset pagination", "Redis", "Offline first"],
+      audiences: ["architecture", "payments"],
     },
     {
       area: "Architecture",
@@ -1832,6 +1925,7 @@ export const portfolioData: PortfolioData = {
         "The same cut over procedure as any vendor: add the host, run both, switch, retire",
       ],
       tags: ["Adapters", "CLI", "Decision records"],
+      audiences: ["architecture"],
     },
     {
       area: "Architecture",
@@ -1845,6 +1939,7 @@ export const portfolioData: PortfolioData = {
         "What does get in passes a blocklist that fails the install, a supply chain scan in CI and a line by line lockfile review",
       ],
       tags: ["Supply chain", "Dependencies", "In house engines"],
+      audiences: ["architecture"],
     },
     {
       area: "Payments & compliance",
@@ -1859,6 +1954,7 @@ export const portfolioData: PortfolioData = {
         "The rule kept since: check a cheat path against the write path's guards, not the schema",
       ],
       tags: ["Refunds", "Jurisdiction", "Code review"],
+      audiences: ["payments", "ai"],
     },
     {
       area: "Payments & compliance",
@@ -1871,6 +1967,7 @@ export const portfolioData: PortfolioData = {
         "Compliance per jurisdiction is one of the gates every feature passes in my engineering discipline skill",
       ],
       tags: ["Tax", "Multi currency and FX", "KYC and AML"],
+      audiences: ["payments"],
     },
     {
       area: "Payments",
@@ -1883,6 +1980,7 @@ export const portfolioData: PortfolioData = {
         "A suspected bug is confirmed through the endpoint, never through the schema",
       ],
       tags: ["Double entry", "Idempotency", "Reconciliation"],
+      audiences: ["payments"],
     },
     {
       area: "Payments & security",
@@ -1897,6 +1995,7 @@ export const portfolioData: PortfolioData = {
         "Billing was reordered so the only step that can refuse a charge runs first",
       ],
       tags: ["Idempotency", "Signed tokens", "Ads billing"],
+      audiences: ["payments"],
     },
     {
       area: "Identity & security",
@@ -1910,6 +2009,7 @@ export const portfolioData: PortfolioData = {
         "The API now refuses to start without the secret that gives each client app its own user identifier, so two apps cannot link the same person",
       ],
       tags: ["OIDC", "End to end tests", "Playwright"],
+      audiences: ["architecture", "ai"],
     },
     {
       area: "Agent workflow",
@@ -1922,6 +2022,7 @@ export const portfolioData: PortfolioData = {
         "Review pages work the same way: findings against the real code, numbered fix steps, and a definition of done the re-review checks",
       ],
       tags: ["Decision records", "Context engineering", "Code review"],
+      audiences: ["ai"],
     },
   ],
   aiUsage: {

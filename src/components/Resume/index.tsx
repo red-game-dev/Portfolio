@@ -33,6 +33,7 @@ export const Resume = ({ education, experience }: ResumeProps) => (
                   isFullWidth={true}
                   activeSubtitle={!work.to}
                   title={work.title}
+                  highlight={work.outcome}
                   description={work.description}
                   bullets={work.bullets}
                   tags={work.techStack}

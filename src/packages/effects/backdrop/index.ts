@@ -1,0 +1,15 @@
+export { DEFAULT_BACKDROP_CONFIG, resolveBackdropConfig } from "./config";
+export { BackdropEngine } from "./core/BackdropEngine";
+export { SceneCompositor } from "./core/SceneCompositor";
+export { EmberScene } from "./scenes/EmberScene";
+export { NeuralScene } from "./scenes/NeuralScene";
+export { RainScene } from "./scenes/RainScene";
+export { StarfieldScene } from "./scenes/StarfieldScene";
+export { clamp01, easeInOut } from "./utils/easing";
+export type { BackdropConfig, BackdropConfigOverrides } from "./config";
+export type { BackdropOptions } from "./core/BackdropEngine";
+export type { EmberSceneOptions } from "./scenes/EmberScene";
+export type { NeuralSceneOptions } from "./scenes/NeuralScene";
+export type { RainSceneOptions } from "./scenes/RainScene";
+export type { StarfieldSceneOptions } from "./scenes/StarfieldScene";
+export type { BackdropFrame, Scene, SceneFactory, SceneSize } from "./domain/types";

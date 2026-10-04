@@ -1,5 +1,6 @@
 export { GlyphAtlas } from "./atlas/GlyphAtlas";
 export { CanvasRenderer } from "./core/CanvasRenderer";
+export { createGlowSprite } from "./sprites/glowSprite";
 export { createDrawableSurface } from "./utils/surface";
 export type { DrawableSurface } from "./utils/surface";
 export type {

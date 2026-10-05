@@ -5,11 +5,15 @@ import { Backdrop } from "@/components/Journey/Backdrop";
 import useJourney from "@/components/Journey/hooks/useJourney";
 import { Hud, HudContent } from "@/components/Journey/Hud";
 import { JourneyProgress } from "@/components/Journey/JourneyProgress";
+import { ZoneTrail } from "@/components/Journey/ZoneTrail";
 import { ZONE_BOUNDARIES } from "@/config/zones";
+import { TrailSection } from "@/services/journey/trail";
+import { JourneyTrailContent } from "@/types/game";
 
 interface JourneyProps {
   isEnabled: boolean;
   hud: HudContent;
+  trail: { sections: TrailSection[]; labels: JourneyTrailContent };
 }
 
 const MMO_INDEX = ZONE_BOUNDARIES.findIndex(({ zone }) => zone === "mmo");
@@ -19,7 +23,7 @@ const zoneProgress = (progress: number, start = 1) => Math.min(1, Math.max(0, (p
 
 // The page as a journey through four zones. Crossing into one changes the world itself: the backdrop plays
 // a transition into the next scene and the whole page takes on the zone's accent. No labels needed.
-export const Journey: FC<JourneyProps> = ({ isEnabled, hud }: JourneyProps) => {
+export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProps) => {
   const { zone, zoneIndex, progress, starts } = useJourney(isEnabled);
   const { visitZone } = useGameStateHook();
 
@@ -36,6 +40,14 @@ export const Journey: FC<JourneyProps> = ({ isEnabled, hud }: JourneyProps) => {
     <>
       <Backdrop zone={zone} isEnabled={isEnabled} />
       <JourneyProgress progress={progress} starts={starts} zoneIndex={zoneIndex} />
+      <ZoneTrail
+        zone={zone}
+        zoneIndex={zoneIndex}
+        zoneCount={ZONE_BOUNDARIES.length}
+        sections={trail.sections}
+        labels={trail.labels}
+        isEnabled={isEnabled}
+      />
       <Hud {...hud} isVisible={zone === "mmo"} experience={zoneProgress(progress, starts[MMO_INDEX])} />
     </>
   );

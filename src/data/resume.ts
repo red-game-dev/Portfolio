@@ -45,7 +45,7 @@ import { CodeReviewContent } from "@/types/code-review";
 import { Detail } from "@/types/details";
 import { IGamingContent, Web3Content } from "@/types/domains";
 import { ForgeContent, TalentsContent } from "@/types/forge";
-import { ArenaContent, BossLabels, Duels, FinaleContent, HudLabels } from "@/types/game";
+import { ArenaContent, BossLabels, Duels, FinaleContent, HudLabels, JourneyTrailContent } from "@/types/game";
 import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
@@ -101,6 +101,7 @@ export interface PortfolioData {
   duels: Duels;
   bossLabels: BossLabels;
   hud: HudLabels;
+  journeyTrail: JourneyTrailContent;
   arena: ArenaContent;
   finale: FinaleContent;
   platformDiagrams: PlatformDiagrams;
@@ -2677,6 +2678,11 @@ export const portfolioData: PortfolioData = {
   },
   bossLabels: { boss: "Boss", hp: "HP", defeated: "Defeated", loot: "Loot" },
   hud: { pick: "Pick a character", level: "Level", xp: "XP", bosses: "Bosses defeated" },
+  journeyTrail: {
+    zoneLabel: "Zone {index} of {total}: {zone}",
+    zones: { matrix: "The Matrix", ai: "AI", chain: "Chain", casino: "Casino", mmo: "Game world" },
+    titles: { started: "Start", about: "Who I am" },
+  },
   finale: {
     kicker: "Run complete",
     title: "Wow! You made it to the end.",

@@ -86,3 +86,15 @@ export interface HudLabels {
   xp: string;
   bosses: string;
 }
+
+// The vertical progress label: which zone and section the reader is in.
+export interface JourneyTrailContent {
+  // "{index}", "{total}" and "{zone}" are replaced.
+  zoneLabel: string;
+  zones: Record<"matrix" | "ai" | "chain" | "casino" | "mmo", string>;
+  // Titles for the parts of the page without a section intro.
+  titles: {
+    started: string;
+    about: string;
+  };
+}

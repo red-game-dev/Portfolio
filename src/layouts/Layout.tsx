@@ -6,6 +6,7 @@ import { AppLoader, AppLoadingLines } from "@/components/AppLoader";
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
 import { Journey } from "@/components/Journey";
 import { portfolioData  } from "@/data/resume";
+import { createJourneyTrail } from "@/services/journey/trail";
 
 import Footer from "./Footer";
 import Header from "./Header";
@@ -25,6 +26,9 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+// Built once: the trail only changes when the content does.
+const TRAIL = { sections: createJourneyTrail(portfolioData), labels: portfolioData.journeyTrail };
+
 const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   const { isLoading } = useAppLoaderStateHook();
 
@@ -40,6 +44,7 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
       <Journey
         isEnabled={!isLoading}
         hud={{ roster: portfolioData.roster, labels: portfolioData.hud, bossCount: portfolioData.caseStudies.length }}
+        trail={TRAIL}
       />
     </>
   );

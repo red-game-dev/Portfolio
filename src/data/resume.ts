@@ -2371,6 +2371,7 @@ export const portfolioData: PortfolioData = {
     scoreOf: "of",
     roundLabel: "Round",
     versusLabel: "VS",
+    koLabel: "K.O.",
     rounds: [
       {
         agent: "A payer can change their country to unlock instant statutory refunds.",

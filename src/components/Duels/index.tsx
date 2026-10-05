@@ -6,6 +6,7 @@ import { faRobot, faUser } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { DuelRound } from "@/components/Duels/DuelRound";
+import { Fight } from "@/components/Duels/Fight";
 import { Panel } from "@/components/Panel";
 import { Text } from "@/components/Text";
 import { SECTION_IDS } from "@/config/sections";
@@ -37,7 +38,7 @@ const Rounds = tw.ol`list-none m-0 p-0 flex flex-col gap-[26px]`;
 
 // PvP against my own agents: each round is a real call where the agent's proposal lost to mine. The
 // score counts the rounds as the reader reaches them.
-export const Duels: FC<DuelsProps> = ({ intro, rounds, scoreLabel, scoreOf, versusLabel, ...labels }: DuelsProps) => {
+export const Duels: FC<DuelsProps> = ({ intro, rounds, scoreLabel, scoreOf, versusLabel, koLabel, ...labels }: DuelsProps) => {
   const [played, setPlayed] = useState<ReadonlySet<number>>(() => new Set());
   const onReveal = useCallback((index: number) => {
     setPlayed((current) => (current.has(index) ? current : new Set(current).add(index)));
@@ -68,6 +69,7 @@ export const Duels: FC<DuelsProps> = ({ intro, rounds, scoreLabel, scoreOf, vers
             </span>
           </Score>
         </Scoreboard>
+        <Fight played={played.size} total={rounds.length} agentLabel={labels.agentLabel} humanLabel={labels.humanLabel} koLabel={koLabel} />
         <Rounds>
           {rounds.map((round, index) => (
             <DuelRound key={round.agent} {...round} index={index} labels={labels} onReveal={onReveal} />

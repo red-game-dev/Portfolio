@@ -13,6 +13,7 @@ export interface Duels {
   scoreOf: string;
   roundLabel: string;
   versusLabel: string;
+  koLabel: string;
   rounds: DuelRound[];
 }
 

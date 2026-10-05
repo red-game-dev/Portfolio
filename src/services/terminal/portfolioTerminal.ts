@@ -21,6 +21,8 @@ const GOTO_TARGETS: Record<string, string> = {
   services: "section-services",
   skills: "section-skills-ProgrammingLanguagesFrameworksSkills",
   ai: SECTION_IDS.aiUsage,
+  web3: SECTION_IDS.web3,
+  igaming: SECTION_IDS.igaming,
   cases: SECTION_IDS.caseStudies,
   characters: SECTION_IDS.roster,
   projects: "section-projects",

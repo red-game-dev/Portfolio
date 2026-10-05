@@ -31,10 +31,16 @@
   --accent-rgb: 79, 216, 255;
 }
 
-:root[data-zone="universe"] {
+:root[data-zone="chain"] {
   --accent: #b896ff;
   --accent-muted: #4b3a6b;
   --accent-rgb: 184, 150, 255;
+}
+
+:root[data-zone="casino"] {
+  --accent: #ff5fa2;
+  --accent-muted: #6b2a48;
+  --accent-rgb: 255, 95, 162;
 }
 
 :root[data-zone="mmo"] {

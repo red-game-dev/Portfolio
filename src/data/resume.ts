@@ -42,6 +42,7 @@ import { PortfolioAiUsage } from "@/types/ai-usage";
 import { CaseStudy, CaseStudyFilters, PlatformDiagrams } from "@/types/case-studies";
 import { CodeReviewContent } from "@/types/code-review";
 import { Detail } from "@/types/details";
+import { IGamingContent, Web3Content } from "@/types/domains";
 import { ForgeContent, TalentsContent } from "@/types/forge";
 import { ArenaContent, BossLabels, Duels, FinaleContent, HudLabels } from "@/types/game";
 import { Github } from "@/types/general";
@@ -103,6 +104,8 @@ export interface PortfolioData {
   finale: FinaleContent;
   platformDiagrams: PlatformDiagrams;
   codeReview: CodeReviewContent;
+  web3: Web3Content;
+  igaming: IGamingContent;
   recommendations: Recommendation[];
   aiUsage: PortfolioAiUsage;
   socialMedia: {
@@ -143,7 +146,7 @@ export const portfolioData: PortfolioData = {
       { label: "Payments", target: "for-payments" },
       { label: "Technical leadership", target: "for-leadership" },
       { label: "Full stack", target: "for-full-stack" },
-      { label: "Web3", target: "industry-web3" },
+      { label: "Web3", target: "for-web3" },
       { label: "Games and real time", target: "for-games" },
     ],
     industriesLabel: "Industries I know",
@@ -398,6 +401,14 @@ export const portfolioData: PortfolioData = {
         `Real problems from across my roles, client work and my own platform. Each boss loses health as you read how it was beaten,
         and drops the rule I kept.`,
       ],
+    },
+    web3: {
+      title: "On Chain",
+      description: ["Web3 from fan tokens at scale to a chain of my own. Each block below is somewhere it shipped, confirmed as you read it."],
+    },
+    igaming: {
+      title: "Live Table",
+      description: ["iGaming from the live casino floor to regulated platforms for clients. The cards are dealt as you arrive."],
     },
     codeReview: {
       title: "Code Review and Open Source",
@@ -2589,6 +2600,111 @@ export const portfolioData: PortfolioData = {
         result: "43 line comments, and three fix samples calling helpers that do not exist caught before posting.",
       },
     ],
+  },
+  web3: {
+    statement: "From fan tokens at scale, to a chain of my own, to lending, trading and wallet interfaces.",
+    validatorsLabel: "Where it shipped",
+    validators: ["Chiliz", "CoinOn", "reNFT", "HyperPlay"],
+    blockLabel: "Block",
+    previousLabel: "prev",
+    pendingLabel: "Pending",
+    confirmedLabel: "Confirmed",
+    capabilities: [
+      {
+        name: "Tokenisation and fan tokens",
+        detail: "Fan tokens and fan engagement for around 2M users, with on chain integrations in the mobile app.",
+        places: ["Chiliz"],
+      },
+      {
+        name: "A chain of my own, with bridges",
+        detail: "A chain in Rust on Substrate after Polkadot parachains, with bridges and indexers across Solana, Polkadot and EVM chains.",
+        places: ["CoinOn"],
+      },
+      {
+        name: "Stablecoins",
+        detail: "Stablecoin work as CTO, for clients, and on my own platform.",
+        places: ["CoinOn", "Client work", "Own platform"],
+      },
+      {
+        name: "DeFi and trading",
+        detail: `DEX and AMM, lending and staking, and a front end for configuring and deploying grid trading strategies on an on chain
+        order book, with MetaMask and WalletConnect.`,
+        places: [],
+      },
+      {
+        name: "NFT lending and marketplaces",
+        detail: "The NFT lending protocol and its marketplace V2, built with Wagmi and Ethers.",
+        places: ["reNFT"],
+      },
+      {
+        name: "Web3 game distribution",
+        detail: "A Web3 game launcher with wallet connections across EVM chains.",
+        places: ["HyperPlay"],
+      },
+      {
+        name: "Wallets and account flows",
+        detail: "A wallet platform on Polygon: wallet sign in, NFT and token balances, ERC-721 and ERC-1155 transfers by username.",
+        places: ["Own project"],
+      },
+      {
+        name: "Indexing and chain data",
+        detail: "Chain data through The Graph subgraphs and Alchemy.",
+        places: ["reNFT", "CoinOn", "HyperPlay"],
+      },
+      {
+        name: "Contract security review",
+        detail: "Solidity reviews and smart contract security audits, looking for attack vectors before they ship.",
+        places: ["HyperPlay", "CoinOn"],
+      },
+      {
+        name: "Token economy design",
+        detail: "An off chain credit and coin economy: an append only ledger, a bonding curve, coin launch and trading.",
+        places: ["Own platform"],
+      },
+    ],
+  },
+  igaming: {
+    statement: "Live casino from the inside: game UI and real time at a live casino provider, and regulated platforms for clients.",
+    liveLabel: "Live",
+    proofLabel: "Dealt at",
+    proof: ["Authentic Gaming", "KPMG"],
+    cards: [
+      {
+        name: "Live casino UI",
+        detail: "Game UI for desktop and mobile live casino tables, and the mobile app.",
+        places: ["Authentic Gaming"],
+      },
+      {
+        name: "Real time",
+        detail: "Node.js and WebSockets for live game data and streaming, with client side state kept in sync.",
+        places: ["Authentic Gaming"],
+      },
+      {
+        name: "Operator integration",
+        detail: "Internal tools that automated onboarding and integration of new casino operators.",
+        places: ["Authentic Gaming"],
+      },
+      {
+        name: "Tables on canvas",
+        detail: "A PixiJS bet table proof of concept, presented to the engineering team and the CTO.",
+        places: ["Authentic Gaming"],
+        link: { label: "View the code", url: "https://github.com/red-game-dev/Bet-Table" },
+      },
+      {
+        name: "Canvas performance",
+        detail: "Profiling tools that found the bottlenecks in canvas rendering.",
+        places: ["Authentic Gaming"],
+      },
+      {
+        name: "Regulated platforms",
+        detail: "iGaming clients needing compliance, scale and real time performance, including regulated deposit and withdrawal flows under Malta licensing.",
+        places: ["KPMG"],
+      },
+    ],
+    quote: {
+      text: "As a software engineer, Redeemer would be a true asset to that position and it comes with my heartfelt recommendation.",
+      source: "Head of Frontend, Authentic Gaming",
+    },
   },
   codeReview: {
     scope: "On my main GitHub account alone, counted on 5 October 2026. I have other accounts, so these are floors.",

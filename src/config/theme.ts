@@ -1,11 +1,13 @@
 import {
+  BlockSnapTransitionOptions,
+  CasinoSceneOptions,
+  ChainSceneOptions,
+  ChipFlipTransitionOptions,
   CollapseTransitionOptions,
   EmberSceneOptions,
   NeuralSceneOptions,
   PortalTransitionOptions,
-  RainSceneOptions,
-  StarfieldSceneOptions,
-  WarpTransitionOptions
+  RainSceneOptions
 } from "@/packages/effects/backdrop";
 import { RainConfigOverrides } from "@/packages/effects/binary-rain";
 import { BugRaidTheme, DEFAULT_BUG_RAID_THEME } from "@/packages/games/bug-raid";
@@ -36,16 +38,19 @@ export const BINARY_RAIN_CONFIG: RainConfigOverrides = {
 export const BACKDROP_THEME: {
   rain: RainSceneOptions;
   neural: NeuralSceneOptions;
-  starfield: StarfieldSceneOptions;
+  chain: ChainSceneOptions;
+  casino: CasinoSceneOptions;
   ember: EmberSceneOptions;
 } = {
   rain: { color: COLORS.accent, headColor: "#eafff3", glowColor: `rgba(${COLORS.accentRgb}, 0.8)`, intensity: 0.3 },
   neural: { linkRgb: COLORS.accentRgb, nodeColor: COLORS.accent, pulseColor: "rgba(234, 255, 243, 0.95)", intensity: 0.75 },
-  starfield: {
-    starColor: "#e8f4ff",
-    nebulaColors: ["rgba(30, 105, 68, 0.35)", "rgba(58, 52, 130, 0.3)"],
-    meteorRgb: "234, 255, 243",
-    intensity: 0.9,
+  chain: { block: [184, 150, 255], flash: [233, 220, 255], intensity: 0.7 },
+  casino: {
+    felt: "rgba(28, 120, 78, 0.38)",
+    chipColors: ["#ff5fa2", "#ffc45c", "#4fd8ff", "#e6edf3"],
+    suitColor: "rgba(255, 95, 162, 0.9)",
+    wheelColor: "rgba(255, 196, 92, 0.55)",
+    intensity: 0.6,
   },
   ember: { emberColor: "rgba(255, 196, 92, 0.95)", intensity: 0.75 },
 };
@@ -53,11 +58,13 @@ export const BACKDROP_THEME: {
 // The moments between zones, matched to each zone's accent in globals.css.
 export const TRANSITION_THEME: {
   collapse: CollapseTransitionOptions;
-  warp: WarpTransitionOptions;
+  snap: BlockSnapTransitionOptions;
+  flip: ChipFlipTransitionOptions;
   portal: PortalTransitionOptions;
 } = {
   collapse: { from: [75, 255, 165], to: [79, 216, 255], fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" },
-  warp: { streak: [220, 236, 255], flash: [184, 150, 255] },
+  snap: { from: [79, 216, 255], to: [184, 150, 255], cell: 64 },
+  flip: { chipColors: [[255, 95, 162], [255, 196, 92], [79, 216, 255]], rim: [255, 255, 255] },
   portal: { ring: [255, 196, 92], glow: [255, 170, 60] },
 };
 

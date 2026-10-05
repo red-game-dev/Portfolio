@@ -17,7 +17,7 @@ const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[
 
 const Body = tw.div`mt-[25px] lg:mt-[35px]`;
 
-// The architecture universe: how the platform is put together, before the fights it won.
+// How the platform is put together, in the chain zone beside the money paths it runs.
 export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, diagrams }: PlatformOverviewProps) => (
   <Section id={SECTION_IDS.platform}>
     <Text title={intro.title} paragraphs={intro.description} isSection={false} />

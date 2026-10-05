@@ -7,6 +7,7 @@ import { Cover } from "@/components/Cover";
 import { Duels } from "@/components/Duels";
 import { Finale } from "@/components/Finale";
 import { History } from "@/components/History";
+import { IGaming } from "@/components/IGaming";
 import { PlatformOverview } from "@/components/PlatformOverview";
 import { Projects } from "@/components/Projects";
 import { Recommendations } from "@/components/Recommendations";
@@ -16,6 +17,7 @@ import { SkillAreas } from "@/components/SkillAreas";
 import { SkillForge } from "@/components/SkillForge";
 import { Talents } from "@/components/Talents";
 import { Terminal } from "@/components/Terminal";
+import { Web3 } from "@/components/Web3";
 import { portfolioData } from "@/data/resume";
 import Layout from "@/layouts/Layout";
 import { aiUsageService } from "@/services/ai-usage";
@@ -64,9 +66,11 @@ export default function Home() {
         industries={portfolioData.headline.industries}
       />
       <AiUsage {...aiUsage} />
+      <Web3 intro={portfolioData.sections.web3} content={portfolioData.web3} />
       <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
       <PlatformOverview intro={portfolioData.sections.platform} diagrams={portfolioData.platformDiagrams} />
       <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
+      <IGaming intro={portfolioData.sections.igaming} content={portfolioData.igaming} />
       <Roster intro={portfolioData.sections.roster} {...portfolioData.roster} />
       <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
       <Talents

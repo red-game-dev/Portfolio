@@ -7,14 +7,16 @@ import { ZoneId } from "@/config/zones";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import {
   BackdropEngine,
+  BlockSnapTransition,
+  CasinoScene,
+  ChainScene,
+  ChipFlipTransition,
   CollapseTransition,
   EmberScene,
   NeuralScene,
   PortalTransition,
   RainScene,
-  StarfieldScene,
-  transitionKey,
-  WarpTransition
+  transitionKey
 } from "@/packages/effects/backdrop";
 
 interface BackdropProps {
@@ -39,13 +41,15 @@ const createEngine = (context: CanvasRenderingContext2D, zone: ZoneId) => {
     scenes: [
       (random) => new RainScene(random, BACKDROP_THEME.rain),
       (random) => new NeuralScene(random, BACKDROP_THEME.neural),
-      (random) => new StarfieldScene(random, BACKDROP_THEME.starfield),
+      (random) => new ChainScene(random, BACKDROP_THEME.chain),
+      (random) => new CasinoScene(random, BACKDROP_THEME.casino),
       (random) => new EmberScene(random, BACKDROP_THEME.ember),
     ],
     transitions: {
       [transitionKey("matrix", "ai")]: (random) => new CollapseTransition(random, TRANSITION_THEME.collapse),
-      [transitionKey("ai", "universe")]: (random) => new WarpTransition(random, TRANSITION_THEME.warp),
-      [transitionKey("universe", "mmo")]: (random) => new PortalTransition(random, TRANSITION_THEME.portal),
+      [transitionKey("ai", "chain")]: () => new BlockSnapTransition(TRANSITION_THEME.snap),
+      [transitionKey("chain", "casino")]: (random) => new ChipFlipTransition(random, TRANSITION_THEME.flip),
+      [transitionKey("casino", "mmo")]: (random) => new PortalTransition(random, TRANSITION_THEME.portal),
     },
   });
 };

@@ -9,9 +9,11 @@ export const SECTION_IDS = {
   caseStudies: "section-case-studies",
   codeReview: "section-code-review",
   duels: "section-duels",
+  igaming: "section-igaming",
   platform: "section-platform",
   roster: "section-roster",
   skillAreas: "section-skills-areas",
+  web3: "section-web3",
 } as const;
 
 // Links an application can point at, for example https://redgame.dev/#for-payments.
@@ -26,6 +28,7 @@ export const ROLE_ANCHORS = {
   leadership: "for-leadership",
   fullStack: "for-full-stack",
   games: "for-games",
+  web3: "for-web3",
 } as const;
 
 // #industry-fintech and so on filter My History and the boss fights to one sector.

@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 
 import tw from "twin.macro";
 
@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { DuelRound } from "@/components/Duels/DuelRound";
 import { Fight } from "@/components/Duels/Fight";
+import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
 import { Text } from "@/components/Text";
 import { SECTION_IDS } from "@/config/sections";
@@ -40,9 +41,14 @@ const Rounds = tw.ol`list-none m-0 p-0 flex flex-col gap-[26px]`;
 // score counts the rounds as the reader reaches them.
 export const Duels: FC<DuelsProps> = ({ intro, rounds, scoreLabel, scoreOf, versusLabel, koLabel, ...labels }: DuelsProps) => {
   const [played, setPlayed] = useState<ReadonlySet<number>>(() => new Set());
+  const { recordDuels } = useGameStateHook();
   const onReveal = useCallback((index: number) => {
     setPlayed((current) => (current.has(index) ? current : new Set(current).add(index)));
   }, []);
+
+  useEffect(() => {
+    recordDuels(played.size);
+  }, [played, recordDuels]);
 
   return (
     <Section id={SECTION_IDS.duels}>

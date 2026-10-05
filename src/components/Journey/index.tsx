@@ -1,5 +1,6 @@
 import { FC, useEffect } from "react";
 
+import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Backdrop } from "@/components/Journey/Backdrop";
 import useJourney from "@/components/Journey/hooks/useJourney";
 import { Hud, HudContent } from "@/components/Journey/Hud";
@@ -20,10 +21,12 @@ const zoneProgress = (progress: number, start = 1) => Math.min(1, Math.max(0, (p
 // a transition into the next scene and the whole page takes on the zone's accent. No labels needed.
 export const Journey: FC<JourneyProps> = ({ isEnabled, hud }: JourneyProps) => {
   const { zone, zoneIndex, progress, starts } = useJourney(isEnabled);
+  const { visitZone } = useGameStateHook();
 
   useEffect(() => {
     document.documentElement.dataset.zone = zone;
-  }, [zone]);
+    visitZone(zone);
+  }, [visitZone, zone]);
 
   return (
     <>

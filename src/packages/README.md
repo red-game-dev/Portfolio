@@ -38,10 +38,12 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `encoding/binary` | Text to binary, same length masks, and the frame by frame decode used for text reveals |
 | `games/bug-raid` | A playable arcade game on `frame-loop` and `graphics/canvas`, with pointer, touch and keyboard input |
 | `graphics/canvas` | `CanvasRenderer` base for DPR aware surfaces and `GlyphAtlas` for GPU friendly text drawing |
+| `graphics/pixel-art` | Pixel maps to one SVG path per colour, for crisp sprites at any size |
 | `insights/ai-usage` | Domain model, guard, validators, mapper and service for an AI usage breakdown, independent of any icon library or content store |
 | `insights/career` | `TenureCalculator`: years in a role from date ranges, overlaps merged |
 | `insights/skills` | Years of real use per skill from roles and projects, with a rarity policy |
 | `interaction/terminal` | A command registry, input parser and session for a text terminal, with no rendering of its own |
+| `math/hex-grid` | Pointy topped hex grid geometry and a snaking route through it, for map layouts |
 | `math/random` | Seedable random source for repeatable visuals and tests |
 
 Tests mirror this tree under `__tests__/src/packages/`.

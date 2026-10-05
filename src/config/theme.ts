@@ -68,3 +68,16 @@ export const BUG_RAID_THEME: BugRaidTheme = {
   production: "#ffc45c",
   splat: "#ffc45c",
 };
+
+// The finale's rain, in the MMO zone's gold.
+export const FINALE_RAIN_CONFIG: RainConfigOverrides = {
+  theme: {
+    background: "#0d0b06",
+    trail: "#ffc45c",
+    head: "#fff3d6",
+    letter: "#fff8e8",
+    freshLetter: "#ffffff",
+    caret: "#ffc45c",
+    glow: "rgba(255, 196, 92, 0.85)",
+  },
+};

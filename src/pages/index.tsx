@@ -4,6 +4,7 @@ import { Arena } from "@/components/Arena";
 import { CaseStudies } from "@/components/CaseStudies";
 import { Cover } from "@/components/Cover";
 import { Duels } from "@/components/Duels";
+import { Finale } from "@/components/Finale";
 import { History } from "@/components/History";
 import { PlatformOverview } from "@/components/PlatformOverview";
 import { Projects } from "@/components/Projects";
@@ -14,7 +15,6 @@ import { SkillAreas } from "@/components/SkillAreas";
 import { SkillForge } from "@/components/SkillForge";
 import { Talents } from "@/components/Talents";
 import { Terminal } from "@/components/Terminal";
-import { Text } from "@/components/Text";
 import { portfolioData } from "@/data/resume";
 import Layout from "@/layouts/Layout";
 import { aiUsageService } from "@/services/ai-usage";
@@ -85,9 +85,13 @@ export default function Home() {
         recommendations={portfolioData.recommendations}
       />
       <Arena intro={portfolioData.sections.arena} content={portfolioData.arena} />
-      <Text
-        title={portfolioData.sections.conclusion.title}
-        paragraphs={portfolioData.sections.conclusion.description}
+      <Finale
+        content={portfolioData.finale}
+        bossCount={portfolioData.caseStudies.length}
+        duelCount={portfolioData.duels.rounds.length}
+        email={portfolioData.details.email}
+        linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
+        cvUrl={portfolioData.cv}
       />
     </Layout>
   );

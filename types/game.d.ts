@@ -42,6 +42,43 @@ export interface ArenaContent {
   production: string;
 }
 
+export interface FinaleRank {
+  // Objectives completed to reach this rank.
+  min: number;
+  name: string;
+}
+
+export interface FinaleContent {
+  kicker: string;
+  title: string;
+  screen: string[];
+  screenLabel: string;
+  summaryTitle: string;
+  stats: {
+    zones: string;
+    bosses: string;
+    duels: string;
+    character: string;
+    raid: string;
+    time: string;
+  };
+  none: string;
+  notPlayed: string;
+  rankLabel: string;
+  // "{done}" and "{total}" are replaced.
+  objectives: string;
+  ranks: FinaleRank[];
+  finalQuest: string;
+  contactNote: string;
+  emailLabel: string;
+  emailSubject: string;
+  // "{rank}", "{bosses}" and "{duels}" are replaced, so my inbox sees how far the run went.
+  emailBody: string;
+  linkedInLabel: string;
+  cvLabel: string;
+  restartLabel: string;
+}
+
 export interface HudLabels {
   // Shown, and linked to the roster, until the reader has picked a character.
   pick: string;

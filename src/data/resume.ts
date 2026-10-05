@@ -42,7 +42,7 @@ import { PortfolioAiUsage } from "@/types/ai-usage";
 import { CaseStudy, CaseStudyFilters, PlatformDiagrams } from "@/types/case-studies";
 import { Detail } from "@/types/details";
 import { ForgeContent, TalentsContent } from "@/types/forge";
-import { ArenaContent, BossLabels, Duels, HudLabels } from "@/types/game";
+import { ArenaContent, BossLabels, Duels, FinaleContent, HudLabels } from "@/types/game";
 import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
@@ -99,6 +99,7 @@ export interface PortfolioData {
   bossLabels: BossLabels;
   hud: HudLabels;
   arena: ArenaContent;
+  finale: FinaleContent;
   platformDiagrams: PlatformDiagrams;
   recommendations: Recommendation[];
   aiUsage: PortfolioAiUsage;
@@ -416,15 +417,6 @@ export const portfolioData: PortfolioData = {
       title: "Recommendations",
       description: [
         "I have recommendation letters from KPMG, Authentic Gaming, reNFT and more, and I can share them on request. A few lines from them:",
-      ],
-    },
-    conclusion: {
-      title: "Wow!",
-      description: [
-        `
-        You made it to the end! How did you find my journey? 
-        If you'd like to reach out, the best time would be after 4:30 PM CET on business days. I look forward to our future conversation!
-      `,
       ],
     },
   },
@@ -2408,6 +2400,39 @@ export const portfolioData: PortfolioData = {
   },
   bossLabels: { boss: "Boss", hp: "HP", defeated: "Defeated", loot: "Loot" },
   hud: { pick: "Pick a character", level: "Level", xp: "XP", bosses: "Bosses defeated" },
+  finale: {
+    kicker: "Run complete",
+    title: "Wow! You made it to the end.",
+    screen: ["THANKS FOR", "PLAYING"],
+    screenLabel: "Thanks for playing",
+    summaryTitle: "Your run",
+    stats: {
+      zones: "Zones crossed",
+      bosses: "Bosses defeated",
+      duels: "Duels won",
+      character: "Character",
+      raid: "Bug Raid best",
+      time: "Time on this run",
+    },
+    none: "None picked",
+    notPlayed: "Not played",
+    rankLabel: "Rank",
+    objectives: "{done} of {total} objectives",
+    ranks: [
+      { min: 0, name: "Explorer" },
+      { min: 2, name: "Adventurer" },
+      { min: 4, name: "Champion" },
+      { min: 5, name: "Legend" },
+    ],
+    finalQuest: "Final quest: start a conversation",
+    contactNote: "How did you find the journey? The best time to reach me is after 4:30 PM CET on business days.",
+    emailLabel: "Email me",
+    emailSubject: "I finished your portfolio run",
+    emailBody: "Rank {rank}. Bosses {bosses}, duels {duels}.",
+    linkedInLabel: "LinkedIn",
+    cvLabel: "Download my CV",
+    restartLabel: "New game+",
+  },
   arena: {
     boardLabel: "Bug Raid game board",
     hint: "Click or tap a bug to squash it, or use the arrow keys to aim and Space to squash. Regressions take two hits and flaky bugs jump.",

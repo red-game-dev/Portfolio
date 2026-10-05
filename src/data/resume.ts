@@ -344,6 +344,7 @@ export const portfolioData: PortfolioData = {
             "An adapter so old and new run side by side behind a feature flag",
             "A working proof of concept before commitment",
             "Rollout plan per market with rollback",
+            "A business case that shows what the move saves, licence and running cost included",
           ],
           emailSubject: "Platform migration",
         },
@@ -605,27 +606,22 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      title: "Founder & Architect, Own Products",
+      title: "Founder & Architect, Gamified Social Network Platform",
       from: "2025",
-      outcome: "26 packages and 6 apps, 2,100+ tests and 37 adapter contracts",
+      outcome: "Payments, ledgers, ads and real time, with every vendor and host switchable by configuration",
       description: [
-        "My own products, built on one TypeScript platform: payments, double entry ledgers, an ads engine and real time streams.",
+        "A gamified social network platform of my own: payments, double entry ledgers, an ads engine with its own auction, and real time feeds.",
         'I architect it and ship it with AI agents, inside the context, rules, checks and reviews described in the "How I use AI" section.',
       ],
       bullets: [
-        `Every external vendor sits behind an adapter: 37 contracts across payments, storage, auth, notifications, CMS, ads,
-        moderation, real time, feature flags and infrastructure, so a provider can be added, run in parallel and switched by configuration`,
-        `Designed for enterprise volume and built so infrastructure can be switched: keyset pagination against declared indexes,
-        bounded scans, batched fan out, and every host behind an adapter as well`,
-        "Lean dependencies: most domain packages run on a handful of third party libraries, and the cross cutting machinery is written in house",
-        `Plain TypeScript core: only 6 of about 1,600 domain, engine, service and package files import React, Next.js or NestJS, and
-        framework code sits in adapters and entry points`,
-        "26 packages and 6 apps, 168 migrations, 32 locales and close to 400 pull requests",
-        "2,100+ test files, including 165 end to end specs and 77 architecture tests",
-        "600+ staging scripts exercise the money paths, with every money moving step behind an explicit flag",
+        `Every external vendor and host sits behind an adapter, so a provider can be added, run in parallel and switched by
+        configuration, with a written cut over procedure for anything that holds data`,
+        "Designed for enterprise volume: keyset pagination against declared indexes, bounded scans and batched fan out",
+        "Plain TypeScript core, with framework code confined to adapters and entry points",
+        "Lean dependencies: most domain packages run on a handful of libraries, and the cross cutting machinery is written in house",
+        "Money paths tested through the real API on synthetic data at real volume, with every money moving step behind an explicit flag",
         "Acts as an OIDC provider for client apps, with consent and a separate user identifier per app",
-        `Agent setup: 21 skills adapted from an open source collection and extended, 475 memory files, 3,200 lines of repo
-        instructions and a design review subagent`,
+        "Agent setup: skills adapted from an open source collection and extended, a design review subagent and decision registers",
       ],
       techStack: [
         "TypeScript",
@@ -2014,6 +2010,20 @@ export const portfolioData: PortfolioData = {
   ],
   caseStudies: [
     {
+      area: "Architecture & cost",
+      title: "A migration that pays for itself",
+      summary: [
+        "Built the business case and the architecture to cut an enterprise platform's yearly licence and running cost by about 80%, infrastructure included.",
+      ],
+      points: [
+        "A target architecture with the old and new platforms side by side behind one adapter, switched per market by a feature flag",
+        "A working proof of concept before commitment, so the case rests on running software instead of slides",
+        "Licence, hosting and infrastructure counted for both the old and the new stack",
+      ],
+      tags: ["Business case", "Migration", "Adapters"],
+      audiences: ["architecture"],
+    },
+    {
       area: "Architecture",
       title: "No vendor lock-in, by design",
       summary: ["I design so a vendor can be replaced without rewriting the product."],
@@ -2406,11 +2416,10 @@ export const portfolioData: PortfolioData = {
         {
           period: "2026",
           title: "My own platform",
-          description: `Claude Code is my main engineering tool on a large TypeScript monorepo: 26 packages and 6 apps, 2,100+ test
-          files, 168 migrations, 32 locales and close to 400 pull requests. Around it sit 21 skills adapted from an open source
-          collection and extended with my own, including an engineering discipline skill of four phases and 28 gates, a design
-          review subagent, and private published pages that keep the working record: decision registers, review pages teammates
-          use as their fix list, and live trackers.`,
+          description: `Claude Code is my main engineering tool on a large TypeScript monorepo for payments, ledgers, an ads engine and
+          real time feeds. Around it sit skills adapted from an open source collection and extended with my own, such as an
+          engineering discipline skill organised as phases and gates, a design review subagent, and private published pages that keep
+          the working record: decision registers, review pages teammates use as their fix list, and live trackers.`,
           isCurrent: true,
         },
         {

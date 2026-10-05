@@ -61,6 +61,7 @@ export default function Home() {
         experience={portfolioData.experience}
         education={portfolioData.education}
         labels={portfolioData.historyLabels}
+        industries={portfolioData.headline.industries}
       />
       <AiUsage {...aiUsage} />
       <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
@@ -78,6 +79,7 @@ export default function Home() {
         intro={portfolioData.sections.caseStudies}
         filters={portfolioData.caseStudyFilters}
         audiences={portfolioData.headline.audiences}
+        industries={portfolioData.headline.industries}
         labels={portfolioData.bossLabels}
       />
       <Duels intro={portfolioData.sections.duels} {...portfolioData.duels} />

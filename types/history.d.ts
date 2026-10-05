@@ -9,4 +9,8 @@ export interface HistoryLabels {
   to: string;
   showMore: string;
   showLess: string;
+  industryFilter: string;
+  allIndustries: string;
+  // "{count}" and "{industry}" are replaced.
+  industryMatches: string;
 }

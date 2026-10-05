@@ -1,3 +1,5 @@
+import { Industry } from "@/types/industry";
+
 export type Audience = "payments" | "ai" | "architecture";
 
 export interface CaseStudy {
@@ -11,6 +13,8 @@ export interface CaseStudy {
   audiences: Audience[];
   // The rule kept after the fight, shown as the boss's loot.
   loot: string;
+  // Sectors it applies to, for the industry filter. Left out where naming one would attribute it.
+  industries?: Industry[];
 }
 
 export interface DiagramNode {

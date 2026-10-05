@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -6,6 +6,7 @@ import { Panel } from "@/components/Panel";
 import { RegionDialog } from "@/components/Projects/RegionDialog";
 import { WorldMap } from "@/components/Projects/WorldMap";
 import { Text } from "@/components/Text";
+import { ROLE_ANCHORS } from "@/config/sections";
 import { toMonthIndex } from "@/packages/insights/career";
 import { ProjectDetail, ProjectKind, ProjectMapContent } from "@/types/projects";
 import { SectionIntros } from "@/types/sections-intros";
@@ -19,6 +20,9 @@ interface ProjectsProps {
 const KIND_ORDER: ProjectKind[] = ["game", "web3", "product", "community", "archive"];
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
+
+// Target for the "Games and real time" link on the first screen, which also filters the map to games.
+const Anchor = tw.span`absolute top-0 left-0`;
 
 const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[25px] lg:mt-[35px] mb-[18px] text-sm text-[#999]`;
 
@@ -40,12 +44,26 @@ export const Projects: FC<ProjectsProps> = ({ projects, intro, content }: Projec
   const ordered = useMemo(() => [...projects].sort((first, second) => toMonthIndex(first.from) - toMonthIndex(second.from)), [projects]);
   const kinds = KIND_ORDER.filter((kind) => ordered.some((project) => project.kind === kind));
 
+  useEffect(() => {
+    const sync = () => {
+      if (window.location.hash === `#${ROLE_ANCHORS.games}`) {
+        setActiveKind("game");
+      }
+    };
+
+    sync();
+    window.addEventListener("hashchange", sync);
+
+    return () => window.removeEventListener("hashchange", sync);
+  }, []);
+
   const period = (project: ProjectDetail) => labels.period.replace("{from}", project.from).replace("{to}", project.to ?? labels.present);
   const describe = (project: ProjectDetail) => `${project.title}, ${project.category}, ${period(project)}`;
   const open = openIndex === null ? null : ordered[openIndex];
 
   return (
     <Section id="section-projects">
+      <Anchor id={ROLE_ANCHORS.games} aria-hidden="true" />
       <Text title={intro.title} paragraphs={intro.description} isSection={false} />
       <Filters role="group" aria-label={labels.filter}>
         <span>{labels.filter}</span>

@@ -6,7 +6,7 @@ import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
 import { CharacterCard } from "@/components/Roster/CharacterCard";
 import { Text } from "@/components/Text";
-import { SECTION_IDS } from "@/config/sections";
+import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
 import { TenureCalculator } from "@/packages/insights/career";
 import { Roster as RosterContent } from "@/types/roster";
@@ -17,6 +17,9 @@ interface RosterProps extends RosterContent {
 }
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
+
+// Target for the "Technical leadership" link on the first screen.
+const Anchor = tw.span`absolute top-0 left-0`;
 
 const Cards = tw.div`grid gap-[18px] md:grid-cols-2 mt-[10px]`;
 
@@ -30,6 +33,7 @@ export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters }: Ros
 
   return (
     <Section id={SECTION_IDS.roster}>
+      <Anchor id={ROLE_ANCHORS.leadership} aria-hidden="true" />
       <Text title={intro.title} paragraphs={intro.description} isSection={false} />
       <Panel>
         <Cards ref={gridRef}>

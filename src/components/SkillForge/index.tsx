@@ -4,6 +4,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { Station } from "@/components/SkillForge/Station";
 import { Text } from "@/components/Text";
+import { ROLE_ANCHORS } from "@/config/sections";
 import { DEFAULT_RARITY_TIERS } from "@/packages/insights/skills";
 import { ForgeStation } from "@/services/skills";
 import { ForgeContent } from "@/types/forge";
@@ -18,6 +19,9 @@ interface SkillForgeProps {
 const RARITY_COLOURS = { legendary: "#ffc45c", epic: "#b388ff", rare: "#5aa9ff", common: "#9aa0a6" };
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
+
+// Target for the "Full stack" link on the first screen.
+const Anchor = tw.span`absolute top-0 left-0`;
 
 const Legend = tw.ul`list-none m-0 mt-[20px] p-0 flex flex-row flex-wrap gap-[10px] text-xs`;
 
@@ -40,6 +44,7 @@ const Stations = tw.div`flex flex-col gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[
 // The skills as a forge: no self ratings, only rarity earned from years of real use.
 export const SkillForge: FC<SkillForgeProps> = ({ intro, stations, content }: SkillForgeProps) => (
   <Section id="section-skills">
+    <Anchor id={ROLE_ANCHORS.fullStack} aria-hidden="true" />
     <Text title={intro.title} paragraphs={intro.description} isSection={false} />
     <Legend aria-label={content.legendYears}>
       {DEFAULT_RARITY_TIERS.map((tier) => (

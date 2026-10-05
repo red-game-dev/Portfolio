@@ -1,3 +1,4 @@
+import { AUDIENCE_ANCHORS, industryAnchor, ROLE_ANCHORS } from "@/config/sections";
 import { portfolioData } from "@/data/resume";
 
 const normalise = (name: string) => name.trim().toLowerCase();
@@ -35,5 +36,25 @@ describe("portfolio copy", () => {
 
   test("nothing in the portfolio data uses an em dash", () => {
     expect(JSON.stringify(portfolioData)).not.toContain(String.fromCharCode(0x2014));
+  });
+});
+
+describe("first screen chips", () => {
+  test("every industry chip lands on at least one role", () => {
+    const empty = portfolioData.headline.industries
+      .filter(({ industry }) => !portfolioData.experience.some((entry) => entry.industries?.includes(industry)))
+      .map(({ label }) => label);
+
+    expect(empty).toEqual([]);
+  });
+
+  test("every role link points at an anchor that exists on the page", () => {
+    const anchors = [
+      ...Object.values(AUDIENCE_ANCHORS),
+      ...Object.values(ROLE_ANCHORS),
+      ...portfolioData.headline.industries.map(({ industry }) => industryAnchor(industry)),
+    ];
+
+    expect(portfolioData.headline.roles.filter(({ target }) => !anchors.includes(target))).toEqual([]);
   });
 });

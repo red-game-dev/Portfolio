@@ -1,3 +1,5 @@
+import { Industry } from "@/types/industry";
+
 export interface Resume {
   title: string;
   description: string[];
@@ -7,6 +9,8 @@ export interface Resume {
   isVenture?: boolean;
   bullets?: string[];
   techStack?: string[];
+  // Sectors this role worked in, for the industry filter.
+  industries?: Industry[];
   // false keeps an entry out of the skill forge's years, for open ended or self paced study.
   countsForSkills?: boolean;
   from: string;

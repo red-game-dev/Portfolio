@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -6,9 +6,10 @@ import { BossCard } from "@/components/CaseStudies/BossCard";
 import { useAudienceFromHash } from "@/components/CaseStudies/hooks/useAudienceFromHash";
 import { Text } from "@/components/Text";
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
+import useIndustryFromHash from "@/hooks/useIndustryFromHash";
 import { CaseStudy, CaseStudyFilters } from "@/types/case-studies";
 import { BossLabels } from "@/types/game";
-import { AudienceLink } from "@/types/headline";
+import { AudienceLink, IndustryLink } from "@/types/headline";
 import { SectionIntros } from "@/types/sections-intros";
 
 interface CaseStudiesProps {
@@ -16,6 +17,7 @@ interface CaseStudiesProps {
   caseStudies: CaseStudy[];
   filters: CaseStudyFilters;
   audiences: AudienceLink[];
+  industries: IndustryLink[];
   labels: BossLabels;
 }
 
@@ -42,9 +44,14 @@ const Chip = styled.button(({ isSelected }: ChipProps) => [
 const Bosses = tw.div`grid gap-[18px] lg:grid-cols-2 mt-[18px]`;
 
 // Case studies as PvE: each problem is a boss, beaten on screen as you read it.
-export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, audiences, labels }: CaseStudiesProps) => {
+export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, audiences, industries, labels }: CaseStudiesProps) => {
   const [audience, setAudience] = useAudienceFromHash();
-  const visible = audience ? caseStudies.filter((caseStudy) => caseStudy.audiences.includes(audience)) : caseStudies;
+  const industryKeys = useMemo(() => industries.map((link) => link.industry), [industries]);
+  const [industry] = useIndustryFromHash(industryKeys);
+  const forAudience = audience ? caseStudies.filter((caseStudy) => caseStudy.audiences.includes(audience)) : caseStudies;
+  const forIndustry = industry ? forAudience.filter((caseStudy) => caseStudy.industries?.includes(industry)) : forAudience;
+  // An industry with no boss fights tagged leaves the list as it was rather than empty.
+  const visible = forIndustry.length > 0 ? forIndustry : forAudience;
 
   return (
     <Section id={SECTION_IDS.caseStudies}>

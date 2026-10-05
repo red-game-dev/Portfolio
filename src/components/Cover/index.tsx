@@ -9,7 +9,7 @@ import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoader
 import { DecodedText } from "@/components/DecodedText";
 import { Image } from "@/components/Image";
 import TypingAnimation from "@/components/TypingAnimation";
-import { AUDIENCE_ANCHORS } from "@/config/sections";
+import { industryAnchor } from "@/config/sections";
 import { Headline } from "@/types/headline";
 
 interface CoverProps {
@@ -62,6 +62,9 @@ const Action = styled.a(() => [
 ]);
 
 const Audiences = tw.nav`flex flex-row flex-wrap items-center gap-[8px] text-xs text-[#999]`;
+
+// Phones stop at the roles; the full industry filter waits at the top of My History.
+const Industries = tw.nav`hidden md:flex flex-row flex-wrap items-center gap-[8px] text-xs text-[#999]`;
 
 const AudienceLink = styled.a(() => [
   tw`text-xs leading-none no-underline text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[7px] px-[11px] border-[1px] border-solid border-[var(--accent-muted)]`,
@@ -157,12 +160,20 @@ export const Cover = ({ intro, image, typingsTitles, headline, cvUrl, email }: C
         </Actions>
         <Audiences aria-label={headline.audiencesLabel}>
           <span>{headline.audiencesLabel}</span>
-          {headline.audiences.map(({ audience, label }) => (
-            <AudienceLink key={audience} href={`#${AUDIENCE_ANCHORS[audience]}`}>
+          {headline.roles.map(({ label, target }) => (
+            <AudienceLink key={label} href={`#${target}`}>
               {label}
             </AudienceLink>
           ))}
         </Audiences>
+        <Industries aria-label={headline.industriesLabel}>
+          <span>{headline.industriesLabel}</span>
+          {headline.industries.map(({ industry, label }) => (
+            <AudienceLink key={industry} href={`#${industryAnchor(industry)}`}>
+              {label}
+            </AudienceLink>
+          ))}
+        </Industries>
       </Essentials>
       <ScrollerLink href="#section-about" aria-label="Learn more about me">
         <ScrollerIcon icon={faChevronDown} />

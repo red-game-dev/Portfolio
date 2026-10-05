@@ -137,6 +137,28 @@ export const portfolioData: PortfolioData = {
       { audience: "ai", label: "AI engineering" },
       { audience: "architecture", label: "Architecture" },
     ],
+    roles: [
+      { label: "Architecture", target: "for-architecture" },
+      { label: "AI engineering", target: "for-ai-engineering" },
+      { label: "Payments", target: "for-payments" },
+      { label: "Technical leadership", target: "for-leadership" },
+      { label: "Full stack", target: "for-full-stack" },
+      { label: "Web3", target: "industry-web3" },
+      { label: "Games and real time", target: "for-games" },
+    ],
+    industriesLabel: "Industries I know",
+    industries: [
+      { industry: "ecommerce", label: "E-commerce" },
+      { industry: "fintech", label: "Fintech and payments" },
+      { industry: "igaming", label: "iGaming" },
+      { industry: "gamePublishing", label: "Game publishing" },
+      { industry: "web3", label: "Web3 and blockchain" },
+      { industry: "sports", label: "Sports and fan engagement" },
+      { industry: "social", label: "Social platforms" },
+      { industry: "pharmatech", label: "Pharmatech" },
+      { industry: "consulting", label: "Enterprise consulting" },
+      { industry: "travel", label: "Travel and content" },
+    ],
   },
   terminal: {
     prompt: "visitor@redgame.dev:~$",
@@ -645,10 +667,14 @@ export const portfolioData: PortfolioData = {
     to: "to",
     showMore: "Show {count} more",
     showLess: "Show less",
+    industryFilter: "Industries I know",
+    allIndustries: "All",
+    industryMatches: "{count} roles in {industry}",
   },
   experience: [
     {
       title: "Lead Software Architect / Enterprise Architect, Conrad Electronic Group",
+      industries: ["ecommerce", "fintech", "consulting"],
       from: "Nov 2025",
       outcome: "Roughly 5M+ monthly users, working with 90+ people up to CTO level",
       description: [
@@ -732,6 +758,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Senior Full Stack Engineer, HyperPlay Labs",
+      industries: ["gamePublishing", "web3"],
       from: "Oct 2023",
       to: "Nov 2025",
       description: [
@@ -786,6 +813,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Senior Frontend Engineer, reNFT Labs",
+      industries: ["web3"],
       from: "Jan 2023",
       to: "Aug 2023",
       description: [
@@ -833,6 +861,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Founder & Architect, Gamified Social Network Platform",
+      industries: ["fintech", "sports", "social"],
       isVenture: true,
       from: "2025",
       outcome: "Payments, ledgers, ads and real time, with every vendor and host switchable by configuration",
@@ -879,6 +908,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Founder, CEO at TasteTravellers",
+      industries: ["travel"],
       from: "Feb 2018",
       description: [
         "Our popular travel page & community",
@@ -899,6 +929,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Founder, CEO & CTO, Gods of Zushin",
+      industries: ["gamePublishing"],
       from: "Apr 2015",
       description: [
         "An achievement on its own with over 5 years in production environment.",
@@ -941,6 +972,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Mobile Core Engineer / Architect, Chiliz",
+      industries: ["web3", "sports"],
       from: "Nov 2019",
       outcome: "Around 2M users, 7 product squads and 30+ engineers",
       to: "Nov 2022",
@@ -1009,6 +1041,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Chief Technology Officer, CoinOn",
+      industries: ["web3"],
       from: "Nov 2021",
       to: "Jan 2022",
       description: [
@@ -1059,6 +1092,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Software Engineer / Technical Lead for Client Projects, KPMG",
+      industries: ["fintech", "igaming", "gamePublishing", "pharmatech", "consulting"],
       from: "Feb 2019",
       to: "Sep 2019",
       description: [
@@ -1119,6 +1153,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Frontend Game Engineer, AuthenticGaming",
+      industries: ["igaming"],
       from: "Jul 2017",
       to: "Jan 2019",
       description: [
@@ -2640,6 +2675,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Adapters", "Feature flags", "Expand and contract"],
       audiences: ["architecture"],
+      industries: ["ecommerce", "social"],
       loot: "Any vendor or host can be swapped by configuration",
     },
     {
@@ -2657,6 +2693,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Plain TypeScript core", "Adapters", "A binding per runtime"],
       audiences: ["architecture"],
+      industries: ["ecommerce", "social"],
       loot: "Business rules that outlive the framework",
     },
     {
@@ -2676,6 +2713,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Keyset pagination", "Redis", "Offline first"],
       audiences: ["architecture", "payments"],
+      industries: ["fintech", "social"],
       loot: "Write for twenty million rows, not two hundred",
     },
     {
@@ -2722,6 +2760,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Refunds", "Jurisdiction", "Code review"],
       audiences: ["payments", "ai"],
+      industries: ["fintech"],
       loot: "Check a cheat path against the write path's guards",
     },
     {
@@ -2736,6 +2775,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Tax", "Multi currency and FX", "KYC and AML"],
       audiences: ["payments"],
+      industries: ["fintech"],
       loot: "Every charge remembers the rules it was taken under",
     },
     {
@@ -2750,6 +2790,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Double entry", "Idempotency", "Reconciliation"],
       audiences: ["payments"],
+      industries: ["fintech"],
       loot: "Confirm money bugs through the endpoint",
     },
     {
@@ -2766,6 +2807,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Idempotency", "Signed tokens", "Ads billing"],
       audiences: ["payments"],
+      industries: ["fintech", "social"],
       loot: "The step that can refuse runs first",
     },
     {

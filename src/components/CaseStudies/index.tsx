@@ -2,21 +2,21 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { BoxTile } from "@/components/BoxTile";
+import { BossCard } from "@/components/CaseStudies/BossCard";
 import { useAudienceFromHash } from "@/components/CaseStudies/hooks/useAudienceFromHash";
-import { PlatformDiagrams } from "@/components/CaseStudies/PlatformDiagrams";
 import { Text } from "@/components/Text";
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
-import { CaseStudy, CaseStudyFilters, PlatformDiagrams as PlatformDiagramsContent } from "@/types/case-studies";
+import { CaseStudy, CaseStudyFilters } from "@/types/case-studies";
+import { BossLabels } from "@/types/game";
 import { AudienceLink } from "@/types/headline";
 import { SectionIntros } from "@/types/sections-intros";
 
 interface CaseStudiesProps {
   intro: SectionIntros;
   caseStudies: CaseStudy[];
-  diagrams: PlatformDiagramsContent;
   filters: CaseStudyFilters;
   audiences: AudienceLink[];
+  labels: BossLabels;
 }
 
 interface ChipProps {
@@ -28,12 +28,7 @@ const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[
 // Targets for #for-payments and #for-architecture; #for-ai-engineering lives on the AI section.
 const Anchor = tw.span`absolute top-0 left-0`;
 
-const Stack = tw.div`flex flex-col gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[35px]`;
-
-const Content = tw.div`relative text-base ml-[-1px] md:p-[25px] lg:p-[35px] bg-[#101010]
-border-[1px] border-r-[0px] border-solid border-[#1E1E1E]`;
-
-const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] p-[20px] md:p-0 md:mb-[10px] text-sm text-[#999]`;
+const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[25px] lg:mt-[35px] text-sm text-[#999]`;
 
 const Chip = styled.button(({ isSelected }: ChipProps) => [
   tw`cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full border-[1px] border-solid border-[var(--accent-muted)] bg-[#1d1d1d]
@@ -44,9 +39,10 @@ const Chip = styled.button(({ isSelected }: ChipProps) => [
   isSelected && tw`bg-[var(--accent)] text-[#101010]`,
 ]);
 
-const List = tw.div`flex flex-wrap flex-row justify-center`;
+const Bosses = tw.div`grid gap-[18px] lg:grid-cols-2 mt-[18px]`;
 
-export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, diagrams, filters, audiences }: CaseStudiesProps) => {
+// Case studies as PvE: each problem is a boss, beaten on screen as you read it.
+export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, audiences, labels }: CaseStudiesProps) => {
   const [audience, setAudience] = useAudienceFromHash();
   const visible = audience ? caseStudies.filter((caseStudy) => caseStudy.audiences.includes(audience)) : caseStudies;
 
@@ -55,43 +51,28 @@ export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, diagrams
       <Anchor id={AUDIENCE_ANCHORS.payments} aria-hidden="true" />
       <Anchor id={AUDIENCE_ANCHORS.architecture} aria-hidden="true" />
       <Text title={intro.title} paragraphs={intro.description} isSection={false} />
-      <Stack>
-        <PlatformDiagrams {...diagrams} />
-        <Content>
-          <Filters role="group" aria-label={filters.label}>
-            <span>{filters.label}</span>
-            <Chip type="button" isSelected={audience === null} aria-pressed={audience === null} onClick={() => setAudience(null)}>
-              {filters.allLabel}
-            </Chip>
-            {audiences.map((link) => (
-              <Chip
-                key={link.audience}
-                type="button"
-                isSelected={audience === link.audience}
-                aria-pressed={audience === link.audience}
-                onClick={() => setAudience(link.audience)}
-              >
-                {link.label}
-              </Chip>
-            ))}
-          </Filters>
-          <List>
-            {visible.map((caseStudy, index) => (
-              <BoxTile
-                key={caseStudy.title}
-                withRandomBorder={index % 3 === 0}
-                isFullBorder={visible.length % 2 > 0 && index === visible.length - 1}
-                subtitle={caseStudy.area}
-                activeSubtitle={true}
-                title={caseStudy.title}
-                description={caseStudy.summary}
-                bullets={caseStudy.points}
-                tags={caseStudy.tags}
-              />
-            ))}
-          </List>
-        </Content>
-      </Stack>
+      <Filters role="group" aria-label={filters.label}>
+        <span>{filters.label}</span>
+        <Chip type="button" isSelected={audience === null} aria-pressed={audience === null} onClick={() => setAudience(null)}>
+          {filters.allLabel}
+        </Chip>
+        {audiences.map((link) => (
+          <Chip
+            key={link.audience}
+            type="button"
+            isSelected={audience === link.audience}
+            aria-pressed={audience === link.audience}
+            onClick={() => setAudience(link.audience)}
+          >
+            {link.label}
+          </Chip>
+        ))}
+      </Filters>
+      <Bosses>
+        {visible.map((caseStudy) => (
+          <BossCard key={caseStudy.title} {...caseStudy} labels={labels} />
+        ))}
+      </Bosses>
     </Section>
   );
 };

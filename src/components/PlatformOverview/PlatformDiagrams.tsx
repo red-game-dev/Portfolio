@@ -2,7 +2,7 @@ import { FC, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { Panel, PanelText, PanelTitle } from "@/components/Panel";
+import { Panel } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { PlatformDiagrams as PlatformDiagramsContent } from "@/types/case-studies";
 
@@ -12,7 +12,7 @@ interface PlayProps {
 
 const LOOP_SECONDS = 3.6;
 
-const Grid = tw.div`grid gap-[22px] mt-[22px] xl:grid-cols-2`;
+const Grid = tw.div`grid gap-[22px] xl:grid-cols-2`;
 
 const Diagram = tw.figure`m-0 flex flex-col gap-[16px] p-[20px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
@@ -131,16 +131,12 @@ const Inputs = tw.ul`list-none m-0 p-0 grid grid-cols-2 gap-[10px]`;
 
 const Input = tw.li`p-[10px] border-[1px] border-dashed border-[var(--accent-muted)]`;
 
-export const PlatformDiagrams: FC<PlatformDiagramsContent> = ({ title, description, adapters, moneyFlow }: PlatformDiagramsContent) => {
+export const PlatformDiagrams: FC<PlatformDiagramsContent> = ({ adapters, moneyFlow }: PlatformDiagramsContent) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const isActive = useInView(gridRef, { once: false, threshold: 0 });
 
   return (
     <Panel>
-      <PanelTitle>{title}</PanelTitle>
-      {description.map((paragraph) => (
-        <PanelText key={paragraph}>{paragraph}</PanelText>
-      ))}
       <Grid ref={gridRef}>
         <Diagram>
           <DiagramTitle>{adapters.title}</DiagramTitle>

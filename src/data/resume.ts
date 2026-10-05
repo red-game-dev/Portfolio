@@ -29,6 +29,7 @@ import { PortfolioAiUsage } from "@/types/ai-usage";
 import { CaseStudy, CaseStudyFilters, PlatformDiagrams } from "@/types/case-studies";
 import { Detail } from "@/types/details";
 import { ForgeContent, TalentsContent } from "@/types/forge";
+import { BossLabels, Duels, HudLabels } from "@/types/game";
 import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
@@ -81,6 +82,9 @@ export interface PortfolioData {
   projectAchievementLabel: string;
   caseStudies: CaseStudy[];
   caseStudyFilters: CaseStudyFilters;
+  duels: Duels;
+  bossLabels: BossLabels;
+  hud: HudLabels;
   platformDiagrams: PlatformDiagrams;
   recommendations: Recommendation[];
   aiUsage: PortfolioAiUsage;
@@ -262,9 +266,20 @@ export const portfolioData: PortfolioData = {
       ],
     },
     caseStudies: {
-      title: "Case Studies",
+      title: "Boss Fights",
       description: [
-        "Problems from my own platform and client work, what I did about them, and what changed.",
+        `Real problems from my own platform and client work. Each boss loses health as you read how it was beaten, and drops the
+        rule I kept.`,
+      ],
+    },
+    platform: {
+      title: "The Platform at a Glance",
+      description: ["Two views of my own platform, unnamed: where vendors and hosts plug in, and how money moves through it."],
+    },
+    duels: {
+      title: "Human vs Agent",
+      description: [
+        "PvP, honestly: every round here happened. An agent proposed something, I overruled it, and the better fix shipped.",
       ],
     },
     forge: {
@@ -1740,6 +1755,8 @@ export const portfolioData: PortfolioData = {
       since: "since",
       guilds: "Guilds",
       abilities: "Abilities",
+      play: "Play as",
+      playing: "Playing",
     },
     characters: [
       {
@@ -2169,9 +2186,41 @@ export const portfolioData: PortfolioData = {
     label: "Show case studies for",
     allLabel: "Everything",
   },
+  bossLabels: { boss: "Boss", hp: "HP", defeated: "Defeated", loot: "Loot" },
+  hud: { pick: "Pick a character", level: "Level", xp: "XP", bosses: "Bosses defeated" },
+  duels: {
+    agentLabel: "Agent",
+    humanLabel: "Me",
+    resultLabel: "Shipped",
+    verdict: "Overruled",
+    scoreLabel: "Rounds won",
+    scoreOf: "of",
+    roundLabel: "Round",
+    versusLabel: "VS",
+    rounds: [
+      {
+        agent: "A payer can change their country to unlock instant statutory refunds.",
+        human: "The country locks once set. The real gap is that it is never checked against the payment.",
+        result: "A jurisdiction snapshot on every charge.",
+      },
+      {
+        agent: "These two auth secrets match no code. Delete them from both hosting projects.",
+        human: "Demo and production still run the old provider. Deleting them takes production down.",
+        result: 'Live secrets kept, and "no longer used" now means on every deployed branch.',
+      },
+      {
+        agent: "Nine domain services can use the shared base class directly.",
+        human: "Each domain gets a subclass of its own, and the generator stops emitting the shortcut.",
+        result: "Nine services wrapped and the generator template fixed.",
+      },
+      {
+        agent: "Post the review with the page's finding numbers.",
+        human: "Comment on the exact lines instead.",
+        result: "43 line comments, and three fix samples calling helpers that do not exist caught before posting.",
+      },
+    ],
+  },
   platformDiagrams: {
-    title: "The platform at a glance",
-    description: ["Two views of my own platform, unnamed: where vendors and hosts plug in, and how money moves through it."],
     adapters: {
       title: "Every vendor behind an adapter",
       core: "Domain core in plain TypeScript",
@@ -2245,6 +2294,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Business case", "Migration", "Adapters"],
       audiences: ["architecture"],
+      loot: "A business case that rests on a working proof of concept",
     },
     {
       area: "Architecture",
@@ -2260,6 +2310,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Adapters", "Feature flags", "Expand and contract"],
       audiences: ["architecture"],
+      loot: "Any vendor or host can be swapped by configuration",
     },
     {
       area: "Architecture",
@@ -2276,6 +2327,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Plain TypeScript core", "Adapters", "A binding per runtime"],
       audiences: ["architecture"],
+      loot: "Business rules that outlive the framework",
     },
     {
       area: "Architecture",
@@ -2294,6 +2346,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Keyset pagination", "Redis", "Offline first"],
       audiences: ["architecture", "payments"],
+      loot: "Write for twenty million rows, not two hundred",
     },
     {
       area: "Architecture",
@@ -2308,6 +2361,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Adapters", "CLI", "Decision records"],
       audiences: ["architecture"],
+      loot: "Hosts are vendors too",
     },
     {
       area: "Architecture",
@@ -2322,6 +2376,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Supply chain", "Dependencies", "In house engines"],
       audiences: ["architecture"],
+      loot: "Every dependency earns its place",
     },
     {
       area: "Payments & compliance",
@@ -2337,6 +2392,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Refunds", "Jurisdiction", "Code review"],
       audiences: ["payments", "ai"],
+      loot: "Check a cheat path against the write path's guards",
     },
     {
       area: "Payments & compliance",
@@ -2350,6 +2406,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Tax", "Multi currency and FX", "KYC and AML"],
       audiences: ["payments"],
+      loot: "Every charge remembers the rules it was taken under",
     },
     {
       area: "Payments",
@@ -2363,6 +2420,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Double entry", "Idempotency", "Reconciliation"],
       audiences: ["payments"],
+      loot: "Confirm money bugs through the endpoint",
     },
     {
       area: "Payments & security",
@@ -2378,6 +2436,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Idempotency", "Signed tokens", "Ads billing"],
       audiences: ["payments"],
+      loot: "The step that can refuse runs first",
     },
     {
       area: "Identity & security",
@@ -2392,6 +2451,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["OIDC", "End to end tests", "Playwright"],
       audiences: ["architecture", "ai"],
+      loot: "Test identity flows in a real browser",
     },
     {
       area: "Agent workflow",
@@ -2405,6 +2465,7 @@ export const portfolioData: PortfolioData = {
       ],
       tags: ["Decision records", "Context engineering", "Code review"],
       audiences: ["ai"],
+      loot: "Every open choice becomes a numbered decision",
     },
   ],
   aiUsage: {

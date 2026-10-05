@@ -29,6 +29,8 @@ export interface Roster {
     since: string;
     guilds: string;
     abilities: string;
+    play: string;
+    playing: string;
   };
   characters: Character[];
 }

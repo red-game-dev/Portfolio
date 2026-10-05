@@ -5,6 +5,8 @@ import { Audience } from "@/types/case-studies";
 export const SECTION_IDS = {
   aiUsage: "section-ai-usage",
   caseStudies: "section-case-studies",
+  duels: "section-duels",
+  platform: "section-platform",
   roster: "section-roster",
   skillAreas: "section-skills-areas",
 } as const;

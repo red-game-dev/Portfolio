@@ -9,6 +9,8 @@ export interface CaseStudy {
   tags: string[];
   // Which reader it is most relevant to, for the filtered views.
   audiences: Audience[];
+  // The rule kept after the fight, shown as the boss's loot.
+  loot: string;
 }
 
 export interface DiagramNode {
@@ -17,8 +19,6 @@ export interface DiagramNode {
 }
 
 export interface PlatformDiagrams {
-  title: string;
-  description: string[];
   adapters: {
     title: string;
     core: string;

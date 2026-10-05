@@ -2,6 +2,7 @@ import { FC, useMemo, useRef } from "react";
 
 import tw from "twin.macro";
 
+import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
 import { CharacterCard } from "@/components/Roster/CharacterCard";
 import { Text } from "@/components/Text";
@@ -19,11 +20,13 @@ const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[
 
 const Cards = tw.div`grid gap-[18px] md:grid-cols-2 mt-[10px]`;
 
-// The roles I have held as an MMO party. Level is computed from real dates, never typed in by hand.
+// The roles I have held as an MMO party, and the reader's character select. Level is computed from real
+// dates, never typed in by hand.
 export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters }: RosterProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const isRevealed = useInView(gridRef, { threshold: 0.15 });
   const calculator = useMemo(() => new TenureCalculator(asOf), [asOf]);
+  const { characterClass, selectCharacter } = useGameStateHook();
 
   return (
     <Section id={SECTION_IDS.roster}>
@@ -39,6 +42,8 @@ export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters }: Ros
               labels={labels}
               isRevealed={isRevealed}
               order={index}
+              isSelected={character.characterClass === characterClass}
+              onSelect={selectCharacter}
             />
           ))}
         </Cards>

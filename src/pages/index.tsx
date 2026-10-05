@@ -2,7 +2,9 @@ import { About } from "@/components/About";
 import { AiUsage } from "@/components/AiUsage";
 import { CaseStudies } from "@/components/CaseStudies";
 import { Cover } from "@/components/Cover";
+import { Duels } from "@/components/Duels";
 import { History } from "@/components/History";
+import { PlatformOverview } from "@/components/PlatformOverview";
 import { Projects } from "@/components/Projects";
 import { Recommendations } from "@/components/Recommendations";
 import { Roster } from "@/components/Roster";
@@ -60,13 +62,7 @@ export default function Home() {
       />
       <AiUsage {...aiUsage} />
       <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
-      <CaseStudies
-        caseStudies={portfolioData.caseStudies}
-        intro={portfolioData.sections.caseStudies}
-        diagrams={portfolioData.platformDiagrams}
-        filters={portfolioData.caseStudyFilters}
-        audiences={portfolioData.headline.audiences}
-      />
+      <PlatformOverview intro={portfolioData.sections.platform} diagrams={portfolioData.platformDiagrams} />
       <Roster intro={portfolioData.sections.roster} {...portfolioData.roster} />
       <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
       <Talents
@@ -74,6 +70,14 @@ export default function Home() {
         talents={portfolioData.skills.teamplayer.map((skill) => skill.name)}
         content={portfolioData.talents}
       />
+      <CaseStudies
+        caseStudies={portfolioData.caseStudies}
+        intro={portfolioData.sections.caseStudies}
+        filters={portfolioData.caseStudyFilters}
+        audiences={portfolioData.headline.audiences}
+        labels={portfolioData.bossLabels}
+      />
+      <Duels intro={portfolioData.sections.duels} {...portfolioData.duels} />
       <Projects
         projects={portfolioData.projects}
         intro={portfolioData.sections.projects}

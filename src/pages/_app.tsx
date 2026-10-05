@@ -10,6 +10,7 @@ import type { AppProps } from "next/app";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
 import { AppLoaderProvider } from "@/components/AppLoader/context/AppLoaderContext";
+import { GameProvider } from "@/components/Game/context/GameContext";
 import { ModalProvider } from "@/components/Modal/context/ModalContext";
 import { SEO } from "@/components/SEO";
 
@@ -37,8 +38,10 @@ export default function App({ Component, pageProps }: AppProps) {
       <GlobalStyles />
       <AppLoaderProvider>
         <ModalProvider>
-          <Component {...pageProps} />
-          <Analytics debug={Boolean(process.env.DEBUG)} />
+          <GameProvider>
+            <Component {...pageProps} />
+            <Analytics debug={Boolean(process.env.DEBUG)} />
+          </GameProvider>
         </ModalProvider>
       </AppLoaderProvider>
     </>

@@ -77,31 +77,26 @@ const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
 ]);
 
 export const Menu = ({ active }: MenuProps) => {
-  const [isOnSectionStarted] = useCollision("section-scroller-link");
-  const [isOnSectionAbout] = useCollision("section-about");
+  const [isOnAboutOnly] = useCollision("section-about");
+  const [isOnTerminalSection] = useCollision("section-terminal");
   const [isOnSectionHistory] = useCollision("section-history");
   const [isOnSectionServices] = useCollision("section-services");
-  const [isOnProjectsOnly] = useCollision("section-projects");
-  const [isOnCaseStudiesSection] = useCollision(SECTION_IDS.caseStudies);
-  const isOnProjectsSection = isOnProjectsOnly || isOnCaseStudiesSection;
-  const [isOnSectionTechSkills] = useCollision(SKILLS_SECTION_ID);
-  const [isOnTalentsSection] = useCollision("section-talents");
-  const [isOnSectionToolsSkills] = useCollision("section-skills-ToolsSkills");
-  const [isOnSectionAiSkills] = useCollision("section-skills-AIToolsEnablement");
-  const [isOnSectionDesignSkills] = useCollision("section-skills-DesignSkills");
-  const [isOnSectionLanguageSkills] = useCollision("section-skills-LanguageSkills");
-  const [isOnSectionExpertise] = useCollision("section-skills-Expertise");
   const [isOnAiUsageSection] = useCollision(SECTION_IDS.aiUsage);
   const [isOnSkillAreasSection] = useCollision(SECTION_IDS.skillAreas);
+  const [isOnPlatformSection] = useCollision(SECTION_IDS.platform);
   const [isOnRosterSection] = useCollision(SECTION_IDS.roster);
+  const [isOnForgeSection] = useCollision(SKILLS_SECTION_ID);
+  const [isOnTalentsSection] = useCollision("section-talents");
+  const [isOnCaseStudiesSection] = useCollision(SECTION_IDS.caseStudies);
+  const [isOnDuelsSection] = useCollision(SECTION_IDS.duels);
+  const [isOnProjectsOnly] = useCollision("section-projects");
+  const [isOnRecommendationsSection] = useCollision("section-Recommendations");
 
-  const isOnSkillsSection = (isOnSectionTechSkills || isOnSectionToolsSkills ||
-    isOnSectionAiSkills || isOnSectionDesignSkills || isOnSectionLanguageSkills ||
-    isOnSectionExpertise || isOnSkillAreasSection || isOnRosterSection || isOnTalentsSection);
-  const isOnBeginningSection = isOnSectionStarted ||
-  (!isOnProjectsSection && !isOnSectionAbout &&
-    !isOnSectionAbout && !isOnSectionHistory &&
-    !isOnSectionServices && !isOnSkillsSection && !isOnAiUsageSection);
+  const isOnSkillsSection = isOnSkillAreasSection || isOnPlatformSection || isOnRosterSection || isOnForgeSection || isOnTalentsSection;
+  const isOnSectionAbout = isOnAboutOnly || isOnTerminalSection;
+  const isOnProjectsSection = isOnCaseStudiesSection || isOnDuelsSection || isOnProjectsOnly || isOnRecommendationsSection;
+  const isOnBeginningSection = !isOnSectionAbout && !isOnSectionHistory && !isOnSectionServices && !isOnAiUsageSection &&
+    !isOnSkillsSection && !isOnProjectsSection;
 
   return (
     <>
@@ -114,19 +109,19 @@ export const Menu = ({ active }: MenuProps) => {
           <MenuItem href="#section-about" selected={isOnSectionAbout} aria-label="Who I am">
             Who I am
           </MenuItem>
-          <MenuItem href="#section-history" selected={isOnSectionHistory} aria-label="My History">
-            My History
-          </MenuItem>
           <MenuItem href="#section-services" selected={isOnSectionServices} aria-label="What can I offer">
             What can I offer
           </MenuItem>
-          <MenuItem href={`#${SKILLS_SECTION_ID}`} selected={isOnSkillsSection} aria-label="Skills">
-            Skills
+          <MenuItem href="#section-history" selected={isOnSectionHistory} aria-label="My History">
+            My History
           </MenuItem>
           <MenuItem href={`#${SECTION_IDS.aiUsage}`} selected={isOnAiUsageSection} aria-label="How I use AI">
             How I use AI
           </MenuItem>
-          <MenuItem href="#section-projects" selected={isOnProjectsSection} aria-label="Achievements">
+          <MenuItem href={`#${SECTION_IDS.skillAreas}`} selected={isOnSkillsSection} aria-label="Skills">
+            Skills
+          </MenuItem>
+          <MenuItem href={`#${SECTION_IDS.caseStudies}`} selected={isOnProjectsSection} aria-label="Achievements">
             Projects & Achievements
           </MenuItem>
         </MenuList>

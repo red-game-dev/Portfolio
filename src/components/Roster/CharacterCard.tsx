@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { faGamepad } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Character, Roster } from "@/types/roster";
@@ -12,10 +13,16 @@ interface CharacterCardProps extends Character {
   labels: Roster["labels"];
   isRevealed: boolean;
   order: number;
+  isSelected: boolean;
+  onSelect: (characterClass: string) => void;
 }
 
 interface FlipProps {
   isRevealed: boolean;
+}
+
+interface SelectedProps {
+  isSelected: boolean;
 }
 
 const FLIP_STAGGER_MS = 110;
@@ -38,7 +45,7 @@ const Inner = styled.div(({ isRevealed }: FlipProps) => [
   `,
 ]);
 
-const Face = styled.div(() => [
+const Face = styled.div(({ isSelected }: SelectedProps) => [
   tw`relative h-full flex flex-col gap-[14px] p-[20px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
   css`
     backface-visibility: hidden;
@@ -47,6 +54,13 @@ const Face = styled.div(() => [
     &:hover {
       border-color: var(--accent-muted);
       box-shadow: 0 0 22px rgba(var(--accent-rgb), 0.12);
+    }
+  `,
+  isSelected && css`
+    &,
+    &:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 28px rgba(var(--accent-rgb), 0.25);
     }
   `,
 ]);
@@ -116,15 +130,30 @@ const Guild = tw.li`text-xs leading-none text-[#eee] bg-[#1d1d1d] rounded-[2px] 
 const Ability = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[6px] px-[10px] border-[1px] border-solid
 border-[var(--accent-muted)]`;
 
+// Pushed to the bottom of the card, so the buttons line up across a row.
+const Select = styled.button(({ isSelected }: SelectedProps) => [
+  tw`mt-auto inline-flex flex-row items-center justify-center gap-[8px] h-[38px] px-[14px] cursor-pointer text-sm font-semibold
+     text-[var(--accent)] bg-transparent border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`,
+  css`
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--accent);
+    }
+  `,
+  isSelected && tw`text-[#101010] bg-[var(--accent)] border-[var(--accent)]`,
+]);
+
 export const CharacterCard: FC<CharacterCardProps> = ({
-  characterClass, icon, tenures, stats, abilities, level, since, labels, isRevealed, order,
+  characterClass, icon, tenures, stats, abilities, level, since, labels, isRevealed, order, isSelected, onSelect,
 }: CharacterCardProps) => {
   const guilds = [...new Set(tenures.map((tenure) => tenure.company))];
 
   return (
     <Card>
       <Inner isRevealed={isRevealed} style={{ transitionDelay: `${order * FLIP_STAGGER_MS}ms` }}>
-        <Face>
+        <Face isSelected={isSelected}>
           <Header>
             <LevelBadge role="img" aria-label={`${labels.level} ${level}`}>
               <LevelLabel aria-hidden="true">{labels.level}</LevelLabel>
@@ -163,6 +192,10 @@ export const CharacterCard: FC<CharacterCardProps> = ({
               <Ability key={ability}>{ability}</Ability>
             ))}
           </Chips>
+          <Select type="button" isSelected={isSelected} aria-pressed={isSelected} onClick={() => onSelect(characterClass)}>
+            <FontAwesomeIcon icon={faGamepad} aria-hidden="true" />
+            {isSelected ? labels.playing : `${labels.play} ${characterClass}`}
+          </Select>
         </Face>
         <Back aria-hidden="true">
           <FontAwesomeIcon icon={icon} />

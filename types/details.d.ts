@@ -1,3 +1,10 @@
+// Stage names shown on the portrait while it materialises.
+export interface PortraitLabels {
+  decoding: string;
+  upscaling: string;
+  enhancing: string;
+}
+
 export interface Detail {
   intro: string;
   description: string;
@@ -10,4 +17,5 @@ export interface Detail {
   location: string;
   isFlexible: boolean;
   contactTime: string;
+  portrait: PortraitLabels;
 }

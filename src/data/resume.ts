@@ -345,6 +345,7 @@ export const portfolioData: PortfolioData = {
     phone: "+356 79323059",
     email: "red.pace.dev@gmail.com",
     image: "/images/profile.webp",
+    portrait: { decoding: "Decoding", upscaling: "Upscaling", enhancing: "Enhancing with AI" },
     contactTime: "Anytime in any timezone",
     isFlexible: false,
   },

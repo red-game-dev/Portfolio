@@ -6,8 +6,8 @@ import { faLinkedinIn, faGoogleDrive, faGithub, faStackOverflow } from "@fortawe
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 
+import { Portrait } from "@/components/About/Portrait";
 import { DecodedText } from "@/components/DecodedText";
-import { Image } from "@/components/Image";
 import useInView from "@/hooks/useInView";
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
@@ -26,10 +26,6 @@ const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[
 const Content = tw.div`relative text-base ml-[-1px] md:p-[25px] lg:p-[35px] bg-[#101010] border-solid border-l-[1px] border-[var(--accent)]`;
 
 const Title = tw.h2`relative m-[0 0 30px 0] lg:m-[0 0 35px 35px] inline-block align-top text-2xl font-semibold	text-white transition-[all 0.3s ease 0s]`;
-
-const SectionImage = styled(Image)(() => [
-  tw`float-left mr-[17px] ml-[9px] lg:mr-0 lg:ml-0 w-[160px] text-[0px]`
-]);
 
 const DescriptionContainer = tw.div`ml-[10px] lg:ml-[195px]`;
 
@@ -77,7 +73,7 @@ const DESCRIPTION_DECODE_MS = 2600;
 export const About: FC<AboutProps> = ({
   name, intro, description, image, residence,
   isFlexible, jobType, phone, email, location,
-  contactTime, cvUrl, github, stackoverflow, linkedInUsername
+  contactTime, cvUrl, github, stackoverflow, linkedInUsername, portrait
 }: AboutProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(contentRef, { threshold: 0.2 });
@@ -86,7 +82,7 @@ export const About: FC<AboutProps> = ({
     <Section id="section-about">
       <Title>Who I am?</Title>
       <Content ref={contentRef}>
-        <SectionImage src={image} alt={`${name}, ${intro}`} width="200" height="500" fallbackSrc={image.replace(".webp", ".jpg")} />
+        <Portrait src={image} alt={`${name}, ${intro}`} fallbackSrc={image.replace(".webp", ".jpg")} labels={portrait} />
         <DescriptionContainer>
           <Paragraph>
             <DecodedText text={intro} isActive={isInView} />

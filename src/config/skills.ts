@@ -4,15 +4,16 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "NoSQL": ["MongoDB"],
   // Writing React, Vue, Node.js, Backbone or jQuery is writing JavaScript, and front end frameworks mean HTML and CSS.
   "Javascript": ["JS", "JavaScript", "React", "Vue.js", "Node.js", "Backbone.js", "JQuery"],
-  "HTML / CSS": ["HTML", "CSS", "SASS", "React", "Vue.js"],
+  "HTML / CSS": ["HTML", "CSS", "SASS", "React", "Vue.js", "Web Development"],
   "LESS / SASS": ["SASS"],
   "Canvas": ["HTML5 Canvas", "Native Canvas", "WebGL & Canvas"],
   "WebGL": ["WebGL & Canvas"],
-  "State Management": ["Redux", "Redux Observables", "RxJS"],
+  "State Management": ["Redux", "Redux Observables", "RxJS", "Zustand", "Recoil"],
   "C#, .NET": ["C#", "C# (ASP.NET)"],
   "TheGraph": ["The Graph Protocol"],
   "Vercel": ["Vercel Enterprise"],
   "Ethers.js": ["Ethers"],
+  "draw.io / C4 model": ["C4 model"],
 };
 
 // Names too ambiguous to look for in prose: "Git" would match "git-diff" in a sentence about a readout.

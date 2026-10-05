@@ -14,7 +14,8 @@ const RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
 // "Senior Full Stack Engineer, HyperPlay Labs" is HyperPlay Labs; "Founder, CEO at TasteTravellers" is TasteTravellers.
 const placeOf = (title: string) => (title.includes(" at ") ? title.split(" at ").pop() : title.split(", ").pop()) ?? title;
 
-// Evidence is the stack list plus any skill named in the role's own bullets and description.
+// Evidence is the stack list plus any skill named in the role's own bullets and description. Formal study
+// counts too, under the school's name; open ended courses opt out.
 export const createSkillSources = (data: PortfolioData): SkillSource[] => {
   const names = Object.values(data.skills)
     .flat()
@@ -28,6 +29,9 @@ export const createSkillSources = (data: PortfolioData): SkillSource[] => {
       to: entry.to,
       skills: [...(entry.techStack ?? []), ...findMentions([...entry.description, ...(entry.bullets ?? [])].join(" "), names)],
     })),
+    ...data.education
+      .filter((entry) => entry.countsForSkills !== false)
+      .map((entry) => ({ place: placeOf(entry.title), from: entry.from, to: entry.to, skills: entry.techStack ?? [] })),
     ...data.projects
       .filter((project) => project.countsForSkills !== false)
       .map((project) => ({

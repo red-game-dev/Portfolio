@@ -112,7 +112,15 @@ const Bullet = styled.li(() => [
   `,
 ]);
 
-const More = tw.div`flex flex-col gap-[10px]`;
+// display: flex would beat the hidden attribute, so hidden is restated here.
+const More = styled.div(() => [
+  tw`flex flex-col gap-[10px]`,
+  css`
+    &[hidden] {
+      display: none;
+    }
+  `,
+]);
 
 const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 

@@ -1,5 +1,5 @@
 import { portfolioData } from "@/data/resume";
-import { createForgeStations } from "@/services/skills";
+import { createForgeStations, createSkillSources } from "@/services/skills";
 
 // Guards the forge against the data it is built from: every station renders, and the evidence rules hold.
 describe("skill forge", () => {
@@ -19,8 +19,21 @@ describe("skill forge", () => {
   });
 
   test("evidence in bullets counts, ambiguous names do not", () => {
-    expect(find("Storybook")?.isTracked).toBe(true);
-    expect(find("Git")?.places).not.toContain("Conrad Electronic Group");
+    // Stacks stripped, so whatever is left was found in prose.
+    const proseOnly = createSkillSources({
+      ...portfolioData,
+      experience: portfolioData.experience.map((entry) => ({ ...entry, techStack: [] })),
+      education: [],
+      projects: [],
+    }).flatMap((source) => source.skills);
+
+    expect(proseOnly).toContain("Storybook");
+    expect(proseOnly).not.toContain("Git");
+  });
+
+  test("study counts, open ended courses do not", () => {
+    expect(find("Photoshop")?.places).toContain("MCAST");
+    stations.flatMap((station) => station.items).forEach((item) => expect(item.places).not.toContain("Online Courses"));
   });
 
   test("untracked skills claim no time", () => {

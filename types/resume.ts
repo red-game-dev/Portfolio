@@ -7,6 +7,8 @@ export interface Resume {
   isVenture?: boolean;
   bullets?: string[];
   techStack?: string[];
+  // false keeps an entry out of the skill forge's years, for open ended or self paced study.
+  countsForSkills?: boolean;
   from: string;
   to?: string;
 }

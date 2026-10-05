@@ -290,8 +290,8 @@ export const portfolioData: PortfolioData = {
     forge: {
       title: "Skills",
       description: [
-        `No self ratings. Each skill's rarity is earned from how long I have used it in real roles and projects, measured from their
-        dates, and every card says where.`,
+        `No self ratings. Each skill's rarity is earned from how long I have used it in real roles, projects and study, measured from
+        their dates, and every card says where.`,
       ],
     },
     talents: {
@@ -618,6 +618,15 @@ export const portfolioData: PortfolioData = {
         "Looker Studio",
         "Claude Code",
         "Gemini Enterprise",
+        "Git",
+        "Design Systems",
+        "SSR / SSG",
+        "Micro-frontends",
+        "Playwright",
+        "Automated Testing",
+        "Code Review",
+        "CI/CD",
+        "C4 model",
       ],
     },
     {
@@ -665,6 +674,12 @@ export const portfolioData: PortfolioData = {
         "AWS",
         "Microservices",
         "Vercel Enterprise",
+        "TypeScript",
+        "Git",
+        "Storybook",
+        "Design Systems",
+        "Automated Testing",
+        "Code Review",
       ],
     },
     {
@@ -706,6 +721,10 @@ export const portfolioData: PortfolioData = {
         "Sylvester",
         "Solana",
         "Solidity",
+        "Git",
+        "Playwright",
+        "Storybook",
+        "Automated Testing",
       ],
     },
     {
@@ -743,6 +762,15 @@ export const portfolioData: PortfolioData = {
         "Playwright",
         "Vitest",
         "Claude Code",
+        "Git",
+        "TDD",
+        "Automated Testing",
+        "Code Review",
+        "CI/CD",
+        "Zustand",
+        "Radix UI",
+        "Storybook",
+        "C4 model",
       ],
     },
     {
@@ -804,6 +832,7 @@ export const portfolioData: PortfolioData = {
         "Cloudflare",
         "Maya",
         "Illustrator",
+        "Git",
       ],
     },
     {
@@ -863,6 +892,13 @@ export const portfolioData: PortfolioData = {
         "Swift",
         "C/C++",
         "Solidity",
+        "Git",
+        "TDD",
+        "Automated Testing",
+        "Design Systems",
+        "Sentry",
+        "Android Studio",
+        "XCode",
       ],
     },
     {
@@ -908,6 +944,8 @@ export const portfolioData: PortfolioData = {
         "PixiJS",
         "AWS",
         "Vercel",
+        "Git",
+        "CI/CD",
       ],
     },
     {
@@ -960,6 +998,9 @@ export const portfolioData: PortfolioData = {
         "Native Canvas",
         "C# (ASP.NET)",
         "C/C++",
+        "Git",
+        "Code Review",
+        "CI/CD",
       ],
     },
     {
@@ -1004,12 +1045,15 @@ export const portfolioData: PortfolioData = {
         "MongoDB",
         "Kafka",
         "SignalR",
+        "Git",
       ],
     },
   ],
   education: [
     {
       title: "Online Courses",
+      // Open ended and self paced, so it would credit every listed skill from 2017 to today.
+      countsForSkills: false,
       description: [
         "These courses have helped me enhance further knowledge for both practical and theoretical",
       ],
@@ -1020,9 +1064,7 @@ export const portfolioData: PortfolioData = {
     {
       title:
         "Bachelor of Science (Honours) in Multimedia Software Development, MCAST",
-      description: [
-        "Although last year wasn't completed, I was able to learn a lot of interesting subjects",
-      ],
+      description: [],
       techStack: ["C#", "Blender", "Game Development", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects"],
       from: "Sep 2015",
       to: "Jun 2017",
@@ -1040,6 +1082,13 @@ export const portfolioData: PortfolioData = {
       techStack: ["C#", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects"],
       from: "Sep 2011",
       to: "Jun 2013",
+    },
+    {
+      title: "Foundation in Computing, MCAST",
+      description: [],
+      techStack: ["C#", "Computer Systems", "Web Development", "Maths"],
+      from: "Sep 2010",
+      to: "Jun 2011",
     },
   ],
   skills: {
@@ -1438,6 +1487,10 @@ export const portfolioData: PortfolioData = {
         name: "Shopify",
         score: 50,
       },
+      {
+        name: "CI/CD",
+        score: 85,
+      },
     ],
     expertise: [
       {
@@ -1606,6 +1659,14 @@ export const portfolioData: PortfolioData = {
         name: "TDD (Test Driven Development)",
         score: 90,
       },
+      {
+        name: "Automated Testing (unit, integration, end to end)",
+        score: 90,
+      },
+      {
+        name: "Code Review",
+        score: 95,
+      },
     ],
     integrations: [
       {
@@ -1693,6 +1754,10 @@ export const portfolioData: PortfolioData = {
       {
         name: "Pyroscope",
         score: 60,
+      },
+      {
+        name: "Sentry",
+        score: 80,
       },
     ],
     ai: [
@@ -1921,7 +1986,6 @@ export const portfolioData: PortfolioData = {
     {
       label: "Observability",
       items: [
-        "Sentry",
         "Structured logging with Pino",
         "StatsD metrics",
         "Session replay",

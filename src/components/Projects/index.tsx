@@ -1,42 +1,76 @@
-import { FC } from "react";
+import { FC, useMemo, useState } from "react";
 
-import tw from "twin.macro";
+import tw, { css, styled } from "twin.macro";
 
-import { Project } from "@/components/Projects/Project";
+import { Panel } from "@/components/Panel";
+import { RegionDialog } from "@/components/Projects/RegionDialog";
+import { WorldMap } from "@/components/Projects/WorldMap";
 import { Text } from "@/components/Text";
-import { ProjectDetail } from "@/types/projects";
+import { toMonthIndex } from "@/packages/insights/career";
+import { ProjectDetail, ProjectKind, ProjectMapContent } from "@/types/projects";
 import { SectionIntros } from "@/types/sections-intros";
-
 
 interface ProjectsProps {
   projects: ProjectDetail[];
   intro: SectionIntros;
-  achievementLabel: string;
+  content: ProjectMapContent;
 }
+
+const KIND_ORDER: ProjectKind[] = ["game", "web3", "product", "community", "archive"];
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
-const Content = tw.div`relative text-base ml-[-1px] bg-[#101010] border-[1px] border-r-[0px] border-solid border-[rgba(255, 255, 255, 0.07)]`;
+const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[25px] lg:mt-[35px] mb-[18px] text-sm text-[#999]`;
 
-const ClearContainer = tw.div`clear-both`;
+const Chip = styled.button(({ isSelected }: { isSelected: boolean }) => [
+  tw`cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full border-[1px] border-solid border-[var(--accent-muted)] bg-[#1d1d1d]
+     text-[var(--accent)]`,
+  css`
+    transition: color 0.2s ease, background-color 0.2s ease;
+  `,
+  isSelected && tw`bg-[var(--accent)] text-[#101010]`,
+]);
 
-const List = tw.div`relative mx-[-50px] p-[25px] lg:p-[35px] flex flex-row flex-wrap justify-evenly`;
+// Projects as a world map: one region per project in the order I explored them, each opening a map
+// screen with what I built there.
+export const Projects: FC<ProjectsProps> = ({ projects, intro, content }: ProjectsProps) => {
+  const { labels } = content;
+  const [activeKind, setActiveKind] = useState<ProjectKind | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const ordered = useMemo(() => [...projects].sort((first, second) => toMonthIndex(first.from) - toMonthIndex(second.from)), [projects]);
+  const kinds = KIND_ORDER.filter((kind) => ordered.some((project) => project.kind === kind));
 
-export const Projects: FC<ProjectsProps> = ({ projects = [], intro, achievementLabel }: ProjectsProps) => (
+  const period = (project: ProjectDetail) => labels.period.replace("{from}", project.from).replace("{to}", project.to ?? labels.present);
+  const describe = (project: ProjectDetail) => `${project.title}, ${project.category}, ${period(project)}`;
+  const open = openIndex === null ? null : ordered[openIndex];
+
+  return (
     <Section id="section-projects">
-      <Content>
-        <Text title={intro.title} paragraphs={intro.description} isSection={false} />
-        <List>
-          {projects.map((project: ProjectDetail, index: number) => (<Project
-            key={`${project.title.replace(/\s/, "")}-${index}`}
-            {...project}
-            achievementLabel={achievementLabel}
-            withRandomBorder={index % 3 === 0}
-            isFullBorder={projects.length % 2 > 0 && index === (projects.length - 1)}
-            isFullWidth={projects.length % 2 > 0 && index === (projects.length - 1)}
-          />))}
-        </List>
-        <ClearContainer />
-      </Content>
+      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <Filters role="group" aria-label={labels.filter}>
+        <span>{labels.filter}</span>
+        <Chip type="button" isSelected={activeKind === null} aria-pressed={activeKind === null} onClick={() => setActiveKind(null)}>
+          {labels.all}
+        </Chip>
+        {kinds.map((kind) => (
+          <Chip key={kind} type="button" isSelected={activeKind === kind} aria-pressed={activeKind === kind} onClick={() => setActiveKind(kind)}>
+            {content.kinds[kind]}
+          </Chip>
+        ))}
+      </Filters>
+      <Panel>
+        <WorldMap projects={ordered} activeKind={activeKind} describe={describe} hint={labels.hint} onOpen={setOpenIndex} />
+      </Panel>
+      <RegionDialog
+        project={open}
+        previous={openIndex !== null && openIndex > 0 ? ordered[openIndex - 1] : null}
+        next={openIndex !== null && openIndex < ordered.length - 1 ? ordered[openIndex + 1] : null}
+        content={content}
+        period={open ? period(open) : ""}
+        onClose={() => setOpenIndex(null)}
+        onPrevious={() => setOpenIndex((index) => (index === null ? null : Math.max(0, index - 1)))}
+        onNext={() => setOpenIndex((index) => (index === null ? null : Math.min(ordered.length - 1, index + 1)))}
+      />
     </Section>
   );
+};

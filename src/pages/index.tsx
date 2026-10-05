@@ -79,11 +79,7 @@ export default function Home() {
         labels={portfolioData.bossLabels}
       />
       <Duels intro={portfolioData.sections.duels} {...portfolioData.duels} />
-      <Projects
-        projects={portfolioData.projects}
-        intro={portfolioData.sections.projects}
-        achievementLabel={portfolioData.projectAchievementLabel}
-      />
+      <Projects projects={portfolioData.projects} intro={portfolioData.sections.projects} content={portfolioData.projectMap} />
       <Recommendations
         intro={portfolioData.sections.recommendations}
         recommendations={portfolioData.recommendations}

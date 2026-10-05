@@ -5,7 +5,6 @@ import tw from "twin.macro";
 import { AppLoader, AppLoadingLines } from "@/components/AppLoader";
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
 import { Journey } from "@/components/Journey";
-import { Modal } from "@/components/Modal";
 import { portfolioData  } from "@/data/resume";
 
 import Footer from "./Footer";
@@ -23,7 +22,6 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
 
   return (
     <>
-      <Modal />
       <AppLoader />
       <Container style={isLoading ? { display: "none"} : {}}>
         <Header title={title} />

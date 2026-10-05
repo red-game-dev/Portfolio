@@ -181,7 +181,7 @@ export const SEO = ({ url }: SeoProps) => (
           key={`project-${index}`}
           url={`${url}/#section-projects`}
           title={project.title}
-          images={[project.image]}
+          images={[project.image ?? portfolioData.cover]}
           section={project.category}
           keywords={`${project.title},${project.category},${project.techStack.join(",")}`}
           authorName={portfolioData.details.name}

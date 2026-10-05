@@ -44,7 +44,7 @@ const Hook = tw.p`m-0 text-xl md:text-2xl font-semibold leading-snug text-white 
 
 const Paragraph = tw.p`m-0 text-[#ccc] break-words max-w-[70ch]`;
 
-const Proof = tw.dl`m-0 mt-[28px] grid grid-cols-2 md:grid-cols-4 gap-[10px]`;
+const Proof = tw.dl`m-0 mt-[28px] grid grid-cols-2 md:grid-cols-5 gap-[10px]`;
 
 const Figure = tw.div`flex flex-col gap-[6px] p-[12px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 

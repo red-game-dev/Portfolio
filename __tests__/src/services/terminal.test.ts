@@ -56,6 +56,7 @@ describe("portfolio terminal", () => {
     expect(cto?.type === "dialog" && cto.dialog.subtitle).toMatch(/^CTO, Level \d+/);
     expect(session.execute("red hire as payments")?.type).toBe("dialog");
     expect(session.execute("red hire as frontend")?.type).toBe("dialog");
+    expect(session.execute("red hire as enterprise architect")?.type).toBe("dialog");
 
     const before = session.output.length;
 

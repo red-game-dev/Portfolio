@@ -6,6 +6,7 @@ import { faHammer } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Panel, PanelText } from "@/components/Panel";
+import { revealedCharacters } from "@/components/SkillForge/utils/reveal";
 import useAnimationProgress from "@/hooks/useAnimationProgress";
 import useInView from "@/hooks/useInView";
 import { decodeFrame, toBinaryMask } from "@/packages/encoding/binary";
@@ -145,13 +146,15 @@ export const Station: FC<StationProps> = ({ id, title, description, items, conte
       <Items isActive={isActive}>
         {items.map((item, index) => {
           const length = Array.from(item.name).length;
-          const revealed = Math.floor(Math.min(1, Math.max(0, progress * 1.6 - index * 0.02)) * length);
+          const revealed = revealedCharacters(progress, index, items.length, length);
 
           return (
             <li key={item.name} data-rarity={item.rarity} style={{ transitionDelay: `${index * 25}ms` }}>
               <span className="name">
                 <span className="sr-only">{item.name}</span>
-                <span aria-hidden="true">{decodeFrame(item.name, masks[index], revealed, Math.floor(progress * 40))}</span>
+                <span aria-hidden="true">
+                  {revealed >= length ? item.name : decodeFrame(item.name, masks[index], revealed, Math.floor(progress * 40))}
+                </span>
               </span>
               <span className="tier">
                 <span>{content.rarity[item.rarity]}</span>

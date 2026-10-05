@@ -29,6 +29,7 @@ export const ROLE_ANCHORS = {
   fullStack: "for-full-stack",
   games: "for-games",
   web3: "for-web3",
+  enterprise: "for-enterprise-architecture",
 } as const;
 
 // #industry-fintech and so on filter My History and the boss fights to one sector.

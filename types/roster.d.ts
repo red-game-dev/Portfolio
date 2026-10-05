@@ -14,6 +14,8 @@ export interface CharacterStat {
 
 export interface Character {
   characterClass: string;
+  // Job titles this class covers, shown under the class name.
+  titles?: string[];
   icon: FontAwesomeIconProps["icon"];
   tenures: CharacterTenure[];
   stats: CharacterStat[];

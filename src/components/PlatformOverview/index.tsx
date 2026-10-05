@@ -5,7 +5,7 @@ import tw from "twin.macro";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import { PlatformDiagrams } from "@/components/PlatformOverview/PlatformDiagrams";
 import { Text } from "@/components/Text";
-import { SECTION_IDS } from "@/config/sections";
+import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { ExpertiseContent, PlatformDiagrams as PlatformDiagramsContent } from "@/types/case-studies";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -16,6 +16,9 @@ interface PlatformOverviewProps {
 }
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
+
+// Target for the "Enterprise Architect" link on the first screen.
+const Anchor = tw.span`absolute top-0 left-0`;
 
 const Tiles = tw.ul`list-none m-0 mt-[25px] lg:mt-[35px] mb-[25px] p-0 grid gap-[14px] md:grid-cols-2 xl:grid-cols-3`;
 
@@ -36,6 +39,7 @@ const Example = tw.div`mt-[22px]`;
 // platform follows as one worked example, not the only one.
 export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, diagrams }: PlatformOverviewProps) => (
   <Section id={SECTION_IDS.platform}>
+    <Anchor id={ROLE_ANCHORS.enterprise} aria-hidden="true" />
     <Text title={intro.title} paragraphs={intro.description} isSection={false} />
     <Tiles>
       {expertise.tiles.map((tile) => (

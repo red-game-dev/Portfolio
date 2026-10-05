@@ -64,8 +64,9 @@ export const createRedCommand = (data: PortfolioData): Command => {
     }
 
     const isMatch = (name: string) => normalise(name) === role || normalise(name).includes(role);
-    const character = data.roster.characters.find((candidate) => normalise(candidate.characterClass) === role)
-      ?? data.roster.characters.find((candidate) => isMatch(candidate.characterClass));
+    const names = (candidate: (typeof data.roster.characters)[number]) => [candidate.characterClass, ...(candidate.titles ?? [])];
+    const character = data.roster.characters.find((candidate) => names(candidate).some((name) => normalise(name) === role))
+      ?? data.roster.characters.find((candidate) => names(candidate).some(isMatch));
     const audience = character ? undefined : data.headline.audiences.find((link) => isMatch(link.label));
 
     if (!character && !audience) {

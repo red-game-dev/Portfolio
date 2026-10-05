@@ -144,7 +144,8 @@ export const portfolioData: PortfolioData = {
       { audience: "architecture", label: "Architecture" },
     ],
     roles: [
-      { label: "Architecture", target: "for-architecture" },
+      { label: "Software Architect", target: "for-architecture" },
+      { label: "Enterprise Architect", target: "for-enterprise-architecture" },
       { label: "AI engineering", target: "for-ai-engineering" },
       { label: "Payments", target: "for-payments" },
       { label: "Technical leadership", target: "for-leadership" },
@@ -481,7 +482,8 @@ export const portfolioData: PortfolioData = {
       { value: "20+", label: "years writing software, since I was 7" },
       { value: "15+", label: "years in the industry, from my first company in 2010" },
       { value: "12+", label: "startups built" },
-      { value: "5M+", label: "monthly users on the largest platform" },
+      { value: "1.5M+", label: "users in 167 countries on one platform" },
+      { value: "7M+", label: "sessions a month at peak on another" },
     ],
     facts: [
       "Maltese citizen with EU work rights",
@@ -717,7 +719,7 @@ export const portfolioData: PortfolioData = {
       title: "Lead Software Architect / Enterprise Architect, Conrad Electronic Group",
       industries: ["ecommerce", "fintech", "consulting"],
       from: "Nov 2025",
-      outcome: "Roughly 5M+ monthly users, working with 90+ people up to CTO level",
+      outcome: "Up to 7M+ sessions a month, working with 90+ people up to CTO level",
       description: [
         "Conrad Electronic is a European electronics retailer operating across 16 markets, DACH-led.",
         `Leading software architecture across a 90+ person delivery organisation for the migration from Adobe Experience Manager
@@ -1072,7 +1074,7 @@ export const portfolioData: PortfolioData = {
       title: "Mobile Core Engineer / Architect, Chiliz",
       industries: ["web3", "sports"],
       from: "Nov 2019",
-      outcome: "Around 2M users, 7 product squads and 30+ engineers",
+      outcome: "1.5M+ users in 167 countries, 7 product squads and 30+ engineers",
       to: "Nov 2022",
       description: [
         `A blockchain and sports company building a gamified fan engagement platform with real-time rewards,
@@ -2189,6 +2191,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "Architect",
+        titles: ["Software Architect", "Lead Enterprise Architect", "Enterprise Architect"],
         icon: faSitemap,
         tenures: [
           { company: "KPMG", from: "Feb 2019", to: "Sep 2019" },
@@ -2854,7 +2857,7 @@ export const portfolioData: PortfolioData = {
     capabilities: [
       {
         name: "Tokenisation and fan tokens",
-        detail: "Fan tokens and fan engagement for around 2M users, with on chain integrations in the mobile app.",
+        detail: "Fan tokens and fan engagement for 1.5M+ users in 167 countries, with on chain integrations in the mobile app.",
         places: ["Chiliz"],
       },
       {
@@ -2949,7 +2952,8 @@ export const portfolioData: PortfolioData = {
     },
   },
   codeReview: {
-    scope: "On my main GitHub account alone, counted on 5 October 2026. I have other accounts, so these are floors.",
+    scope: `Exact counts from one GitHub account alone, on 5 October 2026, so they are floors: most of my review work at Conrad, Chiliz,
+    KPMG and Authentic Gaming lived in company repositories these counts cannot see.`,
     squaresLabel: "{count} squares, one per pull request",
     totals: [
       { value: 298, label: "pull requests merged", detail: "of 331 authored" },
@@ -3316,7 +3320,7 @@ export const portfolioData: PortfolioData = {
     {
       domain: "web3",
       area: "Web3 and mobile",
-      title: "Fan tokens for around 2M users",
+      title: "Fan tokens for 1.5M+ users in 167 countries",
       summary: ["A fan engagement platform with real time rewards and NFT integrations needed its mobile app to carry on chain features reliably."],
       points: [
         "Delivered proofs of concept and production on chain integrations in the React Native app",

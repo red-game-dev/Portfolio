@@ -98,6 +98,8 @@ const ClassName = tw.h3`m-0 flex flex-row items-center gap-[8px] text-lg font-se
 
 const Meta = tw.span`text-xs text-[#999]`;
 
+const Titles = tw.span`text-xs font-medium text-[var(--accent)]`;
+
 const Stats = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px]`;
 
 const Stat = tw.li`flex flex-col gap-[4px] text-xs text-[#bbb]`;
@@ -146,7 +148,7 @@ const Select = styled.button(({ isSelected }: SelectedProps) => [
 ]);
 
 export const CharacterCard: FC<CharacterCardProps> = ({
-  characterClass, icon, tenures, stats, abilities, level, since, labels, isRevealed, order, isSelected, onSelect,
+  characterClass, titles = [], icon, tenures, stats, abilities, level, since, labels, isRevealed, order, isSelected, onSelect,
 }: CharacterCardProps) => {
   const guilds = [...new Set(tenures.map((tenure) => tenure.company))];
 
@@ -164,6 +166,7 @@ export const CharacterCard: FC<CharacterCardProps> = ({
                 <FontAwesomeIcon icon={icon} aria-hidden="true" />
                 {characterClass}
               </ClassName>
+              {titles.length > 0 && <Titles>{titles.join(", ")}</Titles>}
               <Meta>{`${level} ${labels.years}, ${labels.since} ${since}`}</Meta>
             </Identity>
           </Header>

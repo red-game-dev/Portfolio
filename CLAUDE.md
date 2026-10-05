@@ -70,23 +70,26 @@ Keyframes (`wave`, `bounceIn`, `loading`, `border-transition`, …) are plain CS
 
 ### State: React Context, one folder per feature
 
-There is no state library. `src/pages/_app.tsx` wraps the page in `AppLoaderProvider` then `ModalProvider`, and each feature colocates its state:
+There is no state library. `src/pages/_app.tsx` wraps the page in `AppLoaderProvider` then `GameProvider`, and each feature colocates its state:
 
 ```
-src/components/Modal/context/ModalContext.tsx    # createContext + Provider holding useState, value memoized
-src/components/Modal/hooks/useModalStateHook.ts  # useContext, throws if used outside the provider
-src/components/Modal/index.tsx                   # consumes the hook
+src/components/Game/context/GameContext.tsx    # createContext + Provider holding useState, value memoized
+src/components/Game/hooks/useGameStateHook.ts  # useContext, throws if used outside the provider
 ```
 
-Components call the `use*StateHook`, never `useContext` directly. Currently two features use this: `AppLoader` (`isLoading`, `isReady`) and `Modal` (`modalContent`, `setModal`).
+Components call the `use*StateHook`, never `useContext` directly. `AppLoader` holds `isLoading` and `isReady`. `Game` holds the visitor's run: the chosen character and Bug Raid best (kept in `localStorage` under `redgame.game`, read after mount so hydration matches), plus this visit's bosses defeated, zones crossed and duels won, which the HUD and the finale read.
 
-### Loading and modal flow
+### Loading flow and dialogs
 
-`Layout` (a plain import in `index.tsx`) renders `<Modal />` and `<AppLoader />` outside the content container and hides the container while `isLoading`. `AppLoader` flips `isLoading` off after 1s and `isReady` on after 3s via `setTimeout`, so the intro animation is time-based, not load-event-based. Project cards call `setModal({ type: ModalType.PROJECT, ... })`; `Modal` renders `ProjectModal` when `modalContent.type === "project"` and closes via the `useClickOutside` hook.
+`Layout` renders `<AppLoader />` outside the content container and hides the container (`display: none`) while `isLoading`. `AppLoader` flips `isLoading` off after 1s and `isReady` on after 3s via `setTimeout`, so the intro animation is time-based, not load-event-based. Anything that measures itself on mount sees a 0x0 box behind the loader, so canvases size from a `ResizeObserver`, not a one-off read.
+
+Dialogs (the terminal's quest dialog, the project region map) are native `<dialog>` elements opened with `showModal()`, which brings focus trapping, Escape and the backdrop for free.
+
+The layout container uses `overflow: clip`, not `hidden`. `hidden` makes it a scroll container and silently breaks `position: sticky` for every section inside it.
 
 ### Packages, services and config
 
-Reusable logic lives in `src/packages/<domain>/<name>` (frame loop, canvas glyph atlas, binary rain, binary encoding, content service base, AI usage domain). Packages never import app code, React or twin.macro, and other packages only through their `index.ts`; an ESLint override in `.eslintrc.json` enforces all three. `src/packages/README.md` lists them and the folder vocabulary (`config/`, `domain/`, `core/`, `guards/`, `validators/`, `mappers/`, `services/`, `utils/`).
+Reusable logic lives in `src/packages/<domain>/<name>` (frame loop, canvas renderer and glyph atlas, backdrop scenes, binary rain, pixel reveal, Bug Raid, pixel art, hex grid, terminal, career and skill insights, AI usage domain). Packages never import app code, React or twin.macro, and other packages only through their `index.ts`; an ESLint override in `.eslintrc.json` enforces all three. `src/packages/README.md` lists them and the folder vocabulary (`config/`, `domain/`, `core/`, `guards/`, `validators/`, `mappers/`, `services/`, `utils/`).
 
 Content that crosses a boundary goes through `ContentService` (`core/content`): a `ContentSource` returns `unknown`, then a guard, a `Validator` and a `Mapper` run in that order. `src/services/<feature>/` is the composition root that plugs a site specific source (for example `PortfolioAiUsageSource`) into a generic package service. `index.tsx` calls `aiUsageService.getView()` at module scope, so invalid content (task shares not adding up to 100, a missing field) fails the static build.
 
@@ -113,7 +116,7 @@ Enforced by `.eslintrc.json` (typescript-eslint `recommended-requiring-type-chec
 
 - `src/pages/_document.tsx` collects styled-components styles via `ServerStyleSheet` and loads Roboto (which `globals.css` asks for). It replaced a misnamed, malformed `_documents.tsx` whose `enhanceApp` returned a whole `<Html>` tree. That file was never picked up by Next, so before this the app shipped no SSR styles and never loaded its font. Keep the standard `enhanceApp: (App) => (props) => sheet.collectStyles(<App {...props} />)` shape.
 - Tests cover the packages and services (`__tests__/src/packages/`, `__tests__/src/services/`); components are untested and `__tests__/src/pages/index.test.tsx` is still a placeholder. Every file under `__tests__/` counts as a test suite, so shared test data goes in a `fixtures/` folder, which `jest.config.js` ignores.
-- tsc and Jest never run twin.macro, so a Tailwind class twin does not support only fails at build time. To check components without a full build, compile them with Next's bundled Babel: `require("next/dist/compiled/babel/core").transformFileSync(file, { configFile: "./.babelrc.js" })`. The root `@babel/core` is Jest's older copy and refuses `next/babel`.
+- tsc and Jest never run twin.macro, so a Tailwind class twin does not support only fails at build time. To check components without a full build, compile them with Next's bundled Babel: `require("next/dist/compiled/babel/core").transformFileSync(file, { configFile: "./.babelrc.js" })`. The root `@babel/core` is Jest's older copy and refuses `next/babel`. Twin 2.8 lags Tailwind 3: `border-x-*` and `cursor-crosshair` do not exist, `keyframes` must come from `styled-components`, and underscores inside arbitrary values (`grid-cols-[1fr_2fr]`) are not turned into spaces, so the class is dropped without any error. Put such values in a `css` block.
 - `.env.production` and `.env.test` are committed and define `HOST`, `DEBUG`, `ANALYZE`. There is no `.env.development`, so on a fresh clone `process.env.HOST` is undefined under `npm run dev` and `SEO`'s canonical URL falls back to `"#"`. A gitignored local `.env` (loaded by Next in every mode) can define it. Only `HOST` and `DEBUG` are exposed to the client (via `env` in `next.config.js`).
 - `next.config.js` sets `trailingSlash: true` and strips all `console.*` except `console.error` from production builds.
 - Lighthouse reports live in `analyze/*.pdf`.

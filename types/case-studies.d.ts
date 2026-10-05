@@ -2,8 +2,12 @@ import { Industry } from "@/types/industry";
 
 export type Audience = "payments" | "ai" | "architecture";
 
+// The group a case study sits in on the page.
+export type CaseStudyDomain = "architecture" | "payments" | "web3" | "igaming" | "games" | "mobile" | "security" | "ai";
+
 export interface CaseStudy {
-  // The domain it sits in, shown above the title.
+  domain: CaseStudyDomain;
+  // A finer label, shown above the title.
   area: string;
   title: string;
   summary: string[];
@@ -41,6 +45,7 @@ export interface PlatformDiagrams {
 export interface CaseStudyFilters {
   allLabel: string;
   label: string;
+  domains: Record<CaseStudyDomain, string>;
 }
 
 // A kind of system built more than once, with the places it was built.

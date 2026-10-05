@@ -2616,6 +2616,16 @@ export const portfolioData: PortfolioData = {
   caseStudyFilters: {
     label: "Show case studies for",
     allLabel: "Everything",
+    domains: {
+      architecture: "Architecture",
+      payments: "Payments",
+      web3: "Web3",
+      igaming: "iGaming",
+      games: "Game publishing",
+      mobile: "Mobile",
+      security: "Security",
+      ai: "AI workflow",
+    },
   },
   bossLabels: { boss: "Boss", hp: "HP", defeated: "Defeated", loot: "Loot" },
   hud: { pick: "Pick a character", level: "Level", xp: "XP", bosses: "Bosses defeated" },
@@ -2967,6 +2977,7 @@ export const portfolioData: PortfolioData = {
   ],
   caseStudies: [
     {
+      domain: "architecture",
       area: "Architecture & cost",
       title: "A migration that pays for itself",
       summary: [
@@ -2982,6 +2993,7 @@ export const portfolioData: PortfolioData = {
       loot: "A business case that rests on a working proof of concept",
     },
     {
+      domain: "architecture",
       area: "Architecture",
       title: "No vendor lock-in, by design",
       summary: ["I design so a vendor can be replaced without rewriting the product."],
@@ -2999,6 +3011,7 @@ export const portfolioData: PortfolioData = {
       loot: "Any vendor or host can be swapped by configuration",
     },
     {
+      domain: "architecture",
       area: "Architecture",
       title: "Frameworks at the edges",
       summary: [
@@ -3017,6 +3030,7 @@ export const portfolioData: PortfolioData = {
       loot: "Business rules that outlive the framework",
     },
     {
+      domain: "architecture",
       area: "Architecture",
       title: "Designed for enterprise volume",
       summary: [
@@ -3037,6 +3051,7 @@ export const portfolioData: PortfolioData = {
       loot: "Write for twenty million rows, not two hundred",
     },
     {
+      domain: "architecture",
       area: "Architecture",
       title: "Infrastructure that can be switched",
       summary: ["Hosts are vendors too, so they sit behind adapters like everything else."],
@@ -3052,6 +3067,7 @@ export const portfolioData: PortfolioData = {
       loot: "Hosts are vendors too",
     },
     {
+      domain: "architecture",
       area: "Architecture",
       title: "Lean dependencies, written in house where it counts",
       summary: ["Every library is a long term cost and a supply chain risk, so the platform keeps them few."],
@@ -3067,6 +3083,7 @@ export const portfolioData: PortfolioData = {
       loot: "Every dependency earns its place",
     },
     {
+      domain: "payments",
       area: "Payments & compliance",
       title: "A refund rule the schema did not show",
       summary: [
@@ -3084,6 +3101,7 @@ export const portfolioData: PortfolioData = {
       loot: "Check a cheat path against the write path's guards",
     },
     {
+      domain: "payments",
       area: "Payments & compliance",
       title: "Jurisdiction agnostic money paths",
       summary: ["Tax, refund and compliance rules resolve per jurisdiction instead of being hardcoded for one market."],
@@ -3099,6 +3117,7 @@ export const portfolioData: PortfolioData = {
       loot: "Every charge remembers the rules it was taken under",
     },
     {
+      domain: "payments",
       area: "Payments",
       title: "Ledgers and money paths tested the way users hit them",
       summary: ["Money movement is the one part of a product that cannot be wrong, so it is tested through the real surface."],
@@ -3114,6 +3133,7 @@ export const portfolioData: PortfolioData = {
       loot: "Confirm money bugs through the endpoint",
     },
     {
+      domain: "payments",
       area: "Payments & security",
       title: "A budget anyone could drain",
       summary: [
@@ -3131,6 +3151,7 @@ export const portfolioData: PortfolioData = {
       loot: "The step that can refuse runs first",
     },
     {
+      domain: "security",
       area: "Identity & security",
       title: "A consent flow no API test could see",
       summary: ["I had an opt in end to end test given a real fixture instead of leaving it skipped."],
@@ -3146,6 +3167,7 @@ export const portfolioData: PortfolioData = {
       loot: "Test identity flows in a real browser",
     },
     {
+      domain: "ai",
       area: "Agent workflow",
       title: "Decisions that survive long agent sessions",
       summary: ["Long agent sessions lose context. Decisions should not."],
@@ -3158,6 +3180,184 @@ export const portfolioData: PortfolioData = {
       tags: ["Decision records", "Context engineering", "Code review"],
       audiences: ["ai"],
       loot: "Every open choice becomes a numbered decision",
+    },
+    {
+      domain: "web3",
+      area: "Web3 and mobile",
+      title: "Fan tokens for around 2M users",
+      summary: ["A fan engagement platform with real time rewards and NFT integrations needed its mobile app to carry on chain features reliably."],
+      points: [
+        "Delivered proofs of concept and production on chain integrations in the React Native app",
+        "Built the V2 core those features run on: routing, error reporting, app lifecycle and reactive state with RxJS",
+        "Architecture direction across 7 squads and 30+ engineers",
+      ],
+      tags: ["Fan tokens", "On chain integrations", "React Native"],
+      audiences: ["architecture"],
+      industries: ["web3", "sports"],
+      loot: "On chain features ride on a stable core, never on a patched one",
+    },
+    {
+      domain: "web3",
+      area: "Web3",
+      title: "A chain of our own, with bridges",
+      summary: ["A Web3 platform for influencers and game publishers needed its whole stack built from zero, chain included."],
+      points: [
+        "Led the architecture from 0 to 1 across web, mobile, back end, blockchain and infrastructure, with a team of 10+",
+        "Cross chain interoperability with custom bridges and indexers across Solana, Polkadot and EVM chains",
+        "Moved from Polkadot parachains to a chain of our own in Rust on Substrate",
+        "Smart contract safety work on blockchain specific threats",
+      ],
+      tags: ["Substrate", "Bridges", "Indexers"],
+      audiences: ["architecture"],
+      industries: ["web3"],
+      loot: "A chain cannot be patched casually: CI/CD with audit logs and rollback, and recovery plans before launch",
+    },
+    {
+      domain: "web3",
+      area: "Web3",
+      title: "NFT lending marketplace V2",
+      summary: ["The NFT lending marketplace and its landing page needed a V2 that could keep scaling as the product changed."],
+      points: [
+        "Built marketplace V2 with the tech lead and owned the V2 landing page from 0 to 1",
+        "Refactored major parts of the codebase and wired contract interactions with Wagmi and Ethers",
+        "End to end Playwright tests on the critical flows, Storybook with interaction tests, high Lighthouse scores",
+      ],
+      tags: ["NFT lending", "Wagmi", "Playwright"],
+      audiences: ["architecture"],
+      industries: ["web3"],
+      loot: "Critical flows are tested end to end before they are refactored",
+    },
+    {
+      domain: "igaming",
+      area: "Live casino",
+      title: "Live casino UI on every screen",
+      summary: [
+        `A live casino provider streamed tables from land based casinos to operators on mobile, tablet and desktop, and needed the game
+        UI and a new mobile app.`,
+      ],
+      points: [
+        "Game UI for desktop and mobile, and the new mobile application",
+        "Real time back end logic in Node.js and WebSockets for live game data and streaming",
+        "Legacy Backbone code refactored into Redux flows",
+        `In the CTO's words: "He had a crucial role in the development of the game UI for the desktop and mobile application enabling AG
+        to deliver the most innovative User Experience in the industry."`,
+      ],
+      tags: ["Live casino", "Real time", "Mobile"],
+      audiences: [],
+      industries: ["igaming"],
+      loot: "One game UI for every screen the operators streamed to",
+    },
+    {
+      domain: "igaming",
+      area: "Live casino",
+      title: "A bet table on canvas",
+      summary: ["A proof of concept for an interactive bet table, drawn on canvas with PixiJS. The repository is public on my GitHub."],
+      points: [
+        "Built the bet table in PixiJS and presented it to the engineering team and the CTO, feeding future product planning",
+        "Profiling tools to find the bottlenecks in canvas rendering",
+      ],
+      tags: ["PixiJS", "Canvas", "Proof of concept"],
+      audiences: [],
+      industries: ["igaming"],
+      loot: "A working table in front of the CTO, not a slide",
+    },
+    {
+      domain: "igaming",
+      area: "Operator tooling",
+      title: "Operator onboarding, automated",
+      summary: ["Integrating each new casino operator took manual effort."],
+      points: [
+        "Built internal operator tools that streamlined and automated onboarding and integration of new operators",
+        "Less manual effort, and client support that scaled with the number of operators",
+      ],
+      tags: ["Operator tooling", "Automation"],
+      audiences: [],
+      industries: ["igaming"],
+      loot: "Onboarding that scales with the number of operators",
+    },
+    {
+      domain: "games",
+      area: "Game publishing",
+      title: "One launcher across web, desktop and mobile",
+      summary: ["A Web3 game launcher had to work as a website, a game store, a developer portal, an Electron desktop app and a mobile app."],
+      points: [
+        "Architecture for the web platform and the Electron desktop app; introduced and architected the React Native mobile app",
+        "Lighthouse audits and native C/C++ modules, with profiling that reduced memory use and load times in Electron and on mobile",
+        "CLI tools, scaffolders and internal docs for developer experience",
+        "50 pull requests authored and 240 reviewed in the open source organisation",
+        "Before that, game publishing tools for KPMG clients: content delivery, user management and interactive PixiJS interfaces",
+      ],
+      tags: ["Electron", "React Native", "Open source"],
+      audiences: ["architecture"],
+      industries: ["gamePublishing", "web3"],
+      loot: "One architecture for every surface a player meets",
+    },
+    {
+      domain: "games",
+      area: "Game publishing",
+      title: "My MMORPG, from engine to live operations",
+      summary: ["Gods of Zushin, built from my studies onward: the engine, the launchers, the payments and the live game."],
+      points: [
+        "A custom high performance engine in C/C++ with Lua, built for low latency multiplayer and still in use",
+        "Own cryptography and compression for client and server traffic, with anti tamper on accounts and inventory",
+        "Launchers in Electron and C#, live patching, moderation tools and analytics dashboards",
+        "Stripe and PayPal purchases and subscriptions, and marketing run across social and streaming platforms",
+      ],
+      tags: ["C/C++", "Lua", "Live operations"],
+      audiences: ["architecture"],
+      industries: ["gamePublishing"],
+      loot: "Owning every layer, from the engine to the community",
+    },
+    {
+      domain: "mobile",
+      area: "Mobile architecture",
+      title: "An unstable app rebuilt as a V2 core",
+      summary: ["I inherited a critically unstable mobile app that 7 squads were building on."],
+      points: [
+        "Diagnosed the root issues and delivered fixes that restored reliability and performance",
+        "Built the V2 core from scratch, with modules shared across mobile and web, a monorepo, component libraries and a design system",
+        "Native modules in C/C++, Java and Kotlin, lazy loading and bundle optimisation",
+        "Onboarding and architecture documentation for 30+ engineers",
+      ],
+      tags: ["React Native", "Monorepo", "TDD"],
+      audiences: ["architecture"],
+      industries: ["web3", "sports"],
+      loot: "Test driven, with 95%+ coverage on the frontend and mobile codebases",
+    },
+    {
+      domain: "security",
+      area: "Security and operations",
+      title: "A bot flood on my game server",
+      summary: ["In September 2026 my game's server went down under a flood of connections, most likely bots."],
+      points: [
+        "Ran a read only assessment of my own public surface with an agent: paths, headers, TLS and subdomains, with no exploitation and no admin actions",
+        `Found, in order: the CDN could be bypassed through a published origin address, game services listened on all interfaces, database
+        credentials sat in plain text and the origin stack was end of life`,
+        "Delivered a hardening runbook in priority order, firewall scripts for Windows and Linux, web server rules and a manual test checklist",
+        "Hardened in place to keep costs flat, with a rebuild planned later",
+      ],
+      tags: ["Security assessment", "Hardening", "DDoS"],
+      audiences: ["ai"],
+      industries: ["gamePublishing"],
+      loot: "Anti cheat is not anti DDoS: a flood that never signs in needs a firewall, not a game rule",
+    },
+    {
+      domain: "security",
+      area: "Authorisation",
+      title: "Five authorisation findings, fixed at the guard",
+      summary: [
+        `A background security review on my own platform reported five authorisation findings, three critical and two high, each a way
+        for one user to reach another user's data.`,
+      ],
+      points: [
+        "A shortcut that let someone add themselves to a conversation was removed, with an internal path that only works from a verified invite",
+        "Reading another user's subscription now fails a service layer check, verified live: another user gets 403, the owner 200",
+        "An admin statistics endpoint that assumed an admin now goes through the guard like everywhere else",
+      ],
+      tags: ["Authorisation", "Guards", "Live verification"],
+      audiences: ["architecture"],
+      industries: ["social"],
+      loot: "Access decisions live in one guard per domain, and every fix is proven through the live endpoint",
     },
   ],
   aiUsage: {

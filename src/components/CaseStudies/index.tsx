@@ -7,7 +7,7 @@ import { useAudienceFromHash } from "@/components/CaseStudies/hooks/useAudienceF
 import { Text } from "@/components/Text";
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
-import { CaseStudy, CaseStudyFilters } from "@/types/case-studies";
+import { CaseStudy, CaseStudyDomain, CaseStudyFilters } from "@/types/case-studies";
 import { BossLabels } from "@/types/game";
 import { AudienceLink, IndustryLink } from "@/types/headline";
 import { SectionIntros } from "@/types/sections-intros";
@@ -41,7 +41,13 @@ const Chip = styled.button(({ isSelected }: ChipProps) => [
   isSelected && tw`bg-[var(--accent)] text-[#101010]`,
 ]);
 
-const Bosses = tw.div`grid gap-[18px] lg:grid-cols-2 mt-[18px]`;
+const DOMAIN_ORDER: CaseStudyDomain[] = ["architecture", "payments", "web3", "igaming", "games", "mobile", "security", "ai"];
+
+const Group = tw.section`mt-[30px]`;
+
+const GroupTitle = tw.h3`m-0 mb-[14px] text-sm font-semibold text-[#999]`;
+
+const Bosses = tw.div`grid gap-[18px] lg:grid-cols-2`;
 
 // Case studies as PvE: each problem is a boss, beaten on screen as you read it.
 export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, audiences, industries, labels }: CaseStudiesProps) => {
@@ -75,11 +81,20 @@ export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters,
           </Chip>
         ))}
       </Filters>
-      <Bosses>
-        {visible.map((caseStudy) => (
-          <BossCard key={caseStudy.title} {...caseStudy} labels={labels} />
-        ))}
-      </Bosses>
+      {DOMAIN_ORDER.map((domain) => {
+        const group = visible.filter((caseStudy) => caseStudy.domain === domain);
+
+        return group.length > 0 && (
+          <Group key={domain} aria-label={filters.domains[domain]}>
+            <GroupTitle>{filters.domains[domain]}</GroupTitle>
+            <Bosses>
+              {group.map((caseStudy) => (
+                <BossCard key={caseStudy.title} {...caseStudy} labels={labels} />
+              ))}
+            </Bosses>
+          </Group>
+        );
+      })}
     </Section>
   );
 };

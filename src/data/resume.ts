@@ -2710,22 +2710,6 @@ export const portfolioData: PortfolioData = {
       to: "Feb 2021",
     },
     {
-      icon: faServer,
-      kind: "game",
-      status: "private",
-      title: "Zu Online Original",
-      category: "Game server",
-      intro: "The original server stack for the game: a game server in Python, a web server in PHP and storage for the launcher.",
-      responsibilities: [
-        "A game server in Python",
-        "A web server in PHP",
-        "Storage for the launcher's game files",
-      ],
-      techStack: ["Python", "PHP"],
-      from: "Jun 2022",
-      to: "Oct 2022",
-    },
-    {
       icon: faArrowsRotate,
       kind: "game",
       status: "private",

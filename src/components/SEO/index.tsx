@@ -107,7 +107,7 @@ export const SEO = ({ url }: SeoProps) => (
         {
           position: 3,
           name: "My Skills",
-          item: `${url}/#section-skills-ProgrammingLanguagesFrameworksSkills`,
+          item: `${url}/#section-skills`,
         },
         {
           position: 4,
@@ -151,7 +151,7 @@ export const SEO = ({ url }: SeoProps) => (
         },
         {
           questionName: "What are my expertise? ",
-          acceptedAnswerText: portfolioData.skills.expertise.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.expertise.map((skill) => skill.name).join(","),
         },
         {
           questionName: "Looking at the moment?",
@@ -163,15 +163,15 @@ export const SEO = ({ url }: SeoProps) => (
         },
         {
           questionName: "What programming languages do I use?",
-          acceptedAnswerText: portfolioData.skills.tech.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.tech.map((skill) => skill.name).join(","),
         },
         {
           questionName: "What design tools do I use?",
-          acceptedAnswerText: portfolioData.skills.design.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.design.map((skill) => skill.name).join(","),
         },
         {
           questionName: "What general tools do I use?",
-          acceptedAnswerText: portfolioData.skills.tools.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.tools.map((skill) => skill.name).join(","),
         },
       ]}
     />

@@ -8,16 +8,19 @@ import { Recommendations } from "@/components/Recommendations";
 import { Roster } from "@/components/Roster";
 import { Services } from "@/components/Services";
 import { SkillAreas } from "@/components/SkillAreas";
-import { Skills } from "@/components/Skills";
+import { SkillForge } from "@/components/SkillForge";
+import { Talents } from "@/components/Talents";
 import { Terminal } from "@/components/Terminal";
 import { Text } from "@/components/Text";
 import { portfolioData } from "@/data/resume";
 import Layout from "@/layouts/Layout";
 import { aiUsageService } from "@/services/ai-usage";
+import { createForgeStations } from "@/services/skills";
 import { createPortfolioTerminal } from "@/services/terminal/portfolioTerminal";
 
 // Runs at build time during static generation, so content that fails validation fails the build.
 const aiUsage = aiUsageService.getView();
+const forgeStations = createForgeStations(portfolioData);
 
 export default function Home() {
   return (
@@ -55,17 +58,7 @@ export default function Home() {
         education={portfolioData.education}
         labels={portfolioData.historyLabels}
       />
-      <Skills skills={portfolioData.skills.tech} intro={portfolioData.sections.tech} isCircle={true} />
-      <Skills skills={portfolioData.skills.tools} intro={portfolioData.sections.tools} isCircle={true} />
-      <Skills skills={portfolioData.skills.frontend} intro={portfolioData.sections.frontend} />
-      <Skills skills={portfolioData.skills.testing} intro={portfolioData.sections.testing} />
-      <Skills skills={portfolioData.skills.integrations} intro={portfolioData.sections.integrations} />
-      <Skills skills={portfolioData.skills.observability} intro={portfolioData.sections.observability} />
-      <Skills skills={portfolioData.skills.ai} intro={portfolioData.sections.ai} />
       <AiUsage {...aiUsage} />
-      <Skills skills={portfolioData.skills.design} intro={portfolioData.sections.design} />
-      <Skills skills={portfolioData.skills.language} intro={portfolioData.sections.language} />
-      <Skills skills={portfolioData.skills.teamplayer} intro={portfolioData.sections.teamplayer} />
       <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
       <CaseStudies
         caseStudies={portfolioData.caseStudies}
@@ -75,6 +68,12 @@ export default function Home() {
         audiences={portfolioData.headline.audiences}
       />
       <Roster intro={portfolioData.sections.roster} {...portfolioData.roster} />
+      <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
+      <Talents
+        intro={portfolioData.sections.talents}
+        talents={portfolioData.skills.teamplayer.map((skill) => skill.name)}
+        content={portfolioData.talents}
+      />
       <Projects
         projects={portfolioData.projects}
         intro={portfolioData.sections.projects}

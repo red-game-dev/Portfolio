@@ -1,4 +1,6 @@
 export interface ProjectDetail {
+  // False for catch all entries spanning many unrelated projects, which would inflate skill years.
+  countsForSkills?: boolean;
   image: string;
   title: string;
   category: string;

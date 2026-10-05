@@ -28,6 +28,7 @@ import {
 import { PortfolioAiUsage } from "@/types/ai-usage";
 import { CaseStudy, CaseStudyFilters, PlatformDiagrams } from "@/types/case-studies";
 import { Detail } from "@/types/details";
+import { ForgeContent, TalentsContent } from "@/types/forge";
 import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
@@ -76,6 +77,8 @@ export interface PortfolioData {
   };
   skillAreas: SkillArea[];
   roster: Roster;
+  forge: ForgeContent;
+  talents: TalentsContent;
   projects: ProjectDetail[];
   projectAchievementLabel: string;
   caseStudies: CaseStudy[];
@@ -274,6 +277,17 @@ export const portfolioData: PortfolioData = {
       description: [
         "Problems from my own platform and client work, what I did about them, and what changed.",
       ],
+    },
+    forge: {
+      title: "Skills",
+      description: [
+        `No self ratings. Each skill's rarity is earned from how long I have used it in real roles and projects, measured from their
+        dates, and every card says where.`,
+      ],
+    },
+    talents: {
+      title: "Talents",
+      description: ["The skills that do not fit in a stack: how I work with people."],
     },
     roster: {
       title: "Characters I Play",
@@ -1711,6 +1725,24 @@ export const portfolioData: PortfolioData = {
       },
     ],
   },
+  forge: {
+    refining: "Refining",
+    tracked: "{duration}, {places}",
+    years: "yrs",
+    months: "mos",
+    untracked: "Hands on",
+    rarity: { legendary: "Legendary", epic: "Epic", rare: "Rare", common: "Common" },
+    legendYears: "Rarity by years of real use",
+  },
+  talents: {
+    talentsLabel: "Passive talents",
+    languagesLabel: "Languages",
+    languages: [
+      { name: "Maltese", level: "Native" },
+      { name: "English", level: "Fluent" },
+      { name: "Italian", level: "Fluent" },
+    ],
+  },
   roster: {
     asOf: "Oct 2026",
     labels: {
@@ -2121,6 +2153,7 @@ export const portfolioData: PortfolioData = {
     {
       image: "/images/otherprojects.webp",
       title: "Other Projects",
+      countsForSkills: false,
       category: "Different industries",
       intro: `Generally made many more projects, which I try my best to 
       keep my knowledge active and acquire more, therefore could introduce valuable knowledge to companies I work for.`,

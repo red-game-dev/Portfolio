@@ -5,8 +5,8 @@ import Link from "next/link";
 import { SECTION_IDS } from "@/config/sections";
 import useCollision from "@/hooks/useCollision";
 
-// Kept in sync with the id Skills derives from `sections.tech.title`.
-const TECH_SKILLS_SECTION_ID = "section-skills-ProgrammingLanguagesFrameworksSkills";
+// The forge holds every skill station; the old per group sections are gone.
+const SKILLS_SECTION_ID = "section-skills";
 
 interface MenuProps {
   active?: boolean;
@@ -84,7 +84,8 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnProjectsOnly] = useCollision("section-projects");
   const [isOnCaseStudiesSection] = useCollision(SECTION_IDS.caseStudies);
   const isOnProjectsSection = isOnProjectsOnly || isOnCaseStudiesSection;
-  const [isOnSectionTechSkills] = useCollision(TECH_SKILLS_SECTION_ID);
+  const [isOnSectionTechSkills] = useCollision(SKILLS_SECTION_ID);
+  const [isOnTalentsSection] = useCollision("section-talents");
   const [isOnSectionToolsSkills] = useCollision("section-skills-ToolsSkills");
   const [isOnSectionAiSkills] = useCollision("section-skills-AIToolsEnablement");
   const [isOnSectionDesignSkills] = useCollision("section-skills-DesignSkills");
@@ -96,7 +97,7 @@ export const Menu = ({ active }: MenuProps) => {
 
   const isOnSkillsSection = (isOnSectionTechSkills || isOnSectionToolsSkills ||
     isOnSectionAiSkills || isOnSectionDesignSkills || isOnSectionLanguageSkills ||
-    isOnSectionExpertise || isOnSkillAreasSection || isOnRosterSection);
+    isOnSectionExpertise || isOnSkillAreasSection || isOnRosterSection || isOnTalentsSection);
   const isOnBeginningSection = isOnSectionStarted ||
   (!isOnProjectsSection && !isOnSectionAbout &&
     !isOnSectionAbout && !isOnSectionHistory &&
@@ -119,7 +120,7 @@ export const Menu = ({ active }: MenuProps) => {
           <MenuItem href="#section-services" selected={isOnSectionServices} aria-label="What can I offer">
             What can I offer
           </MenuItem>
-          <MenuItem href={`#${TECH_SKILLS_SECTION_ID}`} selected={isOnSkillsSection} aria-label="Skills">
+          <MenuItem href={`#${SKILLS_SECTION_ID}`} selected={isOnSkillsSection} aria-label="Skills">
             Skills
           </MenuItem>
           <MenuItem href={`#${SECTION_IDS.aiUsage}`} selected={isOnAiUsageSection} aria-label="How I use AI">

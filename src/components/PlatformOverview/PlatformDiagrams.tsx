@@ -2,7 +2,6 @@ import { FC, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { Panel } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { PlatformDiagrams as PlatformDiagramsContent } from "@/types/case-studies";
 
@@ -136,8 +135,7 @@ export const PlatformDiagrams: FC<PlatformDiagramsContent> = ({ adapters, moneyF
   const isActive = useInView(gridRef, { once: false, threshold: 0 });
 
   return (
-    <Panel>
-      <Grid ref={gridRef}>
+    <Grid ref={gridRef}>
         <Diagram>
           <DiagramTitle>{adapters.title}</DiagramTitle>
           <Core>{adapters.core}</Core>
@@ -173,7 +171,6 @@ export const PlatformDiagrams: FC<PlatformDiagramsContent> = ({ adapters, moneyF
           </Inputs>
           <Caption>{moneyFlow.caption}</Caption>
         </Diagram>
-      </Grid>
-    </Panel>
+    </Grid>
   );
 };

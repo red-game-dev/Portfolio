@@ -97,39 +97,37 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnArenaSection] = useCollision(SECTION_IDS.arena);
   const [isOnFinaleSection] = useCollision("section-Wow");
 
-  const isOnSkillsSection = isOnWeb3Section || isOnSkillAreasSection || isOnPlatformSection || isOnCodeReviewSection || isOnIGamingSection ||
-    isOnRosterSection || isOnForgeSection || isOnTalentsSection;
+  // One item per stop on the journey: each zone's sections light up the item that leads into it.
   const isOnSectionAbout = isOnAboutOnly || isOnTerminalSection;
-  const isOnProjectsSection = isOnCaseStudiesSection || isOnDuelsSection || isOnProjectsOnly || isOnRecommendationsSection ||
-    isOnArenaSection || isOnFinaleSection;
-  const isOnBeginningSection = !isOnSectionAbout && !isOnSectionHistory && !isOnSectionServices && !isOnAiUsageSection &&
-    !isOnSkillsSection && !isOnProjectsSection;
+  const isOnChainZone = isOnWeb3Section || isOnSkillAreasSection || isOnPlatformSection || isOnCodeReviewSection;
+  const isOnGameWorld = isOnRosterSection || isOnForgeSection || isOnTalentsSection || isOnCaseStudiesSection || isOnDuelsSection ||
+    isOnProjectsOnly || isOnRecommendationsSection || isOnArenaSection || isOnFinaleSection;
 
   return (
     <>
       <MenuButton active={active} />
       <MenuContainer active={active}>
         <MenuList>
-          <MenuItem href="#section-started" selected={isOnBeginningSection} aria-label="Beginning">
-            Beginning
-          </MenuItem>
           <MenuItem href="#section-about" selected={isOnSectionAbout} aria-label="Who I am">
             Who I am
           </MenuItem>
-          <MenuItem href="#section-services" selected={isOnSectionServices} aria-label="What can I offer">
-            What can I offer
+          <MenuItem href="#section-services" selected={isOnSectionServices} aria-label="Offer">
+            Offer
           </MenuItem>
-          <MenuItem href="#section-history" selected={isOnSectionHistory} aria-label="My History">
-            My History
+          <MenuItem href="#section-history" selected={isOnSectionHistory} aria-label="History">
+            History
           </MenuItem>
-          <MenuItem href={`#${SECTION_IDS.aiUsage}`} selected={isOnAiUsageSection} aria-label="How I use AI">
-            How I use AI
+          <MenuItem href={`#${SECTION_IDS.aiUsage}`} selected={isOnAiUsageSection} aria-label="AI">
+            AI
           </MenuItem>
-          <MenuItem href={`#${SECTION_IDS.skillAreas}`} selected={isOnSkillsSection} aria-label="Skills">
-            Skills
+          <MenuItem href={`#${SECTION_IDS.web3}`} selected={isOnChainZone} aria-label="Web3">
+            Web3
           </MenuItem>
-          <MenuItem href={`#${SECTION_IDS.caseStudies}`} selected={isOnProjectsSection} aria-label="Projects & Achievements">
-            Projects & Achievements
+          <MenuItem href={`#${SECTION_IDS.igaming}`} selected={isOnIGamingSection} aria-label="iGaming">
+            iGaming
+          </MenuItem>
+          <MenuItem href={`#${SECTION_IDS.roster}`} selected={isOnGameWorld} aria-label="Game world">
+            Game world
           </MenuItem>
         </MenuList>
       </MenuContainer>

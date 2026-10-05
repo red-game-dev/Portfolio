@@ -39,7 +39,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 
 import { PortfolioAiUsage } from "@/types/ai-usage";
-import { CaseStudy, CaseStudyFilters, PlatformDiagrams } from "@/types/case-studies";
+import { CaseStudy, CaseStudyFilters, ExpertiseContent, PlatformDiagrams } from "@/types/case-studies";
 import { CodeReviewContent } from "@/types/code-review";
 import { Detail } from "@/types/details";
 import { IGamingContent, Web3Content } from "@/types/domains";
@@ -103,6 +103,7 @@ export interface PortfolioData {
   arena: ArenaContent;
   finale: FinaleContent;
   platformDiagrams: PlatformDiagrams;
+  expertise: ExpertiseContent;
   codeReview: CodeReviewContent;
   web3: Web3Content;
   igaming: IGamingContent;
@@ -415,8 +416,8 @@ export const portfolioData: PortfolioData = {
       description: ["The work behind the work: reading other people's code closely, in teams and in the open."],
     },
     platform: {
-      title: "The Platform at a Glance",
-      description: ["Two views of my own platform, unnamed: where vendors and hosts plug in, and how money moves through it."],
+      title: "What I Have Built, More Than Once",
+      description: ["The same kinds of system, built at several companies. Each tile names where; below them, one example in detail."],
     },
     arena: {
       title: "Bug Raid",
@@ -2749,6 +2750,57 @@ export const portfolioData: PortfolioData = {
         ],
       },
     ],
+  },
+  expertise: {
+    tiles: [
+      {
+        name: "Payments and ledgers",
+        detail: "Gateways, subscriptions, double entry ledgers, and regulated deposit and withdrawal flows.",
+        places: ["Own platform", "KPMG clients", "Gods of Zushin"],
+      },
+      {
+        name: "Real time systems",
+        detail: "Live game data and streaming over WebSockets, low latency multiplayer and real time feeds.",
+        places: ["Authentic Gaming", "Gods of Zushin", "Own platform"],
+      },
+      {
+        name: "Design systems",
+        detail: "Shared component libraries that keep brands, products and platforms consistent.",
+        places: ["Conrad", "HyperPlay", "Chiliz", "reNFT"],
+      },
+      {
+        name: "Migrations",
+        detail: "Brownfield moves without a big bang: CMS and platform migrations, and an unstable app rebuilt as a V2 core.",
+        places: ["Conrad", "KPMG", "Chiliz"],
+      },
+      {
+        name: "Adapters and no lock-in",
+        detail: "Vendors and hosts behind adapters, so a provider can be added, run in parallel and switched by configuration.",
+        places: ["Conrad", "Own platform"],
+      },
+      {
+        name: "Web3",
+        detail: "Fan tokens at scale, a chain with bridges, NFT lending and a Web3 game launcher.",
+        places: ["Chiliz", "CoinOn", "reNFT", "HyperPlay"],
+      },
+      {
+        name: "DevOps and release",
+        detail: "CI/CD with audit logs and rollback, Kubernetes with canary rollout per market, disaster recovery plans and many environments.",
+        places: ["Conrad", "CoinOn", "HyperPlay", "Own platform"],
+      },
+      {
+        name: "Security",
+        detail: "Custom cryptography and anti tamper, smart contract audits, authorisation reviews and server hardening.",
+        places: ["Gods of Zushin", "HyperPlay", "CoinOn", "Own platform"],
+      },
+      {
+        name: "Leading teams",
+        detail: "7 product squads and 30+ engineers at Chiliz, 10+ people as CTO at CoinOn, architecture across 90+ people at Conrad.",
+        places: ["Chiliz", "CoinOn", "Conrad"],
+      },
+    ],
+    exampleTitle: "One example in detail: my own platform",
+    exampleDescription: "Two views of it, unnamed: where vendors and hosts plug in, and how money moves through it.",
   },
   platformDiagrams: {
     adapters: {

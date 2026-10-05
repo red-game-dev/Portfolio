@@ -42,3 +42,16 @@ export interface CaseStudyFilters {
   allLabel: string;
   label: string;
 }
+
+// A kind of system built more than once, with the places it was built.
+export interface ExpertiseTile {
+  name: string;
+  detail: string;
+  places: string[];
+}
+
+export interface ExpertiseContent {
+  tiles: ExpertiseTile[];
+  exampleTitle: string;
+  exampleDescription: string;
+}

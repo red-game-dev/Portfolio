@@ -68,7 +68,7 @@ export default function Home() {
       <AiUsage {...aiUsage} />
       <Web3 intro={portfolioData.sections.web3} content={portfolioData.web3} />
       <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
-      <PlatformOverview intro={portfolioData.sections.platform} diagrams={portfolioData.platformDiagrams} />
+      <PlatformOverview intro={portfolioData.sections.platform} expertise={portfolioData.expertise} diagrams={portfolioData.platformDiagrams} />
       <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
       <IGaming intro={portfolioData.sections.igaming} content={portfolioData.igaming} />
       <Roster intro={portfolioData.sections.roster} {...portfolioData.roster} />

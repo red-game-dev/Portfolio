@@ -382,8 +382,8 @@ export const portfolioData: PortfolioData = {
     skillAreas: {
       title: "More Skills by Area",
       description: [
-        `What I build with beyond the scored skills above, grouped by area. These are in production on my own platform or at clients,
-        so they are listed rather than rated.`,
+        `Areas I build in beyond the skills in the forge. Each comes from several roles, ventures and client projects, my own platform
+        being one of them, so they are listed rather than rated.`,
       ],
     },
     teamplayer: {
@@ -395,8 +395,8 @@ export const portfolioData: PortfolioData = {
     caseStudies: {
       title: "Boss Fights",
       description: [
-        `Real problems from my own platform and client work. Each boss loses health as you read how it was beaten, and drops the
-        rule I kept.`,
+        `Real problems from across my roles, client work and my own platform. Each boss loses health as you read how it was beaten,
+        and drops the rule I kept.`,
       ],
     },
     codeReview: {
@@ -754,6 +754,8 @@ export const portfolioData: PortfolioData = {
         "CI/CD",
         "C4 model",
         "TDD",
+        "Figma",
+        "SASS",
       ],
     },
     {
@@ -809,6 +811,16 @@ export const portfolioData: PortfolioData = {
         "Automated Testing",
         "Code Review",
         "TDD",
+        "Figma",
+        "Jest",
+        "The Graph Protocol",
+        "Alchemy",
+        "Wagmi",
+        "Ethers.js",
+        "Docker",
+        "Android Studio",
+        "XCode",
+        "ChatGPT",
       ],
     },
     {
@@ -857,13 +869,17 @@ export const portfolioData: PortfolioData = {
         "Automated Testing",
         "TypeScript",
         "TDD",
+        "Figma",
+        "Jest",
+        "Ethers.js",
+        "ChatGPT",
       ],
     },
     {
       title: "Founder & Architect, Gamified Social Network Platform",
       industries: ["fintech", "sports", "social"],
       isVenture: true,
-      from: "2025",
+      from: "2021",
       outcome: "Payments, ledgers, ads and real time, with every vendor and host switchable by configuration",
       description: [
         "A gamified social network platform of my own: payments, double entry ledgers, an ads engine with its own auction, and real time feeds.",
@@ -894,7 +910,6 @@ export const portfolioData: PortfolioData = {
         "Sentry",
         "Playwright",
         "Vitest",
-        "Claude Code",
         "Git",
         "TDD",
         "Automated Testing",
@@ -904,6 +919,8 @@ export const portfolioData: PortfolioData = {
         "Radix UI",
         "Storybook",
         "C4 model",
+        "Figma",
+        "Docker",
       ],
     },
     {
@@ -1037,6 +1054,9 @@ export const portfolioData: PortfolioData = {
         "XCode",
         "TypeScript",
         "Code Review",
+        "Figma",
+        "SASS",
+        "Ethers.js",
       ],
     },
     {
@@ -1088,6 +1108,15 @@ export const portfolioData: PortfolioData = {
         "TypeScript",
         "TDD",
         "Automated Testing",
+        "Figma",
+        "Jest",
+        "GraphQL",
+        "The Graph Protocol",
+        "Alchemy",
+        "Ethers.js",
+        "Docker",
+        "Android Studio",
+        "XCode",
       ],
     },
     {
@@ -1129,6 +1158,7 @@ export const portfolioData: PortfolioData = {
         "Collaborated closely with designers and product owners to translate product goals, user flows, and design requirements into practical technical solutions.",
         "Presented technical direction onsite when required, supporting client alignment, delivery confidence, and stakeholder decision-making.",
         "Coordinated engineers across multiple client projects to ensure delivery goals were met without sacrificing code quality, maintainability, or scalability.",
+        "Worked on regulated deposit and withdrawal flows for iGaming clients under Malta licensing",
       ],
       techStack: [
         "TensorFlow",
@@ -1149,6 +1179,9 @@ export const portfolioData: PortfolioData = {
         "Automated Testing",
         "Unity",
         "Unreal Engine",
+        "Figma",
+        "Jest",
+        "SASS",
       ],
     },
     {
@@ -1198,6 +1231,7 @@ export const portfolioData: PortfolioData = {
         "TypeScript",
         "TDD",
         "Automated Testing",
+        "Jest",
       ],
     },
   ],
@@ -1988,7 +2022,7 @@ export const portfolioData: PortfolioData = {
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
           { company: "TasteTravellers", from: "Feb 2018" },
-          { company: "Own products", from: "2025" },
+          { company: "Own products", from: "2021" },
         ],
         stats: [
           { name: "Entrepreneur", value: 75 },
@@ -2015,7 +2049,7 @@ export const portfolioData: PortfolioData = {
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
           { company: "CoinOn", from: "Nov 2021", to: "Jan 2022" },
-          { company: "Own products", from: "2025" },
+          { company: "Own products", from: "2021" },
         ],
         stats: [
           { name: "Strategic Decision-making", value: 90 },
@@ -2031,7 +2065,7 @@ export const portfolioData: PortfolioData = {
           { company: "Chiliz", from: "Nov 2019", to: "Nov 2022" },
           { company: "HyperPlay", from: "Oct 2023", to: "Nov 2025" },
           { company: "Conrad", from: "Nov 2025" },
-          { company: "Own products", from: "2025" },
+          { company: "Own products", from: "2021" },
         ],
         stats: [
           { name: "Architecture", value: 95 },
@@ -2072,7 +2106,7 @@ export const portfolioData: PortfolioData = {
           { company: "Gods of Zushin", from: "Apr 2015" },
           { company: "CoinOn", from: "Nov 2021", to: "Jan 2022" },
           { company: "HyperPlay", from: "Oct 2023", to: "Nov 2025" },
-          { company: "Own products", from: "2025" },
+          { company: "Own products", from: "2021" },
         ],
         stats: [{ name: "Backend Engineer", value: 75 }],
         abilities: ["Node.js and NestJS", "PostgreSQL", "Laravel", "Real time"],
@@ -2219,7 +2253,7 @@ export const portfolioData: PortfolioData = {
         "Built moderation tools, analytics dashboards and live patching",
         "Led moderators, event coordinators, testers and developers as CEO and CTO",
       ],
-      techStack: ["C/C++", "Lua", "Python", "VueJS", "PHP Laravel", "C#", "Electron (Old Launcher)", "Cloudflare", "DigitalOcean", "AWS"],
+      techStack: ["C/C++", "Lua", "Python", "VueJS", "PHP Laravel", "C#", "Electron (Old Launcher)", "Cloudflare", "DigitalOcean", "AWS", "Shopify"],
       link: "https://goz.fun",
       from: "Apr 2015",
     },
@@ -2350,10 +2384,10 @@ export const portfolioData: PortfolioData = {
       kind: "web3",
       status: "openSource",
       title: "Arc Chain",
-      category: "Blockchain",
-      intro: "My own blockchain, written in Rust on Substrate and started from its FRAME node template, from my CoinOn period.",
+      category: "Blockchain experiment",
+      intro: "An early public experiment with a Substrate NFT pallet, in Rust, from January 2022.",
       responsibilities: [
-        "A Substrate node and runtime in Rust",
+        "The Substrate node template with one NFT pallet added",
         "Development chain setup with Nix",
       ],
       techStack: ["Rust (Substrate)", "Nix"],

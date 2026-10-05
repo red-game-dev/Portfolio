@@ -89,6 +89,8 @@ const AnimatedCircle = tw.div`absolute w-full h-full block`;
 // The hook and the bio decode from binary once the section is on screen: the Matrix zone's way of saying hello.
 const HOOK_DECODE_MS = 1600;
 const PARAGRAPH_DELAY_MS = 260;
+// Long paragraphs would take seconds at the per character pace, so each is capped.
+const PARAGRAPH_DECODE_MS = 1400;
 
 export const About: FC<AboutProps> = ({
   name, intro, hook, paragraphs, proof, facts, image, phone, email, cvUrl, github, stackoverflow, linkedInUsername, portrait,
@@ -110,7 +112,7 @@ export const About: FC<AboutProps> = ({
             </Hook>
             {paragraphs.map((paragraph, index) => (
               <Paragraph key={paragraph}>
-                <DecodedText text={collapse(paragraph)} isActive={isInView} delay={HOOK_DECODE_MS + index * PARAGRAPH_DELAY_MS} />
+                <DecodedText text={collapse(paragraph)} isActive={isInView} delay={HOOK_DECODE_MS + index * PARAGRAPH_DELAY_MS} duration={PARAGRAPH_DECODE_MS} />
               </Paragraph>
             ))}
           </Lead>

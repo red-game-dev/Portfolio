@@ -70,6 +70,11 @@ export const Portrait: FC<PortraitProps> = ({ src, fallbackSrc, alt, labels }: P
     }
 
     const image = new window.Image();
+    // The page is hidden behind the intro loader at first, so the frame has no size yet; the engine sizes
+    // itself whenever the frame does.
+    const resizeObserver = new ResizeObserver(() => {
+      engineRef.current?.resize({ width: frame.clientWidth, height: frame.clientHeight }, window.devicePixelRatio || 1);
+    });
     let isCancelled = false;
 
     image.src = src;
@@ -79,13 +84,11 @@ export const Portrait: FC<PortraitProps> = ({ src, fallbackSrc, alt, labels }: P
           return;
         }
 
-        const engine = PixelRevealEngine.forCanvas(context, { image, width: image.naturalWidth, height: image.naturalHeight }, {
+        engineRef.current = PixelRevealEngine.forCanvas(context, { image, width: image.naturalWidth, height: image.naturalHeight }, {
           config: { theme: { background: COLORS.surface, signal: COLORS.accent } },
           onStageChange: setStage,
         });
-
-        engine.resize({ width: frame.clientWidth, height: frame.clientHeight }, window.devicePixelRatio || 1);
-        engineRef.current = engine;
+        resizeObserver.observe(frame);
         setIsReady(true);
       })
       // Without the picture there is nothing to reveal; the photo underneath stays as it is.
@@ -93,6 +96,7 @@ export const Portrait: FC<PortraitProps> = ({ src, fallbackSrc, alt, labels }: P
 
     return () => {
       isCancelled = true;
+      resizeObserver.disconnect();
       engineRef.current?.stop();
       engineRef.current = null;
     };

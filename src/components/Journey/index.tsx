@@ -25,8 +25,12 @@ export const Journey: FC<JourneyProps> = ({ isEnabled, hud }: JourneyProps) => {
 
   useEffect(() => {
     document.documentElement.dataset.zone = zone;
-    visitZone(zone);
-  }, [visitZone, zone]);
+  }, [zone]);
+
+  // Reaching a zone means passing every zone before it, even when a menu link jumped over them.
+  useEffect(() => {
+    ZONE_BOUNDARIES.slice(0, zoneIndex + 1).forEach((boundary) => visitZone(boundary.zone));
+  }, [visitZone, zoneIndex]);
 
   return (
     <>

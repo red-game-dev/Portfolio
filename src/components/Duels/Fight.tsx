@@ -49,7 +49,7 @@ const spark = keyframes`
 
 const knockOut = keyframes`
   from { transform: rotate(0) translateY(0); opacity: 1; }
-  to { transform: rotate(-80deg) translate(-18px, 22px); opacity: 0.6; }
+  to { transform: rotate(-80deg) translate(-26px, 6px); opacity: 0.6; }
 `;
 
 const stamp = keyframes`

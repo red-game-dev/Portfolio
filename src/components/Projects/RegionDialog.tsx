@@ -78,7 +78,14 @@ const Chip = styled.span(({ isKind }: { isKind?: boolean }) => [
 const Close = tw.button`absolute top-[14px] right-[14px] z-[3] flex items-center justify-center w-[36px] h-[36px] cursor-pointer text-lg
 text-[#999] bg-transparent border-0 hover:text-white`;
 
-const Body = tw.div`grid gap-[22px] p-[18px] md:p-[22px] md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]`;
+const Body = styled.div(() => [
+  tw`grid gap-[22px] p-[18px] md:p-[22px]`,
+  css`
+    @media (min-width: 768px) {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    }
+  `,
+]);
 
 // The region's view: its screenshot under a map grid, or its own terrain when there is no picture.
 const View = styled.div(() => [

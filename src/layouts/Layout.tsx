@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import tw from "twin.macro";
+import tw, { css, styled } from "twin.macro";
 
 import { AppLoader, AppLoadingLines } from "@/components/AppLoader";
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
@@ -10,7 +10,15 @@ import { portfolioData  } from "@/data/resume";
 import Footer from "./Footer";
 import Header from "./Header";
 
-const Container = tw.div`relative m-0 overflow-hidden before:z-[8] before:pointer-events-none`;
+// overflow: clip trims sideways overflow like hidden did, but without making this a scroll container,
+// which would stop position: sticky working for anything inside it.
+const Container = styled.div(() => [
+  tw`relative m-0 before:z-[8] before:pointer-events-none`,
+  css`
+    overflow: hidden;
+    overflow: clip;
+  `,
+]);
 
 interface LayoutProps {
   title: string;

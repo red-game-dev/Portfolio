@@ -58,7 +58,7 @@ const Route = styled.svg(({ isDrawn }: { isDrawn: boolean }) => [
 ]);
 
 const Terrain = styled.div(() => [
-  tw`absolute flex items-center justify-center text-[#2a2a2a] bg-[#121212]`,
+  tw`absolute flex items-center justify-center text-[#3a3a3a] bg-[#171717]`,
   css`
     clip-path: ${HEX};
     transform: scale(0.9);

@@ -30,6 +30,7 @@ import { CaseStudy, CaseStudyFilters, PlatformDiagrams } from "@/types/case-stud
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
+import { HistoryLabels } from "@/types/history";
 import { Journey } from "@/types/journey";
 import { ProjectDetail } from "@/types/projects";
 import { Recommendation } from "@/types/recommendations";
@@ -57,6 +58,7 @@ export interface PortfolioData {
   serviceActions: ServiceActions;
   education: Resume[];
   experience: Resume[];
+  historyLabels: HistoryLabels;
   skills: {
     design: Skill[];
     language: Skill[];
@@ -152,6 +154,12 @@ export const portfolioData: PortfolioData = {
     "Your next <strong>Marketing Consultant</strong>",
   ],
   sections: {
+    history: {
+      title: "My History",
+      description: [
+        "Employment runs on the main line. The companies I founded run beside it on their own branch, because I have always built alongside the day job.",
+      ],
+    },
     services: {
       title: "What can I offer?",
       description: [
@@ -483,6 +491,18 @@ export const portfolioData: PortfolioData = {
       ],
     },
   ],
+  historyLabels: {
+    experience: "Experience",
+    education: "Education",
+    main: "Employment",
+    ventures: "Companies I founded",
+    role: "Role",
+    venture: "Venture",
+    present: "Present",
+    to: "to",
+    showMore: "Show {count} more",
+    showLess: "Show less",
+  },
   experience: [
     {
       title: "Lead Software Architect / Enterprise Architect, Conrad Electronic Group",
@@ -566,6 +586,27 @@ export const portfolioData: PortfolioData = {
         played, and integrated with crypto ecosystems.`,
         "Scope: Product Architecture, Web3 Platform Delivery, Electron, Mobile, and Developer Experience.",
       ],
+      bullets: [
+        "Built scalable architectures for both the web platform and Electron based desktop app, ensuring maintainability and high performance.",
+        "Introduced and architected the mobile app using React Native, enabling a consistent cross platform user experience. English",
+        "Implemented and optimized scalable features across the main website, game store, developer portal, and launcher client.",
+        "Maximized performance using Lighthouse audits and native C/C++ modules, particularly for mobile and desktop builds.",
+        "Contributed to product innovation, shaping new directions and collaborating with stakeholders to drive core feature growth.",
+        "Led and participated in code reviews across a multistack environment to uphold quality and maintainability.",
+        "Conducted smart contract security audits, identifying potential vector attacks and improving overall Web3 security posture.",
+        "Wrote high coverage automated tests across stacks (backend, frontend, mobile, desktop), ensuring regression safety and reliability.",
+        "Built components using an internal design system, complete with Storybook documentation and interaction testing.",
+        "Delivered 0 to 1 product initiatives, building new marketing facing and core platform features from scratch.",
+        "Actively contributed across multiple languages and frameworks, including Node.js, Rust, and Solidity.",
+        "Worked with Web3 integrations, managing wallet connections and blockchain interactions across EVM compatible chains",
+        "Established DX (Developer Experience) improvements, including CLI tools, scaffolders, and internal documentation.",
+        "Led performance profiling and optimization for Electron and mobile environments, reducing memory usage and load times.",
+        "Collaborated with community developers, integrating their feedback into the roadmap and open source contributions.",
+        "Contributed to product architecture and key technical decisions across the web platform, developer portal, Electron launcher, and mobile direction.",
+        "Supported migration and modernization work across frontend, desktop, backend, and Web3 systems, improving maintainability and long-term scalability.",
+        `Worked closely with product and engineering stakeholders to turn early product ideas into technical plans, architecture
+          decisions, and production-ready features.`,
+      ],
       techStack: [
         "Next.js (App Router, SSR)",
         "React",
@@ -591,6 +632,25 @@ export const portfolioData: PortfolioData = {
         "An interesting company that offers NFT rentals, integrating with various industries like gaming.",
         "Scope: Frontend Architecture, Product Collaboration, Web3 Marketplace, and Technical Decisions.",
       ],
+      bullets: [
+        "Developed NFT Marketplace V2 in close collaboration with the Tech Lead, ensuring a scalable, modular architecture.",
+        "Architected and implemented performance optimized solutions, achieving high Lighthouse scores and following best practices for frontend performance.",
+        "Built reusable UI components using Radix UI, collaborating effectively with the Design team to maintain consistent design language.",
+        "Maintained a comprehensive Storybook with interaction tests to ensure UI components remain robust and well documented.",
+        "Contributed to architectural and stack level decisions across both backend and frontend technologies.",
+        "Implemented scalable new features on both the landing page and marketplace, adapting to evolving product priorities.",
+        "Wrote end to end Playwright tests with high test coverage, ensuring critical workflows remained bug free across releases.",
+        "Handled iterative improvements and issue fixes, helping prioritize tasks based on user and business impact.",
+        `Delivered the V2 reNFT landing page, which laid the foundation before the rebranding to 021. This was done under the
+          supervision of the Tech Lead, while I owned the implementation and delivery from 0 to 1.`,
+        "Refactored major parts of the codebase, simplifying complex logic and improving maintainability.",
+        "Introduced frontend interactions using Wagmi and Ethers to communicate with smart contracts.",
+        `Contributed beyond frontend implementation, supporting product-related issues, software architecture, systems thinking,
+          technical decisions, and team alignment.`,
+        "Worked closely with technical leadership to build consensus around frontend architecture, product decisions, and implementation direction.",
+        `Supported the transition from earlier product architecture into a more scalable V2 marketplace and landing page
+          foundation, contributing to modernization, performance, testing, and maintainability.`,
+      ],
       techStack: [
         "React",
         "Next.js (SSR)",
@@ -607,6 +667,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Founder & Architect, Gamified Social Network Platform",
+      isVenture: true,
       from: "2025",
       outcome: "Payments, ledgers, ads and real time, with every vendor and host switchable by configuration",
       description: [
@@ -649,6 +710,14 @@ export const portfolioData: PortfolioData = {
         `We focus on bringing authentic travel experiences to their audience and 
         we're engaged in creating and sharing high-quality content related to food, drinks, travel destinations, and accommodations.`,
       ],
+      isVenture: true,
+      bullets: [
+        "Built the brand across a Facebook page and group, Instagram, YouTube and an online store.",
+        "Content creation and curation, photography and visual storytelling for food, drink and travel destinations.",
+        "Community engagement and audience growth, advertising on a budget across social platforms.",
+        "E-commerce management for the TasteTravellers store on Shopify.",
+        "Collaborations and partnerships with travel related companies, promoted to the community.",
+      ],
       techStack: [
         "Shopify",
       ],
@@ -659,6 +728,22 @@ export const portfolioData: PortfolioData = {
       description: [
         "An achievement on its own with over 5 years in production environment.",
         "A Game MMORPG project developed during studies to enhance my knowledge in various of areas, which can be discuss.",
+      ],
+      isVenture: true,
+      bullets: [
+        "Led the project end to end for over five years, overseeing game design, development, infrastructure, and operations.",
+        `Designed and built a custom high performance game engine, capable of handling large-scale queries and low-latency
+          multiplayer interactions, still in active use today.`,
+        "Developed custom cryptographic and data compression solutions, improving security and performance in client server communication.",
+        "Architected scalable client and server infrastructure, focusing on optimization, modularity, and minimal latency across game sessions.",
+        "Implemented integrated payment systems, including Stripe and PayPal, enabling monetization through in game purchases and subscriptions.",
+        "Managed and coordinated contributors across development, game design, community management, marketing, operations, and monetization.",
+        "Executed marketing strategies on Facebook, YouTube, Twitch, Reddit, Instagram, and others to grow the community and drive engagement.",
+        "Built internal tools for game moderation, analytics dashboards, and live patching systems.",
+        "Designed in game economy and balancing systems based on player behavior and feedback.",
+        "Implemented account and inventory systems using custom encryption and anti tamper techniques.",
+        "Produced in game 2D and 3D assets, with modeling in Autodesk Maya and texture design in Adobe Illustrator.",
+        "Maintained platform operations on Cloudflare, Google Cloud, and DigitalOcean, ensuring uptime and global accessibility.",
       ],
       techStack: [
         "C/C++",
@@ -691,6 +776,35 @@ export const portfolioData: PortfolioData = {
         platform decisions across 7 product squads and 30+ engineers.`,
         "Introduced Test Driven Development org-wide, reaching 95%+ coverage on the frontend and mobile codebases.",
       ],
+      bullets: [
+        "Joined as a Mobile and Frontend Engineer, quickly expanding into Tech Lead and Architecture roles due to early stage startup needs and team dynamics.",
+        `Built the V2 Core Architecture ("Epics Rx") from scratch, implementing routing, Sentry integration, app lifecycle
+          handling (e.g., back press), and RxJS based state orchestration.`,
+        `Architected the new V2 App foundation, introducing structure, modularization, and maintainability across mobile and web
+          platforms in close collaboration with Tech Leads.`,
+        "Inherited a critically unstable app, rapidly diagnosed root issues, and delivered fixes that restored reliability and performance.",
+        `Played a central architecture and technical leadership role across 7 product squads / 30+ engineers, supporting key
+          technical decisions, implementation standards, delivery alignment, architectural direction, and collaboration between
+          Product Owners, Designers, Frontend Engineers, Backend Engineers, and QA.`,
+        "Delivered new features and resolved bugs across the mobile app, marketing website, and back office, covering the full product stack.",
+        "Led implementation of performance critical mobile modules using native C/C++, Java, Kotlin, enhancing speed and responsiveness significantly.",
+        "Maximized performance and bundle efficiency using Lighthouse audits, lazy loading strategies, and optimized module resolution.",
+        "Introduced Test Driven Development (TDD) processes, resulting in 95%+ test coverage on frontend/mobile codebases.",
+        "Mentored junior and midlevel engineers, fostering growth across frontend and mobile teams.",
+        "Refactored critical legacy code, eliminating redundancy and enforcing SOLID principles, atomic design, and separation of concerns.",
+        "Served as a key technical liaison for the CPO and stakeholders, managing feature scoping, technical estimations, and delivery pipelines.",
+        "Provided architectural consultancy for both product scalability and developer workflows, including tooling recommendations for engineers, marketing, and PMs.",
+        "Contributed to the monorepo strategy and shared modules for better code reuse between mobile/web.",
+        "Built internal component libraries and unified design system across platforms.",
+        "Led developer onboarding and documented architectural patterns for scaling team growth.",
+        "Delivered POCs and production-grade on-chain integrations for the mobile app using React Native.",
+        `Made and supported key architecture decisions for the V2 mobile app foundation, core modules, shared patterns, state
+          orchestration, routing, error handling, and maintainability.`,
+        "Aligned engineers, product owners, designers, and QA around implementation direction, delivery priorities, technical tradeoffs, and release quality.",
+        "Provided architecture guidance beyond mobile, contributing to web, back office, shared modules, developer workflows, and cross-platform consistency.",
+        `Supported migration from unstable legacy app structures into a more maintainable V2 architecture with clearer ownership,
+          testing, modularization, and performance practices.`,
+      ],
       techStack: [
         "NativeScript",
         "Vue.js",
@@ -714,6 +828,26 @@ export const portfolioData: PortfolioData = {
       to: "Jan 2022",
       description: [
         "Delivered a full scale solution of website, mobile app and a blockchain infrastructure.",
+      ],
+      bullets: [
+        "Defined and executed the technology roadmap, aligning engineering goals with the company’s long term vision and product milestones.",
+        "Led the architecture from 0 to 1, building the entire stack from the ground up with scalability, security, and performance at its core.",
+        `Managed and coordinated a cross-functional team of 10+ people across engineering, product, design, blockchain, and
+          delivery, focusing on execution, mentorship, technical quality, and product outcomes.`,
+        "Oversaw IT infrastructure and operations, ensuring high availability, data integrity, and efficient resource utilization.",
+        "Conducted deep technical R&D to guide product innovation, platform capabilities, and blockchain integrations.",
+        "Led initiatives on cybersecurity and smart contract safety, focusing on blockchain specific threat vectors and prevention strategies.",
+        "Established analytics pipelines, internal KPIs, and budgeting tools to drive data informed decisions and product iteration.",
+        "Directed compliance research and implementation, working on technical alignment with evolving crypto regulatory frameworks.",
+        "Built disaster recovery and business continuity plans, essential for operational resilience in blockchain based environments.",
+        "Handled intellectual property (IP) strategy, protecting product innovation and core technology.",
+        "Acted as a key technical voice across the executive team, collaborating directly with the CEO, CPO, CSO, and CDO to align on product, strategy, and growth.",
+        "Deployed secure CI/CD pipelines with audit logs, permission controls, and rollback strategies.",
+        "Introduced microservice architecture with distributed backend services for modular and scalable feature development.",
+        "Championed immersive UX, leveraging PixiJS for game like frontends to engage Web3 native users.",
+        "Developed SDKs and APIs for 3rd party integrations and partner ecosystems.",
+        "Enabled cross chain interoperability using custom bridges and indexers across Solana, Polkadot, and EVM compatible chains.",
+        "Drove strategic partnerships, using technical insights to attract collaborators and investors aligned with CoinOn’s vision.",
       ],
       techStack: [
         "Flutter",
@@ -744,6 +878,34 @@ export const portfolioData: PortfolioData = {
         `For clients I also built machine learning models in TensorFlow for suggestions and recommendations, ads, and social media
         feed ranking, and they went live.`,
       ],
+      bullets: [
+        `Contributed to and led architecture decisions across multiple brownfield migrations and greenfield projects for KPMG
+          clients across finance, iGaming, Web3, game publishing, and enterprise software.`,
+        `Developed and delivered full stack features across frontend, backend, and core software, taking ownership from
+          requirements and architecture through implementation, testing, deployment, and client delivery.`,
+        "Worked with multiple industries daily, often adapting rapidly to sector specific constraints and requirements.",
+        `Performed onsite development, technical presentations, and stakeholder collaboration, aligning client requirements,
+          product goals, design direction, engineering feasibility, and infrastructure constraints.`,
+        `Handled key architecture and technical decisions for multiple client projects, including brownfield migration and
+          modernization, greenfield systems from early planning to delivery, early-stage Web3 initiatives, iGaming platforms
+          requiring compliance, scalability and real-time performance, and game publishing tools for content delivery, user
+          management and interactive experiences.`,
+        `Delivered end-to-end systems from 0 to 1, defining project scope, architecture, implementation plans, technical
+          standards, and delivery milestones together with clients, designers, product owners, and engineering teams.`,
+        "Integrated new features and resolved critical bugs based on client feedback and evolving project goals.",
+        `Managed and coordinated multiple engineers to achieve project goals, including task breakdown, implementation guidance,
+          code reviews, mentoring, technical evaluations, and delivery alignment.`,
+        `Introduced coding standards, architecture documentation, and delivery guidelines for client projects, improving
+          onboarding, consistency, maintainability, and long-term project handover.`,
+        "Delivered PixiJS based immersive interfaces for clients in game publishing and iGaming and interactive media.",
+        "Worked closely with client QA and DevOps teams to ensure CI/CD readiness across projects.",
+        "Migrated and modernized multiple brownfield client projects, improving maintainability, scalability, performance, and delivery quality.",
+        "Helped define greenfield project foundations, including architecture, stack choices, technical standards, development workflows, and delivery planning.",
+        "Handled key technical decisions for KPMG clients, balancing business needs, product requirements, engineering complexity, UX direction, and delivery timelines.",
+        "Collaborated closely with designers and product owners to translate product goals, user flows, and design requirements into practical technical solutions.",
+        "Presented technical direction onsite when required, supporting client alignment, delivery confidence, and stakeholder decision-making.",
+        "Coordinated engineers across multiple client projects to ensure delivery goals were met without sacrificing code quality, maintainability, or scalability.",
+      ],
       techStack: [
         "TensorFlow",
         "PHP (Laravel)",
@@ -765,6 +927,28 @@ export const portfolioData: PortfolioData = {
         `One of the companies that given me a lot of experiences throughout the years. 
         This company is an iGaming Company, which was my first experience in iGaming.`,
       ],
+      bullets: [
+        `Went beyond the role of a Frontend Engineer, actively contributing to real time backend logic using Node.js and
+          WebSockets to support live game data and streaming interactions.`,
+        `Developed internal operator tools that streamlined and automated the onboarding and integration of new casino operators,
+          reducing manual effort and scaling client support.`,
+        "Contributed to the design and development of a new architecture, improving code maintainability and scalability across the frontend stack.",
+        `Built and presented a POC Bet Table using PIXI.js, showcasing an interactive, canvas based experience to the broader
+          engineering team and the CTO contributing to future product planning.`,
+        `Shipped features and enhancements across the core game application, marketing website, and back office tools, addressing
+          both user facing needs and internal operations.`,
+        "Resolved bugs and technical debt across systems, improving platform stability and game reliability.",
+        "Refactored legacy Backbone code into modular Redux based flows to modernize the frontend",
+        "Provided technical input for WebSocket based scalability and client side state synchronization.",
+        "Collaborated closely with QA and game designers to ensure UX alignment and feature quality.",
+        "Implemented game performance profiling tools to detect bottlenecks in canvas rendering.",
+        "Played a crucial role in the development of game UI for desktop and mobile experiences, supporting live casino product delivery.",
+        "Implemented the new AG mobile application while learning and applying new frontend and mobile technologies.",
+        "Took ownership of multiple projects, balancing business requirements, technical team needs, and delivery quality.",
+        "Worked closely with managers, CTO-level stakeholders, QA, and designers to deliver product-facing casino game experiences.",
+        `Contributed to modernization and migration from legacy frontend patterns into more maintainable Redux / RxJS-based
+          flows, improving scalability and developer experience.`,
+      ],
       techStack: [
         "React",
         "Redux",
@@ -785,9 +969,9 @@ export const portfolioData: PortfolioData = {
       title: "Online Courses",
       description: [
         "These courses have helped me enhance further knowledge for both practical and theoretical",
-        `Courses: Python, Architecture, Leadership, VueJS, Angular, React, Laravel, React Native, Ionic, NativeScript, 
-        AI, Blockchain (Solidity, Substrate, Rust, Solana) and many more`,
       ],
+      techStack: ["Python", "Architecture", "Leadership", "Vue.js", "Angular", "React", "Laravel", "React Native", "Ionic", "NativeScript",
+        "AI", "Solidity", "Substrate", "Rust", "Solana"],
       from: "Sep 2017",
     },
     {
@@ -795,25 +979,22 @@ export const portfolioData: PortfolioData = {
         "Bachelor of Science (Honours) in Multimedia Software Development, MCAST",
       description: [
         "Although last year wasn't completed, I was able to learn a lot of interesting subjects",
-        `Courses: C#, Blender, Game Development, Photoshop, Web Development, PHP, Maltese, English, Maths, 
-        2D Animation with After Effects`,
       ],
+      techStack: ["C#", "Blender", "Game Development", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects"],
       from: "Sep 2015",
       to: "Jun 2017",
     },
     {
       title: "Extended Diploma Computer Software Engineering, MCAST",
-      description: [
-        "Courses: C#, Blender, Photoshop, Web Development, PHP, Maltese, English, Maths, 2D Animation with After Effects",
-      ],
+      description: [],
+      techStack: ["C#", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects"],
       from: "Sep 2013",
       to: "Jun 2015",
     },
     {
       title: "Diploma Computer Software Engineering, MCAST",
-      description: [
-        "Courses: C#, Blender, Photoshop, Web Development, PHP, Maltese, English, Maths, 2D Animation with After Effects",
-      ],
+      description: [],
+      techStack: ["C#", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects"],
       from: "Sep 2011",
       to: "Jun 2013",
     },

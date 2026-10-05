@@ -2,9 +2,9 @@ import { About } from "@/components/About";
 import { AiUsage } from "@/components/AiUsage";
 import { CaseStudies } from "@/components/CaseStudies";
 import { Cover } from "@/components/Cover";
+import { History } from "@/components/History";
 import { Projects } from "@/components/Projects";
 import { Recommendations } from "@/components/Recommendations";
-import { Resume } from "@/components/Resume";
 import { Roster } from "@/components/Roster";
 import { Services } from "@/components/Services";
 import { SkillAreas } from "@/components/SkillAreas";
@@ -42,9 +42,11 @@ export default function Home() {
         email={portfolioData.details.email}
         linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
       />
-      <Resume
-        education={portfolioData.education}
+      <History
+        intro={portfolioData.sections.history}
         experience={portfolioData.experience}
+        education={portfolioData.education}
+        labels={portfolioData.historyLabels}
       />
       <Skills skills={portfolioData.skills.tech} intro={portfolioData.sections.tech} isCircle={true} />
       <Skills skills={portfolioData.skills.tools} intro={portfolioData.sections.tools} isCircle={true} />

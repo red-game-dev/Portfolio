@@ -14,6 +14,7 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "Vercel": ["Vercel Enterprise"],
   "Ethers.js": ["Ethers"],
   "draw.io / C4 model": ["C4 model"],
+  "Automated Testing (unit, integration, end to end)": ["Automated Testing", "Software Test Automation"],
 };
 
 // Names too ambiguous to look for in prose: "Git" would match "git-diff" in a sentence about a readout.

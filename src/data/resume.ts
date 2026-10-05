@@ -721,6 +721,7 @@ export const portfolioData: PortfolioData = {
         "Code Review",
         "CI/CD",
         "C4 model",
+        "TDD",
       ],
     },
     {
@@ -774,6 +775,7 @@ export const portfolioData: PortfolioData = {
         "Design Systems",
         "Automated Testing",
         "Code Review",
+        "TDD",
       ],
     },
     {
@@ -819,6 +821,8 @@ export const portfolioData: PortfolioData = {
         "Playwright",
         "Storybook",
         "Automated Testing",
+        "TypeScript",
+        "TDD",
       ],
     },
     {
@@ -993,6 +997,8 @@ export const portfolioData: PortfolioData = {
         "Sentry",
         "Android Studio",
         "XCode",
+        "TypeScript",
+        "Code Review",
       ],
     },
     {
@@ -1040,6 +1046,9 @@ export const portfolioData: PortfolioData = {
         "Vercel",
         "Git",
         "CI/CD",
+        "TypeScript",
+        "TDD",
+        "Automated Testing",
       ],
     },
     {
@@ -1095,6 +1104,11 @@ export const portfolioData: PortfolioData = {
         "Git",
         "Code Review",
         "CI/CD",
+        "TypeScript",
+        "TDD",
+        "Automated Testing",
+        "Unity",
+        "Unreal Engine",
       ],
     },
     {
@@ -1140,6 +1154,9 @@ export const portfolioData: PortfolioData = {
         "Kafka",
         "SignalR",
         "Git",
+        "TypeScript",
+        "TDD",
+        "Automated Testing",
       ],
     },
   ],
@@ -1159,21 +1176,22 @@ export const portfolioData: PortfolioData = {
       title:
         "Bachelor of Science (Honours) in Multimedia Software Development, MCAST",
       description: [],
-      techStack: ["C#", "Blender", "Game Development", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects"],
+      techStack: ["C#", "Blender", "Game Development", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects",
+        "Object Oriented Programming", "Data Structures & Algorithms", "Software Test Automation", "UX Design"],
       from: "Sep 2015",
       to: "Jun 2017",
     },
     {
       title: "Extended Diploma Computer Software Engineering, MCAST",
       description: [],
-      techStack: ["C#", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects"],
+      techStack: ["C#", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects", "SQL", "Networking"],
       from: "Sep 2013",
       to: "Jun 2015",
     },
     {
       title: "Diploma Computer Software Engineering, MCAST",
       description: [],
-      techStack: ["C#", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects"],
+      techStack: ["C#", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects", "SQL", "Networking"],
       from: "Sep 2011",
       to: "Jun 2013",
     },
@@ -2207,8 +2225,8 @@ export const portfolioData: PortfolioData = {
       image: "/images/socialnetwork-amw.webp",
       title: "AMW - Social Network & Game",
       category: "Social network",
-      intro: `A social network for anime, manga, cosplay and gaming fans, rebuilt from scratch in 2015, where taking part levelled up
-      your own RPG character.`,
+      intro: `A social network for anime, manga, cosplay and gaming fans, started when I began studying at MCAST and rebuilt from
+      scratch in 2015, where taking part levelled up your own RPG character.`,
       responsibilities: [
         "Profiles, forums, chat rooms and publishing for artwork, fan fiction and cosplay",
         "A points economy that levelled up customisable RPG characters",
@@ -2219,7 +2237,7 @@ export const portfolioData: PortfolioData = {
       techStack: ["PHP", "My Own Frameworks (PHP, JS)", "JS (JQuery, Backbone)", "Python", "WebGL & Canvas", "HTML", "CSS", "Cloudflare",
         "DigitalOcean", "AWS"],
       link: "https://drive.google.com/drive/folders/1jN-Xhfiro3UJppRLVehG8UIytjFJVVtl?usp=share_link",
-      from: "Apr 2015",
+      from: "Sep 2010",
       to: "Apr 2019",
     },
     {
@@ -2271,6 +2289,20 @@ export const portfolioData: PortfolioData = {
       repo: "https://github.com/red-game-dev/TextBasedDungeonRPG",
       from: "Sep 2020",
       to: "Sep 2020",
+    },
+    {
+      icon: faGamepadModern,
+      kind: "game",
+      status: "private",
+      title: "Engine Prototypes",
+      category: "Unity and Unreal Engine",
+      intro: "Personal game prototypes in Unity and Unreal Engine, built alongside my roles since 2019.",
+      responsibilities: [
+        "Prototypes and experiments in Unity and Unreal Engine",
+        "Picked up again whenever an idea needs a real engine",
+      ],
+      techStack: ["Unity", "Unreal Engine"],
+      from: "Nov 2019",
     },
     {
       icon: faCubes,
@@ -2379,19 +2411,20 @@ export const portfolioData: PortfolioData = {
     {
       icon: faBoxArchive,
       kind: "archive",
-      status: "archived",
+      status: "ongoing",
       image: "/images/otherprojects.webp",
       title: "The Archive",
       countsForSkills: false,
       category: "Older projects",
-      intro: "Everything else from earlier years: open source utilities, game experiments and prototypes across many industries.",
+      intro: `Everything else, from my first projects years before college to the experiments I still add today: open source
+      utilities, game experiments and prototypes across many industries.`,
       responsibilities: [
-        "Projects from earlier phases of my career, kept as they were",
+        "Projects from every phase, starting about six years before college",
+        "Still growing: new experiments land here alongside my roles",
       ],
       techStack: ["ReactJS", "Unity", "Angular", "C/C++", "PHP", "NodeJS", "Flutter", "Python"],
       link: "https://drive.google.com/drive/folders/0B1gPxpJpFGW5SGhXeS1pTzA4Tmc?resourcekey=0-amvzxbZpCBhf7bV-GVUmTg&usp=share_link",
-      from: "Jan 2013",
-      to: "Jan 2022",
+      from: "2003",
     },
   ],
   caseStudyFilters: {

@@ -2,9 +2,10 @@ import { FC, FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react
 
 import tw, { css, styled } from "twin.macro";
 
+import { TerminalDialog } from "@/components/Terminal/TerminalDialog";
 import { Text } from "@/components/Text";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
-import { TerminalEffect, TerminalLineKind, TerminalSession } from "@/packages/interaction/terminal";
+import { TerminalDialog as TerminalDialogContent, TerminalEffect, TerminalLineKind, TerminalSession } from "@/packages/interaction/terminal";
 import { SectionIntros } from "@/types/sections-intros";
 import { TerminalContent } from "@/types/terminal";
 
@@ -15,6 +16,8 @@ interface TerminalProps {
 }
 
 const SECTION_ID = "section-terminal";
+// New output arrives a line at a time, like a model streaming its answer.
+const STREAM_MS = 90;
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
@@ -89,6 +92,14 @@ const Suggestion = styled.button(() => [
   `,
 ]);
 
+const scrollToSection = (target: string) => {
+  if (target.startsWith("for-")) {
+    window.location.hash = target;
+  } else {
+    document.getElementById(target)?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  }
+};
+
 const isTyping = (target: EventTarget | null) => target instanceof HTMLElement
   && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
 
@@ -101,20 +112,49 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
   const sectionRef = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [visibleCount, setVisibleCount] = useState(() => session.output.length);
+  // A dialog waits until the lines before it have finished streaming.
+  const [pendingDialog, setPendingDialog] = useState<TerminalDialogContent | null>(null);
+  const [dialog, setDialog] = useState<TerminalDialogContent | null>(null);
+  const total = session.output.length;
 
   const apply = (effect: TerminalEffect | undefined) => {
     if (effect?.type === "navigate") {
-      if (effect.target.startsWith("for-")) {
-        window.location.hash = effect.target;
-      } else {
-        document.getElementById(effect.target)?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
-      }
+      scrollToSection(effect.target);
     }
 
     if (effect?.type === "open") {
       window.open(effect.url, "_blank", "noopener");
     }
+
+    if (effect?.type === "dialog") {
+      setPendingDialog(effect.dialog);
+    }
   };
+
+  useEffect(() => {
+    if (visibleCount >= total) {
+      if (visibleCount > total) {
+        setVisibleCount(total);
+      } else if (pendingDialog) {
+        setDialog(pendingDialog);
+        setPendingDialog(null);
+      }
+
+      return;
+    }
+
+    if (prefersReducedMotion()) {
+      setVisibleCount(total);
+
+      return;
+    }
+
+    const delay = session.output[visibleCount].kind === "input" ? 0 : STREAM_MS;
+    const timeout = window.setTimeout(() => setVisibleCount((count) => count + 1), delay);
+
+    return () => window.clearTimeout(timeout);
+  }, [pendingDialog, session, total, visibleCount]);
 
   const run = (command: string) => {
     apply(session.execute(command));
@@ -173,7 +213,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
           <Hint>{content.shortcutHint}</Hint>
         </TitleBar>
         <Screen ref={screenRef} role="log" aria-live="polite" aria-label={intro.title}>
-          {session.output.map((line, index) => (
+          {session.output.slice(0, visibleCount).map((line, index) => (
             <Line key={index} kind={line.kind}>{line.text}</Line>
           ))}
         </Screen>
@@ -199,6 +239,15 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
           </Suggestion>
         ))}
       </Suggestions>
+      <TerminalDialog
+        dialog={dialog}
+        closeLabel={content.red.labels.close}
+        onClose={() => {
+          setDialog(null);
+          inputRef.current?.focus({ preventScroll: true });
+        }}
+        onNavigate={scrollToSection}
+      />
     </Section>
   );
 };

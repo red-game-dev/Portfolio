@@ -12,6 +12,7 @@ import {
   system,
   TerminalSession
 } from "@/packages/interaction/terminal";
+import { createRedCommand } from "@/services/terminal/redCommand";
 import { Audience } from "@/types/case-studies";
 
 const GOTO_TARGETS: Record<string, string> = {
@@ -39,6 +40,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
   const linkedIn = `https://www.linkedin.com/in/${data.socialMedia.byUsername.linkedIn}`;
 
   return [
+    createRedCommand(data),
     {
       name: "whoami",
       summary: "Who I am and what I am looking for",

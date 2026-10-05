@@ -2672,8 +2672,8 @@ export const portfolioData: PortfolioData = {
     allLabel: "Everything",
     domains: {
       architecture: "Architecture",
-      payments: "Payments",
-      web3: "Web3",
+      payments: "Payments and banking",
+      web3: "Web3 and blockchain",
       igaming: "iGaming",
       games: "Game publishing",
       mobile: "Mobile",

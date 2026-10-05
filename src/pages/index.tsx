@@ -82,7 +82,6 @@ export default function Home() {
         caseStudies={portfolioData.caseStudies}
         intro={portfolioData.sections.caseStudies}
         filters={portfolioData.caseStudyFilters}
-        audiences={portfolioData.headline.audiences}
         industries={portfolioData.headline.industries}
         labels={portfolioData.bossLabels}
       />

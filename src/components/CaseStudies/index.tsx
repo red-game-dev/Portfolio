@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -7,16 +7,15 @@ import { useAudienceFromHash } from "@/components/CaseStudies/hooks/useAudienceF
 import { Text } from "@/components/Text";
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
-import { CaseStudy, CaseStudyDomain, CaseStudyFilters } from "@/types/case-studies";
+import { Audience, CaseStudy, CaseStudyDomain, CaseStudyFilters } from "@/types/case-studies";
 import { BossLabels } from "@/types/game";
-import { AudienceLink, IndustryLink } from "@/types/headline";
+import { IndustryLink } from "@/types/headline";
 import { SectionIntros } from "@/types/sections-intros";
 
 interface CaseStudiesProps {
   intro: SectionIntros;
   caseStudies: CaseStudy[];
   filters: CaseStudyFilters;
-  audiences: AudienceLink[];
   industries: IndustryLink[];
   labels: BossLabels;
 }
@@ -43,6 +42,9 @@ const Chip = styled.button(({ isSelected }: ChipProps) => [
 
 const DOMAIN_ORDER: CaseStudyDomain[] = ["architecture", "payments", "web3", "igaming", "games", "mobile", "security", "ai"];
 
+// The first screen's links (#for-payments and so on) open the boss fights on the matching domain.
+const AUDIENCE_DOMAIN: Record<Audience, CaseStudyDomain> = { payments: "payments", architecture: "architecture", ai: "ai" };
+
 const Group = tw.section`mt-[30px]`;
 
 const GroupTitle = styled.h3(() => [
@@ -60,14 +62,22 @@ const GroupTitle = styled.h3(() => [
 const Bosses = tw.div`grid gap-[18px] lg:grid-cols-2`;
 
 // Case studies as PvE: each problem is a boss, beaten on screen as you read it.
-export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, audiences, industries, labels }: CaseStudiesProps) => {
-  const [audience, setAudience] = useAudienceFromHash();
+export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, industries, labels }: CaseStudiesProps) => {
+  const [audience] = useAudienceFromHash();
+  const [domain, setDomain] = useState<CaseStudyDomain | null>(null);
   const industryKeys = useMemo(() => industries.map((link) => link.industry), [industries]);
   const [industry] = useIndustryFromHash(industryKeys);
-  const forAudience = audience ? caseStudies.filter((caseStudy) => caseStudy.audiences.includes(audience)) : caseStudies;
-  const forIndustry = industry ? forAudience.filter((caseStudy) => caseStudy.industries?.includes(industry)) : forAudience;
+  const domains = DOMAIN_ORDER.filter((candidate) => caseStudies.some((caseStudy) => caseStudy.domain === candidate));
+  const forDomain = domain ? caseStudies.filter((caseStudy) => caseStudy.domain === domain) : caseStudies;
+  const forIndustry = industry ? forDomain.filter((caseStudy) => caseStudy.industries?.includes(industry)) : forDomain;
   // An industry with no boss fights tagged leaves the list as it was rather than empty.
-  const visible = forIndustry.length > 0 ? forIndustry : forAudience;
+  const visible = forIndustry.length > 0 ? forIndustry : forDomain;
+
+  useEffect(() => {
+    if (audience) {
+      setDomain(AUDIENCE_DOMAIN[audience]);
+    }
+  }, [audience]);
 
   return (
     <Section id={SECTION_IDS.caseStudies}>
@@ -76,27 +86,27 @@ export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters,
       <Text title={intro.title} paragraphs={intro.description} isSection={false} />
       <Filters role="group" aria-label={filters.label}>
         <span>{filters.label}</span>
-        <Chip type="button" isSelected={audience === null} aria-pressed={audience === null} onClick={() => setAudience(null)}>
+        <Chip type="button" isSelected={domain === null} aria-pressed={domain === null} onClick={() => setDomain(null)}>
           {filters.allLabel}
         </Chip>
-        {audiences.map((link) => (
+        {domains.map((candidate) => (
           <Chip
-            key={link.audience}
+            key={candidate}
             type="button"
-            isSelected={audience === link.audience}
-            aria-pressed={audience === link.audience}
-            onClick={() => setAudience(link.audience)}
+            isSelected={domain === candidate}
+            aria-pressed={domain === candidate}
+            onClick={() => setDomain(candidate)}
           >
-            {link.label}
+            {filters.domains[candidate]}
           </Chip>
         ))}
       </Filters>
-      {DOMAIN_ORDER.map((domain) => {
-        const group = visible.filter((caseStudy) => caseStudy.domain === domain);
+      {DOMAIN_ORDER.map((groupDomain) => {
+        const group = visible.filter((caseStudy) => caseStudy.domain === groupDomain);
 
         return group.length > 0 && (
-          <Group key={domain} aria-label={filters.domains[domain]}>
-            <GroupTitle>{filters.domains[domain]}</GroupTitle>
+          <Group key={groupDomain} aria-label={filters.domains[groupDomain]}>
+            <GroupTitle>{filters.domains[groupDomain]}</GroupTitle>
             <Bosses>
               {group.map((caseStudy) => (
                 <BossCard key={caseStudy.title} {...caseStudy} labels={labels} />

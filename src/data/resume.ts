@@ -2825,7 +2825,6 @@ export const portfolioData: PortfolioData = {
       intro: "Gods of Zushin rebuilt as a cross platform game, mainly for the web.",
       responsibilities: [
         "A workspace for the cross platform rebuild",
-        "Two game versions tracked side by side",
       ],
       techStack: [],
       from: "Sep 2026",

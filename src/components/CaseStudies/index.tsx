@@ -45,7 +45,17 @@ const DOMAIN_ORDER: CaseStudyDomain[] = ["architecture", "payments", "web3", "ig
 
 const Group = tw.section`mt-[30px]`;
 
-const GroupTitle = tw.h3`m-0 mb-[14px] text-sm font-semibold text-[#999]`;
+const GroupTitle = styled.h3(() => [
+  tw`flex flex-row items-center gap-[10px] m-0 mb-[14px] text-lg font-semibold text-white`,
+  css`
+    &::before {
+      content: "";
+      width: 4px;
+      height: 18px;
+      background: var(--accent);
+    }
+  `,
+]);
 
 const Bosses = tw.div`grid gap-[18px] lg:grid-cols-2`;
 

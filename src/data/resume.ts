@@ -467,8 +467,9 @@ export const portfolioData: PortfolioData = {
     hook: `I started programming at 7 and never stopped. More than twenty years later I have built game engines, payment systems, a
     blockchain and platforms used by millions, and founded companies of my own along the way.`,
     paragraphs: [
-      `I am a software architect with 12+ years in the industry, about 7 of them leading as architect, tech lead and CTO. I design
-      systems that are not tied to a vendor or a framework, and I stay hands on while I do it.`,
+      `I am a software architect with 15+ years in the industry, most of them leading: CEO and CTO of my own social network and MMORPG,
+      CTO at CoinOn, then architect and tech lead at Chiliz and Conrad. I design systems that are not tied to a vendor or a framework,
+      and I stay hands on while I do it.`,
       `I build with AI agents. I write the rules, the context and the checks they work within, and a person reviews every change. The
       "How I use AI" section shows what that looks like day to day.`,
       `I have worked across e-commerce, payments, iGaming, game publishing and Web3, on the engineering side and on the business side.
@@ -476,11 +477,10 @@ export const portfolioData: PortfolioData = {
       "I am looking for an architect, technical leadership or AI engineering role where the problems are hard and the standards are high.",
     ],
     proof: [
-      { value: "12+", label: "years in the industry" },
-      { value: "7", label: "years leading as architect, tech lead and CTO" },
+      { value: "20+", label: "years writing software, since I was 7" },
+      { value: "15+", label: "years in the industry, from my first company in 2010" },
+      { value: "12+", label: "startups built" },
       { value: "5M+", label: "monthly users on the largest platform" },
-      { value: "298", label: "pull requests merged, 520 reviewed" },
-      { value: "8", label: "ventures on GitHub" },
     ],
     facts: [
       "Maltese citizen with EU work rights",

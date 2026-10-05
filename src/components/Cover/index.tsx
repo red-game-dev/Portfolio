@@ -28,13 +28,14 @@ const Section = tw.div`relative overflow-hidden h-screen m-0 z-[7] `;
 
 const Content = tw.div`absolute top-0 left-0 z-[2] table table w-full h-full align-middle text-justify`;
 
-const TitleWrapper = tw.div`relative top-0 left-0 z-[2] table-fixed table-cell w-full h-full align-middle`;
+// Lifted on large screens, so the typed line clears the essentials block at the bottom.
+const TitleWrapper = tw.div`relative top-0 left-0 z-[2] table-fixed table-cell w-full h-full align-middle lg:pb-[30vh]`;
 
 // Where the intro used to sit. The About section's scroll-spy measures this marker, so its timing is unchanged.
 const IntroMarker = tw.span`absolute left-0 bottom-[30px] lg:bottom-[50px] w-px h-[24px] pointer-events-none`;
 
 const Essentials = tw.div`absolute left-0 bottom-[30px] z-[3] flex flex-col gap-[12px] px-5 text-left
-lg:pr-12 lg:left-[calc(20% + 35px)] lg:bottom-[50px] lg:max-w-[620px]`;
+lg:pr-12 lg:left-[calc(20% + 35px)] lg:bottom-[50px] lg:max-w-[780px]`;
 
 const Introduction = styled.h1(() => [
   tw`m-0 text-white break-words text-base lg:text-lg [& > strong]:text-[var(--accent)]`,
@@ -63,8 +64,16 @@ const Action = styled.a(() => [
 
 const Audiences = tw.nav`flex flex-row flex-wrap items-center gap-[8px] text-xs text-[#999]`;
 
-// Phones stop at the roles; the full industry filter waits at the top of My History.
-const Industries = tw.nav`hidden md:flex flex-row flex-wrap items-center gap-[8px] text-xs text-[#999]`;
+// Only on wide, tall screens: elsewhere the cover stops at the roles, and the full industry filter waits at
+// the top of My History.
+const Industries = styled.nav(() => [
+  tw`hidden xl:flex flex-row flex-wrap items-center gap-[8px] text-xs text-[#999]`,
+  css`
+    @media (max-height: 820px) {
+      display: none;
+    }
+  `,
+]);
 
 const AudienceLink = styled.a(() => [
   tw`text-xs leading-none no-underline text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[7px] px-[11px] border-[1px] border-solid border-[var(--accent-muted)]`,

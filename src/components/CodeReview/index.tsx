@@ -30,7 +30,7 @@ const Label = tw.span`text-sm text-[#ccc]`;
 
 const Detail = tw.span`text-xs text-[#999]`;
 
-const Highlights = tw.div`grid gap-[18px] md:grid-cols-2 mt-[18px]`;
+const Highlights = tw.div`grid gap-[18px] md:grid-cols-2 items-start mt-[18px]`;
 
 const Highlight = tw.article`flex flex-col gap-[12px] p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[var(--accent-muted)]`;
 

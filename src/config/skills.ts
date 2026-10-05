@@ -17,6 +17,10 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "draw.io / C4 model": ["C4 model"],
   "Automated Testing (unit, integration, end to end)": ["Automated Testing", "Software Test Automation"],
   "Google Analytics 4": ["GA4"],
+  "Tailwind CSS": ["Tailwind", "Tailwind v4"],
+  "Visual Studio 2003-2022": ["Visual Studio"],
+  "Oracle OCI Procurement": ["Oracle OCI"],
+  "SAP (customer master data)": ["SAP Ariba"],
   "Claude Code Max CLI": ["Claude Code"],
 };
 

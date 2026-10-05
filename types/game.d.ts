@@ -2,6 +2,14 @@ export interface DuelRound {
   agent: string;
   human: string;
   result: string;
+  // Who was right. Defaults to me; the rounds the agent won stay on the page, with the rule I kept.
+  winner?: "human" | "agent";
+  rule?: string;
+}
+
+export interface DuelRule {
+  name: string;
+  detail: string;
 }
 
 export interface Duels {
@@ -14,6 +22,10 @@ export interface Duels {
   roundLabel: string;
   versusLabel: string;
   koLabel: string;
+  ruleLabel: string;
+  rulesTitle: string;
+  rulesDescription: string;
+  rules: DuelRule[];
   rounds: DuelRound[];
 }
 

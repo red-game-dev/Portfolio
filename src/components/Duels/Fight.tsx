@@ -9,6 +9,11 @@ import { AGENT_SPRITE, WARRIOR_SPRITE } from "@/config/sprites";
 interface FightProps {
   played: number;
   total: number;
+  humanWins: number;
+  totalHumanWins: number;
+  agentWins: number;
+  // Who won the round the reader just reached, which decides who lands the blow.
+  lastWinner: "human" | "agent";
   agentLabel: string;
   humanLabel: string;
   koLabel: string;
@@ -39,6 +44,19 @@ const meClash = keyframes`
   32% { transform: translateX(0); }
   46%, 56% { transform: translateX(-56px); }
   70%, 100% { transform: translateX(0); }
+`;
+
+// A round the agent won: its strike gets through and I take the hit.
+const agentStrike = keyframes`
+  0% { transform: translateX(0); }
+  18%, 30% { transform: translateX(56px); }
+  46%, 100% { transform: translateX(0); }
+`;
+
+const meHit = keyframes`
+  0%, 16% { transform: translateX(0); filter: none; }
+  22% { transform: translateX(14px); filter: brightness(3) saturate(0); }
+  38%, 100% { transform: translateX(0); filter: none; }
 `;
 
 const spark = keyframes`
@@ -91,15 +109,30 @@ const Slot = styled.div(({ side }: { side: "left" | "right" }) => [
   side === "left" ? tw`left-0` : tw`right-0`,
 ]);
 
-const Lunge = styled.div(({ isClashing, isAgent, isKo }: { isClashing: boolean; isAgent: boolean; isKo: boolean }) => [
+interface LungeProps {
+  isClashing: boolean;
+  isAgent: boolean;
+  isKo: boolean;
+  isAgentRound: boolean;
+}
+
+const clashFor = ({ isAgent, isAgentRound }: LungeProps) => {
+  if (isAgentRound) {
+    return isAgent ? agentStrike : meHit;
+  }
+
+  return isAgent ? agentClash : meClash;
+};
+
+const Lunge = styled.div((props: LungeProps) => [
   tw`w-full h-full`,
   css`
     transform-origin: bottom center;
   `,
-  isClashing && css`
-    animation: ${isAgent ? agentClash : meClash} ${CLASH_MS}ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+  props.isClashing && css`
+    animation: ${clashFor(props)} ${CLASH_MS}ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
   `,
-  isKo && css`
+  props.isKo && css`
     animation: ${agentClash} ${CLASH_MS}ms cubic-bezier(0.3, 0.7, 0.4, 1), ${knockOut} 0.5s ease-in ${CLASH_MS}ms forwards;
   `,
   reducedMotion,
@@ -158,9 +191,18 @@ const Floor = styled.div(() => [
 
 // The duel, played out: every round the reader reaches is one clash, and the agent's health drops a
 // quarter each time until it goes down. Remounted per round, so the clash animation replays.
-export const Fight: FC<FightProps> = ({ played, total, agentLabel, humanLabel, koLabel }: FightProps) => {
-  const isKo = played >= total && total > 0;
-  const agentHealth = total > 0 ? 1 - played / total : 1;
+// The agent's health drains with every round I win; mine takes a dent for each round it wins, but never
+// runs out, since those rounds are where I learnt something.
+const HIT_DAMAGE = 0.15;
+const MIN_HEALTH = 0.4;
+
+export const Fight: FC<FightProps> = ({
+  played, total, humanWins, totalHumanWins, agentWins, lastWinner, agentLabel, humanLabel, koLabel,
+}: FightProps) => {
+  const isKo = total > 0 && played >= total && humanWins >= totalHumanWins;
+  const agentHealth = totalHumanWins > 0 ? 1 - humanWins / totalHumanWins : 1;
+  const myHealth = Math.max(MIN_HEALTH, 1 - agentWins * HIT_DAMAGE);
+  const isAgentRound = lastWinner === "agent" && !isKo;
 
   return (
     <Stage aria-hidden="true">
@@ -174,13 +216,13 @@ export const Fight: FC<FightProps> = ({ played, total, agentLabel, humanLabel, k
         <Bar isRight>
           <span>{humanLabel}</span>
           <Track>
-            <Fill isAgent={false} />
+            <Fill isAgent={false} style={{ transform: `scaleX(${myHealth})` }} />
           </Track>
         </Bar>
       </Bars>
       <Ring key={played}>
         <Slot side="left">
-          <Lunge isAgent isClashing={played > 0 && !isKo} isKo={isKo}>
+          <Lunge isAgent isClashing={played > 0 && !isKo} isKo={isKo} isAgentRound={isAgentRound}>
             <Bob isStill={isKo}>
               <Sprite>
                 <PixelSprite {...AGENT_SPRITE} />
@@ -189,9 +231,9 @@ export const Fight: FC<FightProps> = ({ played, total, agentLabel, humanLabel, k
           </Lunge>
         </Slot>
         {played > 0 && <Spark left="58%" delayMs={CLASH_MS * 0.16} />}
-        {played > 0 && <Spark left="34%" delayMs={CLASH_MS * 0.5} />}
+        {played > 0 && !isAgentRound && <Spark left="34%" delayMs={CLASH_MS * 0.5} />}
         <Slot side="right">
-          <Lunge isAgent={false} isClashing={played > 0} isKo={false}>
+          <Lunge isAgent={false} isClashing={played > 0} isKo={false} isAgentRound={isAgentRound}>
             <Bob isStill={false}>
               <Sprite isMirrored>
                 <PixelSprite {...WARRIOR_SPRITE} />

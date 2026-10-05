@@ -43,7 +43,8 @@ const VerticalTitle = styled.span(() => [tw`text-sm font-semibold`, fill("bottom
 
 // A slim line under the header on phones and tablets.
 const Horizontal = tw.div`fixed z-[7] left-0 right-0 top-[72px] lg:hidden pointer-events-none flex flex-row items-baseline justify-center
-gap-[8px] px-[16px] py-[4px] text-[11px] whitespace-nowrap overflow-hidden bg-[rgba(16, 16, 16, 0.78)]`;
+gap-[8px] px-[16px] py-[5px] text-[11px] whitespace-nowrap overflow-hidden bg-[rgba(16, 16, 16, 0.94)] border-0 border-b-[1px] border-solid
+border-[#1E1E1E]`;
 
 const HorizontalZone = tw.span`flex-shrink-0 font-semibold text-[var(--accent)]`;
 

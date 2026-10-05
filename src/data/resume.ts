@@ -455,7 +455,7 @@ export const portfolioData: PortfolioData = {
     recommendations: {
       title: "Recommendations",
       description: [
-        "I have recommendation letters from KPMG, Authentic Gaming, reNFT and more, and I can share them on request. A few lines from them:",
+        "Lines from my reference letters from Authentic Gaming and reNFT, attributed by role. A reference from KPMG is available on request.",
       ],
     },
   },
@@ -2802,6 +2802,25 @@ export const portfolioData: PortfolioData = {
       role: "Lead Front End Developer",
       company: "reNFT",
       date: "August 2023",
+    },
+    {
+      quote: `He had a crucial role in the development of the game UI for the desktop and mobile application enabling AG to deliver the
+      most innovative User Experience in the industry.`,
+      role: "CTO",
+      company: "Authentic Gaming",
+      date: "January 2019",
+    },
+    {
+      quote: "Redeemer demonstrated to understand the business requirements fully and to implement the solution as per the needs of the technical team.",
+      role: "CTO",
+      company: "Authentic Gaming",
+      date: "January 2019",
+    },
+    {
+      quote: "Redeemer's efficiency and thrive to grab multiple projects and give them the perfect 'bang', is outstanding.",
+      role: "Head of Frontend",
+      company: "Authentic Gaming",
+      date: "January 2019",
     },
     {
       quote: "As a software engineer, Redeemer would be a true asset to that position and it comes with my heartfelt recommendation.",

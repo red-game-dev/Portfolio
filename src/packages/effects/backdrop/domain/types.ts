@@ -18,6 +18,18 @@ export interface Scene {
 
 export type SceneFactory = (random: RandomSource) => Scene;
 
+// A one off effect drawn over the crossfade from one scene to another, so crossing a zone feels like the
+// world changing rather than one picture fading into the next. `progress` runs from 0 to 1.
+export interface SceneTransition {
+  resize(size: SceneSize): void;
+  draw(context: Canvas2DContext, progress: number, now: number): void;
+}
+
+export type TransitionFactory = (random: RandomSource) => SceneTransition;
+
+export const transitionKey = (from: string, to: string) => `${from}>${to}`;
+
 export interface BackdropFrame {
   layers: Array<{ scene: Scene; alpha: number }>;
+  overlay?: { transition: SceneTransition; progress: number };
 }

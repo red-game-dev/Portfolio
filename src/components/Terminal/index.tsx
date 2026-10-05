@@ -22,7 +22,7 @@ const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[
 const Window = styled.div(() => [
   tw`relative mt-[25px] lg:mt-[35px] bg-[#0a0f0c] border-[1px] border-solid border-[#1E1E1E]`,
   css`
-    box-shadow: 0 0 30px rgba(75, 255, 165, 0.06);
+    box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.06);
   `,
 ]);
 
@@ -40,7 +40,7 @@ const Screen = styled.div(() => [
 ]);
 
 const LINE_COLOURS: Record<TerminalLineKind, string> = {
-  input: "#4bffa5",
+  input: "var(--accent)",
   heading: "#ffffff",
   output: "#bbbbbb",
   error: "#ff7a7a",
@@ -59,7 +59,7 @@ const Line = styled.div(({ kind }: { kind: TerminalLineKind }) => [
 const Form = tw.form`flex flex-row items-center gap-[8px] px-[16px] py-[12px] border-0 border-t-[1px] border-solid border-[#1E1E1E]`;
 
 const Prompt = styled.label(() => [
-  tw`flex-shrink-0 text-[13px] text-[#4bffa5]`,
+  tw`flex-shrink-0 text-[13px] text-[var(--accent)]`,
   css`
     font-family: ${MONO};
   `,
@@ -69,14 +69,14 @@ const Input = styled.input(() => [
   tw`flex-1 min-w-0 p-0 text-[13px] text-white bg-transparent border-0 outline-none`,
   css`
     font-family: ${MONO};
-    caret-color: #4bffa5;
+    caret-color: var(--accent);
   `,
 ]);
 
 const Suggestions = tw.div`flex flex-row flex-wrap gap-[8px] mt-[14px]`;
 
 const Suggestion = styled.button(() => [
-  tw`cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full text-[#4bffa5] bg-[#1d1d1d] border-[1px] border-solid border-[#2f6b4d]`,
+  tw`cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full text-[var(--accent)] bg-[#1d1d1d] border-[1px] border-solid border-[var(--accent-muted)]`,
   css`
     font-family: ${MONO};
     transition: background-color 0.2s ease, color 0.2s ease;
@@ -84,7 +84,7 @@ const Suggestion = styled.button(() => [
     &:hover,
     &:focus-visible {
       color: #101010;
-      background-color: #4bffa5;
+      background-color: var(--accent);
     }
   `,
 ]);

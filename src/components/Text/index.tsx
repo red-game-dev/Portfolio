@@ -23,7 +23,7 @@ const Section = styled.div(({ isSection }: SectionProps) => [
 
 const Content = styled.div(({ isSection }: ContentProps) => [
   tw`relative text-base ml-[-1px] p-[35px] bg-[#101010] border-solid border-[1px] border-b-[0px] border-[#1E1E1E]`,
-  isSection && tw`border-solid border-l-[1px] border-b-[1px] border-l-[#4bffa5]`
+  isSection && tw`border-solid border-l-[1px] border-b-[1px] border-l-[var(--accent)]`
 ]);
 
 const Title = tw.h2`relative m-[0 0 30px 0] lg:m-[0 0 35px 0] inline-block align-top text-2xl font-semibold	text-white transition-[all 0.3s ease 0s]`;

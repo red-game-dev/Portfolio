@@ -36,7 +36,7 @@ const LegendItem = styled.span(({ isVenture }: { isVenture: boolean }) => [
       width: 10px;
       height: 10px;
       border-radius: 9999px;
-      background: ${isVenture ? "#ffc45c" : "#4bffa5"};
+      background: ${isVenture ? "#ffc45c" : "var(--accent)"};
     }
   `,
 ]);
@@ -66,7 +66,7 @@ const Graph = styled.ol(({ hasVentureLane }: GraphProps) => [
     }
 
     &::after {
-      background: linear-gradient(to bottom, #4bffa5, #2f6b4d);
+      background: linear-gradient(to bottom, var(--accent), var(--accent-muted));
       box-shadow: ${hasVentureLane ? "calc(var(--lane-venture) - var(--lane-main)) 0 0 #ffc45c" : "none"};
       transform-origin: top;
       transform: scaleY(var(--scroll-progress, 0));

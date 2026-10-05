@@ -34,7 +34,7 @@ const Track = styled.div(() => [
       right: 0;
       top: 50%;
       height: 1px;
-      background: #2f6b4d;
+      background: var(--accent-muted);
     }
   `,
 ]);
@@ -56,7 +56,7 @@ const Signal = styled.span((props: PlayStateProps) => [
       width: 72px;
       height: 2px;
       transform: translateY(-50%);
-      background: linear-gradient(90deg, rgba(75, 255, 165, 0), #4bffa5);
+      background: linear-gradient(90deg, rgba(var(--accent-rgb), 0), var(--accent));
     }
 
     &::after {
@@ -69,7 +69,7 @@ const Signal = styled.span((props: PlayStateProps) => [
       margin-top: -4px;
       border-radius: 9999px;
       background: #eafff3;
-      box-shadow: 0 0 10px 3px rgba(75, 255, 165, 0.8);
+      box-shadow: 0 0 10px 3px rgba(var(--accent-rgb), 0.8);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -88,8 +88,8 @@ const Nodes = styled.div(({ count }: StageCountProps) => [
 // the moment the signal arrives. Both layers animate only transform and opacity, which the compositor
 // handles without repainting.
 const Node = styled.div((props: PlayStateProps) => [
-  tw`relative mx-auto flex items-center justify-center w-[48px] h-[48px] rounded-full bg-[#101010] text-lg text-[#4bffa5]
-     border-[1px] border-solid border-[#2f6b4d]`,
+  tw`relative mx-auto flex items-center justify-center w-[48px] h-[48px] rounded-full bg-[#101010] text-lg text-[var(--accent)]
+     border-[1px] border-solid border-[var(--accent-muted)]`,
   css`
     &::before,
     &::after {
@@ -106,13 +106,13 @@ const Node = styled.div((props: PlayStateProps) => [
     }
 
     &::before {
-      background: radial-gradient(circle, rgba(75, 255, 165, 0.35) 0%, rgba(75, 255, 165, 0) 70%);
+      background: radial-gradient(circle, rgba(var(--accent-rgb), 0.35) 0%, rgba(var(--accent-rgb), 0) 70%);
       opacity: 0;
       animation-name: node-glow;
     }
 
     &::after {
-      border: 1px solid #4bffa5;
+      border: 1px solid var(--accent);
       opacity: 0;
       animation-name: node-ring;
       will-change: transform, opacity;
@@ -134,7 +134,7 @@ const Stage = tw.li`relative pt-[16px] border-0 border-t-[1px] border-solid bord
 
 const StageName = tw.h4`m-[0 0 12px 0] flex items-baseline gap-2 text-base font-semibold text-white`;
 
-const StageIndex = tw.span`text-sm font-medium text-[#4bffa5]`;
+const StageIndex = tw.span`text-sm font-medium text-[var(--accent)]`;
 
 const Principles = tw.ul`list-none m-0 p-0 flex flex-col gap-[14px]`;
 
@@ -150,7 +150,7 @@ const ExamplesTitle = tw.h4`m-[0 0 16px 0] text-base font-semibold text-white`;
 
 const ExampleList = tw.ul`list-none m-0 p-0 grid gap-[18px] lg:grid-cols-3`;
 
-const Example = tw.li`pl-[14px] text-sm border-0 border-l-[1px] border-solid border-[#4bffa5]`;
+const Example = tw.li`pl-[14px] text-sm border-0 border-l-[1px] border-solid border-[var(--accent)]`;
 
 const Footer = tw.p`m-[28px 0 0 0] max-w-[70ch] text-sm text-[#888]`;
 

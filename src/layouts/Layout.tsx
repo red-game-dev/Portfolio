@@ -31,7 +31,7 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
         <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
       </Container>
       <AppLoadingLines />
-      <Journey isEnabled={!isLoading} {...portfolioData.journey} />
+      <Journey isEnabled={!isLoading} />
     </>
   );
 };

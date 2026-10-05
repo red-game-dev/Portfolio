@@ -17,7 +17,7 @@ const Quotes = tw.div`grid gap-[18px] lg:grid-cols-3 mt-[25px] lg:mt-[35px]`;
 
 const Quote = styled.figure(() => [
   tw`relative m-0 flex flex-col justify-between gap-[18px] p-[24px] bg-[#101010] border-[1px] border-solid border-[#1E1E1E]
-     border-l-[#4bffa5]`,
+     border-l-[var(--accent)]`,
   css`
     &::before {
       content: "\\201C";
@@ -26,7 +26,7 @@ const Quote = styled.figure(() => [
       right: 18px;
       font-size: 64px;
       line-height: 1;
-      color: #2f6b4d;
+      color: var(--accent-muted);
       pointer-events: none;
     }
   `,
@@ -36,7 +36,7 @@ const QuoteText = tw.blockquote`m-0 text-base text-[#eee] leading-relaxed`;
 
 const Attribution = tw.figcaption`text-sm text-[#999]`;
 
-const Role = tw.span`block font-medium text-[#4bffa5]`;
+const Role = tw.span`block font-medium text-[var(--accent)]`;
 
 export const Recommendations: FC<RecommendationsProps> = ({ intro, recommendations }: RecommendationsProps) => (
   <Section id="section-Recommendations">

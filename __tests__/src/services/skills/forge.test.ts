@@ -24,9 +24,12 @@ describe("skill forge", () => {
   });
 
   test("untracked skills claim no time", () => {
-    stations.flatMap((station) => station.items).filter((item) => !item.isTracked).forEach((item) => {
-      expect(item.months).toBe(0);
-      expect(item.rarity).toBe("common");
-    });
+    stations
+      .flatMap((station) => station.items)
+      .filter((item) => !item.isTracked)
+      .forEach((item) => {
+        expect(item.months).toBe(0);
+        expect(item.rarity).toBe("common");
+      });
   });
 });

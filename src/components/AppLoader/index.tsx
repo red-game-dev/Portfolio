@@ -133,7 +133,7 @@ const PreloadingCentralized = tw.div`table table-fixed h-full w-full max-w-full 
 const PreloadingSpinner = tw.div`absolute left-1/2 top-0 w-[1px] h-full`;
 
 const PreloadingSpinnerBounce = tw.div`absolute top-0 left-0 w-full h-full`;
-const PreloadingSpinnerAnimation = tw.div`absolute top-0 left-0 w-full bg-[#4bffa5] h-[0px] animate-[loading 2.0s infinite ease-in-out;]`;
+const PreloadingSpinnerAnimation = tw.div`absolute top-0 left-0 w-full bg-[var(--accent)] h-[0px] animate-[loading 2.0s infinite ease-in-out;]`;
 
 export const AppLoadingLines: FC = () => {
   const { isLoading, isReady } = useAppLoaderStateHook();

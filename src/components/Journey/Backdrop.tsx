@@ -2,10 +2,20 @@ import { FC, useEffect, useRef } from "react";
 
 import tw from "twin.macro";
 
-import { BACKDROP_THEME, COLORS } from "@/config/theme";
+import { BACKDROP_THEME, COLORS, TRANSITION_THEME } from "@/config/theme";
 import { ZoneId } from "@/config/zones";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
-import { BackdropEngine, EmberScene, NeuralScene, RainScene, StarfieldScene } from "@/packages/effects/backdrop";
+import {
+  BackdropEngine,
+  CollapseTransition,
+  EmberScene,
+  NeuralScene,
+  PortalTransition,
+  RainScene,
+  StarfieldScene,
+  transitionKey,
+  WarpTransition
+} from "@/packages/effects/backdrop";
 
 interface BackdropProps {
   zone: ZoneId;
@@ -32,6 +42,11 @@ const createEngine = (context: CanvasRenderingContext2D, zone: ZoneId) => {
       (random) => new StarfieldScene(random, BACKDROP_THEME.starfield),
       (random) => new EmberScene(random, BACKDROP_THEME.ember),
     ],
+    transitions: {
+      [transitionKey("matrix", "ai")]: (random) => new CollapseTransition(random, TRANSITION_THEME.collapse),
+      [transitionKey("ai", "universe")]: (random) => new WarpTransition(random, TRANSITION_THEME.warp),
+      [transitionKey("universe", "mmo")]: (random) => new PortalTransition(random, TRANSITION_THEME.portal),
+    },
   });
 };
 

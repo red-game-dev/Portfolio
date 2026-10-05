@@ -32,7 +32,7 @@ const Row = styled.li(({ hasVentureLane }: { hasVentureLane: boolean }) => [
 
 // A commit on its lane. Ventures sit on the second lane, as their own branch.
 const Node = styled.span(({ isVenture, isReached, isCurrent, hasVentureLane }: NodeProps) => [
-  tw`absolute top-[22px] w-[13px] h-[13px] rounded-full bg-[#101010] border-[2px] border-solid border-[#2f6b4d]`,
+  tw`absolute top-[22px] w-[13px] h-[13px] rounded-full bg-[#101010] border-[2px] border-solid border-[var(--accent-muted)]`,
   css`
     left: ${isVenture && hasVentureLane ? "calc(var(--lane-venture) - 6px)" : "calc(var(--lane-main) - 6px)"};
     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
@@ -42,9 +42,9 @@ const Node = styled.span(({ isVenture, isReached, isCurrent, hasVentureLane }: N
     }
   `,
   isReached && css`
-    background: ${isVenture ? "#ffc45c" : "#4bffa5"};
-    border-color: ${isVenture ? "#ffc45c" : "#4bffa5"};
-    box-shadow: 0 0 10px ${isVenture ? "rgba(255, 196, 92, 0.6)" : "rgba(75, 255, 165, 0.6)"};
+    background: ${isVenture ? "#ffc45c" : "var(--accent)"};
+    border-color: ${isVenture ? "#ffc45c" : "var(--accent)"};
+    box-shadow: 0 0 10px ${isVenture ? "rgba(255, 196, 92, 0.6)" : "rgba(var(--accent-rgb), 0.6)"};
   `,
   isCurrent && css`
     &::after {
@@ -52,7 +52,7 @@ const Node = styled.span(({ isVenture, isReached, isCurrent, hasVentureLane }: N
       position: absolute;
       inset: -2px;
       border-radius: 9999px;
-      border: 1px solid ${isVenture ? "#ffc45c" : "#4bffa5"};
+      border: 1px solid ${isVenture ? "#ffc45c" : "var(--accent)"};
       animation: live-ring 1.8s ease-out infinite;
     }
 
@@ -80,17 +80,17 @@ const Meta = tw.div`flex flex-row flex-wrap items-center gap-[8px] text-xs`;
 
 const Period = styled.span(({ isCurrent }: CurrentProps) => [
   tw`font-medium text-[#999]`,
-  isCurrent && tw`text-[#4bffa5]`,
+  isCurrent && tw`text-[var(--accent)]`,
 ]);
 
 const Kind = styled.span(({ isVenture }: { isVenture: boolean }) => [
   tw`leading-none py-[4px] px-[8px] rounded-full border-[1px] border-solid`,
-  isVenture ? tw`text-[#ffc45c] border-[#5c4a26]` : tw`text-[#4bffa5] border-[#2f6b4d]`,
+  isVenture ? tw`text-[#ffc45c] border-[#5c4a26]` : tw`text-[var(--accent)] border-[var(--accent-muted)]`,
 ]);
 
 const Title = tw.h4`m-0 text-base md:text-lg font-semibold text-white`;
 
-const Outcome = tw.p`m-0 text-sm font-medium text-[#4bffa5]`;
+const Outcome = tw.p`m-0 text-sm font-medium text-[var(--accent)]`;
 
 const Lead = tw.p`m-0 text-sm text-[#bbb] break-words`;
 
@@ -107,7 +107,7 @@ const Bullet = styled.li(() => [
       width: 6px;
       height: 6px;
       border-radius: 1px;
-      background: #2f6b4d;
+      background: var(--accent-muted);
     }
   `,
 ]);
@@ -116,10 +116,10 @@ const More = tw.div`flex flex-col gap-[10px]`;
 
 const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 
-const Tag = tw.li`text-xs leading-none text-[#4bffa5] bg-[#1d1d1d] rounded-full py-[6px] px-[10px] border-[1px] border-solid border-[#2f6b4d]`;
+const Tag = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[6px] px-[10px] border-[1px] border-solid border-[var(--accent-muted)]`;
 
 const Toggle = styled.button(() => [
-  tw`self-start cursor-pointer text-xs font-medium py-[6px] px-[10px] text-[#4bffa5] bg-transparent border-[1px] border-solid border-[#2f6b4d]
+  tw`self-start cursor-pointer text-xs font-medium py-[6px] px-[10px] text-[var(--accent)] bg-transparent border-[1px] border-solid border-[var(--accent-muted)]
      rounded-[2px]`,
   css`
     transition: background-color 0.2s ease, color 0.2s ease;
@@ -127,7 +127,7 @@ const Toggle = styled.button(() => [
     &:hover,
     &:focus-visible {
       color: #101010;
-      background-color: #4bffa5;
+      background-color: var(--accent);
     }
   `,
 ]);

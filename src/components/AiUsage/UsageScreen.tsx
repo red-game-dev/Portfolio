@@ -35,7 +35,7 @@ const Screen = styled.figure(() => [
 const ScanBeam = styled.div(({ isActive }: PlayStateProps) => [
   tw`absolute left-0 right-0 top-0 h-full z-[2] pointer-events-none`,
   css`
-    background: linear-gradient(to bottom, rgba(75, 255, 165, 0) 0%, rgba(75, 255, 165, 0.04) 92%, rgba(75, 255, 165, 0.14) 100%);
+    background: linear-gradient(to bottom, rgba(var(--accent-rgb), 0) 0%, rgba(var(--accent-rgb), 0.04) 92%, rgba(var(--accent-rgb), 0.14) 100%);
     animation: scan-beam ${AI_USAGE_MOTION.scanBeamSeconds}s linear infinite;
     animation-play-state: ${isActive ? "running" : "paused"};
     will-change: transform;

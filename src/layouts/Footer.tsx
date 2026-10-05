@@ -21,7 +21,7 @@ const SocialMediaList = styled.div(() => [
 const FollowMeButton = styled.span(() => [
   tw`
     pr-20 absolute bottom-full right-[5px] text-[#bbb] text-sm leading-6 h-6 whitespace-nowrap origin-[100% 0] text-right rotate-90
-    after:content[''] after:absolute after:top-1/2 after:right-0 after:w-12 after:h-1 after:bg-[#4bffa5]
+    after:content[''] after:absolute after:top-1/2 after:right-0 after:w-12 after:h-1 after:bg-[var(--accent)]
   `
 ]);
 

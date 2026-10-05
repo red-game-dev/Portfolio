@@ -3,6 +3,52 @@
 @tailwind utilities;
 
 
+/* - Zone theme
+   The accent follows the journey: each zone sets data-zone on the root and the colour animates across.
+   Registered properties are what let a custom property transition; browsers without them switch instantly. */
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4bffa5;
+}
+
+@property --accent-muted {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #2f6b4d;
+}
+
+:root {
+  --accent: #4bffa5;
+  --accent-muted: #2f6b4d;
+  --accent-rgb: 75, 255, 165;
+  transition: --accent 1.4s ease, --accent-muted 1.4s ease;
+}
+
+:root[data-zone="ai"] {
+  --accent: #4fd8ff;
+  --accent-muted: #24596b;
+  --accent-rgb: 79, 216, 255;
+}
+
+:root[data-zone="universe"] {
+  --accent: #b896ff;
+  --accent-muted: #4b3a6b;
+  --accent-rgb: 184, 150, 255;
+}
+
+:root[data-zone="mmo"] {
+  --accent: #ffc45c;
+  --accent-muted: #6b5226;
+  --accent-rgb: 255, 196, 92;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    transition: none;
+  }
+}
+
 /* - Basic */
 @layer base {
   html {
@@ -221,7 +267,7 @@
 
 @keyframes text-color {
   0% {
-    color: #4bffa5;
+    color: var(--accent);
   }
   
   50% {

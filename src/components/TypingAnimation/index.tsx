@@ -6,7 +6,7 @@ import { useType } from "@/components/TypingAnimation/hooks/useType";
 
 const Subtitle = styled.p(() => [
   tw`text-white text-5xl md:text-6xl w-full m-auto text-center
-     [& > span]:text-[#4bffa5] [& > span]:font-bold animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`
+     [& > span]:text-[var(--accent)] [& > span]:font-bold animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`
 ]);
 
 interface TypingAnimationProps {

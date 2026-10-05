@@ -32,7 +32,6 @@ import { ForgeContent, TalentsContent } from "@/types/forge";
 import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
-import { Journey } from "@/types/journey";
 import { ProjectDetail } from "@/types/projects";
 import { Recommendation } from "@/types/recommendations";
 import { Resume } from "@/types/resume";
@@ -47,7 +46,6 @@ export interface PortfolioData {
   intro: string;
   headline: Headline;
   terminal: TerminalContent;
-  journey: Journey;
   cover: string;
   cv: string;
   typingsTitles: string[];
@@ -130,15 +128,6 @@ export const portfolioData: PortfolioData = {
     unknownCommand: "command not found: {name}. Type help to see what I can show you.",
     inputLabel: "Terminal command",
     shortcutHint: "Press ` from anywhere",
-  },
-  journey: {
-    zoneLabel: "Zone",
-    zones: [
-      { zone: "matrix", title: "The Matrix" },
-      { zone: "ai", title: "The AI Layer" },
-      { zone: "universe", title: "The Universe" },
-      { zone: "mmo", title: "The Game World" },
-    ],
   },
   cover: "/images/cover-picture.webp",
   cv: "/cv/redeemer-pace-cv.pdf",

@@ -32,8 +32,8 @@ const Strip = styled.span(({ isActive }: StripProps) => [
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      background: #4bffa5;
-      box-shadow: 0 0 4px rgba(75, 255, 165, 0.45);
+      background: var(--accent);
+      box-shadow: 0 0 4px rgba(var(--accent-rgb), 0.45);
       opacity: ${isActive ? 1 : 0};
       transition: opacity 0.25s ease-out;
       transition-delay: inherit;

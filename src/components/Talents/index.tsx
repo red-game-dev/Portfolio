@@ -42,13 +42,13 @@ const Tree = styled.ul(({ isActive }: { isActive: boolean }) => [
       width: 18px;
       height: 20px;
       clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-      background: ${isActive ? "#4bffa5" : "#2f6b4d"};
+      background: ${isActive ? "var(--accent)" : "var(--accent-muted)"};
       transition: background 0.4s ease;
       transition-delay: inherit;
     }
 
     & > li:hover {
-      border-color: #2f6b4d;
+      border-color: var(--accent-muted);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -64,7 +64,7 @@ const Languages = tw.ul`list-none m-0 p-0 flex flex-col gap-[10px]`;
 
 const Language = tw.li`flex flex-row justify-between gap-[10px] py-[10px] px-[12px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E] text-sm text-[#eee]`;
 
-const Level = tw.span`font-semibold text-[#4bffa5]`;
+const Level = tw.span`font-semibold text-[var(--accent)]`;
 
 export const Talents: FC<TalentsProps> = ({ intro, talents, content }: TalentsProps) => {
   const treeRef = useRef<HTMLUListElement>(null);

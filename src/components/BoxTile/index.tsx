@@ -36,7 +36,7 @@ interface SubtitleProps {
 }
 
 const Item = styled.div(({ withRandomBorder, isFullBorder, isFullWidth }: ItemContentProps) => [
-  tw`w-full m-3 p-[20px] text-base bg-[#101010] rounded-lg border-[#4bffa5] border-dotted
+  tw`w-full m-3 p-[20px] text-base bg-[#101010] rounded-lg border-[var(--accent)] border-dotted
   hover:animate-[border-transition 1s ease-out 0s infinite]
   `,
   !withRandomBorder && tw`border-l-[1px] border-b-[1px]`,
@@ -46,7 +46,7 @@ const Item = styled.div(({ withRandomBorder, isFullBorder, isFullWidth }: ItemCo
 ]);
 
 const Icon = styled(FontAwesomeIcon)(() => [
-  tw`text-xl text-[#4bffa5] font-normal text-center w-full 
+  tw`text-xl text-[var(--accent)] font-normal text-center w-full 
 hover:animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`
 ]);
 
@@ -54,24 +54,24 @@ const ItemTitle = tw.h3`text-lg m-[15px 0] text-[#eee] font-semibold text-center
 
 const ItemSubtitle = styled.div(({ active = false }: SubtitleProps) => [
   tw`relative m-[0 0 5px 0] inline-block text-xs text-[#999]`,
-  active && tw`text-[#4bffa5] font-medium`
+  active && tw`text-[var(--accent)] font-medium`
 ]);
 
-const Highlight = tw.p`m-[0 0 12px 0] text-sm font-medium text-[#4bffa5] break-words`;
+const Highlight = tw.p`m-[0 0 12px 0] text-sm font-medium text-[var(--accent)] break-words`;
 
-const BulletList = tw.ul`list-[circle] text-sm pl-[20px] mt-[15px] mb-0 marker:text-[#4bffa5]`;
+const BulletList = tw.ul`list-[circle] text-sm pl-[20px] mt-[15px] mb-0 marker:text-[var(--accent)]`;
 
 const BulletListItem = tw.li`text-[#bbb] mb-[6px] break-words`;
 
 const TagList = tw.ul`list-none flex flex-row flex-wrap gap-2 p-0 mt-[15px] mb-0`;
 
-const TagListItem = tw.li`text-xs leading-none text-[#4bffa5] bg-[#1d1d1d] rounded-full py-[6px] px-[10px]
-border-[1px] border-solid border-[#2f6b4d]`;
+const TagListItem = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[6px] px-[10px]
+border-[1px] border-solid border-[var(--accent-muted)]`;
 
 const CallToAction = styled(Link)(() => [
   tw`relative mt-[15px] bg-transparent font-medium border-2 cursor-pointer border-solid no-underline
      inline-flex flex-row items-center gap-2 align-middle text-center text-sm leading-9
-     h-[44px] py-0 px-5 text-[#4bffa5] border-[#101010] border-r-[#4bffa5]
+     h-[44px] py-0 px-5 text-[var(--accent)] border-[#101010] border-r-[var(--accent)]
      hover:text-white hover:animate-[border-transition 1s ease-out 0s infinite]`,
 ]);
 

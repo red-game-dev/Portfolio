@@ -58,8 +58,8 @@ const Bits = styled.span(() => [
       inset: 0;
       z-index: -1;
       border-radius: inherit;
-      background: #4bffa5;
-      box-shadow: 0 0 6px rgba(75, 255, 165, 0.35);
+      background: var(--accent);
+      box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.35);
       opacity: 0;
       transition: opacity 0.3s ease-out;
       transition-delay: inherit;
@@ -104,7 +104,7 @@ const Row = styled.li(() => [
     }
 
     &:hover [data-lit="true"]::before {
-      box-shadow: 0 0 10px rgba(75, 255, 165, 0.7);
+      box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.7);
     }
   `,
 ]);

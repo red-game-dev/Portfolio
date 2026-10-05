@@ -68,7 +68,7 @@ const MenuList = styled.nav(() => [
 
 const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
   tw`w-full lg:w-auto m-4 p-4 py-8 lg:p-0 lg:m-0 inline text-base lg:text-sm xl:text-base leading-loose text-white font-semibold 
-      lg:px-2 xl:px-4 border-dotted border-2 border-[#121212ed] border-[transparent] border-r-[#4bffa5]
+      lg:px-2 xl:px-4 border-dotted border-2 border-[#121212ed] border-[transparent] border-r-[var(--accent)]
      opacity-50 relative align-top overflow-hidden hover:text-white hover:opacity-100`,
   selected && tw`text-white opacity-100 animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`,
   css`

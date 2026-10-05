@@ -32,7 +32,7 @@ const Refining = styled.div(({ isActive }: RefiningProps) => [
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, #2f6b4d, #4bffa5, #ffc45c);
+      background: linear-gradient(90deg, var(--accent-muted), var(--accent), #ffc45c);
       transform-origin: left center;
       transform: scaleX(${isActive ? 1 : 0});
       transition: transform ${REFINE_MS}ms cubic-bezier(0.165, 0.85, 0.45, 1);
@@ -77,7 +77,7 @@ const Items = styled.ul(({ isActive }: RefiningProps) => [
     }
 
     & > li:hover {
-      box-shadow: 0 0 18px rgba(75, 255, 165, 0.12);
+      box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.12);
     }
 
     & .name {

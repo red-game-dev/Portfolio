@@ -16,16 +16,16 @@ const Track = tw.div`fixed top-0 left-0 right-0 h-[3px] z-[11] pointer-events-no
 
 // Scaled, not resized, so following the scroll never triggers layout.
 const Fill = styled.div(() => [
-  tw`absolute inset-0 bg-[#4bffa5]`,
+  tw`absolute inset-0 bg-[var(--accent)]`,
   css`
     transform-origin: left center;
-    box-shadow: 0 0 8px rgba(75, 255, 165, 0.6);
+    box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
     will-change: transform;
   `,
 ]);
 
 const Tick = styled.span(({ isReached }: TickProps) => [
-  tw`absolute top-0 w-[2px] h-[7px] bg-[#2f6b4d]`,
+  tw`absolute top-0 w-[2px] h-[7px] bg-[var(--accent-muted)]`,
   isReached && tw`bg-[#eafff3]`,
 ]);
 

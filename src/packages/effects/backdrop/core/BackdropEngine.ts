@@ -3,12 +3,14 @@ import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { RandomSource } from "@/packages/math/random";
 
 import { BackdropConfig, BackdropConfigOverrides, resolveBackdropConfig } from "../config";
-import { Scene, SceneFactory, SceneSize } from "../domain/types";
+import { Scene, SceneFactory, SceneSize, SceneTransition, TransitionFactory, transitionKey } from "../domain/types";
 import { easeInOut } from "../utils/easing";
 import { SceneCompositor } from "./SceneCompositor";
 
 export interface BackdropOptions {
   scenes: SceneFactory[];
+  // Keyed by transitionKey(from, to). Pairs without one simply crossfade.
+  transitions?: Record<string, TransitionFactory>;
   initialScene: string;
   config?: BackdropConfigOverrides;
   // Reduced motion: draw a still frame of the current scene and never start the loop.
@@ -23,9 +25,11 @@ export class BackdropEngine extends FrameLoop {
   private readonly compositor: SceneCompositor;
   private readonly config: BackdropConfig;
   private readonly scenes = new Map<string, Scene>();
+  private readonly transitions = new Map<string, SceneTransition>();
   private readonly isStatic: boolean;
   private current: Scene;
   private previous: Scene | null = null;
+  private transition: SceneTransition | null = null;
   private fadeStartedAt = 0;
 
   constructor(context: Canvas2DContext, options: BackdropOptions) {
@@ -43,6 +47,8 @@ export class BackdropEngine extends FrameLoop {
 
       this.scenes.set(scene.id, scene);
     });
+
+    Object.entries(options.transitions ?? {}).forEach(([key, factory]) => this.transitions.set(key, factory(random)));
 
     const initial = this.scenes.get(options.initialScene);
 
@@ -62,6 +68,7 @@ export class BackdropEngine extends FrameLoop {
 
     this.compositor.resizeSurface(width, height, size.pixelRatio);
     this.scenes.forEach((scene) => scene.resize(size));
+    this.transitions.forEach((transition) => transition.resize(size));
     this.render(performance.now());
   }
 
@@ -73,12 +80,14 @@ export class BackdropEngine extends FrameLoop {
       return;
     }
 
+    this.transition = this.transitions.get(transitionKey(this.current.id, next.id)) ?? null;
     this.previous = this.current;
     this.current = next;
     this.fadeStartedAt = performance.now();
 
     if (this.isStatic) {
       this.previous = null;
+      this.transition = null;
       this.render(this.fadeStartedAt);
     }
   }
@@ -93,6 +102,7 @@ export class BackdropEngine extends FrameLoop {
 
     if (this.previous && now - this.fadeStartedAt >= this.config.fadeMs) {
       this.previous = null;
+      this.transition = null;
     }
   }
 
@@ -101,7 +111,8 @@ export class BackdropEngine extends FrameLoop {
     const layers = this.previous
       ? [{ scene: this.previous, alpha: 1 - progress }, { scene: this.current, alpha: progress }]
       : [{ scene: this.current, alpha: 1 }];
+    const linear = Math.min(1, (now - this.fadeStartedAt) / this.config.fadeMs);
 
-    this.compositor.draw({ layers }, now);
+    this.compositor.draw({ layers, overlay: this.transition ? { transition: this.transition, progress: linear } : undefined }, now);
   }
 }

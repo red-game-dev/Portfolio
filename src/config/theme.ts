@@ -1,8 +1,11 @@
 import {
+  CollapseTransitionOptions,
   EmberSceneOptions,
   NeuralSceneOptions,
+  PortalTransitionOptions,
   RainSceneOptions,
-  StarfieldSceneOptions
+  StarfieldSceneOptions,
+  WarpTransitionOptions
 } from "@/packages/effects/backdrop";
 import { RainConfigOverrides } from "@/packages/effects/binary-rain";
 
@@ -44,4 +47,15 @@ export const BACKDROP_THEME: {
     intensity: 0.9,
   },
   ember: { emberColor: "rgba(255, 196, 92, 0.95)", intensity: 0.75 },
+};
+
+// The moments between zones, matched to each zone's accent in globals.css.
+export const TRANSITION_THEME: {
+  collapse: CollapseTransitionOptions;
+  warp: WarpTransitionOptions;
+  portal: PortalTransitionOptions;
+} = {
+  collapse: { from: [75, 255, 165], to: [79, 216, 255], fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" },
+  warp: { streak: [220, 236, 255], flash: [184, 150, 255] },
+  portal: { ring: [255, 196, 92], glow: [255, 170, 60] },
 };

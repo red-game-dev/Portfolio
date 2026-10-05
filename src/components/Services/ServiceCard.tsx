@@ -26,15 +26,15 @@ const Card = styled.article(() => [
 
     &:hover,
     &:focus-within {
-      border-color: #2f6b4d;
+      border-color: var(--accent-muted);
     }
   `,
 ]);
 
 const Heading = tw.div`flex flex-row items-center gap-[14px]`;
 
-const Node = tw.span`flex flex-shrink-0 items-center justify-center w-[42px] h-[42px] rounded-full text-base text-[#4bffa5]
-border-[1px] border-solid border-[#2f6b4d] bg-[#101010]`;
+const Node = tw.span`flex flex-shrink-0 items-center justify-center w-[42px] h-[42px] rounded-full text-base text-[var(--accent)]
+border-[1px] border-solid border-[var(--accent-muted)] bg-[#101010]`;
 
 const Title = tw.h4`m-0 text-base lg:text-lg font-semibold text-white`;
 
@@ -53,7 +53,7 @@ const Point = styled.li(() => [
       width: 6px;
       height: 6px;
       border-radius: 1px;
-      background: #4bffa5;
+      background: var(--accent);
     }
   `,
 ]);
@@ -61,16 +61,16 @@ const Point = styled.li(() => [
 const Actions = tw.div`mt-auto pt-[6px] flex flex-row flex-wrap gap-[10px]`;
 
 const Action = styled.a(() => [
-  tw`inline-flex flex-row items-center gap-2 h-[36px] px-[14px] text-sm font-medium no-underline text-[#4bffa5]
-     border-[1px] border-solid border-[#2f6b4d] rounded-[2px]`,
+  tw`inline-flex flex-row items-center gap-2 h-[36px] px-[14px] text-sm font-medium no-underline text-[var(--accent)]
+     border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`,
   css`
     transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 
     &:hover,
     &:focus-visible {
       color: #101010;
-      background-color: #4bffa5;
-      border-color: #4bffa5;
+      background-color: var(--accent);
+      border-color: var(--accent);
     }
   `,
 ]);

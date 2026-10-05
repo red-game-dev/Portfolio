@@ -39,7 +39,7 @@ const Item = styled.div(({ isFullWidth }: ItemProps) => [
 ]);
 
 const OuterImageWrapper = styled.div(({ withRandomBorder, isFullBorder }: OuterImageWrapperProps) => [
-  tw`relative overflow-hidden block text-xs rounded-lg border-[#4bffa5] border-double
+  tw`relative overflow-hidden block text-xs rounded-lg border-[var(--accent)] border-double
   hover:animate-[border-transition 1s ease-out 0s infinite] hover:[& > img]:blur-sm`,
   !withRandomBorder && tw`border-b-[1px]`,
   withRandomBorder && tw`border-r-[1px]`,
@@ -53,14 +53,14 @@ hover:opacity-90 hover:translate-y-0 hover:transition-[all 0.7s cubic-bezier(0.1
 const OuterImageInfoName = styled.span(() => [
   tw`w-full text-center text-lg font-medium text-white break-words`,
   css`
-    text-shadow: -1px -2px 1px #4bffa5
+    text-shadow: -1px -2px 1px var(--accent)
   `
 ]);
 
 const OuterImageInfoCategory = styled.span(() => [
   tw`w-full text-center text-sm opacity-60 text-gray-100 m-0`,
   css`
-    text-shadow: -1px -2px 1px #4bffa5
+    text-shadow: -1px -2px 1px var(--accent)
   `
 ]);
 

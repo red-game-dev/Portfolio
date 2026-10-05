@@ -23,7 +23,7 @@ interface AboutProps extends Detail {
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
-const Content = tw.div`relative text-base ml-[-1px] md:p-[25px] lg:p-[35px] bg-[#101010] border-solid border-l-[1px] border-[#4bffa5]`;
+const Content = tw.div`relative text-base ml-[-1px] md:p-[25px] lg:p-[35px] bg-[#101010] border-solid border-l-[1px] border-[var(--accent)]`;
 
 const Title = tw.h2`relative m-[0 0 30px 0] lg:m-[0 0 35px 35px] inline-block align-top text-2xl font-semibold	text-white transition-[all 0.3s ease 0s]`;
 
@@ -39,7 +39,7 @@ const Paragraph = styled.div(() => [
 
 const List = tw.ul`list-none m-0 p-0 my-[20px]`;
 
-const ListItem = tw.li`inline-block align-top w-full lg:w-1/2 m-[0 0 6px 0] [&>strong]:font-normal [&>strong]:text-[#4bffa5]`;
+const ListItem = tw.li`inline-block align-top w-full lg:w-1/2 m-[0 0 6px 0] [&>strong]:font-normal [&>strong]:text-[var(--accent)]`;
 
 const ClearContainer = tw.div`clear-both`;
 
@@ -48,7 +48,7 @@ const ButtonsContainer = tw.div`flex flex-row flex-wrap text-center justify-cent
 const Button = styled(Link)(() => [
   tw`relative w-full lg:w-24 bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
      inline-block align-middle text-center text-sm lg:text-base leading-9 lg:leading-9`,
-  tw`h-[44px] my-[0px] mx-[0.5rem] lg:ml-0 mb-[10px] text-[#4bffa5] border-[#101010] border-r-[#4bffa5]
+  tw`h-[44px] my-[0px] mx-[0.5rem] lg:ml-0 mb-[10px] text-[var(--accent)] border-[#101010] border-r-[var(--accent)]
      hover:text-white 
      before:content=['']
      before:absolute

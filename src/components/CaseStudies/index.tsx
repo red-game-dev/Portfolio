@@ -36,12 +36,12 @@ border-[1px] border-r-[0px] border-solid border-[#1E1E1E]`;
 const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] p-[20px] md:p-0 md:mb-[10px] text-sm text-[#999]`;
 
 const Chip = styled.button(({ isSelected }: ChipProps) => [
-  tw`cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full border-[1px] border-solid border-[#2f6b4d] bg-[#1d1d1d]
-     text-[#4bffa5]`,
+  tw`cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full border-[1px] border-solid border-[var(--accent-muted)] bg-[#1d1d1d]
+     text-[var(--accent)]`,
   css`
     transition: color 0.2s ease, background-color 0.2s ease;
   `,
-  isSelected && tw`bg-[#4bffa5] text-[#101010]`,
+  isSelected && tw`bg-[var(--accent)] text-[#101010]`,
 ]);
 
 const List = tw.div`flex flex-wrap flex-row justify-center`;

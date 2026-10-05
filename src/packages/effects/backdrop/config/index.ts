@@ -11,7 +11,7 @@ export type BackdropConfigOverrides = Partial<BackdropConfig>;
 export const DEFAULT_BACKDROP_CONFIG: BackdropConfig = {
   framesPerSecond: 30,
   maxPixelRatio: 1.5,
-  fadeMs: 1400,
+  fadeMs: 1700,
   background: "#101010",
 };
 

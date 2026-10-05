@@ -29,7 +29,7 @@ const Rail = styled.span(({ isActive }: PlayStateProps) => [
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(to bottom, #4bffa5, #2f6b4d);
+      background: linear-gradient(to bottom, var(--accent), var(--accent-muted));
       transform-origin: top;
       transform: scaleY(${isActive ? 1 : 0});
       transition: transform ${railSeconds}s cubic-bezier(0.165, 0.85, 0.45, 1);
@@ -47,7 +47,7 @@ const Milestone = tw.li`relative`;
 
 // Current roles keep a slow outward ring, the way a live status light would.
 const Dot = styled.span(({ isActive, isCurrent, isVisible }: DotProps) => [
-  tw`absolute left-[-32px] top-[5px] w-[15px] h-[15px] rounded-full bg-[#101010] border-[1px] border-solid border-[#2f6b4d]`,
+  tw`absolute left-[-32px] top-[5px] w-[15px] h-[15px] rounded-full bg-[#101010] border-[1px] border-solid border-[var(--accent-muted)]`,
   css`
     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 
@@ -55,15 +55,15 @@ const Dot = styled.span(({ isActive, isCurrent, isVisible }: DotProps) => [
       transition: none;
     }
   `,
-  isActive && tw`bg-[#4bffa5] border-[#4bffa5]`,
-  isActive && css`box-shadow: 0 0 8px rgba(75, 255, 165, 0.6);`,
+  isActive && tw`bg-[var(--accent)] border-[var(--accent)]`,
+  isActive && css`box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);`,
   isCurrent && css`
     &::after {
       content: "";
       position: absolute;
       inset: -1px;
       border-radius: 9999px;
-      border: 1px solid #4bffa5;
+      border: 1px solid var(--accent);
       animation: live-ring 1.8s ease-out infinite;
       animation-play-state: ${isVisible ? "running" : "paused"};
       will-change: transform, opacity;
@@ -79,7 +79,7 @@ const Dot = styled.span(({ isActive, isCurrent, isVisible }: DotProps) => [
 
 const Period = styled.span(({ isCurrent }: PeriodProps) => [
   tw`block text-xs font-medium text-[#999]`,
-  isCurrent && tw`text-[#4bffa5]`,
+  isCurrent && tw`text-[var(--accent)]`,
 ]);
 
 const MilestoneTitle = tw.h4`m-[2px 0 6px 0] text-base font-semibold text-white`;

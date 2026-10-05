@@ -27,8 +27,8 @@ const GroupLabel = tw.h4`m-[0 0 10px 0] text-sm font-medium text-[#999]`;
 
 const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-2`;
 
-const Tag = tw.li`text-xs leading-none text-[#4bffa5] bg-[#1d1d1d] rounded-full py-[7px] px-[11px]
-border-[1px] border-solid border-[#2f6b4d]`;
+const Tag = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[7px] px-[11px]
+border-[1px] border-solid border-[var(--accent-muted)]`;
 
 // Named groups of tags, for lists that are evidence rather than a rating: no bars, no percentages.
 export const TagGroups: FC<TagGroupsProps> = ({ groups, headingLevel = "h4", columns = 1 }: TagGroupsProps) => (

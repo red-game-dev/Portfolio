@@ -17,6 +17,11 @@ export class SceneCompositor extends CanvasRenderer<BackdropFrame> {
       }
     });
 
+    if (frame.overlay) {
+      this.context.globalAlpha = 1;
+      frame.overlay.transition.draw(this.context, frame.overlay.progress, now);
+    }
+
     this.context.globalAlpha = 1;
   }
 }

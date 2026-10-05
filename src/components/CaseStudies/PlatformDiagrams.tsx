@@ -20,14 +20,14 @@ const DiagramTitle = tw.h4`m-0 text-base font-semibold text-white`;
 
 const Caption = tw.figcaption`text-xs text-[#888]`;
 
-const Core = tw.div`self-center px-[18px] py-[10px] text-sm font-semibold text-white text-center border-[1px] border-solid border-[#4bffa5]
+const Core = tw.div`self-center px-[18px] py-[10px] text-sm font-semibold text-white text-center border-[1px] border-solid border-[var(--accent)]
 bg-[#101010]`;
 
-const Stem = tw.span`self-center w-px h-[18px] bg-[#2f6b4d]`;
+const Stem = tw.span`self-center w-px h-[18px] bg-[var(--accent-muted)]`;
 
 // A comet runs along the contract bar while the diagram is on screen; transform only.
 const ContractBar = styled.div(({ isActive }: PlayProps) => [
-  tw`relative overflow-hidden text-center text-xs font-medium text-[#4bffa5] py-[8px] border-[1px] border-solid border-[#2f6b4d] bg-[#101010]`,
+  tw`relative overflow-hidden text-center text-xs font-medium text-[var(--accent)] py-[8px] border-[1px] border-solid border-[var(--accent-muted)] bg-[#101010]`,
   css`
     &::after {
       content: "";
@@ -36,7 +36,7 @@ const ContractBar = styled.div(({ isActive }: PlayProps) => [
       bottom: 0;
       left: 0;
       width: 30%;
-      background: linear-gradient(90deg, rgba(75, 255, 165, 0), rgba(75, 255, 165, 0.25), rgba(75, 255, 165, 0));
+      background: linear-gradient(90deg, rgba(var(--accent-rgb), 0), rgba(var(--accent-rgb), 0.25), rgba(var(--accent-rgb), 0));
       transform: translateX(-100%);
       animation: signal-sweep ${LOOP_SECONDS}s linear infinite;
       animation-play-state: ${isActive ? "running" : "paused"};
@@ -63,7 +63,7 @@ const Seam = styled.li(() => [
       top: -11px;
       width: 1px;
       height: 10px;
-      background: #2f6b4d;
+      background: var(--accent-muted);
     }
   `,
 ]);
@@ -84,7 +84,7 @@ const Flow = styled.ol(({ isActive }: PlayProps) => [
       top: 6px;
       bottom: 6px;
       width: 1px;
-      background: #2f6b4d;
+      background: var(--accent-muted);
     }
 
     &::after {
@@ -94,8 +94,8 @@ const Flow = styled.ol(({ isActive }: PlayProps) => [
       top: 0;
       bottom: 0;
       width: 13px;
-      background: radial-gradient(circle at 50% calc(100% - 7px), #eafff3 0, #eafff3 2.5px, rgba(75, 255, 165, 0.55) 4px,
-        rgba(75, 255, 165, 0) 7px);
+      background: radial-gradient(circle at 50% calc(100% - 7px), #eafff3 0, #eafff3 2.5px, rgba(var(--accent-rgb), 0.55) 4px,
+        rgba(var(--accent-rgb), 0) 7px);
       transform: translateY(-100%);
       animation: signal-descend ${LOOP_SECONDS}s linear infinite;
       animation-play-state: ${isActive ? "running" : "paused"};
@@ -122,14 +122,14 @@ const Step = styled.li(() => [
       height: 9px;
       border-radius: 9999px;
       background: #101010;
-      border: 1px solid #4bffa5;
+      border: 1px solid var(--accent);
     }
   `,
 ]);
 
 const Inputs = tw.ul`list-none m-0 p-0 grid grid-cols-2 gap-[10px]`;
 
-const Input = tw.li`p-[10px] border-[1px] border-dashed border-[#2f6b4d]`;
+const Input = tw.li`p-[10px] border-[1px] border-dashed border-[var(--accent-muted)]`;
 
 export const PlatformDiagrams: FC<PlatformDiagramsContent> = ({ title, description, adapters, moneyFlow }: PlatformDiagramsContent) => {
   const gridRef = useRef<HTMLDivElement>(null);

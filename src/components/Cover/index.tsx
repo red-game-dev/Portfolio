@@ -37,26 +37,26 @@ const Essentials = tw.div`absolute left-0 bottom-[30px] z-[3] flex flex-col gap-
 lg:pr-12 lg:left-[calc(20% + 35px)] lg:bottom-[50px] lg:max-w-[620px]`;
 
 const Introduction = styled.h1(() => [
-  tw`m-0 text-white break-words text-base lg:text-lg [& > strong]:text-[#4bffa5]`,
+  tw`m-0 text-white break-words text-base lg:text-lg [& > strong]:text-[var(--accent)]`,
 ]);
 
 const Lines = tw.div`hidden md:flex flex-col gap-[4px] text-sm lg:text-base text-[#ddd]`;
 
-const Availability = tw.p`m-0 text-sm text-[#4bffa5]`;
+const Availability = tw.p`m-0 text-sm text-[var(--accent)]`;
 
 const Actions = tw.div`flex flex-row flex-wrap gap-[10px]`;
 
 const Action = styled.a(() => [
-  tw`inline-flex flex-row items-center gap-2 h-[40px] px-[16px] text-sm font-medium no-underline text-[#4bffa5] bg-[rgba(16, 16, 16, 0.6)]
-     border-[1px] border-solid border-[#2f6b4d] rounded-[2px]`,
+  tw`inline-flex flex-row items-center gap-2 h-[40px] px-[16px] text-sm font-medium no-underline text-[var(--accent)] bg-[rgba(16, 16, 16, 0.6)]
+     border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`,
   css`
     transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 
     &:hover,
     &:focus-visible {
       color: #101010;
-      background-color: #4bffa5;
-      border-color: #4bffa5;
+      background-color: var(--accent);
+      border-color: var(--accent);
     }
   `,
 ]);
@@ -64,20 +64,20 @@ const Action = styled.a(() => [
 const Audiences = tw.nav`flex flex-row flex-wrap items-center gap-[8px] text-xs text-[#999]`;
 
 const AudienceLink = styled.a(() => [
-  tw`text-xs leading-none no-underline text-[#4bffa5] bg-[#1d1d1d] rounded-full py-[7px] px-[11px] border-[1px] border-solid border-[#2f6b4d]`,
+  tw`text-xs leading-none no-underline text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[7px] px-[11px] border-[1px] border-solid border-[var(--accent-muted)]`,
   css`
     transition: border-color 0.2s ease;
 
     &:hover,
     &:focus-visible {
-      border-color: #4bffa5;
+      border-color: var(--accent);
     }
   `,
 ]);
 
 // Hidden on phones, where the first screen already ends in the actions and the cue would sit on top of them.
 const ScrollerLink = styled(Link)(() => [
-  tw`absolute hidden md:block w-5 h-5 left-[47.4%] lg:left-[49.3%] z-[2] text-[#4bffa5] right-auto top-auto text-2xl text-center
+  tw`absolute hidden md:block w-5 h-5 left-[47.4%] lg:left-[49.3%] z-[2] text-[var(--accent)] right-auto top-auto text-2xl text-center
   animate-[mouse-anim-mobile 1s ease-out 0s infinite]
   lg:animate-[mouse-anim-desktop 1s ease-out 0s infinite]
   `

@@ -102,3 +102,53 @@ describe("effects/backdrop BackdropEngine", () => {
     expect(matrix.draws).toEqual([1]);
   });
 });
+
+describe("effects/backdrop transitions", () => {
+  test("a registered transition draws over the fade with rising progress, then stops", () => {
+    const matrix = createScene("matrix");
+    const ai = createScene("ai");
+    const progresses: number[] = [];
+    const scheduler = new ManualScheduler();
+    const engine = new BackdropEngine(createContext(), {
+      initialScene: "matrix",
+      scenes: [() => matrix, () => ai],
+      transitions: { "matrix>ai": () => ({ resize: jest.fn(), draw: (_context, progress) => progresses.push(progress) }) },
+      config: { fadeMs: 1000 },
+      scheduler,
+    });
+    const start = performance.now();
+
+    engine.resize(800, 600);
+    engine.start();
+    engine.setScene("ai");
+    [start + 300, start + 600, start + 1200, start + 1300].forEach((time) => scheduler.tick(time));
+
+    expect(progresses.length).toBeGreaterThanOrEqual(2);
+    expect(progresses[1]).toBeGreaterThan(progresses[0]);
+    expect(Math.max(...progresses)).toBeLessThanOrEqual(1);
+
+    const drawn = progresses.length;
+
+    scheduler.tick(start + 1400);
+
+    expect(progresses.length).toBe(drawn);
+  });
+
+  test("scrolling back up crossfades without a transition", () => {
+    const progresses: number[] = [];
+    const scheduler = new ManualScheduler();
+    const engine = new BackdropEngine(createContext(), {
+      initialScene: "ai",
+      scenes: [() => createScene("matrix"), () => createScene("ai")],
+      transitions: { "matrix>ai": () => ({ resize: jest.fn(), draw: (_context, progress) => progresses.push(progress) }) },
+      scheduler,
+    });
+
+    engine.resize(800, 600);
+    engine.start();
+    engine.setScene("matrix");
+    scheduler.tick(performance.now() + 300);
+
+    expect(progresses).toEqual([]);
+  });
+});

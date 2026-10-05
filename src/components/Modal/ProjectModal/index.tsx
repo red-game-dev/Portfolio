@@ -14,7 +14,7 @@ const CloseButton = styled.div(() => [
   tw`fixed right-2 bottom-0 lg:bottom-auto lg:top-10 bg-transparent font-medium border-2 cursor-pointer 
      border-solid no-underline overflow-hidden 
      inline-block align-middle text-center text-sm lg:text-base leading-9 lg:leading-9 bg-[#101010]`,
-  tw`h-[44px] my-[0px] mx-[0.5rem] mb-[10px] text-[#4bffa5] border-[#101010] border-r-[#4bffa5]
+  tw`h-[44px] my-[0px] mx-[0.5rem] mb-[10px] text-[var(--accent)] border-[#101010] border-r-[var(--accent)]
      hover:text-white 
      before:content=['']
      before:absolute
@@ -30,7 +30,7 @@ const CloseButton = styled.div(() => [
 const ButtonLink = styled(Link)(() => [
   tw`relative bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
      inline-block align-middle text-center text-sm lg:text-base leading-9 lg:leading-9`,
-  tw`h-[44px] my-[0px] mx-[0.5rem] mb-[10px] text-[#4bffa5] border-[#101010] border-r-[#4bffa5]
+  tw`h-[44px] my-[0px] mx-[0.5rem] mb-[10px] text-[var(--accent)] border-[#101010] border-r-[var(--accent)]
      hover:text-white 
      before:content=['']
      before:absolute
@@ -59,7 +59,7 @@ const PopupBoxCategory = tw.div`m-[0 0 5px 0] block text-sm text-[#bbb]`;
 
 const PopupBoxList = tw.ul`list-[circle]`;
 
-const PopupBoxListItem = tw.li`text-[#4bffa5]`;
+const PopupBoxListItem = tw.li`text-[var(--accent)]`;
 
 export const ProjectModal: FC = () => {
   const { modalContent, setModal } = useModalStateHook();

@@ -16,7 +16,7 @@ const Grid = tw.div`grid gap-[22px] xl:grid-cols-2`;
 
 const Diagram = tw.figure`m-0 flex flex-col gap-[16px] p-[20px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
-const DiagramTitle = tw.h4`m-0 text-base font-semibold text-white`;
+const DiagramTitle = tw.h3`m-0 text-base font-semibold text-white`;
 
 const Caption = tw.figcaption`text-xs text-[#888]`;
 

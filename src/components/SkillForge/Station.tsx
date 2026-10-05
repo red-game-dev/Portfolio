@@ -62,15 +62,17 @@ const Items = styled.ul(({ isActive }: RefiningProps) => [
       background: #0d0d0d;
       border: 1px solid #1e1e1e;
       border-top: 2px solid var(--rarity);
-      opacity: ${isActive ? 1 : 0.35};
       transform: translateY(${isActive ? "0" : "6px"});
-      transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease;
+      transition: transform 0.5s ease, border-color 0.5s ease, box-shadow 0.3s ease;
       transition-delay: inherit;
     }
 
     & > li[data-rarity="rare"] { --rarity: #5aa9ff; }
     & > li[data-rarity="epic"] { --rarity: #b388ff; }
     & > li[data-rarity="legendary"] { --rarity: #ffc45c; }
+
+    /* Unrefined cards wait in common grey at full contrast, then take their rarity colour as they are forged. */
+    ${isActive ? "" : "& > li[data-rarity] { --rarity: #9aa0a6; }"}
 
     & > li[data-rarity="legendary"] {
       box-shadow: ${isActive ? "0 0 18px rgba(255, 196, 92, 0.12)" : "none"};
@@ -94,6 +96,8 @@ const Items = styled.ul(({ isActive }: RefiningProps) => [
       font-size: 11px;
       font-weight: 600;
       color: var(--rarity);
+      transition: color 0.5s ease;
+      transition-delay: inherit;
     }
 
     & .meta {
@@ -103,8 +107,8 @@ const Items = styled.ul(({ isActive }: RefiningProps) => [
     }
 
     @media (prefers-reduced-motion: reduce) {
-      & > li {
-        opacity: 1;
+      & > li,
+      & .tier {
         transform: none;
         transition: none;
       }

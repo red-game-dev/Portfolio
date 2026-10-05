@@ -124,7 +124,7 @@ export const Menu = ({ active }: MenuProps) => {
           <MenuItem href={`#${SECTION_IDS.skillAreas}`} selected={isOnSkillsSection} aria-label="Skills">
             Skills
           </MenuItem>
-          <MenuItem href={`#${SECTION_IDS.caseStudies}`} selected={isOnProjectsSection} aria-label="Achievements">
+          <MenuItem href={`#${SECTION_IDS.caseStudies}`} selected={isOnProjectsSection} aria-label="Projects & Achievements">
             Projects & Achievements
           </MenuItem>
         </MenuList>

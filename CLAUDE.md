@@ -47,11 +47,11 @@ All site content lives in `src/data/resume.ts` as the `portfolioData` object (~1
 
 ### Section ids and scroll-spy
 
-Each section component renders `id="section-*"` on its outer element. `src/hooks/useCollision.ts` attaches a `window` scroll listener for a given element id and returns whether it is on screen (it reports `false` until the first scroll event). `src/components/Menu` uses one `useCollision` call per tracked section to highlight the active nav item, and `Skills` components use it to trigger progress-bar animation.
+Each section component renders `id="section-*"` on its outer element. Shared ids live in `src/config/sections.ts` (`SECTION_IDS`, plus `AUDIENCE_ANCHORS`, `ROLE_ANCHORS` and `industryAnchor()` for the first screen's chips), and the journey's zone boundaries in `src/config/zones.ts`. `src/hooks/useCollision.ts` attaches a `window` scroll listener for a given element id and returns whether it is on screen (it reports `false` until the first scroll event).
 
-Skill section ids are **derived from the intro title** by `toSkillsSectionId()` in `src/components/Skills/index.tsx`, which strips every non-alphanumeric character (`"AI Tools & Enablement"` → `section-skills-AIToolsEnablement`). `Menu` and `SEO` hardcode the resulting ids, so **renaming a skills section title in `resume.ts` silently breaks the matching nav highlight and the SEO breadcrumb**, so grep for the old id when you do.
+`src/components/Menu` follows the journey: seven items (Who I am, Offer, History, AI, Web3, iGaming, Game world), each lit by one `useCollision` call per section in its zone. **A new section needs its call added to the right group in `Menu`**, or nothing is highlighted while it is in view.
 
-`Menu` only tracks some skills sections (tech, tools, AI, design, language, expertise), plus the "How I use AI" section through `SECTION_IDS`. When no tracked section is on screen, "Beginning" is highlighted, so a new skills section needs its own `useCollision` call in `Menu` or the nav falls back to "Beginning" while it is in view.
+Skill forge station ids are derived from the station title by `skillStationId()` in `src/config/skills.ts`, which strips every non-alphanumeric character (`"AI Tools & Enablement"` → `section-skills-AIToolsEnablement`). Renaming a station title changes its id, so grep for the old id when you do.
 
 ### Styling: twin.macro + styled-components + Tailwind
 

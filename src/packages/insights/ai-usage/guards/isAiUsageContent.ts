@@ -11,8 +11,10 @@ import {
   AiUsageAgents,
   AiUsageAreaGroup,
   AiUsageAreas,
+  AiUsageBudget,
   AiUsageContent,
   AiUsageExamples,
+  AiUsageFigure,
   AiUsageIntro,
   AiUsageMilestone,
   AiUsageMix,
@@ -20,6 +22,7 @@ import {
   AiUsageScreen,
   AiUsageStage,
   AiUsageTask,
+  AiUsageTierShare,
   AiUsageTimeline
 } from "../domain/types";
 
@@ -51,6 +54,26 @@ const isAreas = (value: unknown): value is AiUsageAreas => isRecord(value)
   && isText(value.title)
   && isTextArray(value.description)
   && isArrayOf(isAreaGroup)(value.groups)
+  && isTextArray(value.notes);
+
+const isFigure = (value: unknown): value is AiUsageFigure => isRecord(value)
+  && isText(value.value)
+  && isText(value.label);
+
+const isTierShare = (value: unknown): value is AiUsageTierShare => isRecord(value)
+  && isText(value.name)
+  && isFiniteNumber(value.share)
+  && (value.detail === undefined || isText(value.detail));
+
+const isBudget = (value: unknown): value is AiUsageBudget => isRecord(value)
+  && isText(value.title)
+  && isTextArray(value.description)
+  && isArrayOf(isFigure)(value.figures)
+  && isText(value.tiersTitle)
+  && isText(value.shareLabel)
+  && isArrayOf(isTierShare)(value.tiers)
+  && isText(value.practicesTitle)
+  && isTextArray(value.practices)
   && isTextArray(value.notes);
 
 const isPrinciple = (value: unknown): value is AiUsagePrinciple => isRecord(value)
@@ -88,6 +111,7 @@ export const isAiUsageContent = <TIcon = unknown>(value: unknown): value is AiUs
   && isIntro(value.intro)
   && isScreen(value.screen)
   && isMix(value.mix)
+  && isBudget(value.budget)
   && isAreas(value.areas)
   && isAgents(value.agents)
   && isTimeline(value.timeline);

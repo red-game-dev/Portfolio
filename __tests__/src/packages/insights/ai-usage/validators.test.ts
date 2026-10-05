@@ -53,4 +53,13 @@ describe("insights/ai-usage validators", () => {
       "the screen needs at least one message line",
     ]);
   });
+
+  test("model tier shares must add up to 100 and none can be negative", () => {
+    const content = createAiUsageContent();
+    const short = { ...content.budget, tiers: [{ name: "Large", share: 95 }] };
+    const negative = { ...content.budget, tiers: [{ name: "Large", share: 105 }, { name: "Small", share: -5 }] };
+
+    expect(new AiUsageContentValidator().validate({ ...content, budget: short }).errors).toEqual(["model tier shares must add up to 100, got 95"]);
+    expect(new AiUsageContentValidator().validate({ ...content, budget: negative }).errors).toEqual(["model tier shares cannot be negative"]);
+  });
 });

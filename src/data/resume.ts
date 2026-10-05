@@ -2828,6 +2828,40 @@ export const portfolioData: PortfolioData = {
         heavy branch leans towards testing on the deployed build.`,
       ],
     },
+    budget: {
+      title: "Tokens as a budget",
+      description: [
+        `I treat tokens as a budget. About 96% of the input in my agent sessions is served from cache, small models do the searching
+        while large models make the decisions, and agent runs are capped and resumed instead of relaunched.`,
+      ],
+      figures: [
+        { value: "96%", label: "of input tokens served from the prompt cache" },
+        { value: "53M+", label: "output tokens" },
+        { value: "8", label: "models across three tiers" },
+      ],
+      tiersTitle: "Output by model tier, roughly: the right model per task, mostly the largest",
+      shareLabel: "{name}, about {share}%",
+      tiers: [
+        { name: "Largest tier", share: 85, detail: "Design, review and long implementation work" },
+        { name: "Middle tier", share: 8 },
+        { name: "Newer top model", share: 5 },
+        { name: "Smallest tier", share: 2, detail: "Search, gathering and audits" },
+      ],
+      practicesTitle: "How the budget holds",
+      practices: [
+        "Large models for design and review judgement, small models at low effort for search, gathering and audits",
+        "Multi agent runs capped at about five agents and run one at a time, after one 59 agent run used a whole session quota",
+        "A stopped agent is resumed, not relaunched, so it does not read everything again",
+        "No builds or type checks after every edit and none inside subagents: verification runs once, before a push",
+        "Trimmed transcripts, digests and search, so old context costs nothing until it is needed",
+        "Skills and commands, so the agent does not spend tokens rediscovering the codebase every session",
+      ],
+      notes: [
+        `Measured on one machine, February to 1 August 2026. Cached input is billed at a fraction of fresh input, which makes the
+        cache the biggest cost lever in long agent sessions.`,
+        "At Conrad I work on AI enablement under budget constraints across teams and departments.",
+      ],
+    },
     areas: {
       title: "Subjects I use it on",
       description: [

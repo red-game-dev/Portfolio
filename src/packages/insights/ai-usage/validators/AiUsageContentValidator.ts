@@ -25,6 +25,16 @@ export class AiUsageContentValidator extends Validator<AiUsageContent> {
       errors.push("the screen needs at least one message line");
     }
 
+    const tierTotal = content.budget.tiers.reduce((sum, tier) => sum + tier.share, 0);
+
+    if (content.budget.tiers.length > 0 && tierTotal !== 100) {
+      errors.push(`model tier shares must add up to 100, got ${tierTotal}`);
+    }
+
+    if (content.budget.tiers.some((tier) => tier.share < 0)) {
+      errors.push("model tier shares cannot be negative");
+    }
+
     return toValidationResult(errors);
   }
 

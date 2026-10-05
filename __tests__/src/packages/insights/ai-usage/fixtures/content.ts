@@ -13,6 +13,17 @@ export const createAiUsageContent = (overrides: Partial<AiUsageContent<string>> 
     ],
     notes: ["Approximate"],
   },
+  budget: {
+    title: "Tokens as a budget",
+    description: ["Budget"],
+    figures: [{ value: "96%", label: "from cache" }],
+    tiersTitle: "Output by tier",
+    shareLabel: "{name}, about {share}%",
+    tiers: [{ name: "Large", share: 90 }, { name: "Small", share: 10, detail: "Search" }],
+    practicesTitle: "Habits",
+    practices: ["Resume, do not relaunch"],
+    notes: ["One machine"],
+  },
   areas: {
     title: "Subjects I use it on",
     description: ["Overlapping"],

@@ -41,7 +41,7 @@ const Muted = tw.p`m-0 text-sm text-[#aaa]`;
 const Counts = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[8px]`;
 
 const Count = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[7px] px-[11px] border-[1px] border-solid
-border-[var(--accent-muted)] [& > strong]:text-white`;
+border-[var(--accent-muted)]`;
 
 const Quote = styled.blockquote(() => [
   tw`m-0 pl-[12px] text-sm italic text-[#ddd]`,

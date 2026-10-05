@@ -10,8 +10,10 @@ export type {
   AiUsageAgents,
   AiUsageAreaGroup,
   AiUsageAreas,
+  AiUsageBudget,
   AiUsageContent,
   AiUsageExamples,
+  AiUsageFigure,
   AiUsageIntro,
   AiUsageMilestone,
   AiUsageMix,
@@ -22,6 +24,7 @@ export type {
   AiUsageStage,
   AiUsageTask,
   AiUsageTaskView,
+  AiUsageTierShare,
   AiUsageTimeline,
   AiUsageView
 } from "./domain/types";

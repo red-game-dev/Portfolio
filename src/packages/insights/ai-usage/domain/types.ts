@@ -75,9 +75,37 @@ export interface AiUsageTimeline {
   milestones: AiUsageMilestone[];
 }
 
+// A measured figure shown as is, for example "96%" or "53M+". Floors only.
+export interface AiUsageFigure {
+  value: string;
+  label: string;
+}
+
+// One model tier's rough share of output. Shares add up to 100.
+export interface AiUsageTierShare {
+  name: string;
+  share: number;
+  detail?: string;
+}
+
+// How token spend is managed: measured figures, the model mix and the practices behind them.
+export interface AiUsageBudget {
+  title: string;
+  description: string[];
+  figures: AiUsageFigure[];
+  tiersTitle: string;
+  // "{name}" and "{share}" are replaced for each tier.
+  shareLabel: string;
+  tiers: AiUsageTierShare[];
+  practicesTitle: string;
+  practices: string[];
+  notes: string[];
+}
+
 export interface AiUsageSections<TIcon = unknown> {
   screen: AiUsageScreen;
   mix: AiUsageMix;
+  budget: AiUsageBudget;
   areas: AiUsageAreas;
   agents: AiUsageAgents<TIcon>;
   timeline: AiUsageTimeline;

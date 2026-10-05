@@ -2369,8 +2369,10 @@ export const portfolioData: PortfolioData = {
       label: "AI & Machine Learning",
       items: [
         "TensorFlow",
+        "PyTorch",
         "Recommendation, ads and feed ranking models",
         "LLM APIs (GPT, Claude, Gemini)",
+        "LangChain",
         "MCP, custom and published servers",
         "Agent skills, subagents and slash commands",
       ],

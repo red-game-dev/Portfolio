@@ -1,7 +1,10 @@
+import { useRef } from "react";
+
 import tw, { css, styled } from "twin.macro";
 
 import Link from "next/link";
 
+import useNavProgress, { NavGroup } from "@/components/Menu/hooks/useNavProgress";
 import { SECTION_IDS } from "@/config/sections";
 import useCollision from "@/hooks/useCollision";
 
@@ -70,11 +73,37 @@ const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
   tw`w-full lg:w-auto m-4 p-4 py-8 lg:p-0 lg:m-0 inline text-base lg:text-sm xl:text-base leading-loose text-white font-semibold 
       lg:px-2 xl:px-4 border-dotted border-2 border-[#121212ed] border-[transparent] border-r-[var(--accent)]
      opacity-50 relative align-top overflow-hidden hover:text-white hover:opacity-100`,
-  selected && tw`text-white opacity-100 animate-[move-text 0.75s forwards, text-color 0.75s forwards, border-transition 1s ease-in-out 0s]`,
+  selected && tw`opacity-100 animate-[move-text 0.75s forwards, border-transition 1s ease-in-out 0s]`,
   css`
-    transition: color 0.7s cubic-bezier(0.165, 0.85, 0.45, 1);
+    transition: opacity 0.4s ease;
   `
 ]);
+
+// The label fills with the zone's colour as the reader moves through the item's sections, so the menu reads
+// as the same progress bar as the trail on the left.
+const Label = styled.span(() => [
+  css`
+    background-image: linear-gradient(
+      to right,
+      var(--accent) calc(var(--nav-progress, 0) * 100%),
+      #ffffff calc(var(--nav-progress, 0) * 100%)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  `,
+]);
+
+// Each item covers a run of sections in page order: one stop on the journey.
+const NAV_ITEMS: Array<NavGroup & { label: string; href: string }> = [
+  { label: "Who I am", href: "#section-about", first: "section-about", last: "section-terminal" },
+  { label: "Offer", href: "#section-services", first: "section-services", last: "section-services" },
+  { label: "History", href: "#section-history", first: "section-history", last: "section-history" },
+  { label: "AI", href: `#${SECTION_IDS.aiUsage}`, first: SECTION_IDS.aiUsage, last: SECTION_IDS.aiUsage },
+  { label: "Web3", href: `#${SECTION_IDS.web3}`, first: SECTION_IDS.web3, last: SECTION_IDS.codeReview },
+  { label: "iGaming", href: `#${SECTION_IDS.igaming}`, first: SECTION_IDS.igaming, last: SECTION_IDS.igaming },
+  { label: "Game world", href: `#${SECTION_IDS.roster}`, first: SECTION_IDS.roster, last: "section-Wow" },
+];
 
 export const Menu = ({ active }: MenuProps) => {
   const [isOnAboutOnly] = useCollision("section-about");
@@ -103,32 +132,29 @@ export const Menu = ({ active }: MenuProps) => {
   const isOnGameWorld = isOnRosterSection || isOnForgeSection || isOnTalentsSection || isOnCaseStudiesSection || isOnDuelsSection ||
     isOnProjectsOnly || isOnRecommendationsSection || isOnArenaSection || isOnFinaleSection;
 
+  const selected = [isOnSectionAbout, isOnSectionServices, isOnSectionHistory, isOnAiUsageSection, isOnChainZone, isOnIGamingSection, isOnGameWorld];
+  const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
+
+  useNavProgress(NAV_ITEMS, itemRefs);
+
   return (
     <>
       <MenuButton active={active} />
       <MenuContainer active={active}>
         <MenuList>
-          <MenuItem href="#section-about" selected={isOnSectionAbout} aria-label="Who I am">
-            Who I am
-          </MenuItem>
-          <MenuItem href="#section-services" selected={isOnSectionServices} aria-label="Offer">
-            Offer
-          </MenuItem>
-          <MenuItem href="#section-history" selected={isOnSectionHistory} aria-label="History">
-            History
-          </MenuItem>
-          <MenuItem href={`#${SECTION_IDS.aiUsage}`} selected={isOnAiUsageSection} aria-label="AI">
-            AI
-          </MenuItem>
-          <MenuItem href={`#${SECTION_IDS.web3}`} selected={isOnChainZone} aria-label="Web3">
-            Web3
-          </MenuItem>
-          <MenuItem href={`#${SECTION_IDS.igaming}`} selected={isOnIGamingSection} aria-label="iGaming">
-            iGaming
-          </MenuItem>
-          <MenuItem href={`#${SECTION_IDS.roster}`} selected={isOnGameWorld} aria-label="Game world">
-            Game world
-          </MenuItem>
+          {NAV_ITEMS.map((item, index) => (
+            <MenuItem
+              key={item.label}
+              ref={(element: HTMLAnchorElement | null) => {
+                itemRefs.current[index] = element;
+              }}
+              href={item.href}
+              selected={selected[index]}
+              aria-label={item.label}
+            >
+              <Label>{item.label}</Label>
+            </MenuItem>
+          ))}
         </MenuList>
       </MenuContainer>
     </>

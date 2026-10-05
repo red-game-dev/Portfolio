@@ -9,8 +9,47 @@ export interface DomainCapability {
   };
 }
 
+export interface StackItem {
+  name: string;
+  // What it is for, shown under the name on token standards.
+  detail?: string;
+}
+
+export interface StackGroup {
+  label: string;
+  items: StackItem[];
+}
+
+export interface FlowStep {
+  id: string;
+  name: string;
+  tech: string[];
+}
+
+// One run through the flow. `lines` narrate the steps in order; a run with `blockedAt` stops at that step.
+export interface FlowScenario {
+  label: string;
+  lines: string[];
+  blockedAt?: string;
+  result: string;
+}
+
+export interface TxFlowContent {
+  title: string;
+  description: string;
+  note: string;
+  resetLabel: string;
+  logLabel: string;
+  hashLabel: string;
+  steps: FlowStep[];
+  scenarios: FlowScenario[];
+}
+
 export interface Web3Content {
   statement: string;
+  stackTitle: string;
+  stack: StackGroup[];
+  flow: TxFlowContent;
   validatorsLabel: string;
   validators: string[];
   blockLabel: string;

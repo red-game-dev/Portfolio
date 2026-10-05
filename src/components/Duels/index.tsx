@@ -21,6 +21,8 @@ const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[
 const Scoreboard = tw.div`flex flex-row flex-wrap items-center justify-between gap-[12px] pb-[18px] mb-[22px] border-0 border-b-[1px]
 border-solid border-[#1E1E1E]`;
 
+const Fighters = tw.span`inline-flex flex-row items-center gap-[14px]`;
+
 const Fighter = tw.span`inline-flex flex-row items-center gap-[10px] text-base font-semibold text-white`;
 
 const Versus = tw.span`text-xs font-bold text-[#999]`;
@@ -46,15 +48,17 @@ export const Duels: FC<DuelsProps> = ({ intro, rounds, scoreLabel, scoreOf, vers
       <Text title={intro.title} paragraphs={intro.description} isSection={false} />
       <Panel>
         <Scoreboard>
-          <Fighter>
-            <FontAwesomeIcon icon={faRobot} aria-hidden="true" />
-            {labels.agentLabel}
-          </Fighter>
-          <Versus aria-hidden="true">{versusLabel}</Versus>
-          <Fighter>
-            <FontAwesomeIcon icon={faUser} aria-hidden="true" />
-            {labels.humanLabel}
-          </Fighter>
+          <Fighters>
+            <Fighter>
+              <FontAwesomeIcon icon={faRobot} aria-hidden="true" />
+              {labels.agentLabel}
+            </Fighter>
+            <Versus aria-hidden="true">{versusLabel}</Versus>
+            <Fighter>
+              <FontAwesomeIcon icon={faUser} aria-hidden="true" />
+              {labels.humanLabel}
+            </Fighter>
+          </Fighters>
           <Score>
             <ReadableText>{`${scoreLabel} ${rounds.length} ${scoreOf} ${rounds.length}`}</ReadableText>
             <span aria-hidden="true">

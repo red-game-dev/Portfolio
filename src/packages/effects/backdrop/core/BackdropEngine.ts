@@ -107,11 +107,13 @@ export class BackdropEngine extends FrameLoop {
   }
 
   protected render(now: number): void {
-    const progress = this.previous ? easeInOut((now - this.fadeStartedAt) / this.config.fadeMs) : 1;
+    // A frame's timestamp is when the frame began, which can be a moment before the scene change that
+    // happened during it, so the fade is clamped at both ends rather than going briefly negative.
+    const linear = Math.min(1, Math.max(0, (now - this.fadeStartedAt) / this.config.fadeMs));
+    const progress = this.previous ? easeInOut(linear) : 1;
     const layers = this.previous
       ? [{ scene: this.previous, alpha: 1 - progress }, { scene: this.current, alpha: progress }]
       : [{ scene: this.current, alpha: 1 }];
-    const linear = Math.min(1, (now - this.fadeStartedAt) / this.config.fadeMs);
 
     this.compositor.draw({ layers, overlay: this.transition ? { transition: this.transition, progress: linear } : undefined }, now);
   }

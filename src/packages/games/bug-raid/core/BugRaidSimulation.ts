@@ -53,6 +53,8 @@ export class BugRaidSimulation {
     state.lives = this.config.lives;
     state.wave = 1;
     state.elapsedMs = 0;
+    state.cursor.x = state.size.width / 2;
+    state.cursor.y = state.size.height / 2;
     this.spawnInMs = 0;
   }
 
@@ -61,8 +63,9 @@ export class BugRaidSimulation {
     const { state } = this;
 
     state.size = size;
-    state.cursor.x = clamp(state.cursor.x, 0, size.width);
-    state.cursor.y = clamp(state.cursor.y, 0, size.height);
+    // An unused cursor waits in the middle; one in use stays where the player left it.
+    state.cursor.x = state.cursor.isVisible ? clamp(state.cursor.x, 0, size.width) : size.width / 2;
+    state.cursor.y = state.cursor.isVisible ? clamp(state.cursor.y, 0, size.height) : size.height / 2;
     state.bugs.forEach((bug) => {
       const { radius } = this.config.kinds[bug.kind];
 

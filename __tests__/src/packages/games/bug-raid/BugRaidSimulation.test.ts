@@ -167,3 +167,18 @@ describe("games/bug-raid spawn utils", () => {
     expect(spawnInterval(5, 1000, 0.5, 200)).toBe(200);
   });
 });
+
+describe("games/bug-raid cursor", () => {
+  test("an unused cursor starts in the middle of the board, even after a resize", () => {
+    const config = resolveBugRaidConfig();
+    const simulation = new BugRaidSimulation({ width: 0, height: 0 }, { config, random: createSeededRandom(1) });
+
+    simulation.resize({ width: 400, height: 300 });
+    expect(simulation.state.cursor).toMatchObject({ x: 200, y: 150 });
+
+    simulation.start();
+    simulation.aim(1, 0);
+    simulation.resize({ width: 500, height: 300 });
+    expect(simulation.state.cursor).toMatchObject({ x: 200 + config.cursorStep, y: 150 });
+  });
+});

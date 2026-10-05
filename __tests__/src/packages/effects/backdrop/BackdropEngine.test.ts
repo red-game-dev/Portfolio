@@ -134,6 +134,25 @@ describe("effects/backdrop transitions", () => {
     expect(progresses.length).toBe(drawn);
   });
 
+  test("a frame stamped before the scene change draws progress 0, never below", () => {
+    const progresses: number[] = [];
+    const scheduler = new ManualScheduler();
+    const engine = new BackdropEngine(createContext(), {
+      initialScene: "matrix",
+      scenes: [() => createScene("matrix"), () => createScene("ai")],
+      transitions: { "matrix>ai": () => ({ resize: jest.fn(), draw: (_context, progress) => progresses.push(progress) }) },
+      config: { fadeMs: 1000 },
+      scheduler,
+    });
+
+    engine.resize(800, 600);
+    engine.start();
+    engine.setScene("ai");
+    scheduler.tick(performance.now() - 50);
+
+    expect(progresses).toEqual([0]);
+  });
+
   test("scrolling back up crossfades without a transition", () => {
     const progresses: number[] = [];
     const scheduler = new ManualScheduler();

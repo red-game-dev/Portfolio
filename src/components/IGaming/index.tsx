@@ -37,7 +37,7 @@ const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[
 // The table: a felt glow under the cards and a rim in the zone's colour.
 const Table = styled(Panel)(() => [
   css`
-    background: radial-gradient(ellipse at 50% 0%, rgba(28, 120, 78, 0.32), #0d0d0d 72%);
+    background: radial-gradient(ellipse at 50% 0%, rgba(28, 120, 78, 0.32), #0d0d0d 72%), #0d0d0d;
     border-color: var(--accent-muted);
   `,
 ]);

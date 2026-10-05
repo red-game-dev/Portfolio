@@ -84,6 +84,7 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnAiUsageSection] = useCollision(SECTION_IDS.aiUsage);
   const [isOnSkillAreasSection] = useCollision(SECTION_IDS.skillAreas);
   const [isOnPlatformSection] = useCollision(SECTION_IDS.platform);
+  const [isOnCodeReviewSection] = useCollision(SECTION_IDS.codeReview);
   const [isOnRosterSection] = useCollision(SECTION_IDS.roster);
   const [isOnForgeSection] = useCollision(SKILLS_SECTION_ID);
   const [isOnTalentsSection] = useCollision("section-talents");
@@ -94,7 +95,8 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnArenaSection] = useCollision(SECTION_IDS.arena);
   const [isOnFinaleSection] = useCollision("section-Wow");
 
-  const isOnSkillsSection = isOnSkillAreasSection || isOnPlatformSection || isOnRosterSection || isOnForgeSection || isOnTalentsSection;
+  const isOnSkillsSection = isOnSkillAreasSection || isOnPlatformSection || isOnCodeReviewSection || isOnRosterSection || isOnForgeSection ||
+    isOnTalentsSection;
   const isOnSectionAbout = isOnAboutOnly || isOnTerminalSection;
   const isOnProjectsSection = isOnCaseStudiesSection || isOnDuelsSection || isOnProjectsOnly || isOnRecommendationsSection ||
     isOnArenaSection || isOnFinaleSection;

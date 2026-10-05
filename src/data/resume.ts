@@ -40,6 +40,7 @@ import {
 
 import { PortfolioAiUsage } from "@/types/ai-usage";
 import { CaseStudy, CaseStudyFilters, PlatformDiagrams } from "@/types/case-studies";
+import { CodeReviewContent } from "@/types/code-review";
 import { Detail } from "@/types/details";
 import { ForgeContent, TalentsContent } from "@/types/forge";
 import { ArenaContent, BossLabels, Duels, FinaleContent, HudLabels } from "@/types/game";
@@ -101,6 +102,7 @@ export interface PortfolioData {
   arena: ArenaContent;
   finale: FinaleContent;
   platformDiagrams: PlatformDiagrams;
+  codeReview: CodeReviewContent;
   recommendations: Recommendation[];
   aiUsage: PortfolioAiUsage;
   socialMedia: {
@@ -374,6 +376,10 @@ export const portfolioData: PortfolioData = {
         `Real problems from my own platform and client work. Each boss loses health as you read how it was beaten, and drops the
         rule I kept.`,
       ],
+    },
+    codeReview: {
+      title: "Code Review and Open Source",
+      description: ["The work behind the work: reading other people's code closely, in teams and in the open."],
     },
     platform: {
       title: "The Platform at a Glance",
@@ -2512,6 +2518,35 @@ export const portfolioData: PortfolioData = {
         agent: "Post the review with the page's finding numbers.",
         human: "Comment on the exact lines instead.",
         result: "43 line comments, and three fix samples calling helpers that do not exist caught before posting.",
+      },
+    ],
+  },
+  codeReview: {
+    scope: "On my main GitHub account alone, counted on 5 October 2026. I have other accounts, so these are floors.",
+    squaresLabel: "{count} squares, one per pull request",
+    totals: [
+      { value: 298, label: "pull requests merged", detail: "of 331 authored" },
+      { value: 520, label: "pull requests reviewed" },
+    ],
+    highlights: [
+      {
+        name: "HyperPlay",
+        detail: "An open source game launcher and its UI library",
+        counts: [{ value: 240, label: "reviews" }, { value: 50, label: "authored" }],
+        points: [],
+      },
+      {
+        name: "fetchff",
+        detail: "An open source HTTP client library my own platform depends on",
+        counts: [{ value: 35, label: "reviews" }, { value: 1, label: "authored and merged" }],
+        quote: "I review the library my own platform depends on instead of forking it.",
+        points: [
+          "Its security hardening release",
+          "Retry with jitter, limited to idempotent methods",
+          "Cache revalidation with ETags",
+          "Request aborting",
+          "React Native support",
+        ],
       },
     ],
   },

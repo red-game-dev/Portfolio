@@ -2,6 +2,7 @@ import { About } from "@/components/About";
 import { AiUsage } from "@/components/AiUsage";
 import { Arena } from "@/components/Arena";
 import { CaseStudies } from "@/components/CaseStudies";
+import { CodeReview } from "@/components/CodeReview";
 import { Cover } from "@/components/Cover";
 import { Duels } from "@/components/Duels";
 import { Finale } from "@/components/Finale";
@@ -64,6 +65,7 @@ export default function Home() {
       <AiUsage {...aiUsage} />
       <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
       <PlatformOverview intro={portfolioData.sections.platform} diagrams={portfolioData.platformDiagrams} />
+      <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
       <Roster intro={portfolioData.sections.roster} {...portfolioData.roster} />
       <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
       <Talents

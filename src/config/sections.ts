@@ -6,6 +6,7 @@ export const SECTION_IDS = {
   aiUsage: "section-ai-usage",
   arena: "section-arena",
   caseStudies: "section-case-studies",
+  codeReview: "section-code-review",
   duels: "section-duels",
   platform: "section-platform",
   roster: "section-roster",

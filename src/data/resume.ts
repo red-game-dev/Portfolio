@@ -461,16 +461,32 @@ export const portfolioData: PortfolioData = {
   },
   details: {
     name: "Redeemer Pace",
-    intro: "Experienced, trusted",
-    description: `
-    With over 10 years of experience as a Software Engineer, specializing in Game Development, Web Development, Tech Consultancy, Architecture, and Marketing,
-    I have developed a strong foundation in the tech industry.
-    My journey began at the early age of 7 when I started programming as a hobby, which taught me valuable lessons through challenging experiences. What's next?
-    I am passionate about innovation, continuous learning, and contributing to the tech community. I look forward to one day
-    creating a successful startup, provided the right investment opportunities arise.
-    I am a software architect first, and I ship with AI agents: I design the context, rules and checks they work within, and a person reviews
-    every change they make. The "How I use AI" section shows how that works day to day.`,
-    residence: "Maltese",
+    intro: "Architect. Builder. Founder.",
+    hook: `I started programming at 7 and never stopped. More than twenty years later I have built game engines, payment systems, a
+    blockchain and platforms used by millions, and founded companies of my own along the way.`,
+    paragraphs: [
+      `I am a software architect with 12+ years in the industry, about 7 of them leading as architect, tech lead and CTO. I design
+      systems that are not tied to a vendor or a framework, and I stay hands on while I do it.`,
+      `I build with AI agents. I write the rules, the context and the checks they work within, and a person reviews every change. The
+      "How I use AI" section shows what that looks like day to day.`,
+      `I have worked across e-commerce, payments, iGaming, game publishing and Web3, on the engineering side and on the business side.
+      That is why I can be useful to a CTO in the morning and to a marketing team in the afternoon.`,
+      "I am looking for an architect, technical leadership or AI engineering role where the problems are hard and the standards are high.",
+    ],
+    proof: [
+      { value: "12+", label: "years in the industry" },
+      { value: "7", label: "years leading as architect, tech lead and CTO" },
+      { value: "5M+", label: "monthly users on the largest platform" },
+      { value: "298", label: "pull requests merged, 520 reviewed" },
+      { value: "8", label: "ventures on GitHub" },
+    ],
+    facts: [
+      "Maltese citizen with EU work rights",
+      "Open to relocation",
+      "Remote, hybrid or on site",
+      "Speaks Maltese, English and Italian",
+      "Available now",
+    ],
     location: "Remote (worldwide), Hybrid & On-Site (Switzerland, Europe in general, US)",
     jobType:
       "B2B (C2C, Individual Freelance) / Full-Time / Part-Time / Temporary",
@@ -479,7 +495,6 @@ export const portfolioData: PortfolioData = {
     image: "/images/profile.webp",
     portrait: { decoding: "Decoding", upscaling: "Upscaling", enhancing: "Enhancing with AI" },
     contactTime: "Anytime in any timezone",
-    isFlexible: false,
   },
   serviceActions: {
     email: "Email me about this",

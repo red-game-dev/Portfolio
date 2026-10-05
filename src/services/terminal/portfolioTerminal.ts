@@ -56,8 +56,9 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
       run: () => ({
         lines: [
           heading(data.details.intro),
-          output(collapse(data.details.description)),
-          output(`Location: ${data.details.location}`),
+          output(collapse(data.details.hook)),
+          ...data.details.paragraphs.map((paragraph) => output(collapse(paragraph))),
+          ...data.details.facts.map((fact) => output(`  - ${fact}`)),
         ],
       }),
     },

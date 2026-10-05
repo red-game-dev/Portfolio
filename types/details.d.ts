@@ -5,17 +5,26 @@ export interface PortraitLabels {
   enhancing: string;
 }
 
+// A verified figure in the "Who I am" proof row.
+export interface DetailFigure {
+  value: string;
+  label: string;
+}
+
 export interface Detail {
+  name: string;
+  // A short tag above the hook.
   intro: string;
-  description: string;
-  residence: string;
+  // The opening line, shown large.
+  hook: string;
+  paragraphs: string[];
+  proof: DetailFigure[];
+  facts: string[];
+  location: string;
   jobType: string;
   phone: string;
   email: string;
-  image: string;
-  name: string;
-  location: string;
-  isFlexible: boolean;
   contactTime: string;
+  image: string;
   portrait: PortraitLabels;
 }

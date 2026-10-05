@@ -20,7 +20,7 @@ interface DoneProps {
   isDone: boolean;
 }
 
-const Frame = tw.div`relative float-left mr-[17px] ml-[9px] lg:mr-0 lg:ml-0 w-[160px] h-[213px] overflow-hidden`;
+const Frame = tw.div`relative w-[160px] h-[213px] overflow-hidden`;
 
 const Photo = styled(Image)(() => [
   tw`block w-full h-full object-cover`,

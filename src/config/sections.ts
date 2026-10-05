@@ -4,6 +4,7 @@ import { Audience } from "@/types/case-studies";
 // drift apart. Older sections still hardcode theirs; move them here as they are touched.
 export const SECTION_IDS = {
   aiUsage: "section-ai-usage",
+  arena: "section-arena",
   caseStudies: "section-case-studies",
   duels: "section-duels",
   platform: "section-platform",

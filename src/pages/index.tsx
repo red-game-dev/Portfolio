@@ -1,5 +1,6 @@
 import { About } from "@/components/About";
 import { AiUsage } from "@/components/AiUsage";
+import { Arena } from "@/components/Arena";
 import { CaseStudies } from "@/components/CaseStudies";
 import { Cover } from "@/components/Cover";
 import { Duels } from "@/components/Duels";
@@ -87,6 +88,7 @@ export default function Home() {
         intro={portfolioData.sections.recommendations}
         recommendations={portfolioData.recommendations}
       />
+      <Arena intro={portfolioData.sections.arena} content={portfolioData.arena} />
       <Text
         title={portfolioData.sections.conclusion.title}
         paragraphs={portfolioData.sections.conclusion.description}

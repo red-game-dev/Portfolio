@@ -8,6 +8,7 @@ import {
   WarpTransitionOptions
 } from "@/packages/effects/backdrop";
 import { RainConfigOverrides } from "@/packages/effects/binary-rain";
+import { BugRaidTheme, DEFAULT_BUG_RAID_THEME } from "@/packages/games/bug-raid";
 
 // Runtime colours for things twin.macro cannot reach, such as canvas drawing. Styled components keep
 // their colours in the tw`` strings, which have to be static at build time.
@@ -58,4 +59,12 @@ export const TRANSITION_THEME: {
   collapse: { from: [75, 255, 165], to: [79, 216, 255], fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" },
   warp: { streak: [220, 236, 255], flash: [184, 150, 255] },
   portal: { ring: [255, 196, 92], glow: [255, 170, 60] },
+};
+
+// Bug Raid sits in the MMO zone, so production takes that zone's gold.
+export const BUG_RAID_THEME: BugRaidTheme = {
+  ...DEFAULT_BUG_RAID_THEME,
+  background: "#0d0d0d",
+  production: "#ffc45c",
+  splat: "#ffc45c",
 };

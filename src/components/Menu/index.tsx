@@ -91,10 +91,12 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnDuelsSection] = useCollision(SECTION_IDS.duels);
   const [isOnProjectsOnly] = useCollision("section-projects");
   const [isOnRecommendationsSection] = useCollision("section-Recommendations");
+  const [isOnArenaSection] = useCollision(SECTION_IDS.arena);
 
   const isOnSkillsSection = isOnSkillAreasSection || isOnPlatformSection || isOnRosterSection || isOnForgeSection || isOnTalentsSection;
   const isOnSectionAbout = isOnAboutOnly || isOnTerminalSection;
-  const isOnProjectsSection = isOnCaseStudiesSection || isOnDuelsSection || isOnProjectsOnly || isOnRecommendationsSection;
+  const isOnProjectsSection = isOnCaseStudiesSection || isOnDuelsSection || isOnProjectsOnly || isOnRecommendationsSection ||
+    isOnArenaSection;
   const isOnBeginningSection = !isOnSectionAbout && !isOnSectionHistory && !isOnSectionServices && !isOnAiUsageSection &&
     !isOnSkillsSection && !isOnProjectsSection;
 

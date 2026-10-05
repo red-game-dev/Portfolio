@@ -29,7 +29,7 @@ import { PortfolioAiUsage } from "@/types/ai-usage";
 import { CaseStudy, CaseStudyFilters, PlatformDiagrams } from "@/types/case-studies";
 import { Detail } from "@/types/details";
 import { ForgeContent, TalentsContent } from "@/types/forge";
-import { BossLabels, Duels, HudLabels } from "@/types/game";
+import { ArenaContent, BossLabels, Duels, HudLabels } from "@/types/game";
 import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
@@ -85,6 +85,7 @@ export interface PortfolioData {
   duels: Duels;
   bossLabels: BossLabels;
   hud: HudLabels;
+  arena: ArenaContent;
   platformDiagrams: PlatformDiagrams;
   recommendations: Recommendation[];
   aiUsage: PortfolioAiUsage;
@@ -275,6 +276,10 @@ export const portfolioData: PortfolioData = {
     platform: {
       title: "The Platform at a Glance",
       description: ["Two views of my own platform, unnamed: where vendors and hosts plug in, and how money moves through it."],
+    },
+    arena: {
+      title: "Bug Raid",
+      description: ["A break from reading. Squash the bugs before they reach production. Your best score stays in this browser."],
     },
     duels: {
       title: "Human vs Agent",
@@ -2188,6 +2193,22 @@ export const portfolioData: PortfolioData = {
   },
   bossLabels: { boss: "Boss", hp: "HP", defeated: "Defeated", loot: "Loot" },
   hud: { pick: "Pick a character", level: "Level", xp: "XP", bosses: "Bosses defeated" },
+  arena: {
+    boardLabel: "Bug Raid game board",
+    hint: "Click or tap a bug to squash it, or use the arrow keys to aim and Space to squash. Regressions take two hits and flaky bugs jump.",
+    ready: "Bugs are heading for production.",
+    start: "Start the raid",
+    again: "Play again",
+    resume: "Resume",
+    paused: "Paused while off screen",
+    over: "Production is down",
+    newBest: "New best",
+    score: "Score",
+    lives: "Lives",
+    wave: "Wave",
+    best: "Best",
+    production: "production",
+  },
   duels: {
     agentLabel: "Agent",
     humanLabel: "Me",

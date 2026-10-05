@@ -32,10 +32,15 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `animation/frame-loop` | `FrameLoop` base class with fixed rate stepping and clamping, plus `AnimationFrameScheduler`, `TimeoutScheduler` and `ManualScheduler` |
 | `core/content` | `ContentSource` port, `InMemoryContentSource`, and the `ContentService` base that runs source, guard, validator and mapper in order |
 | `core/domain` | `Validator` and `Mapper` base classes, `ValidationError`, primitive guards |
+| `effects/backdrop` | A scene engine for full page backgrounds: crossfades between scenes and plays a transition keyed by the pair of scenes it moves between |
 | `effects/binary-rain` | Falling binary rain that assembles a message, built on `frame-loop` and `graphics/canvas` |
 | `encoding/binary` | Text to binary, same length masks, and the frame by frame decode used for text reveals |
+| `games/bug-raid` | A playable arcade game on `frame-loop` and `graphics/canvas`, with pointer, touch and keyboard input |
 | `graphics/canvas` | `CanvasRenderer` base for DPR aware surfaces and `GlyphAtlas` for GPU friendly text drawing |
 | `insights/ai-usage` | Domain model, guard, validators, mapper and service for an AI usage breakdown, independent of any icon library or content store |
+| `insights/career` | `TenureCalculator`: years in a role from date ranges, overlaps merged |
+| `insights/skills` | Years of real use per skill from roles and projects, with a rarity policy |
+| `interaction/terminal` | A command registry, input parser and session for a text terminal, with no rendering of its own |
 | `math/random` | Seedable random source for repeatable visuals and tests |
 
 Tests mirror this tree under `__tests__/src/packages/`.

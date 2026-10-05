@@ -23,6 +23,24 @@ export interface BossLabels {
   loot: string;
 }
 
+export interface ArenaContent {
+  boardLabel: string;
+  hint: string;
+  ready: string;
+  start: string;
+  again: string;
+  resume: string;
+  paused: string;
+  over: string;
+  newBest: string;
+  score: string;
+  lives: string;
+  wave: string;
+  best: string;
+  // Written on the strip the bugs must not reach.
+  production: string;
+}
+
 export interface HudLabels {
   // Shown, and linked to the roster, until the reader has picked a character.
   pick: string;

@@ -9,10 +9,12 @@ import { Roster } from "@/components/Roster";
 import { Services } from "@/components/Services";
 import { SkillAreas } from "@/components/SkillAreas";
 import { Skills } from "@/components/Skills";
+import { Terminal } from "@/components/Terminal";
 import { Text } from "@/components/Text";
 import { portfolioData } from "@/data/resume";
 import Layout from "@/layouts/Layout";
 import { aiUsageService } from "@/services/ai-usage";
+import { createPortfolioTerminal } from "@/services/terminal/portfolioTerminal";
 
 // Runs at build time during static generation, so content that fails validation fails the build.
 const aiUsage = aiUsageService.getView();
@@ -34,6 +36,11 @@ export default function Home() {
         cvUrl={portfolioData.cv}
         github={portfolioData.github}
         stackoverflow={portfolioData.stackoverflow}
+      />
+      <Terminal
+        intro={portfolioData.sections.terminal}
+        content={portfolioData.terminal}
+        createSession={createPortfolioTerminal}
       />
       <Services
         groups={portfolioData.serviceGroups}

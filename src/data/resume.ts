@@ -39,11 +39,13 @@ import { Roster } from "@/types/roster";
 import { SectionIntros } from "@/types/sections-intros";
 import { ServiceActions, ServiceGroup } from "@/types/services";
 import { Skill, SkillArea } from "@/types/skills";
+import { TerminalContent } from "@/types/terminal";
 
 
 export interface PortfolioData {
   intro: string;
   headline: Headline;
+  terminal: TerminalContent;
   journey: Journey;
   cover: string;
   cv: string;
@@ -114,6 +116,18 @@ export const portfolioData: PortfolioData = {
       { audience: "architecture", label: "Architecture" },
     ],
   },
+  terminal: {
+    prompt: "visitor@redgame.dev:~$",
+    welcome: [
+      "Welcome to redgame.dev. Type help to see what I can show you, or tap a command below.",
+      "Press ` anywhere on the page to come back to this prompt.",
+    ],
+    suggestions: ["help", "whoami", "experience", "skills", "ai", "cases payments", "contact"],
+    helpTitle: "Commands",
+    unknownCommand: "command not found: {name}. Type help to see what I can show you.",
+    inputLabel: "Terminal command",
+    shortcutHint: "Press ` from anywhere",
+  },
   journey: {
     zoneLabel: "Zone",
     zones: [
@@ -154,6 +168,12 @@ export const portfolioData: PortfolioData = {
     "Your next <strong>Marketing Consultant</strong>",
   ],
   sections: {
+    terminal: {
+      title: "Ask the Terminal",
+      description: [
+        "Prefer the command line? Everything on this page is one command away. Start with help.",
+      ],
+    },
     history: {
       title: "My History",
       description: [

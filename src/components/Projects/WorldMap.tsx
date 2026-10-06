@@ -16,6 +16,8 @@ interface WorldMapProps {
   activeKind: ProjectKind | null;
   describe: (project: ProjectDetail) => string;
   hint: string;
+  // Badge for a region kept undated on purpose.
+  undatedLabel: string;
   onOpen: (index: number) => void;
 }
 
@@ -125,7 +127,7 @@ const Info = tw.p`m-0 mt-[14px] min-h-[1.5em] text-sm text-[#bbb] text-center`;
 
 // Every project as a region on a hex map, joined by the route I took through them in time order. Terrain
 // fills the gaps so the board reads as a map rather than a grid of cards.
-export const WorldMap: FC<WorldMapProps> = ({ projects, activeKind, describe, hint, onOpen }: WorldMapProps) => {
+export const WorldMap: FC<WorldMapProps> = ({ projects, activeKind, describe, hint, undatedLabel, onOpen }: WorldMapProps) => {
   const boardRef = useRef<HTMLDivElement>(null);
   const isDrawn = useInView(boardRef, { threshold: 0.3 });
   const columns = useMapColumns();
@@ -178,7 +180,7 @@ export const WorldMap: FC<WorldMapProps> = ({ projects, activeKind, describe, hi
               <RegionIcon>
                 <FontAwesomeIcon icon={project.icon} />
               </RegionIcon>
-              <RegionYear>{yearOf(project.from)}</RegionYear>
+              <RegionYear>{project.period ? undatedLabel : yearOf(project.from)}</RegionYear>
             </RegionFace>
           </Region>
         ))}

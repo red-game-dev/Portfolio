@@ -20,6 +20,7 @@ import {
   faDice,
   faDungeon,
   faPlaneDeparture,
+  faPaw,
   faStore,
   faTowerObservation,
   faTruckFast,
@@ -49,7 +50,7 @@ import {
   faWandMagicSparkles
 } from "@fortawesome/pro-duotone-svg-icons";
 
-import { AMW_BLUEPRINT, blueprintContent, GOZ_BLUEPRINT } from "@/data/blueprints";
+import { ADOTTA_BLUEPRINT, AMW_BLUEPRINT, ARCAVIUM_BLUEPRINT, blueprintContent, GOZ_BLUEPRINT, PUNTI_BLUEPRINT } from "@/data/blueprints";
 import { githubActivity } from "@/data/githubActivity";
 import { lensContent } from "@/data/lens";
 import { PortfolioAiUsage } from "@/types/ai-usage";
@@ -1489,6 +1490,72 @@ export const portfolioData: PortfolioData = {
         "JetBrains Tools",
       ],
     },
+    {
+      title: "Founder, CEO & CTO, Arcavium",
+      ventureRole: "Founder, CEO and CTO",
+      isVenture: true,
+      countsForSkills: false,
+      industries: ["gamePublishing"],
+      period: "An early venture",
+      // Undated on purpose: the year only places it on the timeline and is never shown.
+      from: "2012",
+      to: "2012",
+      productOutcome:
+        "Anyone could build and run a whole game, client and server, without writing an engine, and drop into code only where they wanted",
+      description: [
+        `A low code game builder: choose from menus and upload models to build a whole game, its client interface and its server, write
+        classes in several languages where needed, and leave hosting and the rest to the platform. It launched, and closed for lack of funding.`,
+      ],
+      bullets: [
+        "The game client and server generated from menu choices and uploaded models",
+        "Custom classes in several languages, run safely by the platform",
+        "Hosting and updates handled for the creator, with any customisation they needed",
+      ],
+    },
+    {
+      title: "Founder, CEO & CTO, Adotta",
+      ventureRole: "Founder, CEO and CTO",
+      isVenture: true,
+      countsForSkills: false,
+      industries: ["social", "fintech"],
+      period: "An early venture",
+      // Undated on purpose: the year only places it on the timeline and is never shown.
+      from: "2012",
+      to: "2012",
+      productOutcome:
+        "Giving to an animal shelter earned points that partners accepted, so a donation came back to the donor as value",
+      description: [
+        `A donations app for animal shelters: donors earn points they can spend wherever partners accept them. It launched, and closed for
+        lack of funding.`,
+      ],
+      bullets: [
+        "Shelter profiles with what each one needs",
+        "Donations that earn points",
+        "Points spent with partner businesses",
+      ],
+    },
+    {
+      title: "Founder, CEO & CTO, Punti",
+      ventureRole: "Founder, CEO and CTO",
+      isVenture: true,
+      countsForSkills: false,
+      industries: ["ecommerce", "fintech"],
+      period: "An early venture",
+      // Undated on purpose: the year only places it on the timeline and is never shown.
+      from: "2012",
+      to: "2012",
+      productOutcome:
+        "Shops, outlets and restaurants got a ready loyalty scheme, online and in store, without building or maintaining an app",
+      description: [
+        `A loyalty platform for ecommerce, physical outlets and restaurants, so a business could run its own loyalty scheme without building or
+        maintaining an app. It launched against established competition, and closed for lack of funding.`,
+      ],
+      bullets: [
+        "One customer app holding points for every business",
+        "Earning at the till or online, by each business's own rules",
+        "A dashboard for rewards, with no app for the business to build",
+      ],
+    },
   ],
   education: [
     {
@@ -2584,6 +2651,7 @@ export const portfolioData: PortfolioData = {
       hint: "Pick a region to open its map. The line is the route I took, oldest first.",
       deepDive: "A deeper look",
       screens: "From the real thing",
+      undated: "Early",
     },
   },
   projects: [
@@ -2614,6 +2682,28 @@ export const portfolioData: PortfolioData = {
           { value: "2015", label: "started, and still patched today" },
         ],
         note: "As with most of my startups I was CEO and CTO, and what it lacked to take a strong position was funding.",
+        screens: [
+          {
+            image: "/images/ventures/goz-1.webp",
+            caption: "Fifth anniversary: the city dressed for the celebration",
+            alt: "Game screenshot of a city square with pagoda rooftops and a fifth anniversary logo over the scene",
+          },
+          {
+            image: "/images/ventures/goz-2.webp",
+            caption: "In the world: a lantern lined path to a temple gate",
+            alt: "Third person view of an armoured character walking a stone path between lanterns towards a temple gate",
+          },
+          {
+            image: "/images/ventures/goz-3.webp",
+            caption: "The quest journal and a boss quest",
+            alt: "Game interface with a quest window listing a main quest tree and the details and rewards of a boss quest",
+          },
+          {
+            image: "/images/ventures/goz-4.webp",
+            caption: "Chapter 5, Discovery of New Lands",
+            alt: "Wide banner of a stone arena in a forest with the title Chapter 5, Discovery of New Lands",
+          },
+        ],
         blueprint: GOZ_BLUEPRINT,
       },
       from: "Apr 2015",
@@ -2682,6 +2772,28 @@ export const portfolioData: PortfolioData = {
           { value: "2015", label: "rebuilt from scratch" },
         ],
         note: "As with most of my startups I was CEO and CTO, and what it lacked to take a strong position was funding.",
+        screens: [
+          {
+            image: "/images/ventures/amw-1.webp",
+            caption: "Home hub: sharing, uploads, character gifts and a daily login reward",
+            alt: "Web page over a parchment map with five feature tabs and a panel offering a reward for logging in",
+          },
+          {
+            image: "/images/ventures/amw-2.webp",
+            caption: "A crew page with members, points and a shared warehouse",
+            alt: "Web page styled as a scroll showing a crew with members, points and a grid of shared items",
+          },
+          {
+            image: "/images/ventures/amw-3.webp",
+            caption: "The equipment auction shop",
+            alt: "Dark red web page listing equipment items with prices and buy buttons",
+          },
+          {
+            image: "/images/ventures/amw-4.webp",
+            caption: "The community menu: anime book, pages, groups and channels",
+            alt: "Web page with a menu of large tiles labelled Anime Book, Page, Group and Channel under an artwork banner",
+          },
+        ],
         blueprint: AMW_BLUEPRINT,
       },
       from: "Sep 2010",
@@ -2877,11 +2989,12 @@ export const portfolioData: PortfolioData = {
       status: "openSource",
       title: "GOZ Launchers",
       category: "Game launchers",
-      intro: "The launchers that keep Gods of Zushin players patched: one in Electron and Vue, one in C#, and a 2023 app on Electron 23.",
+      intro: `The launcher players use is in C#: a minimal installer that downloads the game on first launch and starts the client.
+      Electron and Vue versions were tried along the way.`,
       responsibilities: [
-        "An Electron and Vue launcher",
-        "A C# launcher",
-        "A 2023 launcher app on Electron 23",
+        "The C# launcher: a minimal installer, the game downloaded on first launch, then patched and started",
+        "An Electron and Vue launcher, tried along the way",
+        "A 2023 launcher app on Electron 23, tried along the way",
       ],
       techStack: ["Electron", "Vue.js", "C#", "TypeScript"],
       repo: "https://github.com/AMW-Game-Entertainment/GOZ-Launcher",
@@ -3024,6 +3137,67 @@ export const portfolioData: PortfolioData = {
       ],
       techStack: [],
       from: "Sep 2026",
+    },
+    {
+      icon: faGamepadModern,
+      kind: "game",
+      status: "archived",
+      title: "Arcavium",
+      category: "Low code game builder",
+      intro: "A whole game, client and server, built from menus and uploaded models, with code only where you want it. An early venture of mine.",
+      responsibilities: [
+        "The game client and server generated from menu choices and uploaded models",
+        "Custom classes in several languages, run safely by the platform",
+        "Hosting and updates handled for the creator",
+        "Founded and led as CEO and CTO; it closed for lack of funding",
+      ],
+      techStack: [],
+      countsForSkills: false,
+      deepDive: { note: "One of my early ventures. It launched, and what it lacked to grow was funding.", blueprint: ARCAVIUM_BLUEPRINT },
+      period: "An early venture",
+      // Undated on purpose: the year only orders the map and is never shown.
+      from: "2012",
+      to: "2012",
+    },
+    {
+      icon: faPaw,
+      kind: "community",
+      status: "archived",
+      title: "Adotta",
+      category: "Donations for shelters",
+      intro: "A donations app for animal shelters, where every donation earned points to spend with partners. An early venture of mine.",
+      responsibilities: [
+        "Shelter profiles with what each one needs",
+        "Donations that earn points, spent with partner businesses",
+        "Founded and led as CEO and CTO; it closed for lack of funding",
+      ],
+      techStack: [],
+      countsForSkills: false,
+      deepDive: { note: "One of my early ventures. It launched, and what it lacked to grow was funding.", blueprint: ADOTTA_BLUEPRINT },
+      period: "An early venture",
+      // Undated on purpose: the year only orders the map and is never shown.
+      from: "2012",
+      to: "2012",
+    },
+    {
+      icon: faStore,
+      kind: "product",
+      status: "archived",
+      title: "Punti",
+      category: "Loyalty platform",
+      intro: "Loyalty for shops, outlets and restaurants without building an app of their own. An early venture of mine.",
+      responsibilities: [
+        "One customer app holding points for every business",
+        "Earning at the till or online, by each business's own rules",
+        "Founded and led as CEO and CTO, against established competition; it closed for lack of funding",
+      ],
+      techStack: [],
+      countsForSkills: false,
+      deepDive: { note: "One of my early ventures. It launched, and what it lacked to grow was funding.", blueprint: PUNTI_BLUEPRINT },
+      period: "An early venture",
+      // Undated on purpose: the year only orders the map and is never shown.
+      from: "2012",
+      to: "2012",
     },
     {
       icon: faBoxArchive,
@@ -3852,7 +4026,7 @@ export const portfolioData: PortfolioData = {
       points: [
         "A custom high performance engine in C/C++ with Lua, built for low latency multiplayer and still in use",
         "Own cryptography and compression for client and server traffic, with anti tamper on accounts and inventory",
-        "Launchers in Electron and C#, live patching, moderation tools and analytics dashboards",
+        "A C# launcher, live patching, moderation tools and analytics dashboards",
         "Stripe and PayPal purchases and subscriptions, and marketing run across social and streaming platforms",
       ],
       tags: ["C/C++", "Lua", "Live operations"],

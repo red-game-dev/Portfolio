@@ -292,17 +292,22 @@ export const RegionDialog: FC<RegionDialogProps> = ({
                   <Objective key={objective}>{objective}</Objective>
                 ))}
               </Objectives>
-              <GroupHeading>{labels.loot}</GroupHeading>
-              <Loot>
-                {project.techStack.map((tech) => (
-                  <LootItem key={tech}>{tech}</LootItem>
-                ))}
-              </Loot>
+              {project.techStack.length > 0 && (
+                <>
+                  <GroupHeading>{labels.loot}</GroupHeading>
+                  <Loot>
+                    {project.techStack.map((tech) => (
+                      <LootItem key={tech}>{tech}</LootItem>
+                    ))}
+                  </Loot>
+                </>
+              )}
             </Log>
           </Body>
           {project.deepDive && (
             <Deep>
               <DeepHeading>{labels.deepDive}</DeepHeading>
+              {project.deepDive.stats && project.deepDive.stats.length > 0 && (
               <Stats>
                 {project.deepDive.stats.map((stat) => (
                   <Stat key={stat.label}>
@@ -311,6 +316,7 @@ export const RegionDialog: FC<RegionDialogProps> = ({
                   </Stat>
                 ))}
               </Stats>
+              )}
               {project.deepDive.note && <DeepNote>{project.deepDive.note}</DeepNote>}
               {project.deepDive.screens && project.deepDive.screens.length > 0 && (
                 <>

@@ -1,3 +1,6 @@
+import { existsSync } from "fs";
+import { join } from "path";
+
 import { minWideWidth } from "@/components/Blueprint/utils/layout";
 import { isLens, LENS_SETTINGS, LENS_STAT_MAX, LENSES } from "@/config/lenses";
 import { AUDIENCE_ANCHORS, industryAnchor, ROLE_ANCHORS } from "@/config/sections";
@@ -113,6 +116,16 @@ describe("audience views", () => {
   });
 });
 
+describe("venture screenshots", () => {
+  test("every screenshot a dialog shows is on disk as .webp with its .jpg fallback", () => {
+    const images = portfolioData.projects.flatMap((project) => project.deepDive?.screens ?? []).map((screen) => screen.image);
+    const missing = images.flatMap((image) => [image, image.replace(".webp", ".jpg")]).filter((file) => !existsSync(join("public", file)));
+
+    expect(images.length).toBeGreaterThan(0);
+    expect(missing).toEqual([]);
+  });
+});
+
 describe("blueprints", () => {
   const { labels, ...placed } = portfolioData.blueprints;
   const deepDives = portfolioData.projects.flatMap((project) => (project.deepDive ? [project.deepDive.blueprint] : []));
@@ -130,9 +143,9 @@ describe("blueprints", () => {
     expect(blueprints.filter((blueprint) => minWideWidth(blueprint.architecture) > 800).map((blueprint) => blueprint.id)).toEqual([]);
   });
 
-  test("every blueprint gives recruiters a role, a scale and a stack, and every journey has steps", () => {
+  test("every blueprint gives recruiters a role and a scale, a stack wherever one is on record, and every journey has steps", () => {
     const thin = blueprints.filter(({ summary, journeys = [] }) =>
-      !summary.role || !summary.scale || summary.stack.length === 0 || journeys.some((journey) => journey.steps.length === 0));
+      !summary.role || !summary.scale || summary.stack?.length === 0 || journeys.some((journey) => journey.steps.length === 0));
 
     expect(thin.map((blueprint) => blueprint.id)).toEqual([]);
   });

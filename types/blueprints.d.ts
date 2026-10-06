@@ -78,7 +78,8 @@ export interface Wireframe {
 export interface BlueprintSummary {
   role: string;
   scale: string;
-  stack: string[];
+  // Left out where the stack is not on record.
+  stack?: string[];
 }
 
 // A user's path through the product, step by step.

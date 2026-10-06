@@ -175,7 +175,7 @@ const RecruiterGlance: FC<RecruiterGlanceProps> = ({ content, details, headline,
               return (
                 <RoleRow key={entry.title}>
                   <RoleName>{role}</RoleName>
-                  <RoleRange>{fill(content.rangeFormat, { from: entry.from, to: entry.to ?? content.nowLabel })}</RoleRange>
+                  <RoleRange>{entry.period ?? fill(content.rangeFormat, { from: entry.from, to: entry.to ?? content.nowLabel })}</RoleRange>
                   <RolePlace>{place}</RolePlace>
                 </RoleRow>
               );
@@ -322,7 +322,7 @@ const ProductPlaybook: FC<ProductPlaybookProps> = ({ content, details, experienc
               return (
                 <Row key={entry.title}>
                   <Strong>{place}</Strong>
-                  {`: ${entry.ventureRole ?? role}, ${fill(content.ventureSince, { year: startYear(entry.from) })}`}
+                  {`: ${entry.ventureRole ?? role}, ${entry.period?.toLowerCase() ?? fill(content.ventureSince, { year: startYear(entry.from) })}`}
                 </Row>
               );
             })}

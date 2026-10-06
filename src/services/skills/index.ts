@@ -23,7 +23,7 @@ export const createSkillSources = (data: PortfolioData): SkillSource[] => {
     .filter((name) => !SKILL_MENTION_EXCLUDE.includes(name));
 
   return [
-    ...data.experience.map((entry) => ({
+    ...data.experience.filter((entry) => entry.countsForSkills !== false).map((entry) => ({
       place: placeOf(entry.title),
       from: entry.from,
       to: entry.to,

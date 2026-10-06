@@ -22,7 +22,7 @@ export interface ProjectScreen {
 
 // The deeper look a venture of my own gets: its numbers, how it was built and what users moved through.
 export interface ProjectDeepDive {
-  stats: ProjectStat[];
+  stats?: ProjectStat[];
   screens?: ProjectScreen[];
   // In my own words, for example why it did not grow further.
   note?: string;
@@ -46,6 +46,8 @@ export interface ProjectDetail {
   link?: string;
   repo?: string;
   deepDive?: ProjectDeepDive;
+  // Shown in place of the dates for a project kept undated on purpose; from then only orders the map.
+  period?: string;
   from: string;
   to?: string;
 }
@@ -69,5 +71,7 @@ export interface ProjectMapContent {
     hint: string;
     deepDive: string;
     screens: string;
+    // The year badge on the map for an undated region.
+    undated: string;
   };
 }

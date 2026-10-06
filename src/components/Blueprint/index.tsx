@@ -173,10 +173,14 @@ export const Blueprint: FC<BlueprintProps> = ({
             <Value>{summary.role}</Value>
             <Term>{labels.scale}</Term>
             <Value>{summary.scale}</Value>
-            <Term>{labels.stack}</Term>
-            <Value>
-              <Stack>{summary.stack.map((tech) => <Tech key={tech}>{tech}</Tech>)}</Stack>
-            </Value>
+            {summary.stack && summary.stack.length > 0 && (
+              <>
+                <Term>{labels.stack}</Term>
+                <Value>
+                  <Stack>{summary.stack.map((tech) => <Tech key={tech}>{tech}</Tech>)}</Stack>
+                </Value>
+              </>
+            )}
           </Facts>
         )}
         {isNear && view === "architecture" && (

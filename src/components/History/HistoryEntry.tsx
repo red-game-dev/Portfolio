@@ -148,7 +148,8 @@ const Toggle = styled.button(() => [
 ]);
 
 export const HistoryEntry: FC<HistoryEntryProps> = ({
-  title, description, outcome, productOutcome, bullets = [], techStack = [], from, to, isVenture = false, labels, hasVentureLane, isDimmed = false,
+  title, description, outcome, productOutcome, bullets = [], techStack = [], period, from, to, isVenture = false, labels, hasVentureLane,
+  isDimmed = false,
 }: HistoryEntryProps) => {
   const rowRef = useRef<HTMLLIElement>(null);
   const isReached = useInView(rowRef, { threshold: 0.35 });
@@ -174,7 +175,7 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
       <Node isVenture={isVenture} isReached={isReached} isCurrent={isCurrent} hasVentureLane={hasVentureLane} aria-hidden="true" />
       <Card>
         <Meta>
-          <Period isCurrent={isCurrent}>{`${from} ${labels.to} ${to ?? labels.present}`}</Period>
+          <Period isCurrent={isCurrent}>{period ?? `${from} ${labels.to} ${to ?? labels.present}`}</Period>
           {hasVentureLane && <Kind isVenture={isVenture}>{isVenture ? labels.venture : labels.role}</Kind>}
         </Meta>
         <Title>

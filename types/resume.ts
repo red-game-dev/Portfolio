@@ -17,6 +17,9 @@ export interface Resume {
   industries?: Industry[];
   // false keeps an entry out of the skill forge's years, for open ended or self paced study.
   countsForSkills?: boolean;
+  // Shown in place of the dates for a venture kept undated on purpose; from and to then only place it on the
+  // timeline and are never displayed.
+  period?: string;
   from: string;
   to?: string;
 }

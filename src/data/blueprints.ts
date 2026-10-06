@@ -23,7 +23,7 @@ export const GOZ_BLUEPRINT: Blueprint = {
         label: "Players",
         place: { col: 1, row: 1, rowSpan: 2 },
         nodes: [
-          { id: "goz-launcher", label: "Launcher", detail: "C#, replaced an Electron one" },
+          { id: "goz-launcher", label: "Launcher", detail: "C#, a minimal installer that fetches the game on first launch" },
           { id: "goz-client", label: "Game client", detail: "Own engine, framework and physics in C/C++" },
           { id: "goz-crypto", label: "Own cryptography", detail: "And compression on the wire", kind: "note" },
         ],
@@ -103,8 +103,8 @@ export const GOZ_BLUEPRINT: Blueprint = {
         title: "Launcher",
         regions: [
           { kind: "media", label: "News and events", size: 2 },
-          { kind: "stat", label: "Patch progress and version" },
-          { kind: "actions", label: "Play, account, store, language" },
+          { kind: "stat", label: "First launch downloads the game, later ones patch it" },
+          { kind: "actions", label: "Play starts the client; account, store, language" },
         ],
       },
       {
@@ -141,8 +141,8 @@ export const GOZ_BLUEPRINT: Blueprint = {
     {
       title: "A new player",
       steps: [
-        "Lands on the website and downloads the launcher",
-        "The launcher patches the client",
+        "Lands on the website and downloads the minimal installer",
+        "The first launch downloads the game, and Play starts the client",
         "Creates an account and picks a server",
         "Creates a character and plays the tutorial and the first quest",
         "Meets the shop at a natural point, not at the door",
@@ -344,6 +344,313 @@ export const AMW_BLUEPRINT: Blueprint = {
     {
       title: "An advertiser",
       steps: ["Creates a campaign and picks an audience", "Sets a budget in berries or money", "Watches impressions and clicks, then tops up"],
+    },
+  ],
+};
+
+// Early ventures, kept undated on purpose. What they did comes from my own description; no stack is on record,
+// so none is shown.
+const EARLY_SCALE = "An early venture, launched and closed for lack of funding";
+
+export const ARCAVIUM_BLUEPRINT: Blueprint = {
+  id: "low-code-game-builder",
+  zone: "mmo",
+  title: "A low code game builder",
+  caption: "Build a whole game, its client and its server, by choosing from menus and uploading models, write classes in several languages only where you want to, and let the platform host and run the rest.",
+  summary: {
+    role: "Founder, CEO and CTO: proposed the product and its architecture, and built it",
+    scale: EARLY_SCALE,
+  },
+  architecture: {
+    columns: 4,
+    groups: [
+      {
+        id: "ar-creator",
+        label: "Creator",
+        place: { col: 1, row: 1 },
+        nodes: [
+          { id: "ar-builder", label: "Builder", detail: "Menus and dropdowns, no code" },
+          { id: "ar-assets", label: "Model upload", detail: "Models and assets" },
+          { id: "ar-code", label: "Custom classes", detail: "In several languages, when needed" },
+        ],
+      },
+      {
+        id: "ar-pipeline",
+        label: "Build pipeline",
+        place: { col: 2, row: 1 },
+        nodes: [
+          { id: "ar-definition", label: "Game definition", detail: "Everything the menus chose" },
+          { id: "ar-generator", label: "Generator", detail: "Client and server from one definition" },
+          { id: "ar-runtimes", label: "Language runtimes", detail: "Custom classes run safely" },
+        ],
+      },
+      {
+        id: "ar-game",
+        label: "The game",
+        place: { col: 3, row: 1 },
+        nodes: [
+          { id: "ar-client", label: "Game client", detail: "The interface players see" },
+          { id: "ar-server", label: "Game server", detail: "Rules, state and players" },
+        ],
+      },
+      {
+        id: "ar-run",
+        label: "Run for the creator",
+        place: { col: 4, row: 1 },
+        nodes: [
+          { id: "ar-hosting", label: "Hosting", detail: "Handled by the platform" },
+          { id: "ar-updates", label: "Updates", detail: "Rebuilt and shipped on every change" },
+          { id: "ar-players", label: "Players", kind: "actor" },
+        ],
+      },
+    ],
+    edges: [
+      { from: "ar-builder", to: "ar-definition" },
+      { from: "ar-assets", to: "ar-definition" },
+      { from: "ar-code", to: "ar-runtimes" },
+      { from: "ar-definition", to: "ar-generator" },
+      { from: "ar-generator", to: "ar-game" },
+      { from: "ar-runtimes", to: "ar-server" },
+      { from: "ar-game", to: "ar-run" },
+    ],
+  },
+  wireframe: {
+    device: "desktop",
+    screens: [
+      {
+        title: "Builder",
+        regions: [
+          { kind: "bar", label: "Game name and publish state", area: "header" },
+          { kind: "list", label: "Scenes, characters, items, rules", area: "left" },
+          { kind: "canvas", label: "Live preview", area: "main" },
+          { kind: "form", label: "Properties, all from dropdowns", area: "right" },
+          { kind: "actions", label: "Upload a model, add code, publish", area: "footer" },
+        ],
+      },
+      {
+        title: "Custom code",
+        regions: [
+          { kind: "bar", label: "Pick a language" },
+          { kind: "form", label: "A class, hooked to a game event", size: 2.2 },
+          { kind: "bar", label: "Runs on the game server" },
+        ],
+      },
+      {
+        title: "Publish",
+        regions: [
+          { kind: "steps", label: "Build client and server, host, go live" },
+          { kind: "stat", label: "Players online" },
+          { kind: "actions", label: "Update, roll back" },
+        ],
+      },
+    ],
+    decision: "One game definition, built from menu choices, generates both the client and the server, so creators never wire the two by hand, and code is an option, never a requirement.",
+    outcome: "It let creators build and run a full game without writing an engine or managing servers. It launched, and closed for lack of funding.",
+  },
+  journeys: [
+    {
+      title: "A creator ships a game",
+      steps: [
+        "Sets the game up from menus",
+        "Uploads the models",
+        "Adds a class in their own language for one special rule",
+        "Publishes, and the platform builds and hosts the client and the server",
+        "Players join",
+      ],
+    },
+  ],
+};
+
+export const ADOTTA_BLUEPRINT: Blueprint = {
+  id: "donations-rewards",
+  zone: "mmo",
+  title: "Donations to shelters that earn points",
+  caption: "Donors give to animal shelters and earn points they can spend wherever partners accept them.",
+  summary: {
+    role: "Founder, CEO and CTO: proposed the product and built it",
+    scale: EARLY_SCALE,
+  },
+  architecture: {
+    columns: 3,
+    groups: [
+      {
+        id: "ad-donors",
+        label: "Donors",
+        place: { col: 1, row: 1 },
+        nodes: [
+          { id: "ad-app", label: "Donor app" },
+          { id: "ad-shelters", label: "Shelter profiles", detail: "And what each needs" },
+        ],
+      },
+      {
+        id: "ad-core",
+        label: "Core",
+        place: { col: 2, row: 1 },
+        nodes: [
+          { id: "ad-donations", label: "Donations" },
+          { id: "ad-points", label: "Points ledger", detail: "Earned with every donation" },
+          { id: "ad-redeem", label: "Redemption", detail: "Wherever partners accept them" },
+        ],
+      },
+      {
+        id: "ad-partners",
+        label: "Outside",
+        isExternal: true,
+        place: { col: 3, row: 1 },
+        nodes: [
+          { id: "ad-payments", label: "Payment provider" },
+          { id: "ad-shelter-side", label: "Shelters", detail: "Receive the donations" },
+          { id: "ad-partner", label: "Partner businesses", detail: "Accept the points" },
+        ],
+      },
+    ],
+    edges: [
+      { from: "ad-app", to: "ad-donations" },
+      { from: "ad-donations", to: "ad-payments" },
+      { from: "ad-donations", to: "ad-shelter-side" },
+      { from: "ad-donations", to: "ad-points" },
+      { from: "ad-points", to: "ad-redeem" },
+      { from: "ad-redeem", to: "ad-partner" },
+    ],
+  },
+  wireframe: {
+    device: "phone",
+    screens: [
+      {
+        title: "Shelters",
+        regions: [
+          { kind: "bar", label: "Near you", size: 0.6 },
+          { kind: "list", label: "Shelters and what they need", size: 2.4 },
+        ],
+      },
+      {
+        title: "Donate",
+        regions: [
+          { kind: "card", label: "The shelter" },
+          { kind: "stat", label: "Amount" },
+          { kind: "form", label: "Payment" },
+          { kind: "actions", label: "Donate", size: 0.8 },
+        ],
+      },
+      {
+        title: "Points",
+        regions: [
+          { kind: "stat", label: "Points balance" },
+          { kind: "list", label: "Earned per donation", size: 1.6 },
+        ],
+      },
+      {
+        title: "Spend",
+        regions: [
+          { kind: "list", label: "Partners that accept points", size: 1.8 },
+          { kind: "actions", label: "Redeem", size: 0.8 },
+        ],
+      },
+    ],
+    decision: "Every donation earns points that partners accept, so giving to a shelter also comes back to the donor as value.",
+    outcome: "It launched to donors, shelters and partners, and closed for lack of funding.",
+  },
+  journeys: [
+    {
+      title: "A donor",
+      steps: ["Finds a shelter and sees what it needs", "Donates", "Earns points", "Spends them with a partner"],
+    },
+  ],
+};
+
+export const PUNTI_BLUEPRINT: Blueprint = {
+  id: "loyalty-service",
+  zone: "mmo",
+  title: "Loyalty as a service",
+  caption: "A ready loyalty scheme for online shops, physical outlets and restaurants, so a business never builds or maintains its own app.",
+  summary: {
+    role: "Founder, CEO and CTO: proposed the product and built it",
+    scale: "An early venture against established competition, launched and closed for lack of funding",
+  },
+  architecture: {
+    columns: 3,
+    groups: [
+      {
+        id: "pu-customers",
+        label: "Customers",
+        place: { col: 1, row: 1 },
+        nodes: [
+          { id: "pu-app", label: "One app", detail: "Every business in one wallet" },
+          { id: "pu-scan", label: "Earn", detail: "At the till or online" },
+        ],
+      },
+      {
+        id: "pu-core",
+        label: "Platform",
+        place: { col: 2, row: 1 },
+        nodes: [
+          { id: "pu-rules", label: "Earning rules", detail: "Set by each business" },
+          { id: "pu-ledger", label: "Points ledger" },
+          { id: "pu-rewards", label: "Rewards and redemption" },
+        ],
+      },
+      {
+        id: "pu-business",
+        label: "Businesses",
+        isExternal: true,
+        place: { col: 3, row: 1 },
+        nodes: [
+          { id: "pu-dashboard", label: "Business dashboard", detail: "Rules and rewards, no app to build" },
+          { id: "pu-outlets", label: "Shops, outlets and restaurants" },
+        ],
+      },
+    ],
+    edges: [
+      { from: "pu-scan", to: "pu-ledger" },
+      { from: "pu-rules", to: "pu-ledger", style: "dashed" },
+      { from: "pu-ledger", to: "pu-rewards" },
+      { from: "pu-dashboard", to: "pu-rules" },
+      { from: "pu-outlets", to: "pu-scan", style: "dashed" },
+    ],
+  },
+  wireframe: {
+    device: "phone",
+    screens: [
+      {
+        title: "My places",
+        regions: [
+          { kind: "stat", label: "Points across every place" },
+          { kind: "list", label: "Businesses I collect with", size: 2 },
+        ],
+      },
+      {
+        title: "A business",
+        regions: [
+          { kind: "stat", label: "My points here" },
+          { kind: "list", label: "Rewards I can get", size: 1.6 },
+        ],
+      },
+      {
+        title: "Earn",
+        regions: [
+          { kind: "media", label: "Code to scan at the till", size: 2 },
+          { kind: "bar", label: "Points added", size: 0.7 },
+        ],
+      },
+      {
+        title: "Redeem",
+        regions: [
+          { kind: "card", label: "The reward", size: 1.4 },
+          { kind: "actions", label: "Redeem", size: 0.8 },
+        ],
+      },
+    ],
+    decision: "One app for every business, so customers carry one loyalty wallet and a business joins without building anything.",
+    outcome: "It launched for shops, outlets and restaurants against established competition, and closed for lack of funding.",
+  },
+  journeys: [
+    {
+      title: "A customer",
+      steps: ["Scans at a restaurant", "Collects points with every visit", "Redeems a reward", "Uses the same app at the next shop"],
+    },
+    {
+      title: "A business",
+      steps: ["Signs up", "Sets its earning rules and rewards", "Starts rewarding customers without building an app"],
     },
   ],
 };
@@ -2027,6 +2334,7 @@ export const blueprintContent: BlueprintContent = {
   ],
   mmo: [
     GOZ_BLUEPRINT,
+    ARCAVIUM_BLUEPRINT,
     {
       id: "location-game",
       zone: "mmo",

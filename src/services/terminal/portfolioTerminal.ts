@@ -71,7 +71,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
         const query = args.join(" ");
 
         if (!query) {
-          return { lines: [heading("Experience"), ...experience.map((entry) => output(`  ${period(entry.from, entry.to).padEnd(22)}${entry.title}`))] };
+          return { lines: [heading("Experience"), ...experience.map((entry) => output(`  ${(entry.period ?? period(entry.from, entry.to)).padEnd(22)}${entry.title}`))] };
         }
 
         const entry = experience.find((item) => matches(item.title, query));
@@ -83,7 +83,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
         return {
           lines: [
             heading(entry.title),
-            system(period(entry.from, entry.to)),
+            system(entry.period ?? period(entry.from, entry.to)),
             ...(entry.outcome ? [output(entry.outcome)] : []),
             ...entry.description.slice(0, 1).map((paragraph) => output(collapse(paragraph))),
             ...(entry.bullets ?? []).slice(0, 5).map((bullet) => output(`  - ${collapse(bullet)}`)),

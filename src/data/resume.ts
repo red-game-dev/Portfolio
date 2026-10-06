@@ -2583,6 +2583,7 @@ export const portfolioData: PortfolioData = {
       regions: "Regions",
       hint: "Pick a region to open its map. The line is the route I took, oldest first.",
       deepDive: "A deeper look",
+      screens: "From the real thing",
     },
   },
   projects: [

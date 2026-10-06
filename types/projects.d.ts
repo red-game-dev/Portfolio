@@ -13,9 +13,17 @@ export interface ProjectStat {
   label: string;
 }
 
+// A real screenshot, as a .webp with a .jpg sibling for the fallback.
+export interface ProjectScreen {
+  image: string;
+  caption: string;
+  alt: string;
+}
+
 // The deeper look a venture of my own gets: its numbers, how it was built and what users moved through.
 export interface ProjectDeepDive {
   stats: ProjectStat[];
+  screens?: ProjectScreen[];
   // In my own words, for example why it did not grow further.
   note?: string;
   blueprint: Blueprint;
@@ -60,5 +68,6 @@ export interface ProjectMapContent {
     regions: string;
     hint: string;
     deepDive: string;
+    screens: string;
   };
 }

@@ -117,6 +117,11 @@ export interface BlueprintLabels {
   sketchNote: string;
   // Names the row of tabs for screen readers.
   showcase: string;
+  // Where a diagram has less room than it needs: scaled to fit, or zoomed in to pan.
+  zoomIn: string;
+  zoomOut: string;
+  fitHint: string;
+  panHint: string;
 }
 
 // The page sections that carry blueprints, each loaded on demand.

@@ -1,0 +1,15 @@
+import { ZoneId } from "@/config/zones";
+
+// The words of the navigation: the journey across the top and the mobile menu.
+export interface MenuContent {
+  label: string;
+  title: string;
+  open: string;
+  close: string;
+  // Beside the stop the reader is at.
+  here: string;
+  zones: Record<ZoneId, string>;
+  cv: string;
+  email: string;
+  linkedIn: string;
+}

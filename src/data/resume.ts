@@ -66,6 +66,7 @@ import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
 import { LensContent } from "@/types/lens";
+import { MenuContent } from "@/types/menu";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
 import { Recommendation } from "@/types/recommendations";
 import { Resume } from "@/types/resume";
@@ -129,6 +130,7 @@ export interface PortfolioData {
   finale: FinaleContent;
   blueprintLabels: BlueprintLabels;
   carouselLabels: CarouselLabels;
+  menu: MenuContent;
   expertise: ExpertiseContent;
   codeReview: CodeReviewContent;
   web3: Web3Content;
@@ -4321,6 +4323,17 @@ export const portfolioData: PortfolioData = {
     pipeline. Each is a glance, not the full design.`,
   },
   blueprintLabels,
+  menu: {
+    label: "Journey",
+    title: "Where to?",
+    open: "Open the menu",
+    close: "Close the menu",
+    here: "You are here",
+    zones: { matrix: "Matrix", ai: "AI", chain: "Chain", casino: "Casino", mmo: "Game world" },
+    cv: "Download CV",
+    email: "Email me",
+    linkedIn: "LinkedIn",
+  },
   carouselLabels: {
     previous: "Previous",
     next: "Next",

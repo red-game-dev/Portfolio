@@ -1,20 +1,21 @@
-import { FC, useId, useMemo, useRef } from "react";
+import { FC, useId, useMemo, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { faDatabase, faUser } from "@fortawesome/pro-duotone-svg-icons";
+import { faDatabase, faMagnifyingGlassMinus, faMagnifyingGlassPlus, faUser } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useEdgeRoutes } from "@/components/Blueprint/hooks/useEdgeRoutes";
-import useWidth from "@/components/Blueprint/hooks/useWidth";
+import useSize from "@/components/Blueprint/hooks/useSize";
 import { minWideWidth } from "@/components/Blueprint/utils/layout";
 import { blockHash } from "@/components/Web3/utils/blockHash";
 import { ZoneId } from "@/config/zones";
-import { ArchitectureBlueprint, BlueprintGroup, BlueprintNode } from "@/types/blueprints";
+import { ArchitectureBlueprint, BlueprintGroup, BlueprintLabels, BlueprintNode } from "@/types/blueprints";
 
 interface ArchitectureProps extends ArchitectureBlueprint {
   zone: ZoneId;
+  labels: Pick<BlueprintLabels, "zoomIn" | "zoomOut" | "fitHint" | "panHint">;
   isShown: boolean;
   // Signals run along the wires while the drawing is on screen, unless the view is still.
   isMoving: boolean;
@@ -24,10 +25,36 @@ interface FlavourProps {
   zone: ZoneId;
 }
 
-// Set on the drawing once it has measured enough room for its columns to sit side by side; below that
-// everything stacks in reading order. Measured on the drawing itself, not the screen, so the same blueprint
-// works in a wide section and in a dialog.
+// The drawing is always laid out side by side, as a diagram. Where there is less room than it needs (a
+// phone, a dialog), it is laid out at the width it needs and either scaled down to fit or panned at full
+// size. Styles keyed on data-wide stay for the frames' placement.
 const WIDE = '[data-wide="true"] &';
+
+const Root = tw.div`flex flex-col gap-[10px]`;
+
+const Controls = tw.div`flex flex-row flex-wrap items-center justify-between gap-[10px]`;
+
+const Hint = tw.p`m-0 text-xs text-[#8a8a8a]`;
+
+const Zoom = styled.button(() => [
+  tw`inline-flex flex-row items-center gap-[8px] h-[32px] px-[12px] cursor-pointer text-xs font-semibold text-[var(--accent)] bg-transparent
+     rounded-[2px] border-[1px] border-solid border-[var(--accent-muted)]`,
+  css`
+    &:hover,
+    &:focus-visible {
+      border-color: var(--accent);
+    }
+  `,
+]);
+
+// Holds the diagram: scaled to fit, its height follows the scaled drawing; zoomed in, it scrolls sideways.
+const Viewport = styled.div(({ isPanning }: { isPanning: boolean }) => [
+  tw`relative w-full`,
+  isPanning ? tw`overflow-x-auto overflow-y-hidden pb-[6px]` : tw`overflow-hidden`,
+  css`
+    scrollbar-width: thin;
+  `,
+]);
 
 const signal = keyframes`
   from { stroke-dashoffset: 100; }
@@ -260,11 +287,16 @@ const KIND_ICONS = { store: faDatabase, actor: faUser };
 
 // A system drawn as boxes in frames with wires between them: the structure a Mermaid flowchart would give,
 // in the look of the world it belongs to. Wires are routed from the measured boxes, so they follow any reflow.
-export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edges, isShown, isMoving }: ArchitectureProps) => {
+export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edges, isShown, isMoving, labels }: ArchitectureProps) => {
+  const viewportRef = useRef<HTMLDivElement>(null);
   const diagramRef = useRef<HTMLDivElement>(null);
   const layout = useEdgeRoutes(diagramRef, edges, isShown);
-  const width = useWidth(diagramRef);
-  const isWide = width >= minWideWidth({ columns, groups, edges });
+  const { width: room } = useSize(viewportRef);
+  const { height: diagramHeight } = useSize(diagramRef);
+  const needed = minWideWidth({ columns, groups, edges });
+  const isTight = room > 0 && room < needed;
+  const [isZoomed, setIsZoomed] = useState(false);
+  const scale = isTight && !isZoomed ? room / needed : 1;
   const markerId = `bp-arrow-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const names = useMemo(() => new Map(groups.flatMap((group) => [
     [group.id, group.label ?? ""] as const,
@@ -272,7 +304,32 @@ export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edg
   ])), [groups]);
 
   return (
-    <Diagram ref={diagramRef} data-wide={isWide} style={{ "--bp-cols": columns } as React.CSSProperties}>
+    <Root>
+      {isTight && (
+        <Controls>
+          <Hint>{isZoomed ? labels.panHint : labels.fitHint}</Hint>
+          <Zoom type="button" aria-pressed={isZoomed} onClick={() => setIsZoomed((value) => !value)}>
+            <FontAwesomeIcon icon={isZoomed ? faMagnifyingGlassMinus : faMagnifyingGlassPlus} aria-hidden="true" />
+            {isZoomed ? labels.zoomOut : labels.zoomIn}
+          </Zoom>
+        </Controls>
+      )}
+      <Viewport
+        ref={viewportRef}
+        isPanning={isTight && isZoomed}
+        data-scroll-x={isTight && isZoomed ? true : undefined}
+        style={isTight && diagramHeight > 0 ? { height: Math.ceil(diagramHeight * scale) } : undefined}
+      >
+    <Diagram
+      ref={diagramRef}
+      data-wide="true"
+      style={{
+        "--bp-cols": columns,
+        "width": isTight ? needed : undefined,
+        "transform": scale < 1 ? `scale(${scale})` : undefined,
+        "transformOrigin": "top left",
+      } as React.CSSProperties}
+    >
       <Wires isMoving={isMoving} width={layout.width} height={layout.height} aria-hidden="true">
         <defs>
           <marker id={markerId} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -343,5 +400,7 @@ export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edg
         ))}
       </WireList>
     </Diagram>
+      </Viewport>
+    </Root>
   );
 };

@@ -10,3 +10,13 @@ export const ZONE_BOUNDARIES: Array<{ zone: ZoneId; startsAt: string }> = [
   { zone: "casino", startsAt: SECTION_IDS.igaming },
   { zone: "mmo", startsAt: SECTION_IDS.roster },
 ];
+
+// Each zone's accent, the same as the --accent the page takes on there (globals.css), for places that
+// show several zones at once, such as the mobile menu.
+export const ZONE_ACCENTS: Record<ZoneId, string> = {
+  matrix: "#4bffa5",
+  ai: "#4fd8ff",
+  chain: "#b896ff",
+  casino: "#ff5fa2",
+  mmo: "#ffc45c",
+};

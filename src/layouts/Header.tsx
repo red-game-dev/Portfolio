@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from "react";
+import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -6,8 +6,11 @@ import Link from "next/link";
 
 import { LensSwitch } from "@/components/Lens/LensSwitch";
 import { Menu } from "@/components/Menu";
+import useMenuSelection from "@/components/Menu/hooks/useMenuSelection";
+import { MobileMenu } from "@/components/Menu/MobileMenu";
 import useScrolledPast from "@/hooks/useScrolledPast";
 import { LensContent } from "@/types/lens";
+import { MenuContent } from "@/types/menu";
 
 interface HeaderContainerProps {
   isScrolled: boolean;
@@ -86,16 +89,18 @@ const SCROLLED_SHARE = 0.6;
 interface HeaderProps {
   title?: string;
   lens: LensContent;
+  menu: MenuContent;
+  contact: { cv: string; email: string; linkedIn: string };
 }
 
-const Header: FC<HeaderProps> = ({ title = "", lens }: HeaderProps) => {
-  const [toggle, setToggle] = useState(false);
-  const toggleTap = useCallback(() => setToggle(!toggle), [toggle]);
+const Header: FC<HeaderProps> = ({ title = "", lens, menu, contact }: HeaderProps) => {
   const isScrolled = useScrolledPast(SCROLLED_SHARE);
+  // One set of scroll-spy listeners for both menus.
+  const selected = useMenuSelection();
   const words = title.split(" ");
 
   return (
-    <HeaderContainer role="presentation" isScrolled={isScrolled} onClick={toggleTap}>
+    <HeaderContainer isScrolled={isScrolled}>
       <HeaderContent>
         <LogoContainer>
           <LogoContents>
@@ -116,7 +121,8 @@ const Header: FC<HeaderProps> = ({ title = "", lens }: HeaderProps) => {
         <SwitchSlot isScrolled={isScrolled}>
           <LensSwitch content={lens} />
         </SwitchSlot>
-        <Menu active={toggle} />
+        <Menu selected={selected} label={menu.label} />
+        <MobileMenu selected={selected} content={menu} contact={contact} />
       </HeaderContent>
     </HeaderContainer>
   );

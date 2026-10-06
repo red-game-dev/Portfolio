@@ -46,7 +46,12 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
       <AppLoader />
       <LensGate content={portfolioData.lens} counts={LENS_COUNTS} />
       <Container style={isLoading ? { display: "none"} : {}}>
-        <Header title={title} lens={portfolioData.lens} />
+        <Header
+          title={title}
+          lens={portfolioData.lens}
+          menu={portfolioData.menu}
+          contact={{ cv: portfolioData.cv, email: portfolioData.details.email, linkedIn: portfolioData.socialMedia.byUsername.linkedIn }}
+        />
           {children}
         <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
       </Container>

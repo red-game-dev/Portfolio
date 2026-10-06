@@ -6,13 +6,16 @@ import tw, { css, styled } from "twin.macro";
 import { faArrowLeft, faArrowRight, faArrowUpRightFromSquare, faCodeBranch, faXmark } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { Blueprint } from "@/components/Blueprint";
 import { DecodedText } from "@/components/DecodedText";
 import { Image } from "@/components/Image";
 import { KIND_COLOURS } from "@/components/Projects/config";
+import { BlueprintLabels } from "@/types/blueprints";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
 
 interface RegionDialogProps {
   project: ProjectDetail | null;
+  blueprintLabels: BlueprintLabels;
   previous: ProjectDetail | null;
   next: ProjectDetail | null;
   content: ProjectMapContent;
@@ -147,6 +150,21 @@ const Loot = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 
 const LootItem = tw.li`text-xs leading-none text-[#eee] bg-[#1a1a1a] rounded-[2px] py-[6px] px-[8px] border-[1px] border-solid border-[#2a2a2a]`;
 
+// A venture of my own goes deeper: its numbers, then how it was built and what users moved through.
+const Deep = tw.section`flex flex-col gap-[14px] px-[18px] pb-[18px] md:px-[22px] md:pb-[22px]`;
+
+const DeepHeading = tw.h3`m-0 text-base font-semibold text-white`;
+
+const Stats = tw.ul`list-none m-0 p-0 grid gap-[10px] grid-cols-2 md:grid-cols-4`;
+
+const Stat = tw.li`flex flex-col gap-[4px] p-[12px] bg-[#111] border-[1px] border-solid border-[#222]`;
+
+const StatValue = tw.span`text-2xl font-semibold leading-none text-[var(--kind)]`;
+
+const StatLabel = tw.span`text-xs text-[#aaa]`;
+
+const DeepNote = tw.p`m-0 text-sm text-[#bbb] max-w-[70ch]`;
+
 const Footer = tw.footer`flex flex-col md:flex-row md:items-center md:justify-between gap-[12px] p-[18px] md:p-[22px]
 border-0 border-t-[1px] border-solid border-[#1E1E1E]`;
 
@@ -176,7 +194,9 @@ const Travel = styled.button(() => [
 
 const TravelName = tw.span`truncate`;
 
-export const RegionDialog: FC<RegionDialogProps> = ({ project, previous, next, content, period, onClose, onPrevious, onNext }: RegionDialogProps) => {
+export const RegionDialog: FC<RegionDialogProps> = ({
+  project, blueprintLabels, previous, next, content, period, onClose, onPrevious, onNext,
+}: RegionDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const { labels } = content;
 
@@ -267,6 +287,21 @@ export const RegionDialog: FC<RegionDialogProps> = ({ project, previous, next, c
               </Loot>
             </Log>
           </Body>
+          {project.deepDive && (
+            <Deep>
+              <DeepHeading>{labels.deepDive}</DeepHeading>
+              <Stats>
+                {project.deepDive.stats.map((stat) => (
+                  <Stat key={stat.label}>
+                    <StatValue>{stat.value}</StatValue>
+                    <StatLabel>{stat.label}</StatLabel>
+                  </Stat>
+                ))}
+              </Stats>
+              {project.deepDive.note && <DeepNote>{project.deepDive.note}</DeepNote>}
+              <Blueprint key={project.title} {...project.deepDive.blueprint} labels={blueprintLabels} />
+            </Deep>
+          )}
           <Footer>
             <Group>
               {project.link && (

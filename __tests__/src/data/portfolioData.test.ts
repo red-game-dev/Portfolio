@@ -114,10 +114,25 @@ describe("audience views", () => {
 
 describe("blueprints", () => {
   const { labels, ...placed } = portfolioData.blueprints;
-  const blueprints = Object.values(placed).flat();
+  const deepDives = portfolioData.projects.flatMap((project) => (project.deepDive ? [project.deepDive.blueprint] : []));
+  const blueprints = [...Object.values(placed).flat(), ...deepDives.filter((blueprint) => !Object.values(placed).flat().includes(blueprint))];
+  const EMPLOYERS = ["Conrad", "Chiliz", "HyperPlay", "Authentic", "KPMG", "reNFT", "CoinOn"];
+
+  test("no blueprint names an employer: they show kinds of architecture, not companies", () => {
+    const named = blueprints.filter((blueprint) => EMPLOYERS.some((name) => JSON.stringify(blueprint).includes(name)));
+
+    expect(named.map((blueprint) => blueprint.id)).toEqual([]);
+  });
+
+  test("every blueprint gives recruiters a role, a scale and a stack, and every journey has steps", () => {
+    const thin = blueprints.filter(({ summary, journeys = [] }) =>
+      !summary.role || !summary.scale || summary.stack.length === 0 || journeys.some((journey) => journey.steps.length === 0));
+
+    expect(thin.map((blueprint) => blueprint.id)).toEqual([]);
+  });
 
   test("every blueprint has a unique id", () => {
-    const ids = blueprints.map((blueprint) => blueprint.id);
+    const ids = Object.values(placed).flat().map((blueprint) => blueprint.id);
 
     expect(new Set(ids).size).toBe(ids.length);
     expect(Object.values(labels).every(Boolean)).toBe(true);

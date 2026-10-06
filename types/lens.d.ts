@@ -66,6 +66,7 @@ export interface ProductPlaybookContent {
   venturesLabel: string;
   // "since {year}"
   ventureSince: string;
+  venturesNote: string;
   monetisationLabel: string;
   monetisation: string[];
   growthLabel: string;

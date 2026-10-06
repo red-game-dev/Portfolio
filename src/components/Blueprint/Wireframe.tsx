@@ -49,8 +49,10 @@ const Phone = styled.div(() => [
   `,
 ]);
 
-const Desktop = styled.div(({ hasAreas }: { hasAreas: boolean }) => [
-  tw`relative w-full max-w-[640px] p-[8px] pt-[22px] bg-[#0b0b0b] border-[2px] border-solid border-[#2f2f2f] rounded-[6px]`,
+// In a flow each screen keeps a fixed width and the strip scrolls; on its own a screen takes the room it has.
+const Desktop = styled.div(({ hasAreas, isInFlow }: { hasAreas: boolean; isInFlow: boolean }) => [
+  tw`relative p-[8px] pt-[22px] bg-[#0b0b0b] border-[2px] border-solid border-[#2f2f2f] rounded-[6px]`,
+  isInFlow ? tw`w-[420px] max-w-[78vw]` : tw`w-full max-w-[640px]`,
   css`
     min-height: 320px;
 
@@ -181,7 +183,7 @@ const RegionBox: FC<{ region: WireframeRegion }> = ({ region }) => (
 
 const AREAS = ["header", "left", "main", "right", "footer"] as const;
 
-const Screen: FC<{ screen: WireframeScreen; device: WireframeContent["device"] }> = ({ screen, device }) => {
+const Screen: FC<{ screen: WireframeScreen; device: WireframeContent["device"]; isInFlow?: boolean }> = ({ screen, device, isInFlow = false }) => {
   if (device === "phone") {
     return <Phone>{screen.regions.map((region) => <RegionBox key={region.label} region={region} />)}</Phone>;
   }
@@ -189,7 +191,7 @@ const Screen: FC<{ screen: WireframeScreen; device: WireframeContent["device"] }
   const hasAreas = screen.regions.some((region) => region.area);
 
   return (
-    <Desktop hasAreas={hasAreas}>
+    <Desktop hasAreas={hasAreas} isInFlow={isInFlow}>
       {hasAreas
         ? AREAS.map((area) => (
           <Area key={area} area={area}>
@@ -217,7 +219,7 @@ export const Wireframe: FC<WireframeProps> = ({ device, screens, decision, outco
                 <StepNumber aria-hidden="true">{index + 1}</StepNumber>
                 {screen.title}
               </StepTitle>
-              <Screen screen={screen} device={device} />
+              <Screen screen={screen} device={device} isInFlow />
             </Step>
           </Fragment>
         ))}

@@ -9,6 +9,8 @@ export interface Resume {
   productOutcome?: string;
   // A company I founded, drawn on its own branch next to employment.
   isVenture?: boolean;
+  // For a venture, the seats I held, which the job title alone may not say.
+  ventureRole?: string;
   bullets?: string[];
   techStack?: string[];
   // Sectors this role worked in, for the industry filter.

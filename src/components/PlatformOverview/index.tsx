@@ -37,6 +37,14 @@ border-[var(--accent-muted)]`;
 
 const Example = tw.div`mt-[22px]`;
 
+const Kinds = tw.section`flex flex-col gap-[10px] mb-[25px]`;
+
+const KindsTitle = tw.h3`m-0 text-base font-semibold text-white`;
+
+const KindList = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
+
+const Kind = tw.li`text-xs leading-none text-white bg-[#161616] rounded-[2px] py-[7px] px-[10px] border-[1px] border-solid border-[#2a2a2a]`;
+
 // Expertise across the career: each tile is a kind of system built at several companies, and my own
 // platform follows as one worked example, not the only one.
 export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, blueprints, blueprintLabels }: PlatformOverviewProps) => (
@@ -56,6 +64,12 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
         </Tile>
       ))}
     </Tiles>
+    <Kinds>
+      <KindsTitle>{expertise.architectureKindsTitle}</KindsTitle>
+      <KindList>
+        {expertise.architectureKinds.map((kind) => <Kind key={kind}>{kind}</Kind>)}
+      </KindList>
+    </Kinds>
     <Panel>
       <PanelTitle>{expertise.exampleTitle}</PanelTitle>
       <PanelText>{expertise.exampleDescription}</PanelText>

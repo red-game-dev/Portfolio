@@ -220,6 +220,8 @@ const Row = styled.li(() => [
 
 const Strong = tw.strong`text-white font-semibold`;
 
+const BlockNote = tw.p`m-0 text-xs text-[#9a9a9a]`;
+
 const Road = tw.ol`relative list-none m-0 p-0 grid gap-[18px] md:grid-cols-4 md:gap-[14px]`;
 
 const Milestone = styled.li(() => [
@@ -312,6 +314,7 @@ const ProductPlaybook: FC<ProductPlaybookProps> = ({ content, details, experienc
         </Block>
         <Block>
           <BlockTitle>{content.venturesLabel}</BlockTitle>
+          <BlockNote>{content.venturesNote}</BlockNote>
           <Rows>
             {ventures.map((entry) => {
               const { role, place } = splitTitle(entry.title);
@@ -319,7 +322,7 @@ const ProductPlaybook: FC<ProductPlaybookProps> = ({ content, details, experienc
               return (
                 <Row key={entry.title}>
                   <Strong>{place}</Strong>
-                  {`: ${role}, ${fill(content.ventureSince, { year: startYear(entry.from) })}`}
+                  {`: ${entry.ventureRole ?? role}, ${fill(content.ventureSince, { year: startYear(entry.from) })}`}
                 </Row>
               );
             })}

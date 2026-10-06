@@ -83,6 +83,7 @@ export const lensContent: LensContent = {
       levelFormat: "Level {level}, since {since}",
       venturesLabel: "Ventures I founded",
       ventureSince: "since {year}",
+      venturesNote: "Generally as CEO and CTO. Most were self funded, and what they lacked to take a strong position was funding.",
       monetisationLabel: "Monetisation I have built",
       monetisation: [
         "In game purchases and subscriptions, through Stripe and PayPal",

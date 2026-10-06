@@ -36,6 +36,9 @@ export interface ExpertiseTile {
 
 export interface ExpertiseContent {
   tiles: ExpertiseTile[];
+  architectureKindsTitle: string;
+  // Shapes of system I have built, named by pattern, not by company.
+  architectureKinds: string[];
   exampleTitle: string;
   exampleDescription: string;
 }

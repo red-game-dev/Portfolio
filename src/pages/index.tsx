@@ -114,7 +114,12 @@ export default function Home() {
         caseLabels={portfolioData.lens.caseLabels}
       />
       <Duels intro={portfolioData.sections.duels} {...portfolioData.duels} />
-      <Projects projects={portfolioData.projects} intro={portfolioData.sections.projects} content={portfolioData.projectMap} />
+      <Projects
+        projects={portfolioData.projects}
+        intro={portfolioData.sections.projects}
+        content={portfolioData.projectMap}
+        blueprintLabels={portfolioData.blueprints.labels}
+      />
       <EngineRoom intro={portfolioData.sections.engineRoom} blueprints={portfolioData.blueprints.mmo} labels={portfolioData.blueprints.labels} />
       <Recommendations
         intro={portfolioData.sections.recommendations}

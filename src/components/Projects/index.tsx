@@ -8,6 +8,7 @@ import { WorldMap } from "@/components/Projects/WorldMap";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS } from "@/config/sections";
 import { toMonthIndex } from "@/packages/insights/career";
+import { BlueprintLabels } from "@/types/blueprints";
 import { ProjectDetail, ProjectKind, ProjectMapContent } from "@/types/projects";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -15,6 +16,7 @@ interface ProjectsProps {
   projects: ProjectDetail[];
   intro: SectionIntros;
   content: ProjectMapContent;
+  blueprintLabels: BlueprintLabels;
 }
 
 const KIND_ORDER: ProjectKind[] = ["game", "web3", "product", "community", "archive"];
@@ -37,7 +39,7 @@ const Chip = styled.button(({ isSelected }: { isSelected: boolean }) => [
 
 // Projects as a world map: one region per project in the order I explored them, each opening a map
 // screen with what I built there.
-export const Projects: FC<ProjectsProps> = ({ projects, intro, content }: ProjectsProps) => {
+export const Projects: FC<ProjectsProps> = ({ projects, intro, content, blueprintLabels }: ProjectsProps) => {
   const { labels } = content;
   const [activeKind, setActiveKind] = useState<ProjectKind | null>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -81,6 +83,7 @@ export const Projects: FC<ProjectsProps> = ({ projects, intro, content }: Projec
       </Panel>
       <RegionDialog
         project={open}
+        blueprintLabels={blueprintLabels}
         previous={openIndex !== null && openIndex > 0 ? ordered[openIndex - 1] : null}
         next={openIndex !== null && openIndex < ordered.length - 1 ? ordered[openIndex + 1] : null}
         content={content}

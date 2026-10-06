@@ -74,21 +74,44 @@ export interface Wireframe {
   outcome: string;
 }
 
+// What a recruiter needs from a system: the part played, the scale, and the stack.
+export interface BlueprintSummary {
+  role: string;
+  scale: string;
+  stack: string[];
+}
+
+// A user's path through the product, step by step.
+export interface BlueprintJourney {
+  title: string;
+  steps: string[];
+}
+
 export interface Blueprint {
   id: string;
   // The world the drawing borrows its look from.
   zone: ZoneId;
   title: string;
   caption: string;
+  summary: BlueprintSummary;
   architecture: ArchitectureBlueprint;
   wireframe?: Wireframe;
+  journeys?: BlueprintJourney[];
 }
 
 export interface BlueprintLabels {
+  overview: string;
   architecture: string;
   productFlow: string;
   decision: string;
   outcome: string;
+  role: string;
+  scale: string;
+  stack: string;
+  journeys: string;
+  // Under every architecture: it is a glance, not the full design.
+  glanceNote: string;
+  sketchNote: string;
 }
 
 export interface BlueprintContent {

@@ -49,7 +49,7 @@ import {
   faWandMagicSparkles
 } from "@fortawesome/pro-duotone-svg-icons";
 
-import { blueprintContent } from "@/data/blueprints";
+import { AMW_BLUEPRINT, blueprintContent, GOZ_BLUEPRINT } from "@/data/blueprints";
 import { githubActivity } from "@/data/githubActivity";
 import { lensContent } from "@/data/lens";
 import { PortfolioAiUsage } from "@/types/ai-usage";
@@ -1066,6 +1066,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Founder & Architect, Gamified Social Network Platform",
+      ventureRole: "Founder, CEO and CTO",
       industries: ["fintech", "sports", "social"],
       isVenture: true,
       from: "2021",
@@ -1121,6 +1122,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Founder, CEO at TasteTravellers",
+      ventureRole: "Founder and CEO",
       industries: ["travel"],
       from: "Feb 2018",
       productOutcome: "A travel page and community grown through authentic content, brand collaborations and paid campaigns",
@@ -1143,6 +1145,7 @@ export const portfolioData: PortfolioData = {
     },
     {
       title: "Founder, CEO & CTO, Gods of Zushin",
+      ventureRole: "Founder, CEO and CTO",
       industries: ["gamePublishing"],
       from: "Apr 2015",
       productOutcome:
@@ -1569,6 +1572,14 @@ export const portfolioData: PortfolioData = {
       },
     ],
     tech: [
+      {
+        name: "Boost",
+        score: 80,
+      },
+      {
+        name: "ACE",
+        score: 75,
+      },
       {
         name: "Vue",
         score: 95,
@@ -2301,6 +2312,7 @@ export const portfolioData: PortfolioData = {
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
           { company: "CoinOn", from: "Nov 2021", to: "Jan 2022" },
+          { company: "Own products", from: "2021" },
         ],
         stats: [
           { name: "Architecture", value: 95 },
@@ -2531,6 +2543,7 @@ export const portfolioData: PortfolioData = {
       present: "now",
       regions: "Regions",
       hint: "Pick a region to open its map. The line is the route I took, oldest first.",
+      deepDive: "A deeper look",
     },
   },
   projects: [
@@ -2544,15 +2557,25 @@ export const portfolioData: PortfolioData = {
       intro: `My own MMORPG, started during my studies and still patched today: a custom engine, its own client and server, payments,
       and a community grown with paid campaigns.`,
       responsibilities: [
-        "Architected the custom game engine and the client and server infrastructure for low latency multiplayer",
+        "Built the engine in C/C++ with my own framework and physics, on Boost and ACE, for low latency multiplayer",
         "Wrote custom cryptography and compression for client and server traffic, with anti tamper account and inventory systems",
         "Added Stripe and PayPal for in game purchases and subscriptions, and a branded merchandise store",
         "Grew the community with campaigns on Facebook, YouTube, Twitch, Reddit and Instagram",
         "Built moderation tools, analytics dashboards and live patching",
         "Led moderators, event coordinators, testers and developers as CEO and CTO",
       ],
-      techStack: ["C/C++", "Lua", "Python", "VueJS", "PHP Laravel", "C#", "Electron (Old Launcher)", "Cloudflare", "DigitalOcean", "AWS", "Shopify"],
+      techStack: ["C/C++", "Boost", "ACE", "Lua", "Python", "VueJS", "PHP Laravel", "C#", "Electron (Old Launcher)", "Cloudflare", "DigitalOcean", "AWS",
+        "Shopify"],
       link: "https://goz.fun",
+      deepDive: {
+        stats: [
+          { value: "8M+", label: "registered accounts" },
+          { value: "50k", label: "active players at its peak" },
+          { value: "2015", label: "started, and still patched today" },
+        ],
+        note: "As with most of my startups I was CEO and CTO, and what it lacked to take a strong position was funding.",
+        blueprint: GOZ_BLUEPRINT,
+      },
       from: "Apr 2015",
     },
     {
@@ -2610,6 +2633,15 @@ export const portfolioData: PortfolioData = {
       techStack: ["PHP", "My Own Frameworks (PHP, JS)", "JS (JQuery, Backbone)", "Python", "WebGL & Canvas", "HTML", "CSS", "Cloudflare",
         "DigitalOcean", "AWS", "OVH Cloud", "Visual Studio"],
       link: "https://drive.google.com/drive/folders/1jN-Xhfiro3UJppRLVehG8UIytjFJVVtl?usp=share_link",
+      deepDive: {
+        stats: [
+          { value: "~10M", label: "users" },
+          { value: "3M+", label: "active users" },
+          { value: "2015", label: "rebuilt from scratch" },
+        ],
+        note: "As with most of my startups I was CEO and CTO, and what it lacked to take a strong position was funding.",
+        blueprint: AMW_BLUEPRINT,
+      },
       from: "Sep 2010",
       to: "Apr 2019",
     },
@@ -3388,8 +3420,28 @@ export const portfolioData: PortfolioData = {
         places: ["Chiliz", "CoinOn", "Conrad"],
       },
     ],
+    architectureKindsTitle: "Kinds of architecture I have built",
+    architectureKinds: [
+      "Full financial systems, fiat and on chain",
+      "Double entry ledgers",
+      "Sagas across ledgers",
+      "Microservices",
+      "A modular core behind adapters",
+      "Event driven, with an outbox",
+      "Backend for frontend and anti corruption layers",
+      "Micro frontends",
+      "SSR, SSG and edge caching",
+      "Offline first, with sync",
+      "Real time over WebSockets and SSE",
+      "Client and server games for low latency",
+      "Multi chain, with bridges and indexers",
+      "A chain of our own on Substrate",
+      "Monorepos with a shared core",
+      "Machine learning pipelines",
+    ],
     exampleTitle: "Worked examples",
-    exampleDescription: "Conrad's CMS migration target, then my own platform, unnamed: where vendors and hosts plug in, and how money moves through it.",
+    exampleDescription: `A full financial system end to end, multi market commerce, my own platform's core and one payment through it, and a ranking
+    pipeline. Each is a glance, not the full design.`,
   },
   blueprints: blueprintContent,
   recommendations: [

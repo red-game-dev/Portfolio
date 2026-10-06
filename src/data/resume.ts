@@ -4014,6 +4014,16 @@ export const portfolioData: PortfolioData = {
     accounts and in company repositories.`,
     activityYearLabel: "Contributions in {year}, one square per day",
     activity: { ...githubActivity, years: githubActivity.years.slice(-3) },
+    achievements: {
+      title: "Achievements unlocked",
+      dayStreak: "{n} day streak",
+      weekStreak: "{n} weeks in a row",
+      activeDays: "{n} active days",
+      perfectWeeks: "{n} perfect weeks, all seven days",
+      busiestMonth: "Busiest month: {month} {year}",
+      streakLegend: "Each year's longest streak, outlined",
+      months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    },
     highlights: [
       {
         name: "fetchff",

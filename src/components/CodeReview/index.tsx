@@ -91,6 +91,7 @@ export const CodeReview: FC<CodeReviewProps> = ({ intro, content }: CodeReviewPr
         title={content.activityTitle}
         description={content.activityDescription}
         yearLabel={content.activityYearLabel}
+        achievements={content.achievements}
       />
       <Highlights>
         {content.highlights.map((highlight) => (

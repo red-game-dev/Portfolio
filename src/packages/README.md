@@ -37,6 +37,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `effects/binary-rain` | Falling binary rain that assembles a message, built on `frame-loop` and `graphics/canvas` |
 | `effects/pixel-reveal` | An image materialising from binary to pixels to full resolution, built on `frame-loop` and `graphics/canvas` |
 | `encoding/binary` | Text to binary, same length masks, and the frame by frame decode used for text reveals |
+| `insights/activity` | `activityStats`: active days, day and week streaks (across years), perfect weeks, the busiest month and each year's longest run, from a contribution calendar |
 | `games/bug-raid` | A playable arcade game on `frame-loop` and `graphics/canvas`, with pointer, touch and keyboard input |
 | `graphics/canvas` | `CanvasRenderer` base for DPR aware surfaces and `GlyphAtlas` for GPU friendly text drawing |
 | `graphics/pixel-art` | Pixel maps to one SVG path per colour, for crisp sprites at any size |

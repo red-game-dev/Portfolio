@@ -35,5 +35,16 @@ export interface CodeReviewContent {
   // "{year}" is replaced, for the screen reader text of each row.
   activityYearLabel: string;
   activity: GithubActivity;
+  // Unlocked like game achievements once the chart has drawn. "{n}", "{month}" and "{year}" are replaced.
+  achievements: {
+    title: string;
+    dayStreak: string;
+    weekStreak: string;
+    activeDays: string;
+    perfectWeeks: string;
+    busiestMonth: string;
+    streakLegend: string;
+    months: string[];
+  };
   highlights: CodeReviewHighlight[];
 }

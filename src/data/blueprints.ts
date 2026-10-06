@@ -896,7 +896,7 @@ export const blueprintContent: BlueprintContent = {
           { from: "fin-holds", to: "fin-withdraw" },
           { from: "fin-recon", to: "fin-ledger", style: "dashed" },
           { from: "fin-connected", to: "fin-stable" },
-          { from: "fin-stable", to: "fin-ledger", label: "settles" },
+          { from: "fin-stable", to: "fin-ledger" },
           { from: "fin-tokens", to: "fin-bridges", style: "link" },
         ],
       },

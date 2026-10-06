@@ -254,6 +254,151 @@ const blueprints: Blueprint[] = [
       },
     ],
   },
+  {
+    id: "igaming-platform",
+    tab: "Player platform",
+    zone: "casino",
+    title: "A player platform: accounts, one wallet, bonuses, sportsbook and aggregated games",
+    caption: "Casino rounds, sports bets, bonuses and payments all post to one wallet and one ledger, with games from many " +
+      "studios behind one integration and live odds that move with the match.",
+    summary: {
+      role: "Built player facing apps and the platform pieces behind them for regulated operators",
+      scale: "Regulated platforms for operators under Malta licensing",
+      stack: ["TypeScript", "Node.js", "PHP (Laravel)", "Vue", "React", "WebSockets"],
+    },
+    architecture: {
+      columns: 4,
+      groups: [
+        {
+          id: "ip-players",
+          label: "Players",
+          place: { col: 1, row: 1, rowSpan: 2 },
+          nodes: [
+            { id: "ip-lobby", label: "Casino lobby", detail: "Slots, tables and live games" },
+            { id: "ip-sports", label: "Sportsbook", detail: "Pre match and live" },
+            { id: "ip-cashier", label: "Account and cashier", detail: "Deposits, withdrawals, limits" },
+            { id: "ip-promos", label: "Promotions", detail: "Bonuses and tournaments" },
+          ],
+        },
+        {
+          id: "ip-core",
+          label: "Platform core",
+          place: { col: 2, row: 1, rowSpan: 2 },
+          nodes: [
+            { id: "ip-accounts", label: "Player accounts", detail: "KYC, status and limits" },
+            { id: "ip-wallet", label: "Wallet", detail: "Debit the bet, credit the win, roll back on failure" },
+            { id: "ip-bonus", label: "Bonus engine", detail: "Rules, wagering across games, conversion to cash" },
+            { id: "ip-tournaments", label: "Tournaments", detail: "Leaderboards and prizes" },
+          ],
+        },
+        {
+          id: "ip-book",
+          label: "Sportsbook",
+          place: { col: 3, row: 1 },
+          nodes: [
+            { id: "ip-odds", label: "Odds feed", detail: "Live prices that move with the match" },
+            { id: "ip-accept", label: "Bet acceptance", detail: "Price checked as the bet is placed" },
+            { id: "ip-settle", label: "Settlement", detail: "Results settle open bets" },
+          ],
+        },
+        {
+          id: "ip-agg",
+          label: "Game aggregation",
+          place: { col: 3, row: 2 },
+          nodes: [
+            { id: "ip-aggregator", label: "Aggregator", detail: "Many studios behind one integration" },
+            { id: "ip-studios", label: "Studios", detail: "Slots, tables, live dealer", kind: "actor" },
+          ],
+        },
+        {
+          id: "ip-money",
+          label: "Payments and compliance",
+          place: { col: 4, row: 1 },
+          nodes: [
+            { id: "ip-psp", label: "Payment providers", detail: "Deposits and withdrawals" },
+            { id: "ip-rg", label: "Limits and self exclusion" },
+            { id: "ip-reports", label: "Regulatory reports" },
+          ],
+        },
+        {
+          id: "ip-data",
+          label: "Records",
+          place: { col: 4, row: 2 },
+          nodes: [
+            { id: "ip-ledger", label: "Ledger", detail: "Every movement, balanced", kind: "store" },
+            { id: "ip-backoffice", label: "Back office", detail: "Operators and support" },
+          ],
+        },
+      ],
+      edges: [
+        { from: "ip-lobby", to: "ip-aggregator" },
+        { from: "ip-aggregator", to: "ip-studios" },
+        { from: "ip-studios", to: "ip-wallet", label: "debit, credit" },
+        { from: "ip-sports", to: "ip-accept" },
+        { from: "ip-odds", to: "ip-accept" },
+        { from: "ip-accept", to: "ip-wallet" },
+        { from: "ip-settle", to: "ip-wallet" },
+        { from: "ip-promos", to: "ip-bonus" },
+        { from: "ip-tournaments", to: "ip-bonus" },
+        { from: "ip-bonus", to: "ip-wallet" },
+        { from: "ip-cashier", to: "ip-psp" },
+        { from: "ip-psp", to: "ip-wallet" },
+        { from: "ip-accounts", to: "ip-rg" },
+        { from: "ip-wallet", to: "ip-ledger" },
+        { from: "ip-ledger", to: "ip-reports" },
+      ],
+    },
+    wireframe: {
+      device: "phone",
+      screens: [
+        {
+          title: "A live match",
+          regions: [
+            { kind: "bar", label: "Score and clock" },
+            { kind: "list", label: "Markets, with odds that move", size: 2 },
+            { kind: "form", label: "Bet slip: stake and potential return" },
+            { kind: "actions", label: "Place bet" },
+          ],
+        },
+        {
+          title: "Cashier",
+          regions: [
+            { kind: "stat", label: "Cash and bonus balance" },
+            { kind: "list", label: "Deposit methods" },
+            { kind: "form", label: "Withdraw, with the checks it needs shown" },
+            { kind: "card", label: "Deposit limits" },
+          ],
+        },
+        {
+          title: "A tournament",
+          regions: [
+            { kind: "stat", label: "Your place and points" },
+            { kind: "list", label: "Leaderboard", size: 1.6 },
+            { kind: "card", label: "Prizes and qualifying games" },
+          ],
+        },
+      ],
+      decision: "One wallet and one ledger for every product: casino rounds, sports bets, bonuses and payments all post to the " +
+        "same balance, so it always reconciles.",
+      outcome: "Games from many studios and a sportsbook sat on one balance and one set of rules, with nothing to reconcile by hand.",
+    },
+    journeys: [
+      {
+        title: "A live bet",
+        steps: [
+          "Opens a live match",
+          "Odds move as the game runs",
+          "Adds a selection to the bet slip",
+          "Places the bet, and the price is checked as it is accepted",
+          "The result settles the bet into the wallet",
+        ],
+      },
+      {
+        title: "A bonus that pays out",
+        steps: ["Deposits and opts in", "Plays qualifying games", "Wagering is tracked across every game", "The bonus converts to cash balance"],
+      },
+    ],
+  },
 ];
 
 export default blueprints;

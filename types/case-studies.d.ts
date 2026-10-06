@@ -34,8 +34,14 @@ export interface ExpertiseTile {
   places: string[];
 }
 
-export interface ExpertiseContent {
+// Tiles of one kind, shown together under one tab.
+export interface ExpertiseTileGroup {
+  label: string;
   tiles: ExpertiseTile[];
+}
+
+export interface ExpertiseContent {
+  tileGroups: ExpertiseTileGroup[];
   architectureKindsTitle: string;
   // Shapes of system I have built, named by pattern, not by company.
   architectureKinds: string[];

@@ -1,11 +1,13 @@
 import { FC } from "react";
 
-import tw from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { BlueprintSection } from "@/components/Blueprint";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
+import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
+import useTabs from "@/hooks/useTabs";
 import { BlueprintLabels, BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
 import { ExpertiseContent } from "@/types/case-studies";
 import { SectionIntros } from "@/types/sections-intros";
@@ -23,7 +25,12 @@ const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[
 // Target for the "Enterprise Architect" link on the first screen.
 const Anchor = tw.span`absolute top-0 left-0`;
 
-const Tiles = tw.ul`list-none m-0 mt-[25px] lg:mt-[35px] mb-[25px] p-0 grid gap-[14px] md:grid-cols-2 xl:grid-cols-3`;
+const Groups = tw.div`mt-[25px] lg:mt-[35px] mb-[25px] flex flex-col gap-[14px]`;
+
+const Tiles = styled.ul(() => [
+  tw`list-none m-0 p-0 grid gap-[14px] md:grid-cols-2 xl:grid-cols-3`,
+  hiddenPanel,
+]);
 
 const Tile = tw.li`flex flex-col gap-[10px] p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
@@ -46,25 +53,41 @@ const KindList = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 
 const Kind = tw.li`text-xs leading-none text-white bg-[#161616] rounded-[2px] py-[7px] px-[10px] border-[1px] border-solid border-[#2a2a2a]`;
 
-// Expertise across the career: each tile is a kind of system built at several companies, and my own
-// platform follows as one worked example, not the only one.
-export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, blueprintSection, blueprintLabels }: PlatformOverviewProps) => (
+// Expertise across the career: each tile is a kind of system built at several companies, grouped by kind
+// under tabs, and my own platform follows as one worked example, not the only one. Every group stays in
+// the page, the closed ones hidden.
+export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, blueprintSection, blueprintLabels }: PlatformOverviewProps) => {
+  const { active, listProps, tabProps, panelProps } = useTabs({ count: expertise.tileGroups.length });
+
+  return (
   <Section id={SECTION_IDS.platform}>
     <Anchor id={ROLE_ANCHORS.enterprise} aria-hidden="true" />
     <SectionText intro={intro} />
-    <Tiles>
-      {expertise.tiles.map((tile) => (
-        <Tile key={tile.name}>
-          <TileName>{tile.name}</TileName>
-          <TileDetail>{tile.detail}</TileDetail>
-          <Places>
-            {tile.places.map((place) => (
-              <Place key={place}>{place}</Place>
-            ))}
-          </Places>
-        </Tile>
+    <Groups>
+      <TabList {...listProps} aria-label={intro.title} data-scroll-x>
+        {expertise.tileGroups.map((group, index) => (
+          <Tab key={group.label} {...tabProps(index)} isOn={index === active}>
+            {group.label}
+            <TabCount isOn={index === active} aria-hidden="true">{group.tiles.length}</TabCount>
+          </Tab>
+        ))}
+      </TabList>
+      {expertise.tileGroups.map((group, index) => (
+        <Tiles key={group.label} {...panelProps(index)}>
+          {group.tiles.map((tile) => (
+            <Tile key={tile.name}>
+              <TileName>{tile.name}</TileName>
+              <TileDetail>{tile.detail}</TileDetail>
+              <Places>
+                {tile.places.map((place) => (
+                  <Place key={place}>{place}</Place>
+                ))}
+              </Places>
+            </Tile>
+          ))}
+        </Tiles>
       ))}
-    </Tiles>
+    </Groups>
     <Kinds>
       <KindsTitle>{expertise.architectureKindsTitle}</KindsTitle>
       <KindList>
@@ -79,4 +102,5 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
       <BlueprintSection section={blueprintSection} labels={blueprintLabels} />
     </Example>
   </Section>
-);
+  );
+};

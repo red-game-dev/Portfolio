@@ -6,6 +6,7 @@ import { Blueprint } from "@/components/Blueprint/Blueprint";
 import { BLEED } from "@/components/Blueprint/config";
 import { Stage, SwitchEffect, SwitchOverlay, ZONE_EFFECTS } from "@/components/Blueprint/switchEffects";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { Tab, TabList } from "@/components/Tabs";
 import useTabs from "@/hooks/useTabs";
 import { Blueprint as BlueprintContent, BlueprintLabels } from "@/types/blueprints";
 
@@ -20,28 +21,6 @@ const Showcase = styled.div(() => [
     @media (min-width: 1024px) {
       margin-left: ${BLEED};
       margin-right: ${BLEED};
-    }
-  `,
-]);
-
-const TabList = styled.div(() => [
-  tw`flex flex-row gap-[6px] overflow-x-auto pb-[4px]`,
-  css`
-    scrollbar-width: thin;
-  `,
-]);
-
-const Tab = styled.button(({ isOn }: { isOn: boolean }) => [
-  tw`relative flex-shrink-0 h-[36px] px-[14px] cursor-pointer text-xs md:text-sm font-semibold whitespace-nowrap rounded-[2px]
-     border-[1px] border-solid`,
-  isOn ? tw`text-[#101010] bg-[var(--accent)] border-[var(--accent)]` : tw`text-[#ccc] bg-[#0d0d0d] border-[#262626]`,
-  css`
-    transition: border-color 0.2s ease, color 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      border-color: var(--accent);
-      color: ${isOn ? "#101010" : "#fff"};
     }
   `,
 ]);

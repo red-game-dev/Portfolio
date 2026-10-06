@@ -3849,7 +3849,8 @@ export const portfolioData: PortfolioData = {
     ],
   },
   igaming: {
-    statement: "iGaming from the inside: live casino, slots and bet tables, the real time behind them, and regulated platforms for clients.",
+    statement: "iGaming from the inside: live casino, slots and bet tables, player accounts and wallets, bonuses and tournaments, " +
+      "sportsbook and live odds, game aggregation, and regulated platforms for clients.",
     liveLabel: "Live",
     proofLabel: "Dealt at",
     proof: ["Authentic Gaming", "KPMG"],
@@ -3878,6 +3879,26 @@ export const portfolioData: PortfolioData = {
         name: "Canvas performance",
         detail: "Profiling tools that found the bottlenecks in canvas rendering.",
         places: ["Authentic Gaming"],
+      },
+      {
+        name: "Player accounts and wallets",
+        detail: "Accounts, balances and one wallet every bet and win moves through, with deposits and withdrawals under licence.",
+        places: ["KPMG", "Authentic Gaming"],
+      },
+      {
+        name: "Bonuses and tournaments",
+        detail: "Bonus rules with wagering tracked across games, and tournaments with leaderboards and prizes.",
+        places: ["KPMG"],
+      },
+      {
+        name: "Sportsbook and live odds",
+        detail: "Live odds fed in and moving with the match, prices checked as a bet is accepted, and bets settled from results.",
+        places: ["KPMG"],
+      },
+      {
+        name: "Game aggregation",
+        detail: "Games from many studios behind one integration, so an operator adds a studio without new work.",
+        places: ["Authentic Gaming", "KPMG"],
       },
       {
         name: "Regulated platforms",
@@ -3924,51 +3945,186 @@ export const portfolioData: PortfolioData = {
     ],
   },
   expertise: {
-    tiles: [
+    tileGroups: [
       {
-        name: "Payments and ledgers",
-        detail: "Gateways, subscriptions, double entry ledgers, and regulated deposit and withdrawal flows.",
-        places: ["Own platform", "KPMG clients", "Gods of Zushin"],
+        label: "Money & Web3",
+        tiles: [
+          {
+            name: "Payments and ledgers",
+            detail: "Gateways, subscriptions, double entry ledgers, and regulated deposit and withdrawal flows.",
+            places: ["Own platform", "KPMG clients", "Gods of Zushin"],
+          },
+          {
+            name: "Banking rails and ramps",
+            detail: "Card and bank payments side by side, fiat to crypto and back, and payments paused automatically on fraud signals.",
+            places: ["Own platform", "CoinOn", "Chiliz"],
+          },
+          {
+            name: "Exchanges and trading",
+            detail: "Trading and swaps from one token to another, listing after KYC review and automatic listing on volume.",
+            places: ["Chiliz", "CoinOn"],
+          },
+          {
+            name: "Tokens and launchpads",
+            detail: "Fan tokens at scale, creator tokens traded against a pegged stablecoin, and NFTs.",
+            places: ["Chiliz", "CoinOn", "reNFT"],
+          },
+          {
+            name: "Chains, wallets and indexers",
+            detail: "Multi chain apps with wallets, indexers and bridges, and a chain of our own on Substrate.",
+            places: ["CoinOn", "HyperPlay", "reNFT", "Chiliz"],
+          },
+          {
+            name: "Virtual economies and loyalty",
+            detail: "Currencies earned by taking part, loyalty points, rewards and in game shops.",
+            places: ["AMW", "Gods of Zushin", "Punti", "Chiliz"],
+          },
+        ],
       },
       {
-        name: "Real time systems",
-        detail: "Live game data and streaming over WebSockets, low latency multiplayer and real time feeds.",
-        places: ["Authentic Gaming", "Gods of Zushin", "Own platform"],
+        label: "Platforms & Infrastructure",
+        tiles: [
+          {
+            name: "Adapters and no lock-in",
+            detail: "Vendors and hosts behind adapters, so a provider can be added, run in parallel and switched by configuration.",
+            places: ["Conrad", "Own platform"],
+          },
+          {
+            name: "DevOps and release",
+            detail: "CI/CD with audit logs and rollback, Kubernetes with canary rollout per market, disaster recovery plans and many environments.",
+            places: ["Conrad", "CoinOn", "HyperPlay", "Own platform"],
+          },
+          {
+            name: "Security",
+            detail: "Custom cryptography and anti tamper, smart contract audits, authorisation reviews and server hardening.",
+            places: ["Gods of Zushin", "HyperPlay", "CoinOn", "Own platform"],
+          },
+          {
+            name: "Migrations",
+            detail: "Brownfield moves without a big bang: CMS and platform migrations, and an unstable app rebuilt as a V2 core.",
+            places: ["Conrad", "KPMG", "Chiliz"],
+          },
+          {
+            name: "Auth and identity",
+            detail: "Running an OIDC provider, enterprise single sign on, two factor, and accounts guarded against tampering.",
+            places: ["Conrad", "Own platform", "Gods of Zushin"],
+          },
+          {
+            name: "Search",
+            detail: "Product search over large catalogues with facets, and search over encrypted fields.",
+            places: ["Conrad", "Own platform"],
+          },
+          {
+            name: "Servers run by hand",
+            detail: "Game and web servers set up from scratch on dedicated hosts, tuned for latency and cost, before managed cloud.",
+            places: ["Gods of Zushin", "AMW"],
+          },
+          {
+            name: "Many markets, one platform",
+            detail: "Markets, currencies, languages and tax rules served from one codebase.",
+            places: ["Conrad", "Chiliz", "Own platform"],
+          },
+        ],
       },
       {
-        name: "Design systems",
-        detail: "Shared component libraries that keep brands, products and platforms consistent.",
-        places: ["Conrad", "HyperPlay", "Chiliz", "reNFT"],
+        label: "Products & Growth",
+        tiles: [
+          {
+            name: "Social networks and communities",
+            detail: "Feeds, profiles, guilds, chat and moderation, grown to millions of members.",
+            places: ["AMW", "Own platform", "Gods of Zushin"],
+          },
+          {
+            name: "Recommendations and ranking",
+            detail: "Feed suggestions, product suggestions and ads ranked by models that went live.",
+            places: ["KPMG clients", "Own platform"],
+          },
+          {
+            name: "Marketplaces and auctions",
+            detail: "Auction houses, player trading, and NFT lending and rentals.",
+            places: ["AMW", "Gods of Zushin", "reNFT"],
+          },
+          {
+            name: "Ads systems",
+            detail: "Self serve ads, ranked placements and the billing behind them.",
+            places: ["AMW", "Own platform"],
+          },
+          {
+            name: "Commerce and content",
+            detail: "AEM and Strapi for enterprise content, Contentful for clients, and Shopify with plugins of my own.",
+            places: ["Conrad", "KPMG clients", "TasteTravellers"],
+          },
+          {
+            name: "Design systems",
+            detail: "Shared component libraries that keep brands, products and platforms consistent.",
+            places: ["Conrad", "HyperPlay", "Chiliz", "reNFT"],
+          },
+          {
+            name: "Mobile apps",
+            detail: "Native and cross platform apps shipped to both stores, from fan tokens to a game launcher.",
+            places: ["Chiliz", "CoinOn", "HyperPlay"],
+          },
+          {
+            name: "Products from zero",
+            detail: "Ventures founded, built and launched, usually as CEO and CTO.",
+            places: ["Gods of Zushin", "AMW", "CoinOn", "Arcavium", "Adotta", "Punti"],
+          },
+        ],
       },
       {
-        name: "Migrations",
-        detail: "Brownfield moves without a big bang: CMS and platform migrations, and an unstable app rebuilt as a V2 core.",
-        places: ["Conrad", "KPMG", "Chiliz"],
+        label: "Games & Real Time",
+        tiles: [
+          {
+            name: "Real time systems",
+            detail: "Live game data and streaming over WebSockets, low latency multiplayer and real time feeds.",
+            places: ["Authentic Gaming", "Gods of Zushin", "Own platform"],
+          },
+          {
+            name: "Game engines and servers",
+            detail: "An MMORPG engine and servers from scratch in C/C++, and a browser game engine in PHP.",
+            places: ["Gods of Zushin", "AMW"],
+          },
+          {
+            name: "Launchers and live patching",
+            detail: "Launchers that install small, fetch the game and patch only what changed.",
+            places: ["Gods of Zushin", "HyperPlay"],
+          },
+          {
+            name: "Canvas, WebGL and heavy animation",
+            detail: "Game UI and tables drawn on canvas and WebGL, kept smooth on every screen.",
+            places: ["Authentic Gaming", "KPMG", "CoinOn"],
+          },
+          {
+            name: "iGaming",
+            detail: "Live dealer UIs, slots and bet tables, and operator onboarding.",
+            places: ["Authentic Gaming", "KPMG clients"],
+          },
+        ],
       },
       {
-        name: "Adapters and no lock-in",
-        detail: "Vendors and hosts behind adapters, so a provider can be added, run in parallel and switched by configuration.",
-        places: ["Conrad", "Own platform"],
-      },
-      {
-        name: "Web3",
-        detail: "Fan tokens at scale, a chain with bridges, NFT lending and a Web3 game launcher.",
-        places: ["Chiliz", "CoinOn", "reNFT", "HyperPlay"],
-      },
-      {
-        name: "DevOps and release",
-        detail: "CI/CD with audit logs and rollback, Kubernetes with canary rollout per market, disaster recovery plans and many environments.",
-        places: ["Conrad", "CoinOn", "HyperPlay", "Own platform"],
-      },
-      {
-        name: "Security",
-        detail: "Custom cryptography and anti tamper, smart contract audits, authorisation reviews and server hardening.",
-        places: ["Gods of Zushin", "HyperPlay", "CoinOn", "Own platform"],
-      },
-      {
-        name: "Leading teams",
-        detail: "7 product squads and 30+ engineers at Chiliz, 10+ people as co-founder and CTO at CoinOn, architecture across 90+ people at Conrad.",
-        places: ["Chiliz", "CoinOn", "Conrad"],
+        label: "Teams & Delivery",
+        tiles: [
+          {
+            name: "Leading teams",
+            detail: "7 product squads and 30+ engineers at Chiliz, 10+ people as co-founder and CTO at CoinOn, architecture across 90+ people at Conrad.",
+            places: ["Chiliz", "CoinOn", "Conrad"],
+          },
+          {
+            name: "Architecture governance",
+            detail: "Standards, decision records and reviews that many teams build to.",
+            places: ["Conrad", "Chiliz"],
+          },
+          {
+            name: "Building teams",
+            detail: "Teams hired and grown from nothing: developers, testers, moderators and community.",
+            places: ["CoinOn", "Gods of Zushin", "AMW"],
+          },
+          {
+            name: "AI enablement",
+            detail: "Agents inside guardrails, plans tracked in artifacts, and test batteries as the proof.",
+            places: ["Conrad", "Own platform"],
+          },
+        ],
       },
     ],
     architectureKindsTitle: "Kinds of architecture I have built",

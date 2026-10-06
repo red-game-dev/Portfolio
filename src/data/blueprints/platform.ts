@@ -515,8 +515,9 @@ const blueprints: Blueprint[] = [
     id: "ml-ranking",
     tab: "Ranking",
     zone: "matrix",
-    title: "Recommendations and feed ranking",
-    caption: "Signals feed a model, the model scores candidates, and the feed, the suggestions and the ads are ranked by one scoring service.",
+    title: "Recommendations, feed and product suggestions",
+    caption: "Signals feed the models, candidates are gathered and scored, and the feed, suggested follows, product " +
+      "suggestions and ads are ranked by one scoring service.",
     summary: {
       role: "Built the models and the serving path, and took them live in client products",
       scale: "Client products in production",
@@ -530,8 +531,9 @@ const blueprints: Blueprint[] = [
           label: "Signals",
           place: { col: 1, row: 1 },
           nodes: [
-            { id: "ml-views", label: "Views and clicks" },
+            { id: "ml-views", label: "Views, clicks and dwell time" },
             { id: "ml-follows", label: "Follows and reactions" },
+            { id: "ml-baskets", label: "Purchases and baskets" },
             { id: "ml-adsignals", label: "Ad interactions" },
           ],
         },
@@ -550,9 +552,10 @@ const blueprints: Blueprint[] = [
           label: "Serving",
           place: { col: 3, row: 1 },
           nodes: [
-            { id: "ml-candidates", label: "Candidate generation" },
+            { id: "ml-candidates", label: "Candidate generation", detail: "Co-engagement, similar items, people you may know" },
+            { id: "ml-coldstart", label: "Cold start", detail: "Popular and trending for new people and new items" },
             { id: "ml-score", label: "Scoring service" },
-            { id: "ml-rank", label: "Ranking" },
+            { id: "ml-rank", label: "Ranking and diversity", detail: "Freshness decay, no repeats in a row" },
           ],
         },
         {
@@ -561,7 +564,8 @@ const blueprints: Blueprint[] = [
           place: { col: 4, row: 1 },
           nodes: [
             { id: "ml-feed", label: "Social feed" },
-            { id: "ml-suggestions", label: "Suggestions" },
+            { id: "ml-suggestions", label: "Suggested follows" },
+            { id: "ml-products", label: "Product suggestions", detail: "Similar and bought together" },
             { id: "ml-adslots", label: "Ad slots" },
           ],
         },
@@ -572,6 +576,7 @@ const blueprints: Blueprint[] = [
         { from: "ml-train", to: "ml-models" },
         { from: "ml-models", to: "ml-score" },
         { from: "ml-candidates", to: "ml-score" },
+        { from: "ml-coldstart", to: "ml-score" },
         { from: "ml-score", to: "ml-rank" },
         { from: "ml-rank", to: "ml-surfaces" },
       ],
@@ -587,14 +592,33 @@ const blueprints: Blueprint[] = [
             { kind: "card", label: "A sponsored slot, ranked like the rest" },
           ],
         },
+        {
+          title: "A product page",
+          regions: [
+            { kind: "media", label: "The item" },
+            { kind: "list", label: "Similar items, ranked for this shopper", size: 1.5 },
+            { kind: "card", label: "Often bought together" },
+            { kind: "actions", label: "Add to basket" },
+          ],
+        },
       ],
-      decision: "Ranking runs as its own scoring service, so the feed, the suggestions and the ads share one model, and every response feeds the next training run.",
+      decision: "Ranking runs as its own scoring service, so the feed, the follows, the products and the ads share one model, " +
+        "and every response feeds the next training run.",
       outcome: "The models went live in client products: suggestions and recommendations, ads, and social feed ranking.",
     },
     journeys: [
       {
         title: "From a tap to a better feed",
         steps: ["A person opens the feed", "Candidates are scored and ranked for them", "They react, follow or skip", "Those signals feed the next training run"],
+      },
+      {
+        title: "A product page that suggests the next one",
+        steps: [
+          "A shopper views an item",
+          "Similar and often bought together items are scored for them",
+          "They add one to the basket",
+          "The purchase feeds the next training run",
+        ],
       },
     ],
   },

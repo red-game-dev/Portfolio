@@ -52,9 +52,11 @@ export const lensContent: LensContent = {
       title: "At a glance",
       description: "The essentials for a shortlist. Every section below says more, in plain terms.",
       rolesLabel: "Roles I am after",
-      roles: ["Software Architect", "Enterprise Architect", "Technical leadership", "AI engineering"],
+      roles: ["Software Architect", "Enterprise Architect", "Head of Engineering", "VP of Engineering", "Product Engineer", "Blockchain Engineer",
+        "AI engineering"],
       yearsLabel: "Years by role",
-      roleClasses: ["Architect", "CTO", "CEO", "Tech Lead", "Frontend Engineer", "Backend Engineer", "Game Engineer"],
+      roleClasses: ["Architect", "CTO", "CEO", "Product Engineer", "Blockchain Engineer", "Tech Lead", "Frontend Engineer", "Backend Engineer",
+        "Game Engineer"],
       workLabel: "Work and availability",
       skillsLabel: "Skills, with years of use",
       skillGroups: [

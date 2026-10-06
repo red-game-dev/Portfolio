@@ -1,7 +1,7 @@
 import { Blueprint, BlueprintContent } from "@/types/blueprints";
 
 // Kinds of architecture I have built, drawn as a glance, not the full design. No company is named: each is
-// the shape of a system, with my role, the scale it was built for and the stack. My own ventures also feed
+// a product I worked on or proposed, with what I did, its scale and the stack. My own ventures also feed
 // the project map's dialogs. No hosts, addresses, versions or amounts, and the platform stays unnamed.
 
 export const GOZ_BLUEPRINT: Blueprint = {
@@ -12,7 +12,7 @@ export const GOZ_BLUEPRINT: Blueprint = {
   summary: {
     role: "Founder, CEO and CTO: engine, servers, launcher, payments, operations and marketing",
     scale: "8M+ registered accounts, and 50k active players at its peak, before mobile games took the share",
-    stack: ["C/C++", "Boost", "ACE", "Own framework", "Lua", "Python", "C#", "Laravel", "Vue", "Cloudflare"],
+    stack: ["C/C++", "Boost", "ACE", "Own framework", "Lua", "Python", "C#", "Laravel", "Vue", "OVH", "Cloudflare"],
   },
   architecture: {
     columns: 4,
@@ -48,7 +48,7 @@ export const GOZ_BLUEPRINT: Blueprint = {
       },
       {
         id: "goz-game",
-        label: "Game services, built for low latency",
+        label: "Game services on OVH dedicated servers, built for low latency",
         place: { col: 3, row: 1, rowSpan: 2 },
         nodes: [
           { id: "goz-auth", label: "Auth front", detail: "Login throttling" },
@@ -306,8 +306,8 @@ export const blueprintContent: BlueprintContent = {
     productFlow: "Product flow",
     decision: "Product decision",
     outcome: "Outcome",
-    role: "My role",
-    scale: "Built for",
+    role: "What I did",
+    scale: "Scale",
     stack: "Stack",
     journeys: "User journeys",
     glanceNote: "A glance at the architecture, not the full design.",
@@ -317,76 +317,138 @@ export const blueprintContent: BlueprintContent = {
     {
       id: "ai-workflow",
       zone: "ai",
-      title: "AI delivery with guardrails",
-      caption: "The agent works inside a contract: policy, scoped tools, verification and a person's review. Nothing merges on its own.",
+      title: "AI delivery: plan artifacts, agents and test batteries",
+      caption: "The plan artifact is the system of record, batteries prove each task on the deployed build, and a person " +
+        "merges. A tracker is an optional view, not the source.",
       summary: {
-        role: "Designed it, and work inside it every day",
-        scale: "My own products, client work and a 90+ person delivery organisation",
-        stack: ["Claude Code", "Claude, GPT and Gemini APIs", "MCP servers", "Subagents", "Playwright", "Decision records"],
+        role: "Proposed and designed it, and work inside it every day",
+        scale: "My own products, client work and a large enterprise delivery organisation; on one product, 600+ battery " +
+          "scripts across 40+ subjects and 150+ end to end specs",
+        stack: ["Claude Code on Max", "Gemini Enterprise", "Claude, GPT and Gemini APIs", "MCP servers", "Subagents", "Playwright", "Shell batteries", "Artifacts"],
       },
       architecture: {
         columns: 4,
         groups: [
           {
-            id: "contract",
-            label: "Contract the agent works under",
+            id: "ai-plan",
+            label: "Plan artifact, the system of record",
             place: { col: 1, row: 1 },
             nodes: [
-              { id: "policy", label: "Policy", detail: "What AI may touch" },
-              { id: "rules", label: "Rules file and skills", detail: "Per repository" },
-              { id: "memory", label: "Memory and handoffs" },
-              { id: "registers", label: "Decision registers", detail: "Numbered, searched first" },
+              { id: "ai-phases", label: "Phases", detail: "Each with the gate that closes it" },
+              { id: "ai-tasks", label: "Tasks", detail: "Owner, acceptance, status" },
+              { id: "ai-decisions", label: "Decision register", detail: "Numbered, searched first" },
             ],
           },
           {
-            id: "task",
-            label: "A task",
-            columns: 2,
-            place: { col: 2, row: 1 },
+            id: "ai-contract",
+            label: "Contract the agent works under",
+            place: { col: 1, row: 2 },
             nodes: [
-              { id: "agent", label: "Main agent", detail: "Large model", span: 2 },
-              { id: "subagents", label: "Subagents", detail: "Read only, small model" },
-              { id: "mcp", label: "Scoped tools, MCP", detail: "Staging apart from production" },
+              { id: "ai-policy", label: "Policy", detail: "What AI may touch" },
+              { id: "ai-rules", label: "Rules and skills", detail: "Per repository" },
+              { id: "ai-handoffs", label: "Handoffs and memory" },
             ],
           },
           {
-            id: "gates",
+            id: "ai-run",
+            label: "Agent run",
+            place: { col: 2, row: 1, rowSpan: 2 },
+            nodes: [
+              { id: "ai-agent", label: "Main agent", detail: "Large model" },
+              { id: "ai-subagents", label: "Subagents", detail: "Read only, never build or commit" },
+              { id: "ai-mcp", label: "Scoped tools, MCP", detail: "Staging and production kept apart" },
+            ],
+          },
+          {
+            id: "ai-proof",
+            label: "Batteries on the deployed build",
+            place: { col: 3, row: 1, rowSpan: 2 },
+            nodes: [
+              { id: "ai-security", label: "Security", detail: "Negative cases: 403 and 404 where they belong" },
+              { id: "ai-function", label: "Functionality", detail: "HTTP verified" },
+              { id: "ai-flows", label: "Product flows", detail: "Web app to back office, and back" },
+              { id: "ai-providers", label: "Provider agnostic", detail: "One contract, every provider" },
+              { id: "ai-money", label: "Money path", detail: "Ledger rows verified in the database" },
+              { id: "ai-e2e", label: "End to end", detail: "Playwright, screenshots before and after" },
+            ],
+          },
+          {
+            id: "ai-gates",
             label: "Gates",
-            place: { col: 3, row: 1 },
+            place: { col: 4, row: 1 },
             nodes: [
-              { id: "tests", label: "Tests on the real surface", detail: "Never seeded state" },
-              { id: "security", label: "Security and supply chain checks" },
-              { id: "review", label: "Human review", detail: "Every change" },
+              { id: "ai-ledgers", label: "Runs and endpoint ledgers", detail: "Every run, with its commit" },
+              { id: "ai-prbody", label: "Pull request body", detail: "Verified versus assumed" },
+              { id: "ai-design", label: "Design review agent" },
+              { id: "ai-human", label: "Human review", detail: "Every change" },
             ],
           },
           {
-            id: "outcome",
-            place: { col: 4, row: 1 },
-            nodes: [{ id: "merge", label: "Merge and record" }],
+            id: "ai-landing",
+            place: { col: 4, row: 2 },
+            nodes: [{ id: "ai-merge", label: "Merge and republish the plan" }],
           },
         ],
         edges: [
-          { from: "contract", to: "agent" },
-          { from: "agent", to: "subagents" },
-          { from: "agent", to: "mcp" },
-          { from: "agent", to: "tests" },
-          { from: "tests", to: "security" },
-          { from: "security", to: "review" },
-          { from: "review", to: "merge" },
-          { from: "merge", to: "registers", label: "recorded", style: "dashed" },
+          { from: "ai-phases", to: "ai-tasks" },
+          { from: "ai-tasks", to: "ai-agent" },
+          { from: "ai-contract", to: "ai-run" },
+          { from: "ai-agent", to: "ai-subagents" },
+          { from: "ai-agent", to: "ai-mcp" },
+          { from: "ai-run", to: "ai-proof" },
+          { from: "ai-proof", to: "ai-ledgers" },
+          { from: "ai-ledgers", to: "ai-prbody" },
+          { from: "ai-prbody", to: "ai-design" },
+          { from: "ai-design", to: "ai-human" },
+          { from: "ai-human", to: "ai-merge" },
         ],
+      },
+      wireframe: {
+        device: "desktop",
+        screens: [
+          {
+            title: "The plan artifact",
+            regions: [
+              { kind: "bar", label: "Where things stand", area: "header" },
+              { kind: "steps", label: "Phases, each with its gate", area: "left" },
+              { kind: "list", label: "Tasks: owner, acceptance, status, the decision behind it", area: "main" },
+              { kind: "card", label: "Open questions, with options and a recommendation", area: "right" },
+              { kind: "list", label: "Changelog of settled sections", area: "footer" },
+            ],
+          },
+          {
+            title: "The runs ledger",
+            regions: [
+              { kind: "bar", label: "Battery, commit, time" },
+              { kind: "list", label: "Each run: pass, fail, skip, pending", size: 2.4 },
+              { kind: "bar", label: "Stale when its source changes" },
+            ],
+          },
+        ],
+        decision: "The plan page is the record: every row is re-measured on each pass, a row that cannot be checked stays " +
+          "unverified, and status is earned by a battery on the deployed build.",
+        outcome: "Nothing is re-entered into a tracker, decisions survive long agent sessions, and a change merges only when the batteries and a person agree.",
       },
       journeys: [
         {
-          title: "A change, from request to merge",
+          title: "A phase, from decision to merge",
           steps: [
-            "A task arrives with its acceptance criteria",
-            "The agent reads the rules, the skills and the decision registers first",
-            "Read only subagents research in parallel on a small model",
-            "The change is made with scoped tools, with staging kept apart from production",
-            "Tests run on the real surface, then security and supply chain checks",
-            "A person reviews every change before it merges",
-            "The decision is recorded for the next session",
+            "The refund window per jurisdiction is decided and recorded as a numbered decision",
+            "The agent adds a jurisdiction snapshot at checkout, proven by a probe on staging",
+            "The refund endpoint refuses late requests, proven by a battery: 403 outside the window, 200 inside",
+            "Ledger rows are checked in the database: debit and credit balance under one correlation id",
+            "The back office screen is built and the design review agent approves it",
+            "All batteries are green on the deployed build, and a person merges",
+          ],
+        },
+        {
+          title: "A battery run",
+          steps: [
+            "Runs against the deployed build, never against seeded state",
+            "Checks the negative cases: another user's data is 403, a foreign id is 404",
+            "Moves money only behind an explicit flag, so a plain run is harmless",
+            "Writes one line to the runs ledger with its commit",
+            "A change to the code it covers marks its last green run as stale",
           ],
         },
       ],
@@ -400,8 +462,8 @@ export const blueprintContent: BlueprintContent = {
       caption: "Every club or creator token trades against one base token: markets with live prices, buy and sell, deposits " +
         "and withdrawals, rewards, and each trade settled on chain and confirmed from the indexer.",
       summary: {
-        role: "Mobile core architect across seven product squads",
-        scale: "1M+ users in 160+ countries",
+        role: "Proposed and built the core the app runs on: one SDK shared across mobile and web, with on chain trading inside it",
+        scale: "A large consumer user base worldwide, with many product squads building on the core",
         stack: ["React Native", "TypeScript", "RxJS", "Redux Observables", "Ethers", "WalletConnect", "Kotlin", "Java", "C/C++", "Jest"],
       },
       architecture: {
@@ -468,6 +530,17 @@ export const blueprintContent: BlueprintContent = {
               { id: "ex-indexer", label: "Indexer", detail: "Confirms from the chain, not the client" },
             ],
           },
+          {
+            id: "ex-cloud",
+            label: "Runs on AWS",
+            columns: 3,
+            place: { col: 1, row: 3, colSpan: 4 },
+            nodes: [
+              { id: "ex-compute", label: "Services that scale with load" },
+              { id: "ex-stores", label: "Managed data stores" },
+              { id: "ex-delivery", label: "CDN and object storage" },
+            ],
+          },
         ],
         edges: [
           { from: "ex-clients", to: "ex-markets-group" },
@@ -529,7 +602,7 @@ export const blueprintContent: BlueprintContent = {
           },
         ],
         decision: "Every token trades against one base token, so a price always reads in one unit and a single deposit lets a fan trade any club or creator.",
-        outcome: "On chain trading and rewards inside an ordinary app flow for 1M+ users, on a core rebuilt from critically unstable that seven squads ship on.",
+        outcome: "On chain trading and rewards inside an ordinary app flow, on a core rebuilt from critically unstable that every squad ships on.",
       },
       journeys: [
         {
@@ -559,7 +632,7 @@ export const blueprintContent: BlueprintContent = {
       caption: "One view of everything a person owns across chains: tokens, stablecoins, NFTs and staked, lent or pooled " +
         "positions, through custodial or connected wallets, with off chain credits that cross into the wallet safely.",
       summary: {
-        role: "Architect and builder across a wallet platform, my own platform and Web3 products",
+        role: "Proposed and built wallet and asset flows across several products, from sign in to staking",
         scale: "Tokens, NFTs and positions across EVM chains, Solana and Polkadot",
         stack: ["Solidity", "Ethers", "Wagmi", "Web3.js", "WalletConnect", "MetaMask", "The Graph", "Alchemy", "Polygon", "PostgreSQL"],
       },
@@ -694,7 +767,7 @@ export const blueprintContent: BlueprintContent = {
       caption: "The layer under every Web3 product: chains and nodes, indexers, bridges and wallet connectivity, with " +
         "contract releases that are reviewed, audited and can be rolled back.",
       summary: {
-        role: "CTO and architect: chains, bridges, indexers, the release pipeline and contract security reviews",
+        role: "Proposed the infrastructure and ran it: chains, bridges, indexers, the release pipeline and contract security reviews",
         scale: "Three ecosystems and a chain of our own: EVM chains, Solana and Polkadot",
         stack: ["Rust", "Substrate", "Solidity", "Alchemy", "Infura", "The Graph", "WalletConnect", "MetaMask", "AWS"],
       },
@@ -755,6 +828,7 @@ export const blueprintContent: BlueprintContent = {
               { id: "inf-review", label: "Contract review", detail: "Attack paths before release" },
               { id: "inf-ci", label: "CI/CD", detail: "Audit logs, permissions, rollback" },
               { id: "inf-recovery", label: "Disaster recovery", detail: "Business continuity plans" },
+              { id: "inf-cloud", label: "Cloud", detail: "AWS, tuned for cost and load" },
             ],
           },
         ],
@@ -799,7 +873,7 @@ export const blueprintContent: BlueprintContent = {
       title: "A creator coin launchpad on its own stablecoin",
       caption: "A pegged stablecoin underneath, creator coins on top that only ever trade against it, priced on a curve, with NFTs and engagement rewards around them.",
       summary: {
-        role: "CTO: architecture from zero across web, mobile, back end and chain, with a team of 10+",
+        role: "Co-founded it and proposed the architecture, then built it from zero across web, mobile, back end and chain with a team of 10+",
         scale: "Influencers and creators launching coins for their fans, built from zero",
         stack: ["Rust", "Substrate", "Solidity", "Node.js", "Flutter", "Next.js", "Nuxt", "PixiJS", "AWS"],
       },
@@ -854,6 +928,18 @@ export const blueprintContent: BlueprintContent = {
               { id: "lp-kpis", label: "Analytics and KPIs" },
             ],
           },
+          {
+            id: "lp-aws",
+            label: "AWS, set up in full and tuned",
+            columns: 4,
+            place: { col: 1, row: 3, colSpan: 4 },
+            nodes: [
+              { id: "lp-network", label: "Private networking", detail: "And autoscaled compute" },
+              { id: "lp-data", label: "Managed databases and caches" },
+              { id: "lp-cdn", label: "Object storage and CDN" },
+              { id: "lp-cost", label: "Monitoring and cost tuning" },
+            ],
+          },
         ],
         edges: [
           { from: "lp-clients", to: "lp-gateway" },
@@ -865,6 +951,7 @@ export const blueprintContent: BlueprintContent = {
           { from: "lp-coins", to: "lp-own" },
           { from: "lp-own", to: "lp-bridges", style: "link" },
           { from: "lp-ops", to: "lp-services", style: "dashed" },
+          { from: "lp-ops", to: "lp-aws" },
         ],
       },
       wireframe: {
@@ -935,7 +1022,7 @@ export const blueprintContent: BlueprintContent = {
       title: "An NFT lending marketplace",
       caption: "Owners rent out NFTs, renters borrow them for games, and the marketplace reads everything from an indexer so the interface never guesses.",
       summary: {
-        role: "Senior frontend engineer on marketplace V2, owner of the V2 landing page",
+        role: "Built marketplace V2 with the tech lead and owned its landing page from zero, wiring contracts through Wagmi and Ethers",
         scale: "A lending protocol with game integrations",
         stack: ["Next.js", "React", "TypeScript", "Wagmi", "Ethers", "The Graph", "Radix UI", "Storybook", "Playwright"],
       },
@@ -953,14 +1040,13 @@ export const blueprintContent: BlueprintContent = {
           {
             id: "nft-web",
             label: "Marketplace web",
-            columns: 2,
             place: { col: 2, row: 1 },
             nodes: [
               { id: "nft-list", label: "List for rent", detail: "Price, duration, collateral" },
               { id: "nft-browse", label: "Browse and filter" },
               { id: "nft-landing", label: "Landing page" },
               { id: "nft-rent", label: "Rent", detail: "Through the wallet" },
-              { id: "nft-design", label: "Design system", detail: "Radix, Storybook tests", span: 2 },
+              { id: "nft-design", label: "Design system", detail: "Radix, Storybook tests" },
             ],
           },
           {
@@ -1057,7 +1143,7 @@ export const blueprintContent: BlueprintContent = {
       caption: "From onboarding and KYC to payments in, multi currency wallets on double entry ledgers, payouts under dual " +
         "approval and reconciliation, with a stablecoin, custody and chains on the same rails.",
       summary: {
-        role: "Architect of the money stack end to end, from onboarding to reconciliation",
+        role: "Proposed and built the money stack end to end, from onboarding to reconciliation",
         scale: "Multi currency, multi jurisdiction, fiat and on chain, designed for enterprise volume",
         stack: ["TypeScript", "NestJS", "PostgreSQL", "Stripe", "Double entry ledgers", "Sagas", "Solidity", "Ethers", "Rust", "Substrate"],
       },
@@ -1219,8 +1305,8 @@ export const blueprintContent: BlueprintContent = {
       title: "Multi market headless commerce",
       caption: "One storefront and two content sources behind one adapter, switched country by country, so a legacy system retires market by market.",
       summary: {
-        role: "Lead software architect across a 90+ person delivery organisation",
-        scale: "More than a dozen country storefronts and millions of sessions a month",
+        role: "Proposed the target architecture, designed and built the content adapter, and planned the rollout market by market",
+        scale: "A large multi market retailer, migrating without stopping sales",
         stack: ["Nuxt", "Vue", "TypeScript", "Headless CMS", "PostgreSQL", "OpenFeature", "Istio", "Varnish", "Cloudflare Workers", "C4 model"],
       },
       architecture: {
@@ -1250,7 +1336,6 @@ export const blueprintContent: BlueprintContent = {
           {
             id: "mm-commerce",
             label: "Commerce domains, untouched",
-            columns: 3,
             place: { col: 2, row: 2 },
             nodes: [
               { id: "mm-checkout", label: "Checkout" },
@@ -1261,10 +1346,9 @@ export const blueprintContent: BlueprintContent = {
           {
             id: "mm-cms",
             label: "New CMS",
-            columns: 2,
             place: { col: 3, row: 1 },
             nodes: [
-              { id: "mm-headless", label: "Headless CMS", detail: "REST API; publishing bans the cache", span: 2 },
+              { id: "mm-headless", label: "Headless CMS", detail: "REST API; publishing bans the cache" },
               { id: "mm-db", label: "PostgreSQL", detail: "Managed", kind: "store" },
               { id: "mm-preview", label: "Editor preview", detail: "Viewport, audience, market" },
             ],
@@ -1275,6 +1359,18 @@ export const blueprintContent: BlueprintContent = {
             isExternal: true,
             place: { col: 3, row: 2 },
             nodes: [{ id: "mm-old", label: "Legacy CMS", detail: "Retires market by market" }],
+          },
+          {
+            id: "mm-cloud",
+            label: "Google Cloud and the edge",
+            columns: 4,
+            place: { col: 1, row: 3, colSpan: 4 },
+            nodes: [
+              { id: "mm-gke", label: "GKE", detail: "Kubernetes with Istio and Helm" },
+              { id: "mm-managed", label: "Managed PostgreSQL" },
+              { id: "mm-workers", label: "Edge workers and Varnish" },
+              { id: "mm-bigquery", label: "BigQuery and Looker Studio", detail: "Analytics" },
+            ],
           },
           {
             id: "mm-rollout",
@@ -1301,6 +1397,7 @@ export const blueprintContent: BlueprintContent = {
           { from: "mm-headless", to: "mm-db" },
           { from: "mm-headless", to: "mm-preview" },
           { from: "mm-relay", to: "mm-cms", style: "dashed" },
+          { from: "mm-store", to: "mm-cloud", label: "runs on", style: "dashed" },
         ],
       },
       wireframe: {
@@ -1348,11 +1445,11 @@ export const blueprintContent: BlueprintContent = {
     {
       id: "platform-core",
       zone: "matrix",
-      title: "My platform: a core behind adapters",
+      title: "A modular core behind adapters",
       caption: "One core package holds the business logic and the apps are thin shells. Every vendor and host sits behind an " +
         "adapter, so a provider can be added, run in parallel and switched by configuration.",
       summary: {
-        role: "Founder, CEO and CTO, and its architect",
+        role: "Proposed and built it: one core SDK that runs across back end, front end and mobile, with every vendor behind an adapter",
         scale: "Designed for enterprise volume from the first line",
         stack: ["TypeScript", "NestJS", "Next.js", "PostgreSQL", "Supabase", "Redis", "Stripe", "Cloudflare R2", "Vitest", "Playwright"],
       },
@@ -1419,11 +1516,11 @@ export const blueprintContent: BlueprintContent = {
     {
       id: "platform-money",
       zone: "matrix",
-      title: "My platform: one payment, step by step",
+      title: "One payment, step by step",
       caption: "A payment is booked twice on purpose, as two balancing ledger rows under one correlation id, and every step " +
         "can be retried safely. Money paths are tested through the real API, on synthetic data at real volume.",
       summary: {
-        role: "Founder, CEO and CTO, and its architect",
+        role: "Proposed and built the money path end to end, and the tests that prove it",
         scale: "Payments, payouts and holds across jurisdictions, in several currencies",
         stack: ["TypeScript", "NestJS", "PostgreSQL", "Stripe", "Double entry ledger", "Idempotency keys", "Supertest", "Playwright"],
       },
@@ -1546,7 +1643,7 @@ export const blueprintContent: BlueprintContent = {
       title: "Recommendations and feed ranking",
       caption: "Signals feed a model, the model scores candidates, and the feed, the suggestions and the ads are ranked by one scoring service.",
       summary: {
-        role: "Technical lead for client projects: built the models and took them live",
+        role: "Built the models and the serving path, and took them live in client products",
         scale: "Client products in production",
         stack: ["TensorFlow", "Python", "Feature pipelines", "Model serving"],
       },
@@ -1634,7 +1731,7 @@ export const blueprintContent: BlueprintContent = {
       title: "Live dealer tables with real time bets",
       caption: "Real tables streamed from casino floors to many operators' players, with a real time path that keeps bets and results in step with the video.",
       summary: {
-        role: "Frontend game engineer: the game UI, the new mobile app and real time back end logic",
+        role: "Built the game UI for every screen, the new mobile app and the real time logic behind them",
         scale: "Tables streamed from land based casinos to operators on mobile, tablet and desktop",
         stack: ["JavaScript", "Redux", "RxJS", "Redux Observables", "PixiJS", "Canvas", "Node.js", "WebSockets"],
       },
@@ -1751,7 +1848,7 @@ export const blueprintContent: BlueprintContent = {
       caption: "Games for operators where the result is decided on the server before anything spins, the client only animates " +
         "it, and every bet and win moves through the operator's wallet.",
       summary: {
-        role: "Game UI, mobile apps and real time logic for live casino, and canvas game interfaces for iGaming clients",
+        role: "Built game interfaces, mobile apps and real time logic across live casino, slots and bet tables",
         scale: "Games served to many operators' players on desktop, tablet and mobile",
         stack: ["JavaScript", "TypeScript", "PixiJS", "WebGL", "Canvas", "Node.js", "WebSockets", "Redux", "RxJS"],
       },
@@ -1888,8 +1985,8 @@ export const blueprintContent: BlueprintContent = {
       caption: "A game played on the real map: rewards spawn near the player, are caught through the camera and land in the " +
         "wallet, while location checks keep spoofers out.",
       summary: {
-        role: "Mobile core architect: the game ran inside the app, on the shared core",
-        scale: "Inside an app with 1M+ users in 160+ countries",
+        role: "Proposed and built the core the app and its game run on",
+        scale: "A game inside a large consumer app",
         stack: ["React Native", "Kotlin", "Java", "C/C++", "RxJS", "Maps", "Location services", "Camera"],
       },
       architecture: {
@@ -2013,7 +2110,7 @@ export const blueprintContent: BlueprintContent = {
       caption: "Heavy animation on phones and desktops: one loop, sprites drawn once and reused, draws batched for the GPU, " +
         "nothing allocated per frame, and profiling that finds the frame that drops.",
       summary: {
-        role: "Built canvas profiling tools, native modules for mobile and desktop, and the animation engines on this site",
+        role: "Built profiling tools for canvas rendering, native modules for mobile and desktop, and the animation engines on this site",
         scale: "Canvas and WebGL games and interfaces on phones, tablets, desktops and launchers",
         stack: ["PixiJS", "WebGL", "Canvas", "C/C++", "Electron", "React Native", "Lighthouse", "Performance traces"],
       },
@@ -2150,7 +2247,7 @@ export const blueprintContent: BlueprintContent = {
       caption: "A store and developer portal on the web, a desktop launcher and a mobile app on one back end and one design " +
         "system, with the wallet held by the launcher.",
       summary: {
-        role: "Senior full stack engineer: web and desktop architecture, and introduced the mobile app",
+        role: "Proposed and built the architecture for web and desktop, and introduced and architected the mobile app",
         scale: "A store, a developer portal, a desktop launcher and a mobile app on one back end",
         stack: ["TypeScript", "React", "Next.js", "Electron", "React Native", "Node.js", "GraphQL", "PostgreSQL", "C/C++", "Storybook"],
       },
@@ -2187,6 +2284,7 @@ export const blueprintContent: BlueprintContent = {
             nodes: [
               { id: "gl-api", label: "Platform services", detail: "Node.js, GraphQL" },
               { id: "gl-db", label: "Catalogue and accounts", kind: "store" },
+              { id: "gl-hosting", label: "Hosting", detail: "AWS and Vercel", span: 2 },
             ],
           },
           {

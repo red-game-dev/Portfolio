@@ -7,6 +7,8 @@ import { faDatabase, faUser } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useEdgeRoutes } from "@/components/Blueprint/hooks/useEdgeRoutes";
+import useWidth from "@/components/Blueprint/hooks/useWidth";
+import { minWideWidth } from "@/components/Blueprint/utils/layout";
 import { blockHash } from "@/components/Web3/utils/blockHash";
 import { ZoneId } from "@/config/zones";
 import { ArchitectureBlueprint, BlueprintGroup, BlueprintNode } from "@/types/blueprints";
@@ -22,8 +24,10 @@ interface FlavourProps {
   zone: ZoneId;
 }
 
-// Wide enough for the columns to sit side by side; below this everything stacks in reading order.
-const WIDE = "@media (min-width: 1024px)";
+// Set on the drawing once it has measured enough room for its columns to sit side by side; below that
+// everything stacks in reading order. Measured on the drawing itself, not the screen, so the same blueprint
+// works in a wide section and in a dialog.
+const WIDE = '[data-wide="true"] &';
 
 const signal = keyframes`
   from { stroke-dashoffset: 100; }
@@ -31,10 +35,11 @@ const signal = keyframes`
 `;
 
 const Diagram = styled.div(() => [
-  tw`relative grid grid-cols-1 gap-[26px] lg:gap-[34px]`,
+  tw`relative grid grid-cols-1 gap-[26px]`,
   css`
-    ${WIDE} {
+    &[data-wide="true"] {
       grid-template-columns: repeat(var(--bp-cols), minmax(0, 1fr));
+      gap: 34px;
     }
   `,
 ]);
@@ -85,7 +90,7 @@ const groupFlavour = (zone: ZoneId) => {
 
 const Group = styled.div(({ zone, hasFrame, isExternal }: FlavourProps & { hasFrame: boolean; isExternal: boolean }) => [
   tw`relative flex flex-col min-w-0`,
-  hasFrame && tw`p-[12px] pt-[30px] border-[1px] border-solid border-[#2a2a2a] bg-[rgba(255, 255, 255, 0.015)]`,
+  hasFrame && tw`p-[12px] border-[1px] border-solid border-[#2a2a2a] bg-[rgba(255, 255, 255, 0.015)]`,
   hasFrame && isExternal && tw`border-dashed border-[#3a3a3a]`,
   hasFrame && groupFlavour(zone),
   css`
@@ -96,7 +101,8 @@ const Group = styled.div(({ zone, hasFrame, isExternal }: FlavourProps & { hasFr
   `,
 ]);
 
-const GroupLabel = tw.span`absolute top-[8px] left-[12px] right-[12px] text-[11px] font-semibold text-[var(--accent)] truncate`;
+// In the flow rather than pinned, so a long label wraps instead of being cut off.
+const GroupLabel = tw.span`block mb-[10px] text-[11px] font-semibold leading-snug text-[var(--accent)]`;
 
 const Nodes = styled.div(() => [
   tw`grid gap-[10px] h-full content-center`,
@@ -183,8 +189,12 @@ const KindIcon = tw.span`text-[var(--accent)] text-[11px]`;
 const Diamond = tw.span`inline-block w-[7px] h-[7px] rotate-45 bg-[var(--accent)]`;
 
 const Wires = styled.svg(({ isMoving }: { isMoving: boolean }) => [
-  tw`hidden lg:block absolute top-0 left-0 z-0 pointer-events-none overflow-visible`,
+  tw`hidden absolute top-0 left-0 z-0 pointer-events-none overflow-visible`,
   css`
+    ${WIDE} {
+      display: block;
+    }
+
     .wire {
       fill: none;
       stroke: var(--accent-muted);
@@ -253,6 +263,8 @@ const KIND_ICONS = { store: faDatabase, actor: faUser };
 export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edges, isShown, isMoving }: ArchitectureProps) => {
   const diagramRef = useRef<HTMLDivElement>(null);
   const layout = useEdgeRoutes(diagramRef, edges, isShown);
+  const width = useWidth(diagramRef);
+  const isWide = width >= minWideWidth({ columns, groups, edges });
   const markerId = `bp-arrow-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const names = useMemo(() => new Map(groups.flatMap((group) => [
     [group.id, group.label ?? ""] as const,
@@ -260,7 +272,7 @@ export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edg
   ])), [groups]);
 
   return (
-    <Diagram ref={diagramRef} style={{ "--bp-cols": columns } as React.CSSProperties}>
+    <Diagram ref={diagramRef} data-wide={isWide} style={{ "--bp-cols": columns } as React.CSSProperties}>
       <Wires isMoving={isMoving} width={layout.width} height={layout.height} aria-hidden="true">
         <defs>
           <marker id={markerId} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">

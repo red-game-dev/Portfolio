@@ -299,7 +299,7 @@ export const RegionDialog: FC<RegionDialogProps> = ({
                 ))}
               </Stats>
               {project.deepDive.note && <DeepNote>{project.deepDive.note}</DeepNote>}
-              <Blueprint key={project.title} {...project.deepDive.blueprint} labels={blueprintLabels} />
+              <Blueprint key={project.title} {...project.deepDive.blueprint} labels={blueprintLabels} isBleed={false} />
             </Deep>
           )}
           <Footer>

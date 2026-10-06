@@ -148,7 +148,7 @@ export const portfolioData: PortfolioData = {
   headline: {
     lines: [
       "Software architect who ships with AI agents. Payments, ledgers and platform architecture.",
-      "Open to architect, lead and AI engineering roles, full time or B2B.",
+      "Open to architect, engineering leadership, product, blockchain and AI engineering roles, full time or B2B.",
     ],
     availability: "Maltese citizen, EU work rights, open to relocation, available now.",
     cvLabel: "Download CV",
@@ -164,7 +164,11 @@ export const portfolioData: PortfolioData = {
       { label: "Enterprise Architect", target: "for-enterprise-architecture" },
       { label: "AI engineering", target: "for-ai-engineering" },
       { label: "Payments", target: "for-payments" },
+      { label: "Head of Engineering", target: "for-leadership" },
+      { label: "VP of Engineering", target: "for-leadership" },
       { label: "Technical leadership", target: "for-leadership" },
+      { label: "Product Engineer", target: "for-product-engineering" },
+      { label: "Blockchain Engineer", target: "for-web3" },
       { label: "Full stack", target: "for-full-stack" },
       { label: "Web3", target: "for-web3" },
       { label: "Games and real time", target: "for-games" },
@@ -550,15 +554,15 @@ export const portfolioData: PortfolioData = {
     roster: {
       title: "Characters I Play",
       description: [
-        `Every role I have held, as a character in my own party. Level is the years in that role, measured from real dates.
-        Stats are my own scores.`,
+        `The roles I play, as characters in my own party, each with the job titles it covers. Level is the years in that role,
+        measured from real dates. Stats are my own scores.`,
       ],
       lenses: {
         recruiter: [
-          "Every role I have held, with the years in each, measured from real dates.",
+          "The roles I play, from architect and CTO to product and blockchain engineer, with the years in each, measured from real dates.",
         ],
         product: [
-          "The roles I have held, product ones included: CEO and Product Owner as well as architect, with the years in each.",
+          "The roles I play, product ones included: CEO, Product Owner and product engineer as well as architect, with the years in each.",
         ],
       },
     },
@@ -587,13 +591,14 @@ export const portfolioData: PortfolioData = {
     blockchain and platforms used by millions, and founded companies of my own along the way.`,
     paragraphs: [
       `I am a software architect with 15+ years in the industry, most of them leading: CEO and CTO of my own social network and MMORPG,
-      CTO at CoinOn, then architect and tech lead at Chiliz and Conrad. I design systems that are not tied to a vendor or a framework,
+      co-founder and CTO of CoinOn, then architect and tech lead at Chiliz and Conrad. I design systems that are not tied to a vendor or a framework,
       and I stay hands on while I do it.`,
       `I build with AI agents. I write the rules, the context and the checks they work within, and a person reviews every change. The
       "How I use AI" section shows what that looks like day to day.`,
       `I have worked across e-commerce, payments, iGaming, game publishing and Web3, on the engineering side and on the business side.
       That is why I can be useful to a CTO in the morning and to a marketing team in the afternoon.`,
-      "I am looking for an architect, technical leadership or AI engineering role where the problems are hard and the standards are high.",
+      `I am looking for an architect, head or VP of engineering, product engineering, blockchain or AI engineering role where the
+      problems are hard and the standards are high.`,
     ],
     proof: [
       { value: "20+", label: "years writing software, since I was 7" },
@@ -1282,7 +1287,9 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      title: "Chief Technology Officer, CoinOn",
+      title: "Co-founder & CTO, CoinOn",
+      ventureRole: "Co-founder and CTO",
+      isVenture: true,
       industries: ["web3"],
       from: "Nov 2021",
       productOutcome:
@@ -2308,6 +2315,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "CTO",
+        titles: ["Chief Technology Officer", "Head of Engineering", "VP of Engineering"],
         icon: faChessKnight,
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
@@ -2350,6 +2358,37 @@ export const portfolioData: PortfolioData = {
           { name: "Enterprise Architecture", value: 90 },
         ],
         abilities: ["C4 and ADRs", "Adapters", "Migrations", "Scale design"],
+      },
+      {
+        characterClass: "Product Engineer",
+        icon: faRocketLaunch,
+        tenures: [
+          { company: "Gods of Zushin", from: "Apr 2015" },
+          { company: "reNFT", from: "Jan 2023", to: "Aug 2023" },
+          { company: "HyperPlay", from: "Oct 2023", to: "Nov 2025" },
+          { company: "Own products", from: "2021" },
+        ],
+        stats: [
+          { name: "Frontend Engineer", value: 100 },
+          { name: "Backend Engineer", value: 75 },
+        ],
+        abilities: ["End to end features", "Zero to one", "Design systems", "Shipping with AI agents"],
+      },
+      {
+        characterClass: "Blockchain Engineer",
+        icon: faCubes,
+        tenures: [
+          { company: "Chiliz", from: "Nov 2019", to: "Nov 2022" },
+          { company: "CoinOn", from: "Nov 2021", to: "Jan 2022" },
+          { company: "reNFT", from: "Jan 2023", to: "Aug 2023" },
+          { company: "HyperPlay", from: "Oct 2023", to: "Nov 2025" },
+          { company: "Own products", from: "2021" },
+        ],
+        stats: [
+          { name: "Platform Engineering", value: 85 },
+          { name: "Encryption & Compression", value: 80 },
+        ],
+        abilities: ["Smart contracts", "Exchanges and tokens", "Wallets and indexers", "Bridges"],
       },
       {
         characterClass: "Tech Lead",
@@ -2564,7 +2603,7 @@ export const portfolioData: PortfolioData = {
         "Built moderation tools, analytics dashboards and live patching",
         "Led moderators, event coordinators, testers and developers as CEO and CTO",
       ],
-      techStack: ["C/C++", "Boost", "ACE", "Lua", "Python", "VueJS", "PHP Laravel", "C#", "Electron (Old Launcher)", "Cloudflare", "DigitalOcean", "AWS",
+      techStack: ["C/C++", "Boost", "ACE", "Lua", "Python", "VueJS", "PHP Laravel", "C#", "Electron (Old Launcher)", "OVH Cloud", "Cloudflare", "DigitalOcean", "AWS",
         "Shopify"],
       link: "https://goz.fun",
       deepDive: {
@@ -3257,7 +3296,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Stablecoins",
-        detail: "Stablecoin work as CTO, for clients, and on my own platform.",
+        detail: "Stablecoin work as co-founder and CTO, for clients, and on my own platform.",
         places: ["CoinOn", "Client work", "Own platform"],
       },
       {
@@ -3417,7 +3456,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         name: "Leading teams",
-        detail: "7 product squads and 30+ engineers at Chiliz, 10+ people as CTO at CoinOn, architecture across 90+ people at Conrad.",
+        detail: "7 product squads and 30+ engineers at Chiliz, 10+ people as co-founder and CTO at CoinOn, architecture across 90+ people at Conrad.",
         places: ["Chiliz", "CoinOn", "Conrad"],
       },
     ],

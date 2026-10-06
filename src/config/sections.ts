@@ -31,6 +31,7 @@ export const ROLE_ANCHORS = {
   games: "for-games",
   web3: "for-web3",
   enterprise: "for-enterprise-architecture",
+  product: "for-product-engineering",
 } as const;
 
 // #industry-fintech and so on filter My History and the boss fights to one sector.

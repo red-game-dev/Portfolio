@@ -1,3 +1,4 @@
+import { minWideWidth } from "@/components/Blueprint/utils/layout";
 import { isLens, LENS_SETTINGS, LENS_STAT_MAX, LENSES } from "@/config/lenses";
 import { AUDIENCE_ANCHORS, industryAnchor, ROLE_ANCHORS } from "@/config/sections";
 import { portfolioData } from "@/data/resume";
@@ -123,6 +124,10 @@ describe("blueprints", () => {
     const named = blueprints.filter((blueprint) => EMPLOYERS.some((name) => JSON.stringify(blueprint).includes(name)));
 
     expect(named.map((blueprint) => blueprint.id)).toEqual([]);
+  });
+
+  test("every drawing fits side by side in 800px, the room a dialog has, so no label breaks inside a word", () => {
+    expect(blueprints.filter((blueprint) => minWideWidth(blueprint.architecture) > 800).map((blueprint) => blueprint.id)).toEqual([]);
   });
 
   test("every blueprint gives recruiters a role, a scale and a stack, and every journey has steps", () => {

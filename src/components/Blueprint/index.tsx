@@ -11,11 +11,24 @@ import { Blueprint as BlueprintContent, BlueprintJourney, BlueprintLabels } from
 
 interface BlueprintProps extends BlueprintContent {
   labels: BlueprintLabels;
+  // In a section the drawing takes more room than the text column on wide screens; in a dialog it stays inside.
+  isBleed?: boolean;
 }
 
 type View = "overview" | "architecture" | "flow";
 
-const Figure = tw.figure`m-0 flex flex-col gap-[16px] p-[18px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
+// Up to 1200px wide on large screens, centred on the column, so four frames of boxes fit without squeezing.
+const BLEED = "calc((100% - min(1200px, 100vw - 64px)) / 2)";
+
+const Figure = styled.figure(({ isBleed }: { isBleed: boolean }) => [
+  tw`m-0 flex flex-col gap-[16px] p-[18px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
+  isBleed && css`
+    @media (min-width: 1024px) {
+      margin-left: ${BLEED};
+      margin-right: ${BLEED};
+    }
+  `,
+]);
 
 const Head = tw.div`flex flex-col gap-[6px]`;
 
@@ -116,7 +129,9 @@ const JourneyList: FC<{ journeys: BlueprintJourney[] }> = ({ journeys }) => (
 
 // One system shown three ways: what I did and at what scale, how it is built, and what a user moves
 // through. All three stay in the page for every reader; only which one is open changes with the view.
-export const Blueprint: FC<BlueprintProps> = ({ zone, title, caption, summary, architecture, wireframe, journeys = [], labels }: BlueprintProps) => {
+export const Blueprint: FC<BlueprintProps> = ({
+  zone, title, caption, summary, architecture, wireframe, journeys = [], labels, isBleed = true,
+}: BlueprintProps) => {
   const { lens, settings } = useLensStateHook();
   const hasFlow = Boolean(wireframe) || journeys.length > 0;
   const [view, setView] = useState<View>(() => defaultView(lens, hasFlow));
@@ -138,7 +153,7 @@ export const Blueprint: FC<BlueprintProps> = ({ zone, title, caption, summary, a
   ];
 
   return (
-    <Figure ref={figureRef}>
+    <Figure ref={figureRef} isBleed={isBleed}>
       <Head>
         <Title>{title}</Title>
         <Caption>{caption}</Caption>

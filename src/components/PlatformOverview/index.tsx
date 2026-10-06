@@ -73,9 +73,9 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
     <Panel>
       <PanelTitle>{expertise.exampleTitle}</PanelTitle>
       <PanelText>{expertise.exampleDescription}</PanelText>
-      <Example>
-        <BlueprintList blueprints={blueprints} labels={blueprintLabels} />
-      </Example>
     </Panel>
+    <Example>
+      <BlueprintList blueprints={blueprints} labels={blueprintLabels} />
+    </Example>
   </Section>
 );

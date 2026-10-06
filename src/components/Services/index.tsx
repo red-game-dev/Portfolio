@@ -6,6 +6,7 @@ import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel, PanelTitle } from "@/components/Panel";
 import { ServiceCard } from "@/components/Services/ServiceCard";
 import { SectionText } from "@/components/Text/SectionText";
+import { ROLE_ANCHORS } from "@/config/sections";
 import { SectionIntros } from "@/types/sections-intros";
 import { ServiceActions, ServiceGroup } from "@/types/services";
 
@@ -21,6 +22,9 @@ interface ServicesProps {
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
+// Target for the "Product Engineer" link on the first screen.
+const Anchor = tw.span`absolute top-0 left-0`;
+
 const Groups = tw.div`flex flex-col gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[35px]`;
 
 const Cards = tw.div`grid gap-[18px] lg:grid-cols-2`;
@@ -34,6 +38,7 @@ export const Services: FC<ServicesProps> = ({ intro, groups, actions, email, lin
 
   return (
     <Section id="section-services">
+      <Anchor id={ROLE_ANCHORS.product} aria-hidden="true" />
       <SectionText intro={intro} />
       <Groups>
         {ordered.map((group) => (

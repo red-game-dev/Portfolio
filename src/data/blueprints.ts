@@ -8,11 +8,12 @@ export const GOZ_BLUEPRINT: Blueprint = {
   id: "goz-engine",
   zone: "mmo",
   title: "An MMORPG, from engine to live operations",
-  caption: "My own game: an engine in C/C++ with my own framework and physics, a split set of game services, and the web, payments and operations around them.",
+  caption: "My own game, built from scratch: the engine and the servers in C/C++ with my own framework and physics, Boost " +
+    "and ACE as general libraries, and the web, payments and operations around them.",
   summary: {
-    role: "Founder, CEO and CTO: engine, servers, launcher, payments, operations and marketing",
+    role: "Founder, CEO and CTO: built the engine and servers from scratch, then the launcher, payments, operations and marketing",
     scale: "8M+ registered accounts, and 50k active players at its peak, before mobile games took the share",
-    stack: ["C/C++", "Boost", "ACE", "Own framework", "Lua", "Python", "C#", "Laravel", "Vue", "OVH", "Cloudflare"],
+    stack: ["C/C++", "Own engine and framework", "Own physics", "Boost and ACE libraries", "Lua", "Python", "C#", "Laravel", "Vue", "OVH", "Cloudflare"],
   },
   architecture: {
     columns: 4,
@@ -23,7 +24,7 @@ export const GOZ_BLUEPRINT: Blueprint = {
         place: { col: 1, row: 1, rowSpan: 2 },
         nodes: [
           { id: "goz-launcher", label: "Launcher", detail: "C#, replaced an Electron one" },
-          { id: "goz-client", label: "Game client", detail: "C/C++, own framework and physics" },
+          { id: "goz-client", label: "Game client", detail: "Own engine, framework and physics in C/C++" },
           { id: "goz-crypto", label: "Own cryptography", detail: "And compression on the wire", kind: "note" },
         ],
       },
@@ -48,7 +49,7 @@ export const GOZ_BLUEPRINT: Blueprint = {
       },
       {
         id: "goz-game",
-        label: "Game services on OVH dedicated servers, built for low latency",
+        label: "Game services, built from scratch for low latency, on OVH dedicated servers",
         place: { col: 3, row: 1, rowSpan: 2 },
         nodes: [
           { id: "goz-auth", label: "Auth front", detail: "Login throttling" },
@@ -162,10 +163,11 @@ export const AMW_BLUEPRINT: Blueprint = {
   id: "amw-social",
   zone: "mmo",
   title: "A social network with an economy and an RPG",
-  caption: "A social network for anime, manga, cosplay and gaming fans, where taking part earned points that levelled up your own RPG character.",
+  caption: "A social network for anime, manga, cosplay and gaming fans: a feed with stories and videos, diaries and " +
+    "crews, manga to read and anime to watch, and a character of your own, all running on one currency earned by taking part.",
   summary: {
-    role: "Founder, CEO and CTO: the product, the engines and the community",
-    scale: "About 10M users, 3M+ of them active",
+    role: "Founder, CEO and CTO: proposed and built the product, its engines and its economy, and ran the community",
+    scale: "10M+ registered, 3M+ active",
     stack: ["PHP", "My own PHP and JS frameworks", "Python", "JavaScript", "WebGL and Canvas", "C++", "Lua"],
   },
   architecture: {
@@ -177,7 +179,7 @@ export const AMW_BLUEPRINT: Blueprint = {
         place: { col: 1, row: 1 },
         nodes: [
           { id: "amw-ui", label: "Web app", detail: "HTML and JavaScript" },
-          { id: "amw-gfx", label: "Canvas and WebGL", detail: "Avatars and RPG scenes" },
+          { id: "amw-gfx", label: "Canvas and WebGL", detail: "Characters and scenes" },
         ],
       },
       {
@@ -186,30 +188,29 @@ export const AMW_BLUEPRINT: Blueprint = {
         place: { col: 2, row: 1 },
         nodes: [
           { id: "amw-lb", label: "Load balancer" },
-          { id: "amw-php", label: "PHP application", detail: "Profiles, posts, forums" },
+          { id: "amw-php", label: "PHP application", detail: "Profiles, posts, diaries, crews, forums" },
           { id: "amw-py", label: "Python services", detail: "Feeds and jobs" },
           { id: "amw-chat", label: "Chat and presence" },
         ],
       },
       {
-        id: "amw-economy",
-        label: "Economy",
+        id: "amw-content",
+        label: "Content",
         place: { col: 3, row: 1 },
         nodes: [
-          { id: "amw-points", label: "Points engine", detail: "Earned on interactions" },
-          { id: "amw-auction", label: "Auction house", detail: "Virtual items" },
-          { id: "amw-ads", label: "Ads system", detail: "Self serve, targeted" },
-          { id: "amw-rpg", label: "RPG characters", detail: "Levels and enhancements" },
+          { id: "amw-stories", label: "Stories and videos" },
+          { id: "amw-anime", label: "Anime streaming", detail: "Fillers marked, skippable" },
+          { id: "amw-manga", label: "Manga reader", detail: "Interactive book mode" },
         ],
       },
       {
         id: "amw-data",
         label: "Data",
-        place: { col: 4, row: 1 },
+        place: { col: 4, row: 1, rowSpan: 2 },
         nodes: [
           { id: "amw-db", label: "Relational database", kind: "store" },
           { id: "amw-cache", label: "Cache", kind: "store" },
-          { id: "amw-media", label: "Media storage", detail: "Artwork, cosplay, fan fiction" },
+          { id: "amw-media", label: "Media storage", detail: "Artwork, cosplay, video" },
         ],
       },
       {
@@ -222,16 +223,27 @@ export const AMW_BLUEPRINT: Blueprint = {
           { id: "amw-wire", label: "Own cryptography", detail: "And compression" },
         ],
       },
+      {
+        id: "amw-economy",
+        label: "Economy",
+        place: { col: 3, row: 2 },
+        nodes: [
+          { id: "amw-berries", label: "Berries", detail: "Earned by taking part, spent everywhere" },
+          { id: "amw-items", label: "Items and inventory" },
+          { id: "amw-auction", label: "Auction house" },
+          { id: "amw-ads", label: "Ads system", detail: "Self serve, targeted" },
+          { id: "amw-characters", label: "Characters", detail: "Mixed from many anime, levelled up" },
+        ],
+      },
     ],
     edges: [
       { from: "amw-ui", to: "amw-lb" },
       { from: "amw-lb", to: "amw-php" },
-      { from: "amw-php", to: "amw-points" },
-      { from: "amw-points", to: "amw-auction" },
-      { from: "amw-points", to: "amw-rpg" },
-      { from: "amw-php", to: "amw-ads" },
+      { from: "amw-php", to: "amw-content" },
+      { from: "amw-php", to: "amw-economy" },
       { from: "amw-php", to: "amw-db" },
       { from: "amw-py", to: "amw-cache" },
+      { from: "amw-content", to: "amw-media" },
       { from: "amw-gfx", to: "amw-gameengine" },
       { from: "amw-gameengine", to: "amw-wire" },
     ],
@@ -240,61 +252,98 @@ export const AMW_BLUEPRINT: Blueprint = {
     device: "desktop",
     screens: [
       {
-        title: "Feed and profile",
+        title: "Feed",
         regions: [
-          { kind: "bar", label: "Points balance and level" },
-          { kind: "card", label: "Profile with avatar and RPG stats" },
-          { kind: "list", label: "Posts, artwork and forum activity", size: 2 },
-          { kind: "list", label: "Auctions ending soon, promoted items" },
+          { kind: "steps", label: "Stories", size: 0.7 },
+          { kind: "list", label: "Posts, videos, artwork and forum activity", size: 2 },
+          { kind: "card", label: "Auctions ending soon and promoted items" },
+        ],
+      },
+      {
+        title: "Diary",
+        regions: [
+          { kind: "form", label: "A new entry, and who can read it" },
+          { kind: "list", label: "Entries by date, with comments", size: 2 },
+        ],
+      },
+      {
+        title: "Ship crew",
+        regions: [
+          { kind: "media", label: "Crew banner and flag" },
+          { kind: "list", label: "Members and their roles" },
+          { kind: "list", label: "Crew posts", size: 1.4 },
+          { kind: "actions", label: "Join or leave" },
+        ],
+      },
+      {
+        title: "Read manga",
+        regions: [
+          { kind: "canvas", label: "The page, turned like a book", size: 2.4 },
+          { kind: "bar", label: "Chapter and progress" },
+          { kind: "actions", label: "Previous page, next page, chapters" },
+        ],
+      },
+      {
+        title: "Watch anime",
+        regions: [
+          { kind: "media", label: "The episode", size: 2.4 },
+          { kind: "bar", label: "Skip fillers: on" },
+          { kind: "list", label: "Episodes, fillers marked" },
+        ],
+      },
+      {
+        title: "Build your character",
+        regions: [
+          { kind: "canvas", label: "Your character, mixed from many anime", size: 2 },
+          { kind: "list", label: "Hair, outfit and gear from different series" },
+          { kind: "steps", label: "Level and enhancements" },
+        ],
+      },
+      {
+        title: "Items and berries",
+        regions: [
+          { kind: "stat", label: "Berries balance" },
+          { kind: "list", label: "Inventory", size: 1.4 },
+          { kind: "list", label: "Ways to earn: posting, reading, watching, taking part" },
+          { kind: "actions", label: "Use, sell at auction, buy" },
         ],
       },
       {
         title: "Auction",
         regions: [
           { kind: "media", label: "Item and rarity", size: 1.5 },
-          { kind: "stat", label: "Current bid and time left" },
+          { kind: "stat", label: "Current bid in berries, time left" },
           { kind: "form", label: "Your bid" },
           { kind: "list", label: "Bid history, related items" },
         ],
       },
-      {
-        title: "Ad manager",
-        regions: [
-          { kind: "form", label: "Campaign and audience filters", size: 1.5 },
-          { kind: "stat", label: "Budget in points or money" },
-          { kind: "card", label: "Creative preview" },
-          { kind: "list", label: "Results" },
-        ],
-      },
-      {
-        title: "Character",
-        regions: [
-          { kind: "canvas", label: "Avatar scene", size: 2 },
-          { kind: "steps", label: "Level and enhancements" },
-          { kind: "actions", label: "Equip, or buy an enhancement with points" },
-        ],
-      },
     ],
-    decision: "Every interaction earned points, and points bought enhancements, auction items and promotion, so taking part was the game.",
-    outcome: "About 10M users, 3M+ active, on a stack I built mostly myself.",
+    decision: "Every way of taking part earned berries, and berries bought items, enhancements, auction lots and promotion, so being active was the game.",
+    outcome: "10M+ registered and 3M+ active, on a stack I built mostly myself.",
   },
   journeys: [
     {
+      title: "A fan's evening",
+      steps: [
+        "Watches an episode, skipping the fillers",
+        "Reads the next manga chapter in book mode",
+        "Writes a diary entry and posts to the crew",
+        "Earns berries for all of it",
+        "Buys a piece of gear for a character mixed from different anime",
+      ],
+    },
+    {
       title: "A creator",
       steps: [
-        "Posts artwork",
-        "Earns points from reactions and comments",
+        "Posts artwork or a video",
+        "Earns berries from reactions and comments",
         "Lists an item at auction",
         "Spends the proceeds on a character enhancement",
       ],
     },
     {
       title: "An advertiser",
-      steps: [
-        "Creates a campaign and picks an audience",
-        "Sets a budget in points or money",
-        "Watches impressions and clicks, then tops up",
-      ],
+      steps: ["Creates a campaign and picks an audience", "Sets a budget in berries or money", "Watches impressions and clicks, then tops up"],
     },
   ],
 };

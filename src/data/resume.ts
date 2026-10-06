@@ -2596,7 +2596,7 @@ export const portfolioData: PortfolioData = {
       intro: `My own MMORPG, started during my studies and still patched today: a custom engine, its own client and server, payments,
       and a community grown with paid campaigns.`,
       responsibilities: [
-        "Built the engine in C/C++ with my own framework and physics, on Boost and ACE, for low latency multiplayer",
+        "Built the engine and the servers from scratch in C/C++, with my own framework and physics, for low latency multiplayer; Boost and ACE as general libraries",
         "Wrote custom cryptography and compression for client and server traffic, with anti tamper account and inventory systems",
         "Added Stripe and PayPal for in game purchases and subscriptions, and a branded merchandise store",
         "Grew the community with campaigns on Facebook, YouTube, Twitch, Reddit and Instagram",
@@ -2663,8 +2663,10 @@ export const portfolioData: PortfolioData = {
       intro: `A social network for anime, manga, cosplay and gaming fans, started when I began studying at MCAST and rebuilt from
       scratch in 2015, where taking part levelled up your own RPG character.`,
       responsibilities: [
-        "Profiles, forums, chat rooms and publishing for artwork, fan fiction and cosplay",
-        "A points economy that levelled up customisable RPG characters",
+        "A feed like the big social networks, with stories and videos, plus profiles, forums, chat rooms and publishing for artwork, fan fiction and cosplay",
+        "Diaries and ship crews for fans to write and sail together",
+        "An interactive manga reader in book mode, and anime streaming that could skip the fillers",
+        "Characters built from a mix of anime, levelled up with items, in an economy of berries earned by taking part",
         "An auction house for virtual items and a self serve ads system",
         "Custom engines in C++ and Lua, with custom cryptography and compression",
         "Grew and ran the community and its moderators as CEO and CTO",
@@ -2674,7 +2676,7 @@ export const portfolioData: PortfolioData = {
       link: "https://drive.google.com/drive/folders/1jN-Xhfiro3UJppRLVehG8UIytjFJVVtl?usp=share_link",
       deepDive: {
         stats: [
-          { value: "~10M", label: "users" },
+          { value: "10M+", label: "registered users" },
           { value: "3M+", label: "active users" },
           { value: "2015", label: "rebuilt from scratch" },
         ],

@@ -162,14 +162,15 @@ export const GOZ_BLUEPRINT: Blueprint = {
 
 export const AMW_BLUEPRINT: Blueprint = {
   id: "amw-social",
+  tab: "Social network",
   zone: "mmo",
   title: "A social network with an economy and an RPG",
-  caption: "A social network for anime, manga, cosplay and gaming fans: a feed with stories and videos, diaries and " +
-    "crews, manga to read and anime to watch, and a character of your own, all running on one currency earned by taking part.",
+  caption: "A social network for anime, manga, cosplay and gaming fans: a feed with videos, diaries, guilds and ship " +
+    "crews, anime to watch and manga to read as a real book, a wiki, forums and chat, and a character of your own, all on one currency earned by taking part.",
   summary: {
-    role: "Founder, CEO and CTO: proposed and built the product, its engines and its economy, and ran the community",
-    scale: "10M+ registered, 3M+ active",
-    stack: ["PHP", "My own PHP and JS frameworks", "Python", "JavaScript", "WebGL and Canvas", "C++", "Lua"],
+    role: "Founder, CEO and CTO: proposed and built the product, its frameworks, engines and economy, and ran the community",
+    scale: "10M+ registered, 3M+ active, on servers I ran by hand and tuned to the bone",
+    stack: ["PHP", "My own PHP framework", "My own JS framework", "Python", "JavaScript", "WebGL and Canvas", "C++", "Lua", "PayPal"],
   },
   architecture: {
     columns: 4,
@@ -179,19 +180,20 @@ export const AMW_BLUEPRINT: Blueprint = {
         label: "Browser",
         place: { col: 1, row: 1 },
         nodes: [
-          { id: "amw-ui", label: "Web app", detail: "HTML and JavaScript" },
+          { id: "amw-ui", label: "Web app", detail: "On my own JS framework" },
           { id: "amw-gfx", label: "Canvas and WebGL", detail: "Characters and scenes" },
+          { id: "amw-notify", label: "Notifications", detail: "Mini messages on activity" },
         ],
       },
       {
         id: "amw-web",
-        label: "Web tier",
+        label: "Servers, run by hand",
         place: { col: 2, row: 1 },
         nodes: [
-          { id: "amw-lb", label: "Load balancer" },
-          { id: "amw-php", label: "PHP application", detail: "Profiles, posts, diaries, crews, forums" },
+          { id: "amw-regions", label: "Servers per region", detail: "Switched by hand: no load balancers back then" },
+          { id: "amw-php", label: "PHP application", detail: "On my own PHP framework, tuned to the bone" },
           { id: "amw-py", label: "Python services", detail: "Feeds and jobs" },
-          { id: "amw-chat", label: "Chat and presence" },
+          { id: "amw-chat", label: "Chat channels", detail: "World chat and language chats" },
         ],
       },
       {
@@ -199,9 +201,10 @@ export const AMW_BLUEPRINT: Blueprint = {
         label: "Content",
         place: { col: 3, row: 1 },
         nodes: [
-          { id: "amw-stories", label: "Stories and videos" },
-          { id: "amw-anime", label: "Anime streaming", detail: "Fillers marked, skippable" },
-          { id: "amw-manga", label: "Manga reader", detail: "Interactive book mode" },
+          { id: "amw-animebook", label: "AnimeBook", detail: "Friends, timeline, diary, sharing" },
+          { id: "amw-anime", label: "Anime and video streaming", detail: "Fillers marked, skippable" },
+          { id: "amw-manga", label: "Manga reader", detail: "Read as a real book" },
+          { id: "amw-community", label: "Wiki, forums and galleries" },
         ],
       },
       {
@@ -229,17 +232,18 @@ export const AMW_BLUEPRINT: Blueprint = {
         label: "Economy",
         place: { col: 3, row: 2 },
         nodes: [
-          { id: "amw-berries", label: "Berries", detail: "Earned by taking part, spent everywhere" },
-          { id: "amw-items", label: "Items and inventory" },
+          { id: "amw-berries", label: "Berries", detail: "Earned by taking part, not bought" },
+          { id: "amw-shop", label: "Shop and rank upgrades" },
           { id: "amw-auction", label: "Auction house" },
-          { id: "amw-ads", label: "Ads system", detail: "Self serve, targeted" },
-          { id: "amw-characters", label: "Characters", detail: "Mixed from many anime, levelled up" },
+          { id: "amw-enhance", label: "Item enhancement", detail: "Any item, no limit" },
+          { id: "amw-characters", label: "Characters", detail: "Hybrid classes across anime, random elements" },
+          { id: "amw-ships", label: "Crew ships", detail: "Levelled for stat bonuses" },
         ],
       },
     ],
     edges: [
-      { from: "amw-ui", to: "amw-lb" },
-      { from: "amw-lb", to: "amw-php" },
+      { from: "amw-ui", to: "amw-regions" },
+      { from: "amw-regions", to: "amw-php" },
       { from: "amw-php", to: "amw-content" },
       { from: "amw-php", to: "amw-economy" },
       { from: "amw-php", to: "amw-db" },
@@ -253,33 +257,33 @@ export const AMW_BLUEPRINT: Blueprint = {
     device: "desktop",
     screens: [
       {
-        title: "Feed",
+        title: "AnimeBook",
         regions: [
-          { kind: "steps", label: "Stories", size: 0.7 },
-          { kind: "list", label: "Posts, videos, artwork and forum activity", size: 2 },
-          { kind: "card", label: "Auctions ending soon and promoted items" },
+          { kind: "list", label: "Posts, videos, artwork and forum activity", size: 2.2 },
+          { kind: "card", label: "Friends and notifications" },
+          { kind: "card", label: "Auctions ending soon" },
         ],
       },
       {
         title: "Diary",
         regions: [
-          { kind: "form", label: "A new entry, and who can read it" },
-          { kind: "list", label: "Entries by date, with comments", size: 2 },
+          { kind: "form", label: "A new timeline entry, and who can read it" },
+          { kind: "list", label: "Entries by date, with comments and favourites", size: 2 },
         ],
       },
       {
-        title: "Ship crew",
+        title: "Guild and ship crew",
         regions: [
           { kind: "media", label: "Crew banner and flag" },
           { kind: "list", label: "Members and their roles" },
-          { kind: "list", label: "Crew posts", size: 1.4 },
+          { kind: "steps", label: "The crew's ship, levelled for stat bonuses" },
           { kind: "actions", label: "Join or leave" },
         ],
       },
       {
         title: "Read manga",
         regions: [
-          { kind: "canvas", label: "The page, turned like a book", size: 2.4 },
+          { kind: "canvas", label: "The page, turned like a real book", size: 2.4 },
           { kind: "bar", label: "Chapter and progress" },
           { kind: "actions", label: "Previous page, next page, chapters" },
         ],
@@ -293,58 +297,53 @@ export const AMW_BLUEPRINT: Blueprint = {
         ],
       },
       {
+        title: "Wiki and forums",
+        regions: [
+          { kind: "bar", label: "Search the wiki" },
+          { kind: "list", label: "Articles and forum threads", size: 2 },
+          { kind: "card", label: "World chat" },
+        ],
+      },
+      {
         title: "Build your character",
         regions: [
           { kind: "canvas", label: "Your character, mixed from many anime", size: 2 },
-          { kind: "list", label: "Hair, outfit and gear from different series" },
-          { kind: "steps", label: "Level and enhancements" },
+          { kind: "list", label: "Classes and abilities, hybrids allowed, a random element" },
+          { kind: "steps", label: "Level, with no cap" },
         ],
       },
       {
         title: "Items and berries",
         regions: [
           { kind: "stat", label: "Berries balance" },
-          { kind: "list", label: "Inventory", size: 1.4 },
+          { kind: "list", label: "Inventory, each item enhanceable without limit", size: 1.4 },
           { kind: "list", label: "Ways to earn: posting, reading, watching, taking part" },
-          { kind: "actions", label: "Use, sell at auction, buy" },
-        ],
-      },
-      {
-        title: "Auction",
-        regions: [
-          { kind: "media", label: "Item and rarity", size: 1.5 },
-          { kind: "stat", label: "Current bid in berries, time left" },
-          { kind: "form", label: "Your bid" },
-          { kind: "list", label: "Bid history, related items" },
+          { kind: "actions", label: "Enhance, sell at auction, buy, upgrade rank" },
         ],
       },
     ],
-    decision: "Every way of taking part earned berries, and berries bought items, enhancements, auction lots and promotion, so being active was the game.",
-    outcome: "10M+ registered and 3M+ active, on a stack I built mostly myself.",
+    decision: "Every way of taking part earned berries, and berries bought items, enhancements, auction lots and rank upgrades, so being active was the game.",
+    outcome: "10M+ registered and 3M+ active, on frameworks and servers I built and ran myself.",
   },
   journeys: [
     {
       title: "A fan's evening",
       steps: [
         "Watches an episode, skipping the fillers",
-        "Reads the next manga chapter in book mode",
+        "Reads the next manga chapter as a real book",
         "Writes a diary entry and posts to the crew",
         "Earns berries for all of it",
-        "Buys a piece of gear for a character mixed from different anime",
+        "Enhances a piece of gear for a character mixed from different anime",
       ],
     },
     {
       title: "A creator",
       steps: [
-        "Posts artwork or a video",
-        "Earns berries from reactions and comments",
-        "Lists an item at auction",
-        "Spends the proceeds on a character enhancement",
+        "Uploads a drawing or a video",
+        "Earns berries from comments, favourites and shares",
+        "Lists an item at the auction house",
+        "Spends the proceeds on a rank upgrade",
       ],
-    },
-    {
-      title: "An advertiser",
-      steps: ["Creates a campaign and picks an audience", "Sets a budget in berries or money", "Watches impressions and clicks, then tops up"],
     },
   ],
 };

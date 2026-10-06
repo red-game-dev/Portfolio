@@ -10,6 +10,7 @@ import { Blueprint } from "@/components/Blueprint";
 import { DecodedText } from "@/components/DecodedText";
 import { Image } from "@/components/Image";
 import { KIND_COLOURS } from "@/components/Projects/config";
+import { ScreenCarousel } from "@/components/Projects/ScreenCarousel";
 import { BlueprintLabels } from "@/types/blueprints";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
 
@@ -165,18 +166,6 @@ const StatLabel = tw.span`text-xs text-[#aaa]`;
 
 const DeepNote = tw.p`m-0 text-sm text-[#bbb] max-w-[70ch]`;
 
-const Gallery = tw.ul`list-none m-0 p-0 grid gap-[10px] grid-cols-2 md:grid-cols-4`;
-
-const Shot = tw.li`flex flex-col gap-[6px] m-0`;
-
-const ShotFrame = styled.div(() => [
-  tw`relative w-full overflow-hidden bg-[#111] border-[1px] border-solid border-[#222]`,
-  css`
-    aspect-ratio: 16 / 10;
-  `,
-]);
-
-const ShotCaption = tw.span`text-xs text-[#9a9a9a]`;
 
 const Footer = tw.footer`flex flex-col md:flex-row md:items-center md:justify-between gap-[12px] p-[18px] md:p-[22px]
 border-0 border-t-[1px] border-solid border-[#1E1E1E]`;
@@ -321,22 +310,10 @@ export const RegionDialog: FC<RegionDialogProps> = ({
               {project.deepDive.screens && project.deepDive.screens.length > 0 && (
                 <>
                   <GroupHeading>{labels.screens}</GroupHeading>
-                  <Gallery>
-                    {project.deepDive.screens.map((screen) => (
-                      <Shot key={screen.image}>
-                        <ShotFrame>
-                          <ViewImage
-                            src={screen.image}
-                            alt={screen.alt}
-                            fallbackSrc={screen.image.replace(".webp", ".jpg")}
-                            fill
-                            sizes="(min-width: 768px) 220px, 50vw"
-                          />
-                        </ShotFrame>
-                        <ShotCaption>{screen.caption}</ShotCaption>
-                      </Shot>
-                    ))}
-                  </Gallery>
+                  <ScreenCarousel
+                    screens={project.deepDive.screens}
+                    labels={{ previous: labels.screenPrevious, next: labels.screenNext, position: labels.screenPosition }}
+                  />
                 </>
               )}
               <Blueprint key={project.title} {...project.deepDive.blueprint} labels={blueprintLabels} isBleed={false} />

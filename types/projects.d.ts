@@ -71,6 +71,10 @@ export interface ProjectMapContent {
     hint: string;
     deepDive: string;
     screens: string;
+    screenPrevious: string;
+    screenNext: string;
+    // "{index}" and "{count}" are replaced.
+    screenPosition: string;
     // The year badge on the map for an undated region.
     undated: string;
   };

@@ -37,9 +37,11 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `effects/binary-rain` | Falling binary rain that assembles a message, built on `frame-loop` and `graphics/canvas` |
 | `effects/pixel-reveal` | An image materialising from binary to pixels to full resolution, built on `frame-loop` and `graphics/canvas` |
 | `encoding/binary` | Text to binary, same length masks, and the frame by frame decode used for text reveals |
+| `graphics/rig` | A small sprite engine: a `RigModel` (layers back to front, each with optional bounds, cache keys and motion), skins as data, an `Animator` for one shot and repeating cues, a `RigRenderer` that paints each layer once per skin and step into a `SpriteCache` and blits it, and a `RigActor` on `frame-loop` |
 | `insights/activity` | `activityStats`: active days, day and week streaks (across years), perfect weeks, the busiest month and each year's longest run, from a contribution calendar |
 | `games/bug-raid` | A playable arcade game on `frame-loop` and `graphics/canvas`, with pointer, touch and keyboard input |
-| `games/live-table` | A live dealer round (place your bets, final bets, no more bets, results) with other players throwing face down, as a tested `LiveTableSimulation`, a `LiveTableGame` on `frame-loop` and a canvas felt renderer; and the dealer: a `DealerPainter` rig (body and head layers, outfits as data) run as a cached sprite by `LiveDealer` |
+| `games/heroes` | MMO hero classes as data (sovereign, archmage, strategist, paladin, artificer, rune knight, captain, ranger, warsmith, battlemage) on one player, painted by `HeroPainter` and run as a rig model |
+| `games/live-table` | A live dealer round (place your bets, final bets, no more bets, results) with other players throwing face down, as a tested `LiveTableSimulation`, a `LiveTableGame` on `frame-loop` and a canvas felt renderer; and the dealer as a rig model (`createDealerModel`): body and head layers, outfits as data |
 | `graphics/canvas` | `CanvasRenderer` base for DPR aware surfaces, `GlyphAtlas` for GPU friendly text drawing, and `SpriteCache`: detailed artwork painted once per frame key at device resolution and blitted after |
 | `graphics/pixel-art` | Pixel maps to one SVG path per colour, for crisp sprites at any size |
 | `insights/ai-usage` | Domain model, guard, validators, mapper and service for an AI usage breakdown, independent of any icon library or content store |

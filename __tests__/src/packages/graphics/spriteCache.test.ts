@@ -3,7 +3,7 @@ import { DrawableSurface, SpriteCache } from "@/packages/graphics/canvas";
 // A stand in for a canvas: records its size and the scale it was given.
 const fakeSurface = (width: number, height: number): DrawableSurface => {
   const surface = { width, height } as unknown as OffscreenCanvas;
-  const context = { scale: jest.fn(), canvas: surface } as unknown as OffscreenCanvasRenderingContext2D;
+  const context = { scale: jest.fn(), translate: jest.fn(), canvas: surface } as unknown as OffscreenCanvasRenderingContext2D;
 
   return { surface, context };
 };
@@ -53,5 +53,14 @@ describe("graphics/canvas SpriteCache", () => {
     const cache = new SpriteCache({ width: 10, height: 10, scale: 1, createSurface: () => null });
 
     expect(cache.get("a", jest.fn())).toBeNull();
+  });
+});
+
+describe("graphics/canvas SpriteCache regions", () => {
+  test("a frame for a region is only as big as the region", () => {
+    const cache = new SpriteCache({ width: 200, height: 240, scale: 2, createSurface: fakeSurface });
+
+    expect(cache.get("head", jest.fn(), { x: 50, y: 0, width: 100, height: 120 })).toMatchObject({ width: 200, height: 240 });
+    expect(cache.get("whole", jest.fn())).toMatchObject({ width: 400, height: 480 });
   });
 });

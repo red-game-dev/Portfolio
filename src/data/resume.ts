@@ -1159,6 +1159,8 @@ export const portfolioData: PortfolioData = {
         "Agent setup: skills adapted from an open source collection and extended, a design review subagent and decision registers",
       ],
       techStack: [
+        "Mailchimp",
+        "Klaviyo",
         "Strapi",
         "TypeScript",
         "NestJS",
@@ -1473,6 +1475,8 @@ export const portfolioData: PortfolioData = {
         "Worked on regulated deposit and withdrawal flows for iGaming clients under Malta licensing",
       ],
       techStack: [
+        "HubSpot",
+        "Salesforce",
         "Contentful",
         "TensorFlow",
         "PHP (Laravel)",
@@ -1580,7 +1584,7 @@ export const portfolioData: PortfolioData = {
         "Custom classes in several languages, run safely by the platform",
         "Hosting and updates handled for the creator, with any customisation they needed",
       ],
-      techStack: ["Strapi"],
+      techStack: ["Strapi", "Mailchimp", "Klaviyo"],
     },
     {
       title: "Founder & CTO, Adotta",
@@ -1603,7 +1607,7 @@ export const portfolioData: PortfolioData = {
         "Donations that earn points",
         "Points spent with partner businesses",
       ],
-      techStack: ["Strapi"],
+      techStack: ["Strapi", "Mailchimp", "Klaviyo"],
     },
     {
       title: "Founder & CTO, Punti",
@@ -1626,7 +1630,7 @@ export const portfolioData: PortfolioData = {
         "Earning at the till or online, by each business's own rules",
         "A dashboard for rewards, with no app for the business to build",
       ],
-      techStack: ["Strapi"],
+      techStack: ["Strapi", "Mailchimp", "Klaviyo"],
     },
     {
       title: "Founder, CEO & CTO, Crypto Casino",
@@ -2315,6 +2319,22 @@ export const portfolioData: PortfolioData = {
         name: "Mapbox",
         score: 75,
       },
+      {
+        name: "HubSpot",
+        score: 75,
+      },
+      {
+        name: "Salesforce",
+        score: 75,
+      },
+      {
+        name: "Mailchimp",
+        score: 75,
+      },
+      {
+        name: "Klaviyo",
+        score: 75,
+      },
     ],
     observability: [
       {
@@ -2581,6 +2601,7 @@ export const portfolioData: PortfolioData = {
     characters: [
       {
         characterClass: "CEO",
+        hero: "sovereign",
         icon: faCrown,
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
@@ -2595,6 +2616,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "CTO",
+        hero: "archmage",
         titles: ["Chief Technology Officer", "Head of Engineering", "VP of Engineering"],
         icon: faChessKnight,
         tenures: [
@@ -2610,6 +2632,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "Product Owner",
+        hero: "strategist",
         icon: faCompassDrafting,
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
@@ -2624,6 +2647,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "Architect",
+        hero: "paladin",
         titles: ["Software Architect", "Lead Enterprise Architect", "Enterprise Architect"],
         icon: faSitemap,
         tenures: [
@@ -2641,6 +2665,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "Product Engineer",
+        hero: "artificer",
         icon: faRocketLaunch,
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
@@ -2656,6 +2681,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "Blockchain Engineer",
+        hero: "runeKnight",
         icon: faCubes,
         tenures: [
           { company: "Chiliz", from: "Nov 2019", to: "Nov 2022" },
@@ -2674,6 +2700,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "Tech Lead",
+        hero: "captain",
         icon: faUsersGear,
         tenures: [
           { company: "KPMG", from: "Feb 2019", to: "Sep 2019" },
@@ -2687,6 +2714,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "Frontend Engineer",
+        hero: "ranger",
         icon: faCode,
         tenures: [
           { company: "AuthenticGaming", from: "Jul 2017", to: "Jan 2019" },
@@ -2700,6 +2728,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "Backend Engineer",
+        hero: "warsmith",
         icon: faServer,
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
@@ -2713,6 +2742,7 @@ export const portfolioData: PortfolioData = {
       },
       {
         characterClass: "Game Engineer",
+        hero: "battlemage",
         icon: faDragon,
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
@@ -2836,6 +2866,8 @@ export const portfolioData: PortfolioData = {
     {
       label: "CRM & Marketing",
       items: [
+        "CRM integrations with HubSpot and Salesforce",
+        "Email marketing with Mailchimp and Klaviyo",
         "Customer data and personalisation with Insider",
         "Transactional and marketing email with SendGrid",
         "A/B testing with Kameleoon and Adobe Target",
@@ -3555,7 +3587,7 @@ export const portfolioData: PortfolioData = {
         "Hosting and updates handled for the creator",
         "Founded and led as CEO and CTO; it closed for lack of funding",
       ],
-      techStack: ["Strapi"],
+      techStack: ["Strapi", "Mailchimp", "Klaviyo"],
       countsForSkills: false,
       deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprintId: "arcavium" },
       period: "A past venture",
@@ -3575,7 +3607,7 @@ export const portfolioData: PortfolioData = {
         "Donations that earn points, spent with partner businesses",
         "Founded it and led it as CTO; it closed for lack of funding",
       ],
-      techStack: ["Strapi"],
+      techStack: ["Strapi", "Mailchimp", "Klaviyo"],
       countsForSkills: false,
       deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprintId: "adotta" },
       period: "A past venture",
@@ -3595,7 +3627,7 @@ export const portfolioData: PortfolioData = {
         "Earning at the till or online, by each business's own rules",
         "Founded it and led it as CTO, against established competition; it closed for lack of funding",
       ],
-      techStack: ["Strapi"],
+      techStack: ["Strapi", "Mailchimp", "Klaviyo"],
       countsForSkills: false,
       deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprintId: "punti" },
       period: "A past venture",
@@ -4078,7 +4110,7 @@ export const portfolioData: PortfolioData = {
       {
         name: "Others",
         detail: "Open source projects and the company codebases I have worked in.",
-        points: [],
+        points: ["91 pull requests reviewed on my own platform's repository"],
       },
     ],
   },

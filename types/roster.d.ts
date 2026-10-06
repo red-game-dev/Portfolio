@@ -17,6 +17,8 @@ export interface Character {
   // Job titles this class covers, shown under the class name.
   titles?: string[];
   icon: FontAwesomeIconProps["icon"];
+  // The MMO hero drawn for this class, by id from the heroes package (sovereign, archmage and so on).
+  hero: string;
   tenures: CharacterTenure[];
   stats: CharacterStat[];
   abilities: string[];

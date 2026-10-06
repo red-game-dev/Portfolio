@@ -4,7 +4,8 @@ import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
-import { DEFAULT_DEALER_OUTFITS, LiveDealer } from "@/packages/games/live-table";
+import { createDealerModel, DEFAULT_DEALER_OUTFITS, DealerOutfit } from "@/packages/games/live-table";
+import { RigActor } from "@/packages/graphics/rig";
 
 interface DealerProps {
   phrase: string;
@@ -80,12 +81,12 @@ const Timer = styled.span(({ ms, isRunning }: { ms: number; isRunning: boolean }
 
 const Round = tw.span`text-[11px] font-semibold opacity-60`;
 
-// The dealer behind the felt: a live sprite that breathes, blinks and talks as she calls each phase of
-// the round. A tap changes her outfit.
+// The dealer behind the felt: a rig actor that breathes, blinks and talks as she calls each phase of the
+// round. A tap changes her outfit.
 export const Dealer: FC<DealerProps> = ({ phrase, phraseKey, outfitLabels, changeLabel, roundLabel, phaseMs, isClosed, isRunning }: DealerProps) => {
   const figureRef = useRef<HTMLButtonElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dealerRef = useRef<LiveDealer | null>(null);
+  const dealerRef = useRef<RigActor<DealerOutfit> | null>(null);
   const [outfit, setOutfit] = useState(0);
 
   useEffect(() => {
@@ -96,7 +97,7 @@ export const Dealer: FC<DealerProps> = ({ phrase, phraseKey, outfitLabels, chang
       return;
     }
 
-    const dealer = new LiveDealer(context);
+    const dealer = new RigActor(context, { model: createDealerModel(), skins: DEFAULT_DEALER_OUTFITS });
     const resize = () => dealer.resize(figure.clientWidth, window.devicePixelRatio || 1);
     const observer = new ResizeObserver(resize);
 
@@ -123,11 +124,11 @@ export const Dealer: FC<DealerProps> = ({ phrase, phraseKey, outfitLabels, chang
   }, [isRunning]);
 
   useEffect(() => {
-    dealerRef.current?.speak(TALK_MS);
+    dealerRef.current?.play("talk", TALK_MS);
   }, [phraseKey]);
 
   useEffect(() => {
-    dealerRef.current?.setOutfit(outfit);
+    dealerRef.current?.setSkin(outfit);
   }, [outfit]);
 
   const next = (outfit + 1) % DEFAULT_DEALER_OUTFITS.length;

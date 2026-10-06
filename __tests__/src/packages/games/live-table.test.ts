@@ -3,12 +3,14 @@ import {
   DealerPainter,
   DEFAULT_DEALER_LOOK,
   DEFAULT_DEALER_OUTFITS,
-  LiveDealer,
+  createDealerModel,
   LiveTableGame,
   LiveTableRenderer,
   LiveTableSimulation,
   resolveLiveTableConfig
 } from "@/packages/games/live-table";
+import { DrawableSurface } from "@/packages/graphics/canvas";
+import { RigActor, RigRenderer } from "@/packages/graphics/rig";
 
 const CARDS = ["wallets", "bonuses", "sportsbook"];
 const config = resolveLiveTableConfig({
@@ -119,6 +121,25 @@ describe("games/live-table", () => {
 });
 
 describe("games/live-table dealer", () => {
+  const fakeSurface = (width: number, height: number): DrawableSurface => {
+    const surface = { width, height } as unknown as OffscreenCanvas;
+
+    // Accepts any drawing call, so the real painter runs against it.
+    const context = new Proxy({ canvas: surface }, {
+      get: (target, key) => (key === "canvas" ? target.canvas
+        : key === "createLinearGradient" || key === "createRadialGradient" ? () => ({ addColorStop: () => undefined }) : () => undefined),
+      set: () => true,
+    }) as unknown as OffscreenCanvasRenderingContext2D;
+
+    return { surface, context };
+  };
+  const dealerActor = (context: CanvasRenderingContext2D) => new RigActor(context, {
+    model: createDealerModel(),
+    skins: DEFAULT_DEALER_OUTFITS,
+    scheduler: new ManualScheduler(),
+    renderer: new RigRenderer(createDealerModel(), { createSurface: fakeSurface }),
+  });
+
   const fakeContext = () => {
     const canvas = { width: 0, height: 0 };
     const calls: string[] = [];
@@ -129,6 +150,8 @@ describe("games/live-table dealer", () => {
       drawImage: () => calls.push("draw"),
       translate: () => undefined,
       rotate: () => undefined,
+      save: () => undefined,
+      restore: () => undefined,
     } as unknown as CanvasRenderingContext2D;
 
     return { canvas, calls, context };
@@ -136,7 +159,7 @@ describe("games/live-table dealer", () => {
 
   test("sizes the canvas from its width at the drawing's proportions and device resolution", () => {
     const { canvas, context } = fakeContext();
-    const dealer = new LiveDealer(context, { scheduler: new ManualScheduler() });
+    const dealer = dealerActor(context);
 
     dealer.resize(150, 2);
 
@@ -145,12 +168,31 @@ describe("games/live-table dealer", () => {
 
   test("outfits wrap around in both directions", () => {
     const { context } = fakeContext();
-    const dealer = new LiveDealer(context, { scheduler: new ManualScheduler() });
+    const dealer = dealerActor(context);
 
-    dealer.setOutfit(dealer.outfitCount);
-    expect(dealer.outfit).toBe(0);
-    dealer.setOutfit(-1);
-    expect(dealer.outfit).toBe(dealer.outfitCount - 1);
+    dealer.setSkin(dealer.skinCount);
+    expect(dealer.skin).toBe(0);
+    dealer.setSkin(-1);
+    expect(dealer.skin).toBe(dealer.skinCount - 1);
+  });
+
+  test("only a sequin dress is cached per twinkle; the others keep one body frame", () => {
+    const model = createDealerModel();
+    const body = model.layers.find((layer) => layer.id === "body");
+    const keysFor = (index: number) => (typeof body?.keyChannels === "function" ? body.keyChannels(DEFAULT_DEALER_OUTFITS[index]) : []);
+
+    expect(DEFAULT_DEALER_OUTFITS.map((_, index) => keysFor(index))).toEqual(DEFAULT_DEALER_OUTFITS.map((outfit) => (outfit.hasSparkle ? ["sparkle"] : [])));
+  });
+
+  test("she talks while the talk cue plays and blinks on her own", () => {
+    const model = createDealerModel();
+    const playing = (name: string) => ({ progress: (cue: string) => (cue === name ? 0.5 : null) });
+    const idle = { progress: () => null };
+    const mouths = Array.from({ length: 20 }, (_, index) => model.channels(index * 37, playing("talk")).mouth);
+
+    expect(new Set(mouths).size).toBeGreaterThan(1);
+    expect(model.channels(500, idle).mouth).toBe(0);
+    expect(model.channels(500, playing("blink")).blink).toBe(2);
   });
 
   test("the painter draws every outfit in every pose without throwing", () => {

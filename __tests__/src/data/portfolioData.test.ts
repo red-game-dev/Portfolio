@@ -7,6 +7,7 @@ import { AUDIENCE_ANCHORS, industryAnchor, ROLE_ANCHORS } from "@/config/section
 import { loadSectionBlueprints, loadVentureBlueprint } from "@/data/blueprints";
 import { ALL_VENTURE_BLUEPRINTS, SECTION_BLUEPRINTS } from "@/data/blueprints/all";
 import { portfolioData } from "@/data/resume";
+import { DEFAULT_HERO_CLASSES } from "@/packages/games/heroes";
 import { BlueprintSection } from "@/types/blueprints";
 
 const normalise = (name: string) => name.trim().toLowerCase();
@@ -183,5 +184,13 @@ describe("blueprints", () => {
     const { columns, groups } = blueprint.architecture;
 
     expect(groups.filter(({ place }) => place.col < 1 || place.col + (place.colSpan ?? 1) - 1 > columns)).toEqual([]);
+  });
+});
+
+describe("characters", () => {
+  test("every character is drawn as a hero class that exists", () => {
+    const heroes = new Set(DEFAULT_HERO_CLASSES.map((hero) => hero.id));
+
+    expect(portfolioData.roster.characters.filter((character) => !heroes.has(character.hero)).map((character) => character.characterClass)).toEqual([]);
   });
 });

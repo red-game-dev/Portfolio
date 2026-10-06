@@ -1,6 +1,15 @@
 import { Canvas2DContext, CanvasSurface } from "../domain/types";
 import { createDrawableSurface, DrawableSurface } from "../utils/surface";
 
+// The part of the artwork a frame covers, in artwork units. A frame only as big as its region keeps the
+// cache small: a head is a fraction of the whole figure.
+export interface SpriteRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface SpriteCacheOptions {
   // The artwork's own size, in the units it is painted in.
   width: number;
@@ -46,7 +55,7 @@ export class SpriteCache {
     }
   }
 
-  public get(key: string, paint: (context: Canvas2DContext) => void): CanvasSurface | null {
+  public get(key: string, paint: (context: Canvas2DContext) => void, region?: SpriteRegion): CanvasSurface | null {
     const cached = this.frames.get(key);
 
     if (cached) {
@@ -57,13 +66,19 @@ export class SpriteCache {
       return cached;
     }
 
-    const drawable = this.createSurface(Math.ceil(this.width * this.scale), Math.ceil(this.height * this.scale));
+    const { x, y, width, height } = region ?? { x: 0, y: 0, width: this.width, height: this.height };
+    const drawable = this.createSurface(Math.ceil(width * this.scale), Math.ceil(height * this.scale));
 
     if (!drawable) {
       return null;
     }
 
     drawable.context.scale(this.scale, this.scale);
+
+    if (x !== 0 || y !== 0) {
+      drawable.context.translate(-x, -y);
+    }
+
     paint(drawable.context);
     this.frames.set(key, drawable.surface);
 

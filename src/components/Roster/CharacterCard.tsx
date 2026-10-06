@@ -5,6 +5,7 @@ import tw, { css, styled } from "twin.macro";
 import { faEnvelope, faGamepad } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { HeroPortrait } from "@/components/Roster/HeroPortrait";
 import { Character, Roster } from "@/types/roster";
 
 interface CharacterCardProps extends Character {
@@ -80,19 +81,21 @@ const Back = styled.div(() => [
   `,
 ]);
 
-const Header = tw.div`flex flex-row items-center gap-[14px]`;
+const Header = tw.div`flex flex-row items-center gap-[22px]`;
 
-// A hexagon badge, the shape a level takes in most MMOs.
+const Portrait = tw.div`relative flex-shrink-0`;
+
+// A hexagon badge, the shape a level takes in most MMOs, pinned to the corner of the portrait.
 const LevelBadge = styled.div(() => [
-  tw`flex flex-shrink-0 flex-col items-center justify-center w-[58px] h-[64px] bg-[var(--accent)] text-[#101010]`,
+  tw`absolute right-[-12px] bottom-[-10px] z-[1] flex flex-col items-center justify-center w-[42px] h-[46px] bg-[var(--accent)] text-[#101010]`,
   css`
     clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
   `,
 ]);
 
-const LevelLabel = tw.span`text-[10px] font-semibold leading-none`;
+const LevelLabel = tw.span`text-[8px] font-semibold leading-none`;
 
-const LevelValue = tw.span`text-2xl font-bold leading-none`;
+const LevelValue = tw.span`text-lg font-bold leading-none`;
 
 const Identity = tw.div`flex flex-col gap-[4px] min-w-0`;
 
@@ -150,16 +153,19 @@ const Select = styled.button(({ isSelected }: SelectedProps) => [
 ]);
 
 export const CharacterCard: FC<CharacterCardProps> = ({
-  characterClass, titles = [], icon, stats, abilities, note, level, since, labels, isRevealed, order, isSelected, isGameLayer, onSelect,
+  characterClass, titles = [], icon, hero, stats, abilities, note, level, since, labels, isRevealed, order, isSelected, isGameLayer, onSelect,
 }: CharacterCardProps) => (
     <Card>
       <Inner isRevealed={isRevealed} style={{ transitionDelay: `${order * FLIP_STAGGER_MS}ms` }}>
         <Face isSelected={isSelected}>
           <Header>
-            <LevelBadge role="img" aria-label={`${labels.level} ${level}`}>
-              <LevelLabel aria-hidden="true">{labels.level}</LevelLabel>
-              <LevelValue aria-hidden="true">{level}</LevelValue>
-            </LevelBadge>
+            <Portrait>
+              <HeroPortrait heroId={hero} />
+              <LevelBadge role="img" aria-label={`${labels.level} ${level}`}>
+                <LevelLabel aria-hidden="true">{labels.level}</LevelLabel>
+                <LevelValue aria-hidden="true">{level}</LevelValue>
+              </LevelBadge>
+            </Portrait>
             <Identity>
               <ClassName>
                 <FontAwesomeIcon icon={icon} aria-hidden="true" />

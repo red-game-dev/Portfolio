@@ -172,6 +172,8 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
+  // Two stops can share the screen; the reader is at the first of them.
+  const here = selected.indexOf(true);
 
   useNavProgress(NAV_ITEMS, itemRefs);
 
@@ -238,8 +240,8 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
                         itemRefs.current[index] = element;
                       }}
                       href={item.href}
-                      isHere={selected[index]}
-                      aria-current={selected[index] ? "location" : undefined}
+                      isHere={index === here}
+                      aria-current={index === here ? "location" : undefined}
                       onClick={(event) => go(event, item.href)}
                     >
                       <StopNumber aria-hidden="true">{String(index + 1).padStart(2, "0")}</StopNumber>
@@ -247,7 +249,7 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
                         <StopName>{item.label}</StopName>
                         <StopZone>{content.zones[item.zone]}</StopZone>
                       </StopText>
-                      {selected[index] && <Here>{content.here}</Here>}
+                      {index === here && <Here>{content.here}</Here>}
                     </StopLink>
                   </Stop>
                 ))}

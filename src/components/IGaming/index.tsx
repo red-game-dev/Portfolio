@@ -1,10 +1,9 @@
-import { FC, useRef } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import { BlueprintSection } from "@/components/Blueprint";
-import { LiveTable } from "@/components/IGaming/LiveTable";
 import { PlayingCard } from "@/components/IGaming/PlayingCard";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel } from "@/components/Panel";
@@ -97,12 +96,41 @@ const Quote = styled.blockquote(() => [
 
 const QuoteSource = tw.cite`block mt-[6px] text-xs not-italic text-[#999]`;
 
+type LiveTableComponent = typeof import("@/components/IGaming/LiveTable").LiveTable;
+
+// The game and its engine are their own chunk, fetched only for views with the game layer. Until it
+// arrives, and in the quick view, the cards are dealt out plainly, which is also what the server renders.
+const useLiveTableCode = (isWanted: boolean) => {
+  const [component, setComponent] = useState<LiveTableComponent | null>(null);
+
+  useEffect(() => {
+    if (!isWanted || component) {
+      return;
+    }
+
+    let isCurrent = true;
+
+    import("@/components/IGaming/LiveTable")
+      .then((module) => isCurrent && setComponent(() => module.LiveTable))
+      // console.error is the one console call the production build keeps; the plain cards stay.
+      // eslint-disable-next-line no-console
+      .catch((error: unknown) => console.error("The live table could not be loaded", error));
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [component, isWanted]);
+
+  return component;
+};
+
 // iGaming as a live table: each capability is a card, played from your hand onto the felt.
 export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection, blueprintLabels }: IGamingProps) => {
   const cardsRef = useRef<HTMLUListElement>(null);
   const isDealt = useInView(cardsRef, { threshold: 0.2 });
   // With the game layer the cards are played at a live table; the quick view deals them straight out.
   const { settings } = useLensStateHook();
+  const LiveTable = useLiveTableCode(settings.gameLayer);
 
   return (
     <Section id={SECTION_IDS.igaming}>
@@ -115,7 +143,7 @@ export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection, bl
             {content.liveLabel}
           </Live>
         </Header>
-        {settings.gameLayer ? <LiveTable cards={content.cards} content={content.table} /> : (
+        {settings.gameLayer && LiveTable ? <LiveTable cards={content.cards} content={content.table} /> : (
           <Cards ref={cardsRef}>
             {content.cards.map((card, index) => (
               <Card key={card.name} isDealt={isDealt} style={{ transitionDelay: `${index * DEAL_STAGGER_MS}ms` }}>

@@ -6,6 +6,7 @@ import { Blueprint, BlueprintContent } from "@/types/blueprints";
 
 export const GOZ_BLUEPRINT: Blueprint = {
   id: "goz-engine",
+  tab: "MMORPG",
   zone: "mmo",
   title: "An MMORPG, from engine to live operations",
   caption: "My own game, built from scratch: the engine and the servers in C/C++ with my own framework and physics, Boost " +
@@ -354,9 +355,11 @@ const EARLY_SCALE = "An early venture, launched and closed for lack of funding";
 
 export const ARCAVIUM_BLUEPRINT: Blueprint = {
   id: "low-code-game-builder",
+  tab: "Game builder",
   zone: "mmo",
   title: "A low code game builder",
-  caption: "Build a whole game, its client and its server, by choosing from menus and uploading models, write classes in several languages only where you want to, and let the platform host and run the rest.",
+  caption: "Build a whole game, its client and its server, by choosing from menus and uploading models, write classes in " +
+    "several languages only where you want to, and let the platform host and run the rest.",
   summary: {
     role: "Founder, CEO and CTO: proposed the product and its architecture, and built it",
     scale: EARLY_SCALE,
@@ -444,7 +447,8 @@ export const ARCAVIUM_BLUEPRINT: Blueprint = {
         ],
       },
     ],
-    decision: "One game definition, built from menu choices, generates both the client and the server, so creators never wire the two by hand, and code is an option, never a requirement.",
+    decision: "One game definition, built from menu choices, generates both the client and the server, so creators never " +
+      "wire the two by hand, and code is an option, never a requirement.",
     outcome: "It let creators build and run a full game without writing an engine or managing servers. It launched, and closed for lack of funding.",
   },
   journeys: [
@@ -467,7 +471,7 @@ export const ADOTTA_BLUEPRINT: Blueprint = {
   title: "Donations to shelters that earn points",
   caption: "Donors give to animal shelters and earn points they can spend wherever partners accept them.",
   summary: {
-    role: "Founder, CEO and CTO: proposed the product and built it",
+    role: "Founder and CTO: proposed the product and built it",
     scale: EARLY_SCALE,
   },
   architecture: {
@@ -564,7 +568,7 @@ export const PUNTI_BLUEPRINT: Blueprint = {
   title: "Loyalty as a service",
   caption: "A ready loyalty scheme for online shops, physical outlets and restaurants, so a business never builds or maintains its own app.",
   summary: {
-    role: "Founder, CEO and CTO: proposed the product and built it",
+    role: "Founder and CTO: proposed the product and built it",
     scale: "An early venture against established competition, launched and closed for lack of funding",
   },
   architecture: {
@@ -668,6 +672,7 @@ export const blueprintContent: BlueprintContent = {
     journeys: "User journeys",
     glanceNote: "A glance at the architecture, not the full design.",
     sketchNote: "Sketches of the flow, not screenshots of a real product.",
+    showcase: "Blueprints in this section",
   },
   ai: [
     {
@@ -813,103 +818,84 @@ export const blueprintContent: BlueprintContent = {
   chain: [
     {
       id: "web3-exchange",
+      tab: "Trading",
       zone: "chain",
-      title: "A Web3 exchange app",
-      caption: "Every club or creator token trades against one base token: markets with live prices, buy and sell, deposits " +
-        "and withdrawals, rewards, and each trade settled on chain and confirmed from the indexer.",
+      title: "A Web3 exchange: trading across chains",
+      caption: "Tokens and NFTs traded across chains: deposits and withdrawals per chain, pairs that are supported or not, " +
+        "routes from one token to another, settlement on chain, and balances confirmed from node providers and indexers.",
       summary: {
-        role: "Proposed and built the core the app runs on: one SDK shared across mobile and web, with on chain trading inside it",
-        scale: "A large consumer user base worldwide, with many product squads building on the core",
-        stack: ["React Native", "TypeScript", "RxJS", "Redux Observables", "Ethers", "WalletConnect", "Kotlin", "Java", "C/C++", "Jest"],
+        role: "Proposed and built exchange and trading flows across chains, inside apps and products",
+        scale: "Large consumer user bases, many chains and many tokens",
+        stack: ["TypeScript", "React Native", "Node.js", "Ethers", "Web3.js", "WalletConnect", "Alchemy", "The Graph", "Solidity", "Rust"],
       },
       architecture: {
         columns: 4,
         groups: [
           {
-            id: "ex-clients",
-            label: "Clients, one shared core",
+            id: "tr-clients",
+            label: "Clients",
             place: { col: 1, row: 1, rowSpan: 2 },
             nodes: [
-              { id: "ex-mobile", label: "Mobile app", detail: "One core for every squad" },
-              { id: "ex-web", label: "Web app" },
-              { id: "ex-state", label: "Reactive state", detail: "RxJS, live prices" },
-              { id: "ex-native", label: "Native modules", detail: "C/C++, Java, Kotlin" },
+              { id: "tr-apps", label: "Web and mobile apps", detail: "One shared core" },
+              { id: "tr-partners", label: "Partner API" },
+              { id: "tr-prices", label: "Live prices", detail: "Streamed to every client" },
             ],
           },
           {
-            id: "ex-markets-group",
+            id: "tr-markets",
             label: "Markets",
             place: { col: 2, row: 1 },
             nodes: [
-              { id: "ex-markets", label: "Markets", detail: "Every token against the base token" },
-              { id: "ex-prices", label: "Live prices", detail: "Real time feed" },
-              { id: "ex-charts", label: "Price history" },
+              { id: "tr-pairs", label: "Supported pairs", detail: "Each token listed against bases" },
+              { id: "tr-route", label: "Routing", detail: "Token to token through supported pairs" },
+              { id: "tr-match", label: "Matching", detail: "Order book or pool" },
+              { id: "tr-nfts", label: "NFT markets", detail: "Listings, bids, transfers" },
             ],
           },
           {
-            id: "ex-trading",
-            label: "Trading",
+            id: "tr-settlement",
+            label: "Settlement",
             place: { col: 3, row: 1 },
             nodes: [
-              { id: "ex-order", label: "Buy and sell", detail: "Priced in the base token" },
-              { id: "ex-settle", label: "Settlement", detail: "On chain" },
-              { id: "ex-receipts", label: "Orders and receipts" },
+              { id: "tr-settle", label: "Settlement", detail: "On chain, or on the internal ledger" },
+              { id: "tr-ledger", label: "Internal ledger", detail: "Every trade balanced", kind: "store" },
+              { id: "tr-fees", label: "Fees" },
             ],
           },
           {
-            id: "ex-wallet",
-            label: "Wallet",
-            place: { col: 2, row: 2 },
+            id: "tr-wallets",
+            label: "Wallets per chain",
+            place: { col: 2, row: 2, colSpan: 2 },
+            columns: 2,
             nodes: [
-              { id: "ex-deposit", label: "Deposits", detail: "Base token in" },
-              { id: "ex-balances", label: "Balances", detail: "Base, club and creator tokens" },
-              { id: "ex-withdraw", label: "Withdrawals", detail: "Out to an external wallet" },
+              { id: "tr-deposit", label: "Deposits", detail: "Credited after confirmations" },
+              { id: "tr-withdraw", label: "Withdrawals", detail: "To whitelisted addresses" },
+              { id: "tr-hot", label: "Hot wallets", detail: "For daily flow" },
+              { id: "tr-cold", label: "Cold storage", detail: "For reserves" },
             ],
           },
           {
-            id: "ex-account",
-            label: "Account",
-            place: { col: 3, row: 2 },
-            nodes: [
-              { id: "ex-kyc", label: "KYC and limits" },
-              { id: "ex-rewards", label: "Rewards", detail: "Claimed on chain, pushed in real time" },
-            ],
-          },
-          {
-            id: "ex-chain",
-            label: "Chain",
+            id: "tr-chains",
+            label: "Chains and data",
             place: { col: 4, row: 1, rowSpan: 2 },
             nodes: [
-              { id: "ex-base", label: "Base token", kind: "store" },
-              { id: "ex-tokens", label: "Token contracts", detail: "One per club or creator" },
-              { id: "ex-rpc", label: "RPC nodes" },
-              { id: "ex-indexer", label: "Indexer", detail: "Confirms from the chain, not the client" },
-            ],
-          },
-          {
-            id: "ex-cloud",
-            label: "Runs on AWS",
-            columns: 3,
-            place: { col: 1, row: 3, colSpan: 4 },
-            nodes: [
-              { id: "ex-compute", label: "Services that scale with load" },
-              { id: "ex-stores", label: "Managed data stores" },
-              { id: "ex-delivery", label: "CDN and object storage" },
+              { id: "tr-btc", label: "Bitcoin" },
+              { id: "tr-eth", label: "Ethereum and EVM chains" },
+              { id: "tr-sol", label: "Solana" },
+              { id: "tr-dot", label: "Polkadot and others" },
+              { id: "tr-indexers", label: "Node providers and indexers", detail: "Alchemy, The Graph, our own" },
             ],
           },
         ],
         edges: [
-          { from: "ex-clients", to: "ex-markets-group" },
-          { from: "ex-prices", to: "ex-order" },
-          { from: "ex-balances", to: "ex-order", label: "pays in base token" },
-          { from: "ex-deposit", to: "ex-balances" },
-          { from: "ex-balances", to: "ex-withdraw" },
-          { from: "ex-kyc", to: "ex-order", style: "dashed" },
-          { from: "ex-order", to: "ex-settle" },
-          { from: "ex-settle", to: "ex-tokens" },
-          { from: "ex-rewards", to: "ex-tokens" },
-          { from: "ex-tokens", to: "ex-indexer" },
-          { from: "ex-indexer", to: "ex-receipts", label: "confirmed" },
+          { from: "tr-clients", to: "tr-markets" },
+          { from: "tr-pairs", to: "tr-route" },
+          { from: "tr-route", to: "tr-match" },
+          { from: "tr-match", to: "tr-settle" },
+          { from: "tr-settle", to: "tr-ledger" },
+          { from: "tr-wallets", to: "tr-chains" },
+          { from: "tr-indexers", to: "tr-deposit", label: "confirmed" },
+          { from: "tr-hot", to: "tr-cold", style: "link" },
         ],
       },
       wireframe: {
@@ -918,122 +904,251 @@ export const blueprintContent: BlueprintContent = {
           {
             title: "Markets",
             regions: [
-              { kind: "bar", label: "Search and filters", size: 0.6 },
-              { kind: "list", label: "Tokens with price and change, in the base token", size: 2.4 },
+              { kind: "bar", label: "Search, and the base to trade against", size: 0.7 },
+              { kind: "list", label: "Pairs with price and change; unsupported pairs not offered", size: 2.4 },
             ],
           },
           {
-            title: "Token page",
+            title: "Swap",
             regions: [
-              { kind: "canvas", label: "Price history", size: 1.6 },
-              { kind: "stat", label: "Your holding" },
-              { kind: "card", label: "Rewards for holders" },
-              { kind: "actions", label: "Buy, sell", size: 0.8 },
-            ],
-          },
-          {
-            title: "Buy",
-            regions: [
-              { kind: "stat", label: "Amount, priced in the base token" },
-              { kind: "bar", label: "Fee and total", size: 0.7 },
-              { kind: "bar", label: "Deposit if the balance is short", size: 0.7 },
+              { kind: "form", label: "From one token, to another" },
+              { kind: "card", label: "The route, through supported pairs" },
+              { kind: "bar", label: "Fee and slippage", size: 0.7 },
               { kind: "actions", label: "Confirm once", size: 0.8 },
             ],
           },
           {
-            title: "Settling",
+            title: "Deposit",
             regions: [
-              { kind: "overlay", label: "Pending on chain, with a clear status", size: 2 },
-              { kind: "bar", label: "Confirmed from the indexer", size: 0.7 },
-              { kind: "bar", label: "An error state if it fails", size: 0.7 },
+              { kind: "list", label: "Pick the chain" },
+              { kind: "media", label: "Address and code for that chain", size: 1.4 },
+              { kind: "bar", label: "Confirmations needed", size: 0.7 },
             ],
           },
           {
-            title: "Wallet",
+            title: "Withdraw",
             regions: [
-              { kind: "stat", label: "Base token balance" },
-              { kind: "list", label: "Tokens held, with value", size: 1.6 },
-              { kind: "actions", label: "Deposit, withdraw", size: 0.8 },
+              { kind: "form", label: "Chain and whitelisted address" },
+              { kind: "stat", label: "Amount and network fee" },
+              { kind: "steps", label: "Checks, then sent on chain" },
+            ],
+          },
+          {
+            title: "An NFT",
+            regions: [
+              { kind: "media", label: "The NFT", size: 1.6 },
+              { kind: "list", label: "Bids and history" },
+              { kind: "actions", label: "Buy, bid, list", size: 0.8 },
             ],
           },
         ],
-        decision: "Every token trades against one base token, so a price always reads in one unit and a single deposit lets a fan trade any club or creator.",
-        outcome: "On chain trading and rewards inside an ordinary app flow, on a core rebuilt from critically unstable that every squad ships on.",
+        decision: "Every token is listed against supported bases, so any two tokens can trade through a route even without a " +
+          "direct pair, and the app only offers routes that exist.",
+        outcome: "Tokens and NFTs traded across chains in an ordinary app flow, with deposits credited only once the chain confirms them.",
       },
       journeys: [
         {
-          title: "A fan buys a token",
+          title: "Swap one token for another",
           steps: [
-            "Deposits the base token",
-            "Opens a market and watches the live price",
-            "Buys, paying in the base token",
-            "Sees it pending while the trade settles on chain",
-            "The holding appears once the indexer confirms it",
+            "Picks the token to sell and the token to buy",
+            "With no direct pair, the route goes through a supported base",
+            "Sees the quote with fees and slippage",
+            "Confirms once, and the trade settles",
+            "Both balances update",
           ],
         },
         {
-          title: "A fan sells and withdraws",
-          steps: ["Sells back into the base token", "Sees the receipt once settled", "Withdraws to an external wallet"],
-        },
-        {
-          title: "A fan claims a reward",
-          steps: ["A real time reward arrives as a notification", "Claims it, as a contract call shown as pending", "Confirmed from the chain, never from the client"],
+          title: "In on one chain, out on another",
+          steps: [
+            "Deposits on one chain",
+            "It is credited once the node provider reports enough confirmations",
+            "Trades into a token on another chain",
+            "Withdraws to a whitelisted address after the checks",
+          ],
         },
       ],
     },
     {
-      id: "web3-assets",
+      id: "exchange-risk",
+      tab: "Listing and risk",
       zone: "chain",
-      title: "Web3 asset management",
-      caption: "One view of everything a person owns across chains: tokens, stablecoins, NFTs and staked, lent or pooled " +
-        "positions, through custodial or connected wallets, with off chain credits that cross into the wallet safely.",
+      title: "Exchange onboarding, listing and risk",
+      caption: "How an account gets verified, how a token gets reviewed or listed automatically on volume, and how payments " +
+        "and withdrawals pause themselves when something looks fraudulent, until a person decides.",
       summary: {
-        role: "Proposed and built wallet and asset flows across several products, from sign in to staking",
-        scale: "Tokens, NFTs and positions across EVM chains, Solana and Polkadot",
-        stack: ["Solidity", "Ethers", "Wagmi", "Web3.js", "WalletConnect", "MetaMask", "The Graph", "Alchemy", "Polygon", "PostgreSQL"],
+        role: "Proposed and built the onboarding, listing and risk flows",
+        scale: "Exchanges and token platforms with many listings",
+        stack: ["TypeScript", "Node.js", "PostgreSQL", "Identity verification providers", "Sanctions screening", "Event streams"],
       },
       architecture: {
         columns: 4,
         groups: [
           {
-            id: "am-access",
-            label: "Access",
-            place: { col: 1, row: 1, rowSpan: 2 },
+            id: "rk-kyc",
+            label: "Account verification",
+            place: { col: 1, row: 1 },
             nodes: [
-              { id: "am-connected", label: "Connected wallets", detail: "WalletConnect, MetaMask" },
-              { id: "am-custodial", label: "Custodial wallet", detail: "Held for the user" },
-              { id: "am-siwe", label: "Sign in with Ethereum" },
-              { id: "am-username", label: "Send by username", detail: "Tokens and NFTs" },
+              { id: "rk-signup", label: "Sign up" },
+              { id: "rk-identity", label: "Identity checks", detail: "Documents and liveness" },
+              { id: "rk-screening", label: "Screening", detail: "Sanctions and politically exposed" },
+              { id: "rk-tier", label: "KYC tier", detail: "Unlocks limits" },
             ],
           },
           {
-            id: "am-portfolio",
-            label: "Portfolio",
-            place: { col: 2, row: 1, rowSpan: 2 },
+            id: "rk-listing",
+            label: "Listing",
+            place: { col: 2, row: 1 },
             nodes: [
-              { id: "am-balances", label: "Token balances", detail: "ERC-20 and stablecoins" },
-              { id: "am-nfts", label: "NFTs", detail: "ERC-721 and ERC-1155" },
-              { id: "am-positions", label: "Positions", detail: "Staked, lent, pooled" },
-              { id: "am-activity", label: "Activity", detail: "Every movement with its reason" },
+              { id: "rk-apply", label: "Application", detail: "Project, contracts, team" },
+              { id: "rk-review", label: "Review", detail: "Contracts and team checked" },
+              { id: "rk-auto", label: "Auto listing", detail: "When volume and holders pass thresholds" },
+              { id: "rk-delist", label: "Delisting", detail: "When a token fails the bar" },
             ],
           },
           {
-            id: "am-actions",
-            label: "Actions",
+            id: "rk-signals",
+            label: "Fraud signals",
             place: { col: 3, row: 1 },
             nodes: [
-              { id: "am-stake", label: "Stake and unstake" },
-              { id: "am-swap", label: "Swap", detail: "DEX and AMM" },
-              { id: "am-lend", label: "Lend or rent out" },
+              { id: "rk-velocity", label: "Velocity and volume spikes" },
+              { id: "rk-disputes", label: "Card disputes and chargebacks" },
+              { id: "rk-chainflags", label: "On chain flags", detail: "Known bad addresses" },
+              { id: "rk-device", label: "Device and location changes" },
             ],
           },
           {
-            id: "am-offchain",
-            label: "Off chain",
+            id: "rk-actions",
+            label: "Actions",
+            place: { col: 4, row: 1 },
+            nodes: [
+              { id: "rk-score", label: "Risk score" },
+              { id: "rk-pause", label: "Auto pause", detail: "Payments and withdrawals held" },
+              { id: "rk-human", label: "Manual review", detail: "A person decides" },
+              { id: "rk-outcome", label: "Release or freeze", detail: "Logged" },
+            ],
+          },
+        ],
+        edges: [
+          { from: "rk-signup", to: "rk-identity" },
+          { from: "rk-identity", to: "rk-screening" },
+          { from: "rk-screening", to: "rk-tier" },
+          { from: "rk-apply", to: "rk-review" },
+          { from: "rk-auto", to: "rk-delist", style: "dashed" },
+          { from: "rk-signals", to: "rk-score" },
+          { from: "rk-score", to: "rk-pause", label: "over threshold" },
+          { from: "rk-pause", to: "rk-human" },
+          { from: "rk-human", to: "rk-outcome" },
+        ],
+      },
+      wireframe: {
+        device: "desktop",
+        screens: [
+          {
+            title: "Verify your identity",
+            regions: [
+              { kind: "steps", label: "Document, selfie, address" },
+              { kind: "media", label: "Capture", size: 1.6 },
+              { kind: "bar", label: "Status: checking, approved or more needed" },
+            ],
+          },
+          {
+            title: "Listing queue",
+            regions: [
+              { kind: "bar", label: "Applications and auto listing candidates" },
+              { kind: "list", label: "Each token: volume, holders, contract checks, status", size: 2.2 },
+              { kind: "actions", label: "Approve, reject, delist" },
+            ],
+          },
+          {
+            title: "Risk queue",
+            regions: [
+              { kind: "bar", label: "Alerts by risk score" },
+              { kind: "list", label: "Paused payments and withdrawals, with the signals behind each", size: 2.2 },
+              { kind: "actions", label: "Release or freeze, with a reason" },
+            ],
+          },
+        ],
+        decision: "Limits follow the KYC tier, listings follow rules rather than favours, and anything that looks fraudulent pauses itself first and waits for a person.",
+        outcome: "Money stops before it leaves when something looks wrong, and every release or freeze is a logged human decision.",
+      },
+      journeys: [
+        {
+          title: "A new account",
+          steps: ["Signs up", "Passes document and liveness checks", "Is screened", "The KYC tier unlocks deposits, trading and its limits"],
+        },
+        {
+          title: "A token gets listed",
+          steps: [
+            "The project applies, or crosses the volume and holder thresholds",
+            "Contracts and team are reviewed, or it lists automatically",
+            "It is watched against the bar",
+            "It is delisted if it fails",
+          ],
+        },
+        {
+          title: "A suspicious payment",
+          steps: [
+            "Signals spike and the risk score passes its threshold",
+            "Payments and withdrawals for the account pause on their own",
+            "A person reviews the signals",
+            "The money is released or frozen, and the decision is logged",
+          ],
+        },
+      ],
+    },
+    {
+      id: "web3-assets",
+      tab: "Asset management",
+      zone: "chain",
+      title: "On chain asset management for large investors",
+      caption: "Funds for whales and institutions: managers run vaults under policies investors can read, deposits mint " +
+        "shares at the vault's value, positions span DeFi protocols, and fees, limits and reporting are enforced by contracts.",
+      summary: {
+        role: "Worked on on chain asset management for large investors, and built wallet and asset flows across products",
+        scale: "Funds for whales and institutions, across protocols and chains",
+        stack: ["Solidity", "Ethers", "Wagmi", "The Graph", "Alchemy", "Price oracles", "Multi signature wallets", "TypeScript"],
+      },
+      architecture: {
+        columns: 4,
+        groups: [
+          {
+            id: "am-people",
+            label: "People",
+            place: { col: 1, row: 1, rowSpan: 2 },
+            nodes: [
+              { id: "am-investors", label: "Investors", detail: "Whales and institutions", kind: "actor" },
+              { id: "am-manager", label: "Fund manager", kind: "actor" },
+              { id: "am-signers", label: "Multi signature", detail: "Several keys to change the rules" },
+            ],
+          },
+          {
+            id: "am-vault",
+            label: "Vault",
+            place: { col: 2, row: 1, rowSpan: 2 },
+            nodes: [
+              { id: "am-shares", label: "Shares", detail: "Minted at the vault's value" },
+              { id: "am-valuation", label: "Valuation", detail: "Prices from oracles" },
+              { id: "am-policies", label: "Policies", detail: "Allowed assets, limits, who may deposit" },
+              { id: "am-fees", label: "Fees", detail: "Management and performance" },
+            ],
+          },
+          {
+            id: "am-positions",
+            label: "Positions",
+            place: { col: 3, row: 1 },
+            nodes: [
+              { id: "am-tokens", label: "Tokens and stablecoins" },
+              { id: "am-defi", label: "DeFi positions", detail: "Lending, staking, liquidity pools" },
+              { id: "am-nfts", label: "NFTs" },
+            ],
+          },
+          {
+            id: "am-reporting",
+            label: "Reporting and risk",
             place: { col: 3, row: 2 },
             nodes: [
-              { id: "am-credits", label: "Credits ledger", detail: "Append only" },
-              { id: "am-saga", label: "Crossing saga", detail: "Credits into the wallet, self healing" },
+              { id: "am-report", label: "Reporting", detail: "Holdings and performance" },
+              { id: "am-risk", label: "Risk limits", detail: "Concentration and drawdown" },
             ],
           },
           {
@@ -1041,190 +1156,208 @@ export const blueprintContent: BlueprintContent = {
             label: "Chain",
             place: { col: 4, row: 1, rowSpan: 2 },
             nodes: [
-              { id: "am-tokenise", label: "Tokenisation contracts" },
-              { id: "am-staking", label: "Staking contracts" },
-              { id: "am-pools", label: "Liquidity pools" },
-              { id: "am-index", label: "Indexers", detail: "Balances read from the chain" },
+              { id: "am-adapters", label: "Protocol adapters", detail: "One contract per protocol" },
+              { id: "am-oracles", label: "Price oracles" },
+              { id: "am-index", label: "Indexers", detail: "Positions read from the chain" },
+              { id: "am-networks", label: "Ethereum and EVM chains" },
             ],
           },
         ],
         edges: [
-          { from: "am-access", to: "am-portfolio" },
-          { from: "am-stake", to: "am-staking" },
-          { from: "am-swap", to: "am-pools" },
-          { from: "am-lend", to: "am-tokenise" },
-          { from: "am-credits", to: "am-saga" },
-          { from: "am-saga", to: "am-custodial", label: "into the wallet" },
-          { from: "am-index", to: "am-positions", label: "read back" },
+          { from: "am-investors", to: "am-shares", label: "deposit" },
+          { from: "am-signers", to: "am-policies", style: "dashed" },
+          { from: "am-policies", to: "am-adapters", label: "allowed only" },
+          { from: "am-adapters", to: "am-positions" },
+          { from: "am-oracles", to: "am-valuation" },
+          { from: "am-valuation", to: "am-shares" },
+          { from: "am-index", to: "am-report" },
+          { from: "am-risk", to: "am-policies", style: "dashed" },
         ],
       },
       wireframe: {
-        device: "phone",
+        device: "desktop",
         screens: [
           {
-            title: "Portfolio",
+            title: "Vault overview",
             regions: [
-              { kind: "stat", label: "Total, by chain" },
-              { kind: "list", label: "Tokens and stablecoins", size: 1.4 },
-              { kind: "list", label: "NFTs", size: 1.2 },
-              { kind: "card", label: "Staked, lent and pooled positions" },
+              { kind: "stat", label: "Value and share price" },
+              { kind: "list", label: "Holdings by protocol and chain", size: 2 },
+              { kind: "card", label: "The policies, readable by every investor" },
             ],
           },
           {
-            title: "An asset",
+            title: "Deposit",
             regions: [
-              { kind: "canvas", label: "Value over time", size: 1.4 },
-              { kind: "stat", label: "Held, and where" },
-              { kind: "actions", label: "Send, swap, stake", size: 0.8 },
+              { kind: "form", label: "Amount" },
+              { kind: "stat", label: "Shares received at today's value" },
+              { kind: "bar", label: "Policy checks: allowed depositor, limits" },
+              { kind: "actions", label: "Deposit" },
             ],
           },
           {
-            title: "Send by username",
+            title: "Manager console",
             regions: [
-              { kind: "form", label: "Username, resolved to an address", size: 1.2 },
-              { kind: "card", label: "The token or NFT" },
-              { kind: "actions", label: "Confirm in the wallet", size: 0.8 },
+              { kind: "form", label: "A trade or a position change", size: 1.4 },
+              { kind: "overlay", label: "Blocked if it breaks a policy" },
+              { kind: "actions", label: "Execute through the protocol adapter" },
             ],
           },
           {
-            title: "Stake",
+            title: "Reporting",
             regions: [
-              { kind: "stat", label: "Amount" },
-              { kind: "list", label: "Terms and rewards" },
-              { kind: "steps", label: "Pending, then confirmed" },
-              { kind: "actions", label: "Stake", size: 0.8 },
+              { kind: "canvas", label: "Performance over time", size: 1.6 },
+              { kind: "list", label: "Fees taken and risk limits" },
             ],
           },
         ],
-        decision: "Balances are read back from the chain through indexers, never kept as the app's own guess, and off chain " +
-          "credits only reach the wallet through a saga that heals itself.",
-        outcome: "Tokens, NFTs and positions in one place across chains, sent by username instead of an address, with credits and on chain assets that always agree.",
+        decision: "The rules live in contracts: what a manager may trade, who may deposit and what fees apply are enforced on " +
+          "chain, so a large investor does not have to take the manager's word for it.",
+        outcome: "Funds large investors can audit at any moment, with shares priced from oracles and positions read back from the chain.",
       },
       journeys: [
         {
-          title: "A holder manages what they own",
+          title: "An investor",
           steps: [
-            "Signs in with their wallet",
-            "Sees tokens, NFTs and positions across chains in one portfolio",
-            "Stakes part of a balance and watches it confirm",
-            "Claims the rewards later",
+            "Reads the vault's policies",
+            "Deposits, and shares are minted at the vault's value",
+            "Follows holdings and performance",
+            "Redeems shares when they choose",
           ],
         },
         {
-          title: "A gift by username",
-          steps: ["Types a friend's username, resolved to their address", "Picks a token or an NFT", "Confirms in the wallet", "The friend sees it in their portfolio"],
+          title: "A manager rebalances",
+          steps: [
+            "Proposes a trade",
+            "The policies check it on chain",
+            "It executes through the protocol's adapter",
+            "The valuation updates for every investor",
+          ],
         },
       ],
     },
     {
       id: "web3-infra",
+      tab: "Infrastructure",
       zone: "chain",
-      title: "Web3 infrastructure",
-      caption: "The layer under every Web3 product: chains and nodes, indexers, bridges and wallet connectivity, with " +
-        "contract releases that are reviewed, audited and can be rolled back.",
+      title: "Web3 infrastructure as a service",
+      caption: "Nodes for the top chains run as a service behind one gateway: API keys, rate limits and usage metering, token " +
+        "and NFT APIs, webhooks and indexing, across regions with failover.",
       summary: {
-        role: "Proposed the infrastructure and ran it: chains, bridges, indexers, the release pipeline and contract security reviews",
-        scale: "Three ecosystems and a chain of our own: EVM chains, Solana and Polkadot",
-        stack: ["Rust", "Substrate", "Solidity", "Alchemy", "Infura", "The Graph", "WalletConnect", "MetaMask", "AWS"],
+        role: "Proposed and ran the infrastructure layer: chains, nodes, indexers, bridges and the release pipeline",
+        scale: "Many chains, many regions, many products building on it",
+        stack: ["Rust", "Substrate", "Node.js", "Alchemy", "Infura", "The Graph", "Kubernetes", "AWS"],
       },
       architecture: {
         columns: 4,
         groups: [
           {
-            id: "inf-products",
-            label: "Products",
+            id: "ia-devs",
+            label: "Developers",
             place: { col: 1, row: 1, rowSpan: 2 },
             nodes: [
-              { id: "inf-apps", label: "Apps and dApps" },
-              { id: "inf-backend", label: "Back end services" },
-              { id: "inf-partners", label: "Partner SDKs and APIs" },
+              { id: "ia-sdk", label: "SDKs" },
+              { id: "ia-apps", label: "dApps and back ends" },
+              { id: "ia-dashboard", label: "Dashboard", detail: "Keys, usage, alerts" },
             ],
           },
           {
-            id: "inf-access",
-            label: "Access",
-            place: { col: 2, row: 1 },
+            id: "ia-gateway",
+            label: "Gateway",
+            place: { col: 2, row: 1, rowSpan: 2 },
             nodes: [
-              { id: "inf-wallets", label: "Wallet connectivity", detail: "WalletConnect, MetaMask, sign in" },
-              { id: "inf-checks", label: "Pre flight checks", detail: "Simulation, allowance rules" },
-              { id: "inf-rpc", label: "RPC providers", detail: "Alchemy, Infura" },
+              { id: "ia-keys", label: "API keys", detail: "Per project" },
+              { id: "ia-limits", label: "Rate limits", detail: "Per key and method" },
+              { id: "ia-router", label: "Request router", detail: "Healthiest node per chain" },
+              { id: "ia-cache", label: "Response cache", detail: "For repeat reads" },
+              { id: "ia-metering", label: "Usage metering", detail: "Billed by compute" },
             ],
           },
           {
-            id: "inf-data",
-            label: "Chain data",
-            place: { col: 2, row: 2 },
+            id: "ia-apis",
+            label: "APIs",
+            place: { col: 3, row: 1 },
             nodes: [
-              { id: "inf-indexers", label: "Indexers", detail: "Subgraphs and our own" },
-              { id: "inf-events", label: "Event stream", detail: "Into the product" },
+              { id: "ia-rpc", label: "JSON RPC" },
+              { id: "ia-enhanced", label: "Token and NFT APIs" },
+              { id: "ia-webhooks", label: "Webhooks", detail: "Address and contract events" },
             ],
           },
           {
-            id: "inf-chains",
-            label: "Chains",
-            place: { col: 3, row: 1, rowSpan: 2 },
+            id: "ia-data",
+            label: "Data",
+            place: { col: 3, row: 2 },
             nodes: [
-              { id: "inf-own", label: "Own chain", detail: "Rust on Substrate" },
-              { id: "inf-evm", label: "EVM chains", detail: "Ethereum, Polygon" },
-              { id: "inf-solana", label: "Solana" },
-              { id: "inf-polkadot", label: "Polkadot", detail: "Parachains first" },
+              { id: "ia-indexers", label: "Indexers", detail: "Subgraphs and our own" },
+              { id: "ia-archive", label: "Archive data", detail: "Full history" },
             ],
           },
           {
-            id: "inf-interop",
-            label: "Interop",
-            place: { col: 4, row: 1 },
-            nodes: [{ id: "inf-bridges", label: "Bridges", detail: "Across three ecosystems" }],
-          },
-          {
-            id: "inf-release",
-            label: "Releases and safety",
-            place: { col: 4, row: 2 },
+            id: "ia-fleet",
+            label: "Node fleet",
+            place: { col: 4, row: 1, rowSpan: 2 },
             nodes: [
-              { id: "inf-review", label: "Contract review", detail: "Attack paths before release" },
-              { id: "inf-ci", label: "CI/CD", detail: "Audit logs, permissions, rollback" },
-              { id: "inf-recovery", label: "Disaster recovery", detail: "Business continuity plans" },
-              { id: "inf-cloud", label: "Cloud", detail: "AWS, tuned for cost and load" },
+              { id: "ia-btc", label: "Bitcoin" },
+              { id: "ia-evm", label: "Ethereum and EVM chains" },
+              { id: "ia-solana", label: "Solana" },
+              { id: "ia-substrate", label: "Polkadot and Substrate" },
+              { id: "ia-regions", label: "Several regions", detail: "Failover between them" },
             ],
           },
         ],
         edges: [
-          { from: "inf-apps", to: "inf-wallets" },
-          { from: "inf-wallets", to: "inf-checks" },
-          { from: "inf-checks", to: "inf-rpc" },
-          { from: "inf-rpc", to: "inf-chains" },
-          { from: "inf-chains", to: "inf-indexers" },
-          { from: "inf-indexers", to: "inf-events" },
-          { from: "inf-events", to: "inf-backend" },
-          { from: "inf-bridges", to: "inf-chains", style: "link" },
-          { from: "inf-review", to: "inf-ci" },
-          { from: "inf-ci", to: "inf-chains", label: "deploys", style: "dashed" },
+          { from: "ia-devs", to: "ia-keys" },
+          { from: "ia-keys", to: "ia-limits" },
+          { from: "ia-limits", to: "ia-router" },
+          { from: "ia-router", to: "ia-fleet" },
+          { from: "ia-cache", to: "ia-router", style: "dashed" },
+          { from: "ia-gateway", to: "ia-apis" },
+          { from: "ia-fleet", to: "ia-data" },
+          { from: "ia-indexers", to: "ia-webhooks" },
+          { from: "ia-metering", to: "ia-dashboard" },
         ],
+      },
+      wireframe: {
+        device: "desktop",
+        screens: [
+          {
+            title: "Dashboard",
+            regions: [
+              { kind: "bar", label: "Project and API key" },
+              { kind: "stat", label: "Requests, errors and latency" },
+              { kind: "list", label: "Usage by chain and method", size: 1.8 },
+              { kind: "card", label: "Alerts" },
+            ],
+          },
+          {
+            title: "Webhooks",
+            regions: [
+              { kind: "form", label: "Address or contract to watch, and the chain" },
+              { kind: "list", label: "Deliveries, with status and retries", size: 2 },
+            ],
+          },
+        ],
+        decision: "One gateway in front of every chain, so a developer has one key, one bill and one API while each call goes to the healthiest node.",
+        outcome: "Products build on many chains without running nodes, with usage they can see and limits that protect everyone.",
       },
       journeys: [
         {
-          title: "A transaction, from a click to confirmed",
+          title: "A request",
           steps: [
-            "The user signs in the wallet",
-            "Pre flight checks stop a dangerous approval before it is sent",
-            "The RPC provider submits it, and it waits in the mempool",
-            "It lands in a block",
-            "The indexer picks it up and the product shows the receipt",
+            "The key is checked",
+            "The rate limit for that key and method applies",
+            "A cached answer is returned, or the router picks the healthiest node",
+            "The response comes back and the call is metered",
           ],
         },
         {
-          title: "A contract release",
-          steps: [
-            "The change is reviewed for attack paths",
-            "The pipeline deploys it with an audit log and set permissions",
-            "It is promoted only with a rollback ready",
-            "Recovery plans are in place before launch, since a chain cannot be patched casually",
-          ],
+          title: "An event to a webhook",
+          steps: ["A block arrives", "The indexer decodes it", "It matches a subscription", "The webhook is delivered, with retries"],
         },
       ],
     },
     {
       id: "creator-launchpad",
+  tab: "Launchpad",
       zone: "chain",
       title: "A creator coin launchpad on its own stablecoin",
       caption: "A pegged stablecoin underneath, creator coins on top that only ever trade against it, priced on a curve, with NFTs and engagement rewards around them.",
@@ -1374,6 +1507,7 @@ export const blueprintContent: BlueprintContent = {
     },
     {
       id: "nft-lending",
+  tab: "NFT lending",
       zone: "chain",
       title: "An NFT lending marketplace",
       caption: "Owners rent out NFTs, renters borrow them for games, and the marketplace reads everything from an indexer so the interface never guesses.",
@@ -1494,10 +1628,12 @@ export const blueprintContent: BlueprintContent = {
   platform: [
     {
       id: "financial-system",
+  tab: "Financial system",
       zone: "matrix",
       title: "A full financial system, end to end, Web2 and Web3",
-      caption: "From onboarding and KYC to payments in, multi currency wallets on double entry ledgers, payouts under dual " +
-        "approval and reconciliation, with a stablecoin, custody and chains on the same rails.",
+      caption: "Web2 and Web3 on the same rails: cards through Stripe and bank transfers in, multi currency wallets on double " +
+        "entry ledgers, payouts to banks or wallets under dual approval, on and off ramps between fiat and a stablecoin, and " +
+        "reconciliation across all of it.",
       summary: {
         role: "Proposed and built the money stack end to end, from onboarding to reconciliation",
         scale: "Multi currency, multi jurisdiction, fiat and on chain, designed for enterprise volume",
@@ -1531,7 +1667,8 @@ export const blueprintContent: BlueprintContent = {
             label: "Money in",
             place: { col: 3, row: 1 },
             nodes: [
-              { id: "fin-cards", label: "Card gateway adapter", detail: "Tokenised, provider agnostic" },
+              { id: "fin-cards", label: "Cards", detail: "Stripe behind a gateway adapter, tokenised" },
+              { id: "fin-bank", label: "Bank transfers", detail: "In from and out to bank accounts" },
               { id: "fin-local", label: "Local payment methods", detail: "Routed with risk checks and fallback" },
               { id: "fin-subs", label: "Plans and subscriptions", detail: "Multi provider pricing" },
             ],
@@ -1541,6 +1678,7 @@ export const blueprintContent: BlueprintContent = {
             label: "Web3 rails",
             place: { col: 4, row: 1, rowSpan: 2 },
             nodes: [
+              { id: "fin-ramps", label: "On and off ramps", detail: "Fiat to stablecoin and back" },
               { id: "fin-connected", label: "Connected wallets", detail: "Sign in with Ethereum" },
               { id: "fin-stable", label: "Stablecoin", detail: "Pegged settlement unit", kind: "store" },
               { id: "fin-tokens", label: "Token contracts", detail: "Tokenisation and staking" },
@@ -1565,7 +1703,7 @@ export const blueprintContent: BlueprintContent = {
             label: "Money out and controls",
             place: { col: 3, row: 2 },
             nodes: [
-              { id: "fin-withdraw", label: "Withdrawals", detail: "Installments" },
+              { id: "fin-withdraw", label: "Withdrawals", detail: "To a bank or a wallet, in installments" },
               { id: "fin-holds", label: "Holds", detail: "A second admin above a threshold" },
               { id: "fin-recon", label: "Reconciliation and integrity sweeps" },
               { id: "fin-audit", label: "Audit trail", detail: "Partitioned" },
@@ -1583,6 +1721,7 @@ export const blueprintContent: BlueprintContent = {
           { from: "fin-recon", to: "fin-ledger", style: "dashed" },
           { from: "fin-connected", to: "fin-stable" },
           { from: "fin-stable", to: "fin-ledger" },
+          { from: "fin-ramps", to: "fin-stable" },
           { from: "fin-tokens", to: "fin-bridges", style: "link" },
         ],
       },
@@ -1657,6 +1796,7 @@ export const blueprintContent: BlueprintContent = {
     },
     {
       id: "multi-market-commerce",
+  tab: "Headless commerce",
       zone: "matrix",
       title: "Multi market headless commerce",
       caption: "One storefront and two content sources behind one adapter, switched country by country, so a legacy system retires market by market.",
@@ -1800,6 +1940,7 @@ export const blueprintContent: BlueprintContent = {
     },
     {
       id: "platform-core",
+  tab: "Modular core",
       zone: "matrix",
       title: "A modular core behind adapters",
       caption: "One core package holds the business logic and the apps are thin shells. Every vendor and host sits behind an " +
@@ -1871,6 +2012,7 @@ export const blueprintContent: BlueprintContent = {
     },
     {
       id: "platform-money",
+  tab: "One payment",
       zone: "matrix",
       title: "One payment, step by step",
       caption: "A payment is booked twice on purpose, as two balancing ledger rows under one correlation id, and every step " +
@@ -1995,6 +2137,7 @@ export const blueprintContent: BlueprintContent = {
     },
     {
       id: "ml-ranking",
+  tab: "Ranking",
       zone: "matrix",
       title: "Recommendations and feed ranking",
       caption: "Signals feed a model, the model scores candidates, and the feed, the suggestions and the ads are ranked by one scoring service.",
@@ -2083,6 +2226,7 @@ export const blueprintContent: BlueprintContent = {
   casino: [
     {
       id: "live-dealer",
+  tab: "Live dealer",
       zone: "casino",
       title: "Live dealer tables with real time bets",
       caption: "Real tables streamed from casino floors to many operators' players, with a real time path that keeps bets and results in step with the video.",
@@ -2199,6 +2343,7 @@ export const blueprintContent: BlueprintContent = {
     },
     {
       id: "igaming-suite",
+  tab: "Slots and tables",
       zone: "casino",
       title: "An iGaming suite: slots, bet tables and live games",
       caption: "Games for operators where the result is decided on the server before anything spins, the client only animates " +
@@ -2337,6 +2482,7 @@ export const blueprintContent: BlueprintContent = {
     ARCAVIUM_BLUEPRINT,
     {
       id: "location-game",
+  tab: "Location game",
       zone: "mmo",
       title: "A location based mobile game",
       caption: "A game played on the real map: rewards spawn near the player, are caught through the camera and land in the " +
@@ -2462,6 +2608,7 @@ export const blueprintContent: BlueprintContent = {
     },
     {
       id: "render-performance",
+  tab: "Rendering",
       zone: "mmo",
       title: "Rendering at frame rate: GPU and heavy animation",
       caption: "Heavy animation on phones and desktops: one loop, sprites drawn once and reused, draws batched for the GPU, " +
@@ -2546,6 +2693,7 @@ export const blueprintContent: BlueprintContent = {
     },
     {
       id: "goz-hardening",
+  tab: "Hardening",
       zone: "mmo",
       title: "A game server, before and after hardening",
       caption: "Before, the origin answered the internet directly. After, only the CDN and expected game traffic reach it. " +
@@ -2599,6 +2747,7 @@ export const blueprintContent: BlueprintContent = {
     },
     {
       id: "game-launcher",
+  tab: "Game launcher",
       zone: "mmo",
       title: "A Web3 game launcher and store",
       caption: "A store and developer portal on the web, a desktop launcher and a mobile app on one back end and one design " +

@@ -90,6 +90,8 @@ export interface BlueprintJourney {
 
 export interface Blueprint {
   id: string;
+  // A short name for its tab, where several blueprints share a section.
+  tab?: string;
   // The world the drawing borrows its look from.
   zone: ZoneId;
   title: string;
@@ -113,6 +115,8 @@ export interface BlueprintLabels {
   // Under every architecture: it is a glance, not the full design.
   glanceNote: string;
   sketchNote: string;
+  // Names the row of tabs for screen readers.
+  showcase: string;
 }
 
 export interface BlueprintContent {

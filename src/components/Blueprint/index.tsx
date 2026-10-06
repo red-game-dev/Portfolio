@@ -1,5 +1,6 @@
-import { FC, useEffect, useId, useRef, useState } from "react";
+import { FC, KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
+import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import { Architecture } from "@/components/Blueprint/Architecture";
@@ -13,6 +14,8 @@ interface BlueprintProps extends BlueprintContent {
   labels: BlueprintLabels;
   // In a section the drawing takes more room than the text column on wide screens; in a dialog it stays inside.
   isBleed?: boolean;
+  // Already on screen (a tab just opened), so the drawing is built straight away.
+  isEager?: boolean;
 }
 
 type View = "overview" | "architecture" | "flow";
@@ -131,7 +134,7 @@ const JourneyList: FC<{ journeys: BlueprintJourney[] }> = ({ journeys }) => (
 // One system shown three ways: what I did and at what scale, how it is built, and what a user moves
 // through. All three stay in the page for every reader; only which one is open changes with the view.
 export const Blueprint: FC<BlueprintProps> = ({
-  zone, title, caption, summary, architecture, wireframe, journeys = [], labels, isBleed = true,
+  zone, title, caption, summary, architecture, wireframe, journeys = [], labels, isBleed = true, isEager = false,
 }: BlueprintProps) => {
   const { lens, settings } = useLensStateHook();
   const hasFlow = Boolean(wireframe) || journeys.length > 0;
@@ -140,7 +143,8 @@ export const Blueprint: FC<BlueprintProps> = ({
   const isOnScreen = useInView(figureRef, { once: false, threshold: 0 });
   // Drawings are built as they come within a screen or so of view, not during hydration: they add hundreds
   // of elements the first paint does not need.
-  const isNear = useInView(figureRef, { once: true, threshold: 0, rootMargin: "100% 0px" });
+  const isNearby = useInView(figureRef, { once: true, threshold: 0, rootMargin: "100% 0px" });
+  const isNear = isEager || isNearby;
   const bodyId = useId();
 
   useEffect(() => {
@@ -204,13 +208,183 @@ export const Blueprint: FC<BlueprintProps> = ({
 
 const List = tw.div`flex flex-col gap-[22px] lg:gap-[30px]`;
 
+const Showcase = styled.div(() => [
+  tw`flex flex-col gap-[14px]`,
+  css`
+    @media (min-width: 1024px) {
+      margin-left: ${BLEED};
+      margin-right: ${BLEED};
+    }
+  `,
+]);
+
+const TabList = styled.div(() => [
+  tw`flex flex-row gap-[6px] overflow-x-auto pb-[4px]`,
+  css`
+    scrollbar-width: thin;
+  `,
+]);
+
+const Tab = styled.button(({ isOn }: { isOn: boolean }) => [
+  tw`relative flex-shrink-0 h-[36px] px-[14px] cursor-pointer text-xs md:text-sm font-semibold whitespace-nowrap rounded-[2px]
+     border-[1px] border-solid`,
+  isOn ? tw`text-[#101010] bg-[var(--accent)] border-[var(--accent)]` : tw`text-[#ccc] bg-[#0d0d0d] border-[#262626]`,
+  css`
+    transition: border-color 0.2s ease, color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--accent);
+      color: ${isOn ? "#101010" : "#fff"};
+    }
+  `,
+]);
+
+const wipeIn = keyframes`
+  0% { opacity: 0; clip-path: inset(0 var(--from-right) 0 var(--from-left)); filter: blur(6px) saturate(1.6); transform: scale(0.99); }
+  55% { opacity: 1; filter: blur(0) saturate(1.2); }
+  100% { opacity: 1; clip-path: inset(0 0 0 0); filter: none; transform: none; }
+`;
+
+const beam = keyframes`
+  0% { transform: translateX(var(--beam-from)); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(var(--beam-to)); opacity: 0; }
+`;
+
+const fade = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
+// The switch between tabs: the new blueprint is drawn in from the side it was reached from, behind a beam
+// in the zone's colour, like a scanner passing over it. Quick views just fade; reduced motion just swaps.
+const Stage = styled.div(({ isImmersive }: { isImmersive: boolean }) => [
+  tw`relative`,
+  isImmersive ? css`
+    & > figure {
+      animation: ${wipeIn} 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 3px;
+      pointer-events: none;
+      background: var(--accent);
+      box-shadow: 0 0 18px 4px rgba(var(--accent-rgb), 0.55), 0 0 60px 12px rgba(var(--accent-rgb), 0.2);
+      animation: ${beam} 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+  ` : css`
+    & > figure {
+      animation: ${fade} 0.3s ease both;
+    }
+  `,
+  css`
+    @media (prefers-reduced-motion: reduce) {
+      & > figure,
+      &::after {
+        animation: none;
+      }
+
+      &::after {
+        display: none;
+      }
+    }
+  `,
+]);
+
 interface BlueprintListProps {
   blueprints: BlueprintContent[];
   labels: BlueprintLabels;
 }
 
+// Several blueprints become a showcase: one tab each, and an animated switch between them, so a section
+// shows one system at a time instead of a long stack.
+const BlueprintTabs: FC<BlueprintListProps> = ({ blueprints, labels }: BlueprintListProps) => {
+  const { settings } = useLensStateHook();
+  const [active, setActive] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const [hasSwitched, setHasSwitched] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const baseId = useId();
+  const current = blueprints[active];
+
+  const open = (index: number) => {
+    if (index === active) {
+      return;
+    }
+
+    setDirection(index > active ? 1 : -1);
+    setActive(index);
+    setHasSwitched(true);
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+
+    if (!step) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const next = (active + step + blueprints.length) % blueprints.length;
+
+    open(next);
+    tabsRef.current?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next]?.focus();
+  };
+
+  const stageStyle = {
+    "--from-left": direction === 1 ? "0" : "100%",
+    "--from-right": direction === 1 ? "100%" : "0",
+    "--beam-from": direction === 1 ? "0" : "calc(100cqw - 3px)",
+    "--beam-to": direction === 1 ? "calc(100cqw - 3px)" : "0",
+    "containerType": "inline-size",
+  } as React.CSSProperties;
+
+  return (
+    <Showcase>
+      <TabList ref={tabsRef} role="tablist" aria-label={labels.showcase}>
+        {blueprints.map((blueprint, index) => (
+          <Tab
+            key={blueprint.id}
+            id={`${baseId}-tab-${index}`}
+            type="button"
+            role="tab"
+            isOn={index === active}
+            aria-selected={index === active}
+            aria-controls={`${baseId}-panel`}
+            tabIndex={index === active ? 0 : -1}
+            onClick={() => open(index)}
+            onKeyDown={onKeyDown}
+          >
+            {blueprint.tab ?? blueprint.title}
+          </Tab>
+        ))}
+      </TabList>
+      <Stage
+        key={current.id}
+        id={`${baseId}-panel`}
+        role="tabpanel"
+        aria-labelledby={`${baseId}-tab-${active}`}
+        isImmersive={hasSwitched && settings.transitions !== "none"}
+        style={stageStyle}
+      >
+        <Blueprint {...current} labels={labels} isBleed={false} isEager={hasSwitched} />
+      </Stage>
+    </Showcase>
+  );
+};
+
 export const BlueprintList: FC<BlueprintListProps> = ({ blueprints, labels }: BlueprintListProps) => (
-  <List>
-    {blueprints.map((blueprint) => <Blueprint key={blueprint.id} {...blueprint} labels={labels} />)}
-  </List>
+  blueprints.length > 1 ? <BlueprintTabs blueprints={blueprints} labels={labels} /> : (
+    <List>
+      {blueprints.map((blueprint) => <Blueprint key={blueprint.id} {...blueprint} labels={labels} />)}
+    </List>
+  )
 );

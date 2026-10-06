@@ -127,6 +127,8 @@ const StatFill = styled.span(({ isRevealed }: FlipProps) => [
 
 const GroupLabel = tw.h4`m-0 text-xs font-medium text-[#999]`;
 
+const Note = tw.p`m-0 text-sm text-[#bbb] leading-relaxed`;
+
 const Chips = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 
 const Guild = tw.li`text-xs leading-none text-[#eee] bg-[#1d1d1d] rounded-[2px] py-[6px] px-[8px]`;
@@ -150,7 +152,7 @@ const Select = styled.button(({ isSelected }: SelectedProps) => [
 ]);
 
 export const CharacterCard: FC<CharacterCardProps> = ({
-  characterClass, titles = [], icon, tenures, stats, abilities, level, since, labels, isRevealed, order, isSelected, isSelectable, onSelect,
+  characterClass, titles = [], icon, tenures, stats, abilities, note, level, since, labels, isRevealed, order, isSelected, isSelectable, onSelect,
 }: CharacterCardProps) => {
   const guilds = [...new Set(tenures.map((tenure) => tenure.company))];
 
@@ -197,6 +199,7 @@ export const CharacterCard: FC<CharacterCardProps> = ({
               <Ability key={ability}>{ability}</Ability>
             ))}
           </Chips>
+          {note && <Note>{note}</Note>}
           {isSelectable && (
             <Select type="button" isSelected={isSelected} aria-pressed={isSelected} onClick={() => onSelect(characterClass)}>
               <FontAwesomeIcon icon={faGamepad} aria-hidden="true" />

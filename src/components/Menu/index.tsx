@@ -100,7 +100,8 @@ const NAV_ITEMS: Array<NavGroup & { label: string; href: string }> = [
   { label: "Offer", href: "#section-services", first: "section-services", last: "section-services" },
   { label: "History", href: "#section-history", first: "section-history", last: "section-history" },
   { label: "AI", href: `#${SECTION_IDS.aiUsage}`, first: SECTION_IDS.aiUsage, last: SECTION_IDS.aiUsage },
-  { label: "Web3", href: `#${SECTION_IDS.web3}`, first: SECTION_IDS.web3, last: SECTION_IDS.codeReview },
+  { label: "Web3", href: `#${SECTION_IDS.web3}`, first: SECTION_IDS.web3, last: SECTION_IDS.web3 },
+  { label: "Engineering", href: `#${SECTION_IDS.skillAreas}`, first: SECTION_IDS.skillAreas, last: SECTION_IDS.codeReview },
   { label: "iGaming", href: `#${SECTION_IDS.igaming}`, first: SECTION_IDS.igaming, last: SECTION_IDS.igaming },
   { label: "Game world", href: `#${SECTION_IDS.roster}`, first: SECTION_IDS.roster, last: "section-Wow" },
 ];
@@ -129,11 +130,13 @@ export const Menu = ({ active }: MenuProps) => {
 
   // One item per stop on the journey: each zone's sections light up the item that leads into it.
   const isOnSectionAbout = isOnAboutOnly || isOnTerminalSection;
-  const isOnChainZone = isOnWeb3Section || isOnSkillAreasSection || isOnPlatformSection || isOnCodeReviewSection;
+  const isOnEngineering = isOnSkillAreasSection || isOnPlatformSection || isOnCodeReviewSection;
   const isOnGameWorld = isOnRosterSection || isOnForgeSection || isOnTalentsSection || isOnCaseStudiesSection || isOnDuelsSection ||
     isOnProjectsOnly || isOnEngineRoomSection || isOnRecommendationsSection || isOnArenaSection || isOnFinaleSection;
 
-  const selected = [isOnSectionAbout, isOnSectionServices, isOnSectionHistory, isOnAiUsageSection, isOnChainZone, isOnIGamingSection, isOnGameWorld];
+  const selected = [
+    isOnSectionAbout, isOnSectionServices, isOnSectionHistory, isOnAiUsageSection, isOnWeb3Section, isOnEngineering, isOnIGamingSection, isOnGameWorld,
+  ];
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
 
   useNavProgress(NAV_ITEMS, itemRefs);

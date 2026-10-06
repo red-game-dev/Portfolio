@@ -1513,8 +1513,8 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      title: "Founder, CEO & CTO, Adotta",
-      ventureRole: "Founder, CEO and CTO",
+      title: "Founder & CTO, Adotta",
+      ventureRole: "Founder and CTO",
       isVenture: true,
       countsForSkills: false,
       industries: ["social", "fintech"],
@@ -1535,8 +1535,8 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      title: "Founder, CEO & CTO, Punti",
-      ventureRole: "Founder, CEO and CTO",
+      title: "Founder & CTO, Punti",
+      ventureRole: "Founder and CTO",
       isVenture: true,
       countsForSkills: false,
       industries: ["ecommerce", "fintech"],
@@ -2455,7 +2455,9 @@ export const portfolioData: PortfolioData = {
           { name: "Platform Engineering", value: 85 },
           { name: "Encryption & Compression", value: 80 },
         ],
-        abilities: ["Smart contracts", "Exchanges and tokens", "Wallets and indexers", "Bridges"],
+        abilities: ["Smart contracts", "Attack vector defence", "Exchanges and tokens", "Wallets, indexers and bridges"],
+        note: `I design against the known attack vectors: reentrancy, front running and MEV, oracle manipulation, signature replay, broken
+        access control, unlimited approvals and flash loan abuse. No change ships without its security review.`,
       },
       {
         characterClass: "Tech Lead",
@@ -3169,7 +3171,7 @@ export const portfolioData: PortfolioData = {
       responsibilities: [
         "Shelter profiles with what each one needs",
         "Donations that earn points, spent with partner businesses",
-        "Founded and led as CEO and CTO; it closed for lack of funding",
+        "Founded it and led it as CTO; it closed for lack of funding",
       ],
       techStack: [],
       countsForSkills: false,
@@ -3189,7 +3191,7 @@ export const portfolioData: PortfolioData = {
       responsibilities: [
         "One customer app holding points for every business",
         "Earning at the till or online, by each business's own rules",
-        "Founded and led as CEO and CTO, against established competition; it closed for lack of funding",
+        "Founded it and led it as CTO, against established competition; it closed for lack of funding",
       ],
       techStack: [],
       countsForSkills: false,
@@ -3539,7 +3541,6 @@ export const portfolioData: PortfolioData = {
         name: "Tables on canvas",
         detail: "A PixiJS bet table proof of concept, presented to the engineering team and the CTO.",
         places: ["Authentic Gaming"],
-        link: { label: "View the code", url: "https://github.com/red-game-dev/Bet-Table" },
       },
       {
         name: "Canvas performance",
@@ -3566,9 +3567,10 @@ export const portfolioData: PortfolioData = {
       { label: "Pull requests reviewed", count: 520 },
     ],
     activityTitle: "Activity on GitHub",
-    activityDescription: "Every day since the account opened, darker for busier days.",
+    activityDescription: `The last three years on my current account, darker for busier days. The two decades before live on earlier
+    accounts and in company repositories.`,
     activityYearLabel: "Contributions in {year}, one square per day",
-    activity: githubActivity,
+    activity: { ...githubActivity, years: githubActivity.years.slice(-3) },
     highlights: [
       {
         name: "Others",

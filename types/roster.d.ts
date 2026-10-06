@@ -20,6 +20,8 @@ export interface Character {
   tenures: CharacterTenure[];
   stats: CharacterStat[];
   abilities: string[];
+  // One line on how the role is played, where the abilities alone do not say it.
+  note?: string;
 }
 
 export interface Roster {

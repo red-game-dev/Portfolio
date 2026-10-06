@@ -89,7 +89,14 @@ const HandCard = styled.button(({ isLocked }: { isLocked: boolean }) => [
   `,
 ]);
 
-const HandName = tw.span`text-[12px] font-bold leading-tight break-words`;
+// Long words break with a hyphen where the language allows, never mid syllable.
+const HandName = styled.span(() => [
+  tw`text-[12px] font-bold leading-tight`,
+  css`
+    hyphens: auto;
+    overflow-wrap: normal;
+  `,
+]);
 
 const Redeal = styled.button(() => [
   tw`self-center inline-flex flex-row items-center gap-[8px] h-[38px] px-[16px] cursor-pointer text-sm font-semibold text-[#101010] bg-[var(--accent)]

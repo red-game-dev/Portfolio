@@ -39,7 +39,25 @@ const Diagram = styled.div(() => [
   `,
 ]);
 
-const ReadableWires = tw.ul`sr-only`;
+// On a phone the boxes stack and lines would run behind them, so the wires become a short list instead.
+// On wide screens the same list stays for screen readers only.
+const WireList = styled.ul(() => [
+  tw`list-none m-0 p-0 flex flex-col gap-[6px] text-xs text-[#aaa]`,
+  css`
+    ${WIDE} {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+  `,
+]);
+
+const WireItem = tw.li`break-words`;
+
+const WireArrow = tw.span`text-[var(--accent)]`;
 
 // Each world draws its frames its own way: a terminal rule, a soft neural glow, a chain block, a neon
 // table rim, or a game UI panel with cut corners.
@@ -165,7 +183,7 @@ const KindIcon = tw.span`text-[var(--accent)] text-[11px]`;
 const Diamond = tw.span`inline-block w-[7px] h-[7px] rotate-45 bg-[var(--accent)]`;
 
 const Wires = styled.svg(({ isMoving }: { isMoving: boolean }) => [
-  tw`absolute top-0 left-0 z-0 pointer-events-none overflow-visible`,
+  tw`hidden lg:block absolute top-0 left-0 z-0 pointer-events-none overflow-visible`,
   css`
     .wire {
       fill: none;
@@ -302,14 +320,16 @@ export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edg
           </Group>
         );
       })}
-      {/* The wires as sentences, for readers who cannot see the drawing. */}
-      <ReadableWires>
+      <WireList>
         {edges.map((edge, index) => (
-          <li key={`${edge.from}-${edge.to}-${index}`}>
-            {`${names.get(edge.from) ?? edge.from} to ${names.get(edge.to) ?? edge.to}${edge.label ? `: ${edge.label}` : ""}`}
-          </li>
+          <WireItem key={`${edge.from}-${edge.to}-${index}`}>
+            {names.get(edge.from) ?? edge.from}
+            <WireArrow>{edge.style === "link" ? " with " : " to "}</WireArrow>
+            {names.get(edge.to) ?? edge.to}
+            {edge.label ? `, ${edge.label}` : ""}
+          </WireItem>
         ))}
-      </ReadableWires>
+      </WireList>
     </Diagram>
   );
 };

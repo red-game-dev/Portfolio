@@ -4,7 +4,7 @@ import tw from "twin.macro";
 
 import { BlueprintList } from "@/components/Blueprint";
 import { Panel } from "@/components/Panel";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { Block } from "@/components/Web3/Block";
 import { Stack } from "@/components/Web3/Stack";
 import { TxFlow } from "@/components/Web3/TxFlow";
@@ -43,7 +43,7 @@ export const Web3: FC<Web3Props> = ({ intro, content, blueprints, blueprintLabel
   return (
     <Section id={SECTION_IDS.web3}>
       <Anchor id={ROLE_ANCHORS.web3} aria-hidden="true" />
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <SectionText intro={intro} />
       <Panel>
         <Statement>{content.statement}</Statement>
         <Validators>

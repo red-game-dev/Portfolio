@@ -3,7 +3,7 @@ import { FC, FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react
 import tw, { css, styled } from "twin.macro";
 
 import { TerminalDialog } from "@/components/Terminal/TerminalDialog";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { TerminalDialog as TerminalDialogContent, TerminalEffect, TerminalLineKind, TerminalSession } from "@/packages/interaction/terminal";
 import { SectionIntros } from "@/types/sections-intros";
@@ -206,7 +206,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
 
   return (
     <Section id={SECTION_ID} ref={sectionRef}>
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <SectionText intro={intro} />
       <Window>
         <TitleBar>
           <span>{content.prompt.replace(/:.*$/, "")}</span>

@@ -4,7 +4,7 @@ import tw from "twin.macro";
 
 import { BlueprintList } from "@/components/Blueprint";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { Blueprint, BlueprintLabels } from "@/types/blueprints";
 import { ExpertiseContent } from "@/types/case-studies";
@@ -42,7 +42,7 @@ const Example = tw.div`mt-[22px]`;
 export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, blueprints, blueprintLabels }: PlatformOverviewProps) => (
   <Section id={SECTION_IDS.platform}>
     <Anchor id={ROLE_ANCHORS.enterprise} aria-hidden="true" />
-    <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+    <SectionText intro={intro} />
     <Tiles>
       {expertise.tiles.map((tile) => (
         <Tile key={tile.name}>

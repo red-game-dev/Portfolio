@@ -1,4 +1,4 @@
-import { FC, useRef } from "react";
+import { FC, useId, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -10,9 +10,11 @@ import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
 import { CaseStudy } from "@/types/case-studies";
 import { BossLabels } from "@/types/game";
+import { CaseLabels } from "@/types/lens";
 
 interface BossCardProps extends CaseStudy {
   labels: BossLabels;
+  caseLabels: CaseLabels;
 }
 
 const DEFEATED_AT = 0.85;
@@ -97,17 +99,37 @@ const Move = styled.li(() => [
   `,
 ]);
 
+const Heading = tw.h4`m-0 text-xs font-semibold text-[#8a8a8a]`;
+
+const Toggle = tw.button`self-start p-0 cursor-pointer text-xs font-semibold text-[var(--accent)] bg-transparent border-0 hover:underline`;
+
+const Solution = styled.div(() => [
+  tw`flex flex-col gap-[8px]`,
+  css`
+    &[hidden] {
+      display: none;
+    }
+  `,
+]);
+
 const Loot = tw.div`flex flex-row items-start gap-[10px] p-[12px] text-sm text-[#ffd98c] bg-[#1a1408] border-[1px] border-solid border-[#5c4a26]`;
 
 const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 
 const Tag = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[6px] px-[10px] border-[1px] border-solid border-[var(--accent-muted)]`;
 
-export const BossCard: FC<BossCardProps> = ({ area, title, summary, points, tags, loot, labels }: BossCardProps) => {
+export const BossCard: FC<BossCardProps> = ({ area, title, summary, points, tags, loot, labels, caseLabels }: BossCardProps) => {
   const cardRef = useRef<HTMLElement>(null);
   const { defeatBoss } = useGameStateHook();
   // Without the game layer the card is a plain case study: no health, no stamp, the rule shown from the start.
-  const isGame = useLensStateHook().settings.gameLayer;
+  const { lens, settings } = useLensStateHook();
+  const isGame = settings.gameLayer;
+  // Product readers get the case's shape spelled out; recruiters get the problem and the takeaway, with the
+  // moves folded away; engineers get the boss fight as it was.
+  const hasHeadings = lens !== "engineer";
+  const isFolded = lens === "recruiter";
+  const [isOpen, setIsOpen] = useState(false);
+  const solutionId = useId();
 
   useScrollProgressVar(cardRef, "--boss-progress", 0.7, {
     at: DEFEATED_AT,
@@ -119,8 +141,8 @@ export const BossCard: FC<BossCardProps> = ({ area, title, summary, points, tags
     <Card ref={cardRef} data-game={isGame}>
       <Header>
         <Kind>
-          <FontAwesomeIcon icon={faSkull} aria-hidden="true" />
-          {labels.boss}
+          {isGame && <FontAwesomeIcon icon={faSkull} aria-hidden="true" />}
+          {isGame ? labels.boss : caseLabels.kind}
         </Kind>
         <Area>{area}</Area>
         {isGame && <Stamp className="stamp" aria-hidden="true">{labels.defeated}</Stamp>}
@@ -134,18 +156,27 @@ export const BossCard: FC<BossCardProps> = ({ area, title, summary, points, tags
           </Track>
         </Health>
       )}
+      {hasHeadings && <Heading>{caseLabels.problem}</Heading>}
       {summary.map((paragraph) => (
         <Threat key={paragraph}>{paragraph}</Threat>
       ))}
-      <Moves>
-        {points.map((point) => (
-          <Move key={point}>{point}</Move>
-        ))}
-      </Moves>
+      {isFolded && (
+        <Toggle type="button" aria-expanded={isOpen} aria-controls={solutionId} onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? caseLabels.hideSolution : caseLabels.showSolution.replace("{count}", String(points.length))}
+        </Toggle>
+      )}
+      <Solution id={solutionId} hidden={isFolded && !isOpen}>
+        {hasHeadings && <Heading>{caseLabels.decisions}</Heading>}
+        <Moves>
+          {points.map((point) => (
+            <Move key={point}>{point}</Move>
+          ))}
+        </Moves>
+      </Solution>
       <Loot className="loot">
         <FontAwesomeIcon icon={faTreasureChest} aria-hidden="true" />
         <span>
-          <strong>{`${labels.loot}: `}</strong>
+          <strong>{`${hasHeadings ? caseLabels.takeaway : labels.loot}: `}</strong>
           {loot}
         </span>
       </Loot>

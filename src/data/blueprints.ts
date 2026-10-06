@@ -271,8 +271,8 @@ export const blueprintContent: BlueprintContent = {
             columns: 2,
             place: { col: 3, row: 1 },
             nodes: [
-              { id: "headless", label: "Headless CMS", detail: "Admin UI and REST API", span: 2 },
-              { id: "cms-db", label: "Managed PostgreSQL", kind: "store" },
+              { id: "headless", label: "Headless CMS", detail: "Admin UI and REST API; publishing bans the cache", span: 2 },
+              { id: "cms-db", label: "PostgreSQL", detail: "Managed", kind: "store" },
               { id: "preview", label: "Editor preview", detail: "Viewport, audience, market" },
             ],
           },
@@ -296,7 +296,7 @@ export const blueprintContent: BlueprintContent = {
           { from: "adapter", to: "legacy-cms", label: "legacy" },
           { from: "headless", to: "cms-db" },
           { from: "headless", to: "preview" },
-          { from: "headless", to: "origin-cache", label: "publish: cache ban", style: "dashed" },
+          { from: "headless", to: "origin-cache", style: "dashed" },
         ],
       },
       wireframe: {

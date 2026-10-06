@@ -4,6 +4,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { DecodedText } from "@/components/DecodedText";
 import { HISTORY_VIEW } from "@/components/History/config";
+import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import useInView from "@/hooks/useInView";
 import { HistoryLabels } from "@/types/history";
 import { Resume } from "@/types/resume";
@@ -147,17 +148,24 @@ const Toggle = styled.button(() => [
 ]);
 
 export const HistoryEntry: FC<HistoryEntryProps> = ({
-  title, description, outcome, bullets = [], techStack = [], from, to, isVenture = false, labels, hasVentureLane, isDimmed = false,
+  title, description, outcome, productOutcome, bullets = [], techStack = [], from, to, isVenture = false, labels, hasVentureLane, isDimmed = false,
 }: HistoryEntryProps) => {
   const rowRef = useRef<HTMLLIElement>(null);
   const isReached = useInView(rowRef, { threshold: 0.35 });
   const [isExpanded, setIsExpanded] = useState(false);
   const moreId = useId();
-  const [lead, ...restDescription] = description;
-  const preview = bullets.slice(0, HISTORY_VIEW.previewBullets);
-  const restBullets = bullets.slice(HISTORY_VIEW.previewBullets);
+  const { lens } = useLensStateHook();
+  // Same entry, three depths: recruiters see dates, outcome and stack; product readers the product outcome
+  // and one bullet; engineers the lead and three bullets. Everything else is one click away for all of them.
+  const isRecruiter = lens === "recruiter";
+  const previewCount = { recruiter: 0, product: HISTORY_VIEW.productPreviewBullets, engineer: HISTORY_VIEW.previewBullets }[lens];
+  const [lead, ...restDescription] = isRecruiter ? [undefined, ...description] : description;
+  const preview = bullets.slice(0, previewCount);
+  const restBullets = bullets.slice(previewCount);
+  const stackPreview = isRecruiter ? techStack.slice(0, HISTORY_VIEW.recruiterStackPreview) : [];
+  const restStack = techStack.slice(stackPreview.length);
   const hiddenCount = restBullets.length + restDescription.length;
-  const hasMore = hiddenCount > 0 || techStack.length > 0;
+  const hasMore = hiddenCount > 0 || restStack.length > 0;
   const isCurrent = !to;
 
   return (
@@ -172,8 +180,16 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
         <Title>
           <DecodedText text={title} isActive={isReached} />
         </Title>
+        {lens === "product" && productOutcome && <Outcome>{productOutcome}</Outcome>}
         {outcome && <Outcome>{outcome}</Outcome>}
         {lead && <Lead>{lead}</Lead>}
+        {stackPreview.length > 0 && (
+          <Tags>
+            {stackPreview.map((tech) => (
+              <Tag key={tech}>{tech}</Tag>
+            ))}
+          </Tags>
+        )}
         {preview.length > 0 && (
           <Bullets>
             {preview.map((bullet) => (
@@ -193,9 +209,9 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
                 ))}
               </Bullets>
             )}
-            {techStack.length > 0 && (
+            {restStack.length > 0 && (
               <Tags>
-                {techStack.map((tech) => (
+                {restStack.map((tech) => (
                   <Tag key={tech}>{tech}</Tag>
                 ))}
               </Tags>

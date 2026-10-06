@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { Recommendation } from "@/types/recommendations";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -40,7 +40,7 @@ const Role = tw.span`block font-medium text-[var(--accent)]`;
 
 export const Recommendations: FC<RecommendationsProps> = ({ intro, recommendations }: RecommendationsProps) => (
   <Section id="section-Recommendations">
-    <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+    <SectionText intro={intro} />
     <Quotes>
       {recommendations.map((recommendation) => (
         <Quote key={recommendation.quote}>

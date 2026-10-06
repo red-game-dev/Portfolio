@@ -3,7 +3,7 @@ import { FC, useRef } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { Panel, PanelTitle } from "@/components/Panel";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import useInView from "@/hooks/useInView";
 import { TalentsContent } from "@/types/forge";
 import { SectionIntros } from "@/types/sections-intros";
@@ -72,7 +72,7 @@ export const Talents: FC<TalentsProps> = ({ intro, talents, content }: TalentsPr
 
   return (
     <Section id="section-talents">
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <SectionText intro={intro} />
       <Panels>
         <Panel>
           <PanelTitle>{content.talentsLabel}</PanelTitle>

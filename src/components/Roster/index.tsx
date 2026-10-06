@@ -6,7 +6,7 @@ import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel } from "@/components/Panel";
 import { CharacterCard } from "@/components/Roster/CharacterCard";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
 import { TenureCalculator } from "@/packages/insights/career";
@@ -36,7 +36,7 @@ export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters }: Ros
   return (
     <Section id={SECTION_IDS.roster}>
       <Anchor id={ROLE_ANCHORS.leadership} aria-hidden="true" />
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <SectionText intro={intro} />
       <Panel>
         <Cards ref={gridRef}>
           {characters.map((character, index) => (

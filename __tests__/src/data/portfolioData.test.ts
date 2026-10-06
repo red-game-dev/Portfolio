@@ -76,6 +76,28 @@ describe("audience views", () => {
     expect([null, "", "Recruiter", "admin", 1].some(isLens)).toBe(false);
   });
 
+  test("every role has a product outcome for product readers", () => {
+    expect(portfolioData.experience.filter((entry) => !entry.productOutcome).map((entry) => entry.title)).toEqual([]);
+  });
+
+  test("every skill the recruiter glance names is a skill the forge knows", () => {
+    const known = new Set(Object.values(portfolioData.skills).flat()
+.map((skill) => skill.name));
+    const named = portfolioData.lens.glance.recruiter.skillGroups.flatMap((group) => group.names);
+
+    expect(named.filter((name) => !known.has(name))).toEqual([]);
+  });
+
+  test("the glance picks proof figures and roster classes that exist", () => {
+    const { recruiter, product } = portfolioData.lens.glance;
+    const classes = new Set(portfolioData.roster.characters.map((character) => character.characterClass));
+    const values = new Set(portfolioData.details.proof.map((figure) => figure.value));
+
+    expect([...recruiter.roleClasses, ...product.levelClasses].filter((name) => !classes.has(name))).toEqual([]);
+    expect(product.proofValues.filter((value) => !values.has(value))).toEqual([]);
+    expect(portfolioData.serviceGroups.some((group) => group.label === portfolioData.lens.productServiceGroup)).toBe(true);
+  });
+
   test("immersion only grows from the quick view to the full one", () => {
     const rank = { still: 0, animated: 1, none: 0, soft: 1, full: 2, off: 0, headings: 1, all: 2 };
     const ordered = LENSES.map((lens) => LENS_SETTINGS[lens]);

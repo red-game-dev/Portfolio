@@ -5,6 +5,8 @@ export interface Resume {
   description: string[];
   // One measured result, shown first. Only figures that can be backed.
   outcome?: string;
+  // What the role meant as a product, for product readers. Backed facts only, like the outcome.
+  productOutcome?: string;
   // A company I founded, drawn on its own branch next to employment.
   isVenture?: boolean;
   bullets?: string[];

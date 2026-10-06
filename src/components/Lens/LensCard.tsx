@@ -96,7 +96,7 @@ const Sprite = styled.span(() => [
   `,
 ]);
 
-const Body = tw.span`flex flex-col gap-[10px] min-w-0`;
+const Body = tw.span`flex flex-col gap-[10px] min-w-0 md:flex-1`;
 
 const CharacterClass = tw.span`text-xs font-semibold text-[var(--lens-accent)]`;
 

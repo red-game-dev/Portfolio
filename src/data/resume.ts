@@ -324,12 +324,28 @@ export const portfolioData: PortfolioData = {
       description: [
         "Employment runs on the main line. The companies I founded run beside it on their own branch, because I have always built alongside the day job.",
       ],
+      lenses: {
+        recruiter: [
+          "Every role with its dates, the outcome and the stack. Companies I founded run on their own branch, beside employment.",
+        ],
+        product: [
+          "Each role read as a product: what it set out to do and what it achieved. The companies I founded run on their own branch.",
+        ],
+      },
     },
     services: {
       title: "What can I offer?",
       description: [
         "What I take on, grouped by area. Each card is work I have done for real, and each one has a direct line to me.",
       ],
+      lenses: {
+        recruiter: [
+          "What I can be hired for, grouped by area. Each card is work I have done, with a direct line to me.",
+        ],
+        product: [
+          "Product and growth first, then the engineering behind it. Each card is work I have done.",
+        ],
+      },
     },
     design: {
       title: "Design Skills",
@@ -394,6 +410,15 @@ export const portfolioData: PortfolioData = {
         my own products, client work and Conrad. Today AI is part of almost every task I work on, from writing code to preparing a
         stakeholder update. Here is what that looks like in numbers, the rules I work by, and how I got here.`,
       ],
+      lenses: {
+        recruiter: [
+          "I built machine learning models before LLMs, and AI agents are now part of almost every task I do, inside " +
+            "rules and reviews I set. The numbers, the rules and the history are below.",
+        ],
+        product: [
+          "AI as a way to ship faster without lowering the bar: what I use it for, the guardrails that keep it safe for a company, and how I got here.",
+        ],
+      },
     },
     expertise: {
       title: "Expertise",
@@ -420,14 +445,38 @@ export const portfolioData: PortfolioData = {
         `Real problems from across my roles, client work and my own platform. Each boss loses health as you read how it was beaten,
         and drops the rule I kept.`,
       ],
+      lenses: {
+        recruiter: [
+          "Real problems from my roles and my own platform: the problem, how it was solved, and the rule I kept.",
+        ],
+        product: [
+          "Real cases from my roles and my own platform, each read as the problem, the decisions and the outcome.",
+        ],
+      },
     },
     web3: {
       title: "On Chain",
       description: ["Web3 from fan tokens at scale to a chain of my own. Each block below is somewhere it shipped, confirmed as you read it."],
+      lenses: {
+        recruiter: [
+          "Web3 in production: fan tokens for 1.5M+ users, a chain built from zero, an NFT lending marketplace and a game launcher.",
+        ],
+        product: [
+          "Web3 products from fan engagement at scale to a chain built from zero, and what each one let its users do.",
+        ],
+      },
     },
     igaming: {
       title: "Live Table",
       description: ["iGaming from the live casino floor to regulated platforms for clients. The cards are dealt as you arrive."],
+      lenses: {
+        recruiter: [
+          "iGaming experience: a live casino game UI and mobile app, operator tooling, and platforms for clients.",
+        ],
+        product: [
+          "Live casino products for operators: one game UI on every screen, a new mobile app, and onboarding that scales with the number of operators.",
+        ],
+      },
     },
     codeReview: {
       title: "Code Review and Open Source",
@@ -436,6 +485,11 @@ export const portfolioData: PortfolioData = {
     platform: {
       title: "What I Have Built, More Than Once",
       description: ["The same kinds of system, built at several companies. Each tile names where; below them, worked examples in detail."],
+      lenses: {
+        recruiter: [
+          "The kinds of system I have built at more than one company, with worked examples.",
+        ],
+      },
     },
     engineRoom: {
       title: "Engine Room",
@@ -443,10 +497,23 @@ export const portfolioData: PortfolioData = {
         "Under the floor of the game world: my MMO from engine to live operations, its server before and after a bot " +
           "flood, and the three clients of a Web3 game platform I built for.",
       ],
+      lenses: {
+        recruiter: [
+          "How my game and a Web3 game platform are built, in brief. Open a drawing for the detail.",
+        ],
+        product: [
+          "The products behind the game world: my MMO run as a live business, and a launcher that puts a Web3 game one click away.",
+        ],
+      },
     },
     arena: {
       title: "Bug Raid",
       description: ["A break from reading. Squash the bugs before they reach production. Your best score stays in this browser."],
+      lenses: {
+        recruiter: [
+          "An optional game: squash the bugs before they reach production. Skip it if you are short on time.",
+        ],
+      },
     },
     duels: {
       title: "Human vs Agent",
@@ -454,6 +521,14 @@ export const portfolioData: PortfolioData = {
         `PvP, honestly: every round here happened. Most go my way. Some go to the agent, and each of those left me a rule I still
         follow.`,
       ],
+      lenses: {
+        recruiter: [
+          "Real rounds of working with an AI agent. Most go my way; the ones that did not each became a rule I follow.",
+        ],
+        product: [
+          "What working with an AI agent looks like in practice, and the rules that keep it safe for a company: security, policy, data privacy and process.",
+        ],
+      },
     },
     forge: {
       title: "Skills",
@@ -461,6 +536,11 @@ export const portfolioData: PortfolioData = {
         `No self ratings. Each skill's rarity is earned from how long I have used it in real roles, projects and study, measured from
         their dates, and every card says where.`,
       ],
+      lenses: {
+        recruiter: [
+          "Every skill with its years of use, measured from the dates of real roles, projects and study.",
+        ],
+      },
     },
     talents: {
       title: "Talents",
@@ -472,12 +552,25 @@ export const portfolioData: PortfolioData = {
         `Every role I have held, as a character in my own party. Level is the years in that role, measured from real dates.
         Stats are my own scores.`,
       ],
+      lenses: {
+        recruiter: [
+          "Every role I have held, with the years in each, measured from real dates.",
+        ],
+        product: [
+          "The roles I have held, product ones included: CEO and Product Owner as well as architect, with the years in each.",
+        ],
+      },
     },
     projects: {
       title: "Projects & Achievements",
       description: [
         "Every project is a region on the map, laid out in the order I explored them. Pick one to open its map: what I built there, the loot, and where to see it.",
       ],
+      lenses: {
+        recruiter: [
+          "Projects and achievements, one region each. Open one for what I built there and where to see it.",
+        ],
+      },
     },
     recommendations: {
       title: "Recommendations",
@@ -742,6 +835,7 @@ export const portfolioData: PortfolioData = {
       title: "Lead Software Architect / Enterprise Architect, Conrad Electronic Group",
       industries: ["ecommerce", "fintech", "consulting"],
       from: "Nov 2025",
+      productOutcome: "A storefront in 16 markets moving to a headless CMS market by market, with editors targeting each block by market, audience and viewport",
       outcome: "Up to 7M+ sessions a month, working with 90+ people up to CTO level",
       description: [
         "Conrad Electronic is a European electronics retailer operating across 16 markets, DACH-led.",
@@ -839,6 +933,7 @@ export const portfolioData: PortfolioData = {
       title: "Senior Full Stack Engineer, HyperPlay Labs",
       industries: ["gamePublishing", "web3"],
       from: "Oct 2023",
+      productOutcome: "A Web3 game one launcher away: store, wallet and install in one flow across web, desktop and mobile, plus a portal for studios",
       to: "Nov 2025",
       description: [
         `HyperPlay is the world's first Web3 game launcher, pioneering how decentralized games are discovered,
@@ -913,6 +1008,7 @@ export const portfolioData: PortfolioData = {
       title: "Senior Frontend Engineer, reNFT Labs",
       industries: ["web3"],
       from: "Jan 2023",
+      productOutcome: "Marketplace V2 and its landing page, rebuilt so the NFT lending product could keep changing without breaking its critical flows",
       to: "Aug 2023",
       description: [
         "An interesting company that offers NFT rentals, integrating with various industries like gaming.",
@@ -972,6 +1068,9 @@ export const portfolioData: PortfolioData = {
       industries: ["fintech", "sports", "social"],
       isVenture: true,
       from: "2021",
+      productOutcome:
+        "A gamified social platform with milestone based funding, payments on a double entry ledger, an ads " +
+        "engine with its own auction and real time feeds",
       outcome: "Payments, ledgers, ads and real time, with every vendor and host switchable by configuration",
       description: [
         "A gamified social network platform of my own: payments, double entry ledgers, an ads engine with its own auction, and real time feeds.",
@@ -1023,6 +1122,7 @@ export const portfolioData: PortfolioData = {
       title: "Founder, CEO at TasteTravellers",
       industries: ["travel"],
       from: "Feb 2018",
+      productOutcome: "A travel page and community grown through authentic content, brand collaborations and paid campaigns",
       description: [
         "Our popular travel page & community",
         `We focus on bringing authentic travel experiences to their audience and 
@@ -1044,6 +1144,9 @@ export const portfolioData: PortfolioData = {
       title: "Founder, CEO & CTO, Gods of Zushin",
       industries: ["gamePublishing"],
       from: "Apr 2015",
+      productOutcome:
+        "An MMORPG run as a live business: purchases and subscriptions, live patching, moderation and " +
+        "analytics, marketed across social and streaming platforms",
       description: [
         "An achievement on its own with over 5 years in production environment.",
         "A Game MMORPG project developed during studies to enhance my knowledge in various of areas, which can be discuss.",
@@ -1097,6 +1200,7 @@ export const portfolioData: PortfolioData = {
       title: "Mobile Core Engineer / Architect, Chiliz",
       industries: ["web3", "sports"],
       from: "Nov 2019",
+      productOutcome: "A fan engagement app for 1.5M+ users in 167 countries, taken from critically unstable to a core seven squads ship features on",
       outcome: "1.5M+ users in 167 countries, 7 product squads and 30+ engineers",
       to: "Nov 2022",
       description: [
@@ -1177,6 +1281,9 @@ export const portfolioData: PortfolioData = {
       title: "Chief Technology Officer, CoinOn",
       industries: ["web3"],
       from: "Nov 2021",
+      productOutcome:
+        "A Web3 platform for influencers and game publishers, taken from zero to web, mobile and chain, with " +
+        "the roadmap, KPIs and budgeting tools to run it",
       to: "Jan 2022",
       description: [
         "Delivered a full scale solution of website, mobile app and a blockchain infrastructure.",
@@ -1247,6 +1354,7 @@ export const portfolioData: PortfolioData = {
       title: "Software Engineer / Technical Lead for Client Projects, KPMG",
       industries: ["fintech", "igaming", "gamePublishing", "pharmatech", "consulting"],
       from: "Feb 2019",
+      productOutcome: "Client products shipped with machine learning for recommendations, ads and feed ranking, which went live",
       to: "Sep 2019",
       description: [
         "Being hired by KPMG is one big achievement on its own, as it is one of the big 4 firm in auditing.",
@@ -1319,6 +1427,7 @@ export const portfolioData: PortfolioData = {
       title: "Frontend Game Engineer, AuthenticGaming",
       industries: ["igaming"],
       from: "Jul 2017",
+      productOutcome: "A live casino game UI for every screen and a new mobile app, credited by the CTO with the most innovative user experience in the industry",
       to: "Jan 2019",
       description: [
         `One of the companies that given me a lot of experiences throughout the years. 

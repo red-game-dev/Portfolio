@@ -3,7 +3,7 @@ import { FC } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { Station } from "@/components/SkillForge/Station";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS } from "@/config/sections";
 import { DEFAULT_RARITY_TIERS } from "@/packages/insights/skills";
 import { ForgeStation } from "@/services/skills";
@@ -45,7 +45,7 @@ const Stations = tw.div`flex flex-col gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[
 export const SkillForge: FC<SkillForgeProps> = ({ intro, stations, content }: SkillForgeProps) => (
   <Section id="section-skills">
     <Anchor id={ROLE_ANCHORS.fullStack} aria-hidden="true" />
-    <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+    <SectionText intro={intro} />
     <Legend aria-label={content.legendYears}>
       {DEFAULT_RARITY_TIERS.map((tier) => (
         <LegendItem key={tier.rarity} colour={RARITY_COLOURS[tier.rarity]}>

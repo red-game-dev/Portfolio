@@ -5,7 +5,7 @@ import tw, { css, styled } from "twin.macro";
 import { Panel } from "@/components/Panel";
 import { RegionDialog } from "@/components/Projects/RegionDialog";
 import { WorldMap } from "@/components/Projects/WorldMap";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS } from "@/config/sections";
 import { toMonthIndex } from "@/packages/insights/career";
 import { ProjectDetail, ProjectKind, ProjectMapContent } from "@/types/projects";
@@ -64,7 +64,7 @@ export const Projects: FC<ProjectsProps> = ({ projects, intro, content }: Projec
   return (
     <Section id="section-projects">
       <Anchor id={ROLE_ANCHORS.games} aria-hidden="true" />
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <SectionText intro={intro} />
       <Filters role="group" aria-label={labels.filter}>
         <span>{labels.filter}</span>
         <Chip type="button" isSelected={activeKind === null} aria-pressed={activeKind === null} onClick={() => setActiveKind(null)}>

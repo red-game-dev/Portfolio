@@ -4,7 +4,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { HistoryEntry } from "@/components/History/HistoryEntry";
 import { Panel, PanelTitle } from "@/components/Panel";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { industryAnchor } from "@/config/sections";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
@@ -122,7 +122,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, education, labels
       {industries.map((link) => (
         <Anchor key={link.industry} id={industryAnchor(link.industry)} aria-hidden="true" />
       ))}
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <SectionText intro={intro} />
       <Filters role="group" aria-label={labels.industryFilter}>
         <span>{labels.industryFilter}</span>
         <Chip type="button" isSelected={industry === null} aria-pressed={industry === null} onClick={() => setIndustry(null)}>

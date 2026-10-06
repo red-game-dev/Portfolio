@@ -5,7 +5,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { BlueprintList } from "@/components/Blueprint";
 import { Panel } from "@/components/Panel";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
 import { Blueprint, BlueprintLabels } from "@/types/blueprints";
@@ -127,7 +127,7 @@ export const IGaming: FC<IGamingProps> = ({ intro, content, blueprints, blueprin
 
   return (
     <Section id={SECTION_IDS.igaming}>
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <SectionText intro={intro} />
       <Table>
         <Header>
           <Statement>{content.statement}</Statement>

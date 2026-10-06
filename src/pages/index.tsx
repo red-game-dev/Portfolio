@@ -7,6 +7,7 @@ import { Cover } from "@/components/Cover";
 import { Duels } from "@/components/Duels";
 import { EngineRoom } from "@/components/EngineRoom";
 import { Finale } from "@/components/Finale";
+import { Glance } from "@/components/Glance";
 import { History } from "@/components/History";
 import { IGaming } from "@/components/IGaming";
 import { PlatformOverview } from "@/components/PlatformOverview";
@@ -40,6 +41,15 @@ export default function Home() {
         cvUrl={portfolioData.cv}
         email={portfolioData.details.email}
       />
+      <Glance
+        content={portfolioData.lens.glance}
+        details={portfolioData.details}
+        headline={portfolioData.headline}
+        experience={portfolioData.experience}
+        roster={portfolioData.roster}
+        stations={forgeStations}
+        cvUrl={portfolioData.cv}
+      />
       <About
         {...portfolioData.details}
         linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
@@ -58,6 +68,7 @@ export default function Home() {
         intro={portfolioData.sections.services}
         email={portfolioData.details.email}
         linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
+        productGroup={portfolioData.lens.productServiceGroup}
       />
       <History
         intro={portfolioData.sections.history}
@@ -100,6 +111,7 @@ export default function Home() {
         filters={portfolioData.caseStudyFilters}
         industries={portfolioData.headline.industries}
         labels={portfolioData.bossLabels}
+        caseLabels={portfolioData.lens.caseLabels}
       />
       <Duels intro={portfolioData.sections.duels} {...portfolioData.duels} />
       <Projects projects={portfolioData.projects} intro={portfolioData.sections.projects} content={portfolioData.projectMap} />

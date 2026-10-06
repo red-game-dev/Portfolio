@@ -3,7 +3,7 @@ import { FC } from "react";
 import tw from "twin.macro";
 
 import { TagGroups } from "@/components/TagGroups";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import { SectionIntros } from "@/types/sections-intros";
 import { SkillArea } from "@/types/skills";
@@ -21,7 +21,7 @@ border-[rgba(255, 255, 255, 0.07)]`;
 export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas }: SkillAreasProps) => (
   <Section id={SECTION_IDS.skillAreas}>
     <Content>
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <SectionText intro={intro} />
       <TagGroups groups={areas} headingLevel="h3" columns={2} />
     </Content>
   </Section>

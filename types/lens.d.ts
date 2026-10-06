@@ -22,6 +22,69 @@ export interface RoadmapStage {
   detail: string;
 }
 
+// Skills shown with their years, looked up by name in the skill forge so the years are never typed twice.
+export interface SkillPick {
+  label: string;
+  names: string[];
+}
+
+export interface RecruiterGlanceContent {
+  title: string;
+  description: string;
+  rolesLabel: string;
+  roles: string[];
+  // Roster classes whose years are shown, computed from real dates.
+  yearsLabel: string;
+  roleClasses: string[];
+  workLabel: string;
+  skillsLabel: string;
+  skillGroups: SkillPick[];
+  // "{years} yrs": the unit after a skill's years.
+  yearsFormat: string;
+  industriesLabel: string;
+  recentLabel: string;
+  recentCount: number;
+  // "{from} to {to}", with nowLabel for a role still running.
+  rangeFormat: string;
+  nowLabel: string;
+}
+
+export interface PlaybookStage {
+  name: string;
+  example: string;
+}
+
+export interface ProductPlaybookContent {
+  title: string;
+  description: string;
+  // Proof figures from "Who I am", picked by value so the numbers live in one place.
+  proofValues: string[];
+  levelsLabel: string;
+  levelClasses: string[];
+  // "Level {level}, since {since}"
+  levelFormat: string;
+  venturesLabel: string;
+  // "since {year}"
+  ventureSince: string;
+  monetisationLabel: string;
+  monetisation: string[];
+  growthLabel: string;
+  growth: string[];
+  stagesLabel: string;
+  stages: PlaybookStage[];
+}
+
+// Boss fights read as case studies outside the full view.
+export interface CaseLabels {
+  kind: string;
+  problem: string;
+  decisions: string;
+  takeaway: string;
+  // "{count}" is replaced.
+  showSolution: string;
+  hideSolution: string;
+}
+
 export interface LensContent {
   chooser: {
     title: string;
@@ -32,6 +95,13 @@ export interface LensContent {
   // The short names the header switch uses.
   names: Record<Lens, string>;
   switchLabel: string;
+  glance: {
+    recruiter: RecruiterGlanceContent;
+    product: ProductPlaybookContent;
+  };
+  caseLabels: CaseLabels;
+  // The service group the product view puts first.
+  productServiceGroup: string;
   entrances: {
     recruiter: { title: string };
     product: { title: string; stages: RoadmapStage[] };

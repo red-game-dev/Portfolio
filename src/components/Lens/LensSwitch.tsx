@@ -69,6 +69,30 @@ const OptionText = tw.span`flex flex-col`;
 
 const OptionHint = tw.span`text-xs text-[#888]`;
 
+// Below the fixed header: the point whose content the reader is looking at.
+const READING_LINE = 160;
+
+// Changing the view reflows the page (panels open, close and reword), so the block under the reading line
+// is held in place across the change and the reader does not lose their spot.
+const holdReadingPosition = () => {
+  // The open menu of views sits over that point, so anything inside the header is looked through.
+  const target = document.elementsFromPoint(window.innerWidth / 2, READING_LINE)
+    .find((element) => !element.closest("header"))
+    ?.closest<HTMLElement>("figure, article, li, [id]");
+
+  if (!target) {
+    return;
+  }
+
+  const offset = target.getBoundingClientRect().top;
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (target.isConnected) {
+      window.scrollTo({ top: window.scrollY + target.getBoundingClientRect().top - offset, behavior: "instant" });
+    }
+  }));
+};
+
 const accentStyle = (lens: Lens) => ({ "--lens-accent": LENS_ACCENTS[lens].color, "--lens-rgb": LENS_ACCENTS[lens].rgb } as React.CSSProperties);
 
 // The header control for changing who the page is written for, at any point, without leaving the spot.
@@ -103,6 +127,7 @@ export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) =>
 
   const choose = useCallback((event: MouseEvent, next: Lens) => {
     event.stopPropagation();
+    holdReadingPosition();
     switchLens(next);
     setIsOpen(false);
     toggleRef.current?.focus();

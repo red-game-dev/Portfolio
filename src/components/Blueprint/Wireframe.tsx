@@ -52,7 +52,7 @@ const Phone = styled.div(() => [
 const Desktop = styled.div(({ hasAreas }: { hasAreas: boolean }) => [
   tw`relative w-full max-w-[640px] p-[8px] pt-[22px] bg-[#0b0b0b] border-[2px] border-solid border-[#2f2f2f] rounded-[6px]`,
   css`
-    aspect-ratio: 16 / 10;
+    min-height: 320px;
 
     &::before {
       content: "";
@@ -67,7 +67,7 @@ const Desktop = styled.div(({ hasAreas }: { hasAreas: boolean }) => [
   hasAreas ? css`
     display: grid;
     grid-template-columns: 1fr 1.6fr 1fr;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto minmax(220px, 1fr) auto;
     grid-template-areas: "header header header" "left main right" "footer footer footer";
     gap: 6px;
   ` : tw`flex flex-col gap-[6px]`,
@@ -98,7 +98,7 @@ const Region = styled.div(({ size, kind }: { size: number; kind: WireframeRegion
   `,
 ]);
 
-const RegionLabel = tw.span`relative z-[1] text-[9px] md:text-[10px] leading-tight text-[#a8a8a8]`;
+const RegionLabel = tw.span`relative z-[1] self-start px-[2px] text-[9px] md:text-[10px] leading-tight text-[#a8a8a8] bg-[#141414]`;
 
 // The classic placeholder for an image or video: a box with its diagonals.
 const Media = styled.span(() => [

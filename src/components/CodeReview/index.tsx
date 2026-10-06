@@ -4,7 +4,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { Squares } from "@/components/CodeReview/Squares";
 import { Panel } from "@/components/Panel";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import { CodeReviewContent, CodeReviewCount } from "@/types/code-review";
 import { SectionIntros } from "@/types/sections-intros";
@@ -73,7 +73,7 @@ const countText = ({ value, label }: CodeReviewCount) => `${value.toLocaleString
 // reviewing matters most: an open source launcher and a library my own platform depends on.
 export const CodeReview: FC<CodeReviewProps> = ({ intro, content }: CodeReviewProps) => (
   <Section id={SECTION_IDS.codeReview}>
-    <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+    <SectionText intro={intro} />
     <Panel>
       <Scope>{content.scope}</Scope>
       <Totals>

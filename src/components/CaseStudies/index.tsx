@@ -4,12 +4,13 @@ import tw, { css, styled } from "twin.macro";
 
 import { BossCard } from "@/components/CaseStudies/BossCard";
 import { useAudienceFromHash } from "@/components/CaseStudies/hooks/useAudienceFromHash";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
 import { Audience, CaseStudy, CaseStudyDomain, CaseStudyFilters } from "@/types/case-studies";
 import { BossLabels } from "@/types/game";
 import { IndustryLink } from "@/types/headline";
+import { CaseLabels } from "@/types/lens";
 import { SectionIntros } from "@/types/sections-intros";
 
 interface CaseStudiesProps {
@@ -18,6 +19,7 @@ interface CaseStudiesProps {
   filters: CaseStudyFilters;
   industries: IndustryLink[];
   labels: BossLabels;
+  caseLabels: CaseLabels;
 }
 
 interface ChipProps {
@@ -62,7 +64,7 @@ const GroupTitle = styled.h3(() => [
 const Bosses = tw.div`grid gap-[18px] lg:grid-cols-2`;
 
 // Case studies as PvE: each problem is a boss, beaten on screen as you read it.
-export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, industries, labels }: CaseStudiesProps) => {
+export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, industries, labels, caseLabels }: CaseStudiesProps) => {
   const [audience] = useAudienceFromHash();
   const [domain, setDomain] = useState<CaseStudyDomain | null>(null);
   const industryKeys = useMemo(() => industries.map((link) => link.industry), [industries]);
@@ -83,7 +85,7 @@ export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters,
     <Section id={SECTION_IDS.caseStudies}>
       <Anchor id={AUDIENCE_ANCHORS.payments} aria-hidden="true" />
       <Anchor id={AUDIENCE_ANCHORS.architecture} aria-hidden="true" />
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <SectionText intro={intro} />
       <Filters role="group" aria-label={filters.label}>
         <span>{filters.label}</span>
         <Chip type="button" isSelected={domain === null} aria-pressed={domain === null} onClick={() => setDomain(null)}>
@@ -109,7 +111,7 @@ export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters,
             <GroupTitle>{filters.domains[groupDomain]}</GroupTitle>
             <Bosses>
               {group.map((caseStudy) => (
-                <BossCard key={caseStudy.title} {...caseStudy} labels={labels} />
+                <BossCard key={caseStudy.title} {...caseStudy} labels={labels} caseLabels={caseLabels} />
               ))}
             </Bosses>
           </Group>

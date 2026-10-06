@@ -10,7 +10,7 @@ import { Fight } from "@/components/Duels/Fight";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel } from "@/components/Panel";
-import { Text } from "@/components/Text";
+import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import { Duels as DuelsContent } from "@/types/game";
 import { SectionIntros } from "@/types/sections-intros";
@@ -78,7 +78,7 @@ export const Duels: FC<DuelsProps> = ({
 
   return (
     <Section id={SECTION_IDS.duels}>
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
+      <SectionText intro={intro} />
       <Panel>
         <Scoreboard>
           <Fighters>

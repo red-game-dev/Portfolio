@@ -51,7 +51,11 @@ Each section component renders `id="section-*"` on its outer element. Shared ids
 
 `src/components/Menu` follows the journey: eight items (Who I am, Offer, History, AI, Web3, Engineering, iGaming, Game world), each lit by one `useCollision` call per section in its zone. **A new section needs its call added to the right group in `Menu`**, or nothing is highlighted while it is in view.
 
-Skill forge station ids are derived from the station title by `skillStationId()` in `src/config/skills.ts`, which strips every non-alphanumeric character (`"AI Tools & Enablement"` → `section-skills-AIToolsEnablement`). Renaming a station title changes its id, so grep for the old id when you do.
+Skill forge station ids are derived from the station title by `skillStationId()` in `src/config/skills.ts`, which strips every non-alphanumeric character (`"AI Tools & Enablement"` → `section-skills-AIToolsEnablement`). Renaming a station title changes its id, so grep for the old id when you do. Stations come from `portfolioData.skills` groups in the order of `FORGE_STATIONS` (languages, frontend, backend, mobile, blockchain, cloud, CMS, tools, testing, integrations, observability, AI, design); each needs a `sections` intro under the same key, and a skill's years come only from roles and projects that list or mention it, so a new skill needs that evidence (or a `SKILL_ALIASES` entry) or it shows as untracked. Skills by Area must not repeat a skill that has a forge bar; a test checks it.
+
+### Tabs
+
+Every row of tabs uses `useTabs` (`src/hooks/useTabs.ts`: roving focus, arrows, Home and End via the tested `rovingTarget` in `packages/accessibility/roving`) and the shared look in `src/components/Tabs`. Content tabs (Skills by Area, the expertise tiles) render every panel and hide the closed ones with `hidden`, so all of it stays in the server HTML. A horizontally scrolling row carries `data-scroll-x`, which tells the project dialog not to treat its arrow keys as travel between regions.
 
 ### Styling: twin.macro + styled-components + Tailwind
 

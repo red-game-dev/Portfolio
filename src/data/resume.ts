@@ -1925,6 +1925,10 @@ export const portfolioData: PortfolioData = {
         score: 50,
       },
       {
+        name: "Temporal",
+        score: 80,
+      },
+      {
         name: "SignalR",
         score: 50,
       },
@@ -2245,6 +2249,18 @@ export const portfolioData: PortfolioData = {
       {
         name: "PayPal",
         score: 80,
+      },
+      {
+        name: "Twilio",
+        score: 75,
+      },
+      {
+        name: "Google Maps",
+        score: 75,
+      },
+      {
+        name: "Mapbox",
+        score: 75,
       },
     ],
     observability: [

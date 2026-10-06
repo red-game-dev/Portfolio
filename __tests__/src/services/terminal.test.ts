@@ -6,7 +6,8 @@ describe("portfolio terminal", () => {
     const session = createPortfolioTerminal();
 
     ["whoami", "about", "experience", "experience kpmg", "skills", "skills frontend", "characters", "services", "ai", "cases", "projects",
-      "contact", "hire", "goto", "help"].forEach((command) => {
+      "contact", "hire", "goto", "help", "ventures", "industries", "references", "socials", "ls", "cat about.txt", "sudo hire red", "coffee",
+      "matrix"].forEach((command) => {
       const before = session.output.length;
 
       session.execute(command);
@@ -29,7 +30,7 @@ describe("portfolio terminal", () => {
   test("an unknown command points back to help", () => {
     const session = createPortfolioTerminal();
 
-    session.execute("sudo");
+    session.execute("frobnicate");
 
     expect(session.output[session.output.length - 1].text).toContain("Type help");
   });
@@ -37,7 +38,7 @@ describe("portfolio terminal", () => {
   test("every red intent opens a dialog whose sections point at real content", () => {
     const session = createPortfolioTerminal();
 
-    ["red create app", "red fix my app", "red migrate app", "red enable ai in my company", "red build my app"].forEach((command) => {
+    ["red create app", "red fix my app", "red fix my broken vibe coded app", "red migrate app", "red enable ai in my company", "red build my app"].forEach((command) => {
       const effect = session.execute(command);
 
       expect(effect?.type).toBe("dialog");

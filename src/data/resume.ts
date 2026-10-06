@@ -196,15 +196,25 @@ export const portfolioData: PortfolioData = {
   terminal: {
     prompt: "visitor@redgame.dev:~$",
     welcome: [
-      "Welcome to redgame.dev. Type help to see what I can show you, or tap a command below.",
-      "Or ask me to do something: red create app, red fix my app, red migrate app, red enable ai in my company, red hire as cto.",
-      "Press ` anywhere on the page to come back to this prompt.",
+      "Welcome to redgame.dev. Start with help: it lists every command, from contact to a few surprises.",
+      "Or ask me to do something: red create app, red fix my broken vibe coded app, red migrate app, red enable ai in my company, red hire as cto.",
+      "Press / or ` anywhere on the page to come back to this prompt.",
     ],
-    suggestions: ["help", "red create app", "red fix my app", "red enable ai in my company", "red hire as architect", "whoami", "experience"],
+    suggestions: [
+      "help", "contact", "red fix my broken vibe coded app", "red create app", "red enable ai in my company", "red hire as architect", "whoami", "ls",
+    ],
+    featured: "help",
+    featuredLabel: "Start here",
+    contact: {
+      title: "Let's talk",
+      subtitle: "Pick whatever suits you, I answer quickly.",
+      heading: "Reach me",
+      subject: "Hello from redgame.dev",
+    },
     helpTitle: "Commands",
     unknownCommand: "command not found: {name}. Type help to see what I can show you.",
     inputLabel: "Terminal command",
-    shortcutHint: "Press ` from anywhere",
+    shortcutHint: "Press / or ` from anywhere",
     red: {
       summary: "Ask me to do something for you",
       usage: "red <create app | fix my app | migrate app | enable ai in my company | hire as <role>>",
@@ -220,7 +230,6 @@ export const portfolioData: PortfolioData = {
         services: "What I would do",
         proof: "Where I have done it",
         abilities: "Abilities",
-        guilds: "Guilds",
         recommendations: "What people say",
         level: "Level",
         email: "Email me about it",
@@ -244,6 +253,21 @@ export const portfolioData: PortfolioData = {
           services: ["Full Stack Product Engineering", "Software Architecture & Technical Leadership", "Product, Growth & Marketing Leadership"],
           cases: ["No vendor lock-in, by design", "Frameworks at the edges"],
           subject: "Building a new product",
+        },
+        {
+          phrase: "fix my broken vibe coded app",
+          aliases: ["fix my vibe coded app", "fix vibe coded app", "fix my vibecoded app", "vibe coded app", "rescue my vibe coded app", "fix my vibe code"],
+          title: "Vibe code rescue",
+          pitch: "An app an AI wrote fast, made into one that holds: real errors found, security holes closed, tests that keep it fixed.",
+          scan: [
+            "Reading what the agent actually wrote, not what it said it wrote",
+            "Finding the secrets in the client and the open endpoints",
+            "Replacing the copy pasted parts with one source of truth",
+            "Adding the tests and the guardrails it never had",
+          ],
+          services: ["AI-Generated App Rescue & Hardening", "Architecture & Security Review", "Performance Engineering"],
+          cases: ["A budget anyone could drain", "A consent flow no API test could see", "Five authorisation findings, fixed at the guard"],
+          subject: "Fixing my vibe coded app",
         },
         {
           phrase: "fix my app",
@@ -623,8 +647,7 @@ export const portfolioData: PortfolioData = {
   details: {
     name: "Redeemer Pace",
     intro: "Architect. Builder. Founder.",
-    hook: `I started programming at 7 and never stopped. More than twenty years later I have built game engines, payment systems, a
-    blockchain and platforms used by millions, and founded companies of my own along the way.`,
+    hook: "Programming since I was 7. Game engines, payment systems, a blockchain and platforms for millions, and companies of my own.",
     paragraphs: [
       `I am a software architect with 15+ years in the industry, most of them leading: CEO and CTO of my own social network and MMORPG,
       co-founder and CTO of CoinOn, then architect and tech lead at Chiliz and Conrad. I design systems that are not tied to a vendor or a framework,
@@ -640,6 +663,7 @@ export const portfolioData: PortfolioData = {
       { value: "20+", label: "years writing software, since I was 7" },
       { value: "15+", label: "years in the industry, from my first company in 2010" },
       { value: "12+", label: "startups built" },
+      { value: "200M+", label: "active users on products at companies I worked for" },
       { value: "1.5M+", label: "users in 167 countries on one platform" },
       { value: "7M+", label: "sessions a month at peak on another" },
     ],
@@ -1133,6 +1157,7 @@ export const portfolioData: PortfolioData = {
         "Agent setup: skills adapted from an open source collection and extended, a design review subagent and decision registers",
       ],
       techStack: [
+        "Strapi",
         "TypeScript",
         "NestJS",
         "Next.js",
@@ -1237,7 +1262,6 @@ export const portfolioData: PortfolioData = {
         "SSH",
         "OpenSSL",
         "Linq",
-        "GCP",
         "OVH Cloud",
         "WordPress",
         "VS Code",
@@ -1343,6 +1367,7 @@ export const portfolioData: PortfolioData = {
       bullets: [
         "Defined and executed the technology roadmap, aligning engineering goals with the company’s long term vision and product milestones.",
         "Led the architecture from 0 to 1, building the entire stack from the ground up with scalability, security, and performance at its core.",
+        "Built for exchange and DeFi volume from day one, and live before creator coin launchpads became a trend; what it could not get was a licence.",
         `Managed and coordinated a cross-functional team of 10+ people across engineering, product, design, blockchain, and
           delivery, focusing on execution, mentorship, technical quality, and product outcomes.`,
         "Oversaw IT infrastructure and operations, ensuring high availability, data integrity, and efficient resource utilization.",
@@ -1553,6 +1578,7 @@ export const portfolioData: PortfolioData = {
         "Custom classes in several languages, run safely by the platform",
         "Hosting and updates handled for the creator, with any customisation they needed",
       ],
+      techStack: ["Strapi"],
     },
     {
       title: "Founder & CTO, Adotta",
@@ -1575,6 +1601,7 @@ export const portfolioData: PortfolioData = {
         "Donations that earn points",
         "Points spent with partner businesses",
       ],
+      techStack: ["Strapi"],
     },
     {
       title: "Founder & CTO, Punti",
@@ -1596,6 +1623,30 @@ export const portfolioData: PortfolioData = {
         "One customer app holding points for every business",
         "Earning at the till or online, by each business's own rules",
         "A dashboard for rewards, with no app for the business to build",
+      ],
+      techStack: ["Strapi"],
+    },
+    {
+      title: "Founder, CEO & CTO, Crypto Casino",
+      ventureRole: "Founder, CEO and CTO",
+      isVenture: true,
+      countsForSkills: false,
+      industries: ["igaming", "web3", "fintech"],
+      period: "A past venture",
+      // Undated on purpose: the year only places it on the timeline and is never shown.
+      from: "2021",
+      to: "2021",
+      productOutcome: "A complete crypto casino and sportsbook, built for scale and ready to launch, held back only by licensing",
+      description: [
+        `A crypto casino with games aggregated from many studios, a sportsbook with live odds, bonuses and tournaments, and crypto
+        deposits and withdrawals on one balance. Built in full and never launched: it could not get a licence.`,
+      ],
+      bullets: [
+        "Games from many studios behind one aggregation layer",
+        "A sportsbook with live odds and settlement",
+        "Bonuses and tournaments that run across every game",
+        "Crypto deposits and withdrawals on several chains, on one balance",
+        "Built for scale from the start, held back only by licensing",
       ],
     },
   ],
@@ -2520,7 +2571,6 @@ export const portfolioData: PortfolioData = {
       level: "Level",
       years: "years in the role",
       since: "since",
-      guilds: "Guilds",
       abilities: "Abilities",
       play: "Play as",
       playing: "Playing",
@@ -2650,6 +2700,7 @@ export const portfolioData: PortfolioData = {
         icon: faServer,
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
+          { company: "KPMG", from: "Feb 2019", to: "Sep 2019" },
           { company: "CoinOn", from: "Nov 2021", to: "Jan 2022" },
           { company: "HyperPlay", from: "Oct 2023", to: "Nov 2025" },
           { company: "Own products", from: "2021" },
@@ -3112,8 +3163,8 @@ export const portfolioData: PortfolioData = {
         "The game engine in PHP on the same framework: battles, levels, drops and the economy",
         "Grew and ran the community and its moderators as CEO and CTO",
       ],
-      techStack: ["PHP", "My Own Frameworks (PHP, JS)", "JS (JQuery, Backbone)", "Python", "WebGL & Canvas", "HTML", "CSS", "Cloudflare",
-        "DigitalOcean", "AWS", "OVH Cloud", "Visual Studio"],
+      techStack: ["PHP", "My Own Frameworks (PHP, JS)", "JS (JQuery, Backbone)", "Python", "WebGL & Canvas", "HTML", "CSS", "OVH Cloud",
+        "DigitalOcean", "Cloudflare", "Visual Studio"],
       link: "https://drive.google.com/drive/folders/1jN-Xhfiro3UJppRLVehG8UIytjFJVVtl?usp=share_link",
       deepDive: {
         stats: [
@@ -3501,7 +3552,7 @@ export const portfolioData: PortfolioData = {
         "Hosting and updates handled for the creator",
         "Founded and led as CEO and CTO; it closed for lack of funding",
       ],
-      techStack: [],
+      techStack: ["Strapi"],
       countsForSkills: false,
       deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprintId: "arcavium" },
       period: "A past venture",
@@ -3521,7 +3572,7 @@ export const portfolioData: PortfolioData = {
         "Donations that earn points, spent with partner businesses",
         "Founded it and led it as CTO; it closed for lack of funding",
       ],
-      techStack: [],
+      techStack: ["Strapi"],
       countsForSkills: false,
       deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprintId: "adotta" },
       period: "A past venture",
@@ -3541,13 +3592,33 @@ export const portfolioData: PortfolioData = {
         "Earning at the till or online, by each business's own rules",
         "Founded it and led it as CTO, against established competition; it closed for lack of funding",
       ],
-      techStack: [],
+      techStack: ["Strapi"],
       countsForSkills: false,
       deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprintId: "punti" },
       period: "A past venture",
       // Undated on purpose: the year only orders the map and is never shown.
       from: "2020",
       to: "2020",
+    },
+    {
+      icon: faDice,
+      kind: "game",
+      status: "archived",
+      title: "Crypto Casino",
+      category: "Crypto casino and sportsbook",
+      intro: "A crypto casino and sportsbook of my own, built in full for scale and never launched for lack of a licence. A past venture of mine.",
+      responsibilities: [
+        "Games from many studios behind one aggregation layer, a sportsbook with live odds, and bonuses and tournaments across them",
+        "Crypto deposits and withdrawals on several chains, on one balance and one ledger",
+        "Founded it and led it as CEO and CTO; it was ready, and the licence was what it could not get",
+      ],
+      techStack: [],
+      countsForSkills: false,
+      deepDive: { note: "One of my past ventures. It was built in full; what it could not get was a licence.", blueprintId: "casino" },
+      period: "A past venture",
+      // Undated on purpose: the year only orders the map and is never shown.
+      from: "2021",
+      to: "2021",
     },
     {
       icon: faBoxArchive,
@@ -3899,22 +3970,22 @@ export const portfolioData: PortfolioData = {
       {
         name: "Player accounts and wallets",
         detail: "Accounts, balances and one wallet every bet and win moves through, with deposits and withdrawals under licence.",
-        places: ["KPMG", "Authentic Gaming"],
+        places: ["KPMG", "Authentic Gaming", "My crypto casino"],
       },
       {
         name: "Bonuses and tournaments",
         detail: "Bonus rules with wagering tracked across games, and tournaments with leaderboards and prizes.",
-        places: ["KPMG"],
+        places: ["KPMG", "My crypto casino"],
       },
       {
         name: "Sportsbook and live odds",
         detail: "Live odds fed in and moving with the match, prices checked as a bet is accepted, and bets settled from results.",
-        places: ["KPMG"],
+        places: ["KPMG", "My crypto casino"],
       },
       {
         name: "Game aggregation",
         detail: "Games from many studios behind one integration, so an operator adds a studio without new work.",
-        places: ["Authentic Gaming", "KPMG"],
+        places: ["Authentic Gaming", "KPMG", "My crypto casino"],
       },
       {
         name: "Regulated platforms",
@@ -3942,21 +4013,35 @@ export const portfolioData: PortfolioData = {
     activity: { ...githubActivity, years: githubActivity.years.slice(-3) },
     highlights: [
       {
+        name: "fetchff",
+        detail: "An open source HTTP client library. It is not mine: I review its pull requests, 35 so far, and opened one of my own.",
+        quote: "I review a library my own platform depends on instead of forking it.",
+        points: [
+          "Its security hardening release, with full test coverage",
+          "React Native support and high throughput performance",
+          "SWR support and a React hook",
+          "Request deduplication and better polling",
+          "Retry with jitter, limited to idempotent methods",
+          "Cache revalidation with ETags, and request aborting",
+          "Endpoints typed from OpenAPI schemas",
+        ],
+        link: { label: "fetchff on GitHub", url: "https://github.com/MattCCC/fetchff" },
+      },
+      {
+        name: "Issues I opened",
+        detail: "43 issues in other teams' public repositories, from security findings to component specs and bug reports.",
+        points: [
+          "13 security findings from a code scanning and dependency audit of a desktop game launcher",
+          "Prototype pollution, ReDoS, command line injection and CSRF among them",
+          "Component specs and fixes for a design system's UI library",
+          "A bug report on Prisma running on Cloudflare Workers",
+        ],
+        link: { label: "My GitHub", url: "https://github.com/red-game-dev" },
+      },
+      {
         name: "Others",
         detail: "Open source projects and the company codebases I have worked in.",
         points: [],
-      },
-      {
-        name: "fetchff",
-        detail: "An open source HTTP client library my own platform depends on",
-        quote: "I review the library my own platform depends on instead of forking it.",
-        points: [
-          "Its security hardening release",
-          "Retry with jitter, limited to idempotent methods",
-          "Cache revalidation with ETags",
-          "Request aborting",
-          "React Native support",
-        ],
       },
     ],
   },
@@ -3973,7 +4058,7 @@ export const portfolioData: PortfolioData = {
           {
             name: "Banking rails and ramps",
             detail: "Card and bank payments side by side, fiat to crypto and back, and payments paused automatically on fraud signals.",
-            places: ["Own platform", "CoinOn", "Chiliz"],
+            places: ["Own platform", "CoinOn"],
           },
           {
             name: "Exchanges and trading",
@@ -4083,7 +4168,7 @@ export const portfolioData: PortfolioData = {
           {
             name: "Products from zero",
             detail: "Ventures founded, built and launched, usually as CEO and CTO.",
-            places: ["Gods of Zushin", "AMW", "CoinOn", "Arcavium", "Adotta", "Punti"],
+            places: ["Gods of Zushin", "AMW", "CoinOn", "Arcavium", "Adotta", "Punti", "My crypto casino"],
           },
         ],
       },
@@ -4112,8 +4197,8 @@ export const portfolioData: PortfolioData = {
           },
           {
             name: "iGaming",
-            detail: "Live dealer UIs, slots and bet tables, and operator onboarding.",
-            places: ["Authentic Gaming", "KPMG clients"],
+            detail: "Live dealer UIs, slots and bet tables, operator onboarding, and a crypto casino with a sportsbook of my own.",
+            places: ["Authentic Gaming", "KPMG clients", "My crypto casino"],
           },
         ],
       },
@@ -4595,7 +4680,8 @@ export const portfolioData: PortfolioData = {
   aiUsage: {
     screen: {
       message: ["33,000+ prompts", "on one machine", "Feb to Oct 2026"],
-      label: "At least 33,000 prompts to my main coding agent on one machine alone, February to October 2026.",
+      label: "At least 33,000 prompts to my main coding agent on one machine alone, February to October 2026. ChatGPT, Gemini, " +
+        "other tools, other machines and earlier years are not counted, so the real total is several times higher.",
     },
     mix: {
       title: "AI is in the loop on all of it",
@@ -4616,8 +4702,9 @@ export const portfolioData: PortfolioData = {
       notes: [
         `Counts come from sorting prompt text by keyword, so they are approximate floors. A prompt can count in more than one row,
         so the rows do not add up to the total.`,
-        `About half of all prompts are short steering turns like "continue" or "recheck", which sit outside these rows. It is one
-        machine only, and ChatGPT carries much of my architecture research and stakeholder writing, which is not counted here.`,
+        `About half of all prompts are short steering turns like "continue" or "recheck", which sit outside these rows. The count
+        is one coding agent on one machine since February 2026. ChatGPT (much of my architecture research and stakeholder writing),
+        Gemini, other tools, other machines and the years before are not in it, so the real total is several times higher.`,
         `The mix moves with the work: architecture and consulting lean towards docs and stakeholder updates, and a verification
         heavy branch leans towards testing on the deployed build.`,
       ],

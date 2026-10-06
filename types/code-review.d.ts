@@ -9,6 +9,8 @@ export interface CodeReviewHighlight {
   detail: string;
   quote?: string;
   points: string[];
+  // Where to see it, for work in a repository that is not mine.
+  link?: { label: string; url: string };
 }
 
 export interface GithubActivityYear {

@@ -69,14 +69,15 @@ export const GOZ_BLUEPRINT: Blueprint = {
         nodes: [
           { id: "goz-auth", label: "Auth server", detail: "Login throttling" },
           { id: "goz-gate", label: "Gate", detail: "Sessions, channels and routing" },
-          { id: "goz-world", label: "World servers", detail: "One per channel and map, Lua and Python scripts" },
+          { id: "goz-world", label: "World servers", detail: "One per channel and map, Lua and Python scripts, added as players grow" },
           { id: "goz-dungeons", label: "Dungeon instances", detail: "A copy per party, bosses and group loot" },
           { id: "goz-social", label: "Guilds, parties and chat" },
           { id: "goz-market", label: "Auction and exchange", detail: "Player trading, checked on the server" },
           { id: "goz-events", label: "Event scheduler", detail: "Holiday and anniversary events" },
-          { id: "goz-data", label: "Data server", detail: "Cache in front of saves" },
+          { id: "goz-data", label: "Data server", detail: "Cache in front of saves, writes batched" },
           { id: "goz-logs", label: "Log server", detail: "Every trade, drop and purchase" },
           { id: "goz-admin", label: "Admin server", detail: "Private interface only" },
+          { id: "goz-scale", label: "Scales out", detail: "More channels and world servers on more machines, with the gate spreading players", kind: "note" },
         ],
       },
       {
@@ -223,7 +224,7 @@ export const AMW_BLUEPRINT: Blueprint = {
       },
       {
         id: "amw-web",
-        label: "Servers, run by hand",
+        label: "Servers run by hand, on OVH and partly DigitalOcean",
         place: { col: 2, row: 1 },
         nodes: [
           { id: "amw-regions", label: "Servers per region", detail: "Switched by hand: no load balancers back then" },
@@ -695,12 +696,119 @@ export const PUNTI_BLUEPRINT: Blueprint = {
 };
 
 // The venture blueprints by id, for the map dialogs that load them on demand.
+export const CRYPTO_CASINO_BLUEPRINT: Blueprint = {
+  id: "crypto-casino",
+  zone: "casino",
+  title: "A crypto casino and sportsbook",
+  caption: "Games aggregated from many studios, a sportsbook with live odds, bonuses and tournaments, and crypto deposits and " +
+    "withdrawals on several chains, all on one balance and one ledger, built to scale out.",
+  summary: {
+    role: "Founder, CEO and CTO: proposed the product and built it in full",
+    scale: "A past venture, built for scale and ready to launch, held back only by licensing",
+  },
+  architecture: {
+    columns: 4,
+    groups: [
+      {
+        id: "cc-players",
+        label: "Players",
+        place: { col: 1, row: 1, rowSpan: 2 },
+        nodes: [
+          { id: "cc-lobby", label: "Casino lobby", detail: "Slots, tables and live games" },
+          { id: "cc-sports", label: "Sportsbook", detail: "Pre match and live" },
+          { id: "cc-cashier", label: "Crypto cashier", detail: "Deposit and withdraw on several chains" },
+          { id: "cc-promos", label: "Promotions", detail: "Bonuses and tournaments" },
+        ],
+      },
+      {
+        id: "cc-core",
+        label: "Platform core",
+        place: { col: 2, row: 1, rowSpan: 2 },
+        nodes: [
+          { id: "cc-accounts", label: "Player accounts" },
+          { id: "cc-balance", label: "One balance", detail: "Casino, sports and bonuses together" },
+          { id: "cc-bonus", label: "Bonus engine", detail: "Wagering tracked across games" },
+          { id: "cc-tournaments", label: "Tournaments", detail: "Leaderboards and prizes" },
+        ],
+      },
+      {
+        id: "cc-games",
+        label: "Games and sports",
+        place: { col: 3, row: 1 },
+        nodes: [
+          { id: "cc-aggregator", label: "Game aggregator", detail: "Many studios behind one integration" },
+          { id: "cc-odds", label: "Odds feed", detail: "Live prices" },
+          { id: "cc-settle", label: "Bet acceptance and settlement" },
+        ],
+      },
+      {
+        id: "cc-chain",
+        label: "Crypto rails",
+        place: { col: 3, row: 2 },
+        nodes: [
+          { id: "cc-addresses", label: "Deposit addresses", detail: "One per player and chain" },
+          { id: "cc-watchers", label: "Chain watchers", detail: "Confirmations credit the balance" },
+          { id: "cc-withdraw", label: "Withdrawal queue", detail: "Checked, then signed and sent" },
+        ],
+      },
+      {
+        id: "cc-records",
+        label: "Records",
+        place: { col: 4, row: 1 },
+        nodes: [
+          { id: "cc-ledger", label: "Ledger", detail: "Every movement, balanced", kind: "store" },
+          { id: "cc-backoffice", label: "Back office" },
+        ],
+      },
+      {
+        id: "cc-scale",
+        label: "Built to scale",
+        place: { col: 4, row: 2 },
+        nodes: [
+          { id: "cc-stateless", label: "Stateless services", detail: "More instances as traffic grows" },
+          { id: "cc-queue", label: "Event queue", detail: "Bets, credits and payouts never block each other" },
+        ],
+      },
+    ],
+    edges: [
+      { from: "cc-lobby", to: "cc-aggregator" },
+      { from: "cc-sports", to: "cc-settle" },
+      { from: "cc-odds", to: "cc-settle" },
+      { from: "cc-aggregator", to: "cc-balance", label: "debit, credit" },
+      { from: "cc-settle", to: "cc-balance" },
+      { from: "cc-promos", to: "cc-bonus" },
+      { from: "cc-tournaments", to: "cc-bonus" },
+      { from: "cc-bonus", to: "cc-balance" },
+      { from: "cc-cashier", to: "cc-addresses" },
+      { from: "cc-watchers", to: "cc-balance" },
+      { from: "cc-balance", to: "cc-withdraw" },
+      { from: "cc-balance", to: "cc-ledger" },
+    ],
+  },
+  journeys: [
+    {
+      title: "A player's first deposit",
+      steps: [
+        "Opens the cashier and picks a coin and a chain",
+        "Sends to their own deposit address",
+        "The chain watcher sees the confirmations and credits the balance",
+        "Plays a slot from one studio and a live game from another on the same balance",
+      ],
+    },
+    {
+      title: "A withdrawal",
+      steps: ["Asks to withdraw", "The request is checked against the ledger", "It is signed and sent on chain", "The ledger closes the movement"],
+    },
+  ],
+};
+
 export const VENTURE_BLUEPRINTS = {
   goz: GOZ_BLUEPRINT,
   amw: AMW_BLUEPRINT,
   arcavium: ARCAVIUM_BLUEPRINT,
   adotta: ADOTTA_BLUEPRINT,
   punti: PUNTI_BLUEPRINT,
+  casino: CRYPTO_CASINO_BLUEPRINT,
 } as const;
 
 export type VentureBlueprintId = keyof typeof VENTURE_BLUEPRINTS;

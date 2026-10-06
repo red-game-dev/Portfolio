@@ -31,7 +31,6 @@ export interface Roster {
     level: string;
     years: string;
     since: string;
-    guilds: string;
     abilities: string;
     play: string;
     playing: string;

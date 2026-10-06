@@ -1,13 +1,10 @@
-import { SECTION_IDS } from "@/config/sections";
 import { PortfolioData } from "@/data/resume";
-import { TenureCalculator } from "@/packages/insights/career";
-import { Command, CommandResult, error, heading, output, system, TerminalDialogAction } from "@/packages/interaction/terminal";
+import { Command, CommandResult, error, heading, output, system } from "@/packages/interaction/terminal";
+import { contactActions, createHireDialog, quotesOf } from "@/services/contact";
 import { TerminalIntent } from "@/types/terminal";
 
 const normalise = (text: string) => text.toLowerCase().replace(/\s+/g, " ")
 .trim();
-
-const collapse = (text: string) => text.replace(/\s+/g, " ").trim();
 
 const HIRE_PATTERN = /^hire(\s+as)?(\s+|$)/;
 
@@ -15,22 +12,13 @@ const HIRE_PATTERN = /^hire(\s+as)?(\s+|$)/;
 // "working on it" trail and ends in a dialog with the services, the proof and a way to get in touch.
 export const createRedCommand = (data: PortfolioData): Command => {
   const { red } = data.terminal;
-  const calculator = new TenureCalculator(data.roster.asOf);
-  const linkedIn = `https://www.linkedin.com/in/${data.socialMedia.byUsername.linkedIn}`;
   const serviceTitles = new Set(data.serviceGroups.flatMap((group) => group.services.map((service) => service.title)));
   const caseTitles = new Set(data.caseStudies.map((caseStudy) => caseStudy.title));
-  const quotes = data.recommendations.slice(0, 2).map((recommendation) => (
-    `"${collapse(recommendation.quote)}" ${recommendation.role}, ${recommendation.company}`
-  ));
+  const quotes = quotesOf(data);
   const roles = [...data.roster.characters.map((character) => character.characterClass), ...data.headline.audiences.map((link) => link.label)];
   const menu = [...red.intents.map((intent) => `  red ${intent.phrase}`), "  red hire as <role>"];
 
-  const actionsFor = (subject: string): TerminalDialogAction[] => [
-    { label: red.labels.email, kind: "link", target: `mailto:${data.details.email}?subject=${encodeURIComponent(subject)}` },
-    { label: red.labels.linkedIn, kind: "link", target: linkedIn },
-    { label: red.labels.cv, kind: "link", target: data.cv },
-    { label: red.labels.caseStudies, kind: "navigate", target: SECTION_IDS.caseStudies },
-  ];
+  const actionsFor = (subject: string) => contactActions(data, subject);
 
   const runIntent = (intent: TerminalIntent): CommandResult => ({
     lines: [
@@ -74,28 +62,11 @@ export const createRedCommand = (data: PortfolioData): Command => {
     }
 
     if (character) {
-      const level = Math.max(1, calculator.years(character.tenures));
-      const guilds = [...new Set(character.tenures.map((tenure) => tenure.company))];
+      const dialog = createHireDialog(data, character);
 
       return {
-        lines: [
-          heading(`${red.hireTitle}: ${character.characterClass}`),
-          output(`${red.labels.level} ${level}, ${character.abilities.join(", ")}`),
-          system(red.opening),
-        ],
-        effect: {
-          type: "dialog",
-          dialog: {
-            title: red.hireTitle,
-            subtitle: `${character.characterClass}, ${red.labels.level} ${level}`,
-            sections: [
-              { heading: red.labels.abilities, items: character.abilities },
-              { heading: red.labels.guilds, items: guilds },
-              { heading: red.labels.recommendations, items: quotes },
-            ],
-            actions: actionsFor(red.hireSubject.replace("{role}", character.characterClass)),
-          },
-        },
+        lines: [heading(`${red.hireTitle}: ${character.characterClass}`), output(`${dialog.subtitle ?? ""}, ${character.abilities.join(", ")}`), system(red.opening)],
+        effect: { type: "dialog", dialog },
       };
     }
 

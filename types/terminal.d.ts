@@ -29,7 +29,6 @@ export interface TerminalRed {
     services: string;
     proof: string;
     abilities: string;
-    guilds: string;
     recommendations: string;
     level: string;
     email: string;
@@ -50,5 +49,15 @@ export interface TerminalContent {
   unknownCommand: string;
   inputLabel: string;
   shortcutHint: string;
+  // The suggestion marked with a star, so a first visit knows where to start.
+  featured: string;
+  featuredLabel: string;
+  // The card contact and sudo open.
+  contact: {
+    title: string;
+    subtitle: string;
+    heading: string;
+    subject: string;
+  };
   red: TerminalRed;
 }

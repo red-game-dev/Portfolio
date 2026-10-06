@@ -2,6 +2,9 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { faArrowUpRightFromSquare } from "@fortawesome/pro-duotone-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import { Activity } from "@/components/CodeReview/Activity";
 import { Squares } from "@/components/CodeReview/Squares";
 import { Panel } from "@/components/Panel";
@@ -30,6 +33,16 @@ const Highlights = tw.div`grid gap-[18px] md:grid-cols-2 items-start mt-[18px]`;
 const Highlight = tw.article`flex flex-col gap-[12px] p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[var(--accent-muted)]`;
 
 const Name = tw.h3`m-0 text-lg font-semibold text-white`;
+
+const Link = styled.a(() => [
+  tw`inline-flex flex-row items-center gap-[8px] self-start text-sm font-semibold text-[var(--accent)] no-underline`,
+  css`
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  `,
+]);
 
 const Muted = tw.p`m-0 text-sm text-[#aaa]`;
 
@@ -91,6 +104,12 @@ export const CodeReview: FC<CodeReviewProps> = ({ intro, content }: CodeReviewPr
                   <Point key={point}>{point}</Point>
                 ))}
               </Points>
+            )}
+            {highlight.link && (
+              <Link href={highlight.link.url} target="_blank" rel="noopener noreferrer">
+                {highlight.link.label}
+                <FontAwesomeIcon icon={faArrowUpRightFromSquare} aria-hidden="true" />
+              </Link>
             )}
           </Highlight>
         ))}

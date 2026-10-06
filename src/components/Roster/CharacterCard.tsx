@@ -131,8 +131,6 @@ const Note = tw.p`m-0 text-sm text-[#bbb] leading-relaxed`;
 
 const Chips = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 
-const Guild = tw.li`text-xs leading-none text-[#eee] bg-[#1d1d1d] rounded-[2px] py-[6px] px-[8px]`;
-
 const Ability = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[6px] px-[10px] border-[1px] border-solid
 border-[var(--accent-muted)]`;
 
@@ -152,11 +150,8 @@ const Select = styled.button(({ isSelected }: SelectedProps) => [
 ]);
 
 export const CharacterCard: FC<CharacterCardProps> = ({
-  characterClass, titles = [], icon, tenures, stats, abilities, note, level, since, labels, isRevealed, order, isSelected, isSelectable, onSelect,
-}: CharacterCardProps) => {
-  const guilds = [...new Set(tenures.map((tenure) => tenure.company))];
-
-  return (
+  characterClass, titles = [], icon, stats, abilities, note, level, since, labels, isRevealed, order, isSelected, isSelectable, onSelect,
+}: CharacterCardProps) => (
     <Card>
       <Inner isRevealed={isRevealed} style={{ transitionDelay: `${order * FLIP_STAGGER_MS}ms` }}>
         <Face isSelected={isSelected}>
@@ -187,12 +182,6 @@ export const CharacterCard: FC<CharacterCardProps> = ({
               </Stat>
             ))}
           </Stats>
-          <GroupLabel>{labels.guilds}</GroupLabel>
-          <Chips>
-            {guilds.map((guild) => (
-              <Guild key={guild}>{guild}</Guild>
-            ))}
-          </Chips>
           <GroupLabel>{labels.abilities}</GroupLabel>
           <Chips>
             {abilities.map((ability) => (
@@ -213,4 +202,3 @@ export const CharacterCard: FC<CharacterCardProps> = ({
       </Inner>
     </Card>
   );
-};

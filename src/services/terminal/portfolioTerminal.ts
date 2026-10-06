@@ -12,6 +12,7 @@ import {
   system,
   TerminalSession
 } from "@/packages/interaction/terminal";
+import { createContactDialog } from "@/services/contact";
 import { createRedCommand } from "@/services/terminal/redCommand";
 import { Audience } from "@/types/case-studies";
 
@@ -28,6 +29,29 @@ const GOTO_TARGETS: Record<string, string> = {
   projects: "section-projects",
 };
 
+// How help groups the commands.
+const GROUPS = {
+  me: "Get to know me",
+  work: "See the work",
+  contact: "Get in touch",
+  red: "Ask me to do it",
+  around: "Get around",
+  fun: "Just for fun",
+  terminal: "Terminal",
+} as const;
+
+// What ls shows, and the command each file runs when it is read with cat.
+const FILES: Record<string, string> = {
+  "about.txt": "about",
+  "experience.log": "experience",
+  "skills.json": "skills",
+  "projects/": "projects",
+  "cases/": "cases",
+  "ventures.md": "ventures",
+  "contact.txt": "contact",
+  "cv.pdf": "cv",
+};
+
 const collapse = (text: string) => text.replace(/\s+/g, " ").trim();
 
 const period = (from: string, to?: string) => `${from} to ${to ?? "now"}`;
@@ -41,10 +65,15 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
   const calculator = new TenureCalculator(data.roster.asOf);
   const linkedIn = `https://www.linkedin.com/in/${data.socialMedia.byUsername.linkedIn}`;
 
-  return [
-    createRedCommand(data),
+  const contactDialog = createContactDialog(data);
+  // Commands by name, for cat to run the one a file stands for.
+  const commandsByName = new Map<string, Command>();
+
+  const commands: Command[] = [
+    { ...createRedCommand(data), group: GROUPS.red },
     {
       name: "whoami",
+      group: GROUPS.me,
       summary: "Who I am and what I am looking for",
       run: () => ({
         lines: [heading(data.details.name), ...data.headline.lines.map(output), output(data.headline.availability)],
@@ -52,6 +81,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     },
     {
       name: "about",
+      group: GROUPS.me,
       summary: "The longer version",
       run: () => ({
         lines: [
@@ -64,6 +94,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     },
     {
       name: "experience",
+      group: GROUPS.me,
       aliases: ["history", "jobs"],
       usage: "experience [name]",
       summary: "Every role, or one role in detail",
@@ -94,6 +125,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     },
     {
       name: "skills",
+      group: GROUPS.me,
       usage: "skills [group]",
       summary: "Skill groups, or every skill in one group",
       run: (args) => {
@@ -123,6 +155,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     },
     {
       name: "characters",
+      group: GROUPS.me,
       aliases: ["party"],
       summary: "The roles I play, with their level",
       run: () => ({
@@ -136,6 +169,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     },
     {
       name: "services",
+      group: GROUPS.work,
       aliases: ["offer"],
       summary: "What I can take on",
       run: () => ({
@@ -144,6 +178,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     },
     {
       name: "ai",
+      group: GROUPS.work,
       summary: "How I use AI, in numbers",
       run: () => {
         const tasks = [...data.aiUsage.mix.tasks].sort((first, second) => second.count - first.count);
@@ -161,6 +196,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     },
     {
       name: "cases",
+      group: GROUPS.work,
       aliases: ["case-studies"],
       usage: "cases [payments|ai|architecture]",
       summary: "Case studies, optionally for one kind of role",
@@ -177,6 +213,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     },
     {
       name: "projects",
+      group: GROUPS.work,
       aliases: ["quests"],
       summary: "Projects and achievements",
       run: () => ({
@@ -185,31 +222,212 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     },
     {
       name: "contact",
-      summary: "How to reach me",
+      group: GROUPS.contact,
+      aliases: ["connect"],
+      summary: "Every way to reach me, with buttons",
       run: () => ({
         lines: [
           heading("Contact"),
           output(`  Email     ${data.details.email}`),
           output(`  LinkedIn  ${linkedIn}`),
+          output(`  Phone     ${data.details.phone}, ${data.details.contactTime.toLowerCase()}`),
           ...data.github.map((account) => output(`  GitHub    ${account.link}`)),
+          system("Opening the contact card..."),
+        ],
+        effect: { type: "dialog", dialog: contactDialog },
+      }),
+    },
+    {
+      name: "email",
+      group: GROUPS.contact,
+      aliases: ["mail"],
+      summary: "Write me an email",
+      run: () => ({ lines: [system(`Opening an email to ${data.details.email}...`)], effect: { type: "open", url: `mailto:${data.details.email}` } }),
+    },
+    {
+      name: "linkedin",
+      group: GROUPS.contact,
+      summary: "Connect on LinkedIn",
+      run: () => ({ lines: [system("Opening LinkedIn...")], effect: { type: "open", url: linkedIn } }),
+    },
+    {
+      name: "github",
+      group: GROUPS.contact,
+      aliases: ["git"],
+      summary: "My code on GitHub",
+      run: () => ({ lines: [system("Opening GitHub...")], effect: { type: "open", url: data.github[0].link } }),
+    },
+    {
+      name: "phone",
+      group: GROUPS.contact,
+      aliases: ["call"],
+      summary: "My number",
+      run: () => ({ lines: [output(`${data.details.phone}, ${data.details.contactTime.toLowerCase()}`)] }),
+    },
+    {
+      name: "socials",
+      group: GROUPS.contact,
+      summary: "Where else I am",
+      run: () => ({
+        lines: [
+          heading("Socials"),
+          output(`  LinkedIn   ${linkedIn}`),
+          output(`  X          https://x.com/${data.socialMedia.byUsername.twitter.replace("@", "")}`),
+          output(`  Instagram  https://www.instagram.com/${data.socialMedia.byUsername.instagram}`),
+          output(`  Facebook   https://www.facebook.com/${data.socialMedia.byUsername.facebook}`),
+          output(`  My game    https://www.youtube.com/${data.socialMedia.byProjectsUsername.gameYt}`),
         ],
       }),
     },
     {
       name: "cv",
+      group: GROUPS.contact,
       aliases: ["resume"],
       summary: "Download my CV",
       run: () => ({ lines: [system("Opening the CV...")], effect: { type: "open", url: data.cv } }),
     },
     {
       name: "hire",
+      group: GROUPS.contact,
       summary: "Availability and the fastest way to talk",
       run: () => ({
         lines: [heading("Hire me"), output(data.headline.availability), output(`Email ${data.details.email}, or type cv for the PDF.`)],
       }),
     },
     {
+      name: "ventures",
+      group: GROUPS.me,
+      aliases: ["startups"],
+      summary: "Companies I founded or co-founded",
+      run: () => ({
+        lines: [
+          heading("Ventures"),
+          ...experience.filter((entry) => entry.isVenture).map((entry) => output(`  ${(entry.period ?? period(entry.from, entry.to)).padEnd(22)}${entry.title}`)),
+        ],
+      }),
+    },
+    {
+      name: "industries",
+      group: GROUPS.me,
+      summary: "Sectors I have worked in",
+      run: () => ({ lines: [heading("Industries"), ...data.headline.industries.map((link) => output(`  ${link.label}`))] }),
+    },
+    {
+      name: "languages",
+      group: GROUPS.me,
+      summary: "Languages I speak",
+      run: () => ({ lines: [output(data.skills.language.map((skill) => skill.name).join(", "))] }),
+    },
+    {
+      name: "references",
+      group: GROUPS.work,
+      aliases: ["testimonials"],
+      summary: "What people I worked with say",
+      run: () => ({
+        lines: [
+          heading("References"),
+          ...data.recommendations.map((recommendation) => output(`  "${collapse(recommendation.quote)}" ${recommendation.role}, ${recommendation.company}`)),
+        ],
+      }),
+    },
+    {
+      name: "play",
+      group: GROUPS.work,
+      aliases: ["game"],
+      summary: "Play Bug Raid",
+      run: () => ({ lines: [system("Loading Bug Raid...")], effect: { type: "navigate", target: SECTION_IDS.arena } }),
+    },
+    {
+      name: "ls",
+      group: GROUPS.around,
+      aliases: ["dir"],
+      summary: "What is here",
+      run: () => ({ lines: [output(Object.keys(FILES).join("  "))] }),
+    },
+    {
+      name: "cat",
+      group: GROUPS.around,
+      aliases: ["open"],
+      usage: "cat <file>",
+      summary: "Read a file from ls",
+      run: ([file]) => {
+        const command = file ? FILES[file.toLowerCase()] : undefined;
+        const target = command ? commandsByName.get(command) : undefined;
+
+        return target ? target.run([]) : { lines: [error(`cat: ${file ?? ""}: no such file. Try ls.`)] };
+      },
+    },
+    {
+      name: "pwd",
+      group: GROUPS.around,
+      summary: "Where you are",
+      run: () => ({ lines: [output("/home/visitor/redgame.dev")] }),
+    },
+    {
+      name: "sudo",
+      group: GROUPS.fun,
+      usage: "sudo <anything>",
+      summary: "Try it",
+      run: () => ({
+        lines: [
+          system("[sudo] password for visitor: ********"),
+          output("Access granted. You never needed sudo to hire me, but I like the confidence."),
+          system("Opening the contact card..."),
+        ],
+        effect: { type: "dialog", dialog: contactDialog },
+      }),
+    },
+    {
+      name: "coffee",
+      group: GROUPS.fun,
+      summary: "Take a break",
+      run: () => ({
+        lines: [
+          output("   ( ("),
+          output("    ) )"),
+          output("  ........"),
+          output("  |      |]"),
+          output("  \\      /"),
+          output("   `----'"),
+          output("Brewed. The best architecture starts over coffee: type contact and let's have one."),
+        ],
+      }),
+    },
+    {
+      name: "matrix",
+      group: GROUPS.fun,
+      summary: "Follow the white rabbit",
+      run: () => ({
+        lines: [
+          system("Wake up, visitor..."),
+          system("The page has you."),
+          output("Follow the rain back up: type goto about."),
+        ],
+      }),
+    },
+    {
+      name: "echo",
+      group: GROUPS.fun,
+      usage: "echo <text>",
+      summary: "Say something back",
+      run: (args) => ({ lines: [output(args.join(" ") || " ")] }),
+    },
+    {
+      name: "date",
+      group: GROUPS.fun,
+      summary: "Today",
+      run: () => ({ lines: [output(new Date().toDateString())] }),
+    },
+    {
+      name: "exit",
+      group: GROUPS.fun,
+      aliases: ["quit", "logout"],
+      summary: "Leave",
+      run: () => ({ lines: [output("There is no exit, only the next quest. Type hire.")] }),
+    },
+    {
       name: "goto",
+      group: GROUPS.around,
       aliases: ["cd"],
       usage: "goto <section>",
       summary: "Jump to a part of the page",
@@ -224,13 +442,17 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
       },
     },
   ];
+
+  commands.forEach((command) => commandsByName.set(command.name, command));
+
+  return commands;
 };
 
 export const createPortfolioTerminal = (data: PortfolioData = portfolioData) => {
   const registry = new CommandRegistry();
 
   createPortfolioCommands(data).forEach((command) => registry.register(command));
-  registry.register(clearCommand).register(createHelpCommand(registry, data.terminal.helpTitle));
+  registry.register(clearCommand).register(createHelpCommand(registry, data.terminal.helpTitle, GROUPS.terminal));
 
   return new TerminalSession(registry, {
     prompt: data.terminal.prompt,

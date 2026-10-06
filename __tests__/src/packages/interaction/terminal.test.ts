@@ -61,6 +61,28 @@ describe("interaction/terminal", () => {
     expect(text).toContain("Clear the screen");
   });
 
+  test("help groups commands in the order their groups appear, with ungrouped ones last", () => {
+    const registry = new CommandRegistry();
+
+    registry
+      .register({ name: "mail", summary: "Mail me", group: "Contact", run: () => ({ lines: [] }) })
+      .register({ name: "ls", summary: "List", run: () => ({ lines: [] }) })
+      .register({ name: "about", summary: "About", group: "Me", run: () => ({ lines: [] }) })
+      .register({ name: "call", summary: "Call me", group: "Contact", run: () => ({ lines: [] }) })
+      .register(createHelpCommand(registry, "Commands", "Terminal"));
+
+    const session = new TerminalSession(registry, { prompt: "$", welcome: [] });
+
+    session.execute("help");
+
+    const groups = session.output.filter((line) => line.kind === "system").map((line) => line.text);
+    const text = session.output.map((line) => line.text);
+
+    expect(groups).toEqual(["Contact", "Me", "Terminal"]);
+    expect(text.indexOf("Contact")).toBeLessThan(text.findIndex((line) => line.includes("call")));
+    expect(text.findIndex((line) => line.includes("call"))).toBeLessThan(text.indexOf("Me"));
+  });
+
   test("recalls history in both directions and completes unique prefixes", () => {
     const session = createSession();
 

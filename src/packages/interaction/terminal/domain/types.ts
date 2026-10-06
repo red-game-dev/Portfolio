@@ -42,5 +42,7 @@ export interface Command {
   aliases?: string[];
   summary: string;
   usage?: string;
+  // Help lists commands under their group, in the order the groups first appear.
+  group?: string;
   run(args: string[]): CommandResult;
 }

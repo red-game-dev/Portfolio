@@ -1,6 +1,10 @@
 import { FC, FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 
+import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
+
+import { faStar } from "@fortawesome/pro-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { TerminalDialog } from "@/components/Terminal/TerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
@@ -78,8 +82,14 @@ const Input = styled.input(() => [
 
 const Suggestions = tw.div`flex flex-row flex-wrap gap-[8px] mt-[14px]`;
 
-const Suggestion = styled.button(() => [
-  tw`cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full text-[var(--accent)] bg-[#1d1d1d] border-[1px] border-solid border-[var(--accent-muted)]`,
+const glow = keyframes`
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.45); }
+  50% { box-shadow: 0 0 0 6px rgba(var(--accent-rgb), 0); }
+`;
+
+const Suggestion = styled.button(({ isFeatured }: { isFeatured: boolean }) => [
+  tw`inline-flex flex-row items-center gap-[6px] cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full text-[var(--accent)] bg-[#1d1d1d]
+     border-[1px] border-solid border-[var(--accent-muted)]`,
   css`
     font-family: ${MONO};
     transition: background-color 0.2s ease, color 0.2s ease;
@@ -90,7 +100,20 @@ const Suggestion = styled.button(() => [
       background-color: var(--accent);
     }
   `,
+  // The place to start pulses gently and carries a star, until it has been used once.
+  isFeatured && css`
+    color: #101010;
+    background-color: var(--accent);
+    border-color: var(--accent);
+    animation: ${glow} 1.8s ease-out infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  `,
 ]);
+
+const FeaturedLabel = tw.span`font-sans font-semibold`;
 
 const scrollToSection = (target: string) => {
   if (target.startsWith("for-")) {
@@ -99,6 +122,11 @@ const scrollToSection = (target: string) => {
     document.getElementById(target)?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
   }
 };
+
+// Backtick like a game console, or slash like most search boxes. The physical key counts too, since on
+// many European layouts the backtick key types something else or waits for a second key.
+const isShortcut = (event: globalThis.KeyboardEvent) => !event.ctrlKey && !event.metaKey
+  && (event.key === "`" || event.key === "/" || event.code === "Backquote");
 
 const isTyping = (target: EventTarget | null) => target instanceof HTMLElement
   && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
@@ -116,6 +144,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
   // A dialog waits until the lines before it have finished streaming.
   const [pendingDialog, setPendingDialog] = useState<TerminalDialogContent | null>(null);
   const [dialog, setDialog] = useState<TerminalDialogContent | null>(null);
+  const [hasRunFeatured, setHasRunFeatured] = useState(false);
   const total = session.output.length;
 
   const apply = (effect: TerminalEffect | undefined) => {
@@ -157,6 +186,10 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
   }, [pendingDialog, session, total, visibleCount]);
 
   const run = (command: string) => {
+    if (command.trim().toLowerCase() === content.featured) {
+      setHasRunFeatured(true);
+    }
+
     apply(session.execute(command));
     setVersion((version) => version + 1);
   };
@@ -190,7 +223,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
   // Backtick from anywhere on the page brings you to the prompt, like a game console.
   useEffect(() => {
     const onWindowKey = (event: globalThis.KeyboardEvent) => {
-      if (event.key !== "`" || isTyping(event.target)) {
+      if (!isShortcut(event) || isTyping(event.target)) {
         return;
       }
 
@@ -233,11 +266,17 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
         </Form>
       </Window>
       <Suggestions>
-        {content.suggestions.map((suggestion) => (
-          <Suggestion key={suggestion} type="button" onClick={() => run(suggestion)}>
-            {suggestion}
-          </Suggestion>
-        ))}
+        {content.suggestions.map((suggestion) => {
+          const isFeatured = suggestion === content.featured && !hasRunFeatured;
+
+          return (
+            <Suggestion key={suggestion} type="button" isFeatured={isFeatured} onClick={() => run(suggestion)}>
+              {suggestion === content.featured && <FontAwesomeIcon icon={faStar} aria-hidden="true" />}
+              {suggestion}
+              {isFeatured && <FeaturedLabel>{content.featuredLabel}</FeaturedLabel>}
+            </Suggestion>
+          );
+        })}
       </Suggestions>
       <TerminalDialog
         dialog={dialog}

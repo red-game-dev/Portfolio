@@ -546,10 +546,11 @@ const blueprints: Blueprint[] = [
     tab: "Launchpad",
     zone: "chain",
     title: "A creator coin launchpad on its own stablecoin",
-    caption: "A pegged stablecoin underneath, creator coins on top that only ever trade against it, priced on a curve, with NFTs and engagement rewards around them.",
+    caption: "A pegged stablecoin underneath, creator coins on top that only ever trade against it, priced on a curve, with NFTs, " +
+      "DeFi and engagement rewards around them, built for exchange volume from day one.",
     summary: {
       role: "Co-founded it and proposed the architecture, then built it from zero across web, mobile, back end and chain with a team of 10+",
-      scale: "Influencers and creators launching coins for their fans, built from zero",
+      scale: "Influencers and creators launching coins for their fans, built from zero for exchange and DeFi scale",
       stack: ["Rust", "Substrate", "Solidity", "Node.js", "Flutter", "Next.js", "Nuxt", "PixiJS", "AWS"],
     },
     architecture: {
@@ -574,10 +575,12 @@ const blueprints: Blueprint[] = [
             { id: "lp-gateway", label: "API gateway", span: 2 },
             { id: "lp-kyc", label: "Identity and KYC gate" },
             { id: "lp-launch", label: "Coin launch", detail: "Price on a curve" },
-            { id: "lp-trade", label: "Trade", detail: "Only against the stablecoin" },
+            { id: "lp-trade", label: "Trade", detail: "Only against the stablecoin, matched at volume" },
+            { id: "lp-defi", label: "DeFi", detail: "Liquidity pools, staking and lending" },
             { id: "lp-nft", label: "NFTs", detail: "Minted for fans" },
             { id: "lp-engage", label: "Engagement rewards" },
             { id: "lp-onramp", label: "Fiat on ramp", detail: "Into the stablecoin" },
+            { id: "lp-queue", label: "Event queue", detail: "Services scale apart, nothing blocks a trade", span: 2 },
           ],
         },
         {
@@ -622,6 +625,7 @@ const blueprints: Blueprint[] = [
         { from: "lp-launch", to: "lp-coins" },
         { from: "lp-trade", to: "lp-stable" },
         { from: "lp-onramp", to: "lp-trade" },
+        { from: "lp-defi", to: "lp-stable" },
         { from: "lp-stable", to: "lp-coins", style: "link" },
         { from: "lp-coins", to: "lp-own" },
         { from: "lp-own", to: "lp-bridges", style: "link" },

@@ -2,17 +2,19 @@ import { FC } from "react";
 
 import tw from "twin.macro";
 
+import { BlueprintList } from "@/components/Blueprint";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
-import { PlatformDiagrams } from "@/components/PlatformOverview/PlatformDiagrams";
 import { Text } from "@/components/Text";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
-import { ExpertiseContent, PlatformDiagrams as PlatformDiagramsContent } from "@/types/case-studies";
+import { Blueprint, BlueprintLabels } from "@/types/blueprints";
+import { ExpertiseContent } from "@/types/case-studies";
 import { SectionIntros } from "@/types/sections-intros";
 
 interface PlatformOverviewProps {
   intro: SectionIntros;
   expertise: ExpertiseContent;
-  diagrams: PlatformDiagramsContent;
+  blueprints: Blueprint[];
+  blueprintLabels: BlueprintLabels;
 }
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
@@ -37,7 +39,7 @@ const Example = tw.div`mt-[22px]`;
 
 // Expertise across the career: each tile is a kind of system built at several companies, and my own
 // platform follows as one worked example, not the only one.
-export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, diagrams }: PlatformOverviewProps) => (
+export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, blueprints, blueprintLabels }: PlatformOverviewProps) => (
   <Section id={SECTION_IDS.platform}>
     <Anchor id={ROLE_ANCHORS.enterprise} aria-hidden="true" />
     <Text title={intro.title} paragraphs={intro.description} isSection={false} />
@@ -58,7 +60,7 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
       <PanelTitle>{expertise.exampleTitle}</PanelTitle>
       <PanelText>{expertise.exampleDescription}</PanelText>
       <Example>
-        <PlatformDiagrams {...diagrams} />
+        <BlueprintList blueprints={blueprints} labels={blueprintLabels} />
       </Example>
     </Panel>
   </Section>

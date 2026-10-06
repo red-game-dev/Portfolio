@@ -122,6 +122,7 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnCaseStudiesSection] = useCollision(SECTION_IDS.caseStudies);
   const [isOnDuelsSection] = useCollision(SECTION_IDS.duels);
   const [isOnProjectsOnly] = useCollision("section-projects");
+  const [isOnEngineRoomSection] = useCollision(SECTION_IDS.engineRoom);
   const [isOnRecommendationsSection] = useCollision("section-Recommendations");
   const [isOnArenaSection] = useCollision(SECTION_IDS.arena);
   const [isOnFinaleSection] = useCollision("section-Wow");
@@ -130,7 +131,7 @@ export const Menu = ({ active }: MenuProps) => {
   const isOnSectionAbout = isOnAboutOnly || isOnTerminalSection;
   const isOnChainZone = isOnWeb3Section || isOnSkillAreasSection || isOnPlatformSection || isOnCodeReviewSection;
   const isOnGameWorld = isOnRosterSection || isOnForgeSection || isOnTalentsSection || isOnCaseStudiesSection || isOnDuelsSection ||
-    isOnProjectsOnly || isOnRecommendationsSection || isOnArenaSection || isOnFinaleSection;
+    isOnProjectsOnly || isOnEngineRoomSection || isOnRecommendationsSection || isOnArenaSection || isOnFinaleSection;
 
   const selected = [isOnSectionAbout, isOnSectionServices, isOnSectionHistory, isOnAiUsageSection, isOnChainZone, isOnIGamingSection, isOnGameWorld];
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);

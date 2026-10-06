@@ -5,6 +5,7 @@ import { CaseStudies } from "@/components/CaseStudies";
 import { CodeReview } from "@/components/CodeReview";
 import { Cover } from "@/components/Cover";
 import { Duels } from "@/components/Duels";
+import { EngineRoom } from "@/components/EngineRoom";
 import { Finale } from "@/components/Finale";
 import { History } from "@/components/History";
 import { IGaming } from "@/components/IGaming";
@@ -65,12 +66,27 @@ export default function Home() {
         labels={portfolioData.historyLabels}
         industries={portfolioData.headline.industries}
       />
-      <AiUsage {...aiUsage} />
-      <Web3 intro={portfolioData.sections.web3} content={portfolioData.web3} />
+      <AiUsage {...aiUsage} blueprints={portfolioData.blueprints.ai} blueprintLabels={portfolioData.blueprints.labels} />
+      <Web3
+        intro={portfolioData.sections.web3}
+        content={portfolioData.web3}
+        blueprints={portfolioData.blueprints.chain}
+        blueprintLabels={portfolioData.blueprints.labels}
+      />
       <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
-      <PlatformOverview intro={portfolioData.sections.platform} expertise={portfolioData.expertise} diagrams={portfolioData.platformDiagrams} />
+      <PlatformOverview
+        intro={portfolioData.sections.platform}
+        expertise={portfolioData.expertise}
+        blueprints={portfolioData.blueprints.platform}
+        blueprintLabels={portfolioData.blueprints.labels}
+      />
       <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
-      <IGaming intro={portfolioData.sections.igaming} content={portfolioData.igaming} />
+      <IGaming
+        intro={portfolioData.sections.igaming}
+        content={portfolioData.igaming}
+        blueprints={portfolioData.blueprints.casino}
+        blueprintLabels={portfolioData.blueprints.labels}
+      />
       <Roster intro={portfolioData.sections.roster} {...portfolioData.roster} />
       <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
       <Talents
@@ -87,6 +103,7 @@ export default function Home() {
       />
       <Duels intro={portfolioData.sections.duels} {...portfolioData.duels} />
       <Projects projects={portfolioData.projects} intro={portfolioData.sections.projects} content={portfolioData.projectMap} />
+      <EngineRoom intro={portfolioData.sections.engineRoom} blueprints={portfolioData.blueprints.mmo} labels={portfolioData.blueprints.labels} />
       <Recommendations
         intro={portfolioData.sections.recommendations}
         recommendations={portfolioData.recommendations}

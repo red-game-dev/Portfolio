@@ -21,27 +21,6 @@ export interface CaseStudy {
   industries?: Industry[];
 }
 
-export interface DiagramNode {
-  name: string;
-  detail: string;
-}
-
-export interface PlatformDiagrams {
-  adapters: {
-    title: string;
-    core: string;
-    contracts: string;
-    seams: DiagramNode[];
-    caption: string;
-  };
-  moneyFlow: {
-    title: string;
-    steps: DiagramNode[];
-    inputs: DiagramNode[];
-    caption: string;
-  };
-}
-
 export interface CaseStudyFilters {
   allLabel: string;
   label: string;

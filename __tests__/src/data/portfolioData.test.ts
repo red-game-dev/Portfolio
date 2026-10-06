@@ -89,3 +89,30 @@ describe("audience views", () => {
     });
   });
 });
+
+describe("blueprints", () => {
+  const { labels, ...placed } = portfolioData.blueprints;
+  const blueprints = Object.values(placed).flat();
+
+  test("every blueprint has a unique id", () => {
+    const ids = blueprints.map((blueprint) => blueprint.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(Object.values(labels).every(Boolean)).toBe(true);
+  });
+
+  test.each(blueprints.map((blueprint) => [blueprint.id, blueprint] as const))("%s: every wire joins boxes that exist", (_, blueprint) => {
+    const { groups, edges } = blueprint.architecture;
+    const ids = [...groups.map((group) => group.id), ...groups.flatMap((group) => group.nodes.map((node) => node.id))];
+    const known = new Set(ids);
+
+    expect(known.size).toBe(ids.length);
+    expect(edges.filter((edge) => !known.has(edge.from) || !known.has(edge.to))).toEqual([]);
+  });
+
+  test.each(blueprints.map((blueprint) => [blueprint.id, blueprint] as const))("%s: every frame fits the grid", (_, blueprint) => {
+    const { columns, groups } = blueprint.architecture;
+
+    expect(groups.filter(({ place }) => place.col < 1 || place.col + (place.colSpan ?? 1) - 1 > columns)).toEqual([]);
+  });
+});

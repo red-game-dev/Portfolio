@@ -26,6 +26,7 @@ export const createJourneyTrail = (data: PortfolioData): TrailSection[] => [
   { id: SECTION_IDS.caseStudies, title: data.sections.caseStudies.title },
   { id: SECTION_IDS.duels, title: data.sections.duels.title },
   { id: "section-projects", title: data.sections.projects.title },
+  { id: SECTION_IDS.engineRoom, title: data.sections.engineRoom.title },
   { id: "section-Recommendations", title: data.sections.recommendations.title },
   { id: SECTION_IDS.arena, title: data.sections.arena.title },
   { id: "section-Wow", title: data.finale.kicker },

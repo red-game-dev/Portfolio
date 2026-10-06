@@ -49,9 +49,11 @@ import {
   faWandMagicSparkles
 } from "@fortawesome/pro-duotone-svg-icons";
 
+import { blueprintContent } from "@/data/blueprints";
 import { lensContent } from "@/data/lens";
 import { PortfolioAiUsage } from "@/types/ai-usage";
-import { CaseStudy, CaseStudyFilters, ExpertiseContent, PlatformDiagrams } from "@/types/case-studies";
+import { BlueprintContent } from "@/types/blueprints";
+import { CaseStudy, CaseStudyFilters, ExpertiseContent } from "@/types/case-studies";
 import { CodeReviewContent } from "@/types/code-review";
 import { Detail } from "@/types/details";
 import { IGamingContent, Web3Content } from "@/types/domains";
@@ -117,7 +119,7 @@ export interface PortfolioData {
   lens: LensContent;
   arena: ArenaContent;
   finale: FinaleContent;
-  platformDiagrams: PlatformDiagrams;
+  blueprints: BlueprintContent;
   expertise: ExpertiseContent;
   codeReview: CodeReviewContent;
   web3: Web3Content;
@@ -433,7 +435,14 @@ export const portfolioData: PortfolioData = {
     },
     platform: {
       title: "What I Have Built, More Than Once",
-      description: ["The same kinds of system, built at several companies. Each tile names where; below them, one example in detail."],
+      description: ["The same kinds of system, built at several companies. Each tile names where; below them, worked examples in detail."],
+    },
+    engineRoom: {
+      title: "Engine Room",
+      description: [
+        "Under the floor of the game world: my MMO from engine to live operations, its server before and after a bot " +
+          "flood, and the three clients of a Web3 game platform I built for.",
+      ],
     },
     arena: {
       title: "Bug Raid",
@@ -3267,48 +3276,10 @@ export const portfolioData: PortfolioData = {
         places: ["Chiliz", "CoinOn", "Conrad"],
       },
     ],
-    exampleTitle: "One example in detail: my own platform",
-    exampleDescription: "Two views of it, unnamed: where vendors and hosts plug in, and how money moves through it.",
+    exampleTitle: "Worked examples",
+    exampleDescription: "Conrad's CMS migration target, then my own platform, unnamed: where vendors and hosts plug in, and how money moves through it.",
   },
-  platformDiagrams: {
-    adapters: {
-      title: "Every vendor behind an adapter",
-      core: "Domain core in plain TypeScript",
-      contracts: "37 adapter contracts",
-      seams: [
-        { name: "Payments", detail: "Stripe gateway, tax and FX providers" },
-        { name: "Storage & media", detail: "Cloudflare R2, Supabase, scanning" },
-        { name: "Database", detail: "Drizzle, Supabase, SQL, IndexedDB" },
-        { name: "Auth", detail: "OAuth, OIDC, passwordless" },
-        { name: "Notifications", detail: "Email, SMS and push" },
-        { name: "CMS", detail: "Strapi, Contentful, Sanity, Storyblok" },
-        { name: "Ads", detail: "Own network, external slots" },
-        { name: "Moderation", detail: "Four provider adapters" },
-        { name: "Real time", detail: "SSE, WebSocket, Redis backplane" },
-        { name: "Feature flags", detail: "API, database, file, memory, Redis" },
-        { name: "Hosts", detail: "Deploy targets, env vars, source control" },
-        { name: "Frameworks", detail: "NestJS and Next.js adapters" },
-      ],
-      caption: "Every vendor and host sits behind an adapter, so a provider can be added, run in parallel and switched by configuration.",
-    },
-    moneyFlow: {
-      title: "How money moves",
-      steps: [
-        { name: "Checkout", detail: "A jurisdiction snapshot is written on every charge" },
-        { name: "Gateway adapter", detail: "Provider agnostic, Stripe today" },
-        { name: "Signed webhook", detail: "Verified before anything moves" },
-        { name: "Idempotent handler", detail: "One effect per event, however often it arrives" },
-        { name: "Double entry ledger", detail: "Every movement balanced" },
-        { name: "Reconciliation", detail: "The ledger checked against the provider" },
-        { name: "Payout", detail: "Holds above a threshold need a second admin's approval" },
-      ],
-      inputs: [
-        { name: "Tax providers", detail: "Per region, behind one contract" },
-        { name: "Exchange rates", detail: "Provider based FX for multi currency" },
-      ],
-      caption: "Money paths are tested through the real API, on synthetic data at real volume.",
-    },
-  },
+  blueprints: blueprintContent,
   recommendations: [
     {
       quote: `The breadth of his knowledge about software, systems and architecture is excellent and has shown to be valuable beyond the

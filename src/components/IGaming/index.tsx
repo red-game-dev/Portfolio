@@ -3,16 +3,20 @@ import { FC, useRef } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
+import { BlueprintList } from "@/components/Blueprint";
 import { Panel } from "@/components/Panel";
 import { Text } from "@/components/Text";
 import { SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
+import { Blueprint, BlueprintLabels } from "@/types/blueprints";
 import { IGamingContent } from "@/types/domains";
 import { SectionIntros } from "@/types/sections-intros";
 
 interface IGamingProps {
   intro: SectionIntros;
   content: IGamingContent;
+  blueprints: Blueprint[];
+  blueprintLabels: BlueprintLabels;
 }
 
 interface DealtProps {
@@ -41,6 +45,8 @@ const Table = styled(Panel)(() => [
     border-color: var(--accent-muted);
   `,
 ]);
+
+const Blueprints = tw.div`mt-[25px] lg:mt-[35px]`;
 
 const Header = tw.div`flex flex-row flex-wrap items-center justify-between gap-[12px] mb-[20px]`;
 
@@ -115,7 +121,7 @@ const Quote = styled.blockquote(() => [
 const QuoteSource = tw.cite`block mt-[6px] text-xs not-italic text-[#999]`;
 
 // iGaming as a live table: each capability is a card dealt onto the felt.
-export const IGaming: FC<IGamingProps> = ({ intro, content }: IGamingProps) => {
+export const IGaming: FC<IGamingProps> = ({ intro, content, blueprints, blueprintLabels }: IGamingProps) => {
   const cardsRef = useRef<HTMLUListElement>(null);
   const isDealt = useInView(cardsRef, { threshold: 0.2 });
 
@@ -161,6 +167,9 @@ export const IGaming: FC<IGamingProps> = ({ intro, content }: IGamingProps) => {
           </Quote>
         </Footer>
       </Table>
+      <Blueprints>
+        <BlueprintList blueprints={blueprints} labels={blueprintLabels} />
+      </Blueprints>
     </Section>
   );
 };

@@ -1744,9 +1744,352 @@ export const blueprintContent: BlueprintContent = {
         },
       ],
     },
+    {
+      id: "igaming-suite",
+      zone: "casino",
+      title: "An iGaming suite: slots, bet tables and live games",
+      caption: "Games for operators where the result is decided on the server before anything spins, the client only animates " +
+        "it, and every bet and win moves through the operator's wallet.",
+      summary: {
+        role: "Game UI, mobile apps and real time logic for live casino, and canvas game interfaces for iGaming clients",
+        scale: "Games served to many operators' players on desktop, tablet and mobile",
+        stack: ["JavaScript", "TypeScript", "PixiJS", "WebGL", "Canvas", "Node.js", "WebSockets", "Redux", "RxJS"],
+      },
+      architecture: {
+        columns: 4,
+        groups: [
+          {
+            id: "ig-games",
+            label: "Game clients",
+            place: { col: 1, row: 1, rowSpan: 2 },
+            nodes: [
+              { id: "ig-slots", label: "Slots", detail: "Reels and bonus rounds, WebGL" },
+              { id: "ig-tables", label: "Bet tables", detail: "Roulette and card games on canvas" },
+              { id: "ig-live", label: "Live games", detail: "Video with real time bets" },
+              { id: "ig-lobby", label: "Lobby", detail: "Inside the operator's site" },
+            ],
+          },
+          {
+            id: "ig-server",
+            label: "Game server",
+            place: { col: 2, row: 1, rowSpan: 2 },
+            nodes: [
+              { id: "ig-rounds", label: "Round engine", detail: "Bet, outcome, settlement" },
+              { id: "ig-rng", label: "Random outcomes", detail: "On the server, before the reels stop" },
+              { id: "ig-math", label: "Math models and paytables", detail: "Per game" },
+              { id: "ig-bonus", label: "Bonus features", detail: "Free spins, multipliers" },
+            ],
+          },
+          {
+            id: "ig-integration",
+            label: "Operator integration",
+            place: { col: 3, row: 1 },
+            nodes: [
+              { id: "ig-wallet", label: "Wallet API", detail: "Debit the bet, credit the win, roll back" },
+              { id: "ig-onboarding", label: "Onboarding tooling", detail: "Integration automated" },
+            ],
+          },
+          {
+            id: "ig-control",
+            label: "Control",
+            place: { col: 3, row: 2 },
+            nodes: [
+              { id: "ig-history", label: "Round history", detail: "Every outcome kept for audit" },
+              { id: "ig-limits", label: "Responsible gaming limits" },
+              { id: "ig-config", label: "Configuration per jurisdiction" },
+            ],
+          },
+          {
+            id: "ig-operators",
+            label: "Operators",
+            isExternal: true,
+            place: { col: 4, row: 1, rowSpan: 2 },
+            nodes: [
+              { id: "ig-sites", label: "Operator sites and apps" },
+              { id: "ig-reports", label: "Reports and back office" },
+            ],
+          },
+        ],
+        edges: [
+          { from: "ig-games", to: "ig-rounds" },
+          { from: "ig-rounds", to: "ig-rng" },
+          { from: "ig-math", to: "ig-rounds", style: "dashed" },
+          { from: "ig-rounds", to: "ig-wallet", label: "debit, credit" },
+          { from: "ig-wallet", to: "ig-sites" },
+          { from: "ig-rounds", to: "ig-history" },
+          { from: "ig-limits", to: "ig-rounds", style: "dashed" },
+          { from: "ig-onboarding", to: "ig-sites" },
+          { from: "ig-history", to: "ig-reports" },
+        ],
+      },
+      wireframe: {
+        device: "phone",
+        screens: [
+          {
+            title: "A slot",
+            regions: [
+              { kind: "bar", label: "Balance and last win", size: 0.6 },
+              { kind: "canvas", label: "Reels, animated to the server's result", size: 2.6 },
+              { kind: "bar", label: "Paytable and rules", size: 0.6 },
+              { kind: "actions", label: "Bet size, spin, autoplay", size: 0.9 },
+            ],
+          },
+          {
+            title: "Bonus round",
+            regions: [
+              { kind: "canvas", label: "The bonus scene", size: 2.2 },
+              { kind: "overlay", label: "Free spins left and the multiplier", size: 1.2 },
+              { kind: "stat", label: "Total won in the round" },
+            ],
+          },
+          {
+            title: "A roulette table",
+            regions: [
+              { kind: "canvas", label: "Betting grid, chips by touch", size: 2.4 },
+              { kind: "bar", label: "Recent results", size: 0.6 },
+              { kind: "actions", label: "Chips, repeat, undo, spin", size: 0.9 },
+            ],
+          },
+          {
+            title: "Round history",
+            regions: [
+              { kind: "list", label: "Each round: bet, outcome, payout", size: 2.4 },
+              { kind: "bar", label: "Limits and time played", size: 0.6 },
+            ],
+          },
+        ],
+        decision: "The outcome is decided on the server before the client animates anything, so the animation can be as rich as it likes without ever changing a result.",
+        outcome: "Rich animation on every screen, results that are always the server's, and every bet and win reconciled through the operator's wallet.",
+      },
+      journeys: [
+        {
+          title: "A player spins a slot",
+          steps: [
+            "Sets the bet and spins",
+            "The server takes the bet through the operator's wallet and decides the outcome",
+            "The reels animate to that result",
+            "A win is credited back through the wallet",
+            "A bonus triggers free spins with a multiplier",
+          ],
+        },
+        {
+          title: "An operator checks a round",
+          steps: ["Opens the round history", "Sees the bet, the outcome and the payout", "Matches it to the wallet transaction"],
+        },
+      ],
+    },
   ],
   mmo: [
     GOZ_BLUEPRINT,
+    {
+      id: "location-game",
+      zone: "mmo",
+      title: "A location based mobile game",
+      caption: "A game played on the real map: rewards spawn near the player, are caught through the camera and land in the " +
+        "wallet, while location checks keep spoofers out.",
+      summary: {
+        role: "Mobile core architect: the game ran inside the app, on the shared core",
+        scale: "Inside an app with 1M+ users in 160+ countries",
+        stack: ["React Native", "Kotlin", "Java", "C/C++", "RxJS", "Maps", "Location services", "Camera"],
+      },
+      architecture: {
+        columns: 4,
+        groups: [
+          {
+            id: "lg-client",
+            label: "Mobile client",
+            place: { col: 1, row: 1, rowSpan: 2 },
+            nodes: [
+              { id: "lg-map", label: "Map view", detail: "Tiles and the player's position" },
+              { id: "lg-gps", label: "Location", detail: "Sampled to save battery" },
+              { id: "lg-camera", label: "Camera catch", detail: "AR over the real world" },
+              { id: "lg-native", label: "Native modules", detail: "Kotlin, Java, C/C++" },
+            ],
+          },
+          {
+            id: "lg-spawns",
+            label: "Spawns",
+            place: { col: 2, row: 1 },
+            nodes: [
+              { id: "lg-spawn", label: "Spawn service", detail: "Rewards near each player" },
+              { id: "lg-geo", label: "Geo index", detail: "Nearby lookups" },
+              { id: "lg-drops", label: "Timed drops", detail: "Events in set places" },
+            ],
+          },
+          {
+            id: "lg-fair",
+            label: "Fair play",
+            place: { col: 2, row: 2 },
+            nodes: [
+              { id: "lg-spoof", label: "Location checks", detail: "Impossible speed and jumps" },
+              { id: "lg-limits", label: "Catch limits", detail: "Per player and area" },
+            ],
+          },
+          {
+            id: "lg-play",
+            label: "Play",
+            place: { col: 3, row: 1, rowSpan: 2 },
+            nodes: [
+              { id: "lg-catch", label: "Catch", detail: "Validated on the server" },
+              { id: "lg-collection", label: "Collection" },
+              { id: "lg-push", label: "Real time notifications" },
+            ],
+          },
+          {
+            id: "lg-rewards",
+            label: "Rewards",
+            place: { col: 4, row: 1, rowSpan: 2 },
+            nodes: [
+              { id: "lg-wallet", label: "In app wallet" },
+              { id: "lg-claim", label: "Claim on chain", detail: "Confirmed from the indexer" },
+            ],
+          },
+        ],
+        edges: [
+          { from: "lg-gps", to: "lg-spawn", label: "position" },
+          { from: "lg-spawn", to: "lg-geo" },
+          { from: "lg-spawn", to: "lg-map", label: "nearby" },
+          { from: "lg-camera", to: "lg-catch" },
+          { from: "lg-fair", to: "lg-catch", style: "dashed" },
+          { from: "lg-catch", to: "lg-collection" },
+          { from: "lg-catch", to: "lg-wallet" },
+          { from: "lg-wallet", to: "lg-claim" },
+        ],
+      },
+      wireframe: {
+        device: "phone",
+        screens: [
+          {
+            title: "Map",
+            regions: [
+              { kind: "bar", label: "Events nearby", size: 0.6 },
+              { kind: "canvas", label: "The real map, the player and rewards nearby", size: 3 },
+              { kind: "actions", label: "Collection, wallet", size: 0.8 },
+            ],
+          },
+          {
+            title: "Catch",
+            regions: [
+              { kind: "media", label: "Camera, with the reward over the real world", size: 3 },
+              { kind: "actions", label: "Catch", size: 0.8 },
+            ],
+          },
+          {
+            title: "Reward",
+            regions: [
+              { kind: "card", label: "What was caught", size: 1.4 },
+              { kind: "steps", label: "In the wallet, then claimed on chain" },
+              { kind: "actions", label: "Claim", size: 0.8 },
+            ],
+          },
+          {
+            title: "Collection",
+            regions: [
+              { kind: "stat", label: "Caught so far" },
+              { kind: "list", label: "Rewards by event and place", size: 2 },
+            ],
+          },
+        ],
+        decision: "Spawns and catches are decided on the server around the player's checked position, so the phone draws the game but cannot invent rewards.",
+        outcome: "A game on the real map inside the app, with rewards that land in the wallet and confirm from the chain.",
+      },
+      journeys: [
+        {
+          title: "A fan on a walk",
+          steps: [
+            "Opens the map and sees a reward nearby",
+            "Walks to it",
+            "Catches it through the camera",
+            "The server checks the location and the catch",
+            "The reward lands in the wallet and can be claimed on chain",
+          ],
+        },
+      ],
+    },
+    {
+      id: "render-performance",
+      zone: "mmo",
+      title: "Rendering at frame rate: GPU and heavy animation",
+      caption: "Heavy animation on phones and desktops: one loop, sprites drawn once and reused, draws batched for the GPU, " +
+        "nothing allocated per frame, and profiling that finds the frame that drops.",
+      summary: {
+        role: "Built canvas profiling tools, native modules for mobile and desktop, and the animation engines on this site",
+        scale: "Canvas and WebGL games and interfaces on phones, tablets, desktops and launchers",
+        stack: ["PixiJS", "WebGL", "Canvas", "C/C++", "Electron", "React Native", "Lighthouse", "Performance traces"],
+      },
+      architecture: {
+        columns: 4,
+        groups: [
+          {
+            id: "rp-loop",
+            label: "Frame loop",
+            place: { col: 1, row: 1 },
+            nodes: [
+              { id: "rp-raf", label: "One loop", detail: "A fixed rate, paused off screen" },
+              { id: "rp-budget", label: "Frame budget", detail: "Update, then draw" },
+              { id: "rp-still", label: "Reduced motion", detail: "A still frame instead" },
+            ],
+          },
+          {
+            id: "rp-assets",
+            label: "Assets",
+            place: { col: 2, row: 1 },
+            nodes: [
+              { id: "rp-atlas", label: "Sprite and glyph atlases", detail: "Drawn once, reused" },
+              { id: "rp-cache", label: "Cached glows and gradients" },
+              { id: "rp-pools", label: "Object pools", detail: "Nothing allocated per frame" },
+            ],
+          },
+          {
+            id: "rp-gpu",
+            label: "GPU",
+            place: { col: 3, row: 1 },
+            nodes: [
+              { id: "rp-batch", label: "Batched draws", detail: "WebGL through PixiJS" },
+              { id: "rp-composite", label: "Transforms and opacity", detail: "Composited, never layout" },
+              { id: "rp-opaque", label: "Opaque canvases", detail: "Less to blend" },
+            ],
+          },
+          {
+            id: "rp-native",
+            label: "Native and tools",
+            place: { col: 4, row: 1 },
+            nodes: [
+              { id: "rp-modules", label: "Native modules", detail: "C/C++ for mobile and desktop" },
+              { id: "rp-profiler", label: "Profiling tools", detail: "Canvas rendering" },
+              { id: "rp-audits", label: "Lighthouse and traces", detail: "On every release" },
+            ],
+          },
+        ],
+        edges: [
+          { from: "rp-raf", to: "rp-budget" },
+          { from: "rp-loop", to: "rp-assets" },
+          { from: "rp-assets", to: "rp-gpu" },
+          { from: "rp-profiler", to: "rp-gpu", label: "finds the dropped frame", style: "dashed" },
+        ],
+      },
+      journeys: [
+        {
+          title: "How one frame is spent",
+          steps: [
+            "The loop wakes at its fixed rate, or not at all off screen",
+            "State updates first",
+            "Cached sprites are drawn, batched for the GPU",
+            "Only transforms and opacity change, so nothing reflows",
+            "The rest of the frame stays idle for input",
+          ],
+        },
+        {
+          title: "Finding a dropped frame",
+          steps: [
+            "Profile the scene on a real low end device",
+            "Find the long task in the frame",
+            "Cache it, move it out of the frame or into a native module",
+            "Measure again, on every release",
+          ],
+        },
+      ],
+    },
     {
       id: "goz-hardening",
       zone: "mmo",

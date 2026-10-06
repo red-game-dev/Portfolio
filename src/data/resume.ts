@@ -469,13 +469,13 @@ export const portfolioData: PortfolioData = {
     },
     igaming: {
       title: "Live Table",
-      description: ["iGaming from the live casino floor to regulated platforms for clients. The cards are dealt as you arrive."],
+      description: ["iGaming across live casino, slots and bet tables, to regulated platforms for clients. The cards are dealt as you arrive."],
       lenses: {
         recruiter: [
-          "iGaming experience: a live casino game UI and mobile app, operator tooling, and platforms for clients.",
+          "iGaming experience across live casino, slots and bet tables: game UIs and mobile apps, operator tooling, and platforms for clients.",
         ],
         product: [
-          "Live casino products for operators: one game UI on every screen, a new mobile app, and onboarding that scales with the number of operators.",
+          "Casino products for operators: rich games on every screen whose results always come from the server, and onboarding that scales with operators.",
         ],
       },
     },
@@ -495,15 +495,15 @@ export const portfolioData: PortfolioData = {
     engineRoom: {
       title: "Engine Room",
       description: [
-        "Under the floor of the game world: my MMO from engine to live operations, its server before and after a bot " +
-          "flood, and the three clients of a Web3 game platform I built for.",
+        "Under the floor of the game world: an MMO from engine to live operations, a location based mobile game, rendering heavy " +
+          "animation at frame rate, a game server before and after a bot flood, and a Web3 game launcher.",
       ],
       lenses: {
         recruiter: [
-          "How my game and a Web3 game platform are built, in brief. Open a drawing for the detail.",
+          "How the games I have built and worked on fit together, in brief. Open a drawing for the detail.",
         ],
         product: [
-          "The products behind the game world: my MMO run as a live business, and a launcher that puts a Web3 game one click away.",
+          "The products behind the game world: an MMO run as a live business, a game played on the real map, and a launcher that puts a Web3 game one click away.",
         ],
       },
     },
@@ -3299,7 +3299,7 @@ export const portfolioData: PortfolioData = {
     ],
   },
   igaming: {
-    statement: "Live casino from the inside: game UI and real time at a live casino provider, and regulated platforms for clients.",
+    statement: "iGaming from the inside: live casino, slots and bet tables, the real time behind them, and regulated platforms for clients.",
     liveLabel: "Live",
     proofLabel: "Dealt at",
     proof: ["Authentic Gaming", "KPMG"],

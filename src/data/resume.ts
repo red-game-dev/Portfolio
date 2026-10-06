@@ -3160,7 +3160,7 @@ export const portfolioData: PortfolioData = {
     ],
   },
   web3: {
-    statement: "From fan tokens at scale, to a chain of my own, to lending, trading and wallet interfaces.",
+    statement: "Web3 infrastructure, exchanges and asset management: from token trading at scale to a chain of my own, lending, and wallets.",
     validatorsLabel: "Where it shipped",
     validators: ["Chiliz", "CoinOn", "reNFT", "HyperPlay"],
     flow: {
@@ -3245,8 +3245,9 @@ export const portfolioData: PortfolioData = {
     confirmedLabel: "Confirmed",
     capabilities: [
       {
-        name: "Tokenisation and fan tokens",
-        detail: "Fan tokens and fan engagement for 1.5M+ users in 167 countries, with on chain integrations in the mobile app.",
+        name: "Token exchange and fan tokens",
+        detail: `An exchange app where each club's token trades against a base token, with on chain buying and reward claims, for 1.5M+ users
+        in 167 countries.`,
         places: ["Chiliz"],
       },
       {

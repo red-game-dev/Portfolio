@@ -115,7 +115,8 @@ describe("audience views", () => {
 describe("blueprints", () => {
   const { labels, ...placed } = portfolioData.blueprints;
   const deepDives = portfolioData.projects.flatMap((project) => (project.deepDive ? [project.deepDive.blueprint] : []));
-  const blueprints = [...Object.values(placed).flat(), ...deepDives.filter((blueprint) => !Object.values(placed).flat().includes(blueprint))];
+  const sectionBlueprints = Object.values(placed).flat();
+  const blueprints = [...sectionBlueprints, ...deepDives.filter((blueprint) => !sectionBlueprints.includes(blueprint))];
   const EMPLOYERS = ["Conrad", "Chiliz", "HyperPlay", "Authentic", "KPMG", "reNFT", "CoinOn"];
 
   test("no blueprint names an employer: they show kinds of architecture, not companies", () => {
@@ -132,7 +133,7 @@ describe("blueprints", () => {
   });
 
   test("every blueprint has a unique id", () => {
-    const ids = Object.values(placed).flat().map((blueprint) => blueprint.id);
+    const ids = sectionBlueprints.map((blueprint) => blueprint.id);
 
     expect(new Set(ids).size).toBe(ids.length);
     expect(Object.values(labels).every(Boolean)).toBe(true);

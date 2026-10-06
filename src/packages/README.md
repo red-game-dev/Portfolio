@@ -39,8 +39,8 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `encoding/binary` | Text to binary, same length masks, and the frame by frame decode used for text reveals |
 | `insights/activity` | `activityStats`: active days, day and week streaks (across years), perfect weeks, the busiest month and each year's longest run, from a contribution calendar |
 | `games/bug-raid` | A playable arcade game on `frame-loop` and `graphics/canvas`, with pointer, touch and keyboard input |
-| `games/live-table` | A live dealer round (place your bets, final bets, no more bets, results) with other players throwing face down, as a tested `LiveTableSimulation`, a `LiveTableGame` on `frame-loop` and a canvas felt renderer |
-| `graphics/canvas` | `CanvasRenderer` base for DPR aware surfaces and `GlyphAtlas` for GPU friendly text drawing |
+| `games/live-table` | A live dealer round (place your bets, final bets, no more bets, results) with other players throwing face down, as a tested `LiveTableSimulation`, a `LiveTableGame` on `frame-loop` and a canvas felt renderer; and the dealer: a `DealerPainter` rig (body and head layers, outfits as data) run as a cached sprite by `LiveDealer` |
+| `graphics/canvas` | `CanvasRenderer` base for DPR aware surfaces, `GlyphAtlas` for GPU friendly text drawing, and `SpriteCache`: detailed artwork painted once per frame key at device resolution and blitted after |
 | `graphics/pixel-art` | Pixel maps to one SVG path per colour, for crisp sprites at any size |
 | `insights/ai-usage` | Domain model, guard, validators, mapper and service for an AI usage breakdown, independent of any icon library or content store |
 | `insights/career` | `TenureCalculator`: years in a role from date ranges, overlaps merged |

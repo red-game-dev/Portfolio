@@ -4020,7 +4020,7 @@ export const portfolioData: PortfolioData = {
       emptyTable: "Your bets land here.",
       redeal: "Pick your cards back up",
       dealerLabel: "Change the dealer's outfit",
-      outfits: ["Classic waistcoat and bow tie", "Red evening dress", "Emerald gown", "Neon"],
+      outfits: ["Red evening gown", "Emerald satin gown", "Black sequin dress", "Waistcoat and bow tie", "Neon"],
       roundLabel: "Round {n}",
       cardsLabel: "Every card in the hand",
     },

@@ -1,11 +1,10 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { PixelSprite } from "@/components/PixelSprite";
-import { DEALER_OUTFITS, dealerSprite } from "@/config/dealer";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { DEFAULT_DEALER_OUTFITS, LiveDealer } from "@/packages/games/live-table";
 
 interface DealerProps {
   phrase: string;
@@ -20,21 +19,14 @@ interface DealerProps {
   isRunning: boolean;
 }
 
-const TALK_MS = 900;
-const MOUTH_MS = 150;
+const TALK_MS = 1100;
 
 const Root = tw.div`relative z-[1] flex flex-row items-end justify-center gap-[14px]`;
 
 const Figure = styled.button(() => [
-  tw`relative w-[96px] md:w-[128px] p-0 cursor-pointer bg-transparent border-0`,
+  tw`relative w-[120px] md:w-[160px] p-0 cursor-pointer bg-transparent border-0`,
   css`
-    image-rendering: pixelated;
-
-    & > svg {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
+    aspect-ratio: 200 / 240;
 
     &:focus-visible {
       outline: 2px solid var(--accent);
@@ -42,6 +34,8 @@ const Figure = styled.button(() => [
     }
   `,
 ]);
+
+const Portrait = tw.canvas`block w-full h-full`;
 
 const pop = keyframes`
   0% { opacity: 0; transform: translateY(6px) scale(0.92); }
@@ -86,37 +80,62 @@ const Timer = styled.span(({ ms, isRunning }: { ms: number; isRunning: boolean }
 
 const Round = tw.span`text-[11px] font-semibold opacity-60`;
 
-// The dealer behind the felt: she calls each phase of the round, and a tap changes her outfit.
+// The dealer behind the felt: a live sprite that breathes, blinks and talks as she calls each phase of
+// the round. A tap changes her outfit.
 export const Dealer: FC<DealerProps> = ({ phrase, phraseKey, outfitLabels, changeLabel, roundLabel, phaseMs, isClosed, isRunning }: DealerProps) => {
+  const figureRef = useRef<HTMLButtonElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const dealerRef = useRef<LiveDealer | null>(null);
   const [outfit, setOutfit] = useState(0);
-  const [isTalking, setIsTalking] = useState(false);
 
-  // A few mouth movements each time she speaks.
   useEffect(() => {
-    if (prefersReducedMotion()) {
+    const figure = figureRef.current;
+    const context = canvasRef.current?.getContext("2d");
+
+    if (!figure || !context) {
       return;
     }
 
-    const started = Date.now();
-    const interval = window.setInterval(() => {
-      const elapsed = Date.now() - started;
+    const dealer = new LiveDealer(context);
+    const resize = () => dealer.resize(figure.clientWidth, window.devicePixelRatio || 1);
+    const observer = new ResizeObserver(resize);
 
-      setIsTalking(elapsed < TALK_MS && Math.floor(elapsed / MOUTH_MS) % 2 === 0);
+    dealerRef.current = dealer;
+    resize();
+    observer.observe(figure);
 
-      if (elapsed >= TALK_MS) {
-        window.clearInterval(interval);
-      }
-    }, MOUTH_MS / 2);
+    return () => {
+      observer.disconnect();
+      dealer.stop();
+      dealerRef.current = null;
+    };
+  }, []);
 
-    return () => window.clearInterval(interval);
+  // She only moves while the table is on screen, and stays still for reduced motion.
+  useEffect(() => {
+    const dealer = dealerRef.current;
+
+    if (isRunning && !prefersReducedMotion()) {
+      dealer?.start();
+    } else {
+      dealer?.stop();
+    }
+  }, [isRunning]);
+
+  useEffect(() => {
+    dealerRef.current?.speak(TALK_MS);
   }, [phraseKey]);
 
-  const next = (outfit + 1) % DEALER_OUTFITS.length;
+  useEffect(() => {
+    dealerRef.current?.setOutfit(outfit);
+  }, [outfit]);
+
+  const next = (outfit + 1) % DEFAULT_DEALER_OUTFITS.length;
 
   return (
     <Root>
-      <Figure type="button" aria-label={`${changeLabel}: ${outfitLabels[next] ?? ""}`} onClick={() => setOutfit(next)}>
-        <PixelSprite {...dealerSprite(DEALER_OUTFITS[outfit], isTalking)} />
+      <Figure ref={figureRef} type="button" aria-label={`${changeLabel}: ${outfitLabels[next] ?? ""}`} onClick={() => setOutfit(next)}>
+        <Portrait ref={canvasRef} aria-hidden="true" />
       </Figure>
       <Bubble key={phraseKey} isClosed={isClosed}>
         <Round>{roundLabel}</Round>

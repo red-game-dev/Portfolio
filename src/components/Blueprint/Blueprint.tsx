@@ -6,6 +6,7 @@ import { Architecture } from "@/components/Blueprint/Architecture";
 import { BLEED, NEAR_MARGIN } from "@/components/Blueprint/config";
 import { Wireframe } from "@/components/Blueprint/Wireframe";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { Lens } from "@/config/lenses";
 import useInView from "@/hooks/useInView";
 import { Blueprint as BlueprintContent, BlueprintJourney, BlueprintLabels } from "@/types/blueprints";
@@ -19,6 +20,8 @@ export interface BlueprintProps extends BlueprintContent {
 }
 
 type View = "overview" | "architecture" | "flow";
+
+const VIEW_ORDER: View[] = ["overview", "architecture", "flow"];
 
 const Figure = styled.figure(({ isBleed }: { isBleed: boolean }) => [
   tw`m-0 flex flex-col gap-[16px] p-[18px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
@@ -52,7 +55,7 @@ const Toggle = styled.button(({ isOn }: { isOn: boolean }) => [
   `,
 ]);
 
-const Body = tw.div`flex flex-col gap-[14px] pt-[4px]`;
+const Body = styled(SwitchStage)(() => [tw`flex flex-col gap-[14px] pt-[4px]`]);
 
 const Note = tw.p`m-0 text-xs text-[#8a8a8a]`;
 
@@ -147,6 +150,16 @@ export const Blueprint: FC<BlueprintProps> = ({
     setView(defaultView(lens, hasFlow));
   }, [lens, hasFlow]);
 
+  const switcher = useSwitch();
+
+  // The overview, the architecture and the product flow swap in with the drawing's own universe.
+  const open = (next: View) => {
+    if (next !== view) {
+      switcher.play(VIEW_ORDER.indexOf(next) > VIEW_ORDER.indexOf(view) ? 1 : -1, zone);
+      setView(next);
+    }
+  };
+
   const tabs: Array<{ id: View; label: string }> = [
     { id: "overview", label: labels.overview },
     { id: "architecture", label: labels.architecture },
@@ -161,12 +174,12 @@ export const Blueprint: FC<BlueprintProps> = ({
       </Head>
       <Toggles>
         {tabs.map((tab) => (
-          <Toggle key={tab.id} type="button" isOn={view === tab.id} aria-pressed={view === tab.id} aria-controls={bodyId} onClick={() => setView(tab.id)}>
+          <Toggle key={tab.id} type="button" isOn={view === tab.id} aria-pressed={view === tab.id} aria-controls={bodyId} onClick={() => open(tab.id)}>
             {tab.label}
           </Toggle>
         ))}
       </Toggles>
-      <Body id={bodyId}>
+      <Body id={bodyId} switcher={switcher}>
         {view === "overview" && (
           <Facts>
             <Term>{labels.role}</Term>

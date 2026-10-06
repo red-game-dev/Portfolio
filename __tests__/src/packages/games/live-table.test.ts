@@ -1,5 +1,14 @@
 import { FrameLoop, ManualScheduler } from "@/packages/animation/frame-loop";
-import { LiveTableGame, LiveTableRenderer, LiveTableSimulation, resolveLiveTableConfig } from "@/packages/games/live-table";
+import {
+  DealerPainter,
+  DEFAULT_DEALER_LOOK,
+  DEFAULT_DEALER_OUTFITS,
+  LiveDealer,
+  LiveTableGame,
+  LiveTableRenderer,
+  LiveTableSimulation,
+  resolveLiveTableConfig
+} from "@/packages/games/live-table";
 
 const CARDS = ["wallets", "bonuses", "sportsbook"];
 const config = resolveLiveTableConfig({
@@ -106,5 +115,55 @@ describe("games/live-table", () => {
     expect(draws.length).toBeGreaterThan(30);
     expect(changes).toEqual(["final", "closed"]);
     expect(game.play("bonuses")).toEqual({ accepted: false, reason: "closed" });
+  });
+});
+
+describe("games/live-table dealer", () => {
+  const fakeContext = () => {
+    const canvas = { width: 0, height: 0 };
+    const calls: string[] = [];
+    const context = {
+      canvas,
+      setTransform: () => calls.push("setTransform"),
+      clearRect: () => calls.push("clear"),
+      drawImage: () => calls.push("draw"),
+      translate: () => undefined,
+      rotate: () => undefined,
+    } as unknown as CanvasRenderingContext2D;
+
+    return { canvas, calls, context };
+  };
+
+  test("sizes the canvas from its width at the drawing's proportions and device resolution", () => {
+    const { canvas, context } = fakeContext();
+    const dealer = new LiveDealer(context, { scheduler: new ManualScheduler() });
+
+    dealer.resize(150, 2);
+
+    expect(canvas).toEqual({ width: 300, height: 360 });
+  });
+
+  test("outfits wrap around in both directions", () => {
+    const { context } = fakeContext();
+    const dealer = new LiveDealer(context, { scheduler: new ManualScheduler() });
+
+    dealer.setOutfit(dealer.outfitCount);
+    expect(dealer.outfit).toBe(0);
+    dealer.setOutfit(-1);
+    expect(dealer.outfit).toBe(dealer.outfitCount - 1);
+  });
+
+  test("the painter draws every outfit in every pose without throwing", () => {
+    const painter = new DealerPainter(DEFAULT_DEALER_LOOK);
+    const context = new Proxy({}, {
+      get: (_, key) => (key === "createLinearGradient" || key === "createRadialGradient" ? () => ({ addColorStop: () => undefined }) : () => undefined),
+      set: () => true,
+    }) as unknown as CanvasRenderingContext2D;
+
+    DEFAULT_DEALER_OUTFITS.forEach((outfit) => {
+      [{ time: 0, isTalking: false, blink: 0 }, { time: 1.3, isTalking: true, blink: 1 }].forEach((pose) => {
+        expect(() => painter.paint(context, outfit, pose)).not.toThrow();
+      });
+    });
   });
 });

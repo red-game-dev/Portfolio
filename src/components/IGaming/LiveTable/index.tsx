@@ -20,7 +20,7 @@ interface LiveTableProps {
 const THROW_MS = 520;
 const PHASE_MS = Object.fromEntries(DEFAULT_LIVE_TABLE_CONFIG.phases.map(({ phase, ms }) => [phase, ms]));
 
-const Board = tw.div`relative flex flex-col gap-[22px] px-[12px] md:px-[90px] pt-[14px] pb-[22px] overflow-hidden rounded-[18px] min-h-[560px]`;
+const Board = tw.div`relative flex flex-col gap-[22px] px-[12px] md:px-[56px] pt-[14px] pb-[22px] overflow-hidden rounded-[18px] min-h-[560px]`;
 
 const Felt = tw.canvas`absolute inset-0 w-full h-full pointer-events-none`;
 
@@ -51,6 +51,11 @@ const Hand = styled.ul(() => [
       & > li + li {
         margin-left: -46px;
       }
+
+      /* Only a strip of each card shows under the next, so its name wraps inside that strip. */
+      & > li:not(:last-child) [data-name] {
+        max-width: 58px;
+      }
     }
   `,
 ]);
@@ -65,7 +70,7 @@ const HandSlot = styled.li(({ tilt }: { tilt: number }) => [
 ]);
 
 const HandCard = styled.button(({ isLocked }: { isLocked: boolean }) => [
-  tw`relative flex flex-col justify-center w-[112px] h-[156px] px-[12px] cursor-pointer text-left text-[#1a1a1a] bg-[#f4efe6] rounded-[10px]
+  tw`relative flex flex-col justify-start w-[112px] h-[156px] px-[10px] pt-[34px] cursor-pointer text-left text-[#1a1a1a] bg-[#f4efe6] rounded-[10px]
      border-[1px] border-solid border-[rgba(0, 0, 0, 0.2)]`,
   css`
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
@@ -84,7 +89,7 @@ const HandCard = styled.button(({ isLocked }: { isLocked: boolean }) => [
   `,
 ]);
 
-const HandName = tw.span`text-[13px] font-bold leading-snug`;
+const HandName = tw.span`text-[12px] font-bold leading-tight break-words`;
 
 const Redeal = styled.button(() => [
   tw`self-center inline-flex flex-row items-center gap-[8px] h-[38px] px-[16px] cursor-pointer text-sm font-semibold text-[#101010] bg-[var(--accent)]
@@ -222,7 +227,7 @@ export const LiveTable: FC<LiveTableProps> = ({ cards, content }: LiveTableProps
                   <HandSlot key={name} tilt={tilt}>
                     <HandCard type="button" isLocked={!isOpen} aria-disabled={!isOpen} onClick={(event) => throwCard(event, name, position)}>
                       <Corner isRed={suit.isRed} aria-hidden="true">{suit.glyph}</Corner>
-                      <HandName>{name}</HandName>
+                      <HandName data-name>{name}</HandName>
                       <CornerBottom isRed={suit.isRed} aria-hidden="true">{suit.glyph}</CornerBottom>
                     </HandCard>
                   </HandSlot>

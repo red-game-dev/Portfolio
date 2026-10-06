@@ -1,4 +1,4 @@
-import { FC, MouseEvent, useEffect, useRef } from "react";
+import { FC, MouseEvent, useEffect, useId, useRef } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -113,6 +113,7 @@ const Close = tw.button`absolute top-[10px] right-[12px] z-[2] cursor-pointer te
 // The rich answer to a terminal request, styled as a quest card that materialises over the page.
 export const TerminalDialog: FC<TerminalDialogProps> = ({ dialog, closeLabel, onClose, onNavigate }: TerminalDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     const element = dialogRef.current;
@@ -136,7 +137,7 @@ export const TerminalDialog: FC<TerminalDialogProps> = ({ dialog, closeLabel, on
   };
 
   return (
-    <Dialog ref={dialogRef} onClose={onClose} onClick={onClick} aria-labelledby="terminal-dialog-title">
+    <Dialog ref={dialogRef} onClose={onClose} onClick={onClick} aria-labelledby={titleId}>
       {dialog && (
         <>
           <Close type="button" onClick={() => dialogRef.current?.close()}>{closeLabel}</Close>
@@ -144,7 +145,7 @@ export const TerminalDialog: FC<TerminalDialogProps> = ({ dialog, closeLabel, on
             <Kicker>
               <DecodedText text={dialog.title} isActive duration={700} />
             </Kicker>
-            {dialog.subtitle && <Title id="terminal-dialog-title">{dialog.subtitle}</Title>}
+            {dialog.subtitle && <Title id={titleId}>{dialog.subtitle}</Title>}
             {dialog.sections.filter((section) => section.items.length > 0).map((section) => (
               <Group key={section.heading}>
                 <GroupHeading>{section.heading}</GroupHeading>

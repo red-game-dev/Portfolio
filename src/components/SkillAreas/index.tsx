@@ -1,8 +1,8 @@
-import { FC } from "react";
+import { FC, useCallback } from "react";
 
-import { keyframes } from "styled-components";
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
+import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
@@ -23,26 +23,9 @@ border-[rgba(255, 255, 255, 0.07)]`;
 // A row that scrolls sideways on a phone, a column beside the open area on a desktop.
 const Layout = tw.div`mt-[22px] flex flex-col lg:flex-row gap-[16px] lg:gap-[28px]`;
 
-const reveal = keyframes`
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: none; }
-`;
+const Panels = styled(SwitchStage)(() => [tw`flex-1 min-w-0`]);
 
-const Panel = styled.section(() => [
-  tw`flex-1 min-w-0`,
-  hiddenPanel,
-  css`
-    &:not([hidden]) {
-      animation: ${reveal} 0.25s ease-out both;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      &:not([hidden]) {
-        animation: none;
-      }
-    }
-  `,
-]);
+const Panel = styled.section(() => [tw`min-w-0`, hiddenPanel]);
 
 const AreaTitle = tw.h3`m-[0 0 12px 0] text-base font-semibold text-white`;
 
@@ -54,7 +37,10 @@ border-[1px] border-solid border-[var(--accent-muted)]`;
 // Too many areas to read as one wall of tags, so one area is open at a time. Every area stays in the page,
 // the closed ones hidden, so search engines and find in page still reach them.
 export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas }: SkillAreasProps) => {
-  const { active, listProps, tabProps, panelProps } = useTabs({ count: areas.length });
+  const switcher = useSwitch();
+  const { play } = switcher;
+  const onSelect = useCallback((next: number, previous: number) => play(next > previous ? 1 : -1), [play]);
+  const { active, listProps, tabProps, panelProps } = useTabs({ count: areas.length, onSelect });
 
   return (
     <Section id={SECTION_IDS.skillAreas}>
@@ -69,14 +55,16 @@ export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas }: SkillAreasProp
               </Tab>
             ))}
           </TabList>
-          {areas.map((area, index) => (
-            <Panel key={area.label} {...panelProps(index)}>
-              <AreaTitle>{area.label}</AreaTitle>
-              <Tags>
-                {area.items.map((item) => <Tag key={item}>{item}</Tag>)}
-              </Tags>
-            </Panel>
-          ))}
+          <Panels switcher={switcher}>
+            {areas.map((area, index) => (
+              <Panel key={area.label} {...panelProps(index)}>
+                <AreaTitle>{area.label}</AreaTitle>
+                <Tags>
+                  {area.items.map((item) => <Tag key={item}>{item}</Tag>)}
+                </Tags>
+              </Panel>
+            ))}
+          </Panels>
         </Layout>
       </Content>
     </Section>

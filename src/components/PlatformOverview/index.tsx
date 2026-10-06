@@ -1,9 +1,10 @@
-import { FC } from "react";
+import { FC, useCallback } from "react";
 
 import tw, { styled } from "twin.macro";
 
 import { BlueprintSection } from "@/components/Blueprint";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
+import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
@@ -57,7 +58,10 @@ const Kind = tw.li`text-xs leading-none text-white bg-[#161616] rounded-[2px] py
 // under tabs, and my own platform follows as one worked example, not the only one. Every group stays in
 // the page, the closed ones hidden.
 export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, blueprintSection, blueprintLabels }: PlatformOverviewProps) => {
-  const { active, listProps, tabProps, panelProps } = useTabs({ count: expertise.tileGroups.length });
+  const switcher = useSwitch();
+  const { play } = switcher;
+  const onSelect = useCallback((next: number, previous: number) => play(next > previous ? 1 : -1), [play]);
+  const { active, listProps, tabProps, panelProps } = useTabs({ count: expertise.tileGroups.length, onSelect });
 
   return (
   <Section id={SECTION_IDS.platform}>
@@ -72,6 +76,7 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
           </Tab>
         ))}
       </TabList>
+      <SwitchStage switcher={switcher}>
       {expertise.tileGroups.map((group, index) => (
         <Tiles key={group.label} {...panelProps(index)}>
           {group.tiles.map((tile) => (
@@ -87,6 +92,7 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
           ))}
         </Tiles>
       ))}
+      </SwitchStage>
     </Groups>
     <Kinds>
       <KindsTitle>{expertise.architectureKindsTitle}</KindsTitle>

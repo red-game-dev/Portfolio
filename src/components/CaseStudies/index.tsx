@@ -2,11 +2,13 @@ import { FC, useEffect, useMemo, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { Carousel } from "@/components/Carousel";
 import { BossCard } from "@/components/CaseStudies/BossCard";
 import { useAudienceFromHash } from "@/components/CaseStudies/hooks/useAudienceFromHash";
 import { SectionText } from "@/components/Text/SectionText";
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
+import { CarouselLabels } from "@/types/carousel";
 import { Audience, CaseStudy, CaseStudyDomain, CaseStudyFilters } from "@/types/case-studies";
 import { BossLabels } from "@/types/game";
 import { IndustryLink } from "@/types/headline";
@@ -20,6 +22,7 @@ interface CaseStudiesProps {
   industries: IndustryLink[];
   labels: BossLabels;
   caseLabels: CaseLabels;
+  carouselLabels: CarouselLabels;
 }
 
 interface ChipProps {
@@ -47,24 +50,10 @@ const DOMAIN_ORDER: CaseStudyDomain[] = ["architecture", "payments", "web3", "ig
 // The first screen's links (#for-payments and so on) open the boss fights on the matching domain.
 const AUDIENCE_DOMAIN: Record<Audience, CaseStudyDomain> = { payments: "payments", architecture: "architecture", ai: "ai" };
 
-const Group = tw.section`mt-[30px]`;
-
-const GroupTitle = styled.h3(() => [
-  tw`flex flex-row items-center gap-[10px] m-0 mb-[14px] text-lg font-semibold text-white`,
-  css`
-    &::before {
-      content: "";
-      width: 4px;
-      height: 18px;
-      background: var(--accent);
-    }
-  `,
-]);
-
-const Bosses = tw.div`grid gap-[18px] lg:grid-cols-2`;
+const Bosses = tw.div`mt-[25px]`;
 
 // Case studies as PvE: each problem is a boss, beaten on screen as you read it.
-export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, industries, labels, caseLabels }: CaseStudiesProps) => {
+export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, industries, labels, caseLabels, carouselLabels }: CaseStudiesProps) => {
   const [audience] = useAudienceFromHash();
   const [domain, setDomain] = useState<CaseStudyDomain | null>(null);
   const industryKeys = useMemo(() => industries.map((link) => link.industry), [industries]);
@@ -73,7 +62,9 @@ export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters,
   const forDomain = domain ? caseStudies.filter((caseStudy) => caseStudy.domain === domain) : caseStudies;
   const forIndustry = industry ? forDomain.filter((caseStudy) => caseStudy.industries?.includes(industry)) : forDomain;
   // An industry with no boss fights tagged leaves the list as it was rather than empty.
-  const visible = forIndustry.length > 0 ? forIndustry : forDomain;
+  const visible = (forIndustry.length > 0 ? forIndustry : forDomain)
+    .slice()
+    .sort((first, second) => DOMAIN_ORDER.indexOf(first.domain) - DOMAIN_ORDER.indexOf(second.domain));
 
   useEffect(() => {
     if (audience) {
@@ -103,20 +94,17 @@ export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters,
           </Chip>
         ))}
       </Filters>
-      {DOMAIN_ORDER.map((groupDomain) => {
-        const group = visible.filter((caseStudy) => caseStudy.domain === groupDomain);
-
-        return group.length > 0 && (
-          <Group key={groupDomain} aria-label={filters.domains[groupDomain]}>
-            <GroupTitle>{filters.domains[groupDomain]}</GroupTitle>
-            <Bosses>
-              {group.map((caseStudy) => (
-                <BossCard key={caseStudy.title} {...caseStudy} labels={labels} caseLabels={caseLabels} />
-              ))}
-            </Bosses>
-          </Group>
-        );
-      })}
+      <Bosses>
+        {/* A new filter starts from its first boss. */}
+        <Carousel
+          key={`${domain ?? "all"}-${industry ?? "any"}`}
+          items={visible}
+          getKey={(caseStudy) => caseStudy.title}
+          label={intro.title}
+          labels={carouselLabels}
+          renderItem={(caseStudy) => <BossCard {...caseStudy} labels={labels} caseLabels={caseLabels} />}
+        />
+      </Bosses>
     </Section>
   );
 };

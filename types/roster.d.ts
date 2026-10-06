@@ -34,6 +34,8 @@ export interface Roster {
     abilities: string;
     play: string;
     playing: string;
+    // The button in views without the game layer, which opens the same card.
+    hire: string;
   };
   characters: Character[];
 }

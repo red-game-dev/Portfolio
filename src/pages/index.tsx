@@ -23,12 +23,14 @@ import { Web3 } from "@/components/Web3";
 import { portfolioData } from "@/data/resume";
 import Layout from "@/layouts/Layout";
 import { aiUsageService } from "@/services/ai-usage";
+import { createHireDialogs } from "@/services/contact";
 import { createForgeStations } from "@/services/skills";
 import { createPortfolioTerminal } from "@/services/terminal/portfolioTerminal";
 
 // Runs at build time during static generation, so content that fails validation fails the build.
 const aiUsage = aiUsageService.getView();
 const forgeStations = createForgeStations(portfolioData);
+const hireDialogs = createHireDialogs(portfolioData);
 
 export default function Home() {
   return (
@@ -98,7 +100,13 @@ export default function Home() {
         blueprintSection="casino"
         blueprintLabels={portfolioData.blueprintLabels}
       />
-      <Roster intro={portfolioData.sections.roster} {...portfolioData.roster} />
+      <Roster
+        intro={portfolioData.sections.roster}
+        {...portfolioData.roster}
+        hireDialogs={hireDialogs}
+        carouselLabels={portfolioData.carouselLabels}
+        closeLabel={portfolioData.terminal.red.labels.close}
+      />
       <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
       <Talents
         intro={portfolioData.sections.talents}
@@ -112,6 +120,7 @@ export default function Home() {
         industries={portfolioData.headline.industries}
         labels={portfolioData.bossLabels}
         caseLabels={portfolioData.lens.caseLabels}
+        carouselLabels={portfolioData.carouselLabels}
       />
       <Duels intro={portfolioData.sections.duels} {...portfolioData.duels} />
       <Projects

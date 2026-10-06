@@ -3,11 +3,11 @@ import { FC } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { BLOCK_GRID, PIXEL_GRID, SWITCH_MS } from "@/components/Blueprint/config";
+import { BLOCK_GRID, PIXEL_GRID, SWITCH_MS } from "@/components/SwitchStage/config";
 import { ZoneId } from "@/config/zones";
 
-// Each universe switches tabs its own way. AI: a neural beam scans the new drawing in. Web3: blocks
-// confirm one after another in a diagonal wave. Casino: the drawing is dealt and flipped like a card.
+// Each universe switches content its own way. AI: a neural beam scans the new content in. Web3: blocks
+// confirm one after another in a diagonal wave. Casino: the content is dealt and flipped like a card.
 // Game world: a retro pixel dissolve. Engineering: a terminal refreshes top to bottom. The quick view just
 // fades; reduced motion just swaps.
 export type SwitchEffect = "beam" | "blocks" | "deal" | "pixels" | "scan" | "fade";
@@ -77,76 +77,75 @@ const scanLine = keyframes`
   100% { top: calc(100% - 2px); opacity: 0.2; }
 `;
 
+// What a switch animates: every child of the stage except the effect layers. A child that was hidden and
+// is now shown restarts its animation, so tabs and carousels that keep every panel in the page need no
+// remount; a showcase that mounts only the open panel gets the same effect by keying it.
+const CONTENT = "& > :not([data-switch-fx])";
+
 export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) => [
   tw`relative`,
   effect === "fade" && css`
-    & > figure {
+    ${CONTENT} {
       animation: ${fade} 0.3s ease both;
     }
   `,
   effect === "beam" && css`
-    & > figure {
+    ${CONTENT} {
       animation: ${wipeIn} ${SWITCH_MS}ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-    }
-
-    &::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      width: 3px;
-      pointer-events: none;
-      background: var(--accent);
-      box-shadow: 0 0 18px 4px rgba(var(--accent-rgb), 0.55), 0 0 60px 12px rgba(var(--accent-rgb), 0.2);
-      animation: ${beam} ${SWITCH_MS}ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
     }
   `,
   (effect === "blocks" || effect === "pixels") && css`
-    & > figure {
+    ${CONTENT} {
       animation: ${settle} ${SWITCH_MS}ms ease-out both;
     }
   `,
   effect === "deal" && css`
-    & > figure {
+    ${CONTENT} {
       transform-origin: left center;
       animation: ${dealIn} ${SWITCH_MS}ms cubic-bezier(0.2, 0.8, 0.25, 1) both, ${neonEdge} ${SWITCH_MS + 300}ms ease-out both;
     }
   `,
   effect === "scan" && css`
-    & > figure {
+    ${CONTENT} {
       animation: ${scanIn} ${SWITCH_MS}ms steps(14, end) both;
-    }
-
-    &::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      height: 2px;
-      pointer-events: none;
-      background: var(--accent);
-      box-shadow: 0 0 16px 3px rgba(var(--accent-rgb), 0.6);
-      animation: ${scanLine} ${SWITCH_MS}ms steps(14, end) both;
     }
   `,
   css`
     @media (prefers-reduced-motion: reduce) {
-      & > figure,
-      &::after {
+      ${CONTENT} {
         animation: none !important;
       }
 
-      &::after,
-      & > [data-switch-overlay] {
+      & > [data-switch-fx] {
         display: none;
       }
     }
   `,
 ]);
 
-// A grid of cells over the new drawing that clears on its own: blocks confirming in a wave for Web3,
+// The line that crosses the new content: a neural beam left to right for AI, a terminal refresh line top
+// to bottom for engineering. Keyed per switch by the caller, so it plays every time.
+const Line = styled.span(({ effect }: { effect: "beam" | "scan" }) => [
+  tw`absolute z-[3] pointer-events-none bg-[var(--accent)]`,
+  effect === "beam" && css`
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    box-shadow: 0 0 18px 4px rgba(var(--accent-rgb), 0.55), 0 0 60px 12px rgba(var(--accent-rgb), 0.2);
+    animation: ${beam} ${SWITCH_MS}ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  `,
+  effect === "scan" && css`
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 2px;
+    box-shadow: 0 0 16px 3px rgba(var(--accent-rgb), 0.6);
+    animation: ${scanLine} ${SWITCH_MS}ms steps(14, end) both;
+  `,
+]);
+
+// A grid of cells over the new content that clears on its own: blocks confirming in a wave for Web3,
 // pixels dissolving in a scattered order for the game world.
 const Overlay = styled.div(({ columns, rows }: { columns: number; rows: number }) => [
   tw`absolute inset-0 z-[3] grid pointer-events-none`,
@@ -171,12 +170,17 @@ const Pixel = styled.span(({ delay, isLit }: { delay: number; isLit: boolean }) 
   `,
 ]);
 
-export const SwitchOverlay: FC<{ effect: SwitchEffect }> = ({ effect }) => {
+// The layer an effect draws over the content, if it has one.
+export const SwitchLayer: FC<{ effect: SwitchEffect }> = ({ effect }) => {
+  if (effect === "beam" || effect === "scan") {
+    return <Line effect={effect} data-switch-fx aria-hidden="true" />;
+  }
+
   if (effect === "blocks") {
     const { columns, rows } = BLOCK_GRID;
 
     return (
-      <Overlay columns={columns} rows={rows} data-switch-overlay aria-hidden="true">
+      <Overlay columns={columns} rows={rows} data-switch-fx aria-hidden="true">
         {Array.from({ length: columns * rows }, (_, index) => (
           <Block key={index} delay={((index % columns) + Math.floor(index / columns)) * 40} />
         ))}
@@ -190,7 +194,7 @@ export const SwitchOverlay: FC<{ effect: SwitchEffect }> = ({ effect }) => {
 
     // A fixed scatter, the same on every switch: stepping through the cells by a stride coprime with the count.
     return (
-      <Overlay columns={columns} rows={rows} data-switch-overlay aria-hidden="true">
+      <Overlay columns={columns} rows={rows} data-switch-fx aria-hidden="true">
         {Array.from({ length: count }, (_, index) => (
           <Pixel key={index} delay={((index * 37) % count) * 4} isLit={index % 5 === 0} />
         ))}

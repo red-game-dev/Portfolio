@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { faGamepad } from "@fortawesome/pro-duotone-svg-icons";
+import { faEnvelope, faGamepad } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Character, Roster } from "@/types/roster";
@@ -14,8 +14,8 @@ interface CharacterCardProps extends Character {
   isRevealed: boolean;
   order: number;
   isSelected: boolean;
-  // Off in the quick view, where the game layer is too.
-  isSelectable: boolean;
+  // With the game layer the button picks the character too; without it, it only opens the card.
+  isGameLayer: boolean;
   onSelect: (characterClass: string) => void;
 }
 
@@ -150,7 +150,7 @@ const Select = styled.button(({ isSelected }: SelectedProps) => [
 ]);
 
 export const CharacterCard: FC<CharacterCardProps> = ({
-  characterClass, titles = [], icon, stats, abilities, note, level, since, labels, isRevealed, order, isSelected, isSelectable, onSelect,
+  characterClass, titles = [], icon, stats, abilities, note, level, since, labels, isRevealed, order, isSelected, isGameLayer, onSelect,
 }: CharacterCardProps) => (
     <Card>
       <Inner isRevealed={isRevealed} style={{ transitionDelay: `${order * FLIP_STAGGER_MS}ms` }}>
@@ -189,12 +189,10 @@ export const CharacterCard: FC<CharacterCardProps> = ({
             ))}
           </Chips>
           {note && <Note>{note}</Note>}
-          {isSelectable && (
-            <Select type="button" isSelected={isSelected} aria-pressed={isSelected} onClick={() => onSelect(characterClass)}>
-              <FontAwesomeIcon icon={faGamepad} aria-hidden="true" />
-              {isSelected ? labels.playing : `${labels.play} ${characterClass}`}
-            </Select>
-          )}
+          <Select type="button" isSelected={isSelected} aria-haspopup="dialog" onClick={() => onSelect(characterClass)}>
+            <FontAwesomeIcon icon={isGameLayer ? faGamepad : faEnvelope} aria-hidden="true" />
+            {!isGameLayer ? labels.hire : isSelected ? labels.playing : `${labels.play} ${characterClass}`}
+          </Select>
         </Face>
         <Back aria-hidden="true">
           <FontAwesomeIcon icon={icon} />

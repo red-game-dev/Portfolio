@@ -55,6 +55,7 @@ import { githubActivity } from "@/data/githubActivity";
 import { lensContent } from "@/data/lens";
 import { PortfolioAiUsage } from "@/types/ai-usage";
 import { BlueprintLabels } from "@/types/blueprints";
+import { CarouselLabels } from "@/types/carousel";
 import { CaseStudy, CaseStudyFilters, ExpertiseContent } from "@/types/case-studies";
 import { CodeReviewContent } from "@/types/code-review";
 import { Detail } from "@/types/details";
@@ -127,6 +128,7 @@ export interface PortfolioData {
   arena: ArenaContent;
   finale: FinaleContent;
   blueprintLabels: BlueprintLabels;
+  carouselLabels: CarouselLabels;
   expertise: ExpertiseContent;
   codeReview: CodeReviewContent;
   web3: Web3Content;
@@ -2574,6 +2576,7 @@ export const portfolioData: PortfolioData = {
       abilities: "Abilities",
       play: "Play as",
       playing: "Playing",
+      hire: "Talk to me about this role",
     },
     characters: [
       {
@@ -4252,6 +4255,12 @@ export const portfolioData: PortfolioData = {
     pipeline. Each is a glance, not the full design.`,
   },
   blueprintLabels,
+  carouselLabels: {
+    previous: "Previous",
+    next: "Next",
+    position: "{from} to {to} of {count}",
+    single: "{from} of {count}",
+  },
   recommendations: [
     {
       quote: `The breadth of his knowledge about software, systems and architecture is excellent and has shown to be valuable beyond the

@@ -27,7 +27,7 @@ export const useBugRaid = (boardRef: RefObject<HTMLElement>, canvasRef: RefObjec
   const onChangeRef = useRef(onChange);
   const [snapshot, setSnapshot] = useState<BugRaidSnapshot | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const isNear = useInView(boardRef, { threshold: 0 });
+  const isNear = useInView(boardRef, { threshold: 0, once: true });
   const isOnScreen = useInView(boardRef, { threshold: 0.25, once: false });
 
   onChangeRef.current = onChange;

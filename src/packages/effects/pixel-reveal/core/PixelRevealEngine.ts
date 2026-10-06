@@ -75,6 +75,19 @@ export class PixelRevealEngine extends FrameLoop {
     this.start();
   }
 
+  // Back to the binary frame, ready to play again, for when the picture leaves the screen and returns.
+  // Static engines stay on the finished picture.
+  public rewind(): void {
+    if (this.isStatic) {
+      return;
+    }
+
+    this.isPlaying = false;
+    this.stop();
+    this.elapsedMs = 0;
+    this.render(0);
+  }
+
   protected canStart(): boolean {
     return !this.isStatic;
   }

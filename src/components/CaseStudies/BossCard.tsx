@@ -20,7 +20,8 @@ interface BossCardProps extends CaseStudy {
 const DEFEATED_AT = 0.85;
 
 // A case study as a boss encounter: health drains as the reader scrolls through how it was beaten, and
-// the rule I kept drops as loot once it is down. A defeated boss stays down. All driven by a CSS variable
+// the rule I kept drops as loot once it is down. Scrolling back up heals it, so the fight plays again; the
+// HUD still counts it as defeated. All driven by a CSS variable
 // and a data attribute, so scrolling never re-renders the card.
 const Card = styled.article(() => [
   tw`relative flex flex-col gap-[12px] p-[20px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#2a1d1d]`,
@@ -133,7 +134,6 @@ export const BossCard: FC<BossCardProps> = ({ area, title, summary, points, tags
 
   useScrollProgressVar(cardRef, "--boss-progress", 0.7, {
     at: DEFEATED_AT,
-    isSticky: true,
     onChange: (isDone) => isDone && defeatBoss(title),
   });
 

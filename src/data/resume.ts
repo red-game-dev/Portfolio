@@ -50,6 +50,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 
 import { blueprintContent } from "@/data/blueprints";
+import { githubActivity } from "@/data/githubActivity";
 import { lensContent } from "@/data/lens";
 import { PortfolioAiUsage } from "@/types/ai-usage";
 import { BlueprintContent } from "@/types/blueprints";
@@ -3308,24 +3309,26 @@ export const portfolioData: PortfolioData = {
     },
   },
   codeReview: {
-    scope: `Exact counts from one GitHub account alone, on 5 October 2026, so they are floors: most of my review work at Conrad, Chiliz,
-    KPMG and Authentic Gaming lived in company repositories these counts cannot see.`,
-    squaresLabel: "{count} squares, one per pull request",
-    totals: [
-      { value: 298, label: "pull requests merged", detail: "of 331 authored" },
-      { value: 520, label: "pull requests reviewed" },
+    scope: `From one GitHub account alone, so it is a floor: most of my review work at Conrad, Chiliz, KPMG and Authentic Gaming lived
+    in company repositories this cannot see.`,
+    squaresLabel: "One square per pull request",
+    grids: [
+      { label: "Pull requests merged", count: 298 },
+      { label: "Pull requests reviewed", count: 520 },
     ],
+    activityTitle: "Activity on GitHub",
+    activityDescription: "Every day since the account opened, darker for busier days.",
+    activityYearLabel: "Contributions in {year}, one square per day",
+    activity: githubActivity,
     highlights: [
       {
-        name: "HyperPlay",
-        detail: "An open source game launcher and its UI library",
-        counts: [{ value: 240, label: "reviews" }, { value: 50, label: "authored" }],
+        name: "Others",
+        detail: "Open source projects and the company codebases I have worked in.",
         points: [],
       },
       {
         name: "fetchff",
         detail: "An open source HTTP client library my own platform depends on",
-        counts: [{ value: 35, label: "reviews" }, { value: 1, label: "authored and merged" }],
         quote: "I review the library my own platform depends on instead of forking it.",
         points: [
           "Its security hardening release",
@@ -3738,7 +3741,7 @@ export const portfolioData: PortfolioData = {
         "Architecture for the web platform and the Electron desktop app; introduced and architected the React Native mobile app",
         "Lighthouse audits and native C/C++ modules, with profiling that reduced memory use and load times in Electron and on mobile",
         "CLI tools, scaffolders and internal docs for developer experience",
-        "50 pull requests authored and 240 reviewed in the open source organisation",
+        "Code review across the whole multi stack codebase, from the launcher to the store and the developer portal",
         "Before that, game publishing tools for KPMG clients: content delivery, user management and interactive PixiJS interfaces",
       ],
       tags: ["Electron", "React Native", "Open source"],

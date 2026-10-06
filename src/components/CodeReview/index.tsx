@@ -2,11 +2,12 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { Activity } from "@/components/CodeReview/Activity";
 import { Squares } from "@/components/CodeReview/Squares";
 import { Panel } from "@/components/Panel";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
-import { CodeReviewContent, CodeReviewCount } from "@/types/code-review";
+import { CodeReviewContent } from "@/types/code-review";
 import { SectionIntros } from "@/types/sections-intros";
 
 interface CodeReviewProps {
@@ -22,13 +23,7 @@ const Totals = tw.div`grid gap-[18px] md:grid-cols-2`;
 
 const Total = tw.div`flex flex-col gap-[10px] p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
-const Figure = tw.p`m-0 flex flex-row flex-wrap items-baseline gap-x-[10px] gap-y-[2px]`;
-
-const Value = tw.span`text-3xl font-bold leading-none text-white`;
-
-const Label = tw.span`text-sm text-[#ccc]`;
-
-const Detail = tw.span`text-xs text-[#999]`;
+const Label = tw.h3`m-0 text-base font-semibold text-white`;
 
 const Highlights = tw.div`grid gap-[18px] md:grid-cols-2 items-start mt-[18px]`;
 
@@ -38,10 +33,6 @@ const Name = tw.h3`m-0 text-lg font-semibold text-white`;
 
 const Muted = tw.p`m-0 text-sm text-[#aaa]`;
 
-const Counts = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[8px]`;
-
-const Count = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[7px] px-[11px] border-[1px] border-solid
-border-[var(--accent-muted)]`;
 
 const Quote = styled.blockquote(() => [
   tw`m-0 pl-[12px] text-sm italic text-[#ddd]`,
@@ -67,37 +58,32 @@ const Point = styled.li(() => [
   `,
 ]);
 
-const countText = ({ value, label }: CodeReviewCount) => `${value.toLocaleString("en-GB")} ${label}`;
-
-// Pull requests merged and reviewed on my main account, drawn one square each, then the two places the
-// reviewing matters most: an open source launcher and a library my own platform depends on.
+// Pull requests merged and reviewed on my main account, drawn one square each with no totals, a year by
+// year activity chart, then a library my own platform depends on and everything else.
 export const CodeReview: FC<CodeReviewProps> = ({ intro, content }: CodeReviewProps) => (
   <Section id={SECTION_IDS.codeReview}>
     <SectionText intro={intro} />
     <Panel>
       <Scope>{content.scope}</Scope>
       <Totals>
-        {content.totals.map((total) => (
-          <Total key={total.label}>
-            <Figure>
-              <Value>{total.value.toLocaleString("en-GB")}</Value>
-              <Label>{total.label}</Label>
-              {total.detail && <Detail>{total.detail}</Detail>}
-            </Figure>
-            <Squares count={total.value} label={content.squaresLabel.replace("{count}", String(total.value))} />
+        {content.grids.map((grid) => (
+          <Total key={grid.label}>
+            <Label>{grid.label}</Label>
+            <Squares count={grid.count} label={content.squaresLabel} />
           </Total>
         ))}
       </Totals>
+      <Activity
+        activity={content.activity}
+        title={content.activityTitle}
+        description={content.activityDescription}
+        yearLabel={content.activityYearLabel}
+      />
       <Highlights>
         {content.highlights.map((highlight) => (
           <Highlight key={highlight.name}>
             <Name>{highlight.name}</Name>
             <Muted>{highlight.detail}</Muted>
-            <Counts>
-              {highlight.counts.map((count) => (
-                <Count key={count.label}>{countText(count)}</Count>
-              ))}
-            </Counts>
             {highlight.quote && <Quote>{highlight.quote}</Quote>}
             {highlight.points.length > 0 && (
               <Points>

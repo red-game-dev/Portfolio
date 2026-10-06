@@ -11,7 +11,8 @@ import { DuelRound as DuelRoundContent, Duels } from "@/types/game";
 interface DuelRoundProps extends DuelRoundContent {
   index: number;
   labels: Pick<Duels, "agentLabel" | "humanLabel" | "resultLabel" | "verdict" | "roundLabel" | "ruleLabel">;
-  onReveal: (index: number) => void;
+  // true once the round is reached, false when it drops back below the screen.
+  onReveal: (index: number, isPlayed: boolean) => void;
 }
 
 interface RevealProps {
@@ -89,9 +90,13 @@ export const DuelRound: FC<DuelRoundProps> = ({ agent, human, result, winner = "
   const roundRef = useRef<HTMLLIElement>(null);
   const isRevealed = useInView(roundRef, { threshold: 0.5 });
 
+  // A round the reader has scrolled past stays played; one that drops back below the screen is played
+  // again on the way down, so the fight replays in both directions.
   useEffect(() => {
     if (isRevealed) {
-      onReveal(index);
+      onReveal(index, true);
+    } else if ((roundRef.current?.getBoundingClientRect().top ?? 0) > window.innerHeight) {
+      onReveal(index, false);
     }
   }, [index, isRevealed, onReveal]);
 

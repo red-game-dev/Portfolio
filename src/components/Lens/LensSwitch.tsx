@@ -4,6 +4,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { LENS_SPRITES } from "@/components/Lens/config";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import { PixelSprite } from "@/components/PixelSprite";
 import { Lens, LENS_ACCENTS, LENSES } from "@/config/lenses";
 import { LensContent } from "@/types/lens";
@@ -69,35 +70,12 @@ const OptionText = tw.span`flex flex-col`;
 
 const OptionHint = tw.span`text-xs text-[#888]`;
 
-// Below the fixed header: the point whose content the reader is looking at.
-const READING_LINE = 160;
-
-// Changing the view reflows the page (panels open, close and reword), so the block under the reading line
-// is held in place across the change and the reader does not lose their spot.
-const holdReadingPosition = () => {
-  // The open menu of views sits over that point, so anything inside the header is looked through.
-  const target = document.elementsFromPoint(window.innerWidth / 2, READING_LINE)
-    .find((element) => !element.closest("header"))
-    ?.closest<HTMLElement>("figure, article, li, [id]");
-
-  if (!target) {
-    return;
-  }
-
-  const offset = target.getBoundingClientRect().top;
-
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    if (target.isConnected) {
-      window.scrollTo({ top: window.scrollY + target.getBoundingClientRect().top - offset, behavior: "instant" });
-    }
-  }));
-};
-
 const accentStyle = (lens: Lens) => ({ "--lens-accent": LENS_ACCENTS[lens].color, "--lens-rgb": LENS_ACCENTS[lens].rgb } as React.CSSProperties);
 
-// The header control for changing who the page is written for, at any point, without leaving the spot.
+// The header control for changing who the page is written for, at any point.
 export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) => {
-  const { lens, switchLens } = useLensStateHook();
+  const { lens } = useLensStateHook();
+  const { chooseLens } = useLensStatusHook();
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -125,13 +103,20 @@ export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) =>
     setIsOpen((value) => !value);
   }, []);
 
+  // A new view starts from the top with its own entrance, so the reader sees the immersion they picked.
   const choose = useCallback((event: MouseEvent, next: Lens) => {
     event.stopPropagation();
-    holdReadingPosition();
-    switchLens(next);
     setIsOpen(false);
-    toggleRef.current?.focus();
-  }, [switchLens]);
+
+    if (next === lens) {
+      toggleRef.current?.focus();
+
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: "instant" });
+    chooseLens(next);
+  }, [chooseLens, lens]);
 
   const closeOnEscape = useCallback((event: KeyboardEvent) => {
     if (event.key === "Escape") {

@@ -19,7 +19,10 @@ export const useDecodedText = (text: string, isActive: boolean, delay = 0, durat
   const [progress, setProgress] = useState<DecodeProgress>({ revealed: 0, tick: 0 });
 
   useEffect(() => {
+    // Back to bits when it leaves, so it decodes again the next time it comes into view.
     if (!isActive) {
+      setProgress({ revealed: 0, tick: 0 });
+
       return;
     }
 
@@ -51,5 +54,6 @@ export const useDecodedText = (text: string, isActive: boolean, delay = 0, durat
     return () => cancelAnimationFrame(frameId);
   }, [delay, duration, isActive, isInstant, length]);
 
-  return decodeFrame(text, mask, progress.revealed, progress.tick);
+  // Views without the effect read the text as it is, whether or not it has been reached.
+  return isInstant ? text : decodeFrame(text, mask, progress.revealed, progress.tick);
 };

@@ -2,8 +2,11 @@ import { RefObject, useEffect, useState } from "react";
 
 interface InViewOptions {
   threshold?: number;
-  // true: flip to true once and stay there, for reveals that should play a single time.
-  // false: follow the element in and out, for loops that should pause while off screen.
+  // Left out: a reveal that replays. It turns on once `threshold` of the element is on screen and off
+  // only when the element has left the screen entirely, so scrolling back to it plays it again, and it
+  // never runs backwards while still partly visible.
+  // true: turn on once and stay on, for work that only needs doing once, such as building a drawing.
+  // false: follow the element in and out exactly, for loops that should pause while off screen.
   once?: boolean;
   // Grows the viewport, so something can start before it is actually on screen.
   rootMargin?: string;
@@ -11,7 +14,7 @@ interface InViewOptions {
 
 // IntersectionObserver based, so it costs nothing while scrolling. useCollision is the scroll event
 // version the Menu scroll-spy uses.
-export default function useInView<TElement extends Element>(ref: RefObject<TElement>, { threshold = 0.25, once = true, rootMargin = "0px" }: InViewOptions = {}) {
+export default function useInView<TElement extends Element>(ref: RefObject<TElement>, { threshold = 0.25, once, rootMargin = "0px" }: InViewOptions = {}) {
   const [isInView, setIsInView] = useState(false);
 
   useEffect(() => {
@@ -27,7 +30,18 @@ export default function useInView<TElement extends Element>(ref: RefObject<TElem
       return;
     }
 
+    const isReplay = once === undefined;
     const observer = new IntersectionObserver(([entry]) => {
+      if (isReplay) {
+        if (entry.isIntersecting && entry.intersectionRatio >= threshold) {
+          setIsInView(true);
+        } else if (!entry.isIntersecting) {
+          setIsInView(false);
+        }
+
+        return;
+      }
+
       if (!once) {
         setIsInView(entry.isIntersecting);
 
@@ -38,7 +52,7 @@ export default function useInView<TElement extends Element>(ref: RefObject<TElem
         setIsInView(true);
         observer.disconnect();
       }
-    }, { threshold, rootMargin });
+    }, { threshold: isReplay ? [0, threshold] : threshold, rootMargin });
 
     observer.observe(element);
 

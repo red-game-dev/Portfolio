@@ -1,22 +1,37 @@
-export interface CodeReviewCount {
-  // Exact, or rounded down. Never rounded up.
-  value: number;
+// A square grid of pull requests. The count sets how many squares are drawn; it is never printed.
+export interface CodeReviewGrid {
   label: string;
-  detail?: string;
+  count: number;
 }
 
 export interface CodeReviewHighlight {
   name: string;
   detail: string;
-  counts: CodeReviewCount[];
   quote?: string;
   points: string[];
 }
 
+export interface GithubActivityYear {
+  year: number;
+  // One digit per day from 1 January, 0 for none up to 4 for the busiest days.
+  levels: string;
+}
+
+export interface GithubActivity {
+  account: string;
+  asOf: string;
+  years: GithubActivityYear[];
+}
+
 export interface CodeReviewContent {
   scope: string;
-  // "{count}" is replaced, for the screen reader version of each square grid.
+  // For screen readers, in place of the squares.
   squaresLabel: string;
-  totals: CodeReviewCount[];
+  grids: CodeReviewGrid[];
+  activityTitle: string;
+  activityDescription: string;
+  // "{year}" is replaced, for the screen reader text of each row.
+  activityYearLabel: string;
+  activity: GithubActivity;
   highlights: CodeReviewHighlight[];
 }

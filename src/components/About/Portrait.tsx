@@ -102,9 +102,16 @@ export const Portrait: FC<PortraitProps> = ({ src, fallbackSrc, alt, labels }: P
     };
   }, [src]);
 
+  // Plays each time the picture comes into view, from binary again once it has left the screen.
   useEffect(() => {
-    if (isReady && isInView) {
+    if (!isReady) {
+      return;
+    }
+
+    if (isInView) {
       engineRef.current?.play();
+    } else {
+      engineRef.current?.rewind();
     }
   }, [isInView, isReady]);
 

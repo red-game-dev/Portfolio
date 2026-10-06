@@ -85,6 +85,37 @@ describe("effects/pixel-reveal PixelRevealEngine", () => {
     expect(engine.isRunning).toBe(false);
   });
 
+  test("rewinds to the binary frame and plays again", () => {
+    const { engine, frames, scheduler, onDone } = createEngine();
+
+    engine.play();
+
+    for (let time = 0; time <= 600; time += 34) {
+      scheduler.tick(time);
+    }
+
+    engine.rewind();
+    expect(frames[frames.length - 1].stage).toBe("binary");
+    expect(engine.isDone).toBe(false);
+
+    engine.play();
+
+    for (let time = 700; time <= 1300; time += 34) {
+      scheduler.tick(time);
+    }
+
+    expect(frames[frames.length - 1].stage).toBe("done");
+    expect(onDone).toHaveBeenCalledTimes(2);
+  });
+
+  test("a static engine stays on the finished picture when rewound", () => {
+    const { engine, frames } = createEngine(true);
+
+    engine.play();
+    engine.rewind();
+    expect(frames[frames.length - 1].stage).toBe("done");
+  });
+
   test("reports each stage once, in order", () => {
     const stages: string[] = [];
     const renderer: PixelRevealRenderer = { resize: jest.fn(), draw: jest.fn() };

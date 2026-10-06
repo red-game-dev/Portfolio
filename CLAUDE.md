@@ -83,13 +83,17 @@ Components call the `use*StateHook`, never `useContext` directly. `AppLoader` ho
 
 The page has three views: `recruiter`, `product` and `engineer` (`src/config/lenses.ts`). `LENS_SETTINGS` sets each view's immersion: a still or animated backdrop, zone transitions none, soft (crossfade) or full, decode off, headings only or all, and the game layer (HUD, boss health, the fight, character select) on or off. Components read `useLensStateHook()` for `lens` and `settings`; `data-lens` is also set on the root.
 
-Status runs `pending` (storage not read yet), `choosing`, `entering`, `chosen`. A `?view=` link wins, then the choice remembered in `localStorage` (`redgame.lens`); otherwise `LensGate` (`src/components/Lens`) shows a character select after the loader and plays that view's entrance. The server and first client render are always `engineer`, the full page, so hydration matches whatever was chosen. `LensSwitch` in the header changes view in place and holds the reader's position.
+Status runs `pending` (storage not read yet), `choosing`, `entering`, `chosen`. A `?view=` link wins, then the choice remembered in `localStorage` (`redgame.lens`); otherwise `LensGate` (`src/components/Lens`) shows a character select after the loader and plays that view's entrance. The server and first client render are always `engineer`, the full page, so hydration matches whatever was chosen. `LensSwitch` in the header changes view by going back to the top and playing that view's entrance, so the reader sees the immersion they picked.
 
 Every section renders for every view; only depth and wording change. A section intro can carry `lenses: { recruiter, product }` descriptions, rendered by `SectionText`; titles never change, since the menu and the trail use them. History entries carry a `productOutcome`, boss fights read as problem, decisions and takeaway outside the full view, and `Glance` adds a fact sheet (recruiter) or product playbook (product) after the cover, pulling skill years from the forge and levels from the roster rather than typing numbers twice.
 
 ### Blueprints
 
 `src/components/Blueprint` draws architecture diagrams and product wireframes from `src/data/blueprints.ts`, keyed by the section they appear in (AI, Web3, the platform section, iGaming and the Engine Room). An architecture is groups placed on a grid (`place: { col, row, colSpan, rowSpan }` on wide screens; narrow screens stack in array order) with nodes inside, and edges between node or group ids. Wires are routed from the measured boxes (`utils/route.ts`, tested), drawn on wide screens only and listed as text on phones and for screen readers. Each zone gives the boxes its own look. Engineers open on the architecture, product readers on the wireframe, recruiters on the title and caption. The data test checks every edge joins ids that exist.
+
+### Reveals replay
+
+`useInView` has three modes. Left at its default it replays: on once `threshold` of the element is on screen, off only once the element has left the screen entirely, so scrolling back to something plays it again and nothing runs backwards while still visible. `once: true` is for one off work such as building a drawing; `once: false` follows the element exactly, for loops that pause off screen. Anything driven by it must reset when it turns off: `useDecodedText` returns to bits, `useAnimationProgress` to 0, the portrait engine rewinds, and duel rounds unplay only when they drop back below the screen.
 
 ### Loading flow and dialogs
 

@@ -6,14 +6,14 @@ import Link from "next/link";
 
 import { LensSwitch } from "@/components/Lens/LensSwitch";
 import { Menu } from "@/components/Menu";
-import useCollision from "@/hooks/useCollision";
+import useScrolledPast from "@/hooks/useScrolledPast";
 import { LensContent } from "@/types/lens";
 
 interface HeaderContainerProps {
-  isFixed?: boolean;
+  isScrolled: boolean;
 }
 
-const HeaderContainer = styled.header(({ isFixed }: HeaderContainerProps) => [
+const HeaderContainer = styled.header(({ isScrolled }: HeaderContainerProps) => [
   tw`
     flex items-center justify-between m-0 lg:m-auto py-0 px-[30px] bg-transparent border-b-[transparent] fixed lg:p-[50px] top-6 left-0 right-0 w-full z-[8]
     after:content-[''] after:relative after:block after:clear-both
@@ -21,8 +21,14 @@ const HeaderContainer = styled.header(({ isFixed }: HeaderContainerProps) => [
   css` 
     transition: all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1);
   `,
-  !isFixed && tw`py-[30px] top-0 bg-[#101010]`,
-  isFixed && tw`bg-transparent border-b-[transparent]`,
+  // Past the first screen the menu sits on a dark, see through bar, so it never reads over the content.
+  isScrolled && tw`top-0 py-[14px] lg:py-[14px]`,
+  isScrolled && css`
+    background: rgba(16, 16, 16, 0.84);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.18);
+  `,
 ]);
 
 const HeaderContent = tw.div`w-full relative`;
@@ -68,7 +74,14 @@ const LogoContents = styled.div(() => [
 ]);
 
 // Beside the hamburger on small screens, under the name on large ones.
-const SwitchSlot = tw.div`absolute top-[-6px] right-[48px] z-[11] lg:right-auto lg:left-0 lg:top-[78px]`;
+const SwitchSlot = styled.div(({ isScrolled }: HeaderContainerProps) => [
+  tw`absolute top-[-6px] right-[48px] z-[11] lg:right-auto lg:left-0 lg:top-[78px]`,
+  // On the slim bar the switch moves up beside the name.
+  isScrolled && tw`lg:left-[170px] lg:top-[28px]`,
+]);
+
+// How far down, as a share of the viewport, the header turns into a bar.
+const SCROLLED_SHARE = 0.6;
 
 interface HeaderProps {
   title?: string;
@@ -78,14 +91,11 @@ interface HeaderProps {
 const Header: FC<HeaderProps> = ({ title = "", lens }: HeaderProps) => {
   const [toggle, setToggle] = useState(false);
   const toggleTap = useCallback(() => setToggle(!toggle), [toggle]);
-  const [collision] = useCollision("typing-title");
+  const isScrolled = useScrolledPast(SCROLLED_SHARE);
   const words = title.split(" ");
-  const { scrollY = 0 } = typeof window === "undefined" ? {} : window;
 
   return (
-    <HeaderContainer role="presentation"
-      isFixed={collision || scrollY === 0}
-      onClick={toggleTap}>
+    <HeaderContainer role="presentation" isScrolled={isScrolled} onClick={toggleTap}>
       <HeaderContent>
         <LogoContainer>
           <LogoContents>
@@ -103,7 +113,7 @@ const Header: FC<HeaderProps> = ({ title = "", lens }: HeaderProps) => {
             </Link>
           </LogoContents>
         </LogoContainer>
-        <SwitchSlot>
+        <SwitchSlot isScrolled={isScrolled}>
           <LensSwitch content={lens} />
         </SwitchSlot>
         <Menu active={toggle} />

@@ -62,8 +62,22 @@ export const Duels: FC<DuelsProps> = ({
   const [played, setPlayed] = useState<ReadonlySet<number>>(() => new Set());
   const { recordDuels } = useGameStateHook();
   const { settings } = useLensStateHook();
-  const onReveal = useCallback((index: number) => {
-    setPlayed((current) => (current.has(index) ? current : new Set(current).add(index)));
+  const onReveal = useCallback((index: number, isPlayed: boolean) => {
+    setPlayed((current) => {
+      if (current.has(index) === isPlayed) {
+        return current;
+      }
+
+      const next = new Set(current);
+
+      if (isPlayed) {
+        next.add(index);
+      } else {
+        next.delete(index);
+      }
+
+      return next;
+    });
   }, []);
 
   useEffect(() => {

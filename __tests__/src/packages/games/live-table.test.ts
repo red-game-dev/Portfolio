@@ -1,0 +1,110 @@
+import { FrameLoop, ManualScheduler } from "@/packages/animation/frame-loop";
+import { LiveTableGame, LiveTableRenderer, LiveTableSimulation, resolveLiveTableConfig } from "@/packages/games/live-table";
+
+const CARDS = ["wallets", "bonuses", "sportsbook"];
+const config = resolveLiveTableConfig({
+  phases: [
+    { phase: "place", ms: 1000 },
+    { phase: "final", ms: 500 },
+    { phase: "closed", ms: 500 },
+    { phase: "reveal", ms: 500 },
+  ],
+  opponents: 2,
+  opponentHand: 3,
+  opponentThrowsPerSecond: 0,
+});
+
+const simulation = (overrides = {}, random = () => 0.5) => new LiveTableSimulation(CARDS, { config: { ...config, ...overrides }, random });
+
+describe("games/live-table", () => {
+  test("a round runs place, final, closed and reveal, then the next round starts", () => {
+    const table = simulation();
+    const phases = [table.phase];
+
+    [1000, 500, 500, 500].forEach((ms) => {
+      table.step(ms);
+      phases.push(table.phase);
+    });
+
+    expect(phases).toEqual(["place", "final", "closed", "reveal", "place"]);
+    expect(table.snapshot.round).toBe(2);
+  });
+
+  test("bets are taken while they are open and refused once no more bets is called", () => {
+    const table = simulation();
+
+    expect(table.play("bonuses")).toEqual({ accepted: true });
+    table.step(1000);
+    expect(table.play("wallets")).toEqual({ accepted: true });
+    table.step(500);
+    expect(table.phase).toBe("closed");
+    expect(table.play("sportsbook")).toEqual({ accepted: false, reason: "closed" });
+    expect(table.snapshot.played).toEqual(["bonuses", "wallets"]);
+    expect(table.snapshot.hand).toEqual(["sportsbook"]);
+    expect(table.snapshot.canPlay).toBe(false);
+  });
+
+  test("a card can only be played once, and redeal picks every card back up in order", () => {
+    const table = simulation();
+
+    table.play("sportsbook");
+
+    expect(table.play("sportsbook")).toEqual({ accepted: false, reason: "not-in-hand" });
+
+    table.redeal();
+
+    expect(table.snapshot.hand).toEqual(CARDS);
+    expect(table.snapshot.played).toEqual([]);
+  });
+
+  test("other players throw only while bets are open, and the table is swept for the next round", () => {
+    const table = simulation({ opponentThrowsPerSecond: 1000 }, () => 0);
+    const events = table.step(100);
+
+    expect(events.filter((event) => event.type === "throw")).toHaveLength(2);
+    expect(table.snapshot.opponents.map((opponent) => opponent.cardsLeft)).toEqual([2, 2]);
+
+    table.step(1400);
+    expect(table.phase).toBe("closed");
+
+    const before = table.scene.throws.length;
+
+    table.step(100);
+    expect(table.scene.throws.length).toBe(before);
+
+    const sweep = table.step(900);
+
+    expect(sweep.map((event) => event.type)).toContain("sweep");
+    expect(table.snapshot.opponents.map((opponent) => opponent.cardsLeft)).toEqual([3, 3]);
+  });
+
+  test("your cards stay on the table across rounds", () => {
+    const table = simulation();
+
+    table.play("wallets");
+    table.step(2500);
+
+    expect(table.snapshot.round).toBe(2);
+    expect(table.snapshot.played).toEqual(["wallets"]);
+  });
+
+  test("the game reports changes, not frames, and draws every frame", () => {
+    const draws: number[] = [];
+    const renderer: LiveTableRenderer = { resize: () => undefined, draw: (_, now) => draws.push(now) };
+    const changes: string[] = [];
+    const scheduler = new ManualScheduler();
+    const game = new LiveTableGame(renderer, CARDS, { config, scheduler, random: () => 0.5, onChange: (snapshot) => changes.push(snapshot.phase) });
+
+    expect(game).toBeInstanceOf(FrameLoop);
+    game.start();
+
+    // The first frame steps one frame's worth (about 33ms at 30fps), then each tick 50ms: about 1.98s in all.
+    for (let frame = 0; frame < 40; frame += 1) {
+      scheduler.tick(frame * 50);
+    }
+
+    expect(draws.length).toBeGreaterThan(30);
+    expect(changes).toEqual(["final", "closed"]);
+    expect(game.play("bonuses")).toEqual({ accepted: false, reason: "closed" });
+  });
+});

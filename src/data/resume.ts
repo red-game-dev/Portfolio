@@ -3991,6 +3991,11 @@ export const portfolioData: PortfolioData = {
         places: ["Authentic Gaming", "KPMG", "My crypto casino"],
       },
       {
+        name: "Crypto deposits and withdrawals",
+        detail: "A crypto cashier on several chains: an address per player, confirmations that credit the balance, and checked withdrawals.",
+        places: ["My crypto casino"],
+      },
+      {
         name: "Regulated platforms",
         detail: "iGaming clients needing compliance, scale and real time performance, including regulated deposit and withdrawal flows under Malta licensing.",
         places: ["KPMG"],
@@ -3999,6 +4004,25 @@ export const portfolioData: PortfolioData = {
     quote: {
       text: "As a software engineer, Redeemer would be a true asset to that position and it comes with my heartfelt recommendation.",
       source: "Head of Frontend, Authentic Gaming",
+    },
+    table: {
+      phrases: {
+        place: "Place your bets",
+        final: "Final bets",
+        closed: "No more bets",
+        reveal: "Good luck. Next game starting",
+      },
+      refused: "No more bets. Wait for the next round to place that card.",
+      placed: "{card} is on the table.",
+      hint: "Your hand holds what I have built in iGaming. Tap a card to throw it on the table while bets are open.",
+      handLabel: "Your hand",
+      tableLabel: "On the table",
+      emptyTable: "Your bets land here.",
+      redeal: "Pick your cards back up",
+      dealerLabel: "Change the dealer's outfit",
+      outfits: ["Classic waistcoat and bow tie", "Red evening dress", "Emerald gown", "Neon"],
+      roundLabel: "Round {n}",
+      cardsLabel: "Every card in the hand",
     },
   },
   codeReview: {

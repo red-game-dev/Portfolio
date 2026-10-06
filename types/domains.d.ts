@@ -59,12 +59,32 @@ export interface Web3Content {
   capabilities: DomainCapability[];
 }
 
+// The live table game the iGaming cards are played on.
+export interface LiveTableContent {
+  // What the dealer says in each phase of a round.
+  phrases: { place: string; final: string; closed: string; reveal: string };
+  refused: string;
+  placed: string;
+  hint: string;
+  handLabel: string;
+  tableLabel: string;
+  emptyTable: string;
+  redeal: string;
+  dealerLabel: string;
+  // One per dealer outfit, in order, for the button's label.
+  outfits: string[];
+  // "{n}" is replaced.
+  roundLabel: string;
+  cardsLabel: string;
+}
+
 export interface IGamingContent {
   statement: string;
   liveLabel: string;
   proofLabel: string;
   proof: string[];
   cards: DomainCapability[];
+  table: LiveTableContent;
   quote: {
     text: string;
     source: string;

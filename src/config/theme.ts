@@ -11,6 +11,7 @@ import {
 } from "@/packages/effects/backdrop";
 import { RainConfigOverrides } from "@/packages/effects/binary-rain";
 import { BugRaidTheme, DEFAULT_BUG_RAID_THEME } from "@/packages/games/bug-raid";
+import { DEFAULT_LIVE_TABLE_THEME, LiveTableTheme } from "@/packages/games/live-table";
 
 // Runtime colours for things twin.macro cannot reach, such as canvas drawing. Styled components keep
 // their colours in the tw`` strings, which have to be static at build time.
@@ -88,3 +89,6 @@ export const FINALE_RAIN_CONFIG: RainConfigOverrides = {
     glow: "rgba(255, 196, 92, 0.85)",
   },
 };
+
+// The live table sits in the casino zone: green felt, a gold rim and the casino's red card backs.
+export const LIVE_TABLE_THEME: LiveTableTheme = { ...DEFAULT_LIVE_TABLE_THEME };

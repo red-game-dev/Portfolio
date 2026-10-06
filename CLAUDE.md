@@ -41,7 +41,7 @@ Hydration mismatches only surface in the browser console, so they are invisible 
 
 ### Content is data, not markup
 
-All site content lives in `src/data/resume.ts` as the `portfolioData` object (~1500 lines), typed by `PortfolioData` using the interfaces in `types/*.d.ts`. `src/pages/index.tsx` is purely composition: it slices `portfolioData` and passes the pieces into section components. **To change what the site says, edit `src/data/resume.ts`**. Components should stay content-free.
+All site content lives in `src/data/resume.ts` as the `portfolioData` object (~4000 lines; the view copy and the blueprints sit in `src/data/lens.ts` and `src/data/blueprints.ts` and are spread into it), typed by `PortfolioData` using the interfaces in `types/*.d.ts`. `src/pages/index.tsx` is purely composition: it slices `portfolioData` and passes the pieces into section components. **To change what the site says, edit `src/data/resume.ts`**. Components should stay content-free.
 
 `src/components/SEO` derives all JSON-LD (profile, FAQ, per-project `NewsArticle`, per-service `Product`) from the same `portfolioData`, so adding a project or service automatically extends structured data. It is mounted once in `src/pages/_app.tsx` (not `index.tsx`) with `url={process.env.HOST || "#"}`; the page title template and meta description live in `src/data/seo.ts`.
 
@@ -70,7 +70,7 @@ Keyframes (`wave`, `bounceIn`, `loading`, `border-transition`, …) are plain CS
 
 ### State: React Context, one folder per feature
 
-There is no state library. `src/pages/_app.tsx` wraps the page in `AppLoaderProvider` then `GameProvider`, and each feature colocates its state:
+There is no state library. `src/pages/_app.tsx` wraps the page in `AppLoaderProvider`, `LensProvider` then `GameProvider`, and each feature colocates its state:
 
 ```
 src/components/Game/context/GameContext.tsx    # createContext + Provider holding useState, value memoized
@@ -78,6 +78,18 @@ src/components/Game/hooks/useGameStateHook.ts  # useContext, throws if used outs
 ```
 
 Components call the `use*StateHook`, never `useContext` directly. `AppLoader` holds `isLoading` and `isReady`. `Game` holds the visitor's run: the chosen character and Bug Raid best (kept in `localStorage` under `redgame.game`, read after mount so hydration matches), plus this visit's bosses defeated, zones crossed and duels won, which the HUD and the finale read.
+
+### Audience views (lenses)
+
+The page has three views: `recruiter`, `product` and `engineer` (`src/config/lenses.ts`). `LENS_SETTINGS` sets each view's immersion: a still or animated backdrop, zone transitions none, soft (crossfade) or full, decode off, headings only or all, and the game layer (HUD, boss health, the fight, character select) on or off. Components read `useLensStateHook()` for `lens` and `settings`; `data-lens` is also set on the root.
+
+Status runs `pending` (storage not read yet), `choosing`, `entering`, `chosen`. A `?view=` link wins, then the choice remembered in `localStorage` (`redgame.lens`); otherwise `LensGate` (`src/components/Lens`) shows a character select after the loader and plays that view's entrance. The server and first client render are always `engineer`, the full page, so hydration matches whatever was chosen. `LensSwitch` in the header changes view in place and holds the reader's position.
+
+Every section renders for every view; only depth and wording change. A section intro can carry `lenses: { recruiter, product }` descriptions, rendered by `SectionText`; titles never change, since the menu and the trail use them. History entries carry a `productOutcome`, boss fights read as problem, decisions and takeaway outside the full view, and `Glance` adds a fact sheet (recruiter) or product playbook (product) after the cover, pulling skill years from the forge and levels from the roster rather than typing numbers twice.
+
+### Blueprints
+
+`src/components/Blueprint` draws architecture diagrams and product wireframes from `src/data/blueprints.ts`, keyed by the section they appear in (AI, Web3, the platform section, iGaming and the Engine Room). An architecture is groups placed on a grid (`place: { col, row, colSpan, rowSpan }` on wide screens; narrow screens stack in array order) with nodes inside, and edges between node or group ids. Wires are routed from the measured boxes (`utils/route.ts`, tested), drawn on wide screens only and listed as text on phones and for screen readers. Each zone gives the boxes its own look. Engineers open on the architecture, product readers on the wireframe, recruiters on the title and caption. The data test checks every edge joins ids that exist.
 
 ### Loading flow and dialogs
 

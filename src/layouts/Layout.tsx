@@ -6,7 +6,7 @@ import { AppLoader, AppLoadingLines } from "@/components/AppLoader";
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
 import { Journey } from "@/components/Journey";
 import { LensGate } from "@/components/Lens";
-import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 import { portfolioData  } from "@/data/resume";
 import { createJourneyTrail } from "@/services/journey/trail";
@@ -36,7 +36,7 @@ const LENS_COUNTS = { zones: ZONE_BOUNDARIES.length, bosses: portfolioData.caseS
 
 const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   const { isLoading } = useAppLoaderStateHook();
-  const { status } = useLensStateHook();
+  const { status } = useLensStatusHook();
   // The world starts once the reader has picked a view, so it is built with that view's settings, and runs
   // under the entrance so it is already moving when the page opens.
   const isWorldLive = !isLoading && (status === "entering" || status === "chosen");

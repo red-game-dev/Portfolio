@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
 import { DecodedText } from "@/components/DecodedText";
 import { Image } from "@/components/Image";
-import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import TypingAnimation from "@/components/TypingAnimation";
 import { industryAnchor } from "@/config/sections";
 import { Headline } from "@/types/headline";
@@ -123,7 +123,7 @@ const CoverBottomShade = styled.div(() => [
 
 export const Cover = ({ intro, image, typingsTitles, headline, cvUrl, email }: CoverProps) => {
   const { isReady: isLoaded } = useAppLoaderStateHook();
-  const { status } = useLensStateHook();
+  const { status } = useLensStatusHook();
   const isReady = isLoaded && status === "chosen";
 
   return (

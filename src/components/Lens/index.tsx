@@ -7,6 +7,7 @@ import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoader
 import { ENTRANCE_TIMING } from "@/components/Lens/config";
 import { Entrance } from "@/components/Lens/Entrance";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import { LensCard } from "@/components/Lens/LensCard";
 import { DEFAULT_LENS, Lens } from "@/config/lenses";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
@@ -103,7 +104,8 @@ const Cards = tw.div`grid gap-[12px] md:gap-[20px] w-full max-w-[1080px] md:grid
 // Before the page: the reader picks who they are, like a character select, and that view's entrance plays.
 // Returning readers and ?view= links never see this; the header switch changes the view from then on.
 export const LensGate: FC<LensGateProps> = ({ content, counts }: LensGateProps) => {
-  const { lens, status, chooseLens, switchLens, finishEntrance } = useLensStateHook();
+  const { lens, switchLens } = useLensStateHook();
+  const { status, chooseLens, finishEntrance } = useLensStatusHook();
   const { isLoading } = useAppLoaderStateHook();
   const [isLeaving, setIsLeaving] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);

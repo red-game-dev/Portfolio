@@ -5,11 +5,13 @@ interface InViewOptions {
   // true: flip to true once and stay there, for reveals that should play a single time.
   // false: follow the element in and out, for loops that should pause while off screen.
   once?: boolean;
+  // Grows the viewport, so something can start before it is actually on screen.
+  rootMargin?: string;
 }
 
 // IntersectionObserver based, so it costs nothing while scrolling. useCollision is the scroll event
 // version the Menu scroll-spy uses.
-export default function useInView<TElement extends Element>(ref: RefObject<TElement>, { threshold = 0.25, once = true }: InViewOptions = {}) {
+export default function useInView<TElement extends Element>(ref: RefObject<TElement>, { threshold = 0.25, once = true, rootMargin = "0px" }: InViewOptions = {}) {
   const [isInView, setIsInView] = useState(false);
 
   useEffect(() => {
@@ -36,12 +38,12 @@ export default function useInView<TElement extends Element>(ref: RefObject<TElem
         setIsInView(true);
         observer.disconnect();
       }
-    }, { threshold });
+    }, { threshold, rootMargin });
 
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, [once, ref, threshold]);
+  }, [once, ref, rootMargin, threshold]);
 
   return isInView;
 }

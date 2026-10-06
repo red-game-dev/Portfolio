@@ -65,6 +65,9 @@ export const Blueprint: FC<BlueprintProps> = ({ zone, title, caption, architectu
   const [view, setView] = useState<View | null>(() => defaultView(lens, Boolean(wireframe)));
   const figureRef = useRef<HTMLElement>(null);
   const isOnScreen = useInView(figureRef, { once: false, threshold: 0 });
+  // Drawings are built as they come within a screen or so of view, not during hydration: ten of them add
+  // hundreds of elements the first paint does not need.
+  const isNear = useInView(figureRef, { once: true, threshold: 0, rootMargin: "100% 0px" });
   const bodyId = useId();
 
   useEffect(() => {
@@ -90,10 +93,10 @@ export const Blueprint: FC<BlueprintProps> = ({ zone, title, caption, architectu
         )}
       </Toggles>
       <Body id={bodyId} hidden={view === null}>
-        {view === "architecture" && (
+        {isNear && view === "architecture" && (
           <Architecture {...architecture} zone={zone} isShown={isOnScreen} isMoving={isOnScreen && settings.backdrop === "animated"} />
         )}
-        {view === "wireframe" && wireframe && <Wireframe {...wireframe} labels={labels} />}
+        {isNear && view === "wireframe" && wireframe && <Wireframe {...wireframe} labels={labels} />}
       </Body>
     </Figure>
   );

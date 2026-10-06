@@ -6,14 +6,19 @@ import { DEFAULT_LENS, isLens, Lens, LENS_QUERY, LENS_SETTINGS, LENS_STORAGE_KEY
 // "entering" while the chosen view's entrance plays over the page.
 export type LensStatus = "pending" | "choosing" | "entering" | "chosen";
 
+// Split in two so the sections that only care which view is on do not re-render while the chooser moves
+// through its states, which happens right after hydration on a first visit.
 export interface LensState {
   lens: Lens;
   settings: LensSettings;
+  // From the header: changes the view in place.
+  switchLens: (lens: Lens) => void;
+}
+
+export interface LensStatusState {
   status: LensStatus;
   // From the chooser: remembers the view and plays its entrance.
   chooseLens: (lens: Lens) => void;
-  // From the header: changes the view in place.
-  switchLens: (lens: Lens) => void;
   finishEntrance: () => void;
 }
 
@@ -40,6 +45,8 @@ const writeStored = (lens: Lens) => {
 };
 
 export const LensContext = createContext<LensState | null>(null);
+
+export const LensStatusContext = createContext<LensStatusState | null>(null);
 
 // Which reader the page is for. A ?view= link wins, then a remembered choice; otherwise the reader is asked.
 // A link does not overwrite the remembered choice, since it was someone else's pick.
@@ -76,10 +83,12 @@ export const LensProvider = ({ children }: LensProviderProps) => {
 
   const finishEntrance = useCallback(() => setStatus("chosen"), []);
 
-  const value = useMemo(
-    () => ({ lens, settings: LENS_SETTINGS[lens], status, chooseLens, switchLens, finishEntrance }),
-    [lens, status, chooseLens, switchLens, finishEntrance],
-  );
+  const value = useMemo(() => ({ lens, settings: LENS_SETTINGS[lens], switchLens }), [lens, switchLens]);
+  const statusValue = useMemo(() => ({ status, chooseLens, finishEntrance }), [status, chooseLens, finishEntrance]);
 
-  return <LensContext.Provider value={value}>{children}</LensContext.Provider>;
+  return (
+    <LensContext.Provider value={value}>
+      <LensStatusContext.Provider value={statusValue}>{children}</LensStatusContext.Provider>
+    </LensContext.Provider>
+  );
 };

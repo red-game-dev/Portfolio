@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DuelRound } from "@/components/Duels/DuelRound";
 import { Fight } from "@/components/Duels/Fight";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
+import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel } from "@/components/Panel";
 import { Text } from "@/components/Text";
 import { SECTION_IDS } from "@/config/sections";
@@ -60,6 +61,7 @@ export const Duels: FC<DuelsProps> = ({
 }: DuelsProps) => {
   const [played, setPlayed] = useState<ReadonlySet<number>>(() => new Set());
   const { recordDuels } = useGameStateHook();
+  const { settings } = useLensStateHook();
   const onReveal = useCallback((index: number) => {
     setPlayed((current) => (current.has(index) ? current : new Set(current).add(index)));
   }, []);
@@ -99,17 +101,19 @@ export const Duels: FC<DuelsProps> = ({
             </span>
           </Score>
         </Scoreboard>
-        <Fight
-          played={played.size}
-          total={rounds.length}
-          humanWins={humanWins}
-          totalHumanWins={totalHumanWins}
-          agentWins={agentWins}
-          lastWinner={lastPlayed ? winnerOf(lastPlayed) : "human"}
-          agentLabel={labels.agentLabel}
-          humanLabel={labels.humanLabel}
-          koLabel={koLabel}
-        />
+        {settings.gameLayer && (
+          <Fight
+            played={played.size}
+            total={rounds.length}
+            humanWins={humanWins}
+            totalHumanWins={totalHumanWins}
+            agentWins={agentWins}
+            lastWinner={lastPlayed ? winnerOf(lastPlayed) : "human"}
+            agentLabel={labels.agentLabel}
+            humanLabel={labels.humanLabel}
+            koLabel={koLabel}
+          />
+        )}
         <Rounds>
           {rounds.map((round, index) => (
             <DuelRound key={round.agent} {...round} index={index} labels={labels} onReveal={onReveal} />

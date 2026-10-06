@@ -2,6 +2,7 @@ import { FC, useEffect, useRef } from "react";
 
 import tw from "twin.macro";
 
+import { LensSettings } from "@/config/lenses";
 import { BACKDROP_THEME, COLORS, TRANSITION_THEME } from "@/config/theme";
 import { ZoneId } from "@/config/zones";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
@@ -22,6 +23,10 @@ import {
 interface BackdropProps {
   zone: ZoneId;
   isEnabled: boolean;
+  // A still frame per zone, for readers who want the facts without the motion.
+  isStill: boolean;
+  // "soft" crossfades between zones without the transition effects.
+  transitions: LensSettings["transitions"];
 }
 
 // Narrow screens get fewer pixels and frames; the effect is ambient and the battery matters more.
@@ -31,12 +36,18 @@ const START_DELAY_MS = 400;
 
 const Canvas = tw.canvas`fixed inset-0 w-full h-full z-[1] pointer-events-none`;
 
-const createEngine = (context: CanvasRenderingContext2D, zone: ZoneId) => {
+interface EngineOptions {
+  zone: ZoneId;
+  isStill: boolean;
+  transitions: LensSettings["transitions"];
+}
+
+const createEngine = (context: CanvasRenderingContext2D, { zone, isStill, transitions }: EngineOptions) => {
   const isNarrow = window.innerWidth < NARROW_WIDTH;
 
   return new BackdropEngine(context, {
     initialScene: zone,
-    isStatic: prefersReducedMotion(),
+    isStatic: isStill || prefersReducedMotion(),
     config: { background: COLORS.surface, framesPerSecond: isNarrow ? 24 : 30, maxPixelRatio: isNarrow ? 1 : 1.5 },
     scenes: [
       (random) => new RainScene(random, BACKDROP_THEME.rain),
@@ -45,7 +56,7 @@ const createEngine = (context: CanvasRenderingContext2D, zone: ZoneId) => {
       (random) => new CasinoScene(random, BACKDROP_THEME.casino),
       (random) => new EmberScene(random, BACKDROP_THEME.ember),
     ],
-    transitions: {
+    transitions: transitions !== "full" ? {} : {
       [transitionKey("matrix", "ai")]: (random) => new CollapseTransition(random, TRANSITION_THEME.collapse),
       [transitionKey("ai", "chain")]: () => new BlockSnapTransition(TRANSITION_THEME.snap),
       [transitionKey("chain", "casino")]: (random) => new ChipFlipTransition(random, TRANSITION_THEME.flip),
@@ -56,7 +67,7 @@ const createEngine = (context: CanvasRenderingContext2D, zone: ZoneId) => {
 
 // One fixed canvas behind every section. It shows through the margins and gaps between panels, and moves
 // between scenes as the reader crosses from one zone to the next.
-export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled }: BackdropProps) => {
+export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled, isStill, transitions }: BackdropProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<BackdropEngine | null>(null);
   // Read when the engine is finally built, which can be after the zone has already changed.
@@ -73,7 +84,7 @@ export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled }: BackdropProps) 
 
     const resize = () => engineRef.current?.resize(window.innerWidth, window.innerHeight, window.devicePixelRatio || 1);
     const timeout = window.setTimeout(() => {
-      engineRef.current = createEngine(context, zoneRef.current);
+      engineRef.current = createEngine(context, { zone: zoneRef.current, isStill, transitions });
       resize();
       engineRef.current.start();
       window.addEventListener("resize", resize);
@@ -85,7 +96,7 @@ export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled }: BackdropProps) 
       engineRef.current?.stop();
       engineRef.current = null;
     };
-  }, [isEnabled]);
+  }, [isEnabled, isStill, transitions]);
 
   useEffect(() => {
     engineRef.current?.setScene(zone);

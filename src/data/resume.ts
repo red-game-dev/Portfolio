@@ -49,6 +49,7 @@ import {
   faWandMagicSparkles
 } from "@fortawesome/pro-duotone-svg-icons";
 
+import { lensContent } from "@/data/lens";
 import { PortfolioAiUsage } from "@/types/ai-usage";
 import { CaseStudy, CaseStudyFilters, ExpertiseContent, PlatformDiagrams } from "@/types/case-studies";
 import { CodeReviewContent } from "@/types/code-review";
@@ -59,6 +60,7 @@ import { ArenaContent, BossLabels, Duels, FinaleContent, HudLabels, JourneyTrail
 import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
+import { LensContent } from "@/types/lens";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
 import { Recommendation } from "@/types/recommendations";
 import { Resume } from "@/types/resume";
@@ -112,6 +114,7 @@ export interface PortfolioData {
   bossLabels: BossLabels;
   hud: HudLabels;
   journeyTrail: JourneyTrailContent;
+  lens: LensContent;
   arena: ArenaContent;
   finale: FinaleContent;
   platformDiagrams: PlatformDiagrams;
@@ -2864,6 +2867,7 @@ export const portfolioData: PortfolioData = {
   },
   bossLabels: { boss: "Boss", hp: "HP", defeated: "Defeated", loot: "Loot" },
   hud: { pick: "Pick a character", level: "Level", xp: "XP", bosses: "Bosses defeated" },
+  lens: lensContent,
   journeyTrail: {
     zoneLabel: "Zone {index} of {total}: {zone}",
     zones: { matrix: "The Matrix", ai: "AI", chain: "Chain", casino: "Casino", mmo: "Game world" },

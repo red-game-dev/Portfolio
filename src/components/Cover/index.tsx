@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
 import { DecodedText } from "@/components/DecodedText";
 import { Image } from "@/components/Image";
+import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import TypingAnimation from "@/components/TypingAnimation";
 import { industryAnchor } from "@/config/sections";
 import { Headline } from "@/types/headline";
@@ -21,7 +22,7 @@ interface CoverProps {
   email: string;
 }
 
-// Lines decode one after another once the intro loader has finished.
+// Lines decode one after another once the intro loader has finished and the reader has picked a view.
 const LINE_DELAY_MS = 260;
 
 const Section = tw.div`relative overflow-hidden h-screen m-0 z-[7] `;
@@ -121,7 +122,9 @@ const CoverBottomShade = styled.div(() => [
 ]);
 
 export const Cover = ({ intro, image, typingsTitles, headline, cvUrl, email }: CoverProps) => {
-  const { isReady } = useAppLoaderStateHook();
+  const { isReady: isLoaded } = useAppLoaderStateHook();
+  const { status } = useLensStateHook();
+  const isReady = isLoaded && status === "chosen";
 
   return (
     <Section id="section-started">
@@ -155,7 +158,7 @@ export const Cover = ({ intro, image, typingsTitles, headline, cvUrl, email }: C
           ))}
         </Lines>
         <Availability>
-          <DecodedText text={headline.availability} isActive={isReady} delay={headline.lines.length * LINE_DELAY_MS} />
+          <DecodedText text={headline.availability} isActive={isReady} delay={headline.lines.length * LINE_DELAY_MS} variant="body" />
         </Availability>
         <Actions>
           <Action href={cvUrl} download>

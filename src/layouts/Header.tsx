@@ -4,8 +4,10 @@ import tw, { css, styled } from "twin.macro";
 
 import Link from "next/link";
 
+import { LensSwitch } from "@/components/Lens/LensSwitch";
 import { Menu } from "@/components/Menu";
 import useCollision from "@/hooks/useCollision";
+import { LensContent } from "@/types/lens";
 
 interface HeaderContainerProps {
   isFixed?: boolean;
@@ -65,11 +67,15 @@ const LogoContents = styled.div(() => [
   `
 ]);
 
+// Beside the hamburger on small screens, under the name on large ones.
+const SwitchSlot = tw.div`absolute top-[-6px] right-[48px] z-[11] lg:right-auto lg:left-0 lg:top-[78px]`;
+
 interface HeaderProps {
   title?: string;
+  lens: LensContent;
 }
 
-const Header: FC<HeaderProps> = ({ title = "" }: HeaderProps) => {
+const Header: FC<HeaderProps> = ({ title = "", lens }: HeaderProps) => {
   const [toggle, setToggle] = useState(false);
   const toggleTap = useCallback(() => setToggle(!toggle), [toggle]);
   const [collision] = useCollision("typing-title");
@@ -97,6 +103,9 @@ const Header: FC<HeaderProps> = ({ title = "" }: HeaderProps) => {
             </Link>
           </LogoContents>
         </LogoContainer>
+        <SwitchSlot>
+          <LensSwitch content={lens} />
+        </SwitchSlot>
         <Menu active={toggle} />
       </HeaderContent>
     </HeaderContainer>

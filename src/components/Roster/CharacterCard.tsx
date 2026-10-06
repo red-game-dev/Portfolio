@@ -14,6 +14,8 @@ interface CharacterCardProps extends Character {
   isRevealed: boolean;
   order: number;
   isSelected: boolean;
+  // Off in the quick view, where the game layer is too.
+  isSelectable: boolean;
   onSelect: (characterClass: string) => void;
 }
 
@@ -148,7 +150,7 @@ const Select = styled.button(({ isSelected }: SelectedProps) => [
 ]);
 
 export const CharacterCard: FC<CharacterCardProps> = ({
-  characterClass, titles = [], icon, tenures, stats, abilities, level, since, labels, isRevealed, order, isSelected, onSelect,
+  characterClass, titles = [], icon, tenures, stats, abilities, level, since, labels, isRevealed, order, isSelected, isSelectable, onSelect,
 }: CharacterCardProps) => {
   const guilds = [...new Set(tenures.map((tenure) => tenure.company))];
 
@@ -195,10 +197,12 @@ export const CharacterCard: FC<CharacterCardProps> = ({
               <Ability key={ability}>{ability}</Ability>
             ))}
           </Chips>
-          <Select type="button" isSelected={isSelected} aria-pressed={isSelected} onClick={() => onSelect(characterClass)}>
-            <FontAwesomeIcon icon={faGamepad} aria-hidden="true" />
-            {isSelected ? labels.playing : `${labels.play} ${characterClass}`}
-          </Select>
+          {isSelectable && (
+            <Select type="button" isSelected={isSelected} aria-pressed={isSelected} onClick={() => onSelect(characterClass)}>
+              <FontAwesomeIcon icon={faGamepad} aria-hidden="true" />
+              {isSelected ? labels.playing : `${labels.play} ${characterClass}`}
+            </Select>
+          )}
         </Face>
         <Back aria-hidden="true">
           <FontAwesomeIcon icon={icon} />

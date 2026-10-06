@@ -11,6 +11,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 
 import { AppLoaderProvider } from "@/components/AppLoader/context/AppLoaderContext";
 import { GameProvider } from "@/components/Game/context/GameContext";
+import { LensProvider } from "@/components/Lens/context/LensContext";
 import { SEO } from "@/components/SEO";
 
 config.autoAddCss = false;
@@ -36,10 +37,12 @@ export default function App({ Component, pageProps }: AppProps) {
 
       <GlobalStyles />
       <AppLoaderProvider>
-        <GameProvider>
-          <Component {...pageProps} />
-          <Analytics debug={Boolean(process.env.DEBUG)} />
-        </GameProvider>
+        <LensProvider>
+          <GameProvider>
+            <Component {...pageProps} />
+            <Analytics debug={Boolean(process.env.DEBUG)} />
+          </GameProvider>
+        </LensProvider>
       </AppLoaderProvider>
     </>
   );

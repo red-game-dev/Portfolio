@@ -112,7 +112,13 @@ export const About: FC<AboutProps> = ({
             </Hook>
             {paragraphs.map((paragraph, index) => (
               <Paragraph key={paragraph}>
-                <DecodedText text={collapse(paragraph)} isActive={isInView} delay={HOOK_DECODE_MS + index * PARAGRAPH_DELAY_MS} duration={PARAGRAPH_DECODE_MS} />
+                <DecodedText
+                  text={collapse(paragraph)}
+                  isActive={isInView}
+                  delay={HOOK_DECODE_MS + index * PARAGRAPH_DELAY_MS}
+                  duration={PARAGRAPH_DECODE_MS}
+                  variant="body"
+                />
               </Paragraph>
             ))}
           </Lead>

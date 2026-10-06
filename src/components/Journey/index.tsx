@@ -6,6 +6,7 @@ import useJourney from "@/components/Journey/hooks/useJourney";
 import { Hud, HudContent } from "@/components/Journey/Hud";
 import { JourneyProgress } from "@/components/Journey/JourneyProgress";
 import { ZoneTrail } from "@/components/Journey/ZoneTrail";
+import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 import { TrailSection } from "@/services/journey/trail";
 import { JourneyTrailContent } from "@/types/game";
@@ -26,6 +27,7 @@ const zoneProgress = (progress: number, start = 1) => Math.min(1, Math.max(0, (p
 export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProps) => {
   const { zone, zoneIndex, progress, starts } = useJourney(isEnabled);
   const { visitZone } = useGameStateHook();
+  const { settings } = useLensStateHook();
 
   useEffect(() => {
     document.documentElement.dataset.zone = zone;
@@ -38,7 +40,7 @@ export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProp
 
   return (
     <>
-      <Backdrop zone={zone} isEnabled={isEnabled} />
+      <Backdrop zone={zone} isEnabled={isEnabled} isStill={settings.backdrop === "still"} transitions={settings.transitions} />
       <JourneyProgress progress={progress} starts={starts} zoneIndex={zoneIndex} />
       <ZoneTrail
         zone={zone}
@@ -48,7 +50,7 @@ export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProp
         labels={trail.labels}
         isEnabled={isEnabled}
       />
-      <Hud {...hud} isVisible={zone === "mmo"} experience={zoneProgress(progress, starts[MMO_INDEX])} />
+      <Hud {...hud} isVisible={settings.gameLayer && zone === "mmo"} experience={zoneProgress(progress, starts[MMO_INDEX])} />
     </>
   );
 };

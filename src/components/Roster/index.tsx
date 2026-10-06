@@ -3,6 +3,7 @@ import { FC, useMemo, useRef } from "react";
 import tw from "twin.macro";
 
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
+import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel } from "@/components/Panel";
 import { CharacterCard } from "@/components/Roster/CharacterCard";
 import { Text } from "@/components/Text";
@@ -30,6 +31,7 @@ export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters }: Ros
   const isRevealed = useInView(gridRef, { threshold: 0.15 });
   const calculator = useMemo(() => new TenureCalculator(asOf), [asOf]);
   const { characterClass, selectCharacter } = useGameStateHook();
+  const { settings } = useLensStateHook();
 
   return (
     <Section id={SECTION_IDS.roster}>
@@ -46,7 +48,8 @@ export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters }: Ros
               labels={labels}
               isRevealed={isRevealed}
               order={index}
-              isSelected={character.characterClass === characterClass}
+              isSelected={settings.gameLayer && character.characterClass === characterClass}
+              isSelectable={settings.gameLayer}
               onSelect={selectCharacter}
             />
           ))}

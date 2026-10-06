@@ -126,10 +126,10 @@ export const TaskMix: FC<AiUsageMixView> = ({ title, description, tasks, notes, 
         {tasks.map((task, rowIndex) => (
           <Row key={task.name}>
             <RowLabel>
-              <DecodedText text={task.name} isActive={isInView} delay={rowIndex * rowDelayMs} />
+              <DecodedText text={task.name} isActive={isInView} delay={rowIndex * rowDelayMs} variant="body" />
             </RowLabel>
             <RowValue>
-              <DecodedText text={task.label} isActive={isInView} delay={rowIndex * rowDelayMs + task.litCells * bitDelayMs} />
+              <DecodedText text={task.label} isActive={isInView} delay={rowIndex * rowDelayMs + task.litCells * bitDelayMs} variant="body" />
             </RowValue>
             <Bits aria-hidden="true" style={{ gridTemplateColumns: `repeat(${trackLength}, minmax(0, 1fr))` }}>
               {Array.from({ length: trackLength }, (_, bitIndex) => (

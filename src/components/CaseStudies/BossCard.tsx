@@ -6,6 +6,7 @@ import { faSkull, faTreasureChest } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
+import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
 import { CaseStudy } from "@/types/case-studies";
 import { BossLabels } from "@/types/game";
@@ -46,7 +47,8 @@ const Card = styled.article(() => [
     }
 
     &[data-done="true"] .stamp,
-    &[data-done="true"] .loot {
+    &[data-done="true"] .loot,
+    &[data-game="false"] .loot {
       opacity: 1;
       transform: none;
     }
@@ -104,6 +106,8 @@ const Tag = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded
 export const BossCard: FC<BossCardProps> = ({ area, title, summary, points, tags, loot, labels }: BossCardProps) => {
   const cardRef = useRef<HTMLElement>(null);
   const { defeatBoss } = useGameStateHook();
+  // Without the game layer the card is a plain case study: no health, no stamp, the rule shown from the start.
+  const isGame = useLensStateHook().settings.gameLayer;
 
   useScrollProgressVar(cardRef, "--boss-progress", 0.7, {
     at: DEFEATED_AT,
@@ -112,22 +116,24 @@ export const BossCard: FC<BossCardProps> = ({ area, title, summary, points, tags
   });
 
   return (
-    <Card ref={cardRef}>
+    <Card ref={cardRef} data-game={isGame}>
       <Header>
         <Kind>
           <FontAwesomeIcon icon={faSkull} aria-hidden="true" />
           {labels.boss}
         </Kind>
         <Area>{area}</Area>
-        <Stamp className="stamp" aria-hidden="true">{labels.defeated}</Stamp>
+        {isGame && <Stamp className="stamp" aria-hidden="true">{labels.defeated}</Stamp>}
       </Header>
       <Title>{title}</Title>
-      <Health aria-hidden="true">
-        {labels.hp}
-        <Track>
-          <Fill className="hp-fill" />
-        </Track>
-      </Health>
+      {isGame && (
+        <Health aria-hidden="true">
+          {labels.hp}
+          <Track>
+            <Fill className="hp-fill" />
+          </Track>
+        </Health>
+      )}
       {summary.map((paragraph) => (
         <Threat key={paragraph}>{paragraph}</Threat>
       ))}

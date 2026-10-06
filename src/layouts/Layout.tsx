@@ -5,6 +5,9 @@ import tw, { css, styled } from "twin.macro";
 import { AppLoader, AppLoadingLines } from "@/components/AppLoader";
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
 import { Journey } from "@/components/Journey";
+import { LensGate } from "@/components/Lens";
+import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { ZONE_BOUNDARIES } from "@/config/zones";
 import { portfolioData  } from "@/data/resume";
 import { createJourneyTrail } from "@/services/journey/trail";
 
@@ -29,20 +32,27 @@ interface LayoutProps {
 // Built once: the trail only changes when the content does.
 const TRAIL = { sections: createJourneyTrail(portfolioData), labels: portfolioData.journeyTrail };
 
+const LENS_COUNTS = { zones: ZONE_BOUNDARIES.length, bosses: portfolioData.caseStudies.length };
+
 const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   const { isLoading } = useAppLoaderStateHook();
+  const { status } = useLensStateHook();
+  // The world starts once the reader has picked a view, so it is built with that view's settings, and runs
+  // under the entrance so it is already moving when the page opens.
+  const isWorldLive = !isLoading && (status === "entering" || status === "chosen");
 
   return (
     <>
       <AppLoader />
+      <LensGate content={portfolioData.lens} counts={LENS_COUNTS} />
       <Container style={isLoading ? { display: "none"} : {}}>
-        <Header title={title} />
+        <Header title={title} lens={portfolioData.lens} />
           {children}
         <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
       </Container>
       <AppLoadingLines />
       <Journey
-        isEnabled={!isLoading}
+        isEnabled={isWorldLive}
         hud={{ roster: portfolioData.roster, labels: portfolioData.hud, bossCount: portfolioData.caseStudies.length }}
         trail={TRAIL}
       />

@@ -5,6 +5,7 @@ import tw, { css, styled } from "twin.macro";
 import { faHammer } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel, PanelText } from "@/components/Panel";
 import { revealedCharacters } from "@/components/SkillForge/utils/reveal";
 import useAnimationProgress from "@/hooks/useAnimationProgress";
@@ -132,6 +133,8 @@ export const Station: FC<StationProps> = ({ id, title, description, items, conte
   const isActive = useInView(panelRef, { threshold: 0.15 });
   const progress = useAnimationProgress(isActive, REFINE_MS);
   const masks = useMemo(() => items.map((item) => toBinaryMask(item.name)), [items]);
+  // Skill names only decode in the full view; the others read them straight away.
+  const isPlain = useLensStateHook().settings.decode !== "all";
 
   return (
     <Panel id={id} ref={panelRef}>
@@ -153,7 +156,7 @@ export const Station: FC<StationProps> = ({ id, title, description, items, conte
               <span className="name">
                 <span className="sr-only">{item.name}</span>
                 <span aria-hidden="true">
-                  {revealed >= length ? item.name : decodeFrame(item.name, masks[index], revealed, Math.floor(progress * 40))}
+                  {isPlain || revealed >= length ? item.name : decodeFrame(item.name, masks[index], revealed, Math.floor(progress * 40))}
                 </span>
               </span>
               <span className="tier">

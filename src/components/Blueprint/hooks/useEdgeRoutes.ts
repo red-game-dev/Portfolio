@@ -17,6 +17,27 @@ interface EdgeLayout {
 
 const EMPTY: EdgeLayout = { width: 0, height: 0, edges: [] };
 
+// Where a box sits inside the drawing, from layout offsets rather than bounding rects. Offsets ignore CSS
+// transforms, so a tab switch that flips or scales the drawing while it lands does not bake the tilt into
+// the wires. Each positioned frame on the way up adds its own offset and border.
+const boxWithin = (element: HTMLElement, container: HTMLElement): Box | null => {
+  let left = element.offsetLeft;
+  let top = element.offsetTop;
+  let parent = element.offsetParent as HTMLElement | null;
+
+  while (parent && parent !== container) {
+    left += parent.offsetLeft + parent.clientLeft;
+    top += parent.offsetTop + parent.clientTop;
+    parent = parent.offsetParent as HTMLElement | null;
+  }
+
+  if (parent !== container) {
+    return null;
+  }
+
+  return { left, top, right: left + element.offsetWidth, bottom: top + element.offsetHeight };
+};
+
 // Connectors are drawn from where the boxes actually landed, so the grid can reflow at any width and the
 // lines follow. Measured once a frame at most, and only while the drawing is shown.
 export const useEdgeRoutes = (containerRef: RefObject<HTMLElement>, edges: BlueprintEdge[], isShown: boolean): EdgeLayout => {
@@ -34,18 +55,14 @@ export const useEdgeRoutes = (containerRef: RefObject<HTMLElement>, edges: Bluep
     const measure = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        const origin = container.getBoundingClientRect();
         const boxes = new Map<string, Box>();
 
         container.querySelectorAll<HTMLElement>("[data-bp-id]").forEach((element) => {
-          const rect = element.getBoundingClientRect();
+          const box = boxWithin(element, container);
 
-          boxes.set(element.dataset.bpId ?? "", {
-            left: rect.left - origin.left,
-            top: rect.top - origin.top,
-            right: rect.right - origin.left,
-            bottom: rect.bottom - origin.top,
-          });
+          if (box) {
+            boxes.set(element.dataset.bpId ?? "", box);
+          }
         });
 
         const placed = edges.flatMap((edge, index) => {
@@ -56,7 +73,7 @@ export const useEdgeRoutes = (containerRef: RefObject<HTMLElement>, edges: Bluep
           return route ? [{ key: `${edge.from}-${edge.to}-${index}`, edge, route }] : [];
         });
 
-        setLayout({ width: origin.width, height: origin.height, edges: placed });
+        setLayout({ width: container.clientWidth, height: container.clientHeight, edges: placed });
       });
     };
 

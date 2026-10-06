@@ -4,7 +4,10 @@ import { join } from "path";
 import { minWideWidth } from "@/components/Blueprint/utils/layout";
 import { isLens, LENS_SETTINGS, LENS_STAT_MAX, LENSES } from "@/config/lenses";
 import { AUDIENCE_ANCHORS, industryAnchor, ROLE_ANCHORS } from "@/config/sections";
+import { loadSectionBlueprints, loadVentureBlueprint } from "@/data/blueprints";
+import { ALL_VENTURE_BLUEPRINTS, SECTION_BLUEPRINTS } from "@/data/blueprints/all";
 import { portfolioData } from "@/data/resume";
+import { BlueprintSection } from "@/types/blueprints";
 
 const normalise = (name: string) => name.trim().toLowerCase();
 
@@ -127,9 +130,10 @@ describe("venture screenshots", () => {
 });
 
 describe("blueprints", () => {
-  const { labels, ...placed } = portfolioData.blueprints;
-  const deepDives = portfolioData.projects.flatMap((project) => (project.deepDive ? [project.deepDive.blueprint] : []));
-  const sectionBlueprints = Object.values(placed).flat();
+  const labels = portfolioData.blueprintLabels;
+  const ventureIds = portfolioData.projects.flatMap((project) => (project.deepDive ? [project.deepDive.blueprintId] : []));
+  const deepDives = ventureIds.map((id) => ALL_VENTURE_BLUEPRINTS[id]);
+  const sectionBlueprints = Object.values(SECTION_BLUEPRINTS).flat();
   const blueprints = [...sectionBlueprints, ...deepDives.filter((blueprint) => !sectionBlueprints.includes(blueprint))];
   const EMPLOYERS = ["Conrad", "Chiliz", "HyperPlay", "Authentic", "KPMG", "reNFT", "CoinOn"];
 
@@ -148,6 +152,15 @@ describe("blueprints", () => {
       !summary.role || !summary.scale || summary.stack?.length === 0 || journeys.some((journey) => journey.steps.length === 0));
 
     expect(thin.map((blueprint) => blueprint.id)).toEqual([]);
+  });
+
+  test("each section's loader fetches that section's drawings, and each venture's loader its own", async () => {
+    const sections = Object.keys(SECTION_BLUEPRINTS) as BlueprintSection[];
+    const loaded = await Promise.all(sections.map((section) => loadSectionBlueprints(section)));
+    const ventures = await Promise.all(ventureIds.map((id) => loadVentureBlueprint(id)));
+
+    expect(loaded).toEqual(sections.map((section) => SECTION_BLUEPRINTS[section]));
+    expect(ventures).toEqual(deepDives);
   });
 
   test("every blueprint has a unique id", () => {

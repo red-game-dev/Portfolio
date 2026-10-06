@@ -111,10 +111,11 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
   const [runMs, setRunMs] = useState<number | null>(null);
   const zoneCount = ZONE_BOUNDARIES.length;
 
-  // Read once, when the end is reached, so the number does not tick while it is being read.
+  // Read the first time the end is reached and kept, so the number neither ticks while it is read nor
+  // changes when the reader scrolls away and back.
   useEffect(() => {
     if (isReached) {
-      setRunMs(performance.now());
+      setRunMs((previous) => previous ?? performance.now());
     }
   }, [isReached]);
 

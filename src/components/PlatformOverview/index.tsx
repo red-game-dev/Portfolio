@@ -2,18 +2,19 @@ import { FC } from "react";
 
 import tw from "twin.macro";
 
-import { BlueprintList } from "@/components/Blueprint";
+import { BlueprintSection } from "@/components/Blueprint";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
-import { Blueprint, BlueprintLabels } from "@/types/blueprints";
+import { BlueprintLabels, BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
 import { ExpertiseContent } from "@/types/case-studies";
 import { SectionIntros } from "@/types/sections-intros";
 
 interface PlatformOverviewProps {
   intro: SectionIntros;
   expertise: ExpertiseContent;
-  blueprints: Blueprint[];
+  // Which drawings this section shows, fetched as it nears the screen.
+  blueprintSection: BlueprintSectionId;
   blueprintLabels: BlueprintLabels;
 }
 
@@ -47,7 +48,7 @@ const Kind = tw.li`text-xs leading-none text-white bg-[#161616] rounded-[2px] py
 
 // Expertise across the career: each tile is a kind of system built at several companies, and my own
 // platform follows as one worked example, not the only one.
-export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, blueprints, blueprintLabels }: PlatformOverviewProps) => (
+export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, blueprintSection, blueprintLabels }: PlatformOverviewProps) => (
   <Section id={SECTION_IDS.platform}>
     <Anchor id={ROLE_ANCHORS.enterprise} aria-hidden="true" />
     <SectionText intro={intro} />
@@ -75,7 +76,7 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
       <PanelText>{expertise.exampleDescription}</PanelText>
     </Panel>
     <Example>
-      <BlueprintList blueprints={blueprints} labels={blueprintLabels} />
+      <BlueprintSection section={blueprintSection} labels={blueprintLabels} />
     </Example>
   </Section>
 );

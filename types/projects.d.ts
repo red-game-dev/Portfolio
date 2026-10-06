@@ -1,6 +1,6 @@
 import { FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 
-import { Blueprint } from "@/types/blueprints";
+import type { VentureBlueprintId } from "@/data/blueprints/ventures";
 
 // The kind of region a project is on the world map, which sets its colour and its filter.
 export type ProjectKind = "game" | "web3" | "product" | "community" | "archive";
@@ -26,7 +26,8 @@ export interface ProjectDeepDive {
   screens?: ProjectScreen[];
   // In my own words, for example why it did not grow further.
   note?: string;
-  blueprint: Blueprint;
+  // The venture's drawing, loaded when the dialog opens.
+  blueprintId: VentureBlueprintId;
 }
 
 export interface ProjectDetail {

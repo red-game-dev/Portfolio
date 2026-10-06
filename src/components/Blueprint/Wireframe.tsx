@@ -210,7 +210,7 @@ export const Wireframe: FC<WireframeProps> = ({ device, screens, decision, outco
     {screens.length === 1 ? (
       <Screen screen={screens[0]} device={device} />
     ) : (
-      <Strip>
+      <Strip data-scroll-x>
         {screens.map((screen, index) => (
           <Fragment key={screen.title}>
             {index > 0 && <Arrow aria-hidden="true">→</Arrow>}

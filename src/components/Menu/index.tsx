@@ -107,6 +107,7 @@ const NAV_ITEMS: Array<NavGroup & { label: string; href: string }> = [
 ];
 
 export const Menu = ({ active }: MenuProps) => {
+  const [isOnGlanceSection] = useCollision(SECTION_IDS.glance);
   const [isOnAboutOnly] = useCollision("section-about");
   const [isOnTerminalSection] = useCollision("section-terminal");
   const [isOnSectionHistory] = useCollision("section-history");
@@ -129,7 +130,7 @@ export const Menu = ({ active }: MenuProps) => {
   const [isOnFinaleSection] = useCollision("section-Wow");
 
   // One item per stop on the journey: each zone's sections light up the item that leads into it.
-  const isOnSectionAbout = isOnAboutOnly || isOnTerminalSection;
+  const isOnSectionAbout = isOnGlanceSection || isOnAboutOnly || isOnTerminalSection;
   const isOnEngineering = isOnSkillAreasSection || isOnPlatformSection || isOnCodeReviewSection;
   const isOnGameWorld = isOnRosterSection || isOnForgeSection || isOnTalentsSection || isOnCaseStudiesSection || isOnDuelsSection ||
     isOnProjectsOnly || isOnEngineRoomSection || isOnRecommendationsSection || isOnArenaSection || isOnFinaleSection;

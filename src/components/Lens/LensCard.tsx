@@ -30,7 +30,8 @@ const Card = styled.button(({ order }: { order: number }) => [
   tw`relative flex flex-row md:flex-col gap-[14px] md:gap-[16px] w-full p-[16px] md:p-[22px] text-left cursor-pointer
      text-[#ccc] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E] rounded-[2px]`,
   css`
-    animation: ${dealIn} 0.5s cubic-bezier(0.165, 0.85, 0.45, 1) ${order * 120}ms both;
+    /* Backwards, not both: once dealt, the card's own styles apply again, so the hover lift still works. */
+    animation: ${dealIn} 0.5s cubic-bezier(0.165, 0.85, 0.45, 1) ${order * 120}ms backwards;
     transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 
     &:hover,

@@ -3,12 +3,14 @@ import { FC, KeyboardEvent, SyntheticEvent, useCallback, useEffect, useRef, useS
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
+import dynamic from "next/dynamic";
+
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
 import { ENTRANCE_TIMING } from "@/components/Lens/config";
-import { Entrance } from "@/components/Lens/Entrance";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import { LensCard } from "@/components/Lens/LensCard";
+import { loadEntrance } from "@/components/Lens/loaders";
 import { DEFAULT_LENS, Lens } from "@/config/lenses";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { LensContent } from "@/types/lens";
@@ -22,6 +24,10 @@ interface LeavingProps {
   lens: Lens;
   isLeaving: boolean;
 }
+
+const Entrance = dynamic(() => loadEntrance().then((module) => module.Entrance), { ssr: false });
+
+const CHOOSER_TITLE_ID = "lens-chooser-title";
 
 const EXIT = `${ENTRANCE_TIMING.exitMs}ms cubic-bezier(0.7, 0, 0.2, 1) forwards`;
 
@@ -112,6 +118,12 @@ export const LensGate: FC<LensGateProps> = ({ content, counts }: LensGateProps) 
   const isOpen = !isLoading && (status === "choosing" || status === "entering");
 
   useEffect(() => {
+    if (status === "choosing") {
+      void loadEntrance();
+    }
+  }, [status]);
+
+  useEffect(() => {
     const element = dialogRef.current;
 
     if (!element) {
@@ -166,6 +178,19 @@ export const LensGate: FC<LensGateProps> = ({ content, counts }: LensGateProps) 
     }
   }, [finishEntrance, status, switchLens]);
 
+  // The browser may close the dialog itself (a second Escape in a row cannot be cancelled), so a close the
+  // gate did not ask for still lands the reader on the page instead of behind a hidden, scroll locked overlay.
+  const onClose = useCallback(() => {
+    if (status === "choosing") {
+      switchLens(DEFAULT_LENS);
+    }
+
+    if (status === "choosing" || status === "entering") {
+      setIsLeaving(false);
+      finishEntrance();
+    }
+  }, [finishEntrance, status, switchLens]);
+
   // Arrow keys move between the cards, as on a game's select screen.
   const moveFocus = useCallback((event: KeyboardEvent<HTMLButtonElement>) => {
     const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
@@ -180,7 +205,13 @@ export const LensGate: FC<LensGateProps> = ({ content, counts }: LensGateProps) 
   }, []);
 
   return (
-    <Dialog ref={dialogRef} onCancel={skip} aria-labelledby="lens-chooser-title">
+    <Dialog
+      ref={dialogRef}
+      onCancel={skip}
+      onClose={onClose}
+      aria-labelledby={status === "choosing" ? CHOOSER_TITLE_ID : undefined}
+      aria-label={status === "choosing" ? undefined : content.names[lens]}
+    >
       {isOpen && (
         <Shell lens={lens} isLeaving={isLeaving}>
           <Door side="top" lens={lens} isLeaving={isLeaving} />
@@ -189,7 +220,7 @@ export const LensGate: FC<LensGateProps> = ({ content, counts }: LensGateProps) 
             {status === "choosing" ? (
               <Chooser>
                 <Heading>
-                  <Title id="lens-chooser-title">{content.chooser.title}</Title>
+                  <Title id={CHOOSER_TITLE_ID}>{content.chooser.title}</Title>
                   <Description>{content.chooser.description}</Description>
                 </Heading>
                 <Cards>

@@ -119,12 +119,5 @@ export interface BlueprintLabels {
   showcase: string;
 }
 
-export interface BlueprintContent {
-  labels: BlueprintLabels;
-  // Keyed by the section they appear in.
-  ai: Blueprint[];
-  chain: Blueprint[];
-  platform: Blueprint[];
-  casino: Blueprint[];
-  mmo: Blueprint[];
-}
+// The page sections that carry blueprints, each loaded on demand.
+export type BlueprintSection = "ai" | "chain" | "platform" | "casino" | "mmo";

@@ -77,26 +77,26 @@ export default function Home() {
         labels={portfolioData.historyLabels}
         industries={portfolioData.headline.industries}
       />
-      <AiUsage {...aiUsage} blueprints={portfolioData.blueprints.ai} blueprintLabels={portfolioData.blueprints.labels} />
+      <AiUsage {...aiUsage} blueprintSection="ai" blueprintLabels={portfolioData.blueprintLabels} />
       <Web3
         intro={portfolioData.sections.web3}
         content={portfolioData.web3}
-        blueprints={portfolioData.blueprints.chain}
-        blueprintLabels={portfolioData.blueprints.labels}
+        blueprintSection="chain"
+        blueprintLabels={portfolioData.blueprintLabels}
       />
       <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
       <PlatformOverview
         intro={portfolioData.sections.platform}
         expertise={portfolioData.expertise}
-        blueprints={portfolioData.blueprints.platform}
-        blueprintLabels={portfolioData.blueprints.labels}
+        blueprintSection="platform"
+        blueprintLabels={portfolioData.blueprintLabels}
       />
       <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
       <IGaming
         intro={portfolioData.sections.igaming}
         content={portfolioData.igaming}
-        blueprints={portfolioData.blueprints.casino}
-        blueprintLabels={portfolioData.blueprints.labels}
+        blueprintSection="casino"
+        blueprintLabels={portfolioData.blueprintLabels}
       />
       <Roster intro={portfolioData.sections.roster} {...portfolioData.roster} />
       <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
@@ -118,9 +118,9 @@ export default function Home() {
         projects={portfolioData.projects}
         intro={portfolioData.sections.projects}
         content={portfolioData.projectMap}
-        blueprintLabels={portfolioData.blueprints.labels}
+        blueprintLabels={portfolioData.blueprintLabels}
       />
-      <EngineRoom intro={portfolioData.sections.engineRoom} blueprints={portfolioData.blueprints.mmo} labels={portfolioData.blueprints.labels} />
+      <EngineRoom intro={portfolioData.sections.engineRoom} blueprintSection="mmo" labels={portfolioData.blueprintLabels} />
       <Recommendations
         intro={portfolioData.sections.recommendations}
         recommendations={portfolioData.recommendations}

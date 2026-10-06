@@ -6,6 +6,7 @@ import { faChevronLeft, faChevronRight } from "@fortawesome/pro-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Image } from "@/components/Image";
+import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { ProjectScreen } from "@/types/projects";
 
 interface ScreenCarouselProps {
@@ -53,26 +54,51 @@ const Shot = styled(Image)(() => [tw`object-cover`]);
 
 const Caption = tw.p`m-0 text-sm text-[#bbb]`;
 
+// At either end an arrow dims but stays focusable (aria-disabled, not disabled), so keyboard focus is not
+// dropped onto the page when the last shot is reached.
 const Arrow = styled.button(({ side }: { side: "left" | "right" }) => [
   tw`absolute top-1/2 z-[2] flex items-center justify-center w-[38px] h-[38px] cursor-pointer text-white rounded-full
-     bg-[rgba(16, 16, 16, 0.78)] border-[1px] border-solid border-[#333] disabled:opacity-30 disabled:cursor-default`,
+     bg-[rgba(16, 16, 16, 0.78)] border-[1px] border-solid border-[#333]`,
   side === "left" ? tw`left-[10px]` : tw`right-[10px]`,
   css`
     transform: translateY(-50%);
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, opacity 0.2s ease;
 
-    &:hover:not(:disabled),
+    &[aria-disabled="true"] {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    &:hover:not([aria-disabled="true"]),
     &:focus-visible {
       border-color: var(--kind);
     }
   `,
 ]);
 
-const Dots = tw.div`flex flex-row justify-center gap-[8px]`;
+const Dots = tw.div`flex flex-row justify-center`;
 
+// A 24px target around an 8px dot, so the dots are easy to tap.
 const Dot = styled.button(({ isOn }: { isOn: boolean }) => [
-  tw`w-[8px] h-[8px] p-0 cursor-pointer rounded-full border-0`,
-  isOn ? tw`bg-[var(--kind)]` : tw`bg-[#3a3a3a]`,
+  tw`relative w-[24px] h-[24px] p-0 cursor-pointer bg-transparent border-0`,
+  css`
+    &::before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background: ${isOn ? "var(--kind)" : "#3a3a3a"};
+      transition: background 0.2s ease;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--kind);
+      outline-offset: -2px;
+    }
+  `,
 ]);
 
 // Real screenshots, one at a time: swipe, the arrows, the dots or the arrow keys move between them.
@@ -84,7 +110,7 @@ export const ScreenCarousel: FC<ScreenCarouselProps> = ({ screens, labels }: Scr
     const track = trackRef.current;
     const target = Math.max(0, Math.min(screens.length - 1, next));
 
-    track?.scrollTo({ left: target * track.clientWidth, behavior: "smooth" });
+    track?.scrollTo({ left: target * track.clientWidth, behavior: prefersReducedMotion() ? "auto" : "smooth" });
     setIndex(target);
   }, [screens.length]);
 
@@ -112,7 +138,7 @@ export const ScreenCarousel: FC<ScreenCarouselProps> = ({ screens, labels }: Scr
   return (
     <Carousel onKeyDown={onKeyDown} aria-roledescription="carousel">
       <Viewport>
-        <Track ref={trackRef} onScroll={onScroll}>
+        <Track ref={trackRef} onScroll={onScroll} data-scroll-x>
           {screens.map((screen, at) => (
             <Slide key={screen.image} aria-roledescription="slide" aria-label={position(at)}>
               <Frame>
@@ -122,16 +148,16 @@ export const ScreenCarousel: FC<ScreenCarouselProps> = ({ screens, labels }: Scr
             </Slide>
           ))}
         </Track>
-        <Arrow type="button" side="left" aria-label={labels.previous} disabled={index === 0} onClick={() => go(index - 1)}>
+        <Arrow type="button" side="left" aria-label={labels.previous} aria-disabled={index === 0} onClick={() => go(index - 1)}>
           <FontAwesomeIcon icon={faChevronLeft} />
         </Arrow>
-        <Arrow type="button" side="right" aria-label={labels.next} disabled={index === screens.length - 1} onClick={() => go(index + 1)}>
+        <Arrow type="button" side="right" aria-label={labels.next} aria-disabled={index === screens.length - 1} onClick={() => go(index + 1)}>
           <FontAwesomeIcon icon={faChevronRight} />
         </Arrow>
       </Viewport>
       <Dots>
         {screens.map((screen, at) => (
-          <Dot key={screen.image} type="button" isOn={at === index} aria-label={position(at)} aria-current={at === index} onClick={() => go(at)} />
+          <Dot key={screen.image} type="button" isOn={at === index} aria-label={position(at)} aria-current={at === index ? "true" : undefined} onClick={() => go(at)} />
         ))}
       </Dots>
     </Carousel>

@@ -9,6 +9,12 @@ interface DecodeProgress {
   tick: number;
 }
 
+const START: DecodeProgress = { revealed: 0, tick: 0 };
+
+// Keeps the same object when nothing moved, so a reset that changes nothing does not render again.
+const settleAt = (revealed: number, tick: number) => (previous: DecodeProgress): DecodeProgress =>
+  (previous.revealed === revealed && previous.tick === tick ? previous : { revealed, tick });
+
 // Starts as bits and resolves into `text` left to right once `isActive` turns true. Server and
 // first client render both show the bits, so hydration always matches. `duration` caps the whole
 // reveal for long text, which would otherwise take a character time per character. `isInstant` shows the
@@ -16,18 +22,18 @@ interface DecodeProgress {
 export const useDecodedText = (text: string, isActive: boolean, delay = 0, duration?: number, isInstant = false) => {
   const mask = useMemo(() => toBinaryMask(text), [text]);
   const length = useMemo(() => Array.from(text).length, [text]);
-  const [progress, setProgress] = useState<DecodeProgress>({ revealed: 0, tick: 0 });
+  const [progress, setProgress] = useState<DecodeProgress>(START);
 
   useEffect(() => {
     // Back to bits when it leaves, so it decodes again the next time it comes into view.
     if (!isActive) {
-      setProgress({ revealed: 0, tick: 0 });
+      setProgress(settleAt(0, 0));
 
       return;
     }
 
     if (isInstant || prefersReducedMotion()) {
-      setProgress({ revealed: length, tick: 0 });
+      setProgress(settleAt(length, 0));
 
       return;
     }
@@ -42,7 +48,7 @@ export const useDecodedText = (text: string, isActive: boolean, delay = 0, durat
       const revealed = Math.min(length, Math.max(0, Math.floor((time - startedAt - delay) / characterMs)));
       const tick = Math.floor((time - startedAt) / DECODE_TIMING.tickMs);
 
-      setProgress((previous) => (previous.revealed === revealed && previous.tick === tick ? previous : { revealed, tick }));
+      setProgress(settleAt(revealed, tick));
 
       if (revealed < length) {
         frameId = requestAnimationFrame(step);

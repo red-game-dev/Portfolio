@@ -1,10 +1,11 @@
-import { FC, KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, FC, FocusEvent, KeyboardEvent, MouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
 import { LENS_SPRITES } from "@/components/Lens/config";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
+import { loadEntrance } from "@/components/Lens/loaders";
 import { PixelSprite } from "@/components/PixelSprite";
 import { Lens, LENS_ACCENTS, LENSES } from "@/config/lenses";
 import { LensContent } from "@/types/lens";
@@ -70,16 +71,18 @@ const OptionText = tw.span`flex flex-col`;
 
 const OptionHint = tw.span`text-xs text-[#888]`;
 
-const accentStyle = (lens: Lens) => ({ "--lens-accent": LENS_ACCENTS[lens].color, "--lens-rgb": LENS_ACCENTS[lens].rgb } as React.CSSProperties);
+const accentStyle = (lens: Lens) => ({ "--lens-accent": LENS_ACCENTS[lens].color, "--lens-rgb": LENS_ACCENTS[lens].rgb } as CSSProperties);
 
-// The header control for changing who the page is written for, at any point.
+// The header control for changing who the page is written for, at any point. A disclosure: a button that
+// shows and hides a short list of buttons, one per view.
 export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) => {
   const { lens } = useLensStateHook();
   const { chooseLens } = useLensStatusHook();
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
-  const taglines = Object.fromEntries(content.cards.map((card) => [card.lens, card.tagline])) as Record<Lens, string>;
+  const optionsId = useId();
+  const taglines = useMemo(() => new Map(content.cards.map((card) => [card.lens, card.tagline])), [content.cards]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -101,6 +104,8 @@ export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) =>
   const toggle = useCallback((event: MouseEvent) => {
     event.stopPropagation();
     setIsOpen((value) => !value);
+    // A choice is likely next, so its entrance is fetched now and plays without a gap.
+    void loadEntrance();
   }, []);
 
   // A new view starts from the top with its own entrance, so the reader sees the immersion they picked.
@@ -115,8 +120,17 @@ export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) =>
     }
 
     window.scrollTo({ top: 0, behavior: "instant" });
+    // The entrance dialog hands focus back to whatever had it when it opened, and the option is about to go.
+    toggleRef.current?.focus({ preventScroll: true });
     chooseLens(next);
   }, [chooseLens, lens]);
+
+  // Tabbing out of the switch closes it, as clicking outside does.
+  const closeOnLeave = useCallback((event: FocusEvent) => {
+    if (!wrapperRef.current?.contains(event.relatedTarget as Node | null)) {
+      setIsOpen(false);
+    }
+  }, []);
 
   const closeOnEscape = useCallback((event: KeyboardEvent) => {
     if (event.key === "Escape") {
@@ -126,12 +140,12 @@ export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) =>
   }, []);
 
   return (
-    <Wrapper ref={wrapperRef} onKeyDown={closeOnEscape} style={accentStyle(lens)}>
+    <Wrapper ref={wrapperRef} onKeyDown={closeOnEscape} onBlur={closeOnLeave} style={accentStyle(lens)}>
       <Toggle
         ref={toggleRef}
         type="button"
         aria-expanded={isOpen}
-        aria-haspopup="true"
+        aria-controls={isOpen ? optionsId : undefined}
         aria-label={`${content.switchLabel}: ${content.names[lens]}`}
         onClick={toggle}
       >
@@ -141,14 +155,14 @@ export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) =>
         <Chevron isOpen={isOpen} aria-hidden="true" />
       </Toggle>
       {isOpen && (
-        <Options>
+        <Options id={optionsId}>
           {LENSES.map((option) => (
             <li key={option} style={accentStyle(option)}>
-              <Option type="button" isCurrent={option === lens} aria-pressed={option === lens} onClick={(event) => choose(event, option)}>
+              <Option type="button" isCurrent={option === lens} aria-current={option === lens ? "true" : undefined} onClick={(event) => choose(event, option)}>
                 <Face aria-hidden="true"><PixelSprite {...LENS_SPRITES[option]} /></Face>
                 <OptionText>
                   <span>{content.names[option]}</span>
-                  <OptionHint>{taglines[option]}</OptionHint>
+                  <OptionHint>{taglines.get(option)}</OptionHint>
                 </OptionText>
               </Option>
             </li>

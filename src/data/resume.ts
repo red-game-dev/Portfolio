@@ -50,11 +50,11 @@ import {
   faWandMagicSparkles
 } from "@fortawesome/pro-duotone-svg-icons";
 
-import { ADOTTA_BLUEPRINT, AMW_BLUEPRINT, ARCAVIUM_BLUEPRINT, blueprintContent, GOZ_BLUEPRINT, PUNTI_BLUEPRINT } from "@/data/blueprints";
+import { blueprintLabels } from "@/data/blueprints/labels";
 import { githubActivity } from "@/data/githubActivity";
 import { lensContent } from "@/data/lens";
 import { PortfolioAiUsage } from "@/types/ai-usage";
-import { BlueprintContent } from "@/types/blueprints";
+import { BlueprintLabels } from "@/types/blueprints";
 import { CaseStudy, CaseStudyFilters, ExpertiseContent } from "@/types/case-studies";
 import { CodeReviewContent } from "@/types/code-review";
 import { Detail } from "@/types/details";
@@ -121,7 +121,7 @@ export interface PortfolioData {
   lens: LensContent;
   arena: ArenaContent;
   finale: FinaleContent;
-  blueprints: BlueprintContent;
+  blueprintLabels: BlueprintLabels;
   expertise: ExpertiseContent;
   codeReview: CodeReviewContent;
   web3: Web3Content;
@@ -2709,7 +2709,7 @@ export const portfolioData: PortfolioData = {
             alt: "Wide banner of a stone arena in a forest with the title Chapter 5, Discovery of New Lands",
           },
         ],
-        blueprint: GOZ_BLUEPRINT,
+        blueprintId: "goz",
       },
       from: "Apr 2015",
     },
@@ -2801,7 +2801,7 @@ export const portfolioData: PortfolioData = {
             alt: "Web page with a menu of large tiles labelled Anime Book, Page, Group and Channel under an artwork banner",
           },
         ],
-        blueprint: AMW_BLUEPRINT,
+        blueprintId: "amw",
       },
       from: "Sep 2010",
       to: "Apr 2019",
@@ -3160,7 +3160,7 @@ export const portfolioData: PortfolioData = {
       ],
       techStack: [],
       countsForSkills: false,
-      deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprint: ARCAVIUM_BLUEPRINT },
+      deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprintId: "arcavium" },
       period: "A past venture",
       // Undated on purpose: the year only orders the map and is never shown.
       from: "2020",
@@ -3180,7 +3180,7 @@ export const portfolioData: PortfolioData = {
       ],
       techStack: [],
       countsForSkills: false,
-      deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprint: ADOTTA_BLUEPRINT },
+      deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprintId: "adotta" },
       period: "A past venture",
       // Undated on purpose: the year only orders the map and is never shown.
       from: "2020",
@@ -3200,7 +3200,7 @@ export const portfolioData: PortfolioData = {
       ],
       techStack: [],
       countsForSkills: false,
-      deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprint: PUNTI_BLUEPRINT },
+      deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprintId: "punti" },
       period: "A past venture",
       // Undated on purpose: the year only orders the map and is never shown.
       from: "2020",
@@ -3667,7 +3667,7 @@ export const portfolioData: PortfolioData = {
     exampleDescription: `A full financial system end to end, multi market commerce, my own platform's core and one payment through it, and a ranking
     pipeline. Each is a glance, not the full design.`,
   },
-  blueprints: blueprintContent,
+  blueprintLabels,
   recommendations: [
     {
       quote: `The breadth of his knowledge about software, systems and architecture is excellent and has shown to be valuable beyond the

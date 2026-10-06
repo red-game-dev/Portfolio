@@ -6,7 +6,7 @@ import tw, { css, styled } from "twin.macro";
 import { faArrowLeft, faArrowRight, faArrowUpRightFromSquare, faCodeBranch, faXmark } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { Blueprint } from "@/components/Blueprint";
+import { VentureBlueprint } from "@/components/Blueprint";
 import { DecodedText } from "@/components/DecodedText";
 import { Image } from "@/components/Image";
 import { KIND_COLOURS } from "@/components/Projects/config";
@@ -222,8 +222,13 @@ export const RegionDialog: FC<RegionDialogProps> = ({
     }
   };
 
-  // Arrow keys travel between regions, like moving across a map.
+  // Arrow keys travel between regions, like moving across a map, unless they are moving something sideways
+  // inside the dialog (anything marked data-scroll-x: a strip of screens, a row of tabs) or carry a modifier.
   const onKeyDown = (event: KeyboardEvent<HTMLDialogElement>) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || (event.target as HTMLElement).closest("[data-scroll-x]")) {
+      return;
+    }
+
     if (event.key === "ArrowLeft" && previous) {
       onPrevious();
     } else if (event.key === "ArrowRight" && next) {
@@ -311,12 +316,13 @@ export const RegionDialog: FC<RegionDialogProps> = ({
                 <>
                   <GroupHeading>{labels.screens}</GroupHeading>
                   <ScreenCarousel
+                    key={project.title}
                     screens={project.deepDive.screens}
                     labels={{ previous: labels.screenPrevious, next: labels.screenNext, position: labels.screenPosition }}
                   />
                 </>
               )}
-              <Blueprint key={project.title} {...project.deepDive.blueprint} labels={blueprintLabels} isBleed={false} />
+              <VentureBlueprint key={project.title} id={project.deepDive.blueprintId} labels={blueprintLabels} />
             </Deep>
           )}
           <Footer>

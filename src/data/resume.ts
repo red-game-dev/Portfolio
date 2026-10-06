@@ -1496,10 +1496,10 @@ export const portfolioData: PortfolioData = {
       isVenture: true,
       countsForSkills: false,
       industries: ["gamePublishing"],
-      period: "An early venture",
+      period: "A past venture",
       // Undated on purpose: the year only places it on the timeline and is never shown.
-      from: "2012",
-      to: "2012",
+      from: "2020",
+      to: "2020",
       productOutcome:
         "Anyone could build and run a whole game, client and server, without writing an engine, and drop into code only where they wanted",
       description: [
@@ -1518,10 +1518,10 @@ export const portfolioData: PortfolioData = {
       isVenture: true,
       countsForSkills: false,
       industries: ["social", "fintech"],
-      period: "An early venture",
+      period: "A past venture",
       // Undated on purpose: the year only places it on the timeline and is never shown.
-      from: "2012",
-      to: "2012",
+      from: "2020",
+      to: "2020",
       productOutcome:
         "Giving to an animal shelter earned points that partners accepted, so a donation came back to the donor as value",
       description: [
@@ -1540,10 +1540,10 @@ export const portfolioData: PortfolioData = {
       isVenture: true,
       countsForSkills: false,
       industries: ["ecommerce", "fintech"],
-      period: "An early venture",
+      period: "A past venture",
       // Undated on purpose: the year only places it on the timeline and is never shown.
-      from: "2012",
-      to: "2012",
+      from: "2020",
+      to: "2020",
       productOutcome:
         "Shops, outlets and restaurants got a ready loyalty scheme, online and in store, without building or maintaining an app",
       description: [
@@ -2653,7 +2653,7 @@ export const portfolioData: PortfolioData = {
       hint: "Pick a region to open its map. The line is the route I took, oldest first.",
       deepDive: "A deeper look",
       screens: "From the real thing",
-      undated: "Early",
+      undated: "Past",
     },
   },
   projects: [
@@ -3146,7 +3146,7 @@ export const portfolioData: PortfolioData = {
       status: "archived",
       title: "Arcavium",
       category: "Low code game builder",
-      intro: "A whole game, client and server, built from menus and uploaded models, with code only where you want it. An early venture of mine.",
+      intro: "A whole game, client and server, built from menus and uploaded models, with code only where you want it. A past venture of mine.",
       responsibilities: [
         "The game client and server generated from menu choices and uploaded models",
         "Custom classes in several languages, run safely by the platform",
@@ -3155,11 +3155,11 @@ export const portfolioData: PortfolioData = {
       ],
       techStack: [],
       countsForSkills: false,
-      deepDive: { note: "One of my early ventures. It launched, and what it lacked to grow was funding.", blueprint: ARCAVIUM_BLUEPRINT },
-      period: "An early venture",
+      deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprint: ARCAVIUM_BLUEPRINT },
+      period: "A past venture",
       // Undated on purpose: the year only orders the map and is never shown.
-      from: "2012",
-      to: "2012",
+      from: "2020",
+      to: "2020",
     },
     {
       icon: faPaw,
@@ -3167,7 +3167,7 @@ export const portfolioData: PortfolioData = {
       status: "archived",
       title: "Adotta",
       category: "Donations for shelters",
-      intro: "A donations app for animal shelters, where every donation earned points to spend with partners. An early venture of mine.",
+      intro: "A donations app for animal shelters, where every donation earned points to spend with partners. A past venture of mine.",
       responsibilities: [
         "Shelter profiles with what each one needs",
         "Donations that earn points, spent with partner businesses",
@@ -3175,11 +3175,11 @@ export const portfolioData: PortfolioData = {
       ],
       techStack: [],
       countsForSkills: false,
-      deepDive: { note: "One of my early ventures. It launched, and what it lacked to grow was funding.", blueprint: ADOTTA_BLUEPRINT },
-      period: "An early venture",
+      deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprint: ADOTTA_BLUEPRINT },
+      period: "A past venture",
       // Undated on purpose: the year only orders the map and is never shown.
-      from: "2012",
-      to: "2012",
+      from: "2020",
+      to: "2020",
     },
     {
       icon: faStore,
@@ -3187,7 +3187,7 @@ export const portfolioData: PortfolioData = {
       status: "archived",
       title: "Punti",
       category: "Loyalty platform",
-      intro: "Loyalty for shops, outlets and restaurants without building an app of their own. An early venture of mine.",
+      intro: "Loyalty for shops, outlets and restaurants without building an app of their own. A past venture of mine.",
       responsibilities: [
         "One customer app holding points for every business",
         "Earning at the till or online, by each business's own rules",
@@ -3195,11 +3195,11 @@ export const portfolioData: PortfolioData = {
       ],
       techStack: [],
       countsForSkills: false,
-      deepDive: { note: "One of my early ventures. It launched, and what it lacked to grow was funding.", blueprint: PUNTI_BLUEPRINT },
-      period: "An early venture",
+      deepDive: { note: "One of my past ventures. It launched, and what it lacked to grow was funding.", blueprint: PUNTI_BLUEPRINT },
+      period: "A past venture",
       // Undated on purpose: the year only orders the map and is never shown.
-      from: "2012",
-      to: "2012",
+      from: "2020",
+      to: "2020",
     },
     {
       icon: faBoxArchive,

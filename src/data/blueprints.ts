@@ -349,9 +349,9 @@ export const AMW_BLUEPRINT: Blueprint = {
   ],
 };
 
-// Early ventures, kept undated on purpose. What they did comes from my own description; no stack is on record,
+// Past ventures, kept undated on purpose. What they did comes from my own description; no stack is on record,
 // so none is shown.
-const EARLY_SCALE = "An early venture, launched and closed for lack of funding";
+const PAST_SCALE = "A past venture, launched and closed for lack of funding";
 
 export const ARCAVIUM_BLUEPRINT: Blueprint = {
   id: "low-code-game-builder",
@@ -362,7 +362,7 @@ export const ARCAVIUM_BLUEPRINT: Blueprint = {
     "several languages only where you want to, and let the platform host and run the rest.",
   summary: {
     role: "Founder, CEO and CTO: proposed the product and its architecture, and built it",
-    scale: EARLY_SCALE,
+    scale: PAST_SCALE,
   },
   architecture: {
     columns: 4,
@@ -472,7 +472,7 @@ export const ADOTTA_BLUEPRINT: Blueprint = {
   caption: "Donors give to animal shelters and earn points they can spend wherever partners accept them.",
   summary: {
     role: "Founder and CTO: proposed the product and built it",
-    scale: EARLY_SCALE,
+    scale: PAST_SCALE,
   },
   architecture: {
     columns: 3,
@@ -569,7 +569,7 @@ export const PUNTI_BLUEPRINT: Blueprint = {
   caption: "A ready loyalty scheme for online shops, physical outlets and restaurants, so a business never builds or maintains its own app.",
   summary: {
     role: "Founder and CTO: proposed the product and built it",
-    scale: "An early venture against established competition, launched and closed for lack of funding",
+    scale: "A past venture against established competition, launched and closed for lack of funding",
   },
   architecture: {
     columns: 3,

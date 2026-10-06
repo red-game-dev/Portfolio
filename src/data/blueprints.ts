@@ -512,7 +512,7 @@ export const blueprintContent: BlueprintContent = {
             nodes: [
               { id: "streaming", label: "Video streaming" },
               { id: "game-ui", label: "Game UI", detail: "Desktop and mobile, canvas" },
-              { id: "realtime", label: "Real time service", detail: "Node.js and WebSockets" },
+              { id: "realtime", label: "Real time service", detail: "Bets and results over WebSockets, Node.js" },
               { id: "casino-app", label: "Mobile app" },
               { id: "onboarding", label: "Operator onboarding tools", detail: "Integration automated", span: 2 },
             ],
@@ -532,7 +532,7 @@ export const blueprintContent: BlueprintContent = {
           { from: "live-table", to: "streaming" },
           { from: "streaming", to: "game-ui" },
           { from: "live-table", to: "realtime" },
-          { from: "realtime", to: "game-ui", isTwoWay: true, label: "bets and results" },
+          { from: "realtime", to: "game-ui", isTwoWay: true },
           { from: "game-ui", to: "operator-site" },
           { from: "casino-app", to: "operator-app" },
           { from: "onboarding", to: "casino-operators" },

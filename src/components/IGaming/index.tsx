@@ -6,6 +6,7 @@ import tw, { css, styled } from "twin.macro";
 import { BlueprintSection } from "@/components/Blueprint";
 import { PlayingCard } from "@/components/IGaming/PlayingCard";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import { Panel } from "@/components/Panel";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
@@ -130,7 +131,10 @@ export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection, bl
   const isDealt = useInView(cardsRef, { threshold: 0.2 });
   // With the game layer the cards are played at a live table; the quick view deals them straight out.
   const { settings } = useLensStateHook();
-  const LiveTable = useLiveTableCode(settings.gameLayer);
+  // The first client render is always the full view, before the chosen one is read, so the game is only
+  // fetched once the view has settled.
+  const { status } = useLensStatusHook();
+  const LiveTable = useLiveTableCode(status === "chosen" && settings.gameLayer);
 
   return (
     <Section id={SECTION_IDS.igaming}>

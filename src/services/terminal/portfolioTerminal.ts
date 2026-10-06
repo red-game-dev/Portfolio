@@ -19,7 +19,7 @@ const GOTO_TARGETS: Record<string, string> = {
   about: "section-about",
   history: "section-history",
   services: "section-services",
-  skills: "section-skills-ProgrammingLanguagesFrameworksSkills",
+  skills: "section-skills",
   ai: SECTION_IDS.aiUsage,
   web3: SECTION_IDS.web3,
   igaming: SECTION_IDS.igaming,

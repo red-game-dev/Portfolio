@@ -22,12 +22,15 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "Oracle OCI Procurement": ["Oracle OCI"],
   "SAP (customer master data)": ["SAP Ariba"],
   "Claude Code Max CLI": ["Claude Code"],
+  "Strapi": ["Strapi v5"],
 };
 
 // Names too ambiguous to look for in prose: "Git" would match "git-diff" in a sentence about a readout.
 export const SKILL_MENTION_EXCLUDE = ["Git"];
 
 // Which skill groups are forge stations, in order. Languages and team skills are talents instead.
-export const FORGE_STATIONS = ["tech", "frontend", "tools", "testing", "integrations", "observability", "ai", "design"] as const;
+export const FORGE_STATIONS = [
+  "programming", "frontend", "backend", "mobile", "blockchain", "cloud", "cms", "tools", "testing", "integrations", "observability", "ai", "design",
+] as const;
 
 export const skillStationId = (title: string) => `section-skills-${title.replace(/[^a-zA-Z0-9]/g, "")}`;

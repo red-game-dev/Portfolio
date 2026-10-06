@@ -8,11 +8,14 @@ export const GOZ_BLUEPRINT: Blueprint = {
   zone: "mmo",
   title: "An MMORPG, from engine to live operations",
   caption: "My own game, built from scratch: the engine and the servers in C/C++ with my own framework and physics, Boost " +
-    "and ACE as general libraries, and the web, payments and operations around them.",
+    "and ACE as general libraries, and the web, payments and operations around them, on OVH and DigitalOcean servers set up by hand.",
   summary: {
     role: "Founder, CEO and CTO: built the engine and servers from scratch, then the launcher, payments, operations and marketing",
     scale: "8M+ registered accounts, and 50k active players at its peak, before mobile games took the share",
-    stack: ["C/C++", "Own engine and framework", "Own physics", "Boost and ACE libraries", "Lua", "Python", "C#", "Laravel", "Vue", "OVH", "Cloudflare"],
+    stack: [
+      "C/C++", "Own engine and framework", "Own physics", "Boost and ACE libraries", "Lua", "Python", "C#", "Laravel", "Vue", "WordPress",
+      "Stripe", "PayPal", "OVH", "DigitalOcean", "Cloudflare",
+    ],
   },
   architecture: {
     columns: 4,
@@ -24,7 +27,18 @@ export const GOZ_BLUEPRINT: Blueprint = {
         nodes: [
           { id: "goz-launcher", label: "Launcher", detail: "C#, a minimal installer that fetches the game on first launch" },
           { id: "goz-client", label: "Game client", detail: "Own engine, framework and physics in C/C++" },
+          { id: "goz-anticheat", label: "Anti tamper", detail: "Client checks, and accounts and inventory guarded on the server" },
           { id: "goz-crypto", label: "Own cryptography", detail: "And compression on the wire", kind: "note" },
+        ],
+      },
+      {
+        id: "goz-growth",
+        label: "Growth",
+        place: { col: 1, row: 3 },
+        nodes: [
+          { id: "goz-campaigns", label: "Paid campaigns", detail: "Facebook, YouTube, Twitch, Reddit, Instagram" },
+          { id: "goz-landing", label: "Chapter landing pages", detail: "Sign ups before each launch" },
+          { id: "goz-merch", label: "Merchandise store", detail: "Shopify" },
         ],
       },
       {
@@ -33,29 +47,35 @@ export const GOZ_BLUEPRINT: Blueprint = {
         place: { col: 2, row: 1 },
         nodes: [
           { id: "goz-cdn", label: "CDN and WAF", detail: "Website and patches" },
-          { id: "goz-firewall", label: "Origin firewall", detail: "Game ports throttled" },
+          { id: "goz-firewall", label: "Origin firewall", detail: "Game ports throttled, floods filtered" },
         ],
       },
       {
         id: "goz-web",
-        label: "Web",
-        place: { col: 2, row: 2 },
+        label: "Web, on DigitalOcean",
+        place: { col: 2, row: 2, rowSpan: 2 },
         nodes: [
           { id: "goz-site", label: "Website and accounts", detail: "Laravel and Vue" },
-          { id: "goz-payments", label: "Payments", detail: "Purchases and subscriptions" },
-          { id: "goz-patches", label: "Patch distribution", detail: "Live patching" },
+          { id: "goz-news", label: "News and events", detail: "WordPress as the content source" },
+          { id: "goz-payments", label: "Payments", detail: "Stripe and PayPal, purchases and subscriptions" },
+          { id: "goz-shop", label: "Item shop", detail: "Packs, codes and purchase history" },
+          { id: "goz-patches", label: "Patch distribution", detail: "Only what changed" },
         ],
       },
       {
         id: "goz-game",
-        label: "Game services, built from scratch for low latency, on OVH dedicated servers",
-        place: { col: 3, row: 1, rowSpan: 2 },
+        label: "Game services, on OVH dedicated servers, built from scratch for low latency",
+        place: { col: 3, row: 1, rowSpan: 3 },
         nodes: [
-          { id: "goz-auth", label: "Auth front", detail: "Login throttling" },
-          { id: "goz-gate", label: "Gate", detail: "Sessions and routing" },
-          { id: "goz-world", label: "Game server", detail: "World logic, Lua and Python scripts" },
-          { id: "goz-chat", label: "Chat server" },
-          { id: "goz-data", label: "Data server", detail: "Persistence" },
+          { id: "goz-auth", label: "Auth server", detail: "Login throttling" },
+          { id: "goz-gate", label: "Gate", detail: "Sessions, channels and routing" },
+          { id: "goz-world", label: "World servers", detail: "One per channel and map, Lua and Python scripts" },
+          { id: "goz-dungeons", label: "Dungeon instances", detail: "A copy per party, bosses and group loot" },
+          { id: "goz-social", label: "Guilds, parties and chat" },
+          { id: "goz-market", label: "Auction and exchange", detail: "Player trading, checked on the server" },
+          { id: "goz-events", label: "Event scheduler", detail: "Holiday and anniversary events" },
+          { id: "goz-data", label: "Data server", detail: "Cache in front of saves" },
+          { id: "goz-logs", label: "Log server", detail: "Every trade, drop and purchase" },
           { id: "goz-admin", label: "Admin server", detail: "Private interface only" },
         ],
       },
@@ -67,6 +87,7 @@ export const GOZ_BLUEPRINT: Blueprint = {
           { id: "goz-gm", label: "Game master panel" },
           { id: "goz-moderation", label: "Moderation tools" },
           { id: "goz-analytics", label: "Analytics dashboards" },
+          { id: "goz-support", label: "Player support" },
         ],
       },
       {
@@ -74,8 +95,19 @@ export const GOZ_BLUEPRINT: Blueprint = {
         label: "Storage",
         place: { col: 4, row: 2 },
         nodes: [
-          { id: "goz-db", label: "Game database", kind: "store" },
+          { id: "goz-db", label: "Game database", detail: "Accounts, characters, items", kind: "store" },
           { id: "goz-webdb", label: "Web database", kind: "store" },
+          { id: "goz-logdb", label: "Logs", kind: "store" },
+        ],
+      },
+      {
+        id: "goz-infra",
+        label: "Infrastructure, run by hand",
+        place: { col: 4, row: 3 },
+        nodes: [
+          { id: "goz-servers", label: "Servers set up from scratch", detail: "No managed cloud: OS, network and hardening" },
+          { id: "goz-backups", label: "Backups", detail: "Kept off the game servers" },
+          { id: "goz-builds", label: "Build and patch pipeline", detail: "Client, servers and launcher" },
         ],
       },
     ],
@@ -86,13 +118,19 @@ export const GOZ_BLUEPRINT: Blueprint = {
       { from: "goz-firewall", to: "goz-auth" },
       { from: "goz-auth", to: "goz-gate" },
       { from: "goz-gate", to: "goz-world" },
+      { from: "goz-world", to: "goz-dungeons" },
       { from: "goz-world", to: "goz-data" },
       { from: "goz-data", to: "goz-db" },
+      { from: "goz-logs", to: "goz-logdb" },
+      { from: "goz-campaigns", to: "goz-landing" },
+      { from: "goz-landing", to: "goz-site" },
       { from: "goz-site", to: "goz-payments" },
+      { from: "goz-payments", to: "goz-data", label: "items delivered" },
       { from: "goz-site", to: "goz-webdb" },
+      { from: "goz-builds", to: "goz-patches" },
       { from: "goz-gm", to: "goz-admin" },
       { from: "goz-moderation", to: "goz-world" },
-      { from: "goz-analytics", to: "goz-db" },
+      { from: "goz-analytics", to: "goz-logdb" },
     ],
   },
   wireframe: {
@@ -166,9 +204,9 @@ export const AMW_BLUEPRINT: Blueprint = {
   caption: "A social network for anime, manga, cosplay and gaming fans: a feed with videos, diaries, guilds and ship " +
     "crews, anime to watch and manga to read as a real book, a wiki, forums and chat, and a character of your own, all on one currency earned by taking part.",
   summary: {
-    role: "Founder, CEO and CTO: proposed and built the product, its frameworks, engines and economy, and ran the community",
+    role: "Founder, CEO and CTO: proposed and built the product, my own PHP and JS frameworks, the game engine and the economy, and ran the community",
     scale: "10M+ registered, 3M+ active, on servers I ran by hand and tuned to the bone",
-    stack: ["PHP", "My own PHP framework", "My own JS framework", "Python", "JavaScript", "WebGL and Canvas", "C++", "Lua", "PayPal"],
+    stack: ["PHP", "My own PHP framework", "My own JS framework", "Python", "JavaScript", "jQuery", "Backbone", "WebGL and Canvas", "PayPal"],
   },
   architecture: {
     columns: 4,
@@ -189,7 +227,7 @@ export const AMW_BLUEPRINT: Blueprint = {
         place: { col: 2, row: 1 },
         nodes: [
           { id: "amw-regions", label: "Servers per region", detail: "Switched by hand: no load balancers back then" },
-          { id: "amw-php", label: "PHP application", detail: "On my own PHP framework, tuned to the bone" },
+          { id: "amw-php", label: "PHP application", detail: "On my own PHP framework, in the spirit of Laravel and Symfony, tuned to the bone" },
           { id: "amw-py", label: "Python services", detail: "Feeds and jobs" },
           { id: "amw-chat", label: "Chat channels", detail: "World chat and language chats" },
         ],
@@ -221,8 +259,8 @@ export const AMW_BLUEPRINT: Blueprint = {
         columns: 2,
         place: { col: 1, row: 2, colSpan: 2 },
         nodes: [
-          { id: "amw-gameengine", label: "Own engines", detail: "C++ and Lua" },
-          { id: "amw-wire", label: "Own cryptography", detail: "And compression" },
+          { id: "amw-gameengine", label: "Game engine in PHP", detail: "Battles, levels and drops, on my own framework" },
+          { id: "amw-hardening", label: "Security in the framework", detail: "PHP's usual loopholes closed once, for every page", kind: "note" },
         ],
       },
       {
@@ -248,7 +286,7 @@ export const AMW_BLUEPRINT: Blueprint = {
       { from: "amw-py", to: "amw-cache" },
       { from: "amw-content", to: "amw-media" },
       { from: "amw-gfx", to: "amw-gameengine" },
-      { from: "amw-gameengine", to: "amw-wire" },
+      { from: "amw-gameengine", to: "amw-economy", label: "drops and berries" },
     ],
   },
   wireframe: {

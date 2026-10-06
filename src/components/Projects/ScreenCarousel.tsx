@@ -76,7 +76,7 @@ const Arrow = styled.button(({ side }: { side: "left" | "right" }) => [
   `,
 ]);
 
-const Dots = tw.div`flex flex-row justify-center`;
+const Dots = tw.div`flex flex-row flex-wrap justify-center`;
 
 // A 24px target around an 8px dot, so the dots are easy to tap.
 const Dot = styled.button(({ isOn }: { isOn: boolean }) => [

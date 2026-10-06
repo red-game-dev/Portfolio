@@ -163,7 +163,13 @@ export const SEO = ({ url }: SeoProps) => (
         },
         {
           questionName: "What programming languages do I use?",
-          acceptedAnswerText: portfolioData.skills.tech.map((skill) => skill.name).join(","),
+          acceptedAnswerText: portfolioData.skills.programming.map((skill) => skill.name).join(","),
+        },
+        {
+          questionName: "Which frameworks do I use?",
+          acceptedAnswerText: [...portfolioData.skills.frontend, ...portfolioData.skills.backend, ...portfolioData.skills.mobile]
+            .map((skill) => skill.name)
+            .join(","),
         },
         {
           questionName: "What design tools do I use?",

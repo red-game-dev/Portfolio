@@ -96,9 +96,14 @@ export interface PortfolioData {
   skills: {
     design: Skill[];
     language: Skill[];
-    tech: Skill[];
-    tools: Skill[];
+    programming: Skill[];
     frontend: Skill[];
+    backend: Skill[];
+    mobile: Skill[];
+    blockchain: Skill[];
+    cloud: Skill[];
+    cms: Skill[];
+    tools: Skill[];
     testing: Skill[];
     integrations: Skill[];
     observability: Skill[];
@@ -365,22 +370,52 @@ export const portfolioData: PortfolioData = {
         "Most of the time, I communicate primarily in English, sometimes even more than in my mother tongue.",
       ],
     },
-    tech: {
-      title: "Programming Languages & Frameworks Skills",
+    programming: {
+      title: "Programming Languages",
       description: [
-        "Have an overview of my expertise in tech. Are there any skills that interest you?",
+        "The languages I write, from C/C++ game engines and PHP frameworks of my own to TypeScript across a whole platform.",
+      ],
+    },
+    frontend: {
+      title: "Frontend Ecosystem",
+      description: [
+        "Frameworks and libraries from plain JavaScript, jQuery and Backbone to Vue, Nuxt, React and Next.js, and the patterns for governing a frontend at scale.",
+      ],
+    },
+    backend: {
+      title: "Backend, Realtime & Data",
+      description: [
+        "Server frameworks, databases, event streams and real time transports, including the C++ libraries under my game servers.",
+      ],
+    },
+    mobile: {
+      title: "Mobile & Desktop",
+      description: [
+        "Native and cross platform apps, desktop builds and the release pipelines that get them into the stores.",
+      ],
+    },
+    blockchain: {
+      title: "Web3 Libraries & Chains",
+      description: [
+        "Wallets, indexers and the chains I have built on, from EVM networks and Solana to a chain of our own on Substrate.",
+      ],
+    },
+    cloud: {
+      title: "Cloud & Infrastructure",
+      description: [
+        "Hosts I have run production on, from servers set up by hand on OVH and DigitalOcean to Kubernetes on GKE and AWS set up in full.",
+      ],
+    },
+    cms: {
+      title: "Commerce & Content Platforms",
+      description: [
+        "AEM and Strapi for enterprise content, Contentful for client sites, Shopify with plugins of my own, and WordPress.",
       ],
     },
     tools: {
       title: "Tools Skills",
       description: [
         "I generally use a variety of tools. Some I use less often, and some more, depending on the current task.",
-      ],
-    },
-    frontend: {
-      title: "Frontend Ecosystem",
-      description: [
-        "The tooling and patterns I reach for when building and governing a frontend at scale, rather than a single app.",
       ],
     },
     testing: {
@@ -934,6 +969,7 @@ export const portfolioData: PortfolioData = {
         "Tailwind",
         "VS Code",
         "JetBrains Tools",
+        "Miro",
       ],
     },
     {
@@ -1009,6 +1045,7 @@ export const portfolioData: PortfolioData = {
         "VS Code",
         "JetBrains Tools",
         "Visual Studio",
+        "Miro",
       ],
     },
     {
@@ -1068,6 +1105,7 @@ export const portfolioData: PortfolioData = {
         "Turborepo",
         "VS Code",
         "JetBrains Tools",
+        "Miro",
       ],
     },
     {
@@ -1124,6 +1162,7 @@ export const portfolioData: PortfolioData = {
         "Tailwind",
         "VS Code",
         "JetBrains Tools",
+        "Miro",
       ],
     },
     {
@@ -1142,7 +1181,7 @@ export const portfolioData: PortfolioData = {
         "Built the brand across a Facebook page and group, Instagram, YouTube and an online store.",
         "Content creation and curation, photography and visual storytelling for food, drink and travel destinations.",
         "Community engagement and audience growth, advertising on a budget across social platforms.",
-        "E-commerce management for the TasteTravellers store on Shopify.",
+        "Built and ran the TasteTravellers store on Shopify, including plugins of my own for it.",
         "Collaborations and partnerships with travel related companies, promoted to the community.",
       ],
       techStack: [
@@ -1175,7 +1214,7 @@ export const portfolioData: PortfolioData = {
         "Designed in game economy and balancing systems based on player behavior and feedback.",
         "Implemented account and inventory systems using custom encryption and anti tamper techniques.",
         "Produced in game 2D and 3D assets, with modeling in Autodesk Maya and texture design in Adobe Illustrator.",
-        "Maintained platform operations on Cloudflare, Google Cloud, and DigitalOcean, ensuring uptime and global accessibility.",
+        "Ran the game on OVH dedicated servers and the web on DigitalOcean, set up from scratch with no managed cloud, behind Cloudflare.",
       ],
       techStack: [
         "C/C++",
@@ -1285,6 +1324,7 @@ export const portfolioData: PortfolioData = {
         "VS Code",
         "JetBrains Tools",
         "Visual Studio",
+        "Miro",
       ],
     },
     {
@@ -1360,6 +1400,7 @@ export const portfolioData: PortfolioData = {
         "VS Code",
         "JetBrains Tools",
         "Visual Studio",
+        "Miro",
       ],
     },
     {
@@ -1405,6 +1446,7 @@ export const portfolioData: PortfolioData = {
         "Worked on regulated deposit and withdrawal flows for iGaming clients under Malta licensing",
       ],
       techStack: [
+        "Contentful",
         "TensorFlow",
         "PHP (Laravel)",
         "Vue.js",
@@ -1645,43 +1687,7 @@ export const portfolioData: PortfolioData = {
         score: 70,
       },
     ],
-    tech: [
-      {
-        name: "Boost",
-        score: 80,
-      },
-      {
-        name: "ACE",
-        score: 75,
-      },
-      {
-        name: "Vue",
-        score: 95,
-      },
-      {
-        name: "Nuxt / Nuxt 4",
-        score: 90,
-      },
-      {
-        name: "Strapi v5",
-        score: 90,
-      },
-      {
-        name: "React",
-        score: 90,
-      },
-      {
-        name: "Angular",
-        score: 40,
-      },
-      {
-        name: "JQuery",
-        score: 99,
-      },
-      {
-        name: "WebGL",
-        score: 80,
-      },
+    programming: [
       {
         name: "Typescript",
         score: 95,
@@ -1691,9 +1697,267 @@ export const portfolioData: PortfolioData = {
         score: 90,
       },
       {
+        name: "PHP",
+        score: 90,
+      },
+      {
+        name: "C/C++",
+        score: 70,
+      },
+      {
+        name: "C#, .NET",
+        score: 59,
+      },
+      {
+        name: "Python",
+        score: 70,
+      },
+      {
+        name: "Lua",
+        score: 50,
+      },
+      {
+        name: "Golang",
+        score: 10,
+      },
+      {
+        name: "Rust",
+        score: 40,
+      },
+      {
+        name: "Kotlin",
+        score: 40,
+      },
+      {
+        name: "Java",
+        score: 40,
+      },
+      {
+        name: "Swift",
+        score: 20,
+      },
+      {
+        name: "Dart",
+        score: 70,
+      },
+      {
+        name: "Solidity",
+        score: 50,
+      },
+      {
+        name: "SQL",
+        score: 95,
+      },
+      {
+        name: "PL/pgSQL",
+        score: 75,
+      },
+      {
+        name: "Bash",
+        score: 80,
+      },
+      {
+        name: "HTML / CSS",
+        score: 90,
+      },
+      {
+        name: "LESS / SASS",
+        score: 70,
+      },
+      {
+        name: "ShaderLab",
+        score: 50,
+      },
+    ],
+    frontend: [
+      {
+        name: "Vue",
+        score: 95,
+      },
+      {
+        name: "Nuxt / Nuxt 4",
+        score: 90,
+      },
+      {
+        name: "React",
+        score: 90,
+      },
+      {
+        name: "NextJs",
+        score: 90,
+      },
+      {
+        name: "Angular",
+        score: 40,
+      },
+      {
+        name: "Svelte",
+        score: 60,
+      },
+      {
+        name: "Astro",
+        score: 60,
+      },
+      {
+        name: "Gatsby",
+        score: 40,
+      },
+      {
+        name: "Backbone",
+        score: 60,
+      },
+      {
+        name: "JQuery",
+        score: 99,
+      },
+      {
+        name: "RxJS",
+        score: 90,
+      },
+      {
+        name: "Ramda",
+        score: 60,
+      },
+      {
+        name: "State Management",
+        score: 90,
+      },
+      {
+        name: "Canvas",
+        score: 90,
+      },
+      {
+        name: "WebGL",
+        score: 80,
+      },
+      {
+        name: "PixiJs",
+        score: 40,
+      },
+      {
+        name: "Webpack",
+        score: 80,
+      },
+      {
+        name: "SSR / SSG",
+        score: 90,
+      },
+      {
+        name: "Design Systems",
+        score: 90,
+      },
+      {
+        name: "Micro-frontends",
+        score: 85,
+      },
+      {
+        name: "Tailwind CSS",
+        score: 85,
+      },
+      {
+        name: "Radix UI",
+        score: 85,
+      },
+      {
+        name: "shadcn-vue / shadcn-ui",
+        score: 75,
+      },
+      {
+        name: "Turborepo",
+        score: 70,
+      },
+      {
+        name: "NX",
+        score: 70,
+      },
+      {
+        name: "pnpm",
+        score: 90,
+      },
+    ],
+    backend: [
+      {
         name: "NodeJS",
         score: 85,
       },
+      {
+        name: "NestJS",
+        score: 85,
+      },
+      {
+        name: "Laravel",
+        score: 60,
+      },
+      {
+        name: "Symfony",
+        score: 40,
+      },
+      {
+        name: "Ruby on Rails",
+        score: 70,
+      },
+      {
+        name: "Graphql",
+        score: 70,
+      },
+      {
+        name: "PostgreSQL",
+        score: 85,
+      },
+      {
+        name: "Redis",
+        score: 80,
+      },
+      {
+        name: "MongoDB",
+        score: 70,
+      },
+      {
+        name: "Supabase",
+        score: 80,
+      },
+      {
+        name: "NoSQL",
+        score: 90,
+      },
+      {
+        name: "Kafka",
+        score: 50,
+      },
+      {
+        name: "SignalR",
+        score: 50,
+      },
+      {
+        name: "SocketIo",
+        score: 90,
+      },
+      {
+        name: "Firebase",
+        score: 70,
+      },
+      {
+        name: "Boost",
+        score: 80,
+      },
+      {
+        name: "ACE",
+        score: 75,
+      },
+      {
+        name: "Linq",
+        score: 30,
+      },
+      {
+        name: "Ssh",
+        score: 90,
+      },
+      {
+        name: "OpenSSL",
+        score: 60,
+      },
+    ],
+    mobile: [
       {
         name: "Flutter",
         score: 50,
@@ -1715,97 +1979,19 @@ export const portfolioData: PortfolioData = {
         score: 80,
       },
       {
-        name: "C/C++",
-        score: 70,
-      },
-      {
-        name: "Python",
-        score: 70,
-      },
-      {
-        name: "Lua",
-        score: 50,
-      },
-      {
-        name: "PHP",
-        score: 90,
-      },
-      {
-        name: "Laravel",
-        score: 60,
-      },
-      {
-        name: "Symfony",
-        score: 40,
-      },
-      {
-        name: "SQL",
-        score: 95,
-      },
-      {
-        name: "NoSQL",
-        score: 90,
-      },
-      {
-        name: "HTML / CSS",
-        score: 90,
-      },
-      {
-        name: "LESS / SASS",
-        score: 70,
-      },
-      {
-        name: "Bash",
-        score: 80,
-      },
-      {
         name: "Electron",
         score: 40,
       },
       {
-        name: "Golang",
-        score: 10,
-      },
-      {
-        name: "Rust",
-        score: 40,
-      },
-      {
-        name: "C#, .NET",
-        score: 59,
-      },
-      {
-        name: "Kotlin",
-        score: 40,
-      },
-      {
-        name: "Java",
-        score: 40,
-      },
-      {
-        name: "Swift",
-        score: 20,
-      },
-      {
-        name: "Ruby on Rails",
-        score: 70,
-      },
-      {
-        name: "Linq",
+        name: "Fastlane",
         score: 30,
       },
       {
-        name: "Solidity",
-        score: 50,
-      },
-      {
-        name: "Solana",
-        score: 30,
-      },
-      {
-        name: "RxJS",
+        name: "Google Store & Apple Store",
         score: 90,
       },
+    ],
+    blockchain: [
       {
         name: "Ethers.js",
         score: 60,
@@ -1813,62 +1999,6 @@ export const portfolioData: PortfolioData = {
       {
         name: "Wagmi (React)",
         score: 70,
-      },
-      {
-        name: "State Management",
-        score: 90,
-      },
-      {
-        name: "Firebase",
-        score: 70,
-      },
-      {
-        name: "NextJs",
-        score: 90,
-      },
-      {
-        name: "Graphql",
-        score: 70,
-      },
-      {
-        name: "Gatsby",
-        score: 40,
-      },
-      {
-        name: "Backbone",
-        score: 60,
-      },
-      {
-        name: "Kafka",
-        score: 50,
-      },
-      {
-        name: "SignalR",
-        score: 50,
-      },
-      {
-        name: "SocketIo",
-        score: 90,
-      },
-      {
-        name: "Ssh",
-        score: 90,
-      },
-      {
-        name: "OpenSSL",
-        score: 60,
-      },
-      {
-        name: "Canvas",
-        score: 90,
-      },
-      {
-        name: "PixiJs",
-        score: 40,
-      },
-      {
-        name: "Ramda",
-        score: 60,
       },
       {
         name: "TheGraph",
@@ -1879,46 +2009,54 @@ export const portfolioData: PortfolioData = {
         score: 60,
       },
       {
-        name: "Dart",
+        name: "Solana",
+        score: 30,
+      },
+      {
+        name: "Substrate",
         score: 70,
       },
       {
-        name: "PL/pgSQL",
-        score: 75,
-      },
-      {
-        name: "ShaderLab",
-        score: 50,
-      },
-      {
-        name: "Svelte",
-        score: 60,
-      },
-      {
-        name: "Astro",
-        score: 60,
+        name: "Polkadot",
+        score: 70,
       },
     ],
-    tools: [
+    cloud: [
       {
-        name: "Git",
-        score: 95,
+        name: "AWS",
+        score: 30,
       },
       {
-        name: "Adobe Experience Manager (AEM)",
-        score: 75,
+        name: "GCP",
+        score: 70,
+      },
+      {
+        name: "Digital Ocean",
+        score: 90,
+      },
+      {
+        name: "OVH Cloud",
+        score: 90,
+      },
+      {
+        name: "Cloudflare",
+        score: 90,
       },
       {
         name: "Cloudflare Workers",
         score: 85,
       },
       {
-        name: "Varnish",
-        score: 75,
+        name: "Vercel",
+        score: 70,
       },
       {
-        name: "Istio",
+        name: "Railway",
         score: 70,
+      },
+      {
+        name: "Docker",
+        score: 90,
       },
       {
         name: "GKE / Kubernetes",
@@ -1929,8 +2067,20 @@ export const portfolioData: PortfolioData = {
         score: 65,
       },
       {
+        name: "Istio",
+        score: 70,
+      },
+      {
+        name: "Varnish",
+        score: 75,
+      },
+      {
         name: "Aiven Postgres",
         score: 60,
+      },
+      {
+        name: "CI/CD",
+        score: 85,
       },
       {
         name: "OpenFeature",
@@ -1940,21 +2090,37 @@ export const portfolioData: PortfolioData = {
         name: "GO Feature Flag",
         score: 75,
       },
+    ],
+    cms: [
       {
-        name: "draw.io / C4 model",
+        name: "Adobe Experience Manager (AEM)",
+        score: 75,
+      },
+      {
+        name: "Strapi",
         score: 90,
       },
       {
-        name: "Unity",
-        score: 70,
+        name: "Contentful",
+        score: 75,
       },
       {
-        name: "Unreal Engine",
-        score: 30,
+        name: "Shopify",
+        score: 50,
       },
       {
-        name: "Sky Engine",
-        score: 5,
+        name: "Wordpress",
+        score: 67,
+      },
+    ],
+    tools: [
+      {
+        name: "Git",
+        score: 95,
+      },
+      {
+        name: "SVN",
+        score: 90,
       },
       {
         name: "Visual Studio 2003-2022",
@@ -1977,56 +2143,188 @@ export const portfolioData: PortfolioData = {
         score: 20,
       },
       {
-        name: "SVN",
+        name: "draw.io / C4 model",
         score: 90,
       },
       {
-        name: "Cloudflare",
-        score: 90,
-      },
-      {
-        name: "AWS",
-        score: 30,
-      },
-      {
-        name: "GCP",
-        score: 70,
-      },
-      {
-        name: "Digital Ocean",
-        score: 90,
-      },
-      {
-        name: "OVH Cloud",
-        score: 90,
-      },
-      {
-        name: "Vercel",
-        score: 70,
-      },
-      {
-        name: "Fastlane",
-        score: 30,
-      },
-      {
-        name: "Google Store & Apple Store",
-        score: 90,
-      },
-      {
-        name: "Docker",
-        score: 90,
-      },
-      {
-        name: "Wordpress",
-        score: 67,
-      },
-      {
-        name: "Shopify",
-        score: 50,
-      },
-      {
-        name: "CI/CD",
+        name: "Miro",
         score: 85,
+      },
+      {
+        name: "Unity",
+        score: 70,
+      },
+      {
+        name: "Unreal Engine",
+        score: 30,
+      },
+      {
+        name: "Sky Engine",
+        score: 5,
+      },
+    ],
+    testing: [
+      {
+        name: "Playwright",
+        score: 90,
+      },
+      {
+        name: "Storybook",
+        score: 90,
+      },
+      {
+        name: "Jest",
+        score: 90,
+      },
+      {
+        name: "TDD (Test Driven Development)",
+        score: 90,
+      },
+      {
+        name: "Automated Testing (unit, integration, end to end)",
+        score: 90,
+      },
+      {
+        name: "Code Review",
+        score: 95,
+      },
+    ],
+    integrations: [
+      {
+        name: "Insider (CDP & personalisation)",
+        score: 80,
+      },
+      {
+        name: "SendGrid",
+        score: 80,
+      },
+      {
+        name: "Kameleoon (A/B testing)",
+        score: 75,
+      },
+      {
+        name: "Cidaas OIDC",
+        score: 75,
+      },
+      {
+        name: "Adobe Target",
+        score: 70,
+      },
+      {
+        name: "SAP (customer master data)",
+        score: 65,
+      },
+      {
+        name: "SAP Ariba (procurement punch-out)",
+        score: 65,
+      },
+      {
+        name: "PIM (Elasticsearch)",
+        score: 65,
+      },
+      {
+        name: "Oracle OCI Procurement",
+        score: 60,
+      },
+      {
+        name: "Zendesk",
+        score: 60,
+      },
+      {
+        name: "Cliplister DAM",
+        score: 55,
+      },
+      {
+        name: "RWS TMS (translation management)",
+        score: 55,
+      },
+      {
+        name: "Stripe",
+        score: 90,
+      },
+      {
+        name: "PayPal",
+        score: 80,
+      },
+    ],
+    observability: [
+      {
+        name: "Google Analytics 4",
+        score: 85,
+      },
+      {
+        name: "Grafana / Grafana Faro",
+        score: 80,
+      },
+      {
+        name: "OpenTelemetry",
+        score: 75,
+      },
+      {
+        name: "Server-side GTM",
+        score: 75,
+      },
+      {
+        name: "Usercentrics",
+        score: 75,
+      },
+      {
+        name: "Looker Studio",
+        score: 75,
+      },
+      {
+        name: "Datadog",
+        score: 70,
+      },
+      {
+        name: "BigQuery",
+        score: 70,
+      },
+      {
+        name: "Pyroscope",
+        score: 60,
+      },
+      {
+        name: "Sentry",
+        score: 80,
+      },
+    ],
+    ai: [
+      {
+        name: "Claude Code Max CLI",
+        score: 95,
+      },
+      {
+        name: "Architecture + Codebase Analysis Workflows",
+        score: 95,
+      },
+      {
+        name: "Agentic Implementation with Human-in-the-loop Review",
+        score: 95,
+      },
+      {
+        name: "ADR-driven Documentation for AI-assisted Decisions",
+        score: 90,
+      },
+      {
+        name: "Parallel Sub-agent Orchestration for Multi-source Audits",
+        score: 85,
+      },
+      {
+        name: "Gemini Enterprise",
+        score: 85,
+      },
+      {
+        name: "ChatGPT / GPT-4",
+        score: 80,
+      },
+      {
+        name: "Strapi MCP",
+        score: 70,
+      },
+      {
+        name: "Figma AI",
+        score: 60,
       },
     ],
     expertise: [
@@ -2140,199 +2438,45 @@ export const portfolioData: PortfolioData = {
         name: "Async / Documentation-first Working",
         score: 90,
       },
-    ],
-    frontend: [
       {
-        name: "SSR / SSG",
-        score: 90,
-      },
-      {
-        name: "Design Systems",
-        score: 90,
-      },
-      {
-        name: "pnpm",
-        score: 90,
-      },
-      {
-        name: "Micro-frontends",
-        score: 85,
-      },
-      {
-        name: "Tailwind CSS",
-        score: 85,
-      },
-      {
-        name: "Radix UI",
-        score: 85,
-      },
-      {
-        name: "shadcn-vue / shadcn-ui",
-        score: 75,
-      },
-      {
-        name: "Turborepo",
-        score: 70,
-      },
-      {
-        name: "NX",
-        score: 70,
-      },
-    ],
-    testing: [
-      {
-        name: "Playwright",
-        score: 90,
-      },
-      {
-        name: "Storybook",
-        score: 90,
-      },
-      {
-        name: "Jest",
-        score: 90,
-      },
-      {
-        name: "TDD (Test Driven Development)",
-        score: 90,
-      },
-      {
-        name: "Automated Testing (unit, integration, end to end)",
-        score: 90,
-      },
-      {
-        name: "Code Review",
-        score: 95,
-      },
-    ],
-    integrations: [
-      {
-        name: "Insider (CDP & personalisation)",
+        name: "Leading squads and engineering teams",
         score: 80,
       },
       {
-        name: "SendGrid",
+        name: "Hiring and building teams",
         score: 80,
       },
       {
-        name: "Kameleoon (A/B testing)",
-        score: 75,
-      },
-      {
-        name: "Cidaas OIDC",
-        score: 75,
-      },
-      {
-        name: "Adobe Target",
-        score: 70,
-      },
-      {
-        name: "SAP (customer master data)",
-        score: 65,
-      },
-      {
-        name: "SAP Ariba (procurement punch-out)",
-        score: 65,
-      },
-      {
-        name: "PIM (Elasticsearch)",
-        score: 65,
-      },
-      {
-        name: "Oracle OCI Procurement",
-        score: 60,
-      },
-      {
-        name: "Zendesk",
-        score: 60,
-      },
-      {
-        name: "Cliplister DAM",
-        score: 55,
-      },
-      {
-        name: "RWS TMS (translation management)",
-        score: 55,
-      },
-    ],
-    observability: [
-      {
-        name: "Google Analytics 4",
-        score: 85,
-      },
-      {
-        name: "Grafana / Grafana Faro",
+        name: "Architecture governance",
         score: 80,
       },
       {
-        name: "OpenTelemetry",
-        score: 75,
-      },
-      {
-        name: "Server-side GTM",
-        score: 75,
-      },
-      {
-        name: "Usercentrics",
-        score: 75,
-      },
-      {
-        name: "Looker Studio",
-        score: 75,
-      },
-      {
-        name: "Datadog",
-        score: 70,
-      },
-      {
-        name: "BigQuery",
-        score: 70,
-      },
-      {
-        name: "Pyroscope",
-        score: 60,
-      },
-      {
-        name: "Sentry",
-        score: 80,
-      },
-    ],
-    ai: [
-      {
-        name: "Claude Code Max CLI",
-        score: 95,
-      },
-      {
-        name: "Architecture + Codebase Analysis Workflows",
-        score: 95,
-      },
-      {
-        name: "Agentic Implementation with Human-in-the-loop Review",
-        score: 95,
-      },
-      {
-        name: "ADR-driven Documentation for AI-assisted Decisions",
-        score: 90,
-      },
-      {
-        name: "Parallel Sub-agent Orchestration for Multi-source Audits",
-        score: 85,
-      },
-      {
-        name: "Gemini Enterprise",
-        score: 85,
-      },
-      {
-        name: "ChatGPT / GPT-4",
+        name: "Roadmaps and prioritisation",
         score: 80,
       },
       {
-        name: "Strapi MCP",
-        score: 70,
+        name: "Estimation and scoping",
+        score: 80,
       },
       {
-        name: "Figma AI",
-        score: 60,
+        name: "Onboarding engineers",
+        score: 80,
+      },
+      {
+        name: "Technical and vendor evaluations",
+        score: 80,
+      },
+      {
+        name: "Delegation and ownership",
+        score: 80,
+      },
+      {
+        name: "Running workshops and discovery",
+        score: 80,
+      },
+      {
+        name: "Leading through incidents",
+        score: 80,
       },
     ],
   },
@@ -2517,7 +2661,7 @@ export const portfolioData: PortfolioData = {
       label: "Payments & Fintech",
       items: [
         "Stripe, including Connect payouts",
-        "PayPal",
+        "PayPal for purchases and donations",
         "Subscriptions",
         "Payment provider abstraction and routing",
         "Double entry ledgers",
@@ -2526,6 +2670,110 @@ export const portfolioData: PortfolioData = {
         "Reconciliation",
         "Multi currency and FX",
         "Tax",
+        "Banking rails: bank transfers next to card payments",
+        "On and off ramps between fiat and crypto",
+        "Payments paused automatically on fraud signals",
+        "Payment holds with dual approval",
+      ],
+    },
+    {
+      label: "Web3 & Blockchain",
+      items: [
+        "Ethereum and EVM chains, Solana, Bitcoin and Polkadot parachains",
+        "A chain of our own on Substrate, with bridges",
+        "Smart contracts in Solidity and Rust",
+        "Indexing with The Graph and Alchemy",
+        "Wallets with Wagmi and Ethers.js",
+        "Exchanges: trading and swaps from one token to another",
+        "Listing after KYC review, and automatic listing on volume",
+        "A stablecoin underneath, with every token traded against it",
+        "Creator token launchpads",
+        "NFT lending and rentals",
+        "Asset management for large holders",
+        "Node and indexing infrastructure as a service",
+        "Attack vector reviews before every release",
+      ],
+    },
+    {
+      label: "iGaming",
+      items: [
+        "Live dealer UIs on every screen",
+        "Slots with outcomes decided on the server",
+        "Bet tables drawn on canvas",
+        "Player accounts and wallets",
+        "Bonuses and tournaments",
+        "Sportsbook and live odds",
+        "Game aggregation across studios",
+        "Operator integration and automated onboarding",
+        "Real time game feeds over WebSockets",
+      ],
+    },
+    {
+      label: "Game Development",
+      items: [
+        "An MMORPG engine and servers built from scratch in C/C++",
+        "My own physics engine and framework",
+        "Low latency multiplayer networking",
+        "Boost and ACE as general libraries",
+        "Lua for game content",
+        "A C# launcher with live patching",
+        "Anti cheat and anti tamper",
+        "Canvas and WebGL games with PixiJS",
+        "GPU and render performance for heavy animation",
+        "Location based mobile games",
+        "Unity and Unreal Engine",
+      ],
+    },
+    {
+      label: "Algorithms & Recommendations",
+      items: [
+        "Feed suggestions ranked by affinity, freshness and engagement",
+        "Product suggestions from views, baskets and similar items",
+        "Suggested follows",
+        "Ads ranking and targeting",
+        "Trending scores with time decay",
+        "Cold start fallbacks for new people and new items",
+        "Diversity rules, so a feed does not repeat itself",
+        "Search relevance and boosting",
+        "Compression and encryption algorithms",
+      ],
+    },
+    {
+      label: "Search",
+      items: [
+        "Elasticsearch for product search",
+        "Facets, filters and sorting over large catalogues",
+        "Autocomplete and suggestions",
+        "Search across languages and markets",
+        "Search over encrypted fields with blind indexes",
+      ],
+    },
+    {
+      label: "Commerce & CMS",
+      items: [
+        "Adobe Experience Manager",
+        "Contentful for client sites",
+        "Strapi, for enterprise content and my own products",
+        "Shopify stores, with plugins I built for a travel brand",
+        "WordPress sites",
+        "Headless CMS migrations",
+        "Multi market catalogues and pricing",
+        "Procurement punch out with SAP Ariba and Oracle OCI",
+        "Digital asset management",
+        "Translation management",
+      ],
+    },
+    {
+      label: "CRM & Marketing",
+      items: [
+        "Customer data and personalisation with Insider",
+        "Transactional and marketing email with SendGrid",
+        "A/B testing with Kameleoon and Adobe Target",
+        "Support desks with Zendesk",
+        "Customer master data synced with SAP",
+        "Server side tagging and consent",
+        "Paid campaigns on Facebook, YouTube, Twitch, Reddit and Instagram",
+        "Referral and invite flows",
       ],
     },
     {
@@ -2533,9 +2781,11 @@ export const portfolioData: PortfolioData = {
       items: [
         "OAuth 2",
         "Running an OIDC provider",
+        "Enterprise OIDC with Cidaas",
         "JWT",
         "Two factor (TOTP)",
         "Role based access control",
+        "KYC gated accounts",
         "Secrets handling",
       ],
     },
@@ -2544,13 +2794,12 @@ export const portfolioData: PortfolioData = {
       items: [
         "Custom cryptography and compression for game client and server traffic",
         "Anti cheat in my game: anti tamper on accounts and inventory",
-        "Anti cheat on my platform: abuse paths closed on refunds and ad billing",
+        "Anti abuse on a social platform: abuse paths closed on refunds and ad billing",
         "Bot flood response: a read only assessment, a hardening runbook and firewall scripts",
         "Authorisation reviews with critical findings fixed",
         "Smart contract security audits and attack path review",
         "Rate limiting in two layers",
         "Field level encryption with blind indexes",
-        "Payment holds with dual approval",
         "CSP and security headers",
         "Supply chain advisories and a CI blocklist scan",
         "Vendor security vetting against SOC 2 and GDPR",
@@ -2562,13 +2811,30 @@ export const portfolioData: PortfolioData = {
       items: [
         "CI/CD with audit logs, permission controls and rollback",
         "Kubernetes on GKE, Helm and Istio canary rollout per market",
+        "AWS set up in full and tuned for cost",
         "Varnish and Cloudflare Workers at the edge",
         "Disaster recovery and business continuity plans",
         "Deploy adapters over two hosts and 14 service environments",
         "Database migrations verified on staging and production",
-        "Self run game servers on Cloudflare, Google Cloud and DigitalOcean, with live patching",
+        "Game servers run from scratch on OVH and DigitalOcean, with live patching",
+        "Servers per region, switched by hand before load balancers were common",
         "Desktop and mobile release builds",
         "App store release pipelines",
+      ],
+    },
+    {
+      label: "Backend & Data",
+      items: [
+        "Express",
+        "AdonisJS",
+        "Drizzle",
+        "gRPC",
+        "OpenAPI",
+        "Event streams, with an outbox",
+        "Real time over WebSockets and SSE",
+        "Microservices",
+        "Sagas across ledgers",
+        "MariaDB and T-SQL",
       ],
     },
     {
@@ -2608,20 +2874,6 @@ export const portfolioData: PortfolioData = {
       ],
     },
     {
-      label: "Backend & Data",
-      items: [
-        "NestJS",
-        "Express",
-        "AdonisJS",
-        "PostgreSQL",
-        "Redis",
-        "Supabase",
-        "gRPC",
-        "OpenAPI",
-        "MariaDB and T-SQL",
-      ],
-    },
-    {
       label: "AI & Machine Learning",
       items: [
         "TensorFlow",
@@ -2629,8 +2881,27 @@ export const portfolioData: PortfolioData = {
         "Recommendation, ads and feed ranking models",
         "LLM APIs (GPT, Claude, Gemini)",
         "LangChain",
-        "MCP, custom and published servers",
         "Agent skills, subagents and slash commands",
+        "Plans and progress tracked in published artifacts",
+        "Test batteries as the proof layer",
+      ],
+    },
+    {
+      label: "MCP Servers",
+      items: [
+        "Playwright and Chrome DevTools, to check the deployed build",
+        "Supabase, with staging and production kept apart",
+        "Vercel, Railway and Cloudflare for deploys, logs and bindings",
+        "Sentry for errors",
+        "Stripe and PayPal",
+        "Jira and Confluence",
+        "Figma for design context",
+        "Context7, Microsoft Learn, and Google and Gemini developer docs",
+        "Next.js and Nuxt devtools",
+        "Docker Hub, Docker docs and Redis",
+        "Strapi and AEM MCP options, evaluated for access control",
+        "My own servers for logging, audit and SQL access",
+        "A read only server over archived session history",
       ],
     },
   ],
@@ -2677,8 +2948,8 @@ export const portfolioData: PortfolioData = {
         "Built moderation tools, analytics dashboards and live patching",
         "Led moderators, event coordinators, testers and developers as CEO and CTO",
       ],
-      techStack: ["C/C++", "Boost", "ACE", "Lua", "Python", "VueJS", "PHP Laravel", "C#", "Electron (Old Launcher)", "OVH Cloud", "Cloudflare", "DigitalOcean", "AWS",
-        "Shopify"],
+      techStack: ["C/C++", "Boost", "ACE", "Lua", "Python", "VueJS", "PHP Laravel", "C#", "Electron (Old Launcher)", "OVH Cloud", "DigitalOcean", "Cloudflare",
+        "WordPress", "Shopify"],
       link: "https://goz.fun",
       deepDive: {
         stats: [
@@ -2688,6 +2959,46 @@ export const portfolioData: PortfolioData = {
         ],
         note: "As with most of my startups I was CEO and CTO, and what it lacked to take a strong position was funding.",
         screens: [
+          {
+            image: "/images/ventures/goz-5.webp",
+            caption: "The launcher: news, the shop and Play, over the running game (2020)",
+            alt: "Game launcher window titled Gods of Zushin, begin your journey, with news tiles, shop and community links and a Play Now button",
+          },
+          {
+            image: "/images/ventures/goz-6.webp",
+            caption: "Character select, with a level 300 Sun Warrior (2020)",
+            alt: "Character select screen with a warrior in glowing pink armour on a cloud backdrop, a stats panel and character slots",
+          },
+          {
+            image: "/images/ventures/goz-7.webp",
+            caption: "The world map of Zushin",
+            alt: "Hand painted parchment map of floating islands, mountains and sea",
+          },
+          {
+            image: "/images/ventures/goz-8.webp",
+            caption: "A guild gathered at the Palace, by the warehouse, auction and exchange (2020)",
+            alt: "Town square in front of a palace with a crowd of players beside characters labelled Warehouse, Auction and Exchange Points",
+          },
+          {
+            image: "/images/ventures/goz-9.webp",
+            caption: "Close combat in a dark temple (2017)",
+            alt: "A warrior fighting ghost enemies in a dark temple with damage numbers and experience gained floating above",
+          },
+          {
+            image: "/images/ventures/goz-10.webp",
+            caption: "A party against the ice Dragon Lord in a group dungeon (2018)",
+            alt: "A party of players fighting a giant ice dragon boss in a temple, with a boss health bar and a group loot panel",
+          },
+          {
+            image: "/images/ventures/goz-11.webp",
+            caption: "The Sea Devil boss, fought underwater (2019)",
+            alt: "An armoured sea devil leaping at a player with a giant blade while other players gather behind",
+          },
+          {
+            image: "/images/ventures/goz-12.webp",
+            caption: "A winter event in the snow (2019)",
+            alt: "A giant snowman with a yin and yang belly holding a lantern in a snowy pine forest",
+          },
           {
             image: "/images/ventures/goz-1.webp",
             caption: "Fifth anniversary: the city dressed for the celebration",
@@ -2702,6 +3013,21 @@ export const portfolioData: PortfolioData = {
             image: "/images/ventures/goz-3.webp",
             caption: "The quest journal and a boss quest",
             alt: "Game interface with a quest window listing a main quest tree and the details and rewards of a boss quest",
+          },
+          {
+            image: "/images/ventures/goz-13.webp",
+            caption: "A golden dragon mount across the desert (2023)",
+            alt: "A player riding a golden mechanical dragon across a desert under an orange sky",
+          },
+          {
+            image: "/images/ventures/goz-14.webp",
+            caption: "A jade phoenix mount over a city in the sky (2023)",
+            alt: "A player on a translucent jade phoenix flying past tall pagodas",
+          },
+          {
+            image: "/images/ventures/goz-15.webp",
+            caption: "A training plaza as enemies spawn (2023)",
+            alt: "A character in red robes on a stone plaza with glowing magic circles as three enemies appear",
           },
           {
             image: "/images/ventures/goz-4.webp",
@@ -2764,9 +3090,10 @@ export const portfolioData: PortfolioData = {
         "Manga read as a real book, and anime streaming that could skip the fillers",
         "Characters with hybrid classes mixed across anime and random elements, levelled without a cap, in an economy of berries earned by taking part",
         "Items enhanceable without limit, a shop with rank upgrades, and PayPal donations",
-        "My own PHP and JS frameworks, on servers per region switched by hand, tuned to the bone",
+        "My own PHP framework, in the spirit of Laravel and Symfony, that closed PHP's usual security loopholes, and my own JS framework",
+        "Servers per region switched by hand, before load balancers were common, tuned to the bone",
         "An auction house for virtual items and a self serve ads system",
-        "Custom engines in C++ and Lua, with custom cryptography and compression",
+        "The game engine in PHP on the same framework: battles, levels, drops and the economy",
         "Grew and ran the community and its moderators as CEO and CTO",
       ],
       techStack: ["PHP", "My Own Frameworks (PHP, JS)", "JS (JQuery, Backbone)", "Python", "WebGL & Canvas", "HTML", "CSS", "Cloudflare",
@@ -2817,7 +3144,7 @@ export const portfolioData: PortfolioData = {
       responsibilities: [
         "Content, photography and visual storytelling",
         "Community growth across the page, the group and the channels",
-        "The store and its products",
+        "The Shopify store, its products and the plugins I built for it",
         "Campaigns for partner travel companies, on a budget",
       ],
       techStack: ["Shopify"],

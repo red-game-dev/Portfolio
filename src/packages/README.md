@@ -29,6 +29,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | Package | What it gives you |
 |---|---|
 | `accessibility/motion` | The reduced motion preference, safe to call during server rendering |
+| `accessibility/roving` | `rovingTarget`, where arrows, Home and End move focus in a row of tabs or cards |
 | `animation/frame-loop` | `FrameLoop` base class with fixed rate stepping and clamping, plus `AnimationFrameScheduler`, `TimeoutScheduler` and `ManualScheduler` |
 | `core/content` | `ContentSource` port, `InMemoryContentSource`, and the `ContentService` base that runs source, guard, validator and mapper in order |
 | `core/domain` | `Validator` and `Mapper` base classes, `ValidationError`, primitive guards |

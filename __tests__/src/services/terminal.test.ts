@@ -5,7 +5,7 @@ describe("portfolio terminal", () => {
   test("every listed command runs without an error line", () => {
     const session = createPortfolioTerminal();
 
-    ["whoami", "about", "experience", "experience kpmg", "skills", "skills tech", "characters", "services", "ai", "cases", "projects",
+    ["whoami", "about", "experience", "experience kpmg", "skills", "skills frontend", "characters", "services", "ai", "cases", "projects",
       "contact", "hire", "goto", "help"].forEach((command) => {
       const before = session.output.length;
 

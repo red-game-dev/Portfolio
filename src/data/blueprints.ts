@@ -1397,7 +1397,7 @@ export const blueprintContent: BlueprintContent = {
           { from: "mm-headless", to: "mm-db" },
           { from: "mm-headless", to: "mm-preview" },
           { from: "mm-relay", to: "mm-cms", style: "dashed" },
-          { from: "mm-store", to: "mm-cloud", label: "runs on", style: "dashed" },
+          { from: "mm-store", to: "mm-cloud", style: "dashed" },
         ],
       },
       wireframe: {

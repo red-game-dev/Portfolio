@@ -18,7 +18,8 @@ interface BlueprintProps extends BlueprintContent {
 type View = "overview" | "architecture" | "flow";
 
 // Up to 1200px wide on large screens, centred on the column, so four frames of boxes fit without squeezing.
-const BLEED = "calc((100% - min(1200px, 100vw - 64px)) / 2)";
+// 80px stay clear on each side for the zone trail and the social rail fixed at the edges.
+const BLEED = "calc((100% - min(1200px, 100vw - 160px)) / 2)";
 
 const Figure = styled.figure(({ isBleed }: { isBleed: boolean }) => [
   tw`m-0 flex flex-col gap-[16px] p-[18px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,

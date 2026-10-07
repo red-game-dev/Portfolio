@@ -1,5 +1,6 @@
 import { aiUsageContent } from "@/data/portfolio/aiUsage";
 import { caseStudiesContent } from "@/data/portfolio/caseStudies";
+import { cvDocumentContent } from "@/data/portfolio/cvDocument";
 import { domainsContent } from "@/data/portfolio/domains";
 import { gameContent } from "@/data/portfolio/game";
 import { historyContent } from "@/data/portfolio/history";
@@ -31,4 +32,5 @@ export const portfolioData: PortfolioData = {
   ...domainsContent,
   ...aiUsageContent,
   ...navigationContent,
+  ...cvDocumentContent,
 };

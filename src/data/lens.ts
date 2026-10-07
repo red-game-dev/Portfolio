@@ -130,10 +130,12 @@ export const lensContent: LensContent = {
         {
           id: "ai",
           label: "AI Engineer",
-          fit: "I build with AI agents: I write the rules, the context and the checks they work within, and a person reviews every change.",
+          fit: `Machine learning in production since 2019, in PyTorch and TensorFlow at KPMG and in my own products: personalised
+          suggestions and feeds. Today I build with AI agents inside rules and checks I write.`,
           roleClasses: ["Architect", "Product Engineer"],
           skillGroups: [
-            { label: "Tools", names: ["ChatGPT / GPT-4", "Typescript", "Python", "NodeJS"] },
+            { label: "Machine learning", names: ["PyTorch", "TensorFlow", "Python"] },
+            { label: "Tools", names: ["ChatGPT / GPT-4", "Typescript", "NodeJS"] },
             { label: "Practice", names: ["Code Review", "Automated Testing (unit, integration, end to end)", "CI/CD"] },
           ],
         },

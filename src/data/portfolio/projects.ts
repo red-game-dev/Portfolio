@@ -321,7 +321,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
         "Prototypes and experiments in Unity and Unreal Engine",
         "Picked up again whenever an idea needs a real engine",
       ],
-      techStack: ["Unity", "Unreal Engine", "ShaderLab", "Sky Engine"],
+      techStack: ["Unity", "Unreal Engine", "ShaderLab", "Sky Engine", "PyTorch"],
       from: "Nov 2019",
     },
     {

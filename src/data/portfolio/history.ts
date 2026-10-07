@@ -291,6 +291,7 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
         "Mailchimp",
         "Klaviyo",
         "Strapi",
+        "PyTorch",
         "TypeScript",
         "NestJS",
         "Next.js",
@@ -404,6 +405,7 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
         "C#",
         "Lua",
         "Python",
+        "PyTorch",
         "Node.js",
         "PHP (Laravel)",
         "Vue.js",
@@ -547,6 +549,7 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
         "Flutter",
         "Node.js",
         "Next.js (SSR)",
+        "PyTorch",
         "Vue.js / Nuxt",
         "Rust (Substrate)",
         "Kotlin",
@@ -590,14 +593,15 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
       title: "Software Engineer / Technical Lead for Client Projects, KPMG",
       industries: ["fintech", "igaming", "gamePublishing", "pharmatech", "consulting"],
       from: "Feb 2019",
-      productOutcome: "Client products shipped with machine learning for recommendations, ads and feed ranking, which went live",
+      productOutcome: "Client products shipped with machine learning for recommendations, ads, feed ranking, vision and language, which went live",
       to: "Sep 2019",
       description: [
         "Being hired by KPMG is one big achievement on its own, as it is one of the big 4 firm in auditing.",
         `KPMG placed me with clients as a consultant, in a software architect and hands on engineering role, including pharmatech
         and iGaming clients.`,
-        `For clients I also built machine learning models in TensorFlow for suggestions and recommendations, ads, and social media
-        feed ranking, and they went live.`,
+        `For clients I also built machine learning end to end in PyTorch and TensorFlow, from training and fine tuning to serving
+        models in production: personalised suggestions for food delivery and taxi apps, social media feed ranking, ads, and vision
+        and language features. They went live.`,
       ],
       bullets: [
         `Contributed to and led architecture decisions across multiple brownfield migrations and greenfield projects for KPMG
@@ -633,6 +637,7 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
         "Salesforce",
         "Contentful",
         "TensorFlow",
+        "PyTorch",
         "PHP (Laravel)",
         "Vue.js",
         "Angular",

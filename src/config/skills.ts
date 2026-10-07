@@ -64,6 +64,8 @@ export const SKILL_RELEASES: Record<string, string> = {
   "pnpm": "Jun 2017",
   "Cloudflare Workers": "Sep 2017",
   "Tailwind CSS": "Nov 2017",
+  "TensorFlow": "Nov 2015",
+  "PyTorch": "Sep 2016",
   "Playwright": "Jan 2020",
   "Supabase": "Jan 2020",
   "Railway": "Jan 2020",
@@ -76,6 +78,8 @@ export const SKILL_RELEASES: Record<string, string> = {
 // Where I remember first using a tool later than a long role's start, the year it really began.
 export const SKILL_FIRST_USED: Record<string, string> = {
   Laravel: "Jan 2018",
+  // The earliest use on record is KPMG; my own products came after, so nothing counts before it.
+  PyTorch: "Feb 2019",
 };
 
 // Which skill groups are forge stations, in order. Languages and team skills are talents instead.

@@ -193,6 +193,8 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
       "Sentry",
     ],
     ai: [
+      "PyTorch",
+      "TensorFlow",
       "Claude Code Max CLI",
       "Architecture + Codebase Analysis Workflows",
       "Agentic Implementation with Human-in-the-loop Review",
@@ -485,8 +487,6 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     {
       label: "AI & Machine Learning",
       items: [
-        "TensorFlow",
-        "PyTorch",
         "Recommendation, ads and feed ranking models",
         "LLM APIs (GPT, Claude, Gemini)",
         "LangChain",

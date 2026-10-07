@@ -199,3 +199,19 @@ describe("ventures", () => {
     expect(portfolioData.foundedTotal).toBeGreaterThanOrEqual(portfolioData.experience.filter((entry) => entry.isVenture).length);
   });
 });
+
+describe("the CV", () => {
+  const { cvDocument, experience } = portfolioData;
+  const listed = new Set(Object.values(portfolioData.skills).flat());
+
+  test("every role is an experience entry and every skill a listed one, so dates and years come from the site", () => {
+    expect(cvDocument.roles.filter((role) => !experience.some((entry) => entry.title === role.title)).map((role) => role.title)).toEqual([]);
+    expect(cvDocument.skills.flatMap((line) => line.names).filter((name) => !listed.has(name))).toEqual([]);
+  });
+
+  test("stays short enough to read in a minute", () => {
+    const words = [...cvDocument.summary, ...cvDocument.highlights, ...cvDocument.roles.flatMap((role) => role.bullets)].join(" ").split(/\s+/).length;
+
+    expect(words).toBeLessThan(850);
+  });
+});

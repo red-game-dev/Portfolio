@@ -30,6 +30,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 |---|---|
 | `accessibility/motion` | The reduced motion preference, safe to call during server rendering |
 | `accessibility/roving` | `rovingTarget`, where arrows, Home and End move focus in a row of tabs or cards |
+| `browser/storage` | `readStored` and `writeStored`: guarded localStorage that validates what it reads and survives private windows and full quotas |
 | `animation/frame-loop` | `FrameLoop` base class with fixed rate stepping and clamping, plus `AnimationFrameScheduler`, `TimeoutScheduler` and `ManualScheduler` |
 | `core/content` | `ContentSource` port, `InMemoryContentSource`, and the `ContentService` base that runs source, guard, validator and mapper in order |
 | `core/domain` | `Validator` and `Mapper` base classes, `ValidationError`, primitive guards |
@@ -42,13 +43,17 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `games/bug-raid` | A playable arcade game on `frame-loop` and `graphics/canvas`, with pointer, touch and keyboard input |
 | `games/heroes` | MMO hero classes as data (sovereign, archmage, strategist, paladin, artificer, rune knight, captain, ranger, warsmith, battlemage) on one player, painted by `HeroPainter` and run as a rig model |
 | `games/live-table` | A live dealer round (place your bets, final bets, no more bets, results) with other players throwing face down, as a tested `LiveTableSimulation`, a `LiveTableGame` on `frame-loop` and a canvas felt renderer; and the dealer as a rig model (`createDealerModel`): body and head layers, outfits as data |
+| `graphics/colour` | `hexToRgb`, `rgbChannels` for CSS custom properties, `mixRgb` and `rgba` |
 | `graphics/canvas` | `CanvasRenderer` base for DPR aware surfaces, `GlyphAtlas` for GPU friendly text drawing, and `SpriteCache`: detailed artwork painted once per frame key at device resolution and blitted after |
 | `graphics/pixel-art` | Pixel maps to one SVG path per colour, for crisp sprites at any size |
 | `insights/ai-usage` | Domain model, guard, validators, mapper and service for an AI usage breakdown, independent of any icon library or content store |
-| `insights/career` | `TenureCalculator`: years in a role from date ranges, overlaps merged |
+| `insights/career` | `TenureCalculator`: years in a role from date ranges, overlaps merged; `formatPeriod` and `splitTitle` for how a role is written |
 | `insights/skills` | Years of real use per skill from roles and projects, with a rarity policy |
+| `interaction/scroll-frame` | `ScrollFrame`: one scroll and resize listener for a whole page, reading layout for every subscriber before any of them writes, at most once a frame, and listening only while it has subscribers |
 | `interaction/terminal` | A command registry, input parser and session for a text terminal, with no rendering of its own |
+| `math/clamp` | `clamp` and `clamp01` |
 | `math/hex-grid` | Pointy topped hex grid geometry and a snaking route through it, for map layouts |
 | `math/random` | Seedable random source for repeatable visuals and tests |
+| `text/format` | `fill` for `{name}` templates and `collapseWhitespace` for content written across lines |
 
 Tests mirror this tree under `__tests__/src/packages/`.

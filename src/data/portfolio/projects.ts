@@ -223,8 +223,8 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
         "The game engine in PHP on the same framework: battles, levels, drops and the economy",
         "Grew and ran the community and its moderators as CEO and CTO",
       ],
-      techStack: ["PHP", "My Own Frameworks (PHP, JS)", "JS (JQuery, Backbone)", "Python", "WebGL & Canvas", "HTML", "CSS", "OVH Cloud",
-        "DigitalOcean", "Cloudflare", "Visual Studio"],
+      techStack: ["PHP", "My Own Frameworks (PHP, JS)", "JS (JQuery, Backbone)", "Python", "Java", "WebGL & Canvas", "HTML", "CSS",
+        "OVH Cloud", "DigitalOcean", "Cloudflare", "Visual Studio"],
       link: "https://drive.google.com/drive/folders/1jN-Xhfiro3UJppRLVehG8UIytjFJVVtl?usp=share_link",
       deepDive: {
         stats: [

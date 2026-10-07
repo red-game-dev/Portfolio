@@ -368,8 +368,8 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
         "Servers per region on OVH and partly DigitalOcean, switched by hand before load balancers were common.",
         "Grew and ran the community and its moderators as CEO and CTO.",
       ],
-      techStack: ["PHP", "My own PHP framework", "My own JS framework", "JavaScript", "jQuery", "Backbone", "Python", "WebGL & Canvas", "OVH Cloud",
-        "DigitalOcean", "PayPal"],
+      techStack: ["PHP", "My own PHP framework", "My own JS framework", "JavaScript", "jQuery", "Backbone", "Python", "Java", "WebGL & Canvas",
+        "OVH Cloud", "DigitalOcean", "PayPal"],
     },
     {
       title: "Founder, CEO & CTO, Gods of Zushin",
@@ -826,7 +826,7 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
       title:
         "Bachelor of Science (Honours) in Multimedia Software Development, MCAST",
       description: [],
-      techStack: ["C#", "Blender", "Game Development", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects",
+      techStack: ["C#", "Java", "Blender", "Game Development", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects",
         "Object Oriented Programming", "Data Structures & Algorithms", "Software Test Automation", "UX Design", "Visual Studio"],
       from: "Sep 2015",
       to: "Jun 2017",
@@ -834,14 +834,14 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
     {
       title: "Extended Diploma Computer Software Engineering, MCAST",
       description: [],
-      techStack: ["C#", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects", "SQL", "Networking", "Visual Studio"],
+      techStack: ["C#", "Java", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects", "SQL", "Networking", "Visual Studio"],
       from: "Sep 2013",
       to: "Jun 2015",
     },
     {
       title: "Diploma Computer Software Engineering, MCAST",
       description: [],
-      techStack: ["C#", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects", "SQL", "Networking", "Visual Studio"],
+      techStack: ["C#", "Java", "Blender", "Photoshop", "Web Development", "PHP", "Maths", "2D Animation with After Effects", "SQL", "Networking", "Visual Studio"],
       from: "Sep 2011",
       to: "Jun 2013",
     },

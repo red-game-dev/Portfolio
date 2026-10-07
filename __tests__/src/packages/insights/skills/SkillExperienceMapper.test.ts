@@ -19,6 +19,17 @@ describe("insights/skills", () => {
     expect(sourceKeys("Next.js (App Router, SSR)")).toContain("next");
   });
 
+  test("a skill counts only from the month it may: never before it existed, and a role that ended earlier drops out", () => {
+    const mapper = new SkillExperienceMapper({ sources, asOf: "Oct 2026", notBefore: { Vue: "Jan 2018", Jest: "Dec 2022" } });
+
+    // Gods of Zushin counts Vue from 2018 rather than 2015; Chiliz overlaps it and adds nothing.
+    expect(mapper.map("Vue").years).toBe(8);
+    // Chiliz ended before Jest's floor, so nothing is left to count.
+    expect(mapper.map("Jest")).toEqual(expect.objectContaining({ years: 0, isTracked: false, places: [] }));
+    // Skills without a floor are untouched.
+    expect(mapper.map("Lua").years).toBe(11);
+  });
+
   test("years and places come from the roles that list the skill, overlaps counted once", () => {
     const mapper = new SkillExperienceMapper({ sources, asOf: "Oct 2026" });
     const vue = mapper.map("Vue");

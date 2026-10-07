@@ -1,6 +1,6 @@
-import { FORGE_STATIONS, SKILL_ALIASES, SKILL_MENTION_EXCLUDE, skillStationId } from "@/config/skills";
+import { FORGE_STATIONS, SKILL_ALIASES, SKILL_FIRST_USED, SKILL_MENTION_EXCLUDE, SKILL_RELEASES, skillStationId } from "@/config/skills";
 import { PortfolioData } from "@/data/resume";
-import { splitTitle } from "@/packages/insights/career";
+import { splitTitle, toMonthIndex } from "@/packages/insights/career";
 import { findMentions, SkillExperienceMapper, SkillRecord, SkillSource } from "@/packages/insights/skills";
 
 export interface ForgeStation {
@@ -11,6 +11,19 @@ export interface ForgeStation {
 }
 
 const RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
+
+// The later of a tool's release and my first use of it, by skill: no role counts a skill before then.
+export const skillFloors = (): Record<string, string> => {
+  const floors: Record<string, string> = { ...SKILL_RELEASES };
+
+  Object.entries(SKILL_FIRST_USED).forEach(([name, month]) => {
+    const release = floors[name];
+
+    floors[name] = release && toMonthIndex(release) > toMonthIndex(month) ? release : month;
+  });
+
+  return floors;
+};
 
 // Where a role was held, or the whole title where it names no place.
 const placeOf = (title: string) => splitTitle(title).place || title;
@@ -46,7 +59,12 @@ export const createSkillSources = (data: PortfolioData): SkillSource[] => {
 // The forge view: every skill with the years and places that back it, strongest first. Computed against
 // the roster's "as of" date, so the build and the browser always agree.
 export const createForgeStations = (data: PortfolioData): ForgeStation[] => {
-  const mapper = new SkillExperienceMapper({ sources: createSkillSources(data), asOf: data.roster.asOf, aliases: SKILL_ALIASES });
+  const mapper = new SkillExperienceMapper({
+    sources: createSkillSources(data),
+    asOf: data.roster.asOf,
+    aliases: SKILL_ALIASES,
+    notBefore: skillFloors(),
+  });
 
   return FORGE_STATIONS.map((key) => {
     const intro = data.sections[key];

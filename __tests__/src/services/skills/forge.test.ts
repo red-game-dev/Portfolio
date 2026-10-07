@@ -1,5 +1,7 @@
+import { SKILL_FIRST_USED, SKILL_RELEASES } from "@/config/skills";
 import { portfolioData } from "@/data/resume";
-import { createForgeStations, createSkillSources } from "@/services/skills";
+import { toMonthIndex } from "@/packages/insights/career";
+import { createForgeStations, createSkillSources, skillFloors } from "@/services/skills";
 
 // Guards the forge against the data it is built from: every station renders, and the evidence rules hold.
 describe("skill forge", () => {
@@ -44,5 +46,28 @@ describe("skill forge", () => {
         expect(item.months).toBe(0);
         expect(item.rarity).toBe("common");
       });
+  });
+});
+
+describe("skill floors", () => {
+  const listed = new Set(Object.values(portfolioData.skills).flat());
+
+  it("only name skills that are listed, so a typo cannot silently do nothing", () => {
+    expect(Object.keys({ ...SKILL_RELEASES, ...SKILL_FIRST_USED }).filter((name) => !listed.has(name))).toEqual([]);
+  });
+
+  it("keep the later of a release and a first use", () => {
+    expect(skillFloors().Laravel).toBe(SKILL_FIRST_USED.Laravel);
+  });
+
+  it("never let a skill claim more years than it has existed", () => {
+    const stations = createForgeStations(portfolioData);
+    const asOf = toMonthIndex(portfolioData.roster.asOf);
+
+    Object.entries(SKILL_RELEASES).forEach(([name, release]) => {
+      const record = stations.flatMap((station) => station.items).find((item) => item.name === name);
+
+      expect(record && record.months <= asOf - toMonthIndex(release) ? "ok" : name).toBe("ok");
+    });
   });
 });

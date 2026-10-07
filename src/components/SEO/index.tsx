@@ -9,6 +9,9 @@ import {
   ProductJsonLd
 } from "next-seo";
 
+import { JOURNEY_STOPS } from "@/config/journey";
+import { SECTION_IDS } from "@/config/sections";
+import { SOCIAL_URLS } from "@/config/social";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
 
@@ -83,42 +86,16 @@ export const SEO = ({ url }: SeoProps) => (
       name={portfolioData.details.name}
       url={url}
       sameAs={[
-        `https://www.facebook.com/${portfolioData.socialMedia.byUsername.facebook}`,
-        `https://www.linkedin.com/in/${portfolioData.socialMedia.byUsername.linkedIn}`,
-        `https://www.instagram.com/${portfolioData.socialMedia.byUsername.instagram}`,
-        `https://twitter.com/${portfolioData.socialMedia.byUsername.twitter}`,
-        `https://www.youtube.com/${portfolioData.socialMedia.byProjectsUsername.gameYt}`
+        SOCIAL_URLS.facebook(portfolioData.socialMedia.byUsername.facebook),
+        SOCIAL_URLS.linkedIn(portfolioData.socialMedia.byUsername.linkedIn),
+        SOCIAL_URLS.instagram(portfolioData.socialMedia.byUsername.instagram),
+        SOCIAL_URLS.twitter(portfolioData.socialMedia.byUsername.twitter),
+        SOCIAL_URLS.youtube(portfolioData.socialMedia.byProjectsUsername.gameYt)
       ]}
     />
     <ProfilePageJsonLd
       lastReviewed="2022-11-21T19:30"
-      breadcrumb={[
-        {
-          position: 1,
-          name: "Who I am",
-          item: `${url}/#section-about`,
-        },
-        {
-          position: 2,
-          name: "My History",
-          item: `${url}/#section-history`,
-        },
-        {
-          position: 3,
-          name: "My Skills",
-          item: `${url}/#section-skills-ProgrammingLanguagesFrameworksSkills`,
-        },
-        {
-          position: 4,
-          name: "Achievements",
-          item: `${url}/#section-projects`,
-        },
-        {
-          position: 5,
-          name: "What can I offer",
-          item: `${url}/#section-services`,
-        },
-      ]}
+      breadcrumb={JOURNEY_STOPS.map(({ key, href }, index) => ({ position: index + 1, name: portfolioData.menu.stops[key], item: `${url}/${href}` }))}
     />
     <CorporateContactJsonLd
       url={url}
@@ -129,7 +106,7 @@ export const SEO = ({ url }: SeoProps) => (
           contactType: "Contact",
           email: portfolioData.details.email,
           areaServed: "EU",
-          availableLanguage: [portfolioData.skills.language.map((skill) => skill.name)],
+          availableLanguage: [portfolioData.skills.language],
         },
       ]}
     />
@@ -145,7 +122,7 @@ export const SEO = ({ url }: SeoProps) => (
         },
         {
           questionName: "What are my expertise? ",
-          acceptedAnswerText: portfolioData.skills.expertise.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.expertise.join(","),
         },
         {
           questionName: "Looking at the moment?",
@@ -157,15 +134,19 @@ export const SEO = ({ url }: SeoProps) => (
         },
         {
           questionName: "What programming languages do I use?",
-          acceptedAnswerText: portfolioData.skills.tech.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.programming.join(","),
+        },
+        {
+          questionName: "Which frameworks do I use?",
+          acceptedAnswerText: [...portfolioData.skills.frontend, ...portfolioData.skills.backend, ...portfolioData.skills.mobile].join(","),
         },
         {
           questionName: "What design tools do I use?",
-          acceptedAnswerText: portfolioData.skills.design.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.design.join(","),
         },
         {
           questionName: "What general tools do I use?",
-          acceptedAnswerText: portfolioData.skills.tools.map((skill) => `${skill.name} (${skill.score}%)`).join(","),
+          acceptedAnswerText: portfolioData.skills.tools.join(","),
         },
       ]}
     />
@@ -173,9 +154,9 @@ export const SEO = ({ url }: SeoProps) => (
       portfolioData.projects.map((project, index) => (
         <NewsArticleJsonLd
           key={`project-${index}`}
-          url={`${url}/#section-projects`}
+          url={`${url}/#${SECTION_IDS.projects}`}
           title={project.title}
-          images={[project.image]}
+          images={[project.image ?? portfolioData.cover]}
           section={project.category}
           keywords={`${project.title},${project.category},${project.techStack.join(",")}`}
           authorName={portfolioData.details.name}
@@ -192,7 +173,7 @@ export const SEO = ({ url }: SeoProps) => (
       ))
     }
     {
-      portfolioData.services.map((service, index) => (
+      portfolioData.serviceGroups.flatMap((group) => group.services).map((service, index) => (
         <ProductJsonLd
           key={`service-${index}`}
           type="service"

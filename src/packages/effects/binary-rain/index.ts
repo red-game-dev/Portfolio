@@ -1,0 +1,13 @@
+export { DEFAULT_RAIN_CONFIG, DEFAULT_RAIN_THEME, resolveRainConfig } from "./config";
+export { BinaryRainEngine } from "./core/BinaryRainEngine";
+export { RainSimulation } from "./core/RainSimulation";
+export { CanvasRainRenderer } from "./renderers/CanvasRainRenderer";
+export { BinaryGlyphSource } from "./sources/BinaryGlyphSource";
+export { CharacterGlyphSource } from "./sources/CharacterGlyphSource";
+export { cellKey, createGrid } from "./utils/grid";
+export { layoutMessage } from "./utils/message";
+export { isLockedCell, isMessageComplete } from "./utils/state";
+export type { RainConfig, RainConfigOverrides, RainTheme } from "./config";
+export type { BinaryRainOptions } from "./core/BinaryRainEngine";
+export type { RainSimulationDependencies } from "./core/RainSimulation";
+export type { GlyphSource, RainColumn, RainGrid, RainMessageCell, RainRenderer, RainState, RainStream } from "./domain/types";

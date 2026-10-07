@@ -26,6 +26,9 @@
       "@/components/*": [
         "src/components/*"
       ],
+      "@/config/*": [
+        "src/config/*"
+      ],
       "@/layouts/*": [
         "src/layouts/*"
       ],
@@ -37,6 +40,12 @@
       ],
       "@/data/*": [
         "src/data/*"
+      ],
+      "@/packages/*": [
+        "src/packages/*"
+      ],
+      "@/services/*": [
+        "src/services/*"
       ],
       "@/types/*": [
         "types/*"

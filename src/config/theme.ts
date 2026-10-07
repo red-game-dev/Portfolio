@@ -1,0 +1,88 @@
+import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
+import type {
+  BlockSnapTransitionOptions,
+  CasinoSceneOptions,
+  ChainSceneOptions,
+  ChipFlipTransitionOptions,
+  CollapseTransitionOptions,
+  EmberSceneOptions,
+  NeuralSceneOptions,
+  PortalTransitionOptions,
+  RainSceneOptions
+} from "@/packages/effects/backdrop";
+import type { RainConfigOverrides } from "@/packages/effects/binary-rain";
+import { hexToRgb, rgbChannels } from "@/packages/graphics/colour";
+
+// Runtime colours for things twin.macro cannot reach, such as canvas drawing. Styled components keep
+// their colours in the tw`` strings, which have to be static at build time. Every zone colour comes from
+// ZONE_ACCENTS, which a test keeps equal to the --accent each zone sets in globals.css.
+const rgbOf = (zone: ZoneId) => hexToRgb(ZONE_ACCENTS[zone]);
+const rgbaOf = (zone: ZoneId, alpha: number) => `rgba(${rgbChannels(ZONE_ACCENTS[zone])}, ${alpha})`;
+
+export const COLORS = {
+  accent: ZONE_ACCENTS.matrix,
+  accentRgb: rgbChannels(ZONE_ACCENTS.matrix),
+  accentMuted: "#2f6b4d",
+  surface: "#101010",
+  screen: "#0a0f0c",
+} as const;
+
+export const BINARY_RAIN_CONFIG: RainConfigOverrides = {
+  theme: {
+    background: COLORS.screen,
+    trail: COLORS.accent,
+    head: "#eafff3",
+    letter: "#f2fff8",
+    freshLetter: "#ffffff",
+    caret: COLORS.accent,
+    glow: `rgba(${COLORS.accentRgb}, 0.85)`,
+  },
+};
+
+// The journey backdrop, one palette per zone. Kept dim: it sits behind the content, not in front of it.
+export const BACKDROP_THEME: {
+  rain: RainSceneOptions;
+  neural: NeuralSceneOptions;
+  chain: ChainSceneOptions;
+  casino: CasinoSceneOptions;
+  ember: EmberSceneOptions;
+} = {
+  rain: { color: COLORS.accent, headColor: "#eafff3", glowColor: `rgba(${COLORS.accentRgb}, 0.8)`, intensity: 0.3 },
+  neural: { linkRgb: COLORS.accentRgb, nodeColor: COLORS.accent, pulseColor: "rgba(234, 255, 243, 0.95)", intensity: 0.75 },
+  chain: { block: rgbOf("chain"), flash: [233, 220, 255], intensity: 0.7 },
+  casino: {
+    felt: "rgba(28, 120, 78, 0.38)",
+    chipColors: [ZONE_ACCENTS.casino, ZONE_ACCENTS.mmo, ZONE_ACCENTS.ai, "#e6edf3"],
+    suitColor: rgbaOf("casino", 0.9),
+    wheelColor: rgbaOf("mmo", 0.55),
+    intensity: 0.6,
+  },
+  ember: { emberColor: rgbaOf("mmo", 0.95), intensity: 0.75 },
+};
+
+// The moments between zones, matched to each zone's accent in globals.css.
+export const TRANSITION_THEME: {
+  collapse: CollapseTransitionOptions;
+  snap: BlockSnapTransitionOptions;
+  flip: ChipFlipTransitionOptions;
+  portal: PortalTransitionOptions;
+} = {
+  collapse: { from: rgbOf("matrix"), to: rgbOf("ai"), fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" },
+  snap: { from: rgbOf("ai"), to: rgbOf("chain"), cell: 64 },
+  flip: { chipColors: [rgbOf("casino"), rgbOf("mmo"), rgbOf("ai")], rim: [255, 255, 255] },
+  portal: { ring: rgbOf("mmo"), glow: [255, 170, 60] },
+};
+
+// The finale's rain, in the MMO zone's gold.
+export const FINALE_RAIN_CONFIG: RainConfigOverrides = {
+  theme: {
+    background: "#0d0b06",
+    trail: ZONE_ACCENTS.mmo,
+    head: "#fff3d6",
+    letter: "#fff8e8",
+    freshLetter: "#ffffff",
+    caret: ZONE_ACCENTS.mmo,
+    glow: rgbaOf("mmo", 0.85),
+  },
+};
+

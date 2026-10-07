@@ -1,44 +1,61 @@
+import { FC } from "react";
+
 import tw from "twin.macro";
 
-import { BoxTile } from "@/components/BoxTile";
-import { Text } from "@/components/Text";
+import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { Panel, PanelTitle } from "@/components/Panel";
+import { Anchor, Section } from "@/components/Section";
+import { ServiceCard } from "@/components/Services/ServiceCard";
+import { SectionText } from "@/components/Text/SectionText";
+import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
+import { SOCIAL_URLS } from "@/config/social";
 import { SectionIntros } from "@/types/sections-intros";
-import { Service } from "@/types/services";
+import { ServiceActions, ServiceGroup } from "@/types/services";
 
 interface ServicesProps {
-  services: Service[];
   intro: SectionIntros;
+  groups: ServiceGroup[];
+  actions: ServiceActions;
+  email: string;
+  linkedInUsername: string;
+  // The group the product view leads with.
+  productGroup: string;
 }
 
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
+const Groups = tw.div`flex flex-col gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[35px]`;
 
-const Content = tw.div`relative text-base ml-[-1px] md:p-[25px] lg:p-[35px] bg-[#101010] 
-border-[1px] border-r-[0px] border-solid border-[#1E1E1E] border-t-[transparent]`;
+const Cards = tw.div`grid gap-[18px] lg:grid-cols-2`;
 
-const ClearContainer = tw.div`clear-both`;
+// Grouped panels in the same language as the AI section: the group names the area, the cards inside are the offers.
+export const Services: FC<ServicesProps> = ({ intro, groups, actions, email, linkedInUsername, productGroup }: ServicesProps) => {
+  const { lens } = useLensStateHook();
+  const ordered = lens === "product"
+    ? [...groups].sort((first, second) => Number(second.label === productGroup) - Number(first.label === productGroup))
+    : groups;
 
-const List = tw.div`flex flex-wrap flex-row justify-center`;
-
-export const Services = ({ services = [], intro }: ServicesProps) => (
-    <Section id="section-services">
-      <Text title={intro.title} paragraphs={intro.description} isSection={false} />
-      <Content>
-        <List>
-          {services.map((service: Service, index: number) => (
-            <BoxTile
-              key={`${service.title.replace(/\s/, "")}-${index}`}
-              withRandomBorder={index % 3 === 0}
-              isFullBorder={(services.length % 2) > 0 && index === (services.length - 1)}
-              icon={service.icon}
-              title={service.title}
-              description={service.description}
-              link={service.link}
-              linkLabel={service.linkLabel}
-              linkIcon={service.linkIcon}
-            />
-          ))}
-        </List>
-        <ClearContainer />
-      </Content>
+  return (
+    <Section id={SECTION_IDS.services}>
+      <Anchor id={ROLE_ANCHORS.product} aria-hidden="true" />
+      <SectionText intro={intro} />
+      <Groups>
+        {ordered.map((group) => (
+          <Panel key={group.label}>
+            <PanelTitle>{group.label}</PanelTitle>
+            <Cards>
+              {group.services.map((service, index) => (
+                <ServiceCard
+                  key={service.title}
+                  {...service}
+                  actions={actions}
+                  email={email}
+                  linkedInUrl={SOCIAL_URLS.linkedIn(linkedInUsername)}
+                  order={index}
+                />
+              ))}
+            </Cards>
+          </Panel>
+        ))}
+      </Groups>
     </Section>
-);
+  );
+};

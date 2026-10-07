@@ -3,6 +3,7 @@ import { FC, useEffect } from "react";
 import tw, { styled } from "twin.macro";
 
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
+import useScrollLock from "@/hooks/useScrollLock";
 
 interface LoaderBackgroundProps {
   isLoading: boolean;
@@ -133,7 +134,7 @@ const PreloadingCentralized = tw.div`table table-fixed h-full w-full max-w-full 
 const PreloadingSpinner = tw.div`absolute left-1/2 top-0 w-[1px] h-full`;
 
 const PreloadingSpinnerBounce = tw.div`absolute top-0 left-0 w-full h-full`;
-const PreloadingSpinnerAnimation = tw.div`absolute top-0 left-0 w-full bg-[#4bffa5] h-[0px] animate-[loading 2.0s infinite ease-in-out;]`;
+const PreloadingSpinnerAnimation = tw.div`absolute top-0 left-0 w-full bg-[var(--accent)] h-[0px] animate-[loading 2.0s infinite ease-in-out;]`;
 
 export const AppLoadingLines: FC = () => {
   const { isLoading, isReady } = useAppLoaderStateHook();
@@ -169,25 +170,23 @@ w-[5px] h-[100px] bg-wave m-[10px] animate-[wave 1s linear infinite]
 `;
 
 export const AppLoader: FC = () => {
-  const { isLoading, setIsLoading, isReady, setIsReady } = useAppLoaderStateHook();
+  const { isLoading, setIsLoading, setIsReady } = useAppLoaderStateHook();
 
+  // Once, from mount: the intro lifts after 1s and the page counts as ready at 3s. (These used to restart
+  // whenever either flag changed, so ready landed at about 4s.)
   useEffect(() => {
-    const timeoutReady = setTimeout(() => {
-      if (!isReady) {
-        setIsReady(true);
-      }
-    }, 3000);
-    const timeoutLoading = setTimeout(() => {
-      if (isLoading) {
-        setIsLoading(false);
-      }
-    }, 1000);
+    const timeoutLoading = setTimeout(() => setIsLoading(false), 1000);
+    const timeoutReady = setTimeout(() => setIsReady(true), 3000);
 
     return () => {
-      clearInterval(timeoutReady);
-      clearInterval(timeoutLoading);
+      clearTimeout(timeoutLoading);
+      clearTimeout(timeoutReady);
     };
-  }, [isReady, isLoading, setIsReady, setIsLoading]);
+  }, [setIsLoading, setIsReady]);
+
+  // The page renders underneath from the start, so it is painted and measured by the time the intro lifts;
+  // it just cannot be scrolled yet.
+  useScrollLock(isLoading);
 
   return (
     <>

@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 
 import { createGlobalStyle } from "styled-components";
-import tw, { theme, GlobalStyles as BaseStyles } from "twin.macro";
+import tw, { GlobalStyles as BaseStyles } from "twin.macro";
 
 import { config } from "@fortawesome/fontawesome-svg-core";
 import { Analytics } from "@vercel/analytics/react";
@@ -10,14 +10,16 @@ import type { AppProps } from "next/app";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
 import { AppLoaderProvider } from "@/components/AppLoader/context/AppLoaderContext";
-import { ModalProvider } from "@/components/Modal/context/ModalContext";
+import { GameProvider } from "@/components/Game/context/GameContext";
+import { LensProvider } from "@/components/Lens/context/LensContext";
 import { SEO } from "@/components/SEO";
 
 config.autoAddCss = false;
 
 const CustomStyles = createGlobalStyle({
   body: {
-    WebkitTapHighlightColor: theme`colors.purple.500`,
+    // No grey or coloured box flashing over whatever is tapped on a phone; buttons show their own pressed state.
+    WebkitTapHighlightColor: "transparent",
     ...tw`antialiased`,
   },
 });
@@ -36,10 +38,12 @@ export default function App({ Component, pageProps }: AppProps) {
 
       <GlobalStyles />
       <AppLoaderProvider>
-        <ModalProvider>
-          <Component {...pageProps} />
-          <Analytics debug={Boolean(process.env.DEBUG)} />
-        </ModalProvider>
+        <LensProvider>
+          <GameProvider>
+            <Component {...pageProps} />
+            <Analytics debug={Boolean(process.env.DEBUG)} />
+          </GameProvider>
+        </LensProvider>
       </AppLoaderProvider>
     </>
   );

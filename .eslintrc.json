@@ -219,5 +219,32 @@
     "@typescript-eslint/no-empty-interface": "off",
     "@typescript-eslint/member-delimiter-style": ["error"],
     "jsx-a11y/anchor-is-valid": "off"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/packages/**/*.ts", "src/packages/**/*.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              { "name": "react", "message": "Packages stay framework free. Put React bindings in src/components." },
+              { "name": "twin.macro", "message": "Packages stay framework free. Put styled bindings in src/components." },
+              { "name": "styled-components", "message": "Packages stay framework free. Put styled bindings in src/components." }
+            ],
+            "patterns": [
+              {
+                "group": ["@/components/*", "@/config/*", "@/data/*", "@/hooks/*", "@/layouts/*", "@/pages/*", "@/services/*", "@/styles/*", "@/types/*"],
+                "message": "Packages never import app code, so they can be extracted. Depend on another package or npm instead."
+              },
+              {
+                "group": ["@/packages/*/*/*"],
+                "message": "Import another package through its entry point (@/packages/<domain>/<name>), not a file inside it."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

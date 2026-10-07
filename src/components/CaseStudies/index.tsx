@@ -1,0 +1,95 @@
+import { FC, useEffect, useMemo, useState } from "react";
+
+import tw from "twin.macro";
+
+import { Carousel } from "@/components/Carousel";
+import { BossCard } from "@/components/CaseStudies/BossCard";
+import { FilterChip } from "@/components/Controls";
+import { Anchor, Section } from "@/components/Section";
+import { SectionText } from "@/components/Text/SectionText";
+import { AUDIENCE_ANCHORS, audienceForHash, SECTION_IDS } from "@/config/sections";
+import { useHashValue } from "@/hooks/useHashState";
+import useIndustryFromHash from "@/hooks/useIndustryFromHash";
+import { CarouselLabels } from "@/types/carousel";
+import { Audience, CaseStudy, CaseStudyDomain, CaseStudyFilters } from "@/types/case-studies";
+import { BossLabels } from "@/types/game";
+import { IndustryLink } from "@/types/headline";
+import { CaseLabels } from "@/types/lens";
+import { SectionIntros } from "@/types/sections-intros";
+
+interface CaseStudiesProps {
+  intro: SectionIntros;
+  caseStudies: CaseStudy[];
+  filters: CaseStudyFilters;
+  industries: IndustryLink[];
+  labels: BossLabels;
+  caseLabels: CaseLabels;
+  carouselLabels: CarouselLabels;
+}
+
+
+const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[25px] lg:mt-[35px] text-sm text-[#999]`;
+
+const DOMAIN_ORDER: CaseStudyDomain[] = ["architecture", "payments", "web3", "igaming", "games", "mobile", "security", "ai"];
+
+// The first screen's links (#for-payments and so on) open the boss fights on the matching domain.
+const AUDIENCE_DOMAIN: Record<Audience, CaseStudyDomain> = { payments: "payments", architecture: "architecture", ai: "ai" };
+
+const Bosses = tw.div`mt-[25px]`;
+
+// Case studies as PvE: each problem is a boss, beaten on screen as you read it.
+export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, industries, labels, caseLabels, carouselLabels }: CaseStudiesProps) => {
+  const audience = useHashValue(audienceForHash);
+  const [domain, setDomain] = useState<CaseStudyDomain | null>(null);
+  const industryKeys = useMemo(() => industries.map((link) => link.industry), [industries]);
+  const [industry] = useIndustryFromHash(industryKeys);
+  const domains = DOMAIN_ORDER.filter((candidate) => caseStudies.some((caseStudy) => caseStudy.domain === candidate));
+  const forDomain = domain ? caseStudies.filter((caseStudy) => caseStudy.domain === domain) : caseStudies;
+  const forIndustry = industry ? forDomain.filter((caseStudy) => caseStudy.industries?.includes(industry)) : forDomain;
+  // An industry with no boss fights tagged leaves the list as it was rather than empty.
+  const visible = (forIndustry.length > 0 ? forIndustry : forDomain)
+    .slice()
+    .sort((first, second) => DOMAIN_ORDER.indexOf(first.domain) - DOMAIN_ORDER.indexOf(second.domain));
+
+  useEffect(() => {
+    if (audience) {
+      setDomain(AUDIENCE_DOMAIN[audience]);
+    }
+  }, [audience]);
+
+  return (
+    <Section id={SECTION_IDS.caseStudies}>
+      <Anchor id={AUDIENCE_ANCHORS.payments} aria-hidden="true" />
+      <Anchor id={AUDIENCE_ANCHORS.architecture} aria-hidden="true" />
+      <SectionText intro={intro} />
+      <Filters role="group" aria-label={filters.label}>
+        <span>{filters.label}</span>
+        <FilterChip type="button" isSelected={domain === null} aria-pressed={domain === null} onClick={() => setDomain(null)}>
+          {filters.allLabel}
+        </FilterChip>
+        {domains.map((candidate) => (
+          <FilterChip
+            key={candidate}
+            type="button"
+            isSelected={domain === candidate}
+            aria-pressed={domain === candidate}
+            onClick={() => setDomain(candidate)}
+          >
+            {filters.domains[candidate]}
+          </FilterChip>
+        ))}
+      </Filters>
+      <Bosses>
+        {/* A new filter starts from its first boss. */}
+        <Carousel
+          key={`${domain ?? "all"}-${industry ?? "any"}`}
+          items={visible}
+          getKey={(caseStudy) => caseStudy.title}
+          label={intro.title}
+          labels={carouselLabels}
+          renderItem={(caseStudy) => <BossCard {...caseStudy} labels={labels} caseLabels={caseLabels} />}
+        />
+      </Bosses>
+    </Section>
+  );
+};

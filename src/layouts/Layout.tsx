@@ -1,35 +1,76 @@
 import { FC } from "react";
 
-import tw from "twin.macro";
+import tw, { css, styled } from "twin.macro";
 
 import { AppLoader, AppLoadingLines } from "@/components/AppLoader";
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
-import { Modal } from "@/components/Modal";
+import { Journey } from "@/components/Journey";
+import { LensGate } from "@/components/Lens";
+import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
+import { ZONE_BOUNDARIES } from "@/config/zones";
 import { portfolioData  } from "@/data/resume";
+import useSettledAnchors from "@/hooks/useSettledAnchors";
+import { createJourneyTrail } from "@/services/journey/trail";
 
 import Footer from "./Footer";
 import Header from "./Header";
 
-const Container = tw.div`relative m-0 overflow-hidden before:z-[8] before:pointer-events-none`;
+// overflow: clip trims sideways overflow like hidden did, but without making this a scroll container,
+// which would stop position: sticky working for anything inside it.
+const Container = styled.div(() => [
+  tw`relative m-0 before:z-[8] before:pointer-events-none`,
+  css`
+    overflow: hidden;
+    overflow: clip;
+  `,
+]);
 
 interface LayoutProps {
   title: string;
   children: React.ReactNode;
 }
 
+// Built once: the trail only changes when the content does.
+const TRAIL = { sections: createJourneyTrail(portfolioData), labels: portfolioData.journeyTrail };
+
+const LENS_COUNTS = { zones: ZONE_BOUNDARIES.length, bosses: portfolioData.caseStudies.length };
+
+// The recruiter's entrance shows me as a candidate, from the facts the page states.
+const LENS_CANDIDATE = {
+  name: portfolioData.details.name,
+  role: portfolioData.headline.roles[0]?.label ?? portfolioData.details.intro,
+  checks: portfolioData.details.facts,
+};
+
 const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   const { isLoading } = useAppLoaderStateHook();
 
+  useSettledAnchors();
+  const { status } = useLensStatusHook();
+  // The world starts once the reader has picked a view, so it is built with that view's settings, and runs
+  // under the entrance so it is already moving when the page opens.
+  const isWorldLive = !isLoading && (status === "entering" || status === "chosen");
+
   return (
     <>
-      <Modal />
       <AppLoader />
-      <Container style={isLoading ? { display: "none"} : {}}>
-        <Header title={title} />
+      <LensGate content={portfolioData.lens} counts={LENS_COUNTS} candidate={LENS_CANDIDATE} />
+      <Container>
+        <Header
+          title={title}
+          lens={portfolioData.lens}
+          menu={portfolioData.menu}
+          contact={{ cv: portfolioData.cv, email: portfolioData.details.email, linkedIn: portfolioData.socialMedia.byUsername.linkedIn }}
+        />
           {children}
         <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
       </Container>
       <AppLoadingLines />
+      <Journey
+        isEnabled={isWorldLive}
+        hud={{ roster: portfolioData.roster, labels: portfolioData.hud, bossCount: portfolioData.caseStudies.length }}
+        trail={TRAIL}
+      />
     </>
   );
 };

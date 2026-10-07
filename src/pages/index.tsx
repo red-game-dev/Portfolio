@@ -75,6 +75,7 @@ export default function Home() {
       <History
         intro={portfolioData.sections.history}
         experience={portfolioData.experience}
+        foundedTotal={portfolioData.foundedTotal}
         education={portfolioData.education}
         labels={portfolioData.historyLabels}
         industries={portfolioData.headline.industries}

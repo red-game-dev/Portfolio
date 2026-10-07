@@ -130,6 +130,8 @@ export interface PortfolioData {
   finale: FinaleContent;
   blueprintLabels: BlueprintLabels;
   carouselLabels: CarouselLabels;
+  // Every startup I founded or co-founded, listed in History or not.
+  foundedTotal: number;
   menu: MenuContent;
   expertise: ExpertiseContent;
   codeReview: CodeReviewContent;
@@ -666,7 +668,7 @@ export const portfolioData: PortfolioData = {
     proof: [
       { value: "20+", label: "years writing software, since I was 7" },
       { value: "15+", label: "years in the industry, from my first company in 2010" },
-      { value: "12+", label: "startups built" },
+      { value: "14", label: "startups built" },
       { value: "200M+", label: "active users on products at companies I worked for" },
       { value: "1.5M+", label: "users in 167 countries on one platform" },
       { value: "7M+", label: "sessions a month at peak on another" },
@@ -870,7 +872,7 @@ export const portfolioData: PortfolioData = {
             "Product direction, roadmap and monetisation from zero to launch",
             "Paid acquisition on Meta, Google, TikTok and other networks",
             "Community building and content across social and streaming platforms",
-            "Founder and executive experience across 12+ startups, as CEO, CTO and on the marketing side",
+            "Founder and executive experience across 14 startups, as CEO, CTO and on the marketing side",
             `I have also built an ads engine with its own auction, bidding and attribution, so I know advertising from the buyer's
             side and the builder's side`,
           ],
@@ -898,6 +900,8 @@ export const portfolioData: PortfolioData = {
     switched: "Switched to branch '{branch}'",
     workBranch: "work",
     foundedBranch: "founded",
+    // The last commit on the founded branch, for the startups not listed one by one. "{count}" is replaced.
+    moreVentures: "And {count} more startups I founded or co-founded, not listed one by one.",
     role: "Role",
     venture: "Venture",
     present: "Present",
@@ -4367,6 +4371,7 @@ export const portfolioData: PortfolioData = {
     email: "Email me",
     linkedIn: "LinkedIn",
   },
+  foundedTotal: 14,
   carouselLabels: {
     previous: "Previous",
     next: "Next",

@@ -194,3 +194,9 @@ describe("characters", () => {
     expect(portfolioData.roster.characters.filter((character) => !heroes.has(character.hero)).map((character) => character.characterClass)).toEqual([]);
   });
 });
+
+describe("ventures", () => {
+  test("the founded total covers every venture listed in History", () => {
+    expect(portfolioData.foundedTotal).toBeGreaterThanOrEqual(portfolioData.experience.filter((entry) => entry.isVenture).length);
+  });
+});

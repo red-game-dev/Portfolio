@@ -23,6 +23,8 @@ import { SectionIntros } from "@/types/sections-intros";
 interface HistoryProps {
   intro: SectionIntros;
   experience: Resume[];
+  // Every startup founded or co-founded, so the founded branch can account for the ones not listed.
+  foundedTotal: number;
   education: Resume[];
   labels: HistoryLabels;
   industries: IndustryLink[];
@@ -161,25 +163,45 @@ const BranchPanel = styled.div(({ isCheckedOut }: { isCheckedOut: boolean }) => 
 
 const TabBar = tw.div`mt-[6px]`;
 
+// The branch's last commit: the startups not listed one by one, drawn as a dashed node.
+const More = tw.li`relative list-none pl-[36px] md:pl-[44px]`;
+
+const MoreNode = styled.span(() => [
+  tw`absolute top-[14px] w-[13px] h-[13px] rounded-full bg-[#101010]`,
+  css`
+    left: calc(var(--lane-main) - 6px);
+    border: 2px dashed ${VENTURE};
+  `,
+]);
+
+const MoreText = tw.p`m-0 p-[14px] text-sm text-[#bbb] bg-[#0d0d0d] border-[1px] border-dashed border-[#5c4a26]`;
+
 const byStartDescending = (entries: Resume[]) => [...entries].sort((first, second) => toMonthIndex(second.from) - toMonthIndex(first.from));
 
 // My history as a commit graph, with two branches to check out: the work I was hired for, and the companies I
 // founded or co-founded. Switching runs a git checkout and the branch's commits land one by one.
-export const History: FC<HistoryProps> = ({ intro, experience, education, labels, industries }: HistoryProps) => {
+export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, education, labels, industries }: HistoryProps) => {
   const workRef = useRef<HTMLOListElement>(null);
   const foundedRef = useRef<HTMLOListElement>(null);
   const educationRef = useRef<HTMLOListElement>(null);
   const sortedExperience = useMemo(() => byStartDescending(experience), [experience]);
-  const branches = useMemo(() => [
-    { label: labels.workTab, branch: labels.workBranch, lane: "main" as const, entries: sortedExperience.filter((entry) => !entry.isVenture), ref: workRef },
-    {
-      label: labels.foundedTab,
-      branch: labels.foundedBranch,
-      lane: "venture" as const,
-      entries: sortedExperience.filter((entry) => entry.isVenture),
-      ref: foundedRef,
-    },
-  ], [labels, sortedExperience]);
+  const branches = useMemo(() => {
+    const work = sortedExperience.filter((entry) => !entry.isVenture);
+    const founded = sortedExperience.filter((entry) => entry.isVenture);
+
+    return [
+      { label: labels.workTab, branch: labels.workBranch, lane: "main" as const, entries: work, count: work.length, unlisted: 0, ref: workRef },
+      {
+        label: labels.foundedTab,
+        branch: labels.foundedBranch,
+        lane: "venture" as const,
+        entries: founded,
+        count: Math.max(foundedTotal, founded.length),
+        unlisted: Math.max(0, foundedTotal - founded.length),
+        ref: foundedRef,
+      },
+    ];
+  }, [foundedTotal, labels, sortedExperience]);
   const [checkouts, setCheckouts] = useState(0);
   const onSelect = useCallback(() => setCheckouts((count) => count + 1), []);
   const { active, listProps, tabProps, panelProps } = useTabs({ count: branches.length, onSelect });
@@ -229,7 +251,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, education, labels
                 <Tab key={branch.branch} {...tabProps(index)} isOn={index === active}>
                   <FontAwesomeIcon icon={faCodeBranch} aria-hidden="true" />
                   {branch.label}
-                  <TabCount isOn={index === active} aria-hidden="true">{branch.entries.length}</TabCount>
+                  <TabCount isOn={index === active} aria-hidden="true">{branch.count}</TabCount>
                 </Tab>
               ))}
             </TabList>
@@ -254,6 +276,12 @@ export const History: FC<HistoryProps> = ({ intro, experience, education, labels
                     isDimmed={industry !== null && !entry.industries?.includes(industry)}
                   />
                 ))}
+                {branch.unlisted > 0 && (
+                  <More>
+                    <MoreNode aria-hidden="true" />
+                    <MoreText>{labels.moreVentures.replace("{count}", String(branch.unlisted))}</MoreText>
+                  </More>
+                )}
               </Graph>
             </BranchPanel>
           ))}

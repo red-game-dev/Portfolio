@@ -11,6 +11,8 @@ export interface HistoryLabels {
   switched: string;
   workBranch: string;
   foundedBranch: string;
+  // "{count}" is replaced.
+  moreVentures: string;
   role: string;
   venture: string;
   present: string;

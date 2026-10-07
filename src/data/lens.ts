@@ -79,7 +79,7 @@ export const lensContent: LensContent = {
     product: {
       title: "Product playbook",
       description: "I have founded products as well as architected them: taken them from an idea to paying users, then marketed and grown them.",
-      proofValues: ["12+", "1.5M+", "7M+"],
+      proofValues: ["14", "1.5M+", "7M+"],
       levelsLabel: "Product levels",
       levelClasses: ["CEO", "Product Owner"],
       levelFormat: "Level {level}, since {since}",
@@ -95,7 +95,7 @@ export const lensContent: LensContent = {
       ],
       growthLabel: "Growth I have run",
       growth: [
-        "Marketing for 12+ startups",
+        "Marketing for 14 startups",
         "Paid campaigns across social and streaming platforms",
         "Content, brand and community growth",
         "Real time rewards for fan engagement",

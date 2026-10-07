@@ -40,11 +40,22 @@ export const nextInView = (mode: InViewMode, entry: Pick<IntersectionObserverEnt
 // IntersectionObserver based, so it costs nothing while scrolling.
 export default function useInView<TElement extends Element>(ref: RefObject<TElement>, { threshold = 0.25, once, rootMargin = "0px" }: InViewOptions = {}) {
   const [isInView, setIsInView] = useState(false);
+  const [element, setElement] = useState<TElement | null>(null);
+
+  // The element can appear after the first render, in a branch that renders it later (the cards once a view
+  // without the live table is chosen), so follow whatever the ref holds after every render. It only sets
+  // state when the element changed, so it settles after one extra render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (ref.current !== element) {
+      setElement(ref.current);
+    }
+  });
 
   useEffect(() => {
-    const element = ref.current;
-
     if (!element) {
+      setIsInView(false);
+
       return;
     }
 
@@ -69,7 +80,7 @@ export default function useInView<TElement extends Element>(ref: RefObject<TElem
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, [once, ref, rootMargin, threshold]);
+  }, [element, once, rootMargin, threshold]);
 
   return isInView;
 }

@@ -100,10 +100,26 @@ const QuoteSource = tw.cite`block mt-[6px] text-xs not-italic text-[#999]`;
 // arrives, and in the quick view, the cards are dealt out plainly, which is also what the server renders.
 const loadLiveTable = () => import("@/components/IGaming/LiveTable").then((module) => module.LiveTable);
 
-// iGaming as a live table: each capability is a card, played from your hand onto the felt.
-export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection }: IGamingProps) => {
+// The cards dealt straight out, for views without the game layer and until the live table arrives. Its own
+// component, so it starts watching for the screen whenever it appears: after a switch from a view with the
+// table, the list did not exist when the section first mounted, and its cards were never dealt.
+const DealtCards: FC<{ cards: IGamingProps["content"]["cards"] }> = ({ cards }) => {
   const cardsRef = useRef<HTMLUListElement>(null);
   const isDealt = useInView(cardsRef, { threshold: 0.2 });
+
+  return (
+    <Cards ref={cardsRef}>
+      {cards.map((card, index) => (
+        <Card key={card.name} isDealt={isDealt} style={{ transitionDelay: `${index * DEAL_STAGGER_MS}ms` }}>
+          <PlayingCard card={card} suitIndex={index} />
+        </Card>
+      ))}
+    </Cards>
+  );
+};
+
+// iGaming as a live table: each capability is a card, played from your hand onto the felt.
+export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection }: IGamingProps) => {
   // With the game layer the cards are played at a live table; the quick view deals them straight out.
   const { settings } = useLensStateHook();
   // The first client render is always the full view, before the chosen one is read, so the game is only
@@ -123,15 +139,7 @@ export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection }: 
             {content.liveLabel}
           </Live>
         </Header>
-        {settings.gameLayer && LiveTable ? <LiveTable cards={content.cards} content={content.table} /> : (
-          <Cards ref={cardsRef}>
-            {content.cards.map((card, index) => (
-              <Card key={card.name} isDealt={isDealt} style={{ transitionDelay: `${index * DEAL_STAGGER_MS}ms` }}>
-                <PlayingCard card={card} suitIndex={index} />
-              </Card>
-            ))}
-          </Cards>
-        )}
+        {settings.gameLayer && LiveTable ? <LiveTable cards={content.cards} content={content.table} /> : <DealtCards cards={content.cards} />}
         <Footer>
           <Proof>
             <span>{content.proofLabel}</span>

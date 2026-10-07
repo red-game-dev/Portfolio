@@ -4,6 +4,7 @@ import { act, fireEvent, render, renderHook, waitFor } from "@testing-library/re
 
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useHashState, { useHashValue } from "@/hooks/useHashState";
+import useInView from "@/hooks/useInView";
 import useModalDialog from "@/hooks/useModalDialog";
 import useScrollLock, { usePageHeld } from "@/hooks/useScrollLock";
 
@@ -190,5 +191,38 @@ describe("useHashState", () => {
     act(() => writer.result.current[1](null));
     expect(window.location.hash).toBe("");
     expect(reader.result.current).toBeNull();
+  });
+});
+
+describe("useInView", () => {
+  const Observer = window.IntersectionObserver;
+
+  beforeAll(() => {
+    window.IntersectionObserver = OnScreenObserver as unknown as typeof IntersectionObserver;
+  });
+
+  afterAll(() => {
+    window.IntersectionObserver = Observer;
+  });
+
+  // The list only exists in one branch, as the dealt cards do once a view without the live table is chosen.
+  const Later = ({ isShown }: { isShown: boolean }) => {
+    const ref = useRef<HTMLUListElement>(null);
+    const isInView = useInView(ref, { threshold: 0 });
+
+    return (
+      <>
+        <output>{isInView ? "seen" : "unseen"}</output>
+        {isShown && <ul ref={ref} />}
+      </>
+    );
+  };
+
+  it("watches an element that appears after the first render", () => {
+    const { getByText, rerender } = render(<Later isShown={false} />);
+
+    expect(getByText("unseen")).toBeInTheDocument();
+    rerender(<Later isShown />);
+    expect(getByText("seen")).toBeInTheDocument();
   });
 });

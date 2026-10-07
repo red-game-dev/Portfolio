@@ -2,9 +2,9 @@ import { FC, useCallback } from "react";
 
 import dynamic from "next/dynamic";
 
-import useLoaded from "@/components/Blueprint/hooks/useLoaded";
 import { loadVentureBlueprint } from "@/data/blueprints";
 import { VentureBlueprintId } from "@/data/blueprints/ventures";
+import useLoaded from "@/hooks/useLoaded";
 import { BlueprintLabels } from "@/types/blueprints";
 
 interface VentureBlueprintProps {
@@ -20,7 +20,7 @@ const Blueprint = dynamic(() => loadFigure().then((module) => module.Blueprint),
 // so travelling to the next region starts a fresh load.
 export const VentureBlueprint: FC<VentureBlueprintProps> = ({ id, labels }: VentureBlueprintProps) => {
   const load = useCallback(() => Promise.all([loadVentureBlueprint(id), loadFigure()]).then(([blueprint]) => blueprint), [id]);
-  const loaded = useLoaded(load, true);
+  const loaded = useLoaded(load, true, "A blueprint");
 
   return loaded.status === "ready" ? <Blueprint {...loaded.value} labels={labels} isBleed={false} /> : null;
 };

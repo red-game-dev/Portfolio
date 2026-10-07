@@ -4,11 +4,11 @@ import tw from "twin.macro";
 
 import { Carousel } from "@/components/Carousel";
 import { BossCard } from "@/components/CaseStudies/BossCard";
-import { useAudienceFromHash } from "@/components/CaseStudies/hooks/useAudienceFromHash";
 import { FilterChip } from "@/components/Controls";
 import { Anchor, Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
-import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
+import { AUDIENCE_ANCHORS, audienceForHash, SECTION_IDS } from "@/config/sections";
+import { useHashValue } from "@/hooks/useHashState";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
 import { CarouselLabels } from "@/types/carousel";
 import { Audience, CaseStudy, CaseStudyDomain, CaseStudyFilters } from "@/types/case-studies";
@@ -39,7 +39,7 @@ const Bosses = tw.div`mt-[25px]`;
 
 // Case studies as PvE: each problem is a boss, beaten on screen as you read it.
 export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters, industries, labels, caseLabels, carouselLabels }: CaseStudiesProps) => {
-  const [audience] = useAudienceFromHash();
+  const audience = useHashValue(audienceForHash);
   const [domain, setDomain] = useState<CaseStudyDomain | null>(null);
   const industryKeys = useMemo(() => industries.map((link) => link.industry), [industries]);
   const [industry] = useIndustryFromHash(industryKeys);

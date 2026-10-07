@@ -39,6 +39,12 @@ export const AUDIENCE_ANCHORS: Record<Audience, string> = {
   architecture: "for-architecture",
 };
 
+export const audienceForHash = (hash: string): Audience | null => {
+  const anchor = hash.replace(/^#/, "");
+
+  return (Object.keys(AUDIENCE_ANCHORS) as Audience[]).find((audience) => AUDIENCE_ANCHORS[audience] === anchor) ?? null;
+};
+
 // More role links from the first screen, each landing on the section that backs the role.
 export const ROLE_ANCHORS = {
   leadership: "for-leadership",

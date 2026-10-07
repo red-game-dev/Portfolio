@@ -45,3 +45,10 @@ export const LENS_ACCENTS: Record<Lens, { color: string; rgb: string }> = {
 export const LENS_STAT_MAX = 5;
 
 export const isLens = (value: unknown): value is Lens => typeof value === "string" && (LENSES as string[]).includes(value);
+
+// The view a link asks for (?view=recruiter), if it names one.
+export const lensFromSearch = (search: string): Lens | null => {
+  const asked = new URLSearchParams(search).get(LENS_QUERY);
+
+  return isLens(asked) ? asked : null;
+};

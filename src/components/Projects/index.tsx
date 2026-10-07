@@ -9,6 +9,7 @@ import { WorldMap } from "@/components/Projects/WorldMap";
 import { Anchor, Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
+import { useHashValue } from "@/hooks/useHashState";
 import { toMonthIndex } from "@/packages/insights/career";
 import { fill } from "@/packages/text/format";
 import { BlueprintLabels } from "@/types/blueprints";
@@ -26,6 +27,8 @@ const KIND_ORDER: ProjectKind[] = ["game", "web3", "product", "community", "arch
 
 const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[25px] lg:mt-[35px] mb-[18px] text-sm text-[#999]`;
 
+const kindForHash = (hash: string): ProjectKind | null => (hash === `#${ROLE_ANCHORS.games}` ? "game" : null);
+
 // Projects as a world map: one region per project in the order I explored them, each opening a map
 // screen with what I built there.
 export const Projects: FC<ProjectsProps> = ({ projects, intro, content, blueprintLabels }: ProjectsProps) => {
@@ -35,18 +38,14 @@ export const Projects: FC<ProjectsProps> = ({ projects, intro, content, blueprin
   const ordered = useMemo(() => [...projects].sort((first, second) => toMonthIndex(first.from) - toMonthIndex(second.from)), [projects]);
   const kinds = KIND_ORDER.filter((kind) => ordered.some((project) => project.kind === kind));
 
+  // The first screen's games link opens the map on games.
+  const linkedKind = useHashValue(kindForHash);
+
   useEffect(() => {
-    const sync = () => {
-      if (window.location.hash === `#${ROLE_ANCHORS.games}`) {
-        setActiveKind("game");
-      }
-    };
-
-    sync();
-    window.addEventListener("hashchange", sync);
-
-    return () => window.removeEventListener("hashchange", sync);
-  }, []);
+    if (linkedKind) {
+      setActiveKind(linkedKind);
+    }
+  }, [linkedKind]);
 
   const period = (project: ProjectDetail) => project.period ?? fill(labels.period, { from: project.from, to: project.to ?? labels.present });
   const describe = (project: ProjectDetail) => `${project.title}, ${project.category}, ${period(project)}`;

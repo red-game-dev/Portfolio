@@ -7,10 +7,10 @@ import { faDatabase, faMagnifyingGlassMinus, faMagnifyingGlassPlus, faUser } fro
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useEdgeRoutes } from "@/components/Blueprint/hooks/useEdgeRoutes";
-import useSize from "@/components/Blueprint/hooks/useSize";
 import { minWideWidth } from "@/components/Blueprint/utils/layout";
 import { blockHash } from "@/components/Web3/utils/blockHash";
 import { ZoneId } from "@/config/zones";
+import useSize from "@/hooks/useSize";
 import { ArchitectureBlueprint, BlueprintGroup, BlueprintLabels, BlueprintNode } from "@/types/blueprints";
 
 interface ArchitectureProps extends ArchitectureBlueprint {

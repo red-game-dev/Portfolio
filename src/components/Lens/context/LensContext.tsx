@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
-import { DEFAULT_LENS, isLens, Lens, LENS_QUERY, LENS_SETTINGS, LENS_STORAGE_KEY, LensSettings } from "@/config/lenses";
+import { DEFAULT_LENS, isLens, Lens, LENS_SETTINGS, LENS_STORAGE_KEY, lensFromSearch, LensSettings } from "@/config/lenses";
+import { readStored, writeStored } from "@/packages/browser/storage";
 
 // "pending" until storage and the URL have been read, so the chooser never flashes for a returning reader.
 // "entering" while the chosen view's entrance plays over the page.
@@ -26,24 +27,6 @@ interface LensProviderProps {
   children: ReactNode;
 }
 
-const readStored = (): Lens | null => {
-  try {
-    const stored = window.localStorage.getItem(LENS_STORAGE_KEY);
-
-    return isLens(stored) ? stored : null;
-  } catch {
-    return null;
-  }
-};
-
-const writeStored = (lens: Lens) => {
-  try {
-    window.localStorage.setItem(LENS_STORAGE_KEY, lens);
-  } catch {
-    // Not remembering the view only means the chooser shows again next time.
-  }
-};
-
 export const LensContext = createContext<LensState | null>(null);
 
 export const LensStatusContext = createContext<LensStatusState | null>(null);
@@ -55,8 +38,7 @@ export const LensProvider = ({ children }: LensProviderProps) => {
   const [status, setStatus] = useState<LensStatus>("pending");
 
   useEffect(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get(LENS_QUERY);
-    const chosen = isLens(fromUrl) ? fromUrl : readStored();
+    const chosen = lensFromSearch(window.location.search) ?? readStored(LENS_STORAGE_KEY, isLens);
 
     if (chosen) {
       setLens(chosen);
@@ -73,12 +55,12 @@ export const LensProvider = ({ children }: LensProviderProps) => {
   const chooseLens = useCallback((next: Lens) => {
     setLens(next);
     setStatus("entering");
-    writeStored(next);
+    writeStored(LENS_STORAGE_KEY, next);
   }, []);
 
   const switchLens = useCallback((next: Lens) => {
     setLens(next);
-    writeStored(next);
+    writeStored(LENS_STORAGE_KEY, next);
   }, []);
 
   const finishEntrance = useCallback(() => setStatus("chosen"), []);

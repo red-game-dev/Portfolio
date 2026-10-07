@@ -5,9 +5,9 @@ import tw, { css, styled } from "twin.macro";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { KIND_COLOURS, TERRAIN_ICONS } from "@/components/Projects/config";
-import { useMapColumns } from "@/components/Projects/hooks/useMapColumns";
+import { KIND_COLOURS, MAP_COLUMNS, NARROW_QUERY, TERRAIN_ICONS } from "@/components/Projects/config";
 import useInView from "@/hooks/useInView";
+import useMediaQuery from "@/hooks/useMediaQuery";
 import { createHexGrid, HEX_HEIGHT, HexCell, HexGrid, hexCentre, rowsFor, snakePath } from "@/packages/math/hex-grid";
 import { ProjectDetail, ProjectKind } from "@/types/projects";
 
@@ -130,7 +130,7 @@ const Info = tw.p`m-0 mt-[14px] min-h-[1.5em] text-sm text-[#bbb] text-center`;
 export const WorldMap: FC<WorldMapProps> = ({ projects, activeKind, describe, hint, undatedLabel, onOpen }: WorldMapProps) => {
   const boardRef = useRef<HTMLDivElement>(null);
   const isDrawn = useInView(boardRef, { threshold: 0.3 });
-  const columns = useMapColumns();
+  const columns = useMediaQuery(NARROW_QUERY) ? MAP_COLUMNS.narrow : MAP_COLUMNS.wide;
   const [hovered, setHovered] = useState<number | null>(null);
 
   const { grid, regions, terrain } = useMemo(() => {

@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useRef } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -12,6 +12,7 @@ import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
+import useLoaded from "@/hooks/useLoaded";
 import { BlueprintLabels, BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
 import { IGamingContent } from "@/types/domains";
 import { SectionIntros } from "@/types/sections-intros";
@@ -96,33 +97,9 @@ const Quote = styled.blockquote(() => [
 
 const QuoteSource = tw.cite`block mt-[6px] text-xs not-italic text-[#999]`;
 
-type LiveTableComponent = typeof import("@/components/IGaming/LiveTable").LiveTable;
-
 // The game and its engine are their own chunk, fetched only for views with the game layer. Until it
 // arrives, and in the quick view, the cards are dealt out plainly, which is also what the server renders.
-const useLiveTableCode = (isWanted: boolean) => {
-  const [component, setComponent] = useState<LiveTableComponent | null>(null);
-
-  useEffect(() => {
-    if (!isWanted || component) {
-      return;
-    }
-
-    let isCurrent = true;
-
-    import("@/components/IGaming/LiveTable")
-      .then((module) => isCurrent && setComponent(() => module.LiveTable))
-      // console.error is the one console call the production build keeps; the plain cards stay.
-      // eslint-disable-next-line no-console
-      .catch((error: unknown) => console.error("The live table could not be loaded", error));
-
-    return () => {
-      isCurrent = false;
-    };
-  }, [component, isWanted]);
-
-  return component;
-};
+const loadLiveTable = () => import("@/components/IGaming/LiveTable").then((module) => module.LiveTable);
 
 // iGaming as a live table: each capability is a card, played from your hand onto the felt.
 export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection, blueprintLabels }: IGamingProps) => {
@@ -133,7 +110,8 @@ export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection, bl
   // The first client render is always the full view, before the chosen one is read, so the game is only
   // fetched once the view has settled.
   const { status } = useLensStatusHook();
-  const LiveTable = useLiveTableCode(status === "chosen" && settings.gameLayer);
+  const liveTable = useLoaded(loadLiveTable, status === "chosen" && settings.gameLayer, "The live table");
+  const LiveTable = liveTable.status === "ready" ? liveTable.value : null;
 
   return (
     <Section id={SECTION_IDS.igaming}>

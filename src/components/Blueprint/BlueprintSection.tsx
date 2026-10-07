@@ -5,9 +5,9 @@ import tw, { css, styled } from "twin.macro";
 import dynamic from "next/dynamic";
 
 import { NEAR_MARGIN, PLACEHOLDER_HEIGHT } from "@/components/Blueprint/config";
-import useLoaded from "@/components/Blueprint/hooks/useLoaded";
 import { loadSectionBlueprints } from "@/data/blueprints";
 import useInView from "@/hooks/useInView";
+import useLoaded from "@/hooks/useLoaded";
 import { BlueprintLabels, BlueprintSection as Section } from "@/types/blueprints";
 
 interface BlueprintSectionProps {
@@ -33,7 +33,7 @@ export const BlueprintSection: FC<BlueprintSectionProps> = ({ section, labels }:
   const isNear = useInView(slotRef, { once: true, threshold: 0, rootMargin: NEAR_MARGIN });
   // The data and the drawing code are requested together, so neither waits on the other.
   const load = useCallback(() => Promise.all([loadSectionBlueprints(section), loadList()]).then(([blueprints]) => blueprints), [section]);
-  const loaded = useLoaded(load, isNear);
+  const loaded = useLoaded(load, isNear, "A blueprint");
 
   return (
     <Slot ref={slotRef} isWaiting={loaded.status === "waiting"}>

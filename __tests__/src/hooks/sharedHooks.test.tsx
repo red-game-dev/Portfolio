@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { act, fireEvent, render, renderHook, waitFor } from "@testing-library/react";
 
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import useHashState, { useHashValue } from "@/hooks/useHashState";
 import useModalDialog from "@/hooks/useModalDialog";
 import useScrollLock, { usePageHeld } from "@/hooks/useScrollLock";
 
@@ -164,5 +165,30 @@ describe("useCanvasEngine", () => {
     await waitFor(() => expect(built).toBe(2));
     expect(engines[0].stop).toHaveBeenCalled();
     unmount();
+  });
+});
+
+describe("useHashState", () => {
+  const parse = (hash: string) => (hash.startsWith("#pick-") ? hash.slice(6) : null);
+  const anchorOf = (value: string) => `pick-${value}`;
+
+  afterEach(() => window.history.replaceState(null, "", "/"));
+
+  it("starts from the hash, and every reader follows a change made by one of them", () => {
+    window.history.replaceState(null, "", "/#pick-a");
+
+    const writer = renderHook(() => useHashState(parse, anchorOf));
+    const reader = renderHook(() => useHashValue(parse));
+
+    expect(writer.result.current[0]).toBe("a");
+    expect(reader.result.current).toBe("a");
+
+    act(() => writer.result.current[1]("b"));
+    expect(window.location.hash).toBe("#pick-b");
+    expect(reader.result.current).toBe("b");
+
+    act(() => writer.result.current[1](null));
+    expect(window.location.hash).toBe("");
+    expect(reader.result.current).toBeNull();
   });
 });

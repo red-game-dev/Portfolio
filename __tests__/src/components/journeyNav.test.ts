@@ -1,6 +1,6 @@
 import { journeyState, sameSelection } from "@/components/Menu/utils/journeyState";
 import { JOURNEY_STOPS } from "@/config/journey";
-import { SECTION_IDS } from "@/config/sections";
+import { AUDIENCE_ANCHORS, audienceForHash, industryAnchor, industryFromHash, SECTION_IDS } from "@/config/sections";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 import { portfolioData } from "@/data/resume";
 import { createJourneyTrail } from "@/services/journey/trail";
@@ -67,5 +67,18 @@ describe("journey navigation", () => {
       expect(trail).toContain(href.slice(1));
       expect(portfolioData.menu.stops[key]).toBeTruthy();
     });
+  });
+});
+
+describe("hash anchors", () => {
+  it("reads the audience a link points at, and nothing else", () => {
+    expect(audienceForHash(`#${AUDIENCE_ANCHORS.payments}`)).toBe("payments");
+    expect(audienceForHash("#for-nothing")).toBeNull();
+    expect(audienceForHash("")).toBeNull();
+  });
+
+  it("round trips an industry through its anchor", () => {
+    expect(industryFromHash(`#${industryAnchor("fintech")}`, ["fintech", "igaming"])).toBe("fintech");
+    expect(industryFromHash(`#${industryAnchor("fintech")}`, ["igaming"])).toBeNull();
   });
 });

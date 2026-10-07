@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import dynamic from "next/dynamic";
 
-import type { GlanceProps } from "@/components/Glance/GlanceSheet";
+import type { GlanceProps } from "@/components/Glance/types";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 
 const GlanceSheet = dynamic(() => import("@/components/Glance/GlanceSheet").then((module) => module.GlanceSheet), { ssr: false });

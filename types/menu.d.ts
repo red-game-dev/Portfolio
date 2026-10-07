@@ -4,6 +4,8 @@ import { ZoneId } from "@/config/zones";
 export interface MenuContent {
   label: string;
   title: string;
+  // Above the title: "{n}", "{total}" and "{zone}" are replaced.
+  kicker: string;
   open: string;
   close: string;
   // Beside the stop the reader is at.

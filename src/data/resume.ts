@@ -4363,6 +4363,7 @@ export const portfolioData: PortfolioData = {
   menu: {
     label: "Journey",
     title: "Where to?",
+    kicker: "Stop {n} of {total}: {zone}",
     open: "Open the menu",
     close: "Close the menu",
     here: "You are here",

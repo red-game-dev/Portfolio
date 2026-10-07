@@ -890,6 +890,14 @@ export const portfolioData: PortfolioData = {
     education: "Education",
     main: "Employment",
     ventures: "Companies I founded",
+    workTab: "Work",
+    foundedTab: "Founded and co-founded",
+    tabsLabel: "Experience by kind",
+    // What the switch types, as on a git branch: "{branch}" is the tab's branch name.
+    checkout: "git checkout {branch}",
+    switched: "Switched to branch '{branch}'",
+    workBranch: "work",
+    foundedBranch: "founded",
     role: "Role",
     venture: "Venture",
     present: "Present",
@@ -1218,6 +1226,31 @@ export const portfolioData: PortfolioData = {
       techStack: [
         "Shopify",
       ],
+    },
+    {
+      title: "Founder, CEO & CTO, AMW Social Network",
+      ventureRole: "Founder, CEO and CTO",
+      isVenture: true,
+      // The AMW project already counts towards skill years; this entry tells the story in History.
+      countsForSkills: false,
+      industries: ["social", "gamePublishing"],
+      from: "Sep 2010",
+      to: "Apr 2019",
+      productOutcome: "A social network for anime, manga, cosplay and gaming fans, grown to 10M+ registered and 3M+ active users",
+      description: [
+        `A social network for anime, manga, cosplay and gaming fans, started when I began studying at MCAST and rebuilt from scratch
+        in 2015, where taking part levelled up your own RPG character.`,
+      ],
+      bullets: [
+        "AnimeBook, the social network: friends, a timeline diary, videos, favourites, comments and sharing to other platforms.",
+        "Guilds and ship crews, a wiki, forums, drawing galleries, manga read as a real book and anime streaming that skips the fillers.",
+        "Characters with hybrid classes across anime, an economy of berries earned by taking part, an auction house and self serve ads.",
+        "My own PHP framework, in the spirit of Laravel and Symfony, that closed PHP's usual security loopholes, and my own JS framework.",
+        "Servers per region on OVH and partly DigitalOcean, switched by hand before load balancers were common.",
+        "Grew and ran the community and its moderators as CEO and CTO.",
+      ],
+      techStack: ["PHP", "My own PHP framework", "My own JS framework", "JavaScript", "jQuery", "Backbone", "Python", "WebGL & Canvas", "OVH Cloud",
+        "DigitalOcean", "PayPal"],
     },
     {
       title: "Founder, CEO & CTO, Gods of Zushin",

@@ -1,13 +1,19 @@
-import { FC, useMemo, useRef } from "react";
+import { FC, useCallback, useMemo, useRef, useState } from "react";
 
+import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
+
+import { faCodeBranch } from "@fortawesome/pro-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { HistoryEntry } from "@/components/History/HistoryEntry";
 import { Panel, PanelTitle } from "@/components/Panel";
+import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { industryAnchor } from "@/config/sections";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
+import useTabs from "@/hooks/useTabs";
 import { toMonthIndex } from "@/packages/insights/career";
 import { IndustryLink } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
@@ -23,7 +29,8 @@ interface HistoryProps {
 }
 
 interface GraphProps {
-  hasVentureLane: boolean;
+  // Work runs on the main lane in the zone's colour; what I founded is a branch of its own, in gold.
+  lane: "main" | "venture";
 }
 
 const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
@@ -46,23 +53,10 @@ const Chip = styled.button(({ isSelected }: { isSelected: boolean }) => [
 
 const Matches = tw.p`m-0 mt-[12px] text-sm text-[#bbb]`;
 
-const Legend = tw.div`flex flex-row flex-wrap gap-[16px] mb-[18px] text-xs text-[#999]`;
-
-const LegendItem = styled.span(({ isVenture }: { isVenture: boolean }) => [
-  tw`inline-flex flex-row items-center gap-[6px]`,
-  css`
-    &::before {
-      content: "";
-      width: 10px;
-      height: 10px;
-      border-radius: 9999px;
-      background: ${isVenture ? "#ffc45c" : "var(--accent)"};
-    }
-  `,
-]);
-
 // The lanes are drawn once for the whole list, and their fill follows the scroll through a CSS variable.
-const Graph = styled.ol(({ hasVentureLane }: GraphProps) => [
+const VENTURE = "#ffc45c";
+
+const Graph = styled.ol(({ lane }: GraphProps) => [
   tw`relative m-0 p-0 flex flex-col gap-[16px]`,
   css`
     --lane-main: 14px;
@@ -82,12 +76,10 @@ const Graph = styled.ol(({ hasVentureLane }: GraphProps) => [
       width: 2px;
       left: calc(var(--lane-main) - 1px);
       background: #1E1E1E;
-      box-shadow: ${hasVentureLane ? "calc(var(--lane-venture) - var(--lane-main)) 0 0 #1E1E1E" : "none"};
     }
 
     &::after {
-      background: linear-gradient(to bottom, var(--accent), var(--accent-muted));
-      box-shadow: ${hasVentureLane ? "calc(var(--lane-venture) - var(--lane-main)) 0 0 #ffc45c" : "none"};
+      background: ${lane === "venture" ? `linear-gradient(to bottom, ${VENTURE}, #5c4a26)` : "linear-gradient(to bottom, var(--accent), var(--accent-muted))"};
       transform-origin: top;
       transform: scaleY(var(--scroll-progress, 0));
     }
@@ -100,13 +92,97 @@ const Graph = styled.ol(({ hasVentureLane }: GraphProps) => [
   `,
 ]);
 
+const type = (characters: number) => keyframes`
+  from { width: 0; }
+  to { width: ${characters}ch; }
+`;
+
+const appear = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
+// What a branch switch prints: the command typed out, then git's answer.
+const Checkout = tw.div`flex flex-col gap-[2px] mt-[14px] mb-[16px] px-[12px] py-[10px] text-xs bg-[#0a0f0c] border-[1px] border-solid
+border-[#1E1E1E] font-mono`;
+
+const Command = styled.span(({ characters }: { characters: number }) => [
+  tw`block overflow-hidden whitespace-nowrap text-white`,
+  css`
+    width: ${characters}ch;
+    animation: ${type(characters)} 0.42s steps(${characters}, end) both;
+
+    &::before {
+      content: "$ ";
+      color: var(--accent);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  `,
+]);
+
+const Answer = styled.span(() => [
+  tw`block text-[#8a948f]`,
+  css`
+    animation: ${appear} 0.2s ease 0.45s both;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  `,
+]);
+
+const commitIn = keyframes`
+  0% { opacity: 0; transform: translateX(-18px); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+`;
+
+// After a switch, the branch's commits land one after another, top to bottom, once the checkout has run.
+// A panel coming back from hidden replays this on its own, with no remount.
+const BranchPanel = styled.div(({ isCheckedOut }: { isCheckedOut: boolean }) => [
+  hiddenPanel,
+  isCheckedOut && css`
+    & > ol > li {
+      animation: ${commitIn} 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+    }
+
+    ${Array.from({ length: 16 }, (_, index) => `& > ol > li:nth-of-type(${index + 1}) { animation-delay: ${480 + index * 70}ms; }`).join("\n")}
+
+    @media (prefers-reduced-motion: reduce) {
+      & > ol > li {
+        animation: none;
+      }
+    }
+  `,
+]);
+
+const TabBar = tw.div`mt-[6px]`;
+
 const byStartDescending = (entries: Resume[]) => [...entries].sort((first, second) => toMonthIndex(second.from) - toMonthIndex(first.from));
 
-// My history as a commit graph: employment on the main lane, the companies I founded on a branch beside it.
+// My history as a commit graph, with two branches to check out: the work I was hired for, and the companies I
+// founded or co-founded. Switching runs a git checkout and the branch's commits land one by one.
 export const History: FC<HistoryProps> = ({ intro, experience, education, labels, industries }: HistoryProps) => {
-  const experienceRef = useRef<HTMLOListElement>(null);
+  const workRef = useRef<HTMLOListElement>(null);
+  const foundedRef = useRef<HTMLOListElement>(null);
   const educationRef = useRef<HTMLOListElement>(null);
   const sortedExperience = useMemo(() => byStartDescending(experience), [experience]);
+  const branches = useMemo(() => [
+    { label: labels.workTab, branch: labels.workBranch, lane: "main" as const, entries: sortedExperience.filter((entry) => !entry.isVenture), ref: workRef },
+    {
+      label: labels.foundedTab,
+      branch: labels.foundedBranch,
+      lane: "venture" as const,
+      entries: sortedExperience.filter((entry) => entry.isVenture),
+      ref: foundedRef,
+    },
+  ], [labels, sortedExperience]);
+  const [checkouts, setCheckouts] = useState(0);
+  const onSelect = useCallback(() => setCheckouts((count) => count + 1), []);
+  const { active, listProps, tabProps, panelProps } = useTabs({ count: branches.length, onSelect });
   const sortedEducation = useMemo(() => byStartDescending(education), [education]);
 
   const industryKeys = useMemo(() => industries.map((link) => link.industry), [industries]);
@@ -114,7 +190,8 @@ export const History: FC<HistoryProps> = ({ intro, experience, education, labels
   const selected = industries.find((link) => link.industry === industry);
   const matches = industry ? sortedExperience.filter((entry) => entry.industries?.includes(industry)).length : 0;
 
-  useScrollProgressVar(experienceRef);
+  useScrollProgressVar(workRef);
+  useScrollProgressVar(foundedRef);
   useScrollProgressVar(educationRef);
 
   return (
@@ -146,25 +223,44 @@ export const History: FC<HistoryProps> = ({ intro, experience, education, labels
       <Panels>
         <Panel>
           <PanelTitle>{labels.experience}</PanelTitle>
-          <Legend aria-hidden="true">
-            <LegendItem isVenture={false}>{labels.main}</LegendItem>
-            <LegendItem isVenture={true}>{labels.ventures}</LegendItem>
-          </Legend>
-          <Graph ref={experienceRef} hasVentureLane={true}>
-            {sortedExperience.map((entry) => (
-              <HistoryEntry
-                key={entry.title}
-                {...entry}
-                labels={labels}
-                hasVentureLane={true}
-                isDimmed={industry !== null && !entry.industries?.includes(industry)}
-              />
-            ))}
-          </Graph>
+          <TabBar>
+            <TabList {...listProps} aria-label={labels.tabsLabel} data-scroll-x>
+              {branches.map((branch, index) => (
+                <Tab key={branch.branch} {...tabProps(index)} isOn={index === active}>
+                  <FontAwesomeIcon icon={faCodeBranch} aria-hidden="true" />
+                  {branch.label}
+                  <TabCount isOn={index === active} aria-hidden="true">{branch.entries.length}</TabCount>
+                </Tab>
+              ))}
+            </TabList>
+          </TabBar>
+          {checkouts > 0 && (
+            <Checkout key={checkouts} aria-hidden="true">
+              <Command characters={labels.checkout.replace("{branch}", branches[active].branch).length + 2}>
+                {labels.checkout.replace("{branch}", branches[active].branch)}
+              </Command>
+              <Answer>{labels.switched.replace("{branch}", branches[active].branch)}</Answer>
+            </Checkout>
+          )}
+          {branches.map((branch, index) => (
+            <BranchPanel key={branch.branch} {...panelProps(index)} isCheckedOut={checkouts > 0}>
+              <Graph ref={branch.ref} lane={branch.lane}>
+                {branch.entries.map((entry) => (
+                  <HistoryEntry
+                    key={entry.title}
+                    {...entry}
+                    labels={labels}
+                    hasVentureLane={false}
+                    isDimmed={industry !== null && !entry.industries?.includes(industry)}
+                  />
+                ))}
+              </Graph>
+            </BranchPanel>
+          ))}
         </Panel>
         <Panel>
           <PanelTitle>{labels.education}</PanelTitle>
-          <Graph ref={educationRef} hasVentureLane={false}>
+          <Graph ref={educationRef} lane="main">
             {sortedEducation.map((entry) => (
               <HistoryEntry key={entry.title} {...entry} labels={labels} hasVentureLane={false} />
             ))}

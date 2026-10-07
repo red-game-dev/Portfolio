@@ -1,7 +1,7 @@
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { SOCIAL_URLS } from "@/config/social";
 import { portfolioData, PortfolioData } from "@/data/resume";
-import { TenureCalculator, toMonthIndex } from "@/packages/insights/career";
+import { formatPeriod, toMonthIndex } from "@/packages/insights/career";
 import {
   clearCommand,
   Command,
@@ -13,9 +13,9 @@ import {
   system,
   TerminalSession
 } from "@/packages/interaction/terminal";
-import { fill } from "@/packages/text/format";
-import { collapseWhitespace } from "@/packages/text/format";
+import { collapseWhitespace, fill } from "@/packages/text/format";
 import { createContactDialog } from "@/services/contact";
+import { createRosterLevels } from "@/services/roster";
 import { createRedCommand } from "@/services/terminal/redCommand";
 import { Audience } from "@/types/case-studies";
 
@@ -56,7 +56,8 @@ const FILES: Record<string, string> = {
 };
 
 
-const period = (from: string, to?: string) => `${from} to ${to ?? "now"}`;
+const PERIOD = "{from} to {to}";
+const PRESENT = "now";
 
 const matches = (haystack: string, needle: string) => haystack.toLowerCase().includes(needle.toLowerCase());
 
@@ -64,7 +65,7 @@ const matches = (haystack: string, needle: string) => haystack.toLowerCase().inc
 // never says something the page does not.
 export const createPortfolioCommands = (data: PortfolioData): Command[] => {
   const experience = [...data.experience].sort((first, second) => toMonthIndex(second.from) - toMonthIndex(first.from));
-  const calculator = new TenureCalculator(data.roster.asOf);
+  const rosterLevels = createRosterLevels(data.roster);
   const linkedIn = SOCIAL_URLS.linkedIn(data.socialMedia.byUsername.linkedIn);
 
   const contactDialog = createContactDialog(data);
@@ -104,7 +105,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
         const query = args.join(" ");
 
         if (!query) {
-          return { lines: [heading("Experience"), ...experience.map((entry) => output(`  ${(entry.period ?? period(entry.from, entry.to)).padEnd(22)}${entry.title}`))] };
+          return { lines: [heading("Experience"), ...experience.map((entry) => output(`  ${formatPeriod(entry, PERIOD, PRESENT).padEnd(22)}${entry.title}`))] };
         }
 
         const entry = experience.find((item) => matches(item.title, query));
@@ -116,7 +117,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
         return {
           lines: [
             heading(entry.title),
-            system(entry.period ?? period(entry.from, entry.to)),
+            system(formatPeriod(entry, PERIOD, PRESENT)),
             ...(entry.outcome ? [output(entry.outcome)] : []),
             ...entry.description.slice(0, 1).map((paragraph) => output(collapseWhitespace(paragraph))),
             ...(entry.bullets ?? []).slice(0, 5).map((bullet) => output(`  - ${collapseWhitespace(bullet)}`)),
@@ -164,7 +165,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
         lines: [
           heading("Characters"),
           ...data.roster.characters.map((character) => output(
-            `  ${character.characterClass.padEnd(20)}Level ${Math.max(1, calculator.years(character.tenures))}`
+            `  ${character.characterClass.padEnd(20)}Level ${rosterLevels.level(character)}`
           )),
         ],
       }),
@@ -304,7 +305,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
       run: () => ({
         lines: [
           heading("Ventures"),
-          ...experience.filter((entry) => entry.isVenture).map((entry) => output(`  ${(entry.period ?? period(entry.from, entry.to)).padEnd(22)}${entry.title}`)),
+          ...experience.filter((entry) => entry.isVenture).map((entry) => output(`  ${formatPeriod(entry, PERIOD, PRESENT).padEnd(22)}${entry.title}`)),
         ],
       }),
     },

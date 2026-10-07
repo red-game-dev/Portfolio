@@ -10,8 +10,7 @@ import { Anchor, Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { useHashValue } from "@/hooks/useHashState";
-import { toMonthIndex } from "@/packages/insights/career";
-import { fill } from "@/packages/text/format";
+import { formatPeriod, toMonthIndex } from "@/packages/insights/career";
 import { BlueprintLabels } from "@/types/blueprints";
 import { ProjectDetail, ProjectKind, ProjectMapContent } from "@/types/projects";
 import { SectionIntros } from "@/types/sections-intros";
@@ -47,7 +46,7 @@ export const Projects: FC<ProjectsProps> = ({ projects, intro, content, blueprin
     }
   }, [linkedKind]);
 
-  const period = (project: ProjectDetail) => project.period ?? fill(labels.period, { from: project.from, to: project.to ?? labels.present });
+  const period = (project: ProjectDetail) => formatPeriod(project, labels.period, labels.present);
   const describe = (project: ProjectDetail) => `${project.title}, ${project.category}, ${period(project)}`;
   const open = openIndex === null ? null : ordered[openIndex];
 

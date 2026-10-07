@@ -1,5 +1,6 @@
 import { FORGE_STATIONS, SKILL_ALIASES, SKILL_MENTION_EXCLUDE, skillStationId } from "@/config/skills";
 import { PortfolioData } from "@/data/resume";
+import { splitTitle } from "@/packages/insights/career";
 import { findMentions, SkillExperienceMapper, SkillRecord, SkillSource } from "@/packages/insights/skills";
 
 export interface ForgeStation {
@@ -11,8 +12,8 @@ export interface ForgeStation {
 
 const RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
 
-// "Senior Full Stack Engineer, HyperPlay Labs" is HyperPlay Labs; "Founder, CEO at TasteTravellers" is TasteTravellers.
-const placeOf = (title: string) => (title.includes(" at ") ? title.split(" at ").pop() : title.split(", ").pop()) ?? title;
+// Where a role was held, or the whole title where it names no place.
+const placeOf = (title: string) => splitTitle(title).place || title;
 
 // Evidence is the stack list plus any skill named in the role's own bullets and description. Formal study
 // counts too, under the school's name; open ended courses opt out.

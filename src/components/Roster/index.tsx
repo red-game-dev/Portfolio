@@ -13,8 +13,8 @@ import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
 import { scrollBehavior } from "@/packages/accessibility/motion";
-import { TenureCalculator } from "@/packages/insights/career";
 import { TerminalDialog as TerminalDialogContent } from "@/packages/interaction/terminal";
+import { createRosterLevels } from "@/services/roster";
 import { CarouselLabels } from "@/types/carousel";
 import { Roster as RosterContent } from "@/types/roster";
 import { SectionIntros } from "@/types/sections-intros";
@@ -37,7 +37,7 @@ const goTo = (target: string) => document.getElementById(target)?.scrollIntoView
 export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters, hireDialogs, carouselLabels, closeLabel }: RosterProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const isRevealed = useInView(gridRef, { threshold: 0.15 });
-  const calculator = useMemo(() => new TenureCalculator(asOf), [asOf]);
+  const levels = useMemo(() => createRosterLevels({ asOf }), [asOf]);
   const { characterClass, selectCharacter } = useGameStateHook();
   const { settings } = useLensStateHook();
   const [dialog, setDialog] = useState<TerminalDialogContent | null>(null);
@@ -64,8 +64,8 @@ export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters, hireD
             renderItem={(character, order) => (
               <CharacterCard
                 {...character}
-                level={Math.max(1, calculator.years(character.tenures))}
-                since={calculator.since(character.tenures)}
+                level={levels.level(character)}
+                since={levels.since(character)}
                 labels={labels}
                 isRevealed={isRevealed}
                 order={order}

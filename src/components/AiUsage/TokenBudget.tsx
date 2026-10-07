@@ -5,8 +5,7 @@ import tw, { css, styled } from "twin.macro";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageBudget } from "@/packages/insights/ai-usage";
-import { fill } from "@/packages/text/format";
-import { collapseWhitespace } from "@/packages/text/format";
+import { collapseWhitespace, fill } from "@/packages/text/format";
 
 interface RevealProps {
   isRevealed: boolean;

@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { SECTION_IDS } from "@/config/sections";
-import { TenureCalculator } from "@/packages/insights/career";
+import { createRosterLevels } from "@/services/roster";
 import { HudLabels } from "@/types/game";
 import { Roster } from "@/types/roster";
 
@@ -81,9 +81,9 @@ const Bosses = tw.span`inline-flex flex-row items-center gap-[5px] text-[#ff8a8a
 // bosses beaten so far. The experience bar follows --journey-experience, written on the HUD by useJourney.
 export const Hud = forwardRef<HTMLDivElement, HudProps>(({ roster, labels, bossCount, isVisible }, ref) => {
   const { characterClass, defeatedBosses } = useGameStateHook();
-  const calculator = useMemo(() => new TenureCalculator(roster.asOf), [roster.asOf]);
+  const levels = useMemo(() => createRosterLevels(roster), [roster]);
   const character = roster.characters.find((candidate) => candidate.characterClass === characterClass);
-  const level = character ? Math.max(1, calculator.years(character.tenures)) : null;
+  const level = character ? levels.level(character) : null;
 
   return (
     <Frame ref={ref} isVisible={isVisible}>

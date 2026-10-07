@@ -1,10 +1,9 @@
 import { SECTION_IDS } from "@/config/sections";
 import { SOCIAL_URLS } from "@/config/social";
 import { PortfolioData } from "@/data/resume";
-import { TenureCalculator } from "@/packages/insights/career";
 import { TerminalDialog, TerminalDialogAction } from "@/packages/interaction/terminal";
-import { fill } from "@/packages/text/format";
-import { collapseWhitespace } from "@/packages/text/format";
+import { collapseWhitespace, fill } from "@/packages/text/format";
+import { createRosterLevels } from "@/services/roster";
 import { Character } from "@/types/roster";
 
 
@@ -45,7 +44,7 @@ export const createContactDialog = (data: PortfolioData): TerminalDialog => {
 // the abilities, what people say and a way to get in touch. It never names where the role was played.
 export const createHireDialog = (data: PortfolioData, character: Character): TerminalDialog => {
   const { red } = data.terminal;
-  const level = Math.max(1, new TenureCalculator(data.roster.asOf).years(character.tenures));
+  const level = createRosterLevels(data.roster).level(character);
 
   return {
     title: red.hireTitle,

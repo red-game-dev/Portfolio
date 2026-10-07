@@ -5,12 +5,13 @@ import tw, { css, styled } from "twin.macro";
 import { faEnvelope, faFileArrowDown } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { pickSkillYears, splitTitle, startYear } from "@/components/Glance/utils";
+import { pickSkillYears, startYear } from "@/components/Glance/utils";
 import { Section } from "@/components/Section";
 import { Lens } from "@/config/lenses";
 import { SECTION_IDS } from "@/config/sections";
-import { TenureCalculator } from "@/packages/insights/career";
+import { formatPeriod, splitTitle } from "@/packages/insights/career";
 import { fill } from "@/packages/text/format";
+import { createRosterLevels } from "@/services/roster";
 import { ForgeStation } from "@/services/skills";
 import { Detail } from "@/types/details";
 import { Headline } from "@/types/headline";
@@ -100,11 +101,11 @@ interface RecruiterGlanceProps extends Omit<GlanceProps, "content"> {
 // For a shortlist: roles, years, work rights, the stack with years, industries and recent roles, with the
 // CV one click away. Plain text, no effects.
 const RecruiterGlance: FC<RecruiterGlanceProps> = ({ content, details, headline, experience, roster, stations, cvUrl }: RecruiterGlanceProps) => {
-  const calculator = useMemo(() => new TenureCalculator(roster.asOf), [roster.asOf]);
+  const rosterLevels = useMemo(() => createRosterLevels(roster), [roster]);
   const levels = content.roleClasses.flatMap((characterClass) => {
     const character = roster.characters.find((candidate) => candidate.characterClass === characterClass);
 
-    return character ? [{ name: characterClass, years: calculator.years(character.tenures) }] : [];
+    return character ? [{ name: characterClass, years: rosterLevels.years(character) }] : [];
   });
   const groups = content.skillGroups.map((group) => ({ label: group.label, skills: pickSkillYears(stations, group.names) }));
 
@@ -177,7 +178,7 @@ const RecruiterGlance: FC<RecruiterGlanceProps> = ({ content, details, headline,
               return (
                 <RoleRow key={entry.title}>
                   <RoleName>{role}</RoleName>
-                  <RoleRange>{entry.period ?? fill(content.rangeFormat, { from: entry.from, to: entry.to ?? content.nowLabel })}</RoleRange>
+                  <RoleRange>{formatPeriod(entry, content.rangeFormat, content.nowLabel)}</RoleRange>
                   <RolePlace>{place}</RolePlace>
                 </RoleRow>
               );
@@ -273,7 +274,7 @@ interface ProductPlaybookProps extends Omit<GlanceProps, "content"> {
 // For product readers: what was founded, who it reached, the product levels held, how it made money and
 // grew, and how a product gets run, each backed by something on the page.
 const ProductPlaybook: FC<ProductPlaybookProps> = ({ content, details, experience, roster }: ProductPlaybookProps) => {
-  const calculator = useMemo(() => new TenureCalculator(roster.asOf), [roster.asOf]);
+  const rosterLevels = useMemo(() => createRosterLevels(roster), [roster]);
   const stats = content.proofValues.flatMap((value) => details.proof.filter((figure) => figure.value === value));
   const levels = content.levelClasses.flatMap((characterClass) => {
     const character = roster.characters.find((candidate) => candidate.characterClass === characterClass);
@@ -282,9 +283,7 @@ const ProductPlaybook: FC<ProductPlaybookProps> = ({ content, details, experienc
       return [];
     }
 
-    const level = Math.max(1, calculator.years(character.tenures));
-
-    return [{ name: characterClass, text: fill(content.levelFormat, { level, since: calculator.since(character.tenures) }) }];
+    return [{ name: characterClass, text: fill(content.levelFormat, { level: rosterLevels.level(character), since: rosterLevels.since(character) }) }];
   });
   const ventures = experience.filter((entry) => entry.isVenture).sort((first, second) => startYear(first.from) - startYear(second.from));
 

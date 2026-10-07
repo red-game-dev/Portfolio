@@ -1,5 +1,8 @@
-import { pickSkillYears, splitTitle, startYear } from "@/components/Glance/utils";
+import { pickSkillYears, startYear } from "@/components/Glance/utils";
+import { formatPeriod, splitTitle } from "@/packages/insights/career";
+import { createRosterLevels } from "@/services/roster";
 import { ForgeStation } from "@/services/skills";
+import { Character } from "@/types/roster";
 
 const station = (items: Array<[string, number]>) => ({
   id: "s",
@@ -29,3 +32,23 @@ describe("glance helpers", () => {
     expect(startYear("2021")).toBe(2021);
   });
 });
+
+describe("formatPeriod", () => {
+  it("words the dates, ends in the present while running, and prefers a period written by hand", () => {
+    expect(formatPeriod({ from: "Apr 2015" }, "{from} to {to}", "now")).toBe("Apr 2015 to now");
+    expect(formatPeriod({ from: "2018", to: "2020" }, "{from} to {to}", "now")).toBe("2018 to 2020");
+    expect(formatPeriod({ from: "2018", period: "On and off since 2018" }, "{from} to {to}", "now")).toBe("On and off since 2018");
+  });
+});
+
+describe("createRosterLevels", () => {
+  const character = (from: string, to?: string) => ({ tenures: [{ from, to }] }) as unknown as Character;
+  const levels = createRosterLevels({ asOf: "Jan 2025" });
+
+  it("levels a character by whole years in the role, never below 1", () => {
+    expect(levels.level(character("Jan 2020", "Jan 2023"))).toBe(3);
+    expect(levels.level(character("Jun 2024"))).toBe(1);
+    expect(levels.years(character("Jun 2024"))).toBe(0);
+  });
+});
+

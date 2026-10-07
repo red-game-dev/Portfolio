@@ -1,6 +1,9 @@
 import { pickSkillYears } from "@/components/Glance/utils";
+import { hiringAnchor, hiringFromHash } from "@/config/sections";
+import { portfolioData } from "@/data/resume";
 import { formatPeriod, splitTitle, startYear } from "@/packages/insights/career";
 import { createRosterLevels } from "@/services/roster";
+import { createForgeStations } from "@/services/skills";
 import { ForgeStation } from "@/services/skills";
 import { Character } from "@/types/roster";
 
@@ -52,3 +55,30 @@ describe("createRosterLevels", () => {
   });
 });
 
+
+describe("hiring roles on the recruiter glance", () => {
+  const { hires } = portfolioData.lens.glance.recruiter;
+  const classes = new Set(portfolioData.roster.characters.map((character) => character.characterClass));
+  const stations = createForgeStations(portfolioData);
+
+  it("have unique ids and only name roster classes that exist", () => {
+    expect(new Set(hires.map((hire) => hire.id)).size).toBe(hires.length);
+    hires.forEach((hire) => expect(hire.roleClasses.filter((name) => !classes.has(name))).toEqual([]));
+  });
+
+  it("each show a fit line and at least three skills with real years", () => {
+    hires.forEach((hire) => {
+      const shown = hire.skillGroups.flatMap((group) => pickSkillYears(stations, group.names));
+
+      expect(hire.fit.length).toBeGreaterThan(20);
+      expect(shown.length).toBeGreaterThanOrEqual(3);
+    });
+  });
+
+  it("round trip through the link a recruiter can share", () => {
+    const ids = hires.map((hire) => hire.id);
+
+    ids.forEach((id) => expect(hiringFromHash(`#${hiringAnchor(id)}`, ids)).toBe(id));
+    expect(hiringFromHash("#hiring-astronaut", ids)).toBeNull();
+  });
+});

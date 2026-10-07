@@ -58,6 +58,17 @@ const INDUSTRY_PREFIX = "industry-";
 
 export const industryAnchor = (industry: Industry) => `${INDUSTRY_PREFIX}${industry}`;
 
+// #hiring-cto opens the recruiter's glance on that role, so a shortlist can be shared exactly as it was read.
+const HIRING_PREFIX = "hiring-";
+
+export const hiringAnchor = (id: string) => `${HIRING_PREFIX}${id}`;
+
+export const hiringFromHash = (hash: string, ids: string[]): string | null => {
+  const anchor = hash.replace(/^#/, "");
+
+  return ids.find((id) => hiringAnchor(id) === anchor) ?? null;
+};
+
 export const industryFromHash = (hash: string, industries: Industry[]): Industry | null => {
   const anchor = hash.replace(/^#/, "");
 

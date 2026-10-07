@@ -1,5 +1,7 @@
 import tw, { css, styled } from "twin.macro";
 
+import { fadeIn } from "@/styles/keyframes";
+
 export const Sheet = tw.div`flex flex-col gap-[26px] p-[22px] md:p-[32px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
 export const Header = tw.div`flex flex-col md:flex-row md:items-end justify-between gap-[16px]`;
@@ -137,3 +139,23 @@ export const Milestone = styled.li(() => [
 export const StageName = tw.span`text-base font-semibold text-white`;
 
 export const StageExample = tw.span`text-sm text-[#aaa]`;
+
+// The rows that change with the role being hired for fade in on each switch.
+export const Switched = styled.div(() => [
+  tw`contents`,
+  css`
+    & > * {
+      animation: ${fadeIn} 0.3s ease-out both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      & > * {
+        animation: none;
+      }
+    }
+  `,
+]);
+
+export const HireChips = tw.div`flex flex-row flex-wrap gap-[6px]`;
+
+export const Fit = tw.p`m-0 text-sm md:text-base text-white border-0 border-l-[2px] border-solid border-[var(--accent)] pl-[10px]`;

@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { AppLoader } from "@/components/AppLoader";
 import { AppLoaderProvider } from "@/components/AppLoader/context/AppLoaderContext";
 import { Carousel } from "@/components/Carousel";
+import { RecruiterGlance } from "@/components/Glance/RecruiterGlance";
 import { LensGate } from "@/components/Lens";
 import { LensProvider } from "@/components/Lens/context/LensContext";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
@@ -10,6 +11,7 @@ import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import { LENS_STORAGE_KEY } from "@/config/lenses";
 import { portfolioData } from "@/data/resume";
 import useTabs from "@/hooks/useTabs";
+import { createForgeStations } from "@/services/skills";
 
 const Tabs = ({ onSelect }: { onSelect: (next: number, previous: number) => void }) => {
   const { active, listProps, tabProps, panelProps } = useTabs({ count: 3, onSelect });
@@ -174,5 +176,44 @@ describe("LensGate", () => {
     expect(screen.getByTestId("probe")).toHaveTextContent("engineer chosen");
     expect(dialog.open).toBe(false);
     expect(document.documentElement.style.overflow).toBe("");
+  });
+});
+
+describe("RecruiterGlance", () => {
+  const { recruiter } = portfolioData.lens.glance;
+  const renderGlance = () => render(
+    <RecruiterGlance
+      content={recruiter}
+      details={portfolioData.details}
+      headline={portfolioData.headline}
+      experience={portfolioData.experience}
+      roster={portfolioData.roster}
+      stations={createForgeStations(portfolioData)}
+      cvUrl={portfolioData.cv}
+    />,
+  );
+
+  afterEach(() => window.history.replaceState(null, "", "/"));
+
+  it("leads with why I fit the role being hired for, and keeps it in a link to share", () => {
+    const cto = recruiter.hires.find((hire) => hire.id === "cto");
+
+    renderGlance();
+    expect(screen.queryByText(cto?.fit ?? "")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: cto?.label }));
+    expect(screen.getByText(cto?.fit ?? "")).toBeInTheDocument();
+    expect(window.location.hash).toBe("#hiring-cto");
+
+    fireEvent.click(screen.getByRole("button", { name: recruiter.everyRoleLabel }));
+    expect(screen.queryByText(cto?.fit ?? "")).toBeNull();
+    expect(window.location.hash).toBe("");
+  });
+
+  it("opens on the role a shared link names", () => {
+    window.history.replaceState(null, "", "/#hiring-frontend");
+    renderGlance();
+
+    expect(screen.getByRole("button", { name: "Senior Frontend" })).toHaveAttribute("aria-pressed", "true");
   });
 });

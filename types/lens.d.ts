@@ -29,9 +29,23 @@ export interface SkillPick {
   names: string[];
 }
 
+// A role a recruiter can be hiring for: the glance then leads with why I fit it, the years in the roles that
+// match and the skills it asks for. Every line comes from content elsewhere on the page.
+export interface HireLens {
+  id: string;
+  label: string;
+  fit: string;
+  roleClasses: string[];
+  skillGroups: SkillPick[];
+}
+
 export interface RecruiterGlanceContent {
   title: string;
   description: string;
+  hiringLabel: string;
+  // The chip that shows the glance for every role at once.
+  everyRoleLabel: string;
+  hires: HireLens[];
   rolesLabel: string;
   roles: string[];
   // Roster classes whose years are shown, computed from real dates.

@@ -51,6 +51,112 @@ export const lensContent: LensContent = {
     recruiter: {
       title: "At a glance",
       description: "The essentials for a shortlist. Every section below says more, in plain terms.",
+      hiringLabel: "Hiring for",
+      everyRoleLabel: "Every role",
+      hires: [
+        {
+          id: "architect",
+          label: "Software Architect",
+          fit: "Architect and tech lead at Chiliz and Conrad. I design systems that are not tied to a vendor or a framework, and stay hands on.",
+          roleClasses: ["Architect", "Tech Lead", "CTO"],
+          skillGroups: [
+            { label: "Architecture", names: ["draw.io / C4 model", "Design Systems", "Micro-frontends", "CI/CD", "Docker", "GKE / Kubernetes"] },
+            { label: "Languages and frameworks", names: ["Typescript", "NodeJS", "NestJS", "React", "Vue", "PostgreSQL"] },
+            { label: "Cloud", names: ["AWS", "GCP", "Cloudflare", "Vercel"] },
+          ],
+        },
+        {
+          id: "cto",
+          label: "CTO",
+          fit: "CEO and CTO of my own social network and MMORPG, then co-founder and CTO of CoinOn: product, team and technology at once.",
+          roleClasses: ["CTO", "CEO", "Architect", "Tech Lead"],
+          skillGroups: [
+            { label: "Platform", names: ["Typescript", "NodeJS", "PostgreSQL", "AWS", "Cloudflare", "Docker", "CI/CD"] },
+            { label: "Product and growth", names: ["Stripe", "PayPal", "HubSpot", "Mailchimp", "Google Analytics 4"] },
+          ],
+        },
+        {
+          id: "founding",
+          label: "Founding Engineer",
+          fit: "14 startups built as founder or co-founder, from the first commit to running the product and the community around it.",
+          roleClasses: ["CTO", "CEO", "Product Engineer", "Backend Engineer", "Frontend Engineer"],
+          skillGroups: [
+            { label: "Full stack", names: ["Typescript", "React", "NextJs", "NodeJS", "NestJS", "PostgreSQL", "Supabase"] },
+            { label: "Shipping", names: ["Vercel", "Railway", "Docker", "CI/CD", "Stripe"] },
+          ],
+        },
+        {
+          id: "frontend",
+          label: "Senior Frontend",
+          fit: "Frontend engineer and lead from design systems to canvas and WebGL, in React, Vue and Next.js.",
+          roleClasses: ["Frontend Engineer", "Tech Lead"],
+          skillGroups: [
+            { label: "Frameworks", names: ["React", "Vue", "NextJs", "Nuxt / Nuxt 4", "Typescript", "Javascript"] },
+            { label: "Craft", names: ["Design Systems", "State Management", "RxJS", "Canvas", "WebGL", "PixiJs", "Tailwind CSS", "Storybook"] },
+            { label: "Testing", names: ["Jest", "Playwright", "TDD (Test Driven Development)"] },
+          ],
+        },
+        {
+          id: "full-stack",
+          label: "Full Stack",
+          fit: "Senior full stack engineer, front to back: TypeScript, Node.js and NestJS, PostgreSQL and the cloud they run on.",
+          roleClasses: ["Frontend Engineer", "Backend Engineer", "Product Engineer"],
+          skillGroups: [
+            { label: "Front", names: ["React", "Vue", "NextJs", "Typescript"] },
+            { label: "Back", names: ["NodeJS", "NestJS", "PostgreSQL", "Redis", "Graphql", "PHP", "Laravel"] },
+            { label: "Run", names: ["Docker", "AWS", "Vercel", "CI/CD"] },
+          ],
+        },
+        {
+          id: "leadership",
+          label: "Head or VP of Engineering",
+          fit: "Led squads and engineering teams, hired and onboarded engineers, and owned roadmaps, estimates and architecture governance.",
+          roleClasses: ["Tech Lead", "CTO", "Architect"],
+          skillGroups: [
+            { label: "Engineering practice", names: ["Code Review", "TDD (Test Driven Development)", "Automated Testing (unit, integration, end to end)", "CI/CD"] },
+            { label: "Delivery", names: ["Design Systems", "draw.io / C4 model", "Miro", "Sentry"] },
+          ],
+        },
+        {
+          id: "blockchain",
+          label: "Blockchain Engineer",
+          fit: "Co-founder and CTO of CoinOn, an exchange with DeFi, and blockchain work at Chiliz and reNFT: contracts, wallets and indexing.",
+          roleClasses: ["Blockchain Engineer", "CTO"],
+          skillGroups: [
+            { label: "On chain", names: ["Solidity", "Ethers.js", "Wagmi (React)", "TheGraph", "Alchemy", "Rust"] },
+            { label: "Around it", names: ["Typescript", "React", "NodeJS", "PostgreSQL"] },
+          ],
+        },
+        {
+          id: "ai",
+          label: "AI Engineer",
+          fit: "I build with AI agents: I write the rules, the context and the checks they work within, and a person reviews every change.",
+          roleClasses: ["Architect", "Product Engineer"],
+          skillGroups: [
+            { label: "Tools", names: ["ChatGPT / GPT-4", "Typescript", "Python", "NodeJS"] },
+            { label: "Practice", names: ["Code Review", "Automated Testing (unit, integration, end to end)", "CI/CD"] },
+          ],
+        },
+        {
+          id: "game",
+          label: "Game Engineer",
+          fit: "An MMORPG engine and servers built from scratch in C/C++, game UIs for live casino, and Unity and Unreal prototypes.",
+          roleClasses: ["Game Engineer", "Frontend Engineer"],
+          skillGroups: [
+            { label: "Engines", names: ["C/C++", "Lua", "C#, .NET", "Unity", "Unreal Engine", "ShaderLab"] },
+            { label: "Web games", names: ["Canvas", "WebGL", "PixiJs", "Typescript"] },
+          ],
+        },
+        {
+          id: "mobile",
+          label: "Mobile Engineer",
+          fit: "Mobile apps shipped to both stores with React Native and Flutter, with native work in Kotlin and Swift.",
+          roleClasses: ["Frontend Engineer", "Product Engineer"],
+          skillGroups: [
+            { label: "Mobile", names: ["React Native", "Flutter", "Kotlin", "Swift", "Dart", "Fastlane", "Google Store & Apple Store"] },
+          ],
+        },
+      ],
       rolesLabel: "Roles I am after",
       roles: ["Software Architect", "Enterprise Architect", "Head of Engineering", "VP of Engineering", "Product Engineer", "Blockchain Engineer",
         "AI engineering"],

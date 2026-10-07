@@ -4,9 +4,10 @@ import tw, { css, styled } from "twin.macro";
 
 import { Image } from "@/components/Image";
 import { COLORS } from "@/config/theme";
+import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useInView from "@/hooks/useInView";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
-import { PixelRevealEngine, PixelRevealStage } from "@/packages/effects/pixel-reveal";
+import type { PixelRevealStage } from "@/packages/effects/pixel-reveal";
 import { PortraitLabels } from "@/types/details";
 
 interface PortraitProps {
@@ -56,64 +57,41 @@ const STAGE_LABELS: Record<Exclude<PixelRevealStage, "done">, keyof PortraitLabe
 export const Portrait: FC<PortraitProps> = ({ src, fallbackSrc, alt, labels }: PortraitProps) => {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const engineRef = useRef<PixelRevealEngine | null>(null);
   const [stage, setStage] = useState<PixelRevealStage | null>(null);
-  const [isReady, setIsReady] = useState(false);
   const isInView = useInView(frameRef, { threshold: 0.4 });
+  // Built once the photo is near and decoded, with the reveal engine's code fetched alongside. Without the
+  // picture there is nothing to reveal, and the photo underneath stays as it is.
+  const engine = useCanvasEngine(canvasRef, {
+    sizeRef: frameRef,
+    contextOptions: { alpha: false },
+    isEnabled: !prefersReducedMotion(),
+    create: async (context) => {
+      const image = new window.Image();
 
-  useEffect(() => {
-    const frame = frameRef.current;
-    const context = canvasRef.current?.getContext("2d", { alpha: false });
+      image.src = src;
 
-    if (!frame || !context || prefersReducedMotion()) {
-      return;
-    }
+      const [{ PixelRevealEngine }] = await Promise.all([import("@/packages/effects/pixel-reveal"), image.decode()]);
 
-    const image = new window.Image();
-    // The page is hidden behind the intro loader at first, so the frame has no size yet; the engine sizes
-    // itself whenever the frame does.
-    const resizeObserver = new ResizeObserver(() => {
-      engineRef.current?.resize({ width: frame.clientWidth, height: frame.clientHeight }, window.devicePixelRatio || 1);
-    });
-    let isCancelled = false;
-
-    image.src = src;
-    image.decode()
-      .then(() => {
-        if (isCancelled) {
-          return;
-        }
-
-        engineRef.current = PixelRevealEngine.forCanvas(context, { image, width: image.naturalWidth, height: image.naturalHeight }, {
-          config: { theme: { background: COLORS.surface, signal: COLORS.accent } },
-          onStageChange: setStage,
-        });
-        resizeObserver.observe(frame);
-        setIsReady(true);
-      })
-      // Without the picture there is nothing to reveal; the photo underneath stays as it is.
-      .catch(() => undefined);
-
-    return () => {
-      isCancelled = true;
-      resizeObserver.disconnect();
-      engineRef.current?.stop();
-      engineRef.current = null;
-    };
+      return PixelRevealEngine.forCanvas(context, { image, width: image.naturalWidth, height: image.naturalHeight }, {
+        config: { theme: { background: COLORS.surface, signal: COLORS.accent } },
+        onStageChange: setStage,
+      });
+    },
+    resize: (reveal, { width, height, pixelRatio }) => reveal.resize({ width, height }, pixelRatio),
   }, [src]);
 
   // Plays each time the picture comes into view, from binary again once it has left the screen.
   useEffect(() => {
-    if (!isReady) {
+    if (!engine) {
       return;
     }
 
     if (isInView) {
-      engineRef.current?.play();
+      engine.play();
     } else {
-      engineRef.current?.rewind();
+      engine.rewind();
     }
-  }, [isInView, isReady]);
+  }, [engine, isInView]);
 
   const isDone = stage === "done";
 

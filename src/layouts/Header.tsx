@@ -22,15 +22,14 @@ const HeaderContainer = styled.header(({ isScrolled }: HeaderContainerProps) => 
     flex items-center justify-between m-0 lg:m-auto py-0 px-[30px] bg-transparent border-b-[transparent] fixed lg:p-[50px] top-6 left-0 right-0 w-full z-[8]
     after:content-[''] after:relative after:block after:clear-both
   `,
-  css` 
-    transition: all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1);
+  css`
+    transition: top 0.7s cubic-bezier(0.165, 0.85, 0.45, 1), padding 0.7s cubic-bezier(0.165, 0.85, 0.45, 1), background-color 0.3s ease;
   `,
-  // Past the first screen the menu sits on a dark, see through bar, so it never reads over the content.
+  // Past the first screen the menu sits on a dark bar, so it never reads over the content. Nearly opaque
+  // rather than blurred: a backdrop blur re-samples everything under the bar on every scrolled frame.
   isScrolled && tw`top-0 py-[14px] lg:py-[14px]`,
   isScrolled && css`
-    background: rgba(16, 16, 16, 0.84);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background-color: rgba(16, 16, 16, 0.95);
     border-bottom: 1px solid rgba(var(--accent-rgb), 0.18);
   `,
 ]);

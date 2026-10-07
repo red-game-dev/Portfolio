@@ -1,4 +1,4 @@
-import { CSSProperties, FC, KeyboardEvent, MouseEvent, useEffect, useRef } from "react";
+import { CSSProperties, FC, KeyboardEvent, useRef } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -11,6 +11,7 @@ import { DecodedText } from "@/components/DecodedText";
 import { Image } from "@/components/Image";
 import { KIND_COLOURS } from "@/components/Projects/config";
 import { ScreenCarousel } from "@/components/Projects/ScreenCarousel";
+import useModalDialog from "@/hooks/useModalDialog";
 import { BlueprintLabels } from "@/types/blueprints";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
 
@@ -202,25 +203,7 @@ export const RegionDialog: FC<RegionDialogProps> = ({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const { labels } = content;
 
-  useEffect(() => {
-    const element = dialogRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    if (project && !element.open) {
-      element.showModal();
-    } else if (!project && element.open) {
-      element.close();
-    }
-  }, [project]);
-
-  const onClick = (event: MouseEvent<HTMLDialogElement>) => {
-    if (event.target === event.currentTarget) {
-      event.currentTarget.close();
-    }
-  };
+  const onClick = useModalDialog(dialogRef, project !== null);
 
   // Arrow keys travel between regions, like moving across a map, unless they are moving something sideways
   // inside the dialog (anything marked data-scroll-x: a strip of screens, a row of tabs) or carry a modifier.

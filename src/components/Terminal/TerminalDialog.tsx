@@ -1,9 +1,10 @@
-import { FC, MouseEvent, useEffect, useId, useRef } from "react";
+import { FC, useId, useRef } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import { DecodedText } from "@/components/DecodedText";
+import useModalDialog from "@/hooks/useModalDialog";
 import { TerminalDialog as TerminalDialogContent } from "@/packages/interaction/terminal";
 
 interface TerminalDialogProps {
@@ -115,26 +116,7 @@ export const TerminalDialog: FC<TerminalDialogProps> = ({ dialog, closeLabel, on
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
-  useEffect(() => {
-    const element = dialogRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    if (dialog && !element.open) {
-      element.showModal();
-    } else if (!dialog && element.open) {
-      element.close();
-    }
-  }, [dialog]);
-
-  // A click on the backdrop lands on the dialog element itself, outside the body.
-  const onClick = (event: MouseEvent<HTMLDialogElement>) => {
-    if (event.target === event.currentTarget) {
-      event.currentTarget.close();
-    }
-  };
+  const onClick = useModalDialog(dialogRef, dialog !== null);
 
   return (
     <Dialog ref={dialogRef} onClose={onClose} onClick={onClick} aria-labelledby={titleId}>

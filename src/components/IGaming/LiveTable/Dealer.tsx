@@ -3,8 +3,9 @@ import { FC, useEffect, useRef, useState } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
+import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
-import { createDealerModel, DEFAULT_DEALER_OUTFITS, DealerOutfit } from "@/packages/games/live-table";
+import { createDealerModel, DEFAULT_DEALER_OUTFITS } from "@/packages/games/live-table";
 import { RigActor } from "@/packages/graphics/rig";
 
 interface DealerProps {
@@ -86,50 +87,31 @@ const Round = tw.span`text-[11px] font-semibold opacity-60`;
 export const Dealer: FC<DealerProps> = ({ phrase, phraseKey, outfitLabels, changeLabel, roundLabel, phaseMs, isClosed, isRunning }: DealerProps) => {
   const figureRef = useRef<HTMLButtonElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dealerRef = useRef<RigActor<DealerOutfit> | null>(null);
   const [outfit, setOutfit] = useState(0);
-
-  useEffect(() => {
-    const figure = figureRef.current;
-    const context = canvasRef.current?.getContext("2d");
-
-    if (!figure || !context) {
-      return;
-    }
-
-    const dealer = new RigActor(context, { model: createDealerModel(), skins: DEFAULT_DEALER_OUTFITS });
-    const resize = () => dealer.resize(figure.clientWidth, window.devicePixelRatio || 1);
-    const observer = new ResizeObserver(resize);
-
-    dealerRef.current = dealer;
-    resize();
-    observer.observe(figure);
-
-    return () => {
-      observer.disconnect();
-      dealer.stop();
-      dealerRef.current = null;
-    };
-  }, []);
+  // The live table's chunk already holds the rig, so she is built straight away.
+  const dealer = useCanvasEngine(canvasRef, {
+    sizeRef: figureRef,
+    nearMargin: "0px",
+    create: (context) => new RigActor(context, { model: createDealerModel(), skins: DEFAULT_DEALER_OUTFITS }),
+    resize: (actor, { width, pixelRatio }) => actor.resize(width, pixelRatio),
+  });
 
   // She only moves while the table is on screen, and stays still for reduced motion.
   useEffect(() => {
-    const dealer = dealerRef.current;
-
-    if (isRunning && !prefersReducedMotion()) {
-      dealer?.start();
+    if (dealer && isRunning && !prefersReducedMotion()) {
+      dealer.start();
     } else {
       dealer?.stop();
     }
-  }, [isRunning]);
+  }, [dealer, isRunning]);
 
   useEffect(() => {
-    dealerRef.current?.play("talk", TALK_MS);
-  }, [phraseKey]);
+    dealer?.play("talk", TALK_MS);
+  }, [dealer, phraseKey]);
 
   useEffect(() => {
-    dealerRef.current?.setSkin(outfit);
-  }, [outfit]);
+    dealer?.setSkin(outfit);
+  }, [dealer, outfit]);
 
   const next = (outfit + 1) % DEFAULT_DEALER_OUTFITS.length;
 

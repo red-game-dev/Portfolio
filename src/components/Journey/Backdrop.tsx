@@ -5,20 +5,9 @@ import tw from "twin.macro";
 import { LensSettings } from "@/config/lenses";
 import { BACKDROP_THEME, COLORS, TRANSITION_THEME } from "@/config/theme";
 import { ZoneId } from "@/config/zones";
+import useCanvasEngine from "@/hooks/useCanvasEngine";
+import { usePageHeld } from "@/hooks/useScrollLock";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
-import {
-  BackdropEngine,
-  BlockSnapTransition,
-  CasinoScene,
-  ChainScene,
-  ChipFlipTransition,
-  CollapseTransition,
-  EmberScene,
-  NeuralScene,
-  PortalTransition,
-  RainScene,
-  transitionKey
-} from "@/packages/effects/backdrop";
 
 interface BackdropProps {
   zone: ZoneId;
@@ -42,65 +31,75 @@ interface EngineOptions {
   transitions: LensSettings["transitions"];
 }
 
-const createEngine = (context: CanvasRenderingContext2D, { zone, isStill, transitions }: EngineOptions) => {
+const createEngine = async (context: CanvasRenderingContext2D, { zone, isStill, transitions }: EngineOptions) => {
+  const backdrop = await import("@/packages/effects/backdrop");
   const isNarrow = window.innerWidth < NARROW_WIDTH;
+  const { transitionKey } = backdrop;
 
-  return new BackdropEngine(context, {
+  return new backdrop.BackdropEngine(context, {
     initialScene: zone,
     isStatic: isStill || prefersReducedMotion(),
     config: { background: COLORS.surface, framesPerSecond: isNarrow ? 24 : 30, maxPixelRatio: isNarrow ? 1 : 1.5 },
     scenes: [
-      (random) => new RainScene(random, BACKDROP_THEME.rain),
-      (random) => new NeuralScene(random, BACKDROP_THEME.neural),
-      (random) => new ChainScene(random, BACKDROP_THEME.chain),
-      (random) => new CasinoScene(random, BACKDROP_THEME.casino),
-      (random) => new EmberScene(random, BACKDROP_THEME.ember),
+      (random) => new backdrop.RainScene(random, BACKDROP_THEME.rain),
+      (random) => new backdrop.NeuralScene(random, BACKDROP_THEME.neural),
+      (random) => new backdrop.ChainScene(random, BACKDROP_THEME.chain),
+      (random) => new backdrop.CasinoScene(random, BACKDROP_THEME.casino),
+      (random) => new backdrop.EmberScene(random, BACKDROP_THEME.ember),
     ],
     transitions: transitions !== "full" ? {} : {
-      [transitionKey("matrix", "ai")]: (random) => new CollapseTransition(random, TRANSITION_THEME.collapse),
-      [transitionKey("ai", "chain")]: () => new BlockSnapTransition(TRANSITION_THEME.snap),
-      [transitionKey("chain", "casino")]: (random) => new ChipFlipTransition(random, TRANSITION_THEME.flip),
-      [transitionKey("casino", "mmo")]: (random) => new PortalTransition(random, TRANSITION_THEME.portal),
+      [transitionKey("matrix", "ai")]: (random) => new backdrop.CollapseTransition(random, TRANSITION_THEME.collapse),
+      [transitionKey("ai", "chain")]: () => new backdrop.BlockSnapTransition(TRANSITION_THEME.snap),
+      [transitionKey("chain", "casino")]: (random) => new backdrop.ChipFlipTransition(random, TRANSITION_THEME.flip),
+      [transitionKey("casino", "mmo")]: (random) => new backdrop.PortalTransition(random, TRANSITION_THEME.portal),
     },
   });
 };
 
+const wait = (ms: number) => new Promise((resolve) => {
+  window.setTimeout(resolve, ms);
+});
+
 // One fixed canvas behind every section. It shows through the margins and gaps between panels, and moves
-// between scenes as the reader crosses from one zone to the next.
+// between scenes as the reader crosses from one zone to the next. It stops while a dialog or the intro
+// holds the page, since nothing of it shows then.
 export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled, isStill, transitions }: BackdropProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const engineRef = useRef<BackdropEngine | null>(null);
+  const isHeld = usePageHeld();
   // Read when the engine is finally built, which can be after the zone has already changed.
   const zoneRef = useRef(zone);
 
   zoneRef.current = zone;
 
-  useEffect(() => {
-    const context = canvasRef.current?.getContext("2d", { alpha: false });
+  const engine = useCanvasEngine(canvasRef, {
+    isEnabled,
+    contextOptions: { alpha: false },
+    nearMargin: "0px",
+    // Built a moment after the page settles, so neither its code nor its setup joins the first long task.
+    create: async (context) => {
+      await wait(START_DELAY_MS);
 
-    if (!isEnabled || !context) {
+      return createEngine(context, { zone: zoneRef.current, isStill, transitions });
+    },
+    resize: (backdrop, { width, height, pixelRatio }) => backdrop.resize(width, height, pixelRatio),
+  }, [isStill, transitions]);
+
+  useEffect(() => {
+    if (!engine) {
       return;
     }
 
-    const resize = () => engineRef.current?.resize(window.innerWidth, window.innerHeight, window.devicePixelRatio || 1);
-    const timeout = window.setTimeout(() => {
-      engineRef.current = createEngine(context, { zone: zoneRef.current, isStill, transitions });
-      resize();
-      engineRef.current.start();
-      window.addEventListener("resize", resize);
-    }, START_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(timeout);
-      window.removeEventListener("resize", resize);
-      engineRef.current?.stop();
-      engineRef.current = null;
-    };
-  }, [isEnabled, isStill, transitions]);
+    if (isHeld) {
+      engine.stop();
+    } else {
+      engine.setScene(zoneRef.current);
+      engine.start();
+    }
+  }, [engine, isHeld]);
 
   useEffect(() => {
-    engineRef.current?.setScene(zone);
-  }, [zone]);
+    engine?.setScene(zone);
+  }, [engine, zone]);
 
   return <Canvas ref={canvasRef} aria-hidden="true" />;
 };

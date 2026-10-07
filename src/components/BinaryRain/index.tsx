@@ -4,8 +4,10 @@ import tw from "twin.macro";
 
 import { BINARY_RAIN_VIEW } from "@/components/BinaryRain/config";
 import { BINARY_RAIN_CONFIG } from "@/config/theme";
+import useCanvasEngine from "@/hooks/useCanvasEngine";
+import useInView from "@/hooks/useInView";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
-import { BinaryRainEngine, RainConfigOverrides } from "@/packages/effects/binary-rain";
+import type { RainConfigOverrides } from "@/packages/effects/binary-rain";
 
 interface BinaryRainProps {
   message: string[];
@@ -17,49 +19,36 @@ const Container = tw.div`absolute inset-0`;
 
 const Canvas = tw.canvas`block w-full h-full`;
 
-// React only wires the engine to the page: size from a ResizeObserver, start and stop from an
-// IntersectionObserver so nothing runs off screen, and reduced motion from the media query.
+// React only wires the engine to the page: built (and its code fetched) as the rain comes near, sized to its
+// container, and running only while enough of it is on screen. Reduced motion shows the message still.
 export const BinaryRain: FC<BinaryRainProps> = ({ message, config = BINARY_RAIN_CONFIG }: BinaryRainProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isVisible = useInView(containerRef, { once: false, threshold: BINARY_RAIN_VIEW.decodeThreshold });
+  const engine = useCanvasEngine(canvasRef, {
+    sizeRef: containerRef,
+    // Opaque: the renderer paints its own background, so the page never has to blend this layer.
+    contextOptions: { alpha: false },
+    create: async (context) => {
+      const { BinaryRainEngine } = await import("@/packages/effects/binary-rain");
+
+      return BinaryRainEngine.forCanvas(context, { message, isStatic: prefersReducedMotion(), config });
+    },
+    resize: (rain, { width, height, pixelRatio }) => rain.resize(width, height, pixelRatio),
+  }, [config, message]);
 
   useEffect(() => {
-    const container = containerRef.current;
-    // Opaque: the renderer paints its own background, so the page never has to blend this layer.
-    const context = canvasRef.current?.getContext("2d", { alpha: false });
-
-    if (!container || !context) {
+    if (!engine) {
       return;
     }
 
-    const engine = BinaryRainEngine.forCanvas(context, {
-      message,
-      isStatic: prefersReducedMotion(),
-      config,
-    });
-    const resizeObserver = new ResizeObserver(([entry]) => {
-      engine.resize(entry.contentRect.width, entry.contentRect.height, window.devicePixelRatio || 1);
-    });
-    const visibilityObserver = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) {
-        engine.stop();
-
-        return;
-      }
-
+    if (isVisible) {
       engine.start();
       engine.decode();
-    }, { threshold: BINARY_RAIN_VIEW.decodeThreshold });
-
-    resizeObserver.observe(container);
-    visibilityObserver.observe(container);
-
-    return () => {
-      resizeObserver.disconnect();
-      visibilityObserver.disconnect();
+    } else {
       engine.stop();
-    };
-  }, [config, message]);
+    }
+  }, [engine, isVisible]);
 
   return (
     <Container ref={containerRef}>

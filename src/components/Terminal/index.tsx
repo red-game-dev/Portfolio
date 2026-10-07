@@ -82,9 +82,10 @@ const Input = styled.input(() => [
 
 const Suggestions = tw.div`flex flex-row flex-wrap gap-[8px] mt-[14px]`;
 
+// A ring that grows and fades out of the chip: scaled and faded only, so the compositor runs it.
 const glow = keyframes`
-  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.45); }
-  50% { box-shadow: 0 0 0 6px rgba(var(--accent-rgb), 0); }
+  from { transform: scale(1); opacity: 0.6; }
+  to { transform: scale(1.35, 1.8); opacity: 0; }
 `;
 
 const Suggestion = styled.button(({ isFeatured }: { isFeatured: boolean }) => [
@@ -105,10 +106,23 @@ const Suggestion = styled.button(({ isFeatured }: { isFeatured: boolean }) => [
     color: #101010;
     background-color: var(--accent);
     border-color: var(--accent);
-    animation: ${glow} 1.8s ease-out infinite;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 2px solid var(--accent);
+      pointer-events: none;
+      animation: ${glow} 1.8s ease-out infinite;
+    }
 
     @media (prefers-reduced-motion: reduce) {
-      animation: none;
+      &::after {
+        animation: none;
+        opacity: 0;
+      }
     }
   `,
 ]);

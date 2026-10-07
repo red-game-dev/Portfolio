@@ -28,7 +28,7 @@ const FollowMeButton = styled.span(() => [
 const SocialMediaItem = styled(Link)(() => [
   tw`block mb-8 text-center text-[#bbb] hover:text-white`,
   css`
-    transition: all 0.7s cubic-bezier(0.165, 0.85, 0.45, 1);
+    transition: color 0.7s cubic-bezier(0.165, 0.85, 0.45, 1);
   `
 ]);
 

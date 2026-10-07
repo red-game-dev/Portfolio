@@ -3,6 +3,7 @@ import { FC, useEffect } from "react";
 import tw, { styled } from "twin.macro";
 
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
+import useScrollLock from "@/hooks/useScrollLock";
 
 interface LoaderBackgroundProps {
   isLoading: boolean;
@@ -169,25 +170,23 @@ w-[5px] h-[100px] bg-wave m-[10px] animate-[wave 1s linear infinite]
 `;
 
 export const AppLoader: FC = () => {
-  const { isLoading, setIsLoading, isReady, setIsReady } = useAppLoaderStateHook();
+  const { isLoading, setIsLoading, setIsReady } = useAppLoaderStateHook();
 
+  // Once, from mount: the intro lifts after 1s and the page counts as ready at 3s. (These used to restart
+  // whenever either flag changed, so ready landed at about 4s.)
   useEffect(() => {
-    const timeoutReady = setTimeout(() => {
-      if (!isReady) {
-        setIsReady(true);
-      }
-    }, 3000);
-    const timeoutLoading = setTimeout(() => {
-      if (isLoading) {
-        setIsLoading(false);
-      }
-    }, 1000);
+    const timeoutLoading = setTimeout(() => setIsLoading(false), 1000);
+    const timeoutReady = setTimeout(() => setIsReady(true), 3000);
 
     return () => {
-      clearInterval(timeoutReady);
-      clearInterval(timeoutLoading);
+      clearTimeout(timeoutLoading);
+      clearTimeout(timeoutReady);
     };
-  }, [isReady, isLoading, setIsReady, setIsLoading]);
+  }, [setIsLoading, setIsReady]);
+
+  // The page renders underneath from the start, so it is painted and measured by the time the intro lifts;
+  // it just cannot be scrolled yet.
+  useScrollLock(isLoading);
 
   return (
     <>

@@ -45,7 +45,7 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
     <>
       <AppLoader />
       <LensGate content={portfolioData.lens} counts={LENS_COUNTS} />
-      <Container style={isLoading ? { display: "none"} : {}}>
+      <Container>
         <Header
           title={title}
           lens={portfolioData.lens}

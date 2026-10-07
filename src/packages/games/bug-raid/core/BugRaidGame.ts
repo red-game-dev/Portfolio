@@ -2,7 +2,7 @@ import { FrameLoop, FrameScheduler } from "@/packages/animation/frame-loop";
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { RandomSource } from "@/packages/math/random";
 
-import { BugRaidConfig, BugRaidConfigOverrides, BugRaidTheme, resolveBugRaidConfig } from "../config";
+import { BugRaidConfig, BugRaidConfigOverrides, BugRaidTheme, DEFAULT_BUG_RAID_THEME, resolveBugRaidConfig } from "../config";
 import { BugRaidRenderer, BugRaidSize, BugRaidSnapshot } from "../domain/types";
 import { CanvasBugRaidRenderer } from "../renderers/CanvasBugRaidRenderer";
 import { BugRaidSimulation } from "./BugRaidSimulation";
@@ -16,7 +16,8 @@ export interface BugRaidOptions {
 }
 
 export interface BugRaidCanvasOptions extends BugRaidOptions {
-  theme?: BugRaidTheme;
+  // Only the colours that differ from the default theme.
+  theme?: Partial<BugRaidTheme>;
   productionLabel?: string;
 }
 
@@ -47,7 +48,8 @@ export class BugRaidGame extends FrameLoop {
   }
 
   public static forCanvas(context: Canvas2DContext, options: BugRaidCanvasOptions = {}): BugRaidGame {
-    const renderer = new CanvasBugRaidRenderer(context, resolveBugRaidConfig(options.config), options.theme, options.productionLabel);
+    const theme = { ...DEFAULT_BUG_RAID_THEME, ...options.theme };
+    const renderer = new CanvasBugRaidRenderer(context, resolveBugRaidConfig(options.config), theme, options.productionLabel);
 
     return new BugRaidGame(renderer, options);
   }

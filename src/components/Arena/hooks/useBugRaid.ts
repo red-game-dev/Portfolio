@@ -1,8 +1,9 @@
 import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
 
-import { BUG_RAID_THEME } from "@/config/theme";
+import { BUG_RAID_THEME } from "@/components/Arena/config";
+import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useInView from "@/hooks/useInView";
-import { BugRaidGame, BugRaidSnapshot } from "@/packages/games/bug-raid";
+import type { BugRaidSnapshot } from "@/packages/games/bug-raid";
 
 interface BugRaidOptions {
   productionLabel: string;
@@ -19,79 +20,61 @@ const AIM_KEYS: Record<string, [number, number]> = {
 
 const STRIKE_KEYS = new Set([" ", "Enter"]);
 
-// Binds a Bug Raid game to a canvas inside a board element: builds it once the board comes near the
-// screen, keeps it sized to the board, pauses it when the board scrolls away, and maps pointer and
-// keyboard input onto it.
+// Binds a Bug Raid game to a canvas inside a board element: built (and its code fetched) as the board comes
+// near, sized to the board, paused when the board scrolls away, with pointer and keyboard input mapped
+// onto it.
 export const useBugRaid = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject<HTMLCanvasElement>, { productionLabel, onChange }: BugRaidOptions) => {
-  const gameRef = useRef<BugRaidGame | null>(null);
   const onChangeRef = useRef(onChange);
   const [snapshot, setSnapshot] = useState<BugRaidSnapshot | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const isNear = useInView(boardRef, { threshold: 0, once: true });
   const isOnScreen = useInView(boardRef, { threshold: 0.25, once: false });
+  // The game's code is fetched as the arena comes near, not with the page.
+  const game = useCanvasEngine(canvasRef, {
+    sizeRef: boardRef,
+    contextOptions: { alpha: false },
+    create: async (context) => {
+      const { BugRaidGame } = await import("@/packages/games/bug-raid");
+
+      return BugRaidGame.forCanvas(context, {
+        theme: BUG_RAID_THEME,
+        productionLabel,
+        onChange: (next) => {
+          setSnapshot(next);
+          onChangeRef.current?.(next);
+        },
+      });
+    },
+    resize: (raid, { width, height, pixelRatio }) => raid.resize({ width, height }, pixelRatio),
+  }, [productionLabel]);
 
   onChangeRef.current = onChange;
 
   useEffect(() => {
-    const board = boardRef.current;
-    const context = canvasRef.current?.getContext("2d", { alpha: false });
-
-    if (!isNear || !board || !context) {
-      return;
-    }
-
-    const game = BugRaidGame.forCanvas(context, {
-      theme: BUG_RAID_THEME,
-      productionLabel,
-      onChange: (next) => {
-        setSnapshot(next);
-        onChangeRef.current?.(next);
-      },
-    });
-    const resize = () => game.resize({ width: board.clientWidth, height: board.clientHeight }, window.devicePixelRatio || 1);
-    const observer = new ResizeObserver(resize);
-
-    gameRef.current = game;
-    resize();
-    observer.observe(board);
-
-    return () => {
-      observer.disconnect();
-      game.stop();
-      gameRef.current = null;
-    };
-  }, [boardRef, canvasRef, isNear, productionLabel]);
-
-  useEffect(() => {
-    const game = gameRef.current;
-
     if (!isOnScreen && game?.isRunning) {
       game.pause();
       setIsPaused(true);
     }
-  }, [isOnScreen]);
+  }, [game, isOnScreen]);
 
   const play = useCallback(() => {
-    gameRef.current?.play();
+    game?.play();
     setIsPaused(false);
     boardRef.current?.focus();
-  }, [boardRef]);
+  }, [boardRef, game]);
 
   const resume = useCallback(() => {
-    gameRef.current?.resume();
+    game?.resume();
     setIsPaused(false);
     boardRef.current?.focus();
-  }, [boardRef]);
+  }, [boardRef, game]);
 
   const onPointerDown = useCallback((event: PointerEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
 
-    gameRef.current?.strike(event.clientX - rect.left, event.clientY - rect.top);
-  }, []);
+    game?.strike(event.clientX - rect.left, event.clientY - rect.top);
+  }, [game]);
 
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
-    const game = gameRef.current;
-
     if (!game?.isRunning) {
       return;
     }
@@ -105,7 +88,7 @@ export const useBugRaid = (boardRef: RefObject<HTMLElement>, canvasRef: RefObjec
       event.preventDefault();
       game.strikeAtCursor();
     }
-  }, []);
+  }, [game]);
 
   return { snapshot, isPaused, play, resume, onPointerDown, onKeyDown };
 };

@@ -1,4 +1,4 @@
-import {
+import type {
   BlockSnapTransitionOptions,
   CasinoSceneOptions,
   ChainSceneOptions,
@@ -9,9 +9,7 @@ import {
   PortalTransitionOptions,
   RainSceneOptions
 } from "@/packages/effects/backdrop";
-import { RainConfigOverrides } from "@/packages/effects/binary-rain";
-import { BugRaidTheme, DEFAULT_BUG_RAID_THEME } from "@/packages/games/bug-raid";
-import { DEFAULT_LIVE_TABLE_THEME, LiveTableTheme } from "@/packages/games/live-table";
+import type { RainConfigOverrides } from "@/packages/effects/binary-rain";
 
 // Runtime colours for things twin.macro cannot reach, such as canvas drawing. Styled components keep
 // their colours in the tw`` strings, which have to be static at build time.
@@ -69,14 +67,6 @@ export const TRANSITION_THEME: {
   portal: { ring: [255, 196, 92], glow: [255, 170, 60] },
 };
 
-// Bug Raid sits in the MMO zone, so production takes that zone's gold.
-export const BUG_RAID_THEME: BugRaidTheme = {
-  ...DEFAULT_BUG_RAID_THEME,
-  background: "#0d0d0d",
-  production: "#ffc45c",
-  splat: "#ffc45c",
-};
-
 // The finale's rain, in the MMO zone's gold.
 export const FINALE_RAIN_CONFIG: RainConfigOverrides = {
   theme: {
@@ -90,5 +80,3 @@ export const FINALE_RAIN_CONFIG: RainConfigOverrides = {
   },
 };
 
-// The live table sits in the casino zone: green felt, a gold rim and the casino's red card backs.
-export const LIVE_TABLE_THEME: LiveTableTheme = { ...DEFAULT_LIVE_TABLE_THEME };

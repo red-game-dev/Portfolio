@@ -1,58 +1,40 @@
-import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useMemo, useState } from "react";
 
-import { LIVE_TABLE_THEME } from "@/config/theme";
+import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useInView from "@/hooks/useInView";
 import { LiveTableGame, LiveTablePlayResult, LiveTableSimulation, LiveTableSnapshot, resolveLiveTableConfig } from "@/packages/games/live-table";
 
-// Binds a live table to a canvas inside a board element: builds it once the board comes near the screen,
-// keeps it sized to the board, runs it only while the board is on screen, and hands the page the
-// snapshot to render and a way to play a card.
+// Binds a live table to a canvas inside a board element: built as the board comes near, sized to it, run
+// only while it is on screen, with the snapshot for the page to render and a way to play a card.
 const useLiveTable = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject<HTMLCanvasElement>, cards: string[]) => {
-  const gameRef = useRef<LiveTableGame | null>(null);
   // The same first state on the server and the client, before the game exists.
   const initial = useMemo(() => new LiveTableSimulation(cards, { config: resolveLiveTableConfig(), random: () => 1 }).snapshot, [cards]);
   const [snapshot, setSnapshot] = useState<LiveTableSnapshot>(initial);
-  const isNear = useInView(boardRef, { threshold: 0, once: true, rootMargin: "50% 0px" });
   const isOnScreen = useInView(boardRef, { threshold: 0.1, once: false });
-
-  useEffect(() => {
-    const board = boardRef.current;
-    const context = canvasRef.current?.getContext("2d");
-
-    if (!isNear || !board || !context) {
-      return;
-    }
-
-    const game = LiveTableGame.forCanvas(context, cards, { theme: LIVE_TABLE_THEME, onChange: setSnapshot });
-    const resize = () => game.resize({ width: board.clientWidth, height: board.clientHeight }, window.devicePixelRatio || 1);
-    const observer = new ResizeObserver(resize);
-
-    gameRef.current = game;
-    setSnapshot(game.snapshot);
-    resize();
-    observer.observe(board);
-
-    return () => {
-      observer.disconnect();
-      game.stop();
-      gameRef.current = null;
-    };
-  }, [boardRef, canvasRef, cards, isNear]);
+  const game = useCanvasEngine(canvasRef, {
+    sizeRef: boardRef,
+    create: (context) => LiveTableGame.forCanvas(context, cards, { onChange: setSnapshot }),
+    resize: (table, { width, height, pixelRatio }) => table.resize({ width, height }, pixelRatio),
+  }, [cards]);
 
   // The round only runs while someone can see it.
   useEffect(() => {
-    const game = gameRef.current;
+    if (!game) {
+      return;
+    }
+
+    setSnapshot(game.snapshot);
 
     if (isOnScreen) {
-      game?.start();
+      game.start();
     } else {
-      game?.stop();
+      game.stop();
     }
-  }, [isOnScreen, isNear]);
+  }, [game, isOnScreen]);
 
-  const play = useCallback((card: string): LiveTablePlayResult => gameRef.current?.play(card) ?? { accepted: false, reason: "closed" }, []);
+  const play = useCallback((card: string): LiveTablePlayResult => game?.play(card) ?? { accepted: false, reason: "closed" }, [game]);
 
-  const redeal = useCallback(() => gameRef.current?.redeal(), []);
+  const redeal = useCallback(() => game?.redeal(), [game]);
 
   return { snapshot, play, redeal, isRunning: isOnScreen };
 };

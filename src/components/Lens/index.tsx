@@ -12,6 +12,7 @@ import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import { LensCard } from "@/components/Lens/LensCard";
 import { loadEntrance } from "@/components/Lens/loaders";
 import { DEFAULT_LENS, Lens } from "@/config/lenses";
+import useModalDialog from "@/hooks/useModalDialog";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { LensContent } from "@/types/lens";
 
@@ -123,35 +124,8 @@ export const LensGate: FC<LensGateProps> = ({ content, counts }: LensGateProps) 
     }
   }, [status]);
 
-  useEffect(() => {
-    const element = dialogRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    if (isOpen && !element.open) {
-      element.showModal();
-    } else if (!isOpen && element.open) {
-      element.close();
-    }
-  }, [isOpen]);
-
-  // The page behind must not scroll while it is hidden.
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const root = document.documentElement;
-    const previous = root.style.overflow;
-
-    root.style.overflow = "hidden";
-
-    return () => {
-      root.style.overflow = previous;
-    };
-  }, [isOpen]);
+  // The page waits, still, behind the chooser and the entrance.
+  useModalDialog(dialogRef, isOpen);
 
   useEffect(() => {
     if (!isLeaving) {

@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -136,10 +136,10 @@ const Answer = styled.span(() => [
   `,
 ]);
 
+// No end opacity: each commit settles at its own, so entries outside the chosen industry stay faded.
 const commitIn = keyframes`
-  0% { opacity: 0; transform: translateX(-18px); }
-  60% { opacity: 1; }
-  100% { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translateX(-18px); }
+  to { transform: none; }
 `;
 
 // After a switch, the branch's commits land one after another, top to bottom, once the checkout has run.
@@ -148,7 +148,7 @@ const BranchPanel = styled.div(({ isCheckedOut }: { isCheckedOut: boolean }) => 
   hiddenPanel,
   isCheckedOut && css`
     & > ol > li {
-      animation: ${commitIn} 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+      animation: ${commitIn} 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
     }
 
     ${Array.from({ length: 16 }, (_, index) => `& > ol > li:nth-of-type(${index + 1}) { animation-delay: ${480 + index * 70}ms; }`).join("\n")}
@@ -164,7 +164,13 @@ const BranchPanel = styled.div(({ isCheckedOut }: { isCheckedOut: boolean }) => 
 const TabBar = tw.div`mt-[6px]`;
 
 // The branch's last commit: the startups not listed one by one, drawn as a dashed node.
-const More = tw.li`relative list-none pl-[36px] md:pl-[44px]`;
+const More = styled.li(({ isDimmed }: { isDimmed: boolean }) => [
+  tw`relative list-none pl-[36px] md:pl-[44px]`,
+  css`
+    transition: opacity 0.3s ease;
+  `,
+  isDimmed && tw`opacity-30`,
+]);
 
 const MoreNode = styled.span(() => [
   tw`absolute top-[14px] w-[13px] h-[13px] rounded-full bg-[#101010]`,
@@ -204,13 +210,29 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
   }, [foundedTotal, labels, sortedExperience]);
   const [checkouts, setCheckouts] = useState(0);
   const onSelect = useCallback(() => setCheckouts((count) => count + 1), []);
-  const { active, listProps, tabProps, panelProps } = useTabs({ count: branches.length, onSelect });
+  const { active, select, listProps, tabProps, panelProps } = useTabs({ count: branches.length, onSelect });
   const sortedEducation = useMemo(() => byStartDescending(education), [education]);
 
   const industryKeys = useMemo(() => industries.map((link) => link.industry), [industries]);
   const [industry, setIndustry] = useIndustryFromHash(industryKeys);
   const selected = industries.find((link) => link.industry === industry);
   const matches = industry ? sortedExperience.filter((entry) => entry.industries?.includes(industry)).length : 0;
+  const matchesPerBranch = branches.map((branch) => (industry ? branch.entries.filter((entry) => entry.industries?.includes(industry)).length : branch.count));
+
+  // An industry with nothing on the open branch checks out the branch that has it.
+  useEffect(() => {
+    if (!industry || matchesPerBranch[active] > 0) {
+      return;
+    }
+
+    const target = matchesPerBranch.findIndex((count) => count > 0);
+
+    if (target >= 0) {
+      select(target);
+    }
+    // Only when the industry changes: the reader may still pick the empty branch afterwards.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [industry]);
 
   useScrollProgressVar(workRef);
   useScrollProgressVar(foundedRef);
@@ -251,7 +273,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
                 <Tab key={branch.branch} {...tabProps(index)} isOn={index === active}>
                   <FontAwesomeIcon icon={faCodeBranch} aria-hidden="true" />
                   {branch.label}
-                  <TabCount isOn={index === active} aria-hidden="true">{branch.count}</TabCount>
+                  <TabCount isOn={index === active} aria-hidden="true">{matchesPerBranch[index]}</TabCount>
                 </Tab>
               ))}
             </TabList>
@@ -277,7 +299,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
                   />
                 ))}
                 {branch.unlisted > 0 && (
-                  <More>
+                  <More isDimmed={industry !== null}>
                     <MoreNode aria-hidden="true" />
                     <MoreText>{labels.moreVentures.replace("{count}", String(branch.unlisted))}</MoreText>
                   </More>

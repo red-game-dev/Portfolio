@@ -6,9 +6,11 @@ import tw, { css, styled } from "twin.macro";
 import { faCodeBranch } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { FilterChip } from "@/components/Controls";
 import { VENTURE_COLOUR } from "@/components/History/config";
 import { HistoryEntry } from "@/components/History/HistoryEntry";
 import { Panel, PanelTitle } from "@/components/Panel";
+import { Anchor, Section } from "@/components/Section";
 import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { industryAnchor, SECTION_IDS } from "@/config/sections";
@@ -17,6 +19,7 @@ import useScrollProgressVar from "@/hooks/useScrollProgressVar";
 import useTabs from "@/hooks/useTabs";
 import { toMonthIndex } from "@/packages/insights/career";
 import { fill } from "@/packages/text/format";
+import { fadeIn } from "@/styles/keyframes";
 import { IndustryLink } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
 import { Resume } from "@/types/resume";
@@ -37,23 +40,9 @@ interface GraphProps {
   lane: "main" | "venture";
 }
 
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
-
 const Panels = tw.div`flex flex-col gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[35px]`;
 
-// Targets for #industry-* links, so the first screen's industry chips land here.
-const Anchor = tw.span`absolute top-0 left-0`;
-
 const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[25px] lg:mt-[35px] text-sm text-[#999]`;
-
-const Chip = styled.button(({ isSelected }: { isSelected: boolean }) => [
-  tw`cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full border-[1px] border-solid border-[var(--accent-muted)] bg-[#1d1d1d]
-     text-[var(--accent)]`,
-  css`
-    transition: color 0.2s ease, background-color 0.2s ease;
-  `,
-  isSelected && tw`bg-[var(--accent)] text-[#101010]`,
-]);
 
 const Matches = tw.p`m-0 mt-[12px] text-sm text-[#bbb]`;
 
@@ -100,11 +89,6 @@ const type = (characters: number) => keyframes`
   to { width: ${characters}ch; }
 `;
 
-const appear = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
-`;
-
 // What a branch switch prints: the command typed out, then git's answer.
 const Checkout = tw.div`flex flex-col gap-[2px] mt-[14px] mb-[16px] px-[12px] py-[10px] text-xs bg-[#0a0f0c] border-[1px] border-solid
 border-[#1E1E1E] font-mono`;
@@ -129,7 +113,7 @@ const Command = styled.span(({ characters }: { characters: number }) => [
 const Answer = styled.span(() => [
   tw`block text-[#8a948f]`,
   css`
-    animation: ${appear} 0.2s ease 0.45s both;
+    animation: ${fadeIn} 0.2s ease 0.45s both;
 
     @media (prefers-reduced-motion: reduce) {
       animation: none;
@@ -247,11 +231,11 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
       <SectionText intro={intro} />
       <Filters role="group" aria-label={labels.industryFilter}>
         <span>{labels.industryFilter}</span>
-        <Chip type="button" isSelected={industry === null} aria-pressed={industry === null} onClick={() => setIndustry(null)}>
+        <FilterChip type="button" isSelected={industry === null} aria-pressed={industry === null} onClick={() => setIndustry(null)}>
           {labels.allIndustries}
-        </Chip>
+        </FilterChip>
         {industries.map((link) => (
-          <Chip
+          <FilterChip
             key={link.industry}
             type="button"
             isSelected={industry === link.industry}
@@ -259,7 +243,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
             onClick={() => setIndustry(link.industry)}
           >
             {link.label}
-          </Chip>
+          </FilterChip>
         ))}
       </Filters>
       {selected && (

@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useBugRaid } from "@/components/Arena/hooks/useBugRaid";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
+import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import { BugRaidSnapshot, DEFAULT_BUG_RAID_CONFIG } from "@/packages/games/bug-raid";
@@ -24,8 +25,6 @@ interface HeartProps {
 }
 
 const LIVES = DEFAULT_BUG_RAID_CONFIG.lives;
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Stats = tw.dl`m-0 mb-[14px] grid grid-cols-2 md:grid-cols-4 gap-[10px]`;
 

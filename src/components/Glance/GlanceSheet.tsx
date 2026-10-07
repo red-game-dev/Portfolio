@@ -6,6 +6,7 @@ import { faEnvelope, faFileArrowDown } from "@fortawesome/pro-duotone-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { pickSkillYears, splitTitle, startYear } from "@/components/Glance/utils";
+import { Section } from "@/components/Section";
 import { Lens } from "@/config/lenses";
 import { SECTION_IDS } from "@/config/sections";
 import { TenureCalculator } from "@/packages/insights/career";
@@ -30,8 +31,6 @@ export interface GlanceProps {
 interface GlanceSheetProps extends GlanceProps {
   lens: Exclude<Lens, "engineer">;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Sheet = tw.div`flex flex-col gap-[26px] p-[22px] md:p-[32px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 

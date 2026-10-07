@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import { Recommendation } from "@/types/recommendations";
@@ -11,8 +12,6 @@ interface RecommendationsProps {
   intro: SectionIntros;
   recommendations: Recommendation[];
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Quotes = tw.div`grid gap-[18px] lg:grid-cols-3 mt-[25px] lg:mt-[35px]`;
 

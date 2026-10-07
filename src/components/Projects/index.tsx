@@ -1,10 +1,12 @@
 import { FC, useEffect, useMemo, useState } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw from "twin.macro";
 
+import { FilterChip } from "@/components/Controls";
 import { Panel } from "@/components/Panel";
 import { LazyRegionDialog } from "@/components/Projects/LazyRegionDialog";
 import { WorldMap } from "@/components/Projects/WorldMap";
+import { Anchor, Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { toMonthIndex } from "@/packages/insights/career";
@@ -22,21 +24,7 @@ interface ProjectsProps {
 
 const KIND_ORDER: ProjectKind[] = ["game", "web3", "product", "community", "archive"];
 
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
-
-// Target for the "Games and real time" link on the first screen, which also filters the map to games.
-const Anchor = tw.span`absolute top-0 left-0`;
-
 const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[25px] lg:mt-[35px] mb-[18px] text-sm text-[#999]`;
-
-const Chip = styled.button(({ isSelected }: { isSelected: boolean }) => [
-  tw`cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full border-[1px] border-solid border-[var(--accent-muted)] bg-[#1d1d1d]
-     text-[var(--accent)]`,
-  css`
-    transition: color 0.2s ease, background-color 0.2s ease;
-  `,
-  isSelected && tw`bg-[var(--accent)] text-[#101010]`,
-]);
 
 // Projects as a world map: one region per project in the order I explored them, each opening a map
 // screen with what I built there.
@@ -70,13 +58,13 @@ export const Projects: FC<ProjectsProps> = ({ projects, intro, content, blueprin
       <SectionText intro={intro} />
       <Filters role="group" aria-label={labels.filter}>
         <span>{labels.filter}</span>
-        <Chip type="button" isSelected={activeKind === null} aria-pressed={activeKind === null} onClick={() => setActiveKind(null)}>
+        <FilterChip type="button" isSelected={activeKind === null} aria-pressed={activeKind === null} onClick={() => setActiveKind(null)}>
           {labels.all}
-        </Chip>
+        </FilterChip>
         {kinds.map((kind) => (
-          <Chip key={kind} type="button" isSelected={activeKind === kind} aria-pressed={activeKind === kind} onClick={() => setActiveKind(kind)}>
+          <FilterChip key={kind} type="button" isSelected={activeKind === kind} aria-pressed={activeKind === kind} onClick={() => setActiveKind(kind)}>
             {content.kinds[kind]}
-          </Chip>
+          </FilterChip>
         ))}
       </Filters>
       <Panel>

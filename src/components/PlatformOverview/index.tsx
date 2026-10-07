@@ -4,6 +4,7 @@ import tw, { styled } from "twin.macro";
 
 import { BlueprintSection } from "@/components/Blueprint";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
+import { Anchor, Section } from "@/components/Section";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
@@ -20,11 +21,6 @@ interface PlatformOverviewProps {
   blueprintSection: BlueprintSectionId;
   blueprintLabels: BlueprintLabels;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
-
-// Target for the "Enterprise Architect" link on the first screen.
-const Anchor = tw.span`absolute top-0 left-0`;
 
 const Groups = tw.div`mt-[25px] lg:mt-[35px] mb-[25px] flex flex-col gap-[14px]`;
 

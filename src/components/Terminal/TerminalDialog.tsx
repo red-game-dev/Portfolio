@@ -3,6 +3,7 @@ import { FC, useId, useRef } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
+import { ActionButton, ActionLink } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import useModalDialog from "@/hooks/useModalDialog";
 import { TerminalDialog as TerminalDialogContent } from "@/packages/interaction/terminal";
@@ -90,24 +91,6 @@ const Item = styled.li(() => [
 ]);
 
 const Actions = tw.div`flex flex-row flex-wrap gap-[10px] pt-[6px]`;
-
-const actionStyle = (isPrimary: boolean) => [
-  tw`inline-flex flex-row items-center h-[38px] px-[14px] cursor-pointer text-sm font-semibold no-underline rounded-[2px] border-[1px] border-solid`,
-  isPrimary ? tw`text-[#101010] bg-[var(--accent)] border-[var(--accent)]` : tw`text-[var(--accent)] bg-transparent border-[var(--accent-muted)]`,
-  css`
-    transition: filter 0.2s ease, border-color 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      filter: brightness(1.12);
-      border-color: var(--accent);
-    }
-  `,
-];
-
-const ActionLink = styled.a(({ isPrimary }: { isPrimary: boolean }) => actionStyle(isPrimary));
-
-const ActionButton = styled.button(({ isPrimary }: { isPrimary: boolean }) => actionStyle(isPrimary));
 
 const Close = tw.button`absolute top-[10px] right-[12px] z-[2] cursor-pointer text-xs text-[#8a948f] bg-transparent border-0 p-[6px] hover:text-white`;
 

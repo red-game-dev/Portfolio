@@ -3,6 +3,7 @@ import { FC } from "react";
 import tw from "twin.macro";
 
 import { BlueprintSection } from "@/components/Blueprint";
+import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import { BlueprintLabels, BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
@@ -13,8 +14,6 @@ interface EngineRoomProps {
   blueprintSection: BlueprintSectionId;
   labels: BlueprintLabels;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Body = tw.div`mt-[25px] lg:mt-[35px]`;
 

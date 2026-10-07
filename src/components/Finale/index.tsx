@@ -7,9 +7,11 @@ import { faArrowRotateLeft, faEnvelope, faFileArrowDown } from "@fortawesome/pro
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { BinaryRain } from "@/components/BinaryRain";
+import { ActionLink, actionStyle } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
+import { Section } from "@/components/Section";
 import { SECTION_IDS } from "@/config/sections";
 import { SOCIAL_URLS } from "@/config/social";
 import { FINALE_RAIN_CONFIG } from "@/config/theme";
@@ -27,8 +29,6 @@ interface FinaleProps {
   linkedInUsername: string;
   cvUrl: string;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Screen = tw.div`relative h-[150px] md:h-[190px] overflow-hidden border-[1px] border-solid border-[#3a2f17]`;
 
@@ -78,22 +78,6 @@ const QuestTitle = tw.h3`m-0 text-base font-semibold text-white`;
 const Note = tw.p`m-0 text-sm text-[#bbb] max-w-[70ch]`;
 
 const Actions = tw.div`flex flex-row flex-wrap gap-[10px]`;
-
-const actionStyle = (isPrimary: boolean) => [
-  tw`inline-flex flex-row items-center gap-[8px] h-[40px] px-[16px] cursor-pointer text-sm font-semibold no-underline rounded-[2px] border-[1px] border-solid`,
-  isPrimary ? tw`text-[#101010] bg-[var(--accent)] border-[var(--accent)]` : tw`text-[var(--accent)] bg-transparent border-[var(--accent-muted)]`,
-  css`
-    transition: filter 0.2s ease, border-color 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      filter: brightness(1.12);
-      border-color: var(--accent);
-    }
-  `,
-];
-
-const Action = styled.a(({ isPrimary }: { isPrimary: boolean }) => actionStyle(isPrimary));
 
 const Restart = styled.button(() => actionStyle(false));
 
@@ -185,18 +169,18 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
           <QuestTitle>{content.finalQuest}</QuestTitle>
           <Note>{content.contactNote}</Note>
           <Actions>
-            <Action href={mailto} isPrimary>
+            <ActionLink href={mailto} isPrimary>
               <FontAwesomeIcon icon={faEnvelope} aria-hidden="true" />
               {content.emailLabel}
-            </Action>
-            <Action href={SOCIAL_URLS.linkedIn(linkedInUsername)} target="_blank" rel="noopener noreferrer" isPrimary={false}>
+            </ActionLink>
+            <ActionLink href={SOCIAL_URLS.linkedIn(linkedInUsername)} target="_blank" rel="noopener noreferrer" isPrimary={false}>
               <FontAwesomeIcon icon={faLinkedinIn} aria-hidden="true" />
               {content.linkedInLabel}
-            </Action>
-            <Action href={cvUrl} download isPrimary={false}>
+            </ActionLink>
+            <ActionLink href={cvUrl} download isPrimary={false}>
               <FontAwesomeIcon icon={faFileArrowDown} aria-hidden="true" />
               {content.cvLabel}
-            </Action>
+            </ActionLink>
             <Restart type="button" onClick={() => window.scrollTo({ top: 0, behavior: scrollBehavior() })}>
               <FontAwesomeIcon icon={faArrowRotateLeft} aria-hidden="true" />
               {content.restartLabel}

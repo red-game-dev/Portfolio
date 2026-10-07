@@ -3,6 +3,7 @@ import { FC, useRef } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { Panel, PanelTitle } from "@/components/Panel";
+import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
@@ -14,8 +15,6 @@ interface TalentsProps {
   talents: string[];
   content: TalentsContent;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Panels = tw.div`grid gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[35px] lg:grid-cols-[2fr 1fr]`;
 

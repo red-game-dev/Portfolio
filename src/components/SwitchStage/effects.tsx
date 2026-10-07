@@ -5,6 +5,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { BLOCK_GRID, PIXEL_GRID, SWITCH_MS } from "@/components/SwitchStage/config";
 import { ZoneId } from "@/config/zones";
+import { fadeIn } from "@/styles/keyframes";
 
 // Each universe switches content its own way. AI: a neural beam scans the new content in. Web3: blocks
 // confirm one after another in a diagonal wave. Casino: the content is dealt and flipped like a card.
@@ -31,11 +32,6 @@ const beam = keyframes`
   15% { opacity: 1; }
   85% { opacity: 1; }
   100% { transform: translateX(var(--beam-to)); opacity: 0; }
-`;
-
-const fade = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
 `;
 
 const settle = keyframes`
@@ -86,7 +82,7 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
   tw`relative`,
   effect === "fade" && css`
     ${CONTENT} {
-      animation: ${fade} 0.3s ease both;
+      animation: ${fadeIn} 0.3s ease both;
     }
   `,
   effect === "beam" && css`

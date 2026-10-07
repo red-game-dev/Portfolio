@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Activity } from "@/components/CodeReview/Activity";
 import { Squares } from "@/components/CodeReview/Squares";
 import { Panel } from "@/components/Panel";
+import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import { CodeReviewContent } from "@/types/code-review";
@@ -17,8 +18,6 @@ interface CodeReviewProps {
   intro: SectionIntros;
   content: CodeReviewContent;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Scope = tw.p`m-0 mb-[20px] text-sm text-[#999] max-w-[70ch]`;
 

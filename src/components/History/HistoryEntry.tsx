@@ -2,6 +2,7 @@ import { FC, useId, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { Tag } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import { HISTORY_VIEW, VENTURE_COLOUR } from "@/components/History/config";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
@@ -132,8 +133,6 @@ const More = styled.div(() => [
 
 const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 
-const Tag = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[6px] px-[10px] border-[1px] border-solid border-[var(--accent-muted)]`;
-
 const Toggle = styled.button(() => [
   tw`self-start cursor-pointer text-xs font-medium py-[6px] px-[10px] text-[var(--accent)] bg-transparent border-[1px] border-solid border-[var(--accent-muted)]
      rounded-[2px]`,
@@ -188,7 +187,7 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
         {stackPreview.length > 0 && (
           <Tags>
             {stackPreview.map((tech) => (
-              <Tag key={tech}>{tech}</Tag>
+              <Tag isCompact key={tech}>{tech}</Tag>
             ))}
           </Tags>
         )}
@@ -214,7 +213,7 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
             {restStack.length > 0 && (
               <Tags>
                 {restStack.map((tech) => (
-                  <Tag key={tech}>{tech}</Tag>
+                  <Tag isCompact key={tech}>{tech}</Tag>
                 ))}
               </Tags>
             )}

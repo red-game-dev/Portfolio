@@ -4,6 +4,7 @@ import tw from "twin.macro";
 
 import { BlueprintSection } from "@/components/Blueprint";
 import { Panel } from "@/components/Panel";
+import { Anchor, Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { Block } from "@/components/Web3/Block";
 import { Stack } from "@/components/Web3/Stack";
@@ -21,11 +22,6 @@ interface Web3Props {
   blueprintSection: BlueprintSectionId;
   blueprintLabels: BlueprintLabels;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
-
-// Target for the "Web3" link on the first screen.
-const Anchor = tw.span`absolute top-0 left-0`;
 
 const Statement = tw.p`m-0 text-base md:text-lg text-white max-w-[70ch]`;
 

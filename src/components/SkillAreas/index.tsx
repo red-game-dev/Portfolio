@@ -2,6 +2,8 @@ import { FC, useCallback } from "react";
 
 import tw, { styled } from "twin.macro";
 
+import { Tag } from "@/components/Controls";
+import { Section } from "@/components/Section";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
@@ -14,8 +16,6 @@ interface SkillAreasProps {
   intro: SectionIntros;
   areas: SkillArea[];
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Content = tw.div`relative text-base ml-[-1px] p-[25px] lg:p-[35px] bg-[#101010] border-[1px] border-r-[0px] border-solid
 border-[rgba(255, 255, 255, 0.07)]`;
@@ -31,8 +31,6 @@ const AreaTitle = tw.h3`m-[0 0 12px 0] text-base font-semibold text-white`;
 
 const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-2`;
 
-const Tag = tw.li`text-xs leading-snug text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[7px] px-[11px]
-border-[1px] border-solid border-[var(--accent-muted)]`;
 
 // Too many areas to read as one wall of tags, so one area is open at a time. Every area stays in the page,
 // the closed ones hidden, so search engines and find in page still reach them.
@@ -60,7 +58,7 @@ export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas }: SkillAreasProp
               <Panel key={area.label} {...panelProps(index)}>
                 <AreaTitle>{area.label}</AreaTitle>
                 <Tags>
-                  {area.items.map((item) => <Tag key={item}>{item}</Tag>)}
+                  {area.items.map((item) => <Tag isWrapping key={item}>{item}</Tag>)}
                 </Tags>
               </Panel>
             ))}

@@ -1,10 +1,12 @@
 import { FC, useEffect, useMemo, useState } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw from "twin.macro";
 
 import { Carousel } from "@/components/Carousel";
 import { BossCard } from "@/components/CaseStudies/BossCard";
 import { useAudienceFromHash } from "@/components/CaseStudies/hooks/useAudienceFromHash";
+import { FilterChip } from "@/components/Controls";
+import { Anchor, Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
@@ -25,25 +27,8 @@ interface CaseStudiesProps {
   carouselLabels: CarouselLabels;
 }
 
-interface ChipProps {
-  isSelected: boolean;
-}
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
-
-// Targets for #for-payments and #for-architecture; #for-ai-engineering lives on the AI section.
-const Anchor = tw.span`absolute top-0 left-0`;
 
 const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[25px] lg:mt-[35px] text-sm text-[#999]`;
-
-const Chip = styled.button(({ isSelected }: ChipProps) => [
-  tw`cursor-pointer text-xs leading-none py-[8px] px-[12px] rounded-full border-[1px] border-solid border-[var(--accent-muted)] bg-[#1d1d1d]
-     text-[var(--accent)]`,
-  css`
-    transition: color 0.2s ease, background-color 0.2s ease;
-  `,
-  isSelected && tw`bg-[var(--accent)] text-[#101010]`,
-]);
 
 const DOMAIN_ORDER: CaseStudyDomain[] = ["architecture", "payments", "web3", "igaming", "games", "mobile", "security", "ai"];
 
@@ -79,11 +64,11 @@ export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters,
       <SectionText intro={intro} />
       <Filters role="group" aria-label={filters.label}>
         <span>{filters.label}</span>
-        <Chip type="button" isSelected={domain === null} aria-pressed={domain === null} onClick={() => setDomain(null)}>
+        <FilterChip type="button" isSelected={domain === null} aria-pressed={domain === null} onClick={() => setDomain(null)}>
           {filters.allLabel}
-        </Chip>
+        </FilterChip>
         {domains.map((candidate) => (
-          <Chip
+          <FilterChip
             key={candidate}
             type="button"
             isSelected={domain === candidate}
@@ -91,7 +76,7 @@ export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters,
             onClick={() => setDomain(candidate)}
           >
             {filters.domains[candidate]}
-          </Chip>
+          </FilterChip>
         ))}
       </Filters>
       <Bosses>

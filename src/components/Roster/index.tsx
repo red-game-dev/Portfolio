@@ -7,6 +7,7 @@ import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel } from "@/components/Panel";
 import { CharacterCard } from "@/components/Roster/CharacterCard";
+import { Anchor, Section } from "@/components/Section";
 import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
@@ -25,11 +26,6 @@ interface RosterProps extends RosterContent {
   carouselLabels: CarouselLabels;
   closeLabel: string;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
-
-// Target for the "Technical leadership" link on the first screen.
-const Anchor = tw.span`absolute top-0 left-0`;
 
 const Cards = tw.div`mt-[10px]`;
 

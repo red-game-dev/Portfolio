@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { Anchor, Section } from "@/components/Section";
 import { Station } from "@/components/SkillForge/Station";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
@@ -17,11 +18,6 @@ interface SkillForgeProps {
 }
 
 const RARITY_COLOURS = { legendary: "#ffc45c", epic: "#b388ff", rare: "#5aa9ff", common: "#9aa0a6" };
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
-
-// Target for the "Full stack" link on the first screen.
-const Anchor = tw.span`absolute top-0 left-0`;
 
 const Legend = tw.ul`list-none m-0 mt-[20px] p-0 flex flex-row flex-wrap gap-[10px] text-xs`;
 

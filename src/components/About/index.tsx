@@ -8,6 +8,7 @@ import Link from "next/link";
 
 import { Portrait } from "@/components/About/Portrait";
 import { DecodedText } from "@/components/DecodedText";
+import { Section } from "@/components/Section";
 import { SECTION_IDS } from "@/config/sections";
 import { SOCIAL_URLS } from "@/config/social";
 import useInView from "@/hooks/useInView";
@@ -21,8 +22,6 @@ interface AboutProps extends Detail {
   github: Github[];
   stackoverflow: string;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Content = tw.div`relative text-base ml-[-1px] p-[22px] md:p-[25px] lg:p-[35px] bg-[#101010] border-solid border-l-[1px] border-[var(--accent)]`;
 

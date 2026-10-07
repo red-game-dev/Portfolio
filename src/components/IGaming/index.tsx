@@ -8,6 +8,7 @@ import { PlayingCard } from "@/components/IGaming/PlayingCard";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import { Panel } from "@/components/Panel";
+import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
@@ -33,8 +34,6 @@ const blink = keyframes`
   0%, 100% { opacity: 1; }
   50% { opacity: 0.25; }
 `;
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 // The table: a felt glow under the cards and a rim in the zone's colour.
 const Table = styled(Panel)(() => [

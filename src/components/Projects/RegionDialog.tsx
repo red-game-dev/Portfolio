@@ -7,6 +7,7 @@ import { faArrowLeft, faArrowRight, faArrowUpRightFromSquare, faCodeBranch, faXm
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { VentureBlueprint } from "@/components/Blueprint";
+import { ActionLink, actionStyle } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import { Image } from "@/components/Image";
 import { KIND_COLOURS } from "@/components/Projects/config";
@@ -41,6 +42,8 @@ const Dialog = styled.dialog(() => [
      border-[1px] border-solid border-[var(--kind)]`,
   css`
     box-shadow: 0 0 50px color-mix(in srgb, var(--kind) 25%, transparent);
+    --action: var(--kind);
+    --action-muted: #2a2a2a;
 
     &[open] {
       animation: ${unfold} 0.4s cubic-bezier(0.165, 0.85, 0.45, 1);
@@ -174,23 +177,6 @@ border-0 border-t-[1px] border-solid border-[#1E1E1E]`;
 
 const Group = tw.div`flex flex-row flex-wrap gap-[10px]`;
 
-const actionStyle = (isPrimary: boolean) => [
-  tw`inline-flex flex-row items-center gap-[8px] h-[38px] px-[14px] cursor-pointer text-sm font-semibold no-underline rounded-[2px]
-     border-[1px] border-solid`,
-  isPrimary ? tw`text-[#101010] bg-[var(--kind)] border-[var(--kind)]` : tw`text-[var(--kind)] bg-transparent border-[#2a2a2a]`,
-  css`
-    transition: filter 0.2s ease, border-color 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      filter: brightness(1.12);
-      border-color: var(--kind);
-    }
-  `,
-];
-
-const Action = styled.a(({ isPrimary }: { isPrimary: boolean }) => actionStyle(isPrimary));
-
 const Travel = styled.button(() => [
   ...actionStyle(false),
   tw`max-w-full md:max-w-[220px] disabled:opacity-30 disabled:cursor-default`,
@@ -312,16 +298,16 @@ export const RegionDialog: FC<RegionDialogProps> = ({
           <Footer>
             <Group>
               {project.link && (
-                <Action href={project.link} target="_blank" rel="noopener noreferrer" isPrimary>
+                <ActionLink href={project.link} target="_blank" rel="noopener noreferrer" isPrimary>
                   <FontAwesomeIcon icon={faArrowUpRightFromSquare} aria-hidden="true" />
                   {labels.visit}
-                </Action>
+                </ActionLink>
               )}
               {project.repo && (
-                <Action href={project.repo} target="_blank" rel="noopener noreferrer" isPrimary={!project.link}>
+                <ActionLink href={project.repo} target="_blank" rel="noopener noreferrer" isPrimary={!project.link}>
                   <FontAwesomeIcon icon={faCodeBranch} aria-hidden="true" />
                   {labels.code}
-                </Action>
+                </ActionLink>
               )}
             </Group>
             <Group>

@@ -10,6 +10,7 @@ import { Fight } from "@/components/Duels/Fight";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel } from "@/components/Panel";
+import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import { collapseWhitespace } from "@/packages/text/format";
@@ -19,8 +20,6 @@ import { SectionIntros } from "@/types/sections-intros";
 interface DuelsProps extends DuelsContent {
   intro: SectionIntros;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Scoreboard = tw.div`flex flex-row flex-wrap items-center justify-between gap-[12px] pb-[18px] mb-[22px] border-0 border-b-[1px]
 border-solid border-[#1E1E1E]`;

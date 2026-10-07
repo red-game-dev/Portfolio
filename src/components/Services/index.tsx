@@ -4,6 +4,7 @@ import tw from "twin.macro";
 
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel, PanelTitle } from "@/components/Panel";
+import { Anchor, Section } from "@/components/Section";
 import { ServiceCard } from "@/components/Services/ServiceCard";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
@@ -20,11 +21,6 @@ interface ServicesProps {
   // The group the product view leads with.
   productGroup: string;
 }
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
-
-// Target for the "Product Engineer" link on the first screen.
-const Anchor = tw.span`absolute top-0 left-0`;
 
 const Groups = tw.div`flex flex-col gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[35px]`;
 

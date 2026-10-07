@@ -6,6 +6,7 @@ import tw, { css, styled } from "twin.macro";
 import { faStar } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { Section } from "@/components/Section";
 import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
@@ -23,8 +24,6 @@ interface TerminalProps {
 // New output arrives a line at a time, like a model streaming its answer.
 const STREAM_MS = 90;
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-
-const Section = tw.div`relative px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
 
 const Window = styled.div(() => [
   tw`relative mt-[25px] lg:mt-[35px] bg-[#0a0f0c] border-[1px] border-solid border-[#1E1E1E]`,

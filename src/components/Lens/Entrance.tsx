@@ -10,6 +10,7 @@ import { BINARY_RAIN_CONFIG } from "@/config/theme";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { RainConfigOverrides } from "@/packages/effects/binary-rain";
 import { fill } from "@/packages/text/format";
+import { caretBlink } from "@/styles/keyframes";
 import { LensContent } from "@/types/lens";
 
 interface EntranceProps {
@@ -30,10 +31,6 @@ const fillBar = keyframes`
 const rise = keyframes`
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
-`;
-
-const blink = keyframes`
-  50% { opacity: 0; }
 `;
 
 const Center = tw.div`relative flex flex-col items-center justify-center gap-[18px] w-full h-full px-[24px] text-center`;
@@ -157,7 +154,7 @@ const Granted = styled.p(() => [
 const Caret = styled.span(() => [
   tw`inline-block w-[8px] h-[14px] ml-[4px] align-middle bg-[var(--lens-accent)]`,
   css`
-    animation: ${blink} 1s steps(1) infinite;
+    animation: ${caretBlink} 1s steps(1) infinite;
   `,
 ]);
 

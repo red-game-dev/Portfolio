@@ -1,10 +1,10 @@
 import { FC, Fragment, useMemo, useRef } from "react";
 
-import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import { useTypewriter } from "@/components/TypingAnimation/hooks/useTypewriter";
 import useInView from "@/hooks/useInView";
+import { caretBlink } from "@/styles/keyframes";
 
 interface TypingAnimationProps {
   // Phrases with the highlighted part in <strong>, as written in the content.
@@ -21,10 +21,6 @@ const toSegments = (phrase: string): Segment[] => phrase
   .split(/(<strong>.*?<\/strong>)/)
   .filter(Boolean)
   .map((part) => ({ text: part.replace(/<\/?strong>/g, ""), isStrong: part.startsWith("<strong>") }));
-
-const blink = keyframes`
-  50% { opacity: 0; }
-`;
 
 // Every phrase sits in the same grid cell, invisible, so the block is always as tall as the longest one
 // and the page never jumps as phrases change.
@@ -51,7 +47,7 @@ const Caret = styled.span(() => [
   tw`inline-block w-[3px] h-[0.9em] ml-[2px] bg-[var(--accent)]`,
   css`
     vertical-align: -0.08em;
-    animation: ${blink} 0.9s steps(1) infinite;
+    animation: ${caretBlink} 0.9s steps(1) infinite;
 
     @media (prefers-reduced-motion: reduce) {
       display: none;

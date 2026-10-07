@@ -6,7 +6,7 @@ import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel, PanelTitle } from "@/components/Panel";
 import { ServiceCard } from "@/components/Services/ServiceCard";
 import { SectionText } from "@/components/Text/SectionText";
-import { ROLE_ANCHORS } from "@/config/sections";
+import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { SectionIntros } from "@/types/sections-intros";
 import { ServiceActions, ServiceGroup } from "@/types/services";
 
@@ -37,7 +37,7 @@ export const Services: FC<ServicesProps> = ({ intro, groups, actions, email, lin
     : groups;
 
   return (
-    <Section id="section-services">
+    <Section id={SECTION_IDS.services}>
       <Anchor id={ROLE_ANCHORS.product} aria-hidden="true" />
       <SectionText intro={intro} />
       <Groups>

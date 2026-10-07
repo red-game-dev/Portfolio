@@ -4,6 +4,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { Panel, PanelTitle } from "@/components/Panel";
 import { SectionText } from "@/components/Text/SectionText";
+import { SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
 import { TalentsContent } from "@/types/forge";
 import { SectionIntros } from "@/types/sections-intros";
@@ -71,7 +72,7 @@ export const Talents: FC<TalentsProps> = ({ intro, talents, content }: TalentsPr
   const isActive = useInView(treeRef, { threshold: 0.2 });
 
   return (
-    <Section id="section-talents">
+    <Section id={SECTION_IDS.talents}>
       <SectionText intro={intro} />
       <Panels>
         <Panel>

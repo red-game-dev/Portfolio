@@ -4,7 +4,7 @@ export type ZoneId = "matrix" | "ai" | "chain" | "casino" | "mmo";
 
 // The page as one journey. Each zone starts at a section and runs until the next zone starts.
 export const ZONE_BOUNDARIES: Array<{ zone: ZoneId; startsAt: string }> = [
-  { zone: "matrix", startsAt: "section-started" },
+  { zone: "matrix", startsAt: SECTION_IDS.cover },
   { zone: "ai", startsAt: SECTION_IDS.aiUsage },
   { zone: "chain", startsAt: SECTION_IDS.web3 },
   { zone: "casino", startsAt: SECTION_IDS.igaming },

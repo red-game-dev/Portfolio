@@ -6,7 +6,7 @@ import { Panel } from "@/components/Panel";
 import { LazyRegionDialog } from "@/components/Projects/LazyRegionDialog";
 import { WorldMap } from "@/components/Projects/WorldMap";
 import { SectionText } from "@/components/Text/SectionText";
-import { ROLE_ANCHORS } from "@/config/sections";
+import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { toMonthIndex } from "@/packages/insights/career";
 import { BlueprintLabels } from "@/types/blueprints";
 import { ProjectDetail, ProjectKind, ProjectMapContent } from "@/types/projects";
@@ -64,7 +64,7 @@ export const Projects: FC<ProjectsProps> = ({ projects, intro, content, blueprin
   const open = openIndex === null ? null : ordered[openIndex];
 
   return (
-    <Section id="section-projects">
+    <Section id={SECTION_IDS.projects}>
       <Anchor id={ROLE_ANCHORS.games} aria-hidden="true" />
       <SectionText intro={intro} />
       <Filters role="group" aria-label={labels.filter}>

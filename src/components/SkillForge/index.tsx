@@ -4,7 +4,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { Station } from "@/components/SkillForge/Station";
 import { SectionText } from "@/components/Text/SectionText";
-import { ROLE_ANCHORS } from "@/config/sections";
+import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { DEFAULT_RARITY_TIERS } from "@/packages/insights/skills";
 import { ForgeStation } from "@/services/skills";
 import { ForgeContent } from "@/types/forge";
@@ -43,7 +43,7 @@ const Stations = tw.div`flex flex-col gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[
 
 // The skills as a forge: no self ratings, only rarity earned from years of real use.
 export const SkillForge: FC<SkillForgeProps> = ({ intro, stations, content }: SkillForgeProps) => (
-  <Section id="section-skills">
+  <Section id={SECTION_IDS.forge}>
     <Anchor id={ROLE_ANCHORS.fullStack} aria-hidden="true" />
     <SectionText intro={intro} />
     <Legend aria-label={content.legendYears}>

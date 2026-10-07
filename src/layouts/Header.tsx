@@ -2,13 +2,11 @@ import { FC, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import Link from "next/link";
-
 import { LensSwitch } from "@/components/Lens/LensSwitch";
 import { Menu } from "@/components/Menu";
-import { NAV_ITEMS } from "@/components/Menu/config";
 import useJourneyNav from "@/components/Menu/hooks/useJourneyNav";
 import { MobileMenu } from "@/components/Menu/MobileMenu";
+import { JOURNEY_STOPS } from "@/config/journey";
 import useScrolledPast from "@/hooks/useScrolledPast";
 import { LensContent } from "@/types/lens";
 import { MenuContent } from "@/types/menu";
@@ -93,12 +91,24 @@ interface HeaderProps {
   contact: { cv: string; email: string; linkedIn: string };
 }
 
+// The last word in bold, as the logo sets both its lines.
+const LastWordStrong: FC<{ text: string }> = ({ text }: { text: string }) => {
+  const words = text.split(" ");
+
+  return (
+    <>
+      {words.map((word, index) => (index === words.length - 1
+        ? <strong key={index}> {word}</strong>
+        : <span key={index}> {word}</span>))}
+    </>
+  );
+};
+
 const Header: FC<HeaderProps> = ({ title = "", lens, menu, contact }: HeaderProps) => {
   const isScrolled = useScrolledPast(SCROLLED_SHARE);
   // One set of scroll-spy listeners for both menus.
   const headerRef = useRef<HTMLElement>(null);
-  const selected = useJourneyNav(NAV_ITEMS, headerRef);
-  const words = title.split(" ");
+  const selected = useJourneyNav(JOURNEY_STOPS, headerRef);
 
   return (
     <HeaderContainer ref={headerRef} isScrolled={isScrolled}>
@@ -106,23 +116,17 @@ const Header: FC<HeaderProps> = ({ title = "", lens, menu, contact }: HeaderProp
         <LogoContainer>
           <LogoContents>
             <span className="mask-lnk">
-              { words.map((word: string, index: number) => {
-                if (index === words.length - 1) {
-                  return (<strong key={`word-${index}`}> {word}</strong>);
-                }
-
-                return (<span key={`word-${index}`}> {word}</span>);
-              })}
+              <LastWordStrong text={title} />
             </span>
-            <Link href="#section-about" className="mask-lnk mask-lnk-hover" aria-label="Download My CV">
-              Download <strong>CV</strong>
-            </Link>
+            <a href={contact.cv} className="mask-lnk mask-lnk-hover" target="_blank" rel="noopener noreferrer">
+              <LastWordStrong text={menu.cv} />
+            </a>
           </LogoContents>
         </LogoContainer>
         <SwitchSlot isScrolled={isScrolled}>
           <LensSwitch content={lens} />
         </SwitchSlot>
-        <Menu selected={selected} label={menu.label} />
+        <Menu selected={selected} content={menu} />
         <MobileMenu selected={selected} content={menu} contact={contact} />
       </HeaderContent>
     </HeaderContainer>

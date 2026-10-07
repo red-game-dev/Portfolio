@@ -7,7 +7,8 @@ import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { faChevronRight, faEnvelope, faFileArrowDown, faXmark } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { NAV_ITEMS, progressOf } from "@/components/Menu/config";
+import { progressOf } from "@/components/Menu/config";
+import { JOURNEY_STOPS } from "@/config/journey";
 import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
 import useModalDialog from "@/hooks/useModalDialog";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
@@ -248,7 +249,7 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   // Two stops can share the screen; the reader is at the first of them. Before the first stop, at the top.
   const here = Math.max(0, selected.indexOf(true));
-  const hereZone = NAV_ITEMS[here].zone;
+  const hereZone = JOURNEY_STOPS[here].zone;
 
   useModalDialog(dialogRef, isOpen);
 
@@ -277,7 +278,7 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
                 <Kicker>
                   {content.kicker
                     .replace("{n}", String(here + 1))
-                    .replace("{total}", String(NAV_ITEMS.length))
+                    .replace("{total}", String(JOURNEY_STOPS.length))
                     .replace("{zone}", content.zones[hereZone])}
                 </Kicker>
                 <Title>{content.title}</Title>
@@ -288,15 +289,15 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
             </Top>
             <nav aria-label={content.label}>
               <Route>
-                {NAV_ITEMS.map((item, index) => {
+                {JOURNEY_STOPS.map((item, index) => {
                   const state: StopState = index < here ? "passed" : index === here ? "here" : "ahead";
 
                   return (
                     <Stop
-                      key={item.label}
+                      key={item.key}
                       order={index}
-                      isLast={index === NAV_ITEMS.length - 1}
-                      style={stopStyle(item.zone, NAV_ITEMS[index + 1]?.zone ?? item.zone)}
+                      isLast={index === JOURNEY_STOPS.length - 1}
+                      style={stopStyle(item.zone, JOURNEY_STOPS[index + 1]?.zone ?? item.zone)}
                     >
                       <Node state={state} aria-hidden="true" />
                       <StopLink
@@ -308,7 +309,7 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
                       >
                         <StopText>
                           <StopName>
-                            {item.label}
+                            {content.stops[item.key]}
                             {state === "here" && <Here>{content.here}</Here>}
                           </StopName>
                           <StopZone>{content.zones[item.zone]}</StopZone>

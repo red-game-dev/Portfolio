@@ -1,5 +1,6 @@
-import { NAV_ITEMS } from "@/components/Menu/config";
 import { journeyState, sameSelection } from "@/components/Menu/utils/journeyState";
+import { JOURNEY_STOPS } from "@/config/journey";
+import { SECTION_IDS } from "@/config/sections";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 import { portfolioData } from "@/data/resume";
 import { createJourneyTrail } from "@/services/journey/trail";
@@ -33,7 +34,7 @@ describe("journey navigation", () => {
     const indexOf = (id: string) => trail.indexOf(id);
     const firstOf = (first: string | string[]) => (Array.isArray(first) ? first : [first]).map(indexOf).filter((index) => index >= 0)[0];
 
-    NAV_ITEMS.forEach((item, position) => {
+    JOURNEY_STOPS.forEach((item, position) => {
       const start = firstOf(item.first);
       const end = indexOf(item.last);
 
@@ -42,7 +43,7 @@ describe("journey navigation", () => {
 
       if (position > 0) {
         // Each stop starts right after the previous one ends, so no section is left unlit.
-        expect(start).toBe(indexOf(NAV_ITEMS[position - 1].last) + 1);
+        expect(start).toBe(indexOf(JOURNEY_STOPS[position - 1].last) + 1);
       }
     });
 
@@ -50,5 +51,21 @@ describe("journey navigation", () => {
 
     expect(zoneStarts.every((index) => index > 0)).toBe(true);
     expect([...zoneStarts].sort((first, second) => first - second)).toEqual(zoneStarts);
+  });
+
+  test("section ids are unique, lower case anchors", () => {
+    const ids = Object.values(SECTION_IDS);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.filter((id) => !/^section-[a-z0-9-]+$/.test(id))).toEqual([]);
+  });
+
+  test("every stop links to a section on the trail, with a name in the content", () => {
+    const trail = createJourneyTrail(portfolioData).map((section) => section.id);
+
+    JOURNEY_STOPS.forEach(({ key, href }) => {
+      expect(trail).toContain(href.slice(1));
+      expect(portfolioData.menu.stops[key]).toBeTruthy();
+    });
   });
 });

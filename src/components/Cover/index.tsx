@@ -10,7 +10,7 @@ import { DecodedText } from "@/components/DecodedText";
 import { Image } from "@/components/Image";
 import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import TypingAnimation from "@/components/TypingAnimation";
-import { industryAnchor } from "@/config/sections";
+import { industryAnchor, SECTION_IDS } from "@/config/sections";
 import { Headline } from "@/types/headline";
 
 interface CoverProps {
@@ -126,7 +126,7 @@ export const Cover = ({ intro, image, typingsTitles, headline, cvUrl, email }: C
   const isReady = isLoaded && status === "chosen";
 
   return (
-    <Section id="section-started">
+    <Section id={SECTION_IDS.cover}>
       <CoverContainer className="cover-container">
         <CoverContent>
           <CoverImage
@@ -146,7 +146,7 @@ export const Cover = ({ intro, image, typingsTitles, headline, cvUrl, email }: C
         </CoverContent>
       </CoverContainer>
       <Content>
-        <IntroMarker id="section-intro" aria-hidden="true" />
+        <IntroMarker id={SECTION_IDS.intro} aria-hidden="true" />
         <TitleWrapper>
           <TypingAnimation typingData={typingsTitles} />
         </TitleWrapper>
@@ -190,7 +190,7 @@ export const Cover = ({ intro, image, typingsTitles, headline, cvUrl, email }: C
           ))}
         </Industries>
       </Essentials>
-      <ScrollerLink href="#section-about" aria-label="Learn more about me">
+      <ScrollerLink href={`#${SECTION_IDS.about}`} aria-label="Learn more about me">
         <ScrollerIcon icon={faChevronDown} />
       </ScrollerLink>
     </Section>

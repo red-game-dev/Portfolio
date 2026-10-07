@@ -4362,6 +4362,16 @@ export const portfolioData: PortfolioData = {
   blueprintLabels,
   menu: {
     label: "Journey",
+    stops: {
+      who: "Who I am",
+      offer: "Offer",
+      history: "History",
+      ai: "AI",
+      web3: "Web3",
+      engineering: "Engineering",
+      igaming: "iGaming",
+      game: "Game world",
+    },
     title: "Where to?",
     kicker: "Stop {n} of {total}: {zone}",
     open: "Open the menu",

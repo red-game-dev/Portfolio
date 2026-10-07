@@ -9,6 +9,7 @@ import {
   ProductJsonLd
 } from "next-seo";
 
+import { JOURNEY_STOPS } from "@/config/journey";
 import { SECTION_IDS } from "@/config/sections";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
@@ -93,38 +94,7 @@ export const SEO = ({ url }: SeoProps) => (
     />
     <ProfilePageJsonLd
       lastReviewed="2022-11-21T19:30"
-      breadcrumb={[
-        {
-          position: 1,
-          name: "Who I am",
-          item: `${url}/#section-about`,
-        },
-        {
-          position: 2,
-          name: "My History",
-          item: `${url}/#section-history`,
-        },
-        {
-          position: 3,
-          name: "My Skills",
-          item: `${url}/#section-skills`,
-        },
-        {
-          position: 4,
-          name: "How I use AI",
-          item: `${url}/#${SECTION_IDS.aiUsage}`,
-        },
-        {
-          position: 5,
-          name: "Achievements",
-          item: `${url}/#section-projects`,
-        },
-        {
-          position: 6,
-          name: "What can I offer",
-          item: `${url}/#section-services`,
-        },
-      ]}
+      breadcrumb={JOURNEY_STOPS.map(({ key, href }, index) => ({ position: index + 1, name: portfolioData.menu.stops[key], item: `${url}/${href}` }))}
     />
     <CorporateContactJsonLd
       url={url}
@@ -185,7 +155,7 @@ export const SEO = ({ url }: SeoProps) => (
       portfolioData.projects.map((project, index) => (
         <NewsArticleJsonLd
           key={`project-${index}`}
-          url={`${url}/#section-projects`}
+          url={`${url}/#${SECTION_IDS.projects}`}
           title={project.title}
           images={[project.image ?? portfolioData.cover]}
           section={project.category}

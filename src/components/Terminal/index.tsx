@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
+import { SECTION_IDS } from "@/config/sections";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { TerminalDialog as TerminalDialogContent, TerminalEffect, TerminalLineKind, TerminalSession } from "@/packages/interaction/terminal";
 import { SectionIntros } from "@/types/sections-intros";
@@ -19,7 +20,6 @@ interface TerminalProps {
   createSession: () => TerminalSession;
 }
 
-const SECTION_ID = "section-terminal";
 // New output arrives a line at a time, like a model streaming its answer.
 const STREAM_MS = 90;
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
@@ -252,7 +252,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
   }, []);
 
   return (
-    <Section id={SECTION_ID} ref={sectionRef}>
+    <Section id={SECTION_IDS.terminal} ref={sectionRef}>
       <SectionText intro={intro} />
       <Window>
         <TitleBar>

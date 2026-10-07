@@ -10,7 +10,7 @@ import { HistoryEntry } from "@/components/History/HistoryEntry";
 import { Panel, PanelTitle } from "@/components/Panel";
 import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
-import { industryAnchor } from "@/config/sections";
+import { industryAnchor, SECTION_IDS } from "@/config/sections";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
 import useTabs from "@/hooks/useTabs";
@@ -239,7 +239,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
   useScrollProgressVar(educationRef);
 
   return (
-    <Section id="section-history">
+    <Section id={SECTION_IDS.history}>
       {industries.map((link) => (
         <Anchor key={link.industry} id={industryAnchor(link.industry)} aria-hidden="true" />
       ))}

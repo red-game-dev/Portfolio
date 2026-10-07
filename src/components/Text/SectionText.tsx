@@ -12,5 +12,5 @@ interface SectionTextProps {
 export const SectionText: FC<SectionTextProps> = ({ intro }: SectionTextProps) => {
   const { lens } = useLensStateHook();
 
-  return <Text title={intro.title} paragraphs={intro.lenses?.[lens] ?? intro.description} isSection={false} />;
+  return <Text title={intro.title} paragraphs={intro.lenses?.[lens] ?? intro.description} />;
 };

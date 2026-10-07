@@ -1,22 +1,36 @@
 import { Audience } from "@/types/case-studies";
 import { Industry } from "@/types/industry";
 
-// Section anchors shared by the section, the Menu scroll-spy and the SEO breadcrumb, so they cannot
-// drift apart. Older sections still hardcode theirs; move them here as they are touched.
+// Every section's anchor, in one place, so the section, the menu, the trail, the terminal's goto and the
+// SEO breadcrumb cannot drift apart. In page order.
 export const SECTION_IDS = {
-  aiUsage: "section-ai-usage",
-  arena: "section-arena",
-  caseStudies: "section-case-studies",
-  codeReview: "section-code-review",
-  duels: "section-duels",
-  engineRoom: "section-engine-room",
+  cover: "section-started",
+  // Where the first screen's text starts, below the cover picture.
+  intro: "section-intro",
   glance: "section-glance",
-  igaming: "section-igaming",
-  platform: "section-platform",
-  roster: "section-roster",
-  skillAreas: "section-skills-areas",
+  about: "section-about",
+  terminal: "section-terminal",
+  services: "section-services",
+  history: "section-history",
+  aiUsage: "section-ai-usage",
   web3: "section-web3",
+  skillAreas: "section-skills-areas",
+  platform: "section-platform",
+  codeReview: "section-code-review",
+  igaming: "section-igaming",
+  roster: "section-roster",
+  forge: "section-skills",
+  talents: "section-talents",
+  caseStudies: "section-case-studies",
+  duels: "section-duels",
+  projects: "section-projects",
+  engineRoom: "section-engine-room",
+  recommendations: "section-recommendations",
+  arena: "section-arena",
+  finale: "section-finale",
 } as const;
+
+export type SectionKey = keyof typeof SECTION_IDS;
 
 // Links an application can point at, for example https://redgame.dev/#for-payments.
 export const AUDIENCE_ANCHORS: Record<Audience, string> = {

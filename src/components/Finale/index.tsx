@@ -10,6 +10,7 @@ import { BinaryRain } from "@/components/BinaryRain";
 import { DecodedText } from "@/components/DecodedText";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
+import { SECTION_IDS } from "@/config/sections";
 import { FINALE_RAIN_CONFIG } from "@/config/theme";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 import useInView from "@/hooks/useInView";
@@ -135,7 +136,7 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
   const mailto = `mailto:${email}?subject=${encodeURIComponent(content.emailSubject)}&body=${encodeURIComponent(body)}`;
 
   return (
-    <Section id="section-Wow" ref={sectionRef}>
+    <Section id={SECTION_IDS.finale} ref={sectionRef}>
       <Panel>
         <Screen>
           <ReadableText>{content.screenLabel}</ReadableText>

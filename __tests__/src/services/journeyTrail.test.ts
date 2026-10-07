@@ -1,3 +1,4 @@
+import { SECTION_IDS } from "@/config/sections";
 import { portfolioData } from "@/data/resume";
 import { createJourneyTrail } from "@/services/journey/trail";
 
@@ -13,7 +14,7 @@ describe("journey trail", () => {
   });
 
   test("the trail starts at the cover and ends at the finale", () => {
-    expect(trail[0].id).toBe("section-started");
-    expect(trail[trail.length - 1].id).toBe("section-Wow");
+    expect(trail[0].id).toBe(SECTION_IDS.cover);
+    expect(trail[trail.length - 1].id).toBe(SECTION_IDS.finale);
   });
 });

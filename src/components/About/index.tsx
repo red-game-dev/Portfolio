@@ -8,6 +8,7 @@ import Link from "next/link";
 
 import { Portrait } from "@/components/About/Portrait";
 import { DecodedText } from "@/components/DecodedText";
+import { SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
@@ -100,7 +101,7 @@ export const About: FC<AboutProps> = ({
   const collapse = (text: string) => text.replace(/\s+/g, " ").trim();
 
   return (
-    <Section id="section-about">
+    <Section id={SECTION_IDS.about}>
       <Title>Who I am?</Title>
       <Content ref={contentRef}>
         <Top>

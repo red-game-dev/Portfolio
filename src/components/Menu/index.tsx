@@ -2,12 +2,14 @@ import tw, { css, styled } from "twin.macro";
 
 import Link from "next/link";
 
-import { NAV_ITEMS, progressOf } from "@/components/Menu/config";
+import { progressOf } from "@/components/Menu/config";
+import { JOURNEY_STOPS } from "@/config/journey";
+import { MenuContent } from "@/types/menu";
 
 interface MenuProps {
-  // Which stop the reader is at, in NAV_ITEMS order.
+  // Which stops are on screen, in JOURNEY_STOPS order.
   selected: boolean[];
-  label: string;
+  content: MenuContent;
 }
 
 interface MenuItemProps {
@@ -49,18 +51,18 @@ const Label = styled.span(() => [
   `,
 ]);
 
-export const Menu = ({ selected, label }: MenuProps) => (
+export const Menu = ({ selected, content }: MenuProps) => (
     <MenuContainer>
-      <MenuList aria-label={label}>
-        {NAV_ITEMS.map((item, index) => (
+      <MenuList aria-label={content.label}>
+        {JOURNEY_STOPS.map((item, index) => (
           <MenuItem
-            key={item.label}
+            key={item.key}
             href={item.href}
             style={progressOf(index)}
             selected={selected[index]}
             aria-current={selected[index] ? "location" : undefined}
           >
-            <Label>{item.label}</Label>
+            <Label>{content.stops[item.key]}</Label>
           </MenuItem>
         ))}
       </MenuList>

@@ -1,12 +1,12 @@
 import { RefObject, useState } from "react";
 
-import { NavItem } from "@/components/Menu/config";
 import { journeyState, sameSelection, StopSpan } from "@/components/Menu/utils/journeyState";
+import { JourneyStop } from "@/config/journey";
 import useScrollFrame from "@/hooks/useScrollFrame";
 import { FrameReading } from "@/packages/interaction/scroll-frame";
 
 // The first of the ids that is in the page: a stop can start at a section only some views render.
-const spanOf = ({ first, last }: NavItem, { rectOf }: FrameReading): StopSpan | null => {
+const spanOf = ({ first, last }: JourneyStop, { rectOf }: FrameReading): StopSpan | null => {
   const start = (Array.isArray(first) ? first : [first]).map(rectOf).find(Boolean) ?? null;
   const end = rectOf(last);
 
@@ -17,7 +17,7 @@ const spanOf = ({ first, last }: NavItem, { rectOf }: FrameReading): StopSpan | 
 // comes back as state, and only changes when a stop enters or leaves; how far through each stop the reader
 // is goes into --nav-progress-<index> on `targetRef` (the header, which holds both menus), with no
 // re-render and without restyling the rest of the page.
-export default function useJourneyNav(items: NavItem[], targetRef: RefObject<HTMLElement>) {
+export default function useJourneyNav(items: JourneyStop[], targetRef: RefObject<HTMLElement>) {
   const [selected, setSelected] = useState<boolean[]>(() => items.map(() => false));
 
   useScrollFrame(() => ({

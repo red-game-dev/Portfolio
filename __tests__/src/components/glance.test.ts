@@ -1,5 +1,5 @@
-import { pickSkillYears, startYear } from "@/components/Glance/utils";
-import { formatPeriod, splitTitle } from "@/packages/insights/career";
+import { pickSkillYears } from "@/components/Glance/utils";
+import { formatPeriod, splitTitle, startYear } from "@/packages/insights/career";
 import { createRosterLevels } from "@/services/roster";
 import { ForgeStation } from "@/services/skills";
 import { Character } from "@/types/roster";

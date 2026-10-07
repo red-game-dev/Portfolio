@@ -1,4 +1,5 @@
 import { Lens } from "@/config/lenses";
+import { DetailFigureId } from "@/types/details";
 
 // A stat on a character select card, out of LENS_STAT_MAX.
 export interface LensStat {
@@ -57,8 +58,8 @@ export interface PlaybookStage {
 export interface ProductPlaybookContent {
   title: string;
   description: string;
-  // Proof figures from "Who I am", picked by value so the numbers live in one place.
-  proofValues: string[];
+  // Proof figures from "Who I am", picked by id so the numbers live in one place.
+  proofIds: DetailFigureId[];
   levelsLabel: string;
   levelClasses: string[];
   // "Level {level}, since {since}"

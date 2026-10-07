@@ -98,10 +98,12 @@ describe("audience views", () => {
   test("the glance picks proof figures and roster classes that exist", () => {
     const { recruiter, product } = portfolioData.lens.glance;
     const classes = new Set(portfolioData.roster.characters.map((character) => character.characterClass));
-    const values = new Set(portfolioData.details.proof.map((figure) => figure.value));
 
     expect([...recruiter.roleClasses, ...product.levelClasses].filter((name) => !classes.has(name))).toEqual([]);
-    expect(product.proofValues.filter((value) => !values.has(value))).toEqual([]);
+    const ids = portfolioData.details.proof.map((figure) => figure.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(product.proofIds.filter((id) => !ids.includes(id))).toEqual([]);
     expect(portfolioData.serviceGroups.some((group) => group.label === portfolioData.lens.productServiceGroup)).toBe(true);
   });
 

@@ -1,9 +1,10 @@
 import { Command, output, system } from "@/packages/interaction/terminal";
+import { collapseWhitespace } from "@/packages/text/format";
 import { CommandContext, GROUPS } from "@/services/terminal/commands/shared";
 
 // Just for fun.
 export const createFunCommands = (context: CommandContext): Command[] => {
-  const { contactDialog } = context;
+  const { contactDialog, data } = context;
 
   return [
     {
@@ -67,6 +68,33 @@ export const createFunCommands = (context: CommandContext): Command[] => {
       aliases: ["quit", "logout"],
       summary: "Leave",
       run: () => ({ lines: [output("There is no exit, only the next quest. Type hire.")] }),
+    },
+    {
+      name: "fortune",
+      group: GROUPS.fun,
+      aliases: ["quote"],
+      summary: "Something someone I worked with said",
+      run: () => {
+        const pick = data.recommendations[Math.floor(Math.random() * data.recommendations.length)];
+
+        return pick
+          ? { lines: [output(`"${collapseWhitespace(pick.quote)}"`), system(`${pick.role}, ${pick.company}, ${pick.date}`)] }
+          : { lines: [output("No fortunes today.")] };
+      },
+    },
+    {
+      name: "ping",
+      group: GROUPS.fun,
+      usage: "ping [host]",
+      summary: "How quickly I answer",
+      run: ([host]) => ({
+        lines: [
+          system(`PING ${host || data.details.name.toLowerCase().replace(/\s+/g, ".")}`),
+          output(`64 bytes: ${data.terminal.contact.subtitle}`),
+          output(`Reachable: ${data.details.contactTime.toLowerCase()}`),
+          system("Type contact to send a real packet."),
+        ],
+      }),
     },
   ];
 };

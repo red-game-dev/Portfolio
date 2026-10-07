@@ -6,7 +6,12 @@ export interface PortraitLabels {
 }
 
 // A verified figure in the "Who I am" proof row.
+// What a proof figure counts, so other places (the terminal's uptime and neofetch) can name the one they
+// want instead of matching its words.
+export type DetailFigureId = "coding" | "industry" | "startups" | "reach" | "countries" | "sessions";
+
 export interface DetailFigure {
+  id: DetailFigureId;
   value: string;
   label: string;
 }

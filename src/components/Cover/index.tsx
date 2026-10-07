@@ -25,18 +25,22 @@ interface CoverProps {
 // Lines decode one after another once the intro loader has finished and the reader has picked a view.
 const LINE_DELAY_MS = 260;
 
-const Section = tw.div`relative overflow-hidden h-screen m-0 z-[7] `;
+// The first screen as a column: the typed line centred in the room above, the essentials under it. Both are in
+// the flow, so however the line wraps they never overlap; on a screen too short for both the cover grows.
+// At least the visible height (svh), so a phone's toolbars never hide the actions.
+const Section = styled.div(() => [
+  tw`relative overflow-hidden m-0 z-[7] flex flex-col`,
+  css`
+    min-height: 100vh;
+    min-height: 100svh;
+  `,
+]);
 
-const Content = tw.div`absolute top-0 left-0 z-[2] table table w-full h-full align-middle text-justify`;
+// Clear of the fixed header at the top.
+const TitleArea = tw.div`relative z-[2] flex flex-1 items-center w-full px-5 pt-[96px] pb-[20px] lg:pt-[140px] lg:pb-[40px]`;
 
-// Lifted on large screens, so the typed line clears the essentials block at the bottom.
-const TitleWrapper = tw.div`relative top-0 left-0 z-[2] table-fixed table-cell w-full h-full align-middle lg:pb-[30vh]`;
-
-// Where the intro used to sit. The About section's scroll-spy measures this marker, so its timing is unchanged.
-const IntroMarker = tw.span`absolute left-0 bottom-[30px] lg:bottom-[50px] w-px h-[24px] pointer-events-none`;
-
-const Essentials = tw.div`absolute left-0 bottom-[30px] z-[3] flex flex-col gap-[12px] px-5 text-left
-lg:pr-12 lg:left-[calc(20% + 35px)] lg:bottom-[50px] lg:max-w-[780px]`;
+const Essentials = tw.div`relative z-[3] flex flex-col gap-[12px] px-5 pb-[30px] text-left lg:pr-12 lg:ml-[calc(20% + 15px)] lg:pb-[50px]
+lg:max-w-[780px]`;
 
 const Introduction = styled.h1(() => [
   tw`m-0 text-white break-words text-base lg:text-lg [& > strong]:text-[var(--accent)]`,
@@ -88,10 +92,10 @@ const AudienceLink = styled.a(() => [
   `,
 ]);
 
-// Hidden on phones, where the first screen already ends in the actions and the cue would sit on top of them.
+// Only on large screens, under the essentials; elsewhere the first screen already ends in the actions.
 const ScrollerLink = styled(Link)(() => [
-  tw`absolute hidden md:block w-5 h-5 left-[47.4%] lg:left-[49.3%] bottom-[30%] lg:bottom-[10px] z-[2] text-[var(--accent)] right-auto top-auto text-2xl
-  text-center animate-[scroll-cue 1s ease-out 0s infinite]
+  tw`absolute hidden lg:block w-5 h-5 left-[49.3%] bottom-[10px] z-[2] text-[var(--accent)] text-2xl text-center
+  animate-[scroll-cue 1s ease-out 0s infinite]
   `
 ]);
 
@@ -99,7 +103,7 @@ const ScrollerIcon = styled(FontAwesomeIcon)(() => [
   tw`relative bottom-[10px]`,
 ]);
 
-const CoverContainer = tw.div`relative h-screen w-full`;
+const CoverContainer = tw.div`absolute inset-0`;
 
 const CoverContent = tw.div`fixed h-full w-full left-0 top-0`;
 
@@ -145,12 +149,9 @@ export const Cover = ({ intro, image, typingsTitles, headline, cvUrl, email }: C
           <CoverBottomShade />
         </CoverContent>
       </CoverContainer>
-      <Content>
-        <IntroMarker id={SECTION_IDS.intro} aria-hidden="true" />
-        <TitleWrapper>
-          <TypingAnimation typingData={typingsTitles} />
-        </TitleWrapper>
-      </Content>
+      <TitleArea>
+        <TypingAnimation typingData={typingsTitles} />
+      </TitleArea>
       <Essentials>
         <Introduction dangerouslySetInnerHTML={{ __html: intro }} />
         <Lines>

@@ -1,4 +1,4 @@
-import { formatPeriod } from "@/packages/insights/career";
+import { formatPeriod, toMonthIndex } from "@/packages/insights/career";
 import { Command, error, heading, output, system } from "@/packages/interaction/terminal";
 import { collapseWhitespace } from "@/packages/text/format";
 import { CommandContext, GROUPS, matches, PERIOD, PRESENT } from "@/services/terminal/commands/shared";
@@ -6,7 +6,7 @@ import { SkillGroup } from "@/types/skills";
 
 // Get to know me.
 export const createMeCommands = (context: CommandContext): Command[] => {
-  const { data, experience, rosterLevels } = context;
+  const { data, experience, rosterLevels, figure, rankedSkills } = context;
 
   return [
     {
@@ -128,6 +128,87 @@ export const createMeCommands = (context: CommandContext): Command[] => {
       group: GROUPS.me,
       summary: "Languages I speak",
       run: () => ({ lines: [output(data.skills.language.join(", "))] }),
+    },
+    {
+      name: "neofetch",
+      group: GROUPS.me,
+      aliases: ["fetch"],
+      summary: "Me at a glance, the way a terminal shows its machine",
+      run: () => {
+        const row = (label: string, value: string) => output(`  ${label.padEnd(11)}${value}`);
+        const coding = figure("coding");
+        const startups = figure("startups");
+
+        return {
+          lines: [
+            heading(data.details.name),
+            system("-".repeat(data.details.name.length)),
+            row("Role", data.details.intro),
+            ...(coding ? [row("Uptime", `${coding.value} ${coding.label}`)] : []),
+            ...(startups ? [row("Startups", startups.value)] : []),
+            row("Languages", data.skills.language.join(", ")),
+            row("Stack", rankedSkills().slice(0, 6)
+.map((skill) => skill.name)
+.join(", ")),
+            row("Status", data.headline.availability),
+          ],
+        };
+      },
+    },
+    {
+      name: "uptime",
+      group: GROUPS.me,
+      summary: "How long I have been at it",
+      run: () => {
+        const coding = figure("coding");
+        const industry = figure("industry");
+        const ventures = experience.filter((entry) => entry.isVenture).length;
+
+        return {
+          lines: [
+            ...(coding ? [output(`up ${coding.value} ${coding.label}`)] : []),
+            ...(industry ? [output(`${industry.value} ${industry.label}`)] : []),
+            system(`load average: ${experience.length} roles, ${ventures} of them companies of my own`),
+          ],
+        };
+      },
+    },
+    {
+      name: "stats",
+      group: GROUPS.me,
+      aliases: ["numbers"],
+      summary: "The numbers behind the work",
+      run: () => ({
+        lines: [heading("By the numbers"), ...data.details.proof.map((item) => output(`  ${item.value.padEnd(8)}${item.label}`))],
+      }),
+    },
+    {
+      name: "status",
+      group: GROUPS.me,
+      aliases: ["availability"],
+      summary: "Whether I am free, where and how I can work",
+      run: () => ({
+        lines: [
+          heading(data.headline.availability),
+          ...data.details.facts.map((fact) => output(`  - ${fact}`)),
+          system(data.details.location),
+          system(data.details.jobType),
+        ],
+      }),
+    },
+    {
+      name: "education",
+      group: GROUPS.me,
+      aliases: ["school"],
+      summary: "Where I studied",
+      run: () => ({
+        lines: [
+          heading("Education"),
+          ...[...data.education]
+            .sort((first, second) => toMonthIndex(second.from) - toMonthIndex(first.from))
+            .map((entry) => output(`  ${formatPeriod(entry, PERIOD, PRESENT).padEnd(22)}${entry.title}`)),
+        ],
+      }),
     },
   ];
 };

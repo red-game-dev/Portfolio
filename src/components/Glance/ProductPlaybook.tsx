@@ -22,8 +22,7 @@ import {
   Title,
 } from "@/components/Glance/styles";
 import { GlanceProps } from "@/components/Glance/types";
-import { startYear } from "@/components/Glance/utils";
-import { splitTitle } from "@/packages/insights/career";
+import { splitTitle, startYear } from "@/packages/insights/career";
 import { fill } from "@/packages/text/format";
 import { createRosterLevels } from "@/services/roster";
 import { ProductPlaybookContent } from "@/types/lens";
@@ -36,7 +35,7 @@ interface ProductPlaybookProps extends Omit<GlanceProps, "content"> {
 // grew, and how a product gets run, each backed by something on the page.
 export const ProductPlaybook: FC<ProductPlaybookProps> = ({ content, details, experience, roster }: ProductPlaybookProps) => {
   const rosterLevels = useMemo(() => createRosterLevels(roster), [roster]);
-  const stats = content.proofValues.flatMap((value) => details.proof.filter((figure) => figure.value === value));
+  const stats = content.proofIds.flatMap((id) => details.proof.filter((figure) => figure.id === id));
   const levels = content.levelClasses.flatMap((characterClass) => {
     const character = roster.characters.find((candidate) => candidate.characterClass === characterClass);
 

@@ -1,6 +1,6 @@
 import { CommandRegistry } from "../core/CommandRegistry";
 import { Command } from "../domain/types";
-import { heading, output, system } from "../utils/lines";
+import { error, heading, output, system } from "../utils/lines";
 
 // Every command with its summary, under its group when it has one. Ungrouped commands come last, under
 // `otherGroup`.
@@ -40,3 +40,28 @@ export const clearCommand: Command = {
   summary: "Clear the screen",
   run: () => ({ lines: [], effect: { type: "clear" } }),
 };
+
+// One command in full: what it does, how to call it and its other names. Asked about nothing, or about a
+// command that does not exist, it says how to use it.
+export const createManCommand = (registry: CommandRegistry, otherGroup = "Other"): Command => ({
+  name: "man",
+  usage: "man <command>",
+  summary: "How one command works",
+  group: otherGroup,
+  run: ([name]) => {
+    const command = name ? registry.resolve(name.toLowerCase()) : undefined;
+
+    if (!command) {
+      return { lines: [error(name ? `No manual entry for ${name}. Try help.` : "What manual page do you want? Try man whoami.")] };
+    }
+
+    return {
+      lines: [
+        heading(command.name),
+        output(command.summary),
+        system(`Usage: ${command.usage ?? command.name}`),
+        ...(command.aliases?.length ? [system(`Also: ${command.aliases.join(", ")}`)] : []),
+      ],
+    };
+  },
+});

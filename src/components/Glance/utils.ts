@@ -16,6 +16,3 @@ export const pickSkillYears = (stations: ForgeStation[], names: string[]): Skill
     return value >= 1 ? [{ name, years: value }] : [];
   });
 };
-
-// The year a role began, from "Apr 2015" or "2021".
-export const startYear = (from: string) => Number(from.match(/\d{4}/)?.[0] ?? 0);

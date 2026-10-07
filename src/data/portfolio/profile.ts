@@ -94,7 +94,7 @@ export const profileContent: ProfileContent = {
   details: {
     name: "Redeemer Pace",
     intro: "Architect. Builder. Founder.",
-    hook: "Programming since I was 7. Game engines, payment systems, a blockchain and platforms for millions, and companies of my own.",
+    hook: "I build game engines, payment systems, a blockchain, platforms for millions and companies of my own.",
     paragraphs: [
       `I am a software architect with 15+ years in the industry, most of them leading: CEO and CTO of my own social network and MMORPG,
       co-founder and CTO of CoinOn, then architect and tech lead at Chiliz and Conrad. I design systems that are not tied to a vendor or a framework,
@@ -107,12 +107,12 @@ export const profileContent: ProfileContent = {
       problems are hard and the standards are high.`,
     ],
     proof: [
-      { value: "20+", label: "years writing software, since I was 7" },
-      { value: "15+", label: "years in the industry, from my first company in 2010" },
-      { value: "14", label: "startups built" },
-      { value: "200M+", label: "active users on products at companies I worked for" },
-      { value: "1.5M+", label: "users in 167 countries on one platform" },
-      { value: "7M+", label: "sessions a month at peak on another" },
+      { id: "coding", value: "20+", label: "years writing software, since I was 7" },
+      { id: "industry", value: "15+", label: "years in the industry, from my first company in 2010" },
+      { id: "startups", value: "14", label: "startups built" },
+      { id: "reach", value: "200M+", label: "active users on products at companies I worked for" },
+      { id: "countries", value: "1.5M+", label: "users in 167 countries on one platform" },
+      { id: "sessions", value: "7M+", label: "sessions a month at peak on another" },
     ],
     facts: [
       "Maltese citizen with EU work rights",

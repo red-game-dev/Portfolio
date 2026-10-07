@@ -44,11 +44,16 @@ export const pulse = keyframes`
 
 // Full screen, in the top layer, so no transformed or filtered ancestor can clip it. Solid, so nothing of
 // the page shows through, with a glow in the colour of the zone the reader is in.
+// Pinned to the edges of what is visible (inset 0), not sized in vh: on phones whose toolbars sit over part of
+// 100vh, a menu that tall hid its last stops and actions where no scroll could reach them.
 export const Dialog = styled.dialog(() => [
-  tw`m-0 p-0 w-screen h-screen max-w-none border-0 text-white`,
+  tw`m-0 p-0 max-w-none border-0 text-white`,
   css`
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
     max-height: none;
-    height: 100dvh;
     background: radial-gradient(120% 55% at 50% 0%, rgba(var(--here-rgb), 0.2), transparent 62%), #09090b;
 
     &::backdrop {
@@ -61,7 +66,15 @@ export const Dialog = styled.dialog(() => [
   `,
 ]);
 
-export const Panel = tw.div`flex flex-col w-full max-w-[520px] mx-auto px-[22px] pt-[16px] pb-[28px] overflow-y-auto`;
+// The menu's own scroll, for screens shorter than the route: it never hands the scroll on to the page.
+export const Panel = styled.div(() => [
+  tw`flex flex-col w-full max-w-[520px] max-h-full min-h-0 mx-auto px-[22px] pt-[16px] pb-[28px] overflow-y-auto`,
+  css`
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+  `,
+]);
 
 export const Top = tw.div`flex flex-row items-start justify-between gap-[12px] mb-[22px]`;
 

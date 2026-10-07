@@ -39,7 +39,6 @@ export const createContactCommands = (context: CommandContext): Command[] => {
     {
       name: "github",
       group: GROUPS.contact,
-      aliases: ["git"],
       summary: "My code on GitHub",
       run: () => ({ lines: [system("Opening GitHub...")], effect: { type: "open", url: data.github[0].link } }),
     },

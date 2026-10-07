@@ -1,5 +1,7 @@
 import { SECTION_IDS } from "@/config/sections";
-import { Command, error, output, system } from "@/packages/interaction/terminal";
+import { ZONE_BOUNDARIES } from "@/config/zones";
+import { Command, error, heading, output, system } from "@/packages/interaction/terminal";
+import { createJourneyTrail } from "@/services/journey/trail";
 import { CommandContext, GROUPS } from "@/services/terminal/commands/shared";
 
 const GOTO_TARGETS: Record<string, string> = {
@@ -13,6 +15,8 @@ const GOTO_TARGETS: Record<string, string> = {
   cases: SECTION_IDS.caseStudies,
   characters: SECTION_IDS.roster,
   projects: SECTION_IDS.projects,
+  review: SECTION_IDS.codeReview,
+  arena: SECTION_IDS.arena,
 };
 
 // What ls shows, and the command each file runs when it is read with cat.
@@ -23,13 +27,15 @@ const FILES: Record<string, string> = {
   "projects/": "projects",
   "cases/": "cases",
   "ventures.md": "ventures",
+  "education.md": "education",
+  "stats.csv": "stats",
   "contact.txt": "contact",
   "cv.pdf": "cv",
 };
 
 // Get around.
 export const createAroundCommands = (context: CommandContext): Command[] => {
-  const { commandsByName } = context;
+  const { commandsByName, data } = context;
 
   return [
     {
@@ -72,6 +78,31 @@ export const createAroundCommands = (context: CommandContext): Command[] => {
         }
 
         return { lines: [system(`Going to ${target}...`)], effect: { type: "navigate", target: id } };
+      },
+    },
+    {
+      name: "tree",
+      group: GROUPS.around,
+      aliases: ["sitemap"],
+      summary: "The page as a map, zone by zone",
+      run: () => {
+        const trail = createJourneyTrail(data);
+        const starts = ZONE_BOUNDARIES.map(({ startsAt }) => trail.findIndex((section) => section.id === startsAt));
+
+        return {
+          lines: [
+            heading("redgame.dev"),
+            ...ZONE_BOUNDARIES.flatMap(({ zone }, index) => {
+              const sections = trail.slice(Math.max(0, starts[index]), starts[index + 1] ?? trail.length);
+              const isLast = index === ZONE_BOUNDARIES.length - 1;
+
+              return [
+                output(`${isLast ? "└──" : "├──"} ${data.menu.zones[zone]}`),
+                ...sections.map((section, position) => output(`${isLast ? "    " : "│   "}${position === sections.length - 1 ? "└──" : "├──"} ${section.title}`)),
+              ];
+            }),
+          ],
+        };
       },
     },
   ];

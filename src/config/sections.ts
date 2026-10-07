@@ -5,8 +5,6 @@ import { Industry } from "@/types/industry";
 // SEO breadcrumb cannot drift apart. In page order.
 export const SECTION_IDS = {
   cover: "section-started",
-  // Where the first screen's text starts, below the cover picture.
-  intro: "section-intro",
   glance: "section-glance",
   about: "section-about",
   terminal: "section-terminal",

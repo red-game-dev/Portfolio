@@ -1,4 +1,4 @@
-export { clearCommand, createHelpCommand } from "./commands/builtins";
+export { clearCommand, createHelpCommand, createManCommand } from "./commands/builtins";
 export { CommandRegistry } from "./core/CommandRegistry";
 export { TerminalSession } from "./core/TerminalSession";
 export { error, heading, output, system } from "./utils/lines";

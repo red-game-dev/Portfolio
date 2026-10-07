@@ -1,12 +1,22 @@
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
-import { Command, heading, output, system } from "@/packages/interaction/terminal";
-import { collapseWhitespace } from "@/packages/text/format";
+import { activityStats } from "@/packages/insights/activity";
+import { startYear } from "@/packages/insights/career";
+import { Command, error, heading, output, system } from "@/packages/interaction/terminal";
+import { collapseWhitespace, fill } from "@/packages/text/format";
 import { CommandContext, GROUPS } from "@/services/terminal/commands/shared";
 import { Audience } from "@/types/case-studies";
 
+// A short, stable commit hash for a role, so git log reads like the real thing.
+const HASH_SPACE = 16 ** 7;
+
+const shortHash = (text: string) => Array.from(text)
+  .reduce((hash, character) => (hash * 31 + character.charCodeAt(0)) % HASH_SPACE, 7)
+  .toString(16)
+  .padStart(7, "0");
+
 // See the work.
 export const createWorkCommands = (context: CommandContext): Command[] => {
-  const { data } = context;
+  const { data, experience, rankedSkills } = context;
 
   return [
     {
@@ -80,6 +90,93 @@ export const createWorkCommands = (context: CommandContext): Command[] => {
       aliases: ["game"],
       summary: "Play Bug Raid",
       run: () => ({ lines: [system("Loading Bug Raid...")], effect: { type: "navigate", target: SECTION_IDS.arena } }),
+    },
+    {
+      name: "stack",
+      group: GROUPS.work,
+      aliases: ["top"],
+      usage: "stack [count]",
+      summary: "The skills I have used longest, from the work itself",
+      run: ([count]) => {
+        const shown = rankedSkills().slice(0, Math.min(40, Math.max(1, Number(count) || 12)));
+
+        return {
+          lines: [
+            heading("Most used, by years in real roles and projects"),
+            ...shown.map((skill) => output(`  ${skill.name.padEnd(26)}${`${skill.years}+ years`.padEnd(12)}${skill.rarity}`)),
+            system("goto skills for every station"),
+          ],
+        };
+      },
+    },
+    {
+      name: "streak",
+      group: GROUPS.work,
+      aliases: ["activity"],
+      summary: "My GitHub activity streaks",
+      run: () => {
+        const stats = activityStats(data.codeReview.activity.years);
+        const { achievements } = data.codeReview;
+        const busiest = stats.busiestMonth;
+
+        return {
+          lines: [
+            heading(data.codeReview.activityTitle),
+            output(`  ${fill(achievements.dayStreak, { n: stats.longestDayStreak })}`),
+            output(`  ${fill(achievements.weekStreak, { n: stats.longestWeekStreak })}`),
+            output(`  ${fill(achievements.activeDays, { n: stats.activeDays })}`),
+            ...(stats.perfectWeeks > 0 ? [output(`  ${fill(achievements.perfectWeeks, { n: stats.perfectWeeks })}`)] : []),
+            ...(busiest ? [output(`  ${fill(achievements.busiestMonth, { month: achievements.months[busiest.month], year: busiest.year })}`)] : []),
+            system("goto review for the calendar"),
+          ],
+        };
+      },
+    },
+    {
+      name: "git",
+      group: GROUPS.work,
+      usage: "git <log|branch|status|checkout>",
+      summary: "My career as a repository",
+      run: ([subcommand, ...args]) => {
+        const { historyLabels } = data;
+        const ventures = experience.filter((entry) => entry.isVenture);
+        const branches = [historyLabels.workBranch, historyLabels.foundedBranch];
+
+        if (subcommand === "log") {
+          return {
+            lines: experience.slice(0, Math.max(1, Number(args[0]) || experience.length)).map((entry) => output(
+              `* ${shortHash(entry.title)} ${String(startYear(entry.from)).padEnd(5)}${entry.isVenture ? `(${historyLabels.foundedBranch}) ` : ""}${entry.title}`,
+            )),
+          };
+        }
+
+        if (subcommand === "branch") {
+          const founded = Math.max(data.foundedTotal, ventures.length);
+
+          return {
+            lines: [
+              output(`* ${historyLabels.workBranch.padEnd(10)}${experience.length - ventures.length} commits`),
+              output(`  ${historyLabels.foundedBranch.padEnd(10)}${founded} commits, ${founded - ventures.length} of them not listed one by one`),
+            ],
+          };
+        }
+
+        if (subcommand === "status") {
+          return {
+            lines: [output(`On branch ${historyLabels.workBranch}`), output(data.headline.availability), system("nothing to commit, ready for the next one")],
+          };
+        }
+
+        if (subcommand === "checkout") {
+          const branch = args[0]?.toLowerCase() ?? "";
+
+          return branches.includes(branch)
+            ? { lines: [system(fill(historyLabels.switched, { branch }))], effect: { type: "navigate", target: SECTION_IDS.history } }
+            : { lines: [error(`error: pathspec '${args[0] ?? ""}' did not match any branch. Try git branch.`)] };
+        }
+
+        return { lines: [system("usage: git log [count] | git branch | git status | git checkout <branch>"), system("github opens the real one")] };
+      },
     },
   ];
 };

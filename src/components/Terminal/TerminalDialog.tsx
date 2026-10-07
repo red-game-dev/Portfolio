@@ -25,9 +25,11 @@ const sweep = keyframes`
   to { transform: translateY(100%); }
 `;
 
-// A native dialog: modal focus, Escape and the backdrop come from the browser.
+// A native dialog: modal focus, Escape and the backdrop come from the browser. It keeps the browser's own
+// position: fixed, which also anchors the scan line; any other position puts it at the top of the document,
+// and opening it scrolls the page up there.
 const Dialog = styled.dialog(() => [
-  tw`relative w-[calc(100% - 32px)] max-w-[560px] max-h-[85vh] p-0 overflow-hidden text-left text-[#ccc] bg-[#0a0f0c]
+  tw`w-[calc(100% - 32px)] max-w-[560px] max-h-[85vh] p-0 overflow-hidden text-left text-[#ccc] bg-[#0a0f0c]
      border-[1px] border-solid border-[var(--accent)]`,
   css`
     box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.25);

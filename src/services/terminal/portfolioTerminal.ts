@@ -1,5 +1,5 @@
 import { portfolioData, PortfolioData } from "@/data/resume";
-import { clearCommand, Command, CommandRegistry, createHelpCommand, system, TerminalSession } from "@/packages/interaction/terminal";
+import { clearCommand, Command, CommandRegistry, createHelpCommand, createManCommand, system, TerminalSession } from "@/packages/interaction/terminal";
 import { fill } from "@/packages/text/format";
 import { createAroundCommands } from "@/services/terminal/commands/around";
 import { createContactCommands } from "@/services/terminal/commands/contact";
@@ -31,7 +31,10 @@ export const createPortfolioTerminal = (data: PortfolioData = portfolioData) => 
   const registry = new CommandRegistry();
 
   createPortfolioCommands(data).forEach((command) => registry.register(command));
-  registry.register(clearCommand).register(createHelpCommand(registry, data.terminal.helpTitle, GROUPS.terminal));
+  registry
+    .register(clearCommand)
+    .register(createHelpCommand(registry, data.terminal.helpTitle, GROUPS.terminal))
+    .register(createManCommand(registry, GROUPS.terminal));
 
   return new TerminalSession(registry, {
     prompt: data.terminal.prompt,

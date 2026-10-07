@@ -1,4 +1,4 @@
-import { FC, useRef } from "react";
+import { CSSProperties, FC, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -12,6 +12,7 @@ import { Section } from "@/components/Section";
 import { SECTION_IDS } from "@/config/sections";
 import { SOCIAL_URLS } from "@/config/social";
 import useInView from "@/hooks/useInView";
+import { balancedColumns } from "@/packages/math/grid";
 import { collapseWhitespace } from "@/packages/text/format";
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
@@ -46,7 +47,18 @@ const Hook = tw.p`m-0 text-xl md:text-2xl font-semibold leading-snug text-white 
 
 const Paragraph = tw.p`m-0 text-[#ccc] break-words max-w-[70ch]`;
 
-const Proof = tw.dl`m-0 mt-[28px] grid grid-cols-2 md:grid-cols-5 gap-[10px]`;
+// The most figures across on wider screens.
+const PROOF_COLUMNS = 4;
+
+// Two across on phones; from tablets, as many across as leave no figure on a row of its own (--columns).
+const Proof = styled.dl(() => [
+  tw`m-0 mt-[28px] grid grid-cols-2 gap-[10px]`,
+  css`
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
+    }
+  `,
+]);
 
 const Figure = tw.div`flex flex-col gap-[6px] p-[12px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
@@ -124,7 +136,7 @@ export const About: FC<AboutProps> = ({
             ))}
           </Lead>
         </Top>
-        <Proof>
+        <Proof style={{ "--columns": balancedColumns(proof.length, PROOF_COLUMNS) } as CSSProperties}>
           {proof.map((figure) => (
             <Figure key={figure.label}>
               <FigureLabel>{figure.label}</FigureLabel>

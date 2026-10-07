@@ -89,7 +89,7 @@ Components call the `use*StateHook`, never `useContext` directly. `AppLoader` ho
 
 ### Audience views (lenses)
 
-The page has three views: `recruiter`, `product` and `engineer` (`src/config/lenses.ts`). `LENS_SETTINGS` sets each view's immersion: a still or animated backdrop, zone transitions none, soft (crossfade) or full, decode off, headings only or all, and the game layer (HUD, boss health, the fight, character select) on or off. Components read `useLensStateHook()` for `lens` and `settings`; `data-lens` is also set on the root.
+The page has three views: `recruiter`, `product` and `engineer` (`src/config/lenses.ts`). `LENS_SETTINGS` sets each view's immersion: zone transitions soft (crossfade) or full, decode off, headings only or all, and the game layer (HUD, boss health, the fight, character select, the live table). Every view, on every screen, gets the animated world, the game layer and the switch effects; views differ in wording, depth, decoding and the full zone crossings. Components read `useLensStateHook()` for `lens` and `settings`; `data-lens` is also set on the root.
 
 Status runs `pending` (storage not read yet), `choosing`, `entering`, `chosen`. A `?view=` link wins, then the choice remembered in `localStorage` (`redgame.lens`); otherwise `LensGate` (`src/components/Lens`) shows a character select after the loader and plays that view's entrance. The server and first client render are always `engineer`, the full page, so hydration matches whatever was chosen. `LensSwitch` in the header changes view by going back to the top and playing that view's entrance, so the reader sees the immersion they picked.
 

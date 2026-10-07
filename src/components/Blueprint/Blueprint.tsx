@@ -135,7 +135,7 @@ const JourneyList: FC<{ journeys: BlueprintJourney[] }> = ({ journeys }) => (
 export const Blueprint: FC<BlueprintProps> = ({
   zone, title, caption, summary, architecture, wireframe, journeys = [], labels, isBleed = true, isEager = false,
 }: BlueprintProps) => {
-  const { lens, settings } = useLensStateHook();
+  const { lens } = useLensStateHook();
   const hasFlow = Boolean(wireframe) || journeys.length > 0;
   const [view, setView] = useState<View>(() => defaultView(lens, hasFlow));
   const figureRef = useRef<HTMLElement>(null);
@@ -198,7 +198,7 @@ export const Blueprint: FC<BlueprintProps> = ({
         )}
         {isNear && view === "architecture" && (
           <>
-            <Architecture {...architecture} zone={zone} labels={labels} isShown={isOnScreen} isMoving={isOnScreen && settings.backdrop !== "still"} />
+            <Architecture {...architecture} zone={zone} labels={labels} isShown={isOnScreen} isMoving={isOnScreen} />
             <Note>{labels.glanceNote}</Note>
           </>
         )}

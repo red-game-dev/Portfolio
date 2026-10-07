@@ -38,7 +38,7 @@ export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProp
 
   return (
     <>
-      <Backdrop zone={zone} isEnabled={isEnabled} motion={settings.backdrop} transitions={settings.transitions} />
+      <Backdrop zone={zone} isEnabled={isEnabled} transitions={settings.transitions} />
       <JourneyProgress ref={progressRef} starts={starts} zoneIndex={zoneIndex} />
       <ZoneTrail
         zone={zone}

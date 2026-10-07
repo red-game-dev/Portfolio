@@ -6,9 +6,6 @@ export type Lens = "recruiter" | "product" | "engineer";
 export const LENSES: Lens[] = ["recruiter", "product", "engineer"];
 
 export interface LensSettings {
-  // Recruiters get a calm world: the same scenes, slower and dimmer, so it feels alive without pulling the eye
-  // off the facts. "still" draws one frame per zone.
-  backdrop: "still" | "calm" | "animated";
   // "soft" crossfades between zones; "full" plays each crossing's transition.
   transitions: "none" | "soft" | "full";
   // Which text decodes from binary: nothing, headings only, or everything.
@@ -19,9 +16,11 @@ export interface LensSettings {
 }
 
 export const LENS_SETTINGS: Record<Lens, LensSettings> = {
-  recruiter: { backdrop: "calm", transitions: "none", decode: "off", gameLayer: false, depth: "facts" },
-  product: { backdrop: "animated", transitions: "soft", decode: "headings", gameLayer: true, depth: "outcomes" },
-  engineer: { backdrop: "animated", transitions: "full", decode: "all", gameLayer: true, depth: "everything" },
+  // Every view gets the whole world on every screen: the live table, the duels and the switch effects. What
+  // changes is the wording, the depth, the decoding and the full zone crossings.
+  recruiter: { transitions: "soft", decode: "off", gameLayer: true, depth: "facts" },
+  product: { transitions: "soft", decode: "headings", gameLayer: true, depth: "outcomes" },
+  engineer: { transitions: "full", decode: "all", gameLayer: true, depth: "everything" },
 };
 
 // Before a reader has chosen (and while the server renders) the page behaves as the full view.

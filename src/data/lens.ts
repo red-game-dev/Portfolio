@@ -16,9 +16,9 @@ export const lensContent: LensContent = {
       perks: [
         "Roles, years and work rights up front",
         "Languages, frameworks and libraries at a glance",
-        "Still visuals, nothing to wait for",
+        "The whole world, the live table and the duels, in plain words",
       ],
-      stats: [{ name: "Detail", value: 2 }, { name: "Immersion", value: 1 }, { name: "Pace", value: 5 }],
+      stats: [{ name: "Detail", value: 2 }, { name: "Immersion", value: 3 }, { name: "Pace", value: 5 }],
     },
     {
       lens: "product",

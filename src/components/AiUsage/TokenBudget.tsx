@@ -5,6 +5,8 @@ import tw, { css, styled } from "twin.macro";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageBudget } from "@/packages/insights/ai-usage";
+import { fill } from "@/packages/text/format";
+import { collapseWhitespace } from "@/packages/text/format";
 
 interface RevealProps {
   isRevealed: boolean;
@@ -88,7 +90,7 @@ export const TokenBudget: FC<AiUsageBudget> = ({
     <Panel>
       <PanelTitle>{title}</PanelTitle>
       {description.map((paragraph) => (
-        <PanelText key={paragraph}>{paragraph.replace(/\s+/g, " ").trim()}</PanelText>
+        <PanelText key={paragraph}>{collapseWhitespace(paragraph)}</PanelText>
       ))}
       <Figures>
         {figures.map((figure) => (
@@ -109,7 +111,7 @@ export const TokenBudget: FC<AiUsageBudget> = ({
           <LegendItem key={tier.name}>
             <Swatch style={strength(index)} aria-hidden="true" />
             <LegendText>
-              {shareLabel.replace("{name}", tier.name).replace("{share}", String(tier.share))}
+              {fill(shareLabel, { name: tier.name, share: tier.share })}
               {tier.detail && <small>{tier.detail}</small>}
             </LegendText>
           </LegendItem>
@@ -123,7 +125,7 @@ export const TokenBudget: FC<AiUsageBudget> = ({
       </Practices>
       <Notes>
         {notes.map((note) => (
-          <li key={note}>{note.replace(/\s+/g, " ").trim()}</li>
+          <li key={note}>{collapseWhitespace(note)}</li>
         ))}
       </Notes>
     </Panel>

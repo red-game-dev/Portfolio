@@ -11,10 +11,12 @@ import { DecodedText } from "@/components/DecodedText";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
 import { SECTION_IDS } from "@/config/sections";
+import { SOCIAL_URLS } from "@/config/social";
 import { FINALE_RAIN_CONFIG } from "@/config/theme";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 import useInView from "@/hooks/useInView";
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { scrollBehavior } from "@/packages/accessibility/motion";
+import { fill } from "@/packages/text/format";
 import { FinaleContent, FinaleRank } from "@/types/game";
 
 interface FinaleProps {
@@ -129,10 +131,7 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
   ];
   const done = objectives.filter(Boolean).length;
   const rank = rankFor(content.ranks, done);
-  const body = content.emailBody
-    .replace("{rank}", rank.name)
-    .replace("{bosses}", `${defeatedBosses}/${bossCount}`)
-    .replace("{duels}", `${duelsWon}/${duelCount}`);
+  const body = fill(content.emailBody, { rank: rank.name, bosses: `${defeatedBosses}/${bossCount}`, duels: `${duelsWon}/${duelCount}` });
   const mailto = `mailto:${email}?subject=${encodeURIComponent(content.emailSubject)}&body=${encodeURIComponent(body)}`;
 
   return (
@@ -179,7 +178,7 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
           <RankBadge aria-hidden="true">{content.rankLabel}</RankBadge>
           <RankText>
             <RankName>{`${content.rankLabel}: ${rank.name}`}</RankName>
-            <RankMeta>{content.objectives.replace("{done}", String(done)).replace("{total}", String(objectives.length))}</RankMeta>
+            <RankMeta>{fill(content.objectives, { done, total: objectives.length })}</RankMeta>
           </RankText>
         </Rank>
         <Quest>
@@ -190,7 +189,7 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
               <FontAwesomeIcon icon={faEnvelope} aria-hidden="true" />
               {content.emailLabel}
             </Action>
-            <Action href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" rel="noopener noreferrer" isPrimary={false}>
+            <Action href={SOCIAL_URLS.linkedIn(linkedInUsername)} target="_blank" rel="noopener noreferrer" isPrimary={false}>
               <FontAwesomeIcon icon={faLinkedinIn} aria-hidden="true" />
               {content.linkedInLabel}
             </Action>
@@ -198,7 +197,7 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
               <FontAwesomeIcon icon={faFileArrowDown} aria-hidden="true" />
               {content.cvLabel}
             </Action>
-            <Restart type="button" onClick={() => window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" })}>
+            <Restart type="button" onClick={() => window.scrollTo({ top: 0, behavior: scrollBehavior() })}>
               <FontAwesomeIcon icon={faArrowRotateLeft} aria-hidden="true" />
               {content.restartLabel}
             </Restart>

@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
+import { fill } from "@/packages/text/format";
 import { CaseStudy } from "@/types/case-studies";
 import { BossLabels } from "@/types/game";
 import { CaseLabels } from "@/types/lens";
@@ -162,7 +163,7 @@ export const BossCard: FC<BossCardProps> = ({ area, title, summary, points, tags
       ))}
       {isFolded && (
         <Toggle type="button" aria-expanded={isOpen} aria-controls={solutionId} onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? caseLabels.hideSolution : caseLabels.showSolution.replace("{count}", String(points.length))}
+          {isOpen ? caseLabels.hideSolution : fill(caseLabels.showSolution, { count: points.length })}
         </Toggle>
       )}
       <Solution id={solutionId} hidden={isFolded && !isOpen}>

@@ -11,6 +11,7 @@ import {
 
 import { JOURNEY_STOPS } from "@/config/journey";
 import { SECTION_IDS } from "@/config/sections";
+import { SOCIAL_URLS } from "@/config/social";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
 
@@ -85,11 +86,11 @@ export const SEO = ({ url }: SeoProps) => (
       name={portfolioData.details.name}
       url={url}
       sameAs={[
-        `https://www.facebook.com/${portfolioData.socialMedia.byUsername.facebook}`,
-        `https://www.linkedin.com/in/${portfolioData.socialMedia.byUsername.linkedIn}`,
-        `https://www.instagram.com/${portfolioData.socialMedia.byUsername.instagram}`,
-        `https://twitter.com/${portfolioData.socialMedia.byUsername.twitter}`,
-        `https://www.youtube.com/${portfolioData.socialMedia.byProjectsUsername.gameYt}`
+        SOCIAL_URLS.facebook(portfolioData.socialMedia.byUsername.facebook),
+        SOCIAL_URLS.linkedIn(portfolioData.socialMedia.byUsername.linkedIn),
+        SOCIAL_URLS.instagram(portfolioData.socialMedia.byUsername.instagram),
+        SOCIAL_URLS.twitter(portfolioData.socialMedia.byUsername.twitter),
+        SOCIAL_URLS.youtube(portfolioData.socialMedia.byProjectsUsername.gameYt)
       ]}
     />
     <ProfilePageJsonLd

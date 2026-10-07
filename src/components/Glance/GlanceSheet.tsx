@@ -9,6 +9,7 @@ import { pickSkillYears, splitTitle, startYear } from "@/components/Glance/utils
 import { Lens } from "@/config/lenses";
 import { SECTION_IDS } from "@/config/sections";
 import { TenureCalculator } from "@/packages/insights/career";
+import { fill } from "@/packages/text/format";
 import { ForgeStation } from "@/services/skills";
 import { Detail } from "@/types/details";
 import { Headline } from "@/types/headline";
@@ -92,9 +93,6 @@ const RoleName = tw.span`text-sm text-white`;
 const RolePlace = tw.span`text-sm text-[#9a9a9a]`;
 
 const RoleRange = tw.span`text-xs text-[#8a8a8a] md:text-right md:row-span-2 md:self-center`;
-
-const fill = (template: string, values: Record<string, string | number>) =>
-  Object.entries(values).reduce((text, [key, value]) => text.replace(`{${key}}`, String(value)), template);
 
 interface RecruiterGlanceProps extends Omit<GlanceProps, "content"> {
   content: RecruiterGlanceContent;

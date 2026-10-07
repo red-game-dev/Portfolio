@@ -11,7 +11,7 @@ import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { scrollBehavior } from "@/packages/accessibility/motion";
 import { TenureCalculator } from "@/packages/insights/career";
 import { TerminalDialog as TerminalDialogContent } from "@/packages/interaction/terminal";
 import { CarouselLabels } from "@/types/carousel";
@@ -33,7 +33,7 @@ const Anchor = tw.span`absolute top-0 left-0`;
 
 const Cards = tw.div`mt-[10px]`;
 
-const goTo = (target: string) => document.getElementById(target)?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
+const goTo = (target: string) => document.getElementById(target)?.scrollIntoView({ behavior: scrollBehavior() });
 
 // The roles I have held as an MMO party, two at a time, and the reader's character select. Level is
 // computed from real dates, never typed in by hand. Picking a character also opens its card, with every

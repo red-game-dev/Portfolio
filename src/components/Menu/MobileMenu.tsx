@@ -9,9 +9,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { progressOf } from "@/components/Menu/config";
 import { JOURNEY_STOPS } from "@/config/journey";
+import { SOCIAL_URLS } from "@/config/social";
 import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
 import useModalDialog from "@/hooks/useModalDialog";
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { scrollBehavior } from "@/packages/accessibility/motion";
+import { rgbChannels } from "@/packages/graphics/colour";
+import { fill } from "@/packages/text/format";
 import { MenuContent } from "@/types/menu";
 
 interface MobileMenuProps {
@@ -231,15 +234,13 @@ const Action = styled.a(() => [
   `,
 ]);
 
-const rgbOf = (hex: string) => [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16)).join(", ");
-
 const stopStyle = (zone: ZoneId, next: ZoneId) => ({
   "--zone": ZONE_ACCENTS[zone],
-  "--zone-rgb": rgbOf(ZONE_ACCENTS[zone]),
+  "--zone-rgb": rgbChannels(ZONE_ACCENTS[zone]),
   "--next-zone": ZONE_ACCENTS[next],
 } as CSSProperties);
 
-const hereStyle = (zone: ZoneId) => ({ "--here": ZONE_ACCENTS[zone], "--here-rgb": rgbOf(ZONE_ACCENTS[zone]) } as CSSProperties);
+const hereStyle = (zone: ZoneId) => ({ "--here": ZONE_ACCENTS[zone], "--here-rgb": rgbChannels(ZONE_ACCENTS[zone]) } as CSSProperties);
 
 // The journey on a phone, drawn as a route: a real button opens a full screen menu where every stop is a
 // node on one line in its zone's colour, the stops behind the reader filled in, the one they are at
@@ -258,7 +259,7 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
     setIsOpen(false);
     // After the dialog has closed and the page can scroll again.
     window.requestAnimationFrame(() => {
-      document.querySelector(href)?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
+      document.querySelector(href)?.scrollIntoView({ behavior: scrollBehavior() });
       window.history.replaceState(null, "", href);
     });
   };
@@ -276,10 +277,7 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
             <Top>
               <Heading>
                 <Kicker>
-                  {content.kicker
-                    .replace("{n}", String(here + 1))
-                    .replace("{total}", String(JOURNEY_STOPS.length))
-                    .replace("{zone}", content.zones[hereZone])}
+                  {fill(content.kicker, { n: here + 1, total: JOURNEY_STOPS.length, zone: content.zones[hereZone] })}
                 </Kicker>
                 <Title>{content.title}</Title>
               </Heading>
@@ -331,7 +329,7 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
                 <FontAwesomeIcon icon={faEnvelope} aria-hidden="true" />
                 {content.email}
               </Action>
-              <Action href={`https://www.linkedin.com/in/${contact.linkedIn}`} target="_blank" rel="noopener noreferrer">
+              <Action href={SOCIAL_URLS.linkedIn(contact.linkedIn)} target="_blank" rel="noopener noreferrer">
                 <FontAwesomeIcon icon={faLinkedin} aria-hidden="true" />
                 {content.linkedIn}
               </Action>

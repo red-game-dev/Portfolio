@@ -1,3 +1,6 @@
+import { ZONE_ACCENTS } from "@/config/zones";
+import { rgbChannels } from "@/packages/graphics/colour";
+
 export type Lens = "recruiter" | "product" | "engineer";
 
 export const LENSES: Lens[] = ["recruiter", "product", "engineer"];
@@ -28,11 +31,14 @@ export const LENS_STORAGE_KEY = "redgame.lens";
 // redgame.dev/?view=recruiter opens straight into that view.
 export const LENS_QUERY = "view";
 
-// Each view has its own colour on the chooser and the switch, separate from the zone accents.
+const accent = (color: string) => ({ color, rgb: rgbChannels(color) });
+
+// Each view has its own colour on the chooser and the switch, borrowed from the zone palette: cyan for
+// the quick read, gold for product, the matrix green for engineers.
 export const LENS_ACCENTS: Record<Lens, { color: string; rgb: string }> = {
-  recruiter: { color: "#4fd8ff", rgb: "79, 216, 255" },
-  product: { color: "#ffc45c", rgb: "255, 196, 92" },
-  engineer: { color: "#4bffa5", rgb: "75, 255, 165" },
+  recruiter: accent(ZONE_ACCENTS.ai),
+  product: accent(ZONE_ACCENTS.mmo),
+  engineer: accent(ZONE_ACCENTS.matrix),
 };
 
 // Character select stats run from 1 to this.

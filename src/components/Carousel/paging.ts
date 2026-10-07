@@ -1,3 +1,5 @@
+import { fill } from "@/packages/text/format";
+
 export interface CarouselPage {
   pages: number;
   page: number;
@@ -31,9 +33,7 @@ export const swipeStep = (distance: number, threshold: number): 1 | -1 | null =>
 export const realignStart = (start: number, perPage: number) => Math.floor(start / perPage) * perPage;
 
 // "3 to 4 of 23", or "3 of 23" for a page of one card.
-export const describePage = (from: number, to: number, count: number, labels: { position: string; single: string }) => (
-  from === to ? labels.single : labels.position
-)
-  .replace("{from}", String(from))
-  .replace("{to}", String(to))
-  .replace("{count}", String(count));
+export const describePage = (from: number, to: number, count: number, labels: { position: string; single: string }) => fill(
+  from === to ? labels.single : labels.position,
+  { from, to, count },
+);

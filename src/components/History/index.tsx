@@ -6,6 +6,7 @@ import tw, { css, styled } from "twin.macro";
 import { faCodeBranch } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { VENTURE_COLOUR } from "@/components/History/config";
 import { HistoryEntry } from "@/components/History/HistoryEntry";
 import { Panel, PanelTitle } from "@/components/Panel";
 import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
@@ -15,6 +16,7 @@ import useIndustryFromHash from "@/hooks/useIndustryFromHash";
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
 import useTabs from "@/hooks/useTabs";
 import { toMonthIndex } from "@/packages/insights/career";
+import { fill } from "@/packages/text/format";
 import { IndustryLink } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
 import { Resume } from "@/types/resume";
@@ -56,7 +58,6 @@ const Chip = styled.button(({ isSelected }: { isSelected: boolean }) => [
 const Matches = tw.p`m-0 mt-[12px] text-sm text-[#bbb]`;
 
 // The lanes are drawn once for the whole list, and their fill follows the scroll through a CSS variable.
-const VENTURE = "#ffc45c";
 
 const Graph = styled.ol(({ lane }: GraphProps) => [
   tw`relative m-0 p-0 flex flex-col gap-[16px]`,
@@ -81,7 +82,7 @@ const Graph = styled.ol(({ lane }: GraphProps) => [
     }
 
     &::after {
-      background: ${lane === "venture" ? `linear-gradient(to bottom, ${VENTURE}, #5c4a26)` : "linear-gradient(to bottom, var(--accent), var(--accent-muted))"};
+      background: ${lane === "venture" ? `linear-gradient(to bottom, ${VENTURE_COLOUR}, #5c4a26)` : "linear-gradient(to bottom, var(--accent), var(--accent-muted))"};
       transform-origin: top;
       transform: scaleY(var(--scroll-progress, 0));
     }
@@ -176,7 +177,7 @@ const MoreNode = styled.span(() => [
   tw`absolute top-[14px] w-[13px] h-[13px] rounded-full bg-[#101010]`,
   css`
     left: calc(var(--lane-main) - 6px);
-    border: 2px dashed ${VENTURE};
+    border: 2px dashed ${VENTURE_COLOUR};
   `,
 ]);
 
@@ -262,7 +263,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
         ))}
       </Filters>
       {selected && (
-        <Matches aria-live="polite">{labels.industryMatches.replace("{count}", String(matches)).replace("{industry}", selected.label)}</Matches>
+        <Matches aria-live="polite">{fill(labels.industryMatches, { count: matches, industry: selected.label })}</Matches>
       )}
       <Panels>
         <Panel>
@@ -280,10 +281,10 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
           </TabBar>
           {checkouts > 0 && (
             <Checkout key={checkouts} aria-hidden="true">
-              <Command characters={labels.checkout.replace("{branch}", branches[active].branch).length + 2}>
-                {labels.checkout.replace("{branch}", branches[active].branch)}
+              <Command characters={fill(labels.checkout, { branch: branches[active].branch }).length + 2}>
+                {fill(labels.checkout, { branch: branches[active].branch })}
               </Command>
-              <Answer>{labels.switched.replace("{branch}", branches[active].branch)}</Answer>
+              <Answer>{fill(labels.switched, { branch: branches[active].branch })}</Answer>
             </Checkout>
           )}
           {branches.map((branch, index) => (
@@ -301,7 +302,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
                 {branch.unlisted > 0 && (
                   <More isDimmed={industry !== null}>
                     <MoreNode aria-hidden="true" />
-                    <MoreText>{labels.moreVentures.replace("{count}", String(branch.unlisted))}</MoreText>
+                    <MoreText>{fill(labels.moreVentures, { count: branch.unlisted })}</MoreText>
                   </More>
                 )}
               </Graph>

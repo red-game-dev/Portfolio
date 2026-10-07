@@ -7,6 +7,7 @@ import { Panel, PanelTitle } from "@/components/Panel";
 import { ServiceCard } from "@/components/Services/ServiceCard";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
+import { SOCIAL_URLS } from "@/config/social";
 import { SectionIntros } from "@/types/sections-intros";
 import { ServiceActions, ServiceGroup } from "@/types/services";
 
@@ -51,7 +52,7 @@ export const Services: FC<ServicesProps> = ({ intro, groups, actions, email, lin
                   {...service}
                   actions={actions}
                   email={email}
-                  linkedInUrl={`https://www.linkedin.com/in/${linkedInUsername}`}
+                  linkedInUrl={SOCIAL_URLS.linkedIn(linkedInUsername)}
                   order={index}
                 />
               ))}

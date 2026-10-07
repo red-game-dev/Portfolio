@@ -3,6 +3,7 @@ import { FC, useRef } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import useInView from "@/hooks/useInView";
+import { collapseWhitespace } from "@/packages/text/format";
 import { DomainCapability } from "@/types/domains";
 import { Web3Content } from "@/types/domains";
 
@@ -73,7 +74,7 @@ export const Block: FC<BlockProps> = ({ name, detail, places, height, hash, prev
         <span>{`${labels.previousLabel} ${previousHash}`}</span>
       </Hashes>
       <Name>{name}</Name>
-      <Detail>{detail.replace(/\s+/g, " ").trim()}</Detail>
+      <Detail>{collapseWhitespace(detail)}</Detail>
       {places.length > 0 && (
         <Places>
           {places.map((place) => (

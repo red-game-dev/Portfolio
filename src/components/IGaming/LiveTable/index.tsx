@@ -10,6 +10,7 @@ import useLiveTable from "@/components/IGaming/LiveTable/useLiveTable";
 import { Corner, CornerBottom, PlayingCard, suitOf } from "@/components/IGaming/PlayingCard";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { DEFAULT_LIVE_TABLE_CONFIG } from "@/packages/games/live-table";
+import { fill } from "@/packages/text/format";
 import { DomainCapability, LiveTableContent } from "@/types/domains";
 
 interface LiveTableProps {
@@ -178,7 +179,7 @@ export const LiveTable: FC<LiveTableProps> = ({ cards, content }: LiveTableProps
     if (result.accepted) {
       throwsFrom.current.set(name, rect);
       focusAt.current = position;
-      setMessage(content.placed.replace("{card}", name));
+      setMessage(fill(content.placed, { card: name }));
 
       return;
     }
@@ -199,7 +200,7 @@ export const LiveTable: FC<LiveTableProps> = ({ cards, content }: LiveTableProps
           phraseKey={`${snapshot.round}-${snapshot.phase}`}
           outfitLabels={content.outfits}
           changeLabel={content.dealerLabel}
-          roundLabel={content.roundLabel.replace("{n}", String(snapshot.round))}
+          roundLabel={fill(content.roundLabel, { n: snapshot.round })}
           phaseMs={PHASE_MS[snapshot.phase] ?? 0}
           isClosed={!isOpen}
           isRunning={isRunning}

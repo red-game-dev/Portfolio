@@ -1,13 +1,14 @@
 import { faMountain, faTree, faWater } from "@fortawesome/pro-duotone-svg-icons";
 
+import { ZONE_ACCENTS } from "@/config/zones";
 import { ProjectKind } from "@/types/projects";
 
-// Region colours on the world map, one per kind of project.
+// Region colours on the world map, one per kind of project, from the zone the kind belongs to.
 export const KIND_COLOURS: Record<ProjectKind, string> = {
-  game: "#ffc45c",
-  web3: "#b896ff",
-  product: "#4fd8ff",
-  community: "#4bffa5",
+  game: ZONE_ACCENTS.mmo,
+  web3: ZONE_ACCENTS.chain,
+  product: ZONE_ACCENTS.ai,
+  community: ZONE_ACCENTS.matrix,
   archive: "#8b949e",
 };
 

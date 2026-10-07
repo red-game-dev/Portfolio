@@ -12,6 +12,7 @@ import { Image } from "@/components/Image";
 import { KIND_COLOURS } from "@/components/Projects/config";
 import { ScreenCarousel } from "@/components/Projects/ScreenCarousel";
 import useModalDialog from "@/hooks/useModalDialog";
+import { collapseWhitespace } from "@/packages/text/format";
 import { BlueprintLabels } from "@/types/blueprints";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
 
@@ -262,7 +263,7 @@ export const RegionDialog: FC<RegionDialogProps> = ({
               )}
             </View>
             <Log>
-              <Intro>{project.intro.replace(/\s+/g, " ").trim()}</Intro>
+              <Intro>{collapseWhitespace(project.intro)}</Intro>
               <GroupHeading>{labels.questLog}</GroupHeading>
               <Objectives>
                 {project.responsibilities.map((objective) => (

@@ -12,6 +12,7 @@ import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel } from "@/components/Panel";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
+import { collapseWhitespace } from "@/packages/text/format";
 import { Duels as DuelsContent } from "@/types/game";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -142,7 +143,7 @@ export const Duels: FC<DuelsProps> = ({
           {rules.map((rule) => (
             <Rule key={rule.name}>
               <RuleName>{rule.name}</RuleName>
-              <RuleDetail>{rule.detail.replace(/\s+/g, " ").trim()}</RuleDetail>
+              <RuleDetail>{collapseWhitespace(rule.detail)}</RuleDetail>
             </Rule>
           ))}
           </Rules>

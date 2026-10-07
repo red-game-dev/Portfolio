@@ -4,6 +4,7 @@ import tw, { css, styled } from "twin.macro";
 
 import useTrail from "@/components/Journey/hooks/useTrail";
 import { ZoneId } from "@/config/zones";
+import { fill } from "@/packages/text/format";
 import { TrailSection } from "@/services/journey/trail";
 import { JourneyTrailContent } from "@/types/game";
 
@@ -17,7 +18,7 @@ interface ZoneTrailProps {
 }
 
 // The title is painted with a gradient clipped to its letters: zone colour up to the progress, dim after.
-const fill = (direction: "bottom" | "right") => css`
+const progressFill = (direction: "bottom" | "right") => css`
   background-image: linear-gradient(
     to ${direction},
     var(--accent) calc(var(--trail-progress, 0) * 100%),
@@ -39,7 +40,7 @@ const Vertical = styled.div(() => [
 
 const VerticalZone = tw.span`text-xs font-semibold text-[var(--accent)]`;
 
-const VerticalTitle = styled.span(() => [tw`text-sm font-semibold`, fill("bottom")]);
+const VerticalTitle = styled.span(() => [tw`text-sm font-semibold`, progressFill("bottom")]);
 
 // A slim line under the header on phones and tablets.
 const Horizontal = tw.div`fixed z-[7] left-0 right-0 top-[72px] lg:hidden pointer-events-none flex flex-row items-baseline justify-center
@@ -48,7 +49,7 @@ border-[#1E1E1E]`;
 
 const HorizontalZone = tw.span`flex-shrink-0 font-semibold text-[var(--accent)]`;
 
-const HorizontalTitle = styled.span(() => [tw`font-semibold truncate`, fill("right")]);
+const HorizontalTitle = styled.span(() => [tw`font-semibold truncate`, progressFill("right")]);
 
 // Progress as text: the zone the reader is in and the section they are reading, its title filling with the
 // zone's colour as they scroll through it.
@@ -57,10 +58,7 @@ export const ZoneTrail: FC<ZoneTrailProps> = ({ zone, zoneIndex, zoneCount, sect
   const horizontalRef = useRef<HTMLDivElement>(null);
   const targets = useMemo(() => [verticalRef, horizontalRef], []);
   const index = useTrail(sections, targets, isEnabled);
-  const zoneText = labels.zoneLabel
-    .replace("{index}", String(zoneIndex + 1))
-    .replace("{total}", String(zoneCount))
-    .replace("{zone}", labels.zones[zone]);
+  const zoneText = fill(labels.zoneLabel, { index: zoneIndex + 1, total: zoneCount, zone: labels.zones[zone] });
   const title = sections[index]?.title ?? "";
 
   if (!isEnabled) {

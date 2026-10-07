@@ -3,9 +3,10 @@ import { FC, useId, useRef, useState } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { DecodedText } from "@/components/DecodedText";
-import { HISTORY_VIEW } from "@/components/History/config";
+import { HISTORY_VIEW, VENTURE_COLOUR } from "@/components/History/config";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import useInView from "@/hooks/useInView";
+import { fill } from "@/packages/text/format";
 import { HistoryLabels } from "@/types/history";
 import { Resume } from "@/types/resume";
 
@@ -49,8 +50,8 @@ const Node = styled.span(({ isVenture, isReached, isCurrent, hasVentureLane }: N
     }
   `,
   isReached && css`
-    background: ${isVenture ? "#ffc45c" : "var(--accent)"};
-    border-color: ${isVenture ? "#ffc45c" : "var(--accent)"};
+    background: ${isVenture ? VENTURE_COLOUR : "var(--accent)"};
+    border-color: ${isVenture ? VENTURE_COLOUR : "var(--accent)"};
     box-shadow: 0 0 10px ${isVenture ? "rgba(255, 196, 92, 0.6)" : "rgba(var(--accent-rgb), 0.6)"};
   `,
   isCurrent && css`
@@ -59,7 +60,7 @@ const Node = styled.span(({ isVenture, isReached, isCurrent, hasVentureLane }: N
       position: absolute;
       inset: -2px;
       border-radius: 9999px;
-      border: 1px solid ${isVenture ? "#ffc45c" : "var(--accent)"};
+      border: 1px solid ${isVenture ? VENTURE_COLOUR : "var(--accent)"};
       animation: live-ring 1.8s ease-out infinite;
     }
 
@@ -221,7 +222,7 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
         )}
         {hasMore && (
           <Toggle type="button" aria-expanded={isExpanded} aria-controls={moreId} onClick={() => setIsExpanded(!isExpanded)}>
-            {isExpanded ? labels.showLess : labels.showMore.replace("{count}", String(Math.max(hiddenCount, 1)))}
+            {isExpanded ? labels.showLess : fill(labels.showMore, { count: Math.max(hiddenCount, 1) })}
           </Toggle>
         )}
       </Card>

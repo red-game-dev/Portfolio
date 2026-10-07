@@ -9,7 +9,9 @@ import Link from "next/link";
 import { Portrait } from "@/components/About/Portrait";
 import { DecodedText } from "@/components/DecodedText";
 import { SECTION_IDS } from "@/config/sections";
+import { SOCIAL_URLS } from "@/config/social";
 import useInView from "@/hooks/useInView";
+import { collapseWhitespace } from "@/packages/text/format";
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
 
@@ -98,7 +100,6 @@ export const About: FC<AboutProps> = ({
 }: AboutProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(contentRef, { threshold: 0.2 });
-  const collapse = (text: string) => text.replace(/\s+/g, " ").trim();
 
   return (
     <Section id={SECTION_IDS.about}>
@@ -109,12 +110,12 @@ export const About: FC<AboutProps> = ({
           <Lead>
             <Tag>{intro}</Tag>
             <Hook>
-              <DecodedText text={collapse(hook)} isActive={isInView} duration={HOOK_DECODE_MS} />
+              <DecodedText text={collapseWhitespace(hook)} isActive={isInView} duration={HOOK_DECODE_MS} />
             </Hook>
             {paragraphs.map((paragraph, index) => (
               <Paragraph key={paragraph}>
                 <DecodedText
-                  text={collapse(paragraph)}
+                  text={collapseWhitespace(paragraph)}
                   isActive={isInView}
                   delay={HOOK_DECODE_MS + index * PARAGRAPH_DELAY_MS}
                   duration={PARAGRAPH_DECODE_MS}
@@ -150,7 +151,7 @@ export const About: FC<AboutProps> = ({
                 CV
               </InnerButtonText>
             </Button>
-            <Button href={`https://www.linkedin.com/in/${linkedInUsername}`} target="_blank" aria-label="View LinkedIn">
+            <Button href={SOCIAL_URLS.linkedIn(linkedInUsername)} target="_blank" aria-label="View LinkedIn">
               <AnimatedCircle />
               <InnerButtonIcon icon={faLinkedinIn} />
             </Button>

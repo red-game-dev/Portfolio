@@ -9,6 +9,7 @@ import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontaw
 import useAnimationProgress from "@/hooks/useAnimationProgress";
 import useInView from "@/hooks/useInView";
 import { activityStats, ActivityStats, DayRange } from "@/packages/insights/activity";
+import { fill } from "@/packages/text/format";
 import { CodeReviewContent, GithubActivity } from "@/types/code-review";
 
 interface ActivityProps {
@@ -238,7 +239,7 @@ const Achievements: FC<AchievementsProps> = ({ stats, achievements, isShown, unl
             <Medal aria-hidden="true"><FontAwesomeIcon icon={item.icon} /></Medal>
             <BadgeText>
               <BadgeValue aria-hidden="true">{`${before}${Math.round(item.value * counted)}${after}`}</BadgeValue>
-              <Spoken>{item.text.replace("{n}", String(item.value))}</Spoken>
+              <Spoken>{fill(item.text, { n: item.value })}</Spoken>
             </BadgeText>
           </Badge>
         );
@@ -247,7 +248,7 @@ const Achievements: FC<AchievementsProps> = ({ stats, achievements, isShown, unl
         <Badge isShown={isShown} delay={unlockAt + list.length * UNLOCK_STAGGER_MS}>
           <Medal aria-hidden="true"><FontAwesomeIcon icon={faTrophy} /></Medal>
           <BadgeText>
-            {achievements.busiestMonth.replace("{month}", achievements.months[busiest.month]).replace("{year}", String(busiest.year))}
+            {fill(achievements.busiestMonth, { month: achievements.months[busiest.month], year: busiest.year })}
           </BadgeText>
         </Badge>
       )}
@@ -281,7 +282,7 @@ export const Activity: FC<ActivityProps> = ({ activity, title, description, year
               <Year key={year}>
                 <YearLabel>{year}</YearLabel>
                 <Row isShown={isShown} delay={delay}>
-                  <Grid viewBox={`0 0 ${WEEKS * PITCH} ${7 * PITCH}`} role="img" aria-label={yearLabel.replace("{year}", String(year))}>
+                  <Grid viewBox={`0 0 ${WEEKS * PITCH} ${7 * PITCH}`} role="img" aria-label={fill(yearLabel, { year })}>
                     {paths.map((d, level) => (
                       <path key={level} d={d} fill={level === 0 ? "#1c1c1c" : "var(--accent)"} fillOpacity={level === 0 ? 1 : LEVEL_OPACITY[level]} />
                     ))}

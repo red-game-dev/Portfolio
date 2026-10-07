@@ -1,4 +1,5 @@
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
+import { SOCIAL_URLS } from "@/config/social";
 import { portfolioData, PortfolioData } from "@/data/resume";
 import { TenureCalculator, toMonthIndex } from "@/packages/insights/career";
 import {
@@ -12,6 +13,8 @@ import {
   system,
   TerminalSession
 } from "@/packages/interaction/terminal";
+import { fill } from "@/packages/text/format";
+import { collapseWhitespace } from "@/packages/text/format";
 import { createContactDialog } from "@/services/contact";
 import { createRedCommand } from "@/services/terminal/redCommand";
 import { Audience } from "@/types/case-studies";
@@ -52,7 +55,6 @@ const FILES: Record<string, string> = {
   "cv.pdf": "cv",
 };
 
-const collapse = (text: string) => text.replace(/\s+/g, " ").trim();
 
 const period = (from: string, to?: string) => `${from} to ${to ?? "now"}`;
 
@@ -63,7 +65,7 @@ const matches = (haystack: string, needle: string) => haystack.toLowerCase().inc
 export const createPortfolioCommands = (data: PortfolioData): Command[] => {
   const experience = [...data.experience].sort((first, second) => toMonthIndex(second.from) - toMonthIndex(first.from));
   const calculator = new TenureCalculator(data.roster.asOf);
-  const linkedIn = `https://www.linkedin.com/in/${data.socialMedia.byUsername.linkedIn}`;
+  const linkedIn = SOCIAL_URLS.linkedIn(data.socialMedia.byUsername.linkedIn);
 
   const contactDialog = createContactDialog(data);
   // Commands by name, for cat to run the one a file stands for.
@@ -86,8 +88,8 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
       run: () => ({
         lines: [
           heading(data.details.intro),
-          output(collapse(data.details.hook)),
-          ...data.details.paragraphs.map((paragraph) => output(collapse(paragraph))),
+          output(collapseWhitespace(data.details.hook)),
+          ...data.details.paragraphs.map((paragraph) => output(collapseWhitespace(paragraph))),
           ...data.details.facts.map((fact) => output(`  - ${fact}`)),
         ],
       }),
@@ -116,8 +118,8 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
             heading(entry.title),
             system(entry.period ?? period(entry.from, entry.to)),
             ...(entry.outcome ? [output(entry.outcome)] : []),
-            ...entry.description.slice(0, 1).map((paragraph) => output(collapse(paragraph))),
-            ...(entry.bullets ?? []).slice(0, 5).map((bullet) => output(`  - ${collapse(bullet)}`)),
+            ...entry.description.slice(0, 1).map((paragraph) => output(collapseWhitespace(paragraph))),
+            ...(entry.bullets ?? []).slice(0, 5).map((bullet) => output(`  - ${collapseWhitespace(bullet)}`)),
             system("goto history for every bullet and the stack"),
           ],
         };
@@ -326,7 +328,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
       run: () => ({
         lines: [
           heading("References"),
-          ...data.recommendations.map((recommendation) => output(`  "${collapse(recommendation.quote)}" ${recommendation.role}, ${recommendation.company}`)),
+          ...data.recommendations.map((recommendation) => output(`  "${collapseWhitespace(recommendation.quote)}" ${recommendation.role}, ${recommendation.company}`)),
         ],
       }),
     },
@@ -457,6 +459,6 @@ export const createPortfolioTerminal = (data: PortfolioData = portfolioData) => 
   return new TerminalSession(registry, {
     prompt: data.terminal.prompt,
     welcome: data.terminal.welcome.map(system),
-    unknownCommand: (name) => data.terminal.unknownCommand.replace("{name}", name),
+    unknownCommand: (name) => fill(data.terminal.unknownCommand, { name }),
   });
 };

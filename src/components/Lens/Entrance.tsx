@@ -9,6 +9,7 @@ import { Lens, LENS_ACCENTS } from "@/config/lenses";
 import { BINARY_RAIN_CONFIG } from "@/config/theme";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { RainConfigOverrides } from "@/packages/effects/binary-rain";
+import { fill } from "@/packages/text/format";
 import { LensContent } from "@/types/lens";
 
 interface EntranceProps {
@@ -21,7 +22,7 @@ interface EntranceProps {
 // The rain spells out the greeting quicker here than on the page, since the reader is waiting on it.
 const ENTRANCE_RAIN: RainConfigOverrides = { ...BINARY_RAIN_CONFIG, forceLockAfterMs: 1300, forceLockStaggerMs: 25 };
 
-const fill = keyframes`
+const fillBar = keyframes`
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 `;
@@ -43,7 +44,7 @@ const Bar = styled.span(({ durationMs }: { durationMs: number }) => [
   tw`block w-[220px] h-[2px] bg-[var(--lens-accent)]`,
   css`
     transform-origin: left center;
-    animation: ${fill} ${durationMs}ms cubic-bezier(0.5, 0, 0.2, 1) both;
+    animation: ${fillBar} ${durationMs}ms cubic-bezier(0.5, 0, 0.2, 1) both;
   `,
 ]);
 
@@ -164,7 +165,7 @@ const Caret = styled.span(() => [
 const EngineerEntrance: FC<{ content: LensContent["entrances"]["engineer"]; counts: EntranceProps["counts"] }> = ({ content, counts }) => {
   const [shown, setShown] = useState(0);
   const lines = useMemo(
-    () => content.lines.map((line) => line.replace("{zones}", String(counts.zones)).replace("{bosses}", String(counts.bosses))),
+    () => content.lines.map((line) => fill(line, { zones: counts.zones, bosses: counts.bosses })),
     [content.lines, counts],
   );
   const message = useMemo(() => [content.granted.toUpperCase()], [content.granted]);

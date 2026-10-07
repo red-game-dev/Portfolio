@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { prefersReducedMotion, scrollBehavior } from "@/packages/accessibility/motion";
 import { TerminalDialog as TerminalDialogContent, TerminalEffect, TerminalLineKind, TerminalSession } from "@/packages/interaction/terminal";
 import { SectionIntros } from "@/types/sections-intros";
 import { TerminalContent } from "@/types/terminal";
@@ -133,7 +133,7 @@ const scrollToSection = (target: string) => {
   if (target.startsWith("for-")) {
     window.location.hash = target;
   } else {
-    document.getElementById(target)?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    document.getElementById(target)?.scrollIntoView({ behavior: scrollBehavior() });
   }
 };
 
@@ -242,7 +242,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
       }
 
       event.preventDefault();
-      sectionRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
+      sectionRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
       inputRef.current?.focus({ preventScroll: true });
     };
 

@@ -1,5 +1,6 @@
 import { PortfolioData } from "@/data/resume";
 import { Command, CommandResult, error, heading, output, system } from "@/packages/interaction/terminal";
+import { fill } from "@/packages/text/format";
 import { contactActions, createHireDialog, quotesOf } from "@/services/contact";
 import { TerminalIntent } from "@/types/terminal";
 
@@ -58,7 +59,7 @@ export const createRedCommand = (data: PortfolioData): Command => {
     const audience = character ? undefined : data.headline.audiences.find((link) => isMatch(link.label));
 
     if (!character && !audience) {
-      return { lines: [error(red.unknownRole.replace("{role}", role)), ...roles.map((name) => output(`  red hire as ${name.toLowerCase()}`))] };
+      return { lines: [error(fill(red.unknownRole, { role })), ...roles.map((name) => output(`  red hire as ${name.toLowerCase()}`))] };
     }
 
     if (character) {
@@ -81,7 +82,7 @@ export const createRedCommand = (data: PortfolioData): Command => {
           title: red.hireTitle,
           subtitle: label,
           sections: [{ heading: red.labels.proof, items: cases }, { heading: red.labels.recommendations, items: quotes }],
-          actions: actionsFor(red.hireSubject.replace("{role}", label)),
+          actions: actionsFor(fill(red.hireSubject, { role: label })),
         },
       },
     };
@@ -104,7 +105,7 @@ export const createRedCommand = (data: PortfolioData): Command => {
 
       const intent = red.intents.find((candidate) => [candidate.phrase, ...candidate.aliases].some((phrase) => input === phrase || input.startsWith(`${phrase} `)));
 
-      return intent ? runIntent(intent) : { lines: [error(red.unknownIntent.replace("{input}", input)), ...menu.map(output)] };
+      return intent ? runIntent(intent) : { lines: [error(fill(red.unknownIntent, { input })), ...menu.map(output)] };
     },
   };
 };

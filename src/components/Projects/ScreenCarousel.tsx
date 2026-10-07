@@ -6,7 +6,8 @@ import { faChevronLeft, faChevronRight } from "@fortawesome/pro-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Image } from "@/components/Image";
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { scrollBehavior } from "@/packages/accessibility/motion";
+import { fill } from "@/packages/text/format";
 import { ProjectScreen } from "@/types/projects";
 
 interface ScreenCarouselProps {
@@ -110,7 +111,7 @@ export const ScreenCarousel: FC<ScreenCarouselProps> = ({ screens, labels }: Scr
     const track = trackRef.current;
     const target = Math.max(0, Math.min(screens.length - 1, next));
 
-    track?.scrollTo({ left: target * track.clientWidth, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    track?.scrollTo({ left: target * track.clientWidth, behavior: scrollBehavior() });
     setIndex(target);
   }, [screens.length]);
 
@@ -133,7 +134,7 @@ export const ScreenCarousel: FC<ScreenCarouselProps> = ({ screens, labels }: Scr
     }
   };
 
-  const position = (at: number) => labels.position.replace("{index}", String(at + 1)).replace("{count}", String(screens.length));
+  const position = (at: number) => fill(labels.position, { index: at + 1, count: screens.length });
 
   return (
     <Carousel onKeyDown={onKeyDown} aria-roledescription="carousel">

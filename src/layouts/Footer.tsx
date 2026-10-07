@@ -6,6 +6,8 @@ import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 
+import { SOCIAL_URLS } from "@/config/social";
+
 interface FooterProps {
   linkedInUsername: string;
 }
@@ -40,7 +42,7 @@ const Footer: FC<FooterProps> = ({ linkedInUsername }: FooterProps) => (
     <SocialMediaList>
       <FollowMeButton>Follow Me</FollowMeButton>
       <SocialMediaItem
-        href={`https://www.linkedin.com/in/${linkedInUsername}`}
+        href={SOCIAL_URLS.linkedIn(linkedInUsername)}
         target="_blank"
         aria-label="Follow me on LinkedIn"
       >

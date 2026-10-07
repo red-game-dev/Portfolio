@@ -11,6 +11,7 @@ import { revealedCharacters } from "@/components/SkillForge/utils/reveal";
 import useAnimationProgress from "@/hooks/useAnimationProgress";
 import useInView from "@/hooks/useInView";
 import { decodeFrame, toBinaryMask } from "@/packages/encoding/binary";
+import { fill } from "@/packages/text/format";
 import { ForgeStation } from "@/services/skills";
 import { ForgeContent } from "@/types/forge";
 
@@ -122,9 +123,10 @@ const formatDuration = (content: ForgeContent, years: number, months: number) =>
   years >= 1 ? `${years} ${content.years}` : `${Math.max(1, months)} ${content.months}`
 );
 
-const formatMeta = (content: ForgeContent, years: number, months: number, places: string[]) => content.tracked
-  .replace("{duration}", formatDuration(content, years, months))
-  .replace("{places}", places.slice(0, 2).join(", ") + (places.length > 2 ? ` +${places.length - 2}` : ""));
+const formatMeta = (content: ForgeContent, years: number, months: number, places: string[]) => fill(content.tracked, {
+  duration: formatDuration(content, years, months),
+  places: places.slice(0, 2).join(", ") + (places.length > 2 ? ` +${places.length - 2}` : ""),
+});
 
 // One crafting station: its skills are "refined" in turn when it comes into view, names decoding from
 // binary on one shared clock and each item settling into its rarity.

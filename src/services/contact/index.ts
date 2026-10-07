@@ -6,7 +6,6 @@ import { collapseWhitespace, fill } from "@/packages/text/format";
 import { createRosterLevels } from "@/services/roster";
 import { Character } from "@/types/roster";
 
-
 const linkedInOf = (data: PortfolioData) => SOCIAL_URLS.linkedIn(data.socialMedia.byUsername.linkedIn);
 
 // The ways to get in touch, with the email subject prefilled for what the visitor was looking at.

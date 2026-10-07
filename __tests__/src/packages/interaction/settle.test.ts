@@ -49,6 +49,7 @@ describe("settleAtTop", () => {
     const { element, scroll } = target(-316);
 
     settleAtTop(element, view);
+    view.fire("scroll");
     view.fire("scrollend");
 
     expect(scroll).toHaveBeenCalledWith({ behavior: "instant", block: "start" });
@@ -83,9 +84,36 @@ describe("settleAtTop", () => {
 
     settleAtTop(element, view);
     expect(view.count("scrollend")).toBe(0);
+    view.fire("scroll");
     view.runTimers();
 
     expect(scroll).toHaveBeenCalled();
+  });
+
+  it("gives up when the scroll never starts, so a later scroll is not pulled back", () => {
+    const view = fakeView();
+    const { element, scroll } = target(-300);
+
+    settleAtTop(element, view);
+    view.runTimers();
+    view.fire("scrollend");
+
+    expect(scroll).not.toHaveBeenCalled();
+    expect(view.count("scrollend")).toBe(0);
+  });
+
+  it("settles only the latest jump", () => {
+    const view = fakeView();
+    const first = target(-200);
+    const second = target(-80);
+
+    settleAtTop(first.element, view);
+    settleAtTop(second.element, view);
+    view.fire("scroll");
+    view.fire("scrollend");
+
+    expect(first.scroll).not.toHaveBeenCalled();
+    expect(second.scroll).toHaveBeenCalled();
   });
 });
 

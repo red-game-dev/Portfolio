@@ -1,4 +1,7 @@
-import { createPortfolioTerminal } from "@/services/terminal/portfolioTerminal";
+import { SECTION_IDS } from "@/config/sections";
+import { portfolioData } from "@/data/resume";
+import { GROUPS } from "@/services/terminal/commands/shared";
+import { createPortfolioCommands, createPortfolioTerminal } from "@/services/terminal/portfolioTerminal";
 
 // Runs every portfolio command against the real data, so a content change can never break the terminal.
 describe("portfolio terminal", () => {
@@ -67,3 +70,55 @@ describe("portfolio terminal", () => {
     expect(session.execute("red dance")).toBeUndefined();
   });
 });
+
+describe("portfolio commands", () => {
+  const commands = createPortfolioCommands(portfolioData);
+  const sectionIds = new Set<string>(Object.values(SECTION_IDS));
+
+  test("every command answers with no arguments, and none shares a name", () => {
+    const names = commands.flatMap((command) => [command.name, ...(command.aliases ?? [])]);
+
+    expect(new Set(names).size).toBe(names.length);
+    commands.forEach((command) => {
+      expect(command.run([]).lines.length).toBeGreaterThan(0);
+    });
+  });
+
+  test("every file ls lists opens with cat", () => {
+    const session = createPortfolioTerminal();
+
+    session.execute("ls");
+
+    const files = session.output[session.output.length - 1].text.split(/\s+/).filter(Boolean);
+
+    expect(files.length).toBeGreaterThan(3);
+    files.forEach((file) => {
+      const before = session.output.length;
+
+      session.execute(`cat ${file}`);
+      expect(session.output.slice(before).filter((line) => line.kind === "error")).toEqual([]);
+    });
+  });
+
+  test("every goto target is a section on the page", () => {
+    const session = createPortfolioTerminal();
+
+    session.execute("goto");
+
+    const targets = session.output[session.output.length - 1].text.replace(/^Sections: /, "").split(", ");
+
+    targets.forEach((target) => {
+      const effect = session.execute(`goto ${target}`);
+
+      expect(effect?.type).toBe("navigate");
+      expect(sectionIds.has((effect as { target: string }).target)).toBe(true);
+    });
+  });
+
+  test("help lists the groups in their order", () => {
+    const order = [...new Set(commands.map((command) => command.group))];
+
+    expect(order).toEqual([GROUPS.red, GROUPS.me, GROUPS.work, GROUPS.contact, GROUPS.around, GROUPS.fun]);
+  });
+});
+

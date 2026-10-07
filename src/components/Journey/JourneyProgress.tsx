@@ -1,9 +1,8 @@
-import { FC } from "react";
+import { forwardRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
 interface JourneyProgressProps {
-  progress: number;
   starts: number[];
   zoneIndex: number;
 }
@@ -19,6 +18,7 @@ const Fill = styled.div(() => [
   tw`absolute inset-0 bg-[var(--accent)]`,
   css`
     transform-origin: left center;
+    transform: scaleX(var(--journey-progress, 0));
     box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
     will-change: transform;
   `,
@@ -29,12 +29,15 @@ const Tick = styled.span(({ isReached }: TickProps) => [
   isReached && tw`bg-[#eafff3]`,
 ]);
 
-// A thin journey bar across the top, with a tick where each zone begins.
-export const JourneyProgress: FC<JourneyProgressProps> = ({ progress, starts, zoneIndex }: JourneyProgressProps) => (
-  <Track aria-hidden="true">
-    <Fill style={{ transform: `scaleX(${progress})` }} />
+// A thin journey bar across the top, with a tick where each zone begins. The fill follows
+// --journey-progress, written on the bar by useJourney, so scrolling never re-renders it.
+export const JourneyProgress = forwardRef<HTMLDivElement, JourneyProgressProps>(({ starts, zoneIndex }, ref) => (
+  <Track ref={ref} aria-hidden="true">
+    <Fill />
     {starts.slice(1).map((start, index) => (
       <Tick key={index} isReached={index + 1 <= zoneIndex} style={{ left: `${start * 100}%` }} />
     ))}
   </Track>
-);
+));
+
+JourneyProgress.displayName = "JourneyProgress";

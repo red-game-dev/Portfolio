@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC, useEffect, useMemo, useRef } from "react";
 
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Backdrop } from "@/components/Journey/Backdrop";
@@ -17,15 +17,13 @@ interface JourneyProps {
   trail: { sections: TrailSection[]; labels: JourneyTrailContent };
 }
 
-const MMO_INDEX = ZONE_BOUNDARIES.findIndex(({ zone }) => zone === "mmo");
-
-// How far through the MMO zone the reader is, from where it starts to the bottom of the page.
-const zoneProgress = (progress: number, start = 1) => Math.min(1, Math.max(0, (progress - start) / Math.max(0.0001, 1 - start)));
-
 // The page as a journey through four zones. Crossing into one changes the world itself: the backdrop plays
 // a transition into the next scene and the whole page takes on the zone's accent. No labels needed.
 export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProps) => {
-  const { zone, zoneIndex, progress, starts } = useJourney(isEnabled);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const hudRef = useRef<HTMLDivElement>(null);
+  const targets = useMemo(() => ({ progress: progressRef, experience: hudRef }), []);
+  const { zone, zoneIndex, starts } = useJourney(isEnabled, targets);
   const { visitZone } = useGameStateHook();
   const { settings } = useLensStateHook();
 
@@ -41,7 +39,7 @@ export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProp
   return (
     <>
       <Backdrop zone={zone} isEnabled={isEnabled} isStill={settings.backdrop === "still"} transitions={settings.transitions} />
-      <JourneyProgress progress={progress} starts={starts} zoneIndex={zoneIndex} />
+      <JourneyProgress ref={progressRef} starts={starts} zoneIndex={zoneIndex} />
       <ZoneTrail
         zone={zone}
         zoneIndex={zoneIndex}
@@ -50,7 +48,7 @@ export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProp
         labels={trail.labels}
         isEnabled={isEnabled}
       />
-      <Hud {...hud} isVisible={settings.gameLayer && zone === "mmo"} experience={zoneProgress(progress, starts[MMO_INDEX])} />
+      <Hud ref={hudRef} {...hud} isVisible={settings.gameLayer && zone === "mmo"} />
     </>
   );
 };

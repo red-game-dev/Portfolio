@@ -1,4 +1,6 @@
-export const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+import { clamp01 } from "@/packages/math/clamp";
+
+export { clamp01 };
 
 export const easeInOut = (value: number) => {
   const t = clamp01(value);

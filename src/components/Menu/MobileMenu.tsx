@@ -1,4 +1,4 @@
-import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
+import { CSSProperties, MouseEvent, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -7,9 +7,9 @@ import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { faChevronRight, faEnvelope, faFileArrowDown, faXmark } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { NAV_ITEMS } from "@/components/Menu/config";
-import useNavProgress from "@/components/Menu/hooks/useNavProgress";
+import { NAV_ITEMS, progressOf } from "@/components/Menu/config";
 import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
+import useModalDialog from "@/hooks/useModalDialog";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { MenuContent } from "@/types/menu";
 
@@ -246,40 +246,11 @@ const hereStyle = (zone: ZoneId) => ({ "--here": ZONE_ACCENTS[zone], "--here-rgb
 export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
   // Two stops can share the screen; the reader is at the first of them. Before the first stop, at the top.
   const here = Math.max(0, selected.indexOf(true));
   const hereZone = NAV_ITEMS[here].zone;
 
-  useNavProgress(NAV_ITEMS, itemRefs);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-
-    if (!dialog) {
-      return;
-    }
-
-    if (isOpen && !dialog.open) {
-      dialog.showModal();
-    } else if (!isOpen && dialog.open) {
-      dialog.close();
-    }
-
-    if (!isOpen) {
-      return;
-    }
-
-    // The page behind stays put while the menu is open.
-    const root = document.documentElement;
-    const previous = root.style.overflow;
-
-    root.style.overflow = "hidden";
-
-    return () => {
-      root.style.overflow = previous;
-    };
-  }, [isOpen]);
+  useModalDialog(dialogRef, isOpen);
 
   const go = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
     event.preventDefault();
@@ -329,10 +300,8 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
                     >
                       <Node state={state} aria-hidden="true" />
                       <StopLink
-                        ref={(element: HTMLAnchorElement | null) => {
-                          itemRefs.current[index] = element;
-                        }}
                         href={item.href}
+                        style={progressOf(index)}
                         state={state}
                         aria-current={state === "here" ? "location" : undefined}
                         onClick={(event) => go(event, item.href)}

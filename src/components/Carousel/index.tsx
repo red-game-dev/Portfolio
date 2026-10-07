@@ -5,6 +5,7 @@ import tw, { css, styled } from "twin.macro";
 import { faChevronLeft, faChevronRight } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { carouselPage, describePage, realignStart, swipeStep, wrapPage } from "@/components/Carousel/paging";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { CarouselLabels } from "@/types/carousel";
@@ -96,18 +97,15 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
   const [start, setStart] = useState(0);
   const switcher = useSwitch();
   const swipeFrom = useRef<number | null>(null);
-  const pages = Math.max(1, Math.ceil(items.length / perPage));
-  const page = Math.min(pages - 1, Math.floor(start / perPage));
-  const first = page * perPage;
-  const last = Math.min(items.length, first + perPage);
+  const { pages, page, first, last } = carouselPage(start, perPage, items.length);
 
   // A narrower or wider screen keeps the same first card in view.
   useEffect(() => {
-    setStart((current) => Math.floor(current / perPage) * perPage);
+    setStart((current) => realignStart(current, perPage));
   }, [perPage]);
 
   const goTo = (target: number, direction: 1 | -1) => {
-    const next = (target + pages) % pages;
+    const next = wrapPage(target, pages);
 
     if (next !== page) {
       switcher.play(direction);
@@ -133,19 +131,16 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
       return;
     }
 
-    const distance = event.clientX - swipeFrom.current;
+    const step = swipeStep(event.clientX - swipeFrom.current, SWIPE_PX);
 
     swipeFrom.current = null;
 
-    if (Math.abs(distance) > SWIPE_PX) {
-      goTo(page + (distance < 0 ? 1 : -1), distance < 0 ? 1 : -1);
+    if (step) {
+      goTo(page + step, step);
     }
   };
 
-  const describe = (from: number, to: number) => (from === to ? labels.single : labels.position)
-    .replace("{from}", String(from))
-    .replace("{to}", String(to))
-    .replace("{count}", String(items.length));
+  const describe = (from: number, to: number) => describePage(from, to, items.length, labels);
 
   return (
     <Root aria-roledescription="carousel" aria-label={label} onKeyDown={onKeyDown}>

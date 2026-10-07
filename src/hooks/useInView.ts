@@ -12,8 +12,7 @@ interface InViewOptions {
   rootMargin?: string;
 }
 
-// IntersectionObserver based, so it costs nothing while scrolling. useCollision is the scroll event
-// version the Menu scroll-spy uses.
+// IntersectionObserver based, so it costs nothing while scrolling.
 export default function useInView<TElement extends Element>(ref: RefObject<TElement>, { threshold = 0.25, once, rootMargin = "0px" }: InViewOptions = {}) {
   const [isInView, setIsInView] = useState(false);
 

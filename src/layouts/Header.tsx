@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -6,7 +6,8 @@ import Link from "next/link";
 
 import { LensSwitch } from "@/components/Lens/LensSwitch";
 import { Menu } from "@/components/Menu";
-import useMenuSelection from "@/components/Menu/hooks/useMenuSelection";
+import { NAV_ITEMS } from "@/components/Menu/config";
+import useJourneyNav from "@/components/Menu/hooks/useJourneyNav";
 import { MobileMenu } from "@/components/Menu/MobileMenu";
 import useScrolledPast from "@/hooks/useScrolledPast";
 import { LensContent } from "@/types/lens";
@@ -96,11 +97,12 @@ interface HeaderProps {
 const Header: FC<HeaderProps> = ({ title = "", lens, menu, contact }: HeaderProps) => {
   const isScrolled = useScrolledPast(SCROLLED_SHARE);
   // One set of scroll-spy listeners for both menus.
-  const selected = useMenuSelection();
+  const headerRef = useRef<HTMLElement>(null);
+  const selected = useJourneyNav(NAV_ITEMS, headerRef);
   const words = title.split(" ");
 
   return (
-    <HeaderContainer isScrolled={isScrolled}>
+    <HeaderContainer ref={headerRef} isScrolled={isScrolled}>
       <HeaderContent>
         <LogoContainer>
           <LogoContents>

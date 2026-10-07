@@ -1,5 +1,8 @@
 import { RefObject, useEffect, useRef } from "react";
 
+import { getScrollFrame } from "@/hooks/useScrollFrame";
+import { clamp01 } from "@/packages/math/clamp";
+
 interface DoneOptions {
   // Progress at which the element counts as done.
   at: number;
@@ -34,44 +37,45 @@ export default function useScrollProgressVar<TElement extends HTMLElement>(
       return;
     }
 
-    let frameId = 0;
     let isDone = false;
+    let unsubscribe: (() => void) | null = null;
 
-    const update = () => {
-      const rect = element.getBoundingClientRect();
-      const progress = (window.innerHeight * anchor - rect.top) / Math.max(1, rect.height);
-      const clamped = Math.min(1, Math.max(0, progress));
+    const task = {
+      read: ({ viewportHeight }: { viewportHeight: number }) => {
+        const rect = element.getBoundingClientRect();
 
-      element.style.setProperty(property, String(clamped));
+        return clamp01((viewportHeight * anchor - rect.top) / Math.max(1, rect.height));
+      },
+      write: (progress: number) => {
+        element.style.setProperty(property, String(progress));
 
-      if (doneAt === undefined || clamped >= doneAt === isDone || (isDone && isSticky)) {
-        return;
-      }
+        if (doneAt === undefined || progress >= doneAt === isDone || (isDone && isSticky)) {
+          return;
+        }
 
-      isDone = clamped >= doneAt;
-      element.dataset.done = String(isDone);
-      onDoneChangeRef.current?.(isDone);
+        isDone = progress >= doneAt;
+        element.dataset.done = String(isDone);
+        onDoneChangeRef.current?.(isDone);
+      },
     };
-    const schedule = () => {
-      cancelAnimationFrame(frameId);
-      frameId = requestAnimationFrame(update);
-    };
+    // Only on the shared scroll frame while the element is near the screen.
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        window.addEventListener("scroll", schedule, { passive: true });
-      } else {
-        window.removeEventListener("scroll", schedule);
+      if (entry.isIntersecting && !unsubscribe) {
+        unsubscribe = getScrollFrame().subscribe(task);
+      } else if (!entry.isIntersecting && unsubscribe) {
+        // One last measure on the way out, so the element settles at 0 or 1 rather than wherever the last
+        // frame left it. Observer callbacks run after layout, so this read is free.
+        task.write(task.read({ viewportHeight: window.innerHeight }));
+        unsubscribe();
+        unsubscribe = null;
       }
-
-      schedule();
     });
 
     observer.observe(element);
 
     return () => {
-      cancelAnimationFrame(frameId);
       observer.disconnect();
-      window.removeEventListener("scroll", schedule);
+      unsubscribe?.();
     };
   }, [anchor, doneAt, isSticky, property, ref]);
 }

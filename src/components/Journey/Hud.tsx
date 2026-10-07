@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { forwardRef, useMemo } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -19,8 +19,6 @@ export interface HudContent {
 
 interface HudProps extends HudContent {
   isVisible: boolean;
-  // How far through the MMO zone the reader is, 0 to 1.
-  experience: number;
 }
 
 interface VisibleProps {
@@ -72,6 +70,7 @@ const Fill = styled.span(() => [
   tw`absolute inset-0 bg-[var(--accent)]`,
   css`
     transform-origin: left center;
+    transform: scaleX(var(--journey-experience, 0));
     will-change: transform;
   `,
 ]);
@@ -79,15 +78,15 @@ const Fill = styled.span(() => [
 const Bosses = tw.span`inline-flex flex-row items-center gap-[5px] text-[#ff8a8a]`;
 
 // A game HUD for the MMO zone: the reader's character, its level, experience earned by reading on, and the
-// bosses beaten so far.
-export const Hud: FC<HudProps> = ({ roster, labels, bossCount, isVisible, experience }: HudProps) => {
+// bosses beaten so far. The experience bar follows --journey-experience, written on the HUD by useJourney.
+export const Hud = forwardRef<HTMLDivElement, HudProps>(({ roster, labels, bossCount, isVisible }, ref) => {
   const { characterClass, defeatedBosses } = useGameStateHook();
   const calculator = useMemo(() => new TenureCalculator(roster.asOf), [roster.asOf]);
   const character = roster.characters.find((candidate) => candidate.characterClass === characterClass);
   const level = character ? Math.max(1, calculator.years(character.tenures)) : null;
 
   return (
-    <Frame isVisible={isVisible}>
+    <Frame ref={ref} isVisible={isVisible}>
       <Avatar aria-hidden="true">
         <FontAwesomeIcon icon={character?.icon ?? faGamepad} />
       </Avatar>
@@ -105,9 +104,11 @@ export const Hud: FC<HudProps> = ({ roster, labels, bossCount, isVisible, experi
           </Bosses>
         </Row>
         <Track aria-hidden="true">
-          <Fill style={{ transform: `scaleX(${experience})` }} />
+          <Fill />
         </Track>
       </Stats>
     </Frame>
   );
-};
+});
+
+Hud.displayName = "Hud";

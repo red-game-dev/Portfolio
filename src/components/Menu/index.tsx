@@ -1,11 +1,8 @@
-import { useRef } from "react";
-
 import tw, { css, styled } from "twin.macro";
 
 import Link from "next/link";
 
-import { NAV_ITEMS } from "@/components/Menu/config";
-import useNavProgress from "@/components/Menu/hooks/useNavProgress";
+import { NAV_ITEMS, progressOf } from "@/components/Menu/config";
 
 interface MenuProps {
   // Which stop the reader is at, in NAV_ITEMS order.
@@ -52,21 +49,14 @@ const Label = styled.span(() => [
   `,
 ]);
 
-export const Menu = ({ selected, label }: MenuProps) => {
-  const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
-
-  useNavProgress(NAV_ITEMS, itemRefs);
-
-  return (
+export const Menu = ({ selected, label }: MenuProps) => (
     <MenuContainer>
       <MenuList aria-label={label}>
         {NAV_ITEMS.map((item, index) => (
           <MenuItem
             key={item.label}
-            ref={(element: HTMLAnchorElement | null) => {
-              itemRefs.current[index] = element;
-            }}
             href={item.href}
+            style={progressOf(index)}
             selected={selected[index]}
             aria-current={selected[index] ? "location" : undefined}
           >
@@ -75,5 +65,4 @@ export const Menu = ({ selected, label }: MenuProps) => {
         ))}
       </MenuList>
     </MenuContainer>
-  );
-};
+);

@@ -2,7 +2,7 @@ import { forwardRef, useMemo } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { faGamepad, faSkull } from "@fortawesome/pro-duotone-svg-icons";
+import { faGamepad, faSkull } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";

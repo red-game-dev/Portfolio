@@ -2,7 +2,7 @@ import { FC, useCallback, useEffect, useState } from "react";
 
 import tw from "twin.macro";
 
-import { faRobot, faUser } from "@fortawesome/pro-duotone-svg-icons";
+import { faRobot, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { DuelRound } from "@/components/Duels/DuelRound";

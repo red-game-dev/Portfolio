@@ -2,12 +2,13 @@ import { FC, useId, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { faSkull, faTreasureChest } from "@fortawesome/pro-duotone-svg-icons";
+import { faSkull } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Tag } from "@/components/Controls";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { faTreasureChest } from "@/config/icons";
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
 import { fill } from "@/packages/text/format";
 import { CaseStudy } from "@/types/case-studies";

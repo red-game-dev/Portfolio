@@ -1,6 +1,6 @@
 import { CSSProperties, FC, KeyboardEvent, useRef } from "react";
 
-import { faArrowLeft, faArrowRight, faArrowUpRightFromSquare, faCodeBranch, faXmark } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft, faArrowRight, faArrowUpRightFromSquare, faCodeBranch, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { VentureBlueprint } from "@/components/Blueprint";

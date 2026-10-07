@@ -1,4 +1,5 @@
-import { faMountain, faTree, faWater } from "@fortawesome/pro-duotone-svg-icons";
+
+import { faMountain, faTree, faWater } from "@fortawesome/free-solid-svg-icons";
 
 import { ZONE_ACCENTS } from "@/config/zones";
 import { ProjectKind } from "@/types/projects";

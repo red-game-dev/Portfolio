@@ -2,7 +2,7 @@ import { KeyboardEvent, PointerEvent, ReactNode, useEffect, useRef, useState } f
 
 import tw, { css, styled } from "twin.macro";
 
-import { faChevronLeft, faChevronRight } from "@fortawesome/pro-solid-svg-icons";
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { carouselPage, describePage, realignStart, swipeStep, wrapPage } from "@/components/Carousel/paging";

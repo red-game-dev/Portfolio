@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { faEnvelope, faGamepad } from "@fortawesome/pro-duotone-svg-icons";
+import { faEnvelope, faGamepad } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { HeroPortrait } from "@/components/Roster/HeroPortrait";

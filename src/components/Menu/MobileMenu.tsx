@@ -1,7 +1,7 @@
 import { CSSProperties, MouseEvent, useRef, useState } from "react";
 
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
-import { faChevronRight, faEnvelope, faFileArrowDown, faXmark } from "@fortawesome/pro-solid-svg-icons";
+import { faChevronRight, faEnvelope, faFileArrowDown, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { progressOf } from "@/components/Menu/config";

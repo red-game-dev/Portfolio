@@ -2,7 +2,7 @@ import { FC, useMemo, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { faHammer } from "@fortawesome/pro-duotone-svg-icons";
+import { faHammer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";

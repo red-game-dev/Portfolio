@@ -3,7 +3,7 @@ import { FC, useRef } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
-import { faEnvelope } from "@fortawesome/pro-duotone-svg-icons";
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { BitStrip } from "@/components/BitStrip";

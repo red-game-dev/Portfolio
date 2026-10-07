@@ -1,10 +1,9 @@
+
 import {
   faArrowsRotate,
-  faBooks,
+  faBook,
   faBoxArchive,
   faBoxesStacked,
-  faCastle,
-  faChartCandlestick,
   faChessRook,
   faCoins,
   faCompass,
@@ -14,20 +13,21 @@ import {
   faDungeon,
   faFileLines,
   faFutbol,
-  faGamepadModern,
+  faGamepad,
   faGem,
   faGlobe,
   faMobileScreen,
   faPaw,
   faPlaneDeparture,
-  faRocketLaunch,
+  faRocket,
   faStore,
   faTableColumns,
   faTowerObservation,
   faTruckFast,
   faUsers,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/free-solid-svg-icons";
 
+import { faCastle, faChartCandlestick } from "@/config/icons";
 import { PortfolioData } from "@/types/portfolio";
 
 // The project world map and every region on it.
@@ -311,7 +311,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
       to: "Sep 2020",
     },
     {
-      icon: faGamepadModern,
+      icon: faGamepad,
       kind: "game",
       status: "private",
       title: "Engine Prototypes",
@@ -371,7 +371,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
       to: "Jun 2025",
     },
     {
-      icon: faBooks,
+      icon: faBook,
       kind: "product",
       status: "openSource",
       title: "The Game Library",
@@ -445,7 +445,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
       to: "Nov 2018",
     },
     {
-      icon: faRocketLaunch,
+      icon: faRocket,
       kind: "game",
       status: "openSource",
       title: "GOZ Launchers",
@@ -600,7 +600,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
       from: "Sep 2026",
     },
     {
-      icon: faGamepadModern,
+      icon: faGamepad,
       kind: "game",
       status: "archived",
       title: "Arcavium",

@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { faArrowUpRightFromSquare } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Activity } from "@/components/CodeReview/Activity";

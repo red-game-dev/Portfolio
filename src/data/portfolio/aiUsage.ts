@@ -1,9 +1,5 @@
-import {
-  faFileLines,
-  faRobot,
-  faShieldCheck,
-  faUserCheck,
-} from "@fortawesome/pro-duotone-svg-icons";
+
+import { faFileLines, faRobot, faShieldHalved, faUserCheck } from "@fortawesome/free-solid-svg-icons";
 
 import { PortfolioData } from "@/types/portfolio";
 
@@ -173,7 +169,7 @@ export const aiUsageContent: Pick<PortfolioData, "aiUsage"> = {
         },
         {
           name: "Checks",
-          icon: faShieldCheck,
+          icon: faShieldHalved,
           principles: [
             {
               title: "Dependencies are screened",

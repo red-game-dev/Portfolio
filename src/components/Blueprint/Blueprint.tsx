@@ -198,7 +198,7 @@ export const Blueprint: FC<BlueprintProps> = ({
         )}
         {isNear && view === "architecture" && (
           <>
-            <Architecture {...architecture} zone={zone} labels={labels} isShown={isOnScreen} isMoving={isOnScreen && settings.backdrop === "animated"} />
+            <Architecture {...architecture} zone={zone} labels={labels} isShown={isOnScreen} isMoving={isOnScreen && settings.backdrop !== "still"} />
             <Note>{labels.glanceNote}</Note>
           </>
         )}

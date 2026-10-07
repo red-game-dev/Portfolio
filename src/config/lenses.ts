@@ -6,8 +6,9 @@ export type Lens = "recruiter" | "product" | "engineer";
 export const LENSES: Lens[] = ["recruiter", "product", "engineer"];
 
 export interface LensSettings {
-  // Recruiters get a still world, so nothing moves while they read.
-  backdrop: "still" | "animated";
+  // Recruiters get a calm world: the same scenes, slower and dimmer, so it feels alive without pulling the eye
+  // off the facts. "still" draws one frame per zone.
+  backdrop: "still" | "calm" | "animated";
   // "soft" crossfades between zones; "full" plays each crossing's transition.
   transitions: "none" | "soft" | "full";
   // Which text decodes from binary: nothing, headings only, or everything.
@@ -18,7 +19,7 @@ export interface LensSettings {
 }
 
 export const LENS_SETTINGS: Record<Lens, LensSettings> = {
-  recruiter: { backdrop: "still", transitions: "none", decode: "off", gameLayer: false, depth: "facts" },
+  recruiter: { backdrop: "calm", transitions: "none", decode: "off", gameLayer: false, depth: "facts" },
   product: { backdrop: "animated", transitions: "soft", decode: "headings", gameLayer: true, depth: "outcomes" },
   engineer: { backdrop: "animated", transitions: "full", decode: "all", gameLayer: true, depth: "everything" },
 };

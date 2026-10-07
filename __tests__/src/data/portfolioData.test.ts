@@ -108,7 +108,7 @@ describe("audience views", () => {
   });
 
   test("immersion only grows from the quick view to the full one", () => {
-    const rank = { still: 0, animated: 1, none: 0, soft: 1, full: 2, off: 0, headings: 1, all: 2 };
+    const rank = { still: 0, calm: 1, animated: 2, none: 0, soft: 1, full: 2, off: 0, headings: 1, all: 2 };
     const ordered = LENSES.map((lens) => LENS_SETTINGS[lens]);
 
     ordered.slice(1).forEach((settings, index) => {

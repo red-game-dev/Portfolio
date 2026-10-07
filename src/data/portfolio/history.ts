@@ -642,6 +642,7 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
         "Native Canvas",
         "C# (ASP.NET)",
         "C/C++",
+        "Kotlin",
         "Git",
         "Code Review",
         "CI/CD",

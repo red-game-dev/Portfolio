@@ -1,52 +1,47 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
+/** @type {import('jest').Config} */
 
-// jest.config.js
-const nextJest = require('next/jest')
+const nextJest = require("next/jest");
 const { pathsToModuleNameMapper } = require("ts-jest");
 const { compilerOptions } = require("./tsconfig.json");
 
 const paths = compilerOptions.paths ? compilerOptions.paths : {};
 
-// Providing the path to your Next.js app which will enable loading next.config.js and .env files
-const createJestConfig = nextJest({ dir: './' })
+// Loads next.config.js and the .env files, and mocks styles and images the way Next does.
+const createJestConfig = nextJest({ dir: "./" });
 
-// Any custom config you want to pass to Jest
 const customJestConfig = {
-  preset: 'ts-jest',
-  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|js?|tsx?|ts?)$',
-  transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': '<rootDir>/node_modules/babel-jest',
-  },
-  collectCoverage: true,
-  // on node 14.x coverage provider v8 offers good speed and more or less good report
-  coverageProvider: 'v8',
+  testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|js?|tsx?|ts?)$",
+  // Coverage of the source, not of the tests. Off by default; npm run test:coverage turns it on.
   collectCoverageFrom: [
-    '<rootDir>/__tests__/src/**/*.test.{js,jsx,ts,tsx}',
-    '!**/*.d.ts',
-    '!**/node_modules/**',
-    '!<rootDir>/out/**',
-    '!<rootDir>/.next/**',
-    '!<rootDir>/*.config.js',
-    '!<rootDir>/coverage/**',
+    "<rootDir>/src/**/*.{ts,tsx}",
+    "!<rootDir>/src/data/**",
+    "!**/*.d.ts",
   ],
+  coverageProvider: "v8",
   testPathIgnorePatterns: [
-      "<rootDir>/.next/",
-      "<rootDir>/node_modules/",
-      "<rootDir>/cypress/",
-      "<rootDir>/webdriverio/",
-      "<rootDir>/__tests__/__mocks__/",
-      "<rootDir>/__tests__/setups/",
-      "/fixtures/",
+    "<rootDir>/.next/",
+    "<rootDir>/node_modules/",
+    "<rootDir>/__tests__/__mocks__/",
+    "<rootDir>/__tests__/setups/",
+    "/fixtures/",
   ],
   moduleNameMapper: {
-      ...pathsToModuleNameMapper(paths, { prefix: "<rootDir>/" }),
-      "\\.(scss|sass|css)$": "identity-obj-proxy",
-      '\\.(jpg|jpeg|png|gif|svg)$': ['<rootDir>/__tests__/__mocks__/fileMock.js'],
+    ...pathsToModuleNameMapper(paths, { prefix: "<rootDir>/" }),
+    "\\.(scss|sass|css)$": "identity-obj-proxy",
+    "\\.(jpg|jpeg|png|gif|svg)$": ["<rootDir>/__tests__/__mocks__/fileMock.js"],
   },
-  moduleDirectories: ['node_modules', '<rootDir>/'],
-  setupFilesAfterEnv: ['<rootDir>/__tests__/setups/jest.setup.js'],
-  testEnvironment: 'jest-environment-jsdom',
-}
+  moduleDirectories: ["node_modules", "<rootDir>/"],
+  setupFilesAfterEnv: ["<rootDir>/__tests__/setups/jest.setup.js"],
+  testEnvironment: "jest-environment-jsdom",
+};
 
-// createJestConfig is exported in this way to ensure that next/jest can load the Next.js configuration, which is async
-module.exports = createJestConfig(customJestConfig)
+// next/jest puts its SWC transform first, which skips Babel macros, so twin.macro would never compile and no
+// component could be rendered. Every file goes through the project's Babel config instead.
+module.exports = async () => {
+  const config = await createJestConfig(customJestConfig)();
+
+  return {
+    ...config,
+    transform: { "^.+\\.(js|jsx|ts|tsx|mjs)$": "<rootDir>/__tests__/setups/babelTransform.js" },
+  };
+};

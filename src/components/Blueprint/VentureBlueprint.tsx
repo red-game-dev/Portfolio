@@ -3,9 +3,8 @@ import { FC, useCallback } from "react";
 import dynamic from "next/dynamic";
 
 import { loadVentureBlueprint } from "@/data/blueprints";
-import { VentureBlueprintId } from "@/data/blueprints/ventures";
 import useLoaded from "@/hooks/useLoaded";
-import { BlueprintLabels } from "@/types/blueprints";
+import { BlueprintLabels, VentureBlueprintId } from "@/types/blueprints";
 
 interface VentureBlueprintProps {
   id: VentureBlueprintId;

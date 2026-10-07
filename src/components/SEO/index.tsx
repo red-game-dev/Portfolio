@@ -106,7 +106,7 @@ export const SEO = ({ url }: SeoProps) => (
           contactType: "Contact",
           email: portfolioData.details.email,
           areaServed: "EU",
-          availableLanguage: [portfolioData.skills.language.map((skill) => skill.name)],
+          availableLanguage: [portfolioData.skills.language],
         },
       ]}
     />
@@ -122,7 +122,7 @@ export const SEO = ({ url }: SeoProps) => (
         },
         {
           questionName: "What are my expertise? ",
-          acceptedAnswerText: portfolioData.skills.expertise.map((skill) => skill.name).join(","),
+          acceptedAnswerText: portfolioData.skills.expertise.join(","),
         },
         {
           questionName: "Looking at the moment?",
@@ -134,21 +134,19 @@ export const SEO = ({ url }: SeoProps) => (
         },
         {
           questionName: "What programming languages do I use?",
-          acceptedAnswerText: portfolioData.skills.programming.map((skill) => skill.name).join(","),
+          acceptedAnswerText: portfolioData.skills.programming.join(","),
         },
         {
           questionName: "Which frameworks do I use?",
-          acceptedAnswerText: [...portfolioData.skills.frontend, ...portfolioData.skills.backend, ...portfolioData.skills.mobile]
-            .map((skill) => skill.name)
-            .join(","),
+          acceptedAnswerText: [...portfolioData.skills.frontend, ...portfolioData.skills.backend, ...portfolioData.skills.mobile].join(","),
         },
         {
           questionName: "What design tools do I use?",
-          acceptedAnswerText: portfolioData.skills.design.map((skill) => skill.name).join(","),
+          acceptedAnswerText: portfolioData.skills.design.join(","),
         },
         {
           questionName: "What general tools do I use?",
-          acceptedAnswerText: portfolioData.skills.tools.map((skill) => skill.name).join(","),
+          acceptedAnswerText: portfolioData.skills.tools.join(","),
         },
       ]}
     />

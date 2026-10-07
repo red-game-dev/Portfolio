@@ -111,7 +111,7 @@ export default function Home() {
       <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
       <Talents
         intro={portfolioData.sections.talents}
-        talents={portfolioData.skills.teamplayer.map((skill) => skill.name)}
+        talents={portfolioData.skills.teamplayer}
         content={portfolioData.talents}
       />
       <CaseStudies

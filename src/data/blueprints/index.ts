@@ -1,5 +1,4 @@
-import type { VentureBlueprintId } from "@/data/blueprints/ventures";
-import type { Blueprint, BlueprintSection } from "@/types/blueprints";
+import type { Blueprint, BlueprintSection, VentureBlueprintId } from "@/types/blueprints";
 
 // Each section's drawings are their own chunk, fetched when the section comes near the screen, so a visit
 // only downloads and parses the drawings it reaches. The labels are small and stay in the page.

@@ -1,4 +1,4 @@
-import { Blueprint } from "@/types/blueprints";
+import { Blueprint, VentureBlueprintId } from "@/types/blueprints";
 
 // My own ventures, named in their map dialogs. Every drawing is a glance, not the full design.
 
@@ -802,13 +802,11 @@ export const CRYPTO_CASINO_BLUEPRINT: Blueprint = {
   ],
 };
 
-export const VENTURE_BLUEPRINTS = {
+export const VENTURE_BLUEPRINTS: Record<VentureBlueprintId, Blueprint> = {
   goz: GOZ_BLUEPRINT,
   amw: AMW_BLUEPRINT,
   arcavium: ARCAVIUM_BLUEPRINT,
   adotta: ADOTTA_BLUEPRINT,
   punti: PUNTI_BLUEPRINT,
   casino: CRYPTO_CASINO_BLUEPRINT,
-} as const;
-
-export type VentureBlueprintId = keyof typeof VENTURE_BLUEPRINTS;
+};

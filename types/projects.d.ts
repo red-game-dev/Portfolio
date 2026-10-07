@@ -1,6 +1,6 @@
 import { FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 
-import type { VentureBlueprintId } from "@/data/blueprints/ventures";
+import type { VentureBlueprintId } from "@/types/blueprints";
 
 // The kind of region a project is on the world map, which sets its colour and its filter.
 export type ProjectKind = "game" | "web3" | "product" | "community" | "archive";

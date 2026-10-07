@@ -26,10 +26,10 @@ describe("skill areas content", () => {
     expect(new Set(items.map(normalise)).size).toBe(items.length);
   });
 
-  test("no item repeats a skill that already has a scored bar", () => {
+  test("no item repeats a skill that already has a station in the forge", () => {
     const scored = new Set(Object.values(portfolioData.skills)
       .flat()
-      .map((skill) => normalise(skill.name)));
+      .map(normalise));
 
     expect(items.filter((item) => scored.has(normalise(item)))).toEqual([]);
   });
@@ -89,8 +89,7 @@ describe("audience views", () => {
   });
 
   test("every skill the recruiter glance names is a skill the forge knows", () => {
-    const known = new Set(Object.values(portfolioData.skills).flat()
-.map((skill) => skill.name));
+    const known = new Set(Object.values(portfolioData.skills).flat());
     const named = portfolioData.lens.glance.recruiter.skillGroups.flatMap((group) => group.names);
 
     expect(named.filter((name) => !known.has(name))).toEqual([]);

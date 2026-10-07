@@ -20,7 +20,6 @@ const placeOf = (title: string) => splitTitle(title).place || title;
 export const createSkillSources = (data: PortfolioData): SkillSource[] => {
   const names = Object.values(data.skills)
     .flat()
-    .map((skill) => skill.name)
     .filter((name) => !SKILL_MENTION_EXCLUDE.includes(name));
 
   return [
@@ -57,7 +56,7 @@ export const createForgeStations = (data: PortfolioData): ForgeStation[] => {
       title: intro.title,
       description: intro.description,
       items: mapper
-        .mapMany(data.skills[key].map((skill) => skill.name))
+        .mapMany(data.skills[key])
         .sort((first, second) => RARITY_ORDER[first.rarity] - RARITY_ORDER[second.rarity] || second.years - first.years || first.name.localeCompare(second.name)),
     };
   });

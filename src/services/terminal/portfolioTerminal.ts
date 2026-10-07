@@ -18,6 +18,7 @@ import { createContactDialog } from "@/services/contact";
 import { createRosterLevels } from "@/services/roster";
 import { createRedCommand } from "@/services/terminal/redCommand";
 import { Audience } from "@/types/case-studies";
+import { SkillGroup } from "@/types/skills";
 
 const GOTO_TARGETS: Record<string, string> = {
   about: SECTION_IDS.about,
@@ -132,10 +133,10 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
       usage: "skills [group]",
       summary: "Skill groups, or every skill in one group",
       run: (args) => {
-        const groups = Object.entries(data.skills).map(([key, skills]) => ({
+        const groups = (Object.entries(data.skills) as Array<[SkillGroup, string[]]>).map(([key, names]) => ({
           key,
-          title: data.sections[key]?.title ?? key,
-          names: skills.map((skill) => skill.name),
+          title: data.sections[key].title,
+          names,
         }));
         const query = args.join(" ");
 
@@ -319,7 +320,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
       name: "languages",
       group: GROUPS.me,
       summary: "Languages I speak",
-      run: () => ({ lines: [output(data.skills.language.map((skill) => skill.name).join(", "))] }),
+      run: () => ({ lines: [output(data.skills.language.join(", "))] }),
     },
     {
       name: "references",

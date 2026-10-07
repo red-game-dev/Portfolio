@@ -13,6 +13,7 @@ import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
 import { scrollBehavior } from "@/packages/accessibility/motion";
+import { scrollToElement } from "@/packages/interaction/scroll-frame";
 import { TerminalDialog as TerminalDialogContent } from "@/packages/interaction/terminal";
 import { createRosterLevels } from "@/services/roster";
 import { CarouselLabels } from "@/types/carousel";
@@ -29,7 +30,13 @@ interface RosterProps extends RosterContent {
 
 const Cards = tw.div`mt-[10px]`;
 
-const goTo = (target: string) => document.getElementById(target)?.scrollIntoView({ behavior: scrollBehavior() });
+const goTo = (target: string) => {
+  const element = document.getElementById(target);
+
+  if (element) {
+    scrollToElement(element, scrollBehavior());
+  }
+};
 
 // The roles I have held as an MMO party, two at a time, and the reader's character select. Level is
 // computed from real dates, never typed in by hand. Picking a character also opens its card, with every

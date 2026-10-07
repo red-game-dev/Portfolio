@@ -9,6 +9,7 @@ import { LensGate } from "@/components/Lens";
 import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 import { portfolioData  } from "@/data/resume";
+import useSettledAnchors from "@/hooks/useSettledAnchors";
 import { createJourneyTrail } from "@/services/journey/trail";
 
 import Footer from "./Footer";
@@ -36,6 +37,8 @@ const LENS_COUNTS = { zones: ZONE_BOUNDARIES.length, bosses: portfolioData.caseS
 
 const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   const { isLoading } = useAppLoaderStateHook();
+
+  useSettledAnchors();
   const { status } = useLensStatusHook();
   // The world starts once the reader has picked a view, so it is built with that view's settings, and runs
   // under the entrance so it is already moving when the page opens.

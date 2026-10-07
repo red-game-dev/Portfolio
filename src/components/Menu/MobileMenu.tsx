@@ -34,6 +34,7 @@ import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
 import useModalDialog from "@/hooks/useModalDialog";
 import { scrollBehavior } from "@/packages/accessibility/motion";
 import { rgbChannels } from "@/packages/graphics/colour";
+import { scrollToElement } from "@/packages/interaction/scroll-frame";
 import { fill } from "@/packages/text/format";
 import { MenuContent } from "@/types/menu";
 
@@ -68,7 +69,12 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
     setIsOpen(false);
     // After the dialog has closed and the page can scroll again.
     window.requestAnimationFrame(() => {
-      document.querySelector(href)?.scrollIntoView({ behavior: scrollBehavior() });
+      const target = document.querySelector(href);
+
+      if (target) {
+        scrollToElement(target, scrollBehavior());
+      }
+
       window.history.replaceState(null, "", href);
     });
   };

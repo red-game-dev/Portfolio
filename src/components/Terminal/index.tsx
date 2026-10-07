@@ -11,6 +11,7 @@ import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import { prefersReducedMotion, scrollBehavior } from "@/packages/accessibility/motion";
+import { scrollToElement, settleAtTop } from "@/packages/interaction/scroll-frame";
 import { TerminalDialog as TerminalDialogContent, TerminalEffect, TerminalLineKind, TerminalSession } from "@/packages/interaction/terminal";
 import { SectionIntros } from "@/types/sections-intros";
 import { TerminalContent } from "@/types/terminal";
@@ -129,10 +130,18 @@ const Suggestion = styled.button(({ isFeatured }: { isFeatured: boolean }) => [
 const FeaturedLabel = tw.span`font-sans font-semibold`;
 
 const scrollToSection = (target: string) => {
+  const element = document.getElementById(target);
+
+  if (!element) {
+    return;
+  }
+
+  // An audience anchor goes through the hash, so the sections filtering on it follow.
   if (target.startsWith("for-")) {
     window.location.hash = target;
+    settleAtTop(element);
   } else {
-    document.getElementById(target)?.scrollIntoView({ behavior: scrollBehavior() });
+    scrollToElement(element, scrollBehavior());
   }
 };
 

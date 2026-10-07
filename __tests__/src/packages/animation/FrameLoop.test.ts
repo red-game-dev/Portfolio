@@ -1,4 +1,4 @@
-import { FrameLoop, ManualScheduler } from "@/packages/animation/frame-loop";
+import { FrameLoop, ManualScheduler, watchFrameBudget } from "@/packages/animation/frame-loop";
 
 class RecordingLoop extends FrameLoop {
   public readonly updates: number[] = [];
@@ -72,6 +72,51 @@ describe("animation/frame-loop", () => {
     loop.isAllowedToStart = false;
     loop.start();
 
+    expect(scheduler.pendingCount).toBe(0);
+  });
+});
+
+describe("watchFrameBudget", () => {
+  const run = (interval: number, frames = 10) => {
+    const scheduler = new ManualScheduler();
+    const onSlow = jest.fn();
+
+    watchFrameBudget(scheduler, { frames, budgetMs: 22, onSlow });
+
+    for (let frame = 0; frame <= frames; frame += 1) {
+      scheduler.tick(frame * interval);
+    }
+
+    return { onSlow, scheduler };
+  };
+
+  it("says nothing on a device that keeps up, and stops watching", () => {
+    const { onSlow, scheduler } = run(16.7);
+
+    expect(onSlow).not.toHaveBeenCalled();
+    expect(scheduler.pendingCount).toBe(0);
+  });
+
+  it("says once when a typical frame runs over budget", () => {
+    expect(run(33).onSlow).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores a single slow frame", () => {
+    const scheduler = new ManualScheduler();
+    const onSlow = jest.fn();
+    const times = [0, 16, 32, 48, 200, 216, 232, 248, 264, 280, 296];
+
+    watchFrameBudget(scheduler, { frames: 10, budgetMs: 22, onSlow });
+    times.forEach((time) => scheduler.tick(time));
+
+    expect(onSlow).not.toHaveBeenCalled();
+  });
+
+  it("can be cancelled", () => {
+    const scheduler = new ManualScheduler();
+    const cancel = watchFrameBudget(scheduler, { onSlow: jest.fn() });
+
+    cancel();
     expect(scheduler.pendingCount).toBe(0);
   });
 });

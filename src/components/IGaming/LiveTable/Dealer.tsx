@@ -29,10 +29,25 @@ const Figure = styled.button(() => [
   tw`relative w-[120px] md:w-[160px] p-0 cursor-pointer bg-transparent border-0`,
   css`
     aspect-ratio: 200 / 240;
+    transition: transform 0.15s ease;
+    touch-action: manipulation;
 
     &:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 4px;
+    }
+
+    /* A tap shows on the dealer herself, as a small press, rather than as a box over her. */
+    &:active {
+      transform: scale(0.96);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+
+      &:active {
+        transform: none;
+      }
     }
   `,
 ]);

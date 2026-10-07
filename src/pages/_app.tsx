@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 
 import { createGlobalStyle } from "styled-components";
-import tw, { theme, GlobalStyles as BaseStyles } from "twin.macro";
+import tw, { GlobalStyles as BaseStyles } from "twin.macro";
 
 import { config } from "@fortawesome/fontawesome-svg-core";
 import { Analytics } from "@vercel/analytics/react";
@@ -18,7 +18,8 @@ config.autoAddCss = false;
 
 const CustomStyles = createGlobalStyle({
   body: {
-    WebkitTapHighlightColor: theme`colors.purple.500`,
+    // No grey or coloured box flashing over whatever is tapped on a phone; buttons show their own pressed state.
+    WebkitTapHighlightColor: "transparent",
     ...tw`antialiased`,
   },
 });

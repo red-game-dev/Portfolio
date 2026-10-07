@@ -3,10 +3,9 @@ import { zoneOf } from "@/components/SwitchStage/zoneOf";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 
 describe("switchEffectFor", () => {
-  it("plays the zone's own effect, or a fade in a view without transitions", () => {
-    expect(switchEffectFor("full", "casino")).toBe("deal");
-    expect(switchEffectFor("soft", "chain")).toBe("blocks");
-    expect(switchEffectFor("none", "casino")).toBe("fade");
+  it("plays the zone's own effect", () => {
+    expect(switchEffectFor("casino")).toBe("deal");
+    expect(switchEffectFor("chain")).toBe("blocks");
   });
 
   it("gives every zone a different effect", () => {

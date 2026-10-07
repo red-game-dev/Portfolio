@@ -25,11 +25,19 @@ interface VisibleProps {
   isVisible: boolean;
 }
 
-// Only where the left margin is wide enough to hold it without covering a section.
+// In the left margin where it is wide enough to hold it without covering a section; elsewhere a compact bar
+// along the bottom, clear of the phone's home indicator.
 const Frame = styled.div(({ isVisible }: VisibleProps) => [
-  tw`fixed left-[20px] bottom-[20px] z-[10] hidden xl:flex flex-row items-center gap-[12px] w-[230px] p-[12px] bg-[rgba(13, 13, 13, 0.92)]
-     border-[1px] border-solid border-[var(--accent-muted)]`,
+  tw`fixed z-[10] flex flex-row items-center gap-[10px] left-[12px] right-[12px] mx-auto max-w-[420px] p-[8px] bg-[rgba(13, 13, 13, 0.94)]
+     border-[1px] border-solid border-[var(--accent-muted)]
+     xl:left-[20px] xl:right-auto xl:mx-0 xl:w-[230px] xl:max-w-none xl:gap-[12px] xl:p-[12px]`,
   css`
+    bottom: max(12px, env(safe-area-inset-bottom));
+
+    @media (min-width: 1280px) {
+      bottom: 20px;
+    }
+
     opacity: 0;
     visibility: hidden;
     transform: translateY(12px);
@@ -49,13 +57,13 @@ const Frame = styled.div(({ isVisible }: VisibleProps) => [
 ]);
 
 const Avatar = styled.span(() => [
-  tw`flex flex-shrink-0 items-center justify-center w-[46px] h-[52px] text-xl text-[#101010] bg-[var(--accent)]`,
+  tw`flex flex-shrink-0 items-center justify-center w-[34px] h-[38px] text-base xl:w-[46px] xl:h-[52px] xl:text-xl text-[#101010] bg-[var(--accent)]`,
   css`
     clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
   `,
 ]);
 
-const Stats = tw.div`flex flex-col gap-[6px] min-w-0 flex-1`;
+const Stats = tw.div`flex flex-col gap-[4px] xl:gap-[6px] min-w-0 flex-1`;
 
 const Name = tw.span`text-sm font-semibold text-white truncate`;
 

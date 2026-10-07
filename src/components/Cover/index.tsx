@@ -39,14 +39,15 @@ const Section = styled.div(() => [
 // Clear of the fixed header at the top.
 const TitleArea = tw.div`relative z-[2] flex flex-1 items-center w-full px-5 pt-[96px] pb-[20px] lg:pt-[140px] lg:pb-[40px]`;
 
-const Essentials = tw.div`relative z-[3] flex flex-col gap-[12px] px-5 pb-[30px] text-left lg:pr-12 lg:ml-[calc(20% + 15px)] lg:pb-[50px]
+// Room at the bottom for the scroll cue, so it never sits on the role chips.
+const Essentials = tw.div`relative z-[3] flex flex-col gap-[12px] px-5 pb-[52px] text-left lg:pr-12 lg:ml-[calc(20% + 15px)] lg:pb-[50px]
 lg:max-w-[780px]`;
 
 const Introduction = styled.h1(() => [
   tw`m-0 text-white break-words text-base lg:text-lg [& > strong]:text-[var(--accent)]`,
 ]);
 
-const Lines = tw.div`hidden md:flex flex-col gap-[4px] text-sm lg:text-base text-[#ddd]`;
+const Lines = tw.div`flex flex-col gap-[4px] text-sm lg:text-base text-[#ddd]`;
 
 const Availability = tw.p`m-0 text-sm text-[var(--accent)]`;
 
@@ -92,9 +93,9 @@ const AudienceLink = styled.a(() => [
   `,
 ]);
 
-// Only on large screens, under the essentials; elsewhere the first screen already ends in the actions.
+// Centred under the essentials on every screen.
 const ScrollerLink = styled(Link)(() => [
-  tw`absolute hidden lg:block w-5 h-5 left-[49.3%] bottom-[10px] z-[2] text-[var(--accent)] text-2xl text-center
+  tw`absolute block w-5 h-5 left-0 right-0 mx-auto bottom-[14px] lg:bottom-[10px] z-[2] text-[var(--accent)] text-2xl text-center
   animate-[scroll-cue 1s ease-out 0s infinite]
   `
 ]);

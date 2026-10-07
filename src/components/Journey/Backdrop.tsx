@@ -2,7 +2,6 @@ import { FC, useEffect, useRef } from "react";
 
 import tw from "twin.macro";
 
-import { LensSettings } from "@/config/lenses";
 import { BACKDROP_THEME, COLORS, TRANSITION_THEME } from "@/config/theme";
 import { ZoneId } from "@/config/zones";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
@@ -12,12 +11,11 @@ import { prefersReducedMotion } from "@/packages/accessibility/motion";
 interface BackdropProps {
   zone: ZoneId;
   isEnabled: boolean;
-  // "soft" crossfades between zones without the transition effects.
-  transitions: LensSettings["transitions"];
 }
 
-// Narrow screens get fewer pixels and frames; the effect is ambient and the battery matters more.
-const NARROW_WIDTH = 768;
+// Every screen starts at full quality; a device whose frames run slow steps down to this sharpness.
+const FULL_PIXEL_RATIO = 1.5;
+const LOW_PIXEL_RATIO = 1;
 // The engine is built a moment after the page settles, so its setup never joins the first long task.
 const START_DELAY_MS = 400;
 
@@ -25,18 +23,16 @@ const Canvas = tw.canvas`fixed inset-0 w-full h-full z-[1] pointer-events-none`;
 
 interface EngineOptions {
   zone: ZoneId;
-  transitions: LensSettings["transitions"];
 }
 
-const createEngine = async (context: CanvasRenderingContext2D, { zone, transitions }: EngineOptions) => {
+const createEngine = async (context: CanvasRenderingContext2D, { zone }: EngineOptions) => {
   const backdrop = await import("@/packages/effects/backdrop");
-  const isNarrow = window.innerWidth < NARROW_WIDTH;
   const { transitionKey } = backdrop;
 
   return new backdrop.BackdropEngine(context, {
     initialScene: zone,
     isStatic: prefersReducedMotion(),
-    config: { background: COLORS.surface, framesPerSecond: isNarrow ? 24 : 30, maxPixelRatio: isNarrow ? 1 : 1.5 },
+    config: { background: COLORS.surface, framesPerSecond: 30, maxPixelRatio: FULL_PIXEL_RATIO },
     scenes: [
       (random) => new backdrop.RainScene(random, BACKDROP_THEME.rain),
       (random) => new backdrop.NeuralScene(random, BACKDROP_THEME.neural),
@@ -44,7 +40,7 @@ const createEngine = async (context: CanvasRenderingContext2D, { zone, transitio
       (random) => new backdrop.CasinoScene(random, BACKDROP_THEME.casino),
       (random) => new backdrop.EmberScene(random, BACKDROP_THEME.ember),
     ],
-    transitions: transitions !== "full" ? {} : {
+    transitions: {
       [transitionKey("matrix", "ai")]: (random) => new backdrop.CollapseTransition(random, TRANSITION_THEME.collapse),
       [transitionKey("ai", "chain")]: () => new backdrop.BlockSnapTransition(TRANSITION_THEME.snap),
       [transitionKey("chain", "casino")]: (random) => new backdrop.ChipFlipTransition(random, TRANSITION_THEME.flip),
@@ -60,11 +56,14 @@ const wait = (ms: number) => new Promise((resolve) => {
 // One fixed canvas behind every section. It shows through the margins and gaps between panels, and moves
 // between scenes as the reader crosses from one zone to the next. It stops while a dialog or the intro
 // holds the page, since nothing of it shows then.
-export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled, transitions }: BackdropProps) => {
+export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled }: BackdropProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isHeld = usePageHeld();
   // Read when the engine is finally built, which can be after the zone has already changed.
   const zoneRef = useRef(zone);
+  // Lowered once if the device cannot keep up, and kept for every resize after.
+  const pixelRatioCap = useRef(FULL_PIXEL_RATIO);
+  const hasCheckedBudget = useRef(false);
 
   zoneRef.current = zone;
 
@@ -76,10 +75,10 @@ export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled, transitions }: Ba
     create: async (context) => {
       await wait(START_DELAY_MS);
 
-      return createEngine(context, { zone: zoneRef.current, transitions });
+      return createEngine(context, { zone: zoneRef.current });
     },
-    resize: (backdrop, { width, height, pixelRatio }) => backdrop.resize(width, height, pixelRatio),
-  }, [transitions]);
+    resize: (backdrop, { width, height, pixelRatio }) => backdrop.resize(width, height, Math.min(pixelRatio, pixelRatioCap.current)),
+  }, []);
 
   useEffect(() => {
     if (!engine) {
@@ -97,6 +96,41 @@ export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled, transitions }: Ba
   useEffect(() => {
     engine?.setScene(zone);
   }, [engine, zone]);
+
+  // The first time it runs, it watches the frame rate for a moment: a phone that cannot hold it gets fewer
+  // pixels from then on, and every other device keeps full quality.
+  useEffect(() => {
+    if (!engine || isHeld || hasCheckedBudget.current) {
+      return;
+    }
+
+    let cancel = () => undefined as void;
+    let isGone = false;
+
+    void import("@/packages/animation/frame-loop").then(({ AnimationFrameScheduler, watchFrameBudget }) => {
+      if (isGone) {
+        return;
+      }
+
+      hasCheckedBudget.current = true;
+      cancel = watchFrameBudget(new AnimationFrameScheduler(), {
+        onSlow: () => {
+          const canvas = canvasRef.current;
+
+          pixelRatioCap.current = LOW_PIXEL_RATIO;
+
+          if (canvas) {
+            engine.resize(canvas.clientWidth, canvas.clientHeight, LOW_PIXEL_RATIO);
+          }
+        },
+      });
+    });
+
+    return () => {
+      isGone = true;
+      cancel();
+    };
+  }, [engine, isHeld]);
 
   return <Canvas ref={canvasRef} aria-hidden="true" />;
 };

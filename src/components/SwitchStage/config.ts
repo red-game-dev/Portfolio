@@ -1,4 +1,3 @@
-import { LensSettings } from "@/config/lenses";
 import { ZoneId } from "@/config/zones";
 
 // How long a switch plays.
@@ -10,9 +9,9 @@ export const PIXEL_GRID = { columns: 16, rows: 8 } as const;
 
 // Each universe switches content its own way. AI: a neural beam scans the new content in. Web3: blocks
 // confirm one after another in a diagonal wave. Casino: the content is dealt and flipped like a card.
-// Game world: a retro pixel dissolve. Engineering: a terminal refreshes top to bottom. The quick view just
-// fades; reduced motion just swaps.
-export type SwitchEffect = "beam" | "blocks" | "deal" | "pixels" | "scan" | "fade";
+// Game world: a retro pixel dissolve. Engineering: a terminal refreshes top to bottom. Reduced motion just
+// swaps.
+export type SwitchEffect = "beam" | "blocks" | "deal" | "pixels" | "scan";
 
 export const ZONE_EFFECTS: Record<ZoneId, SwitchEffect> = {
   ai: "beam",
@@ -22,5 +21,5 @@ export const ZONE_EFFECTS: Record<ZoneId, SwitchEffect> = {
   matrix: "scan",
 };
 
-// The effect a switch plays: its zone's, or a plain fade in a view without zone transitions.
-export const switchEffectFor = (transitions: LensSettings["transitions"], zone: ZoneId): SwitchEffect => (transitions === "none" ? "fade" : ZONE_EFFECTS[zone]);
+// The effect a switch plays: the one of the zone it sits in.
+export const switchEffectFor = (zone: ZoneId): SwitchEffect => ZONE_EFFECTS[zone];

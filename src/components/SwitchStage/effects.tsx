@@ -4,7 +4,6 @@ import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import { BLOCK_GRID, PIXEL_GRID, SWITCH_MS, SwitchEffect } from "@/components/SwitchStage/config";
-import { fadeIn } from "@/styles/keyframes";
 
 const wipeIn = keyframes`
   0% { opacity: 0; clip-path: inset(0 var(--from-right) 0 var(--from-left)); filter: blur(6px) saturate(1.6); transform: scale(0.99); }
@@ -65,11 +64,6 @@ const CONTENT = "& > :not([data-switch-fx])";
 
 export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) => [
   tw`relative`,
-  effect === "fade" && css`
-    ${CONTENT} {
-      animation: ${fadeIn} 0.3s ease both;
-    }
-  `,
   effect === "beam" && css`
     ${CONTENT} {
       animation: ${wipeIn} ${SWITCH_MS}ms cubic-bezier(0.2, 0.7, 0.2, 1) both;

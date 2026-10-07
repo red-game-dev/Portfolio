@@ -105,7 +105,8 @@ const Name = tw.span`block text-lg md:text-xl font-semibold text-white leading-t
 
 const Tagline = tw.span`block text-sm text-[#aaa]`;
 
-const Stats = tw.span`hidden sm:grid grid-cols-[auto 1fr] gap-x-[10px] gap-y-[5px] items-center text-xs text-[#888]`;
+// On every screen, so a phone gets the character select too.
+const Stats = tw.span`grid grid-cols-[auto 1fr] gap-x-[10px] gap-y-[4px] sm:gap-y-[5px] items-center text-xs text-[#888]`;
 
 const Pips = tw.span`flex flex-row gap-[3px]`;
 

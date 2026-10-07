@@ -3,23 +3,8 @@ import { FC } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { BLOCK_GRID, PIXEL_GRID, SWITCH_MS } from "@/components/SwitchStage/config";
-import { ZoneId } from "@/config/zones";
+import { BLOCK_GRID, PIXEL_GRID, SWITCH_MS, SwitchEffect } from "@/components/SwitchStage/config";
 import { fadeIn } from "@/styles/keyframes";
-
-// Each universe switches content its own way. AI: a neural beam scans the new content in. Web3: blocks
-// confirm one after another in a diagonal wave. Casino: the content is dealt and flipped like a card.
-// Game world: a retro pixel dissolve. Engineering: a terminal refreshes top to bottom. The quick view just
-// fades; reduced motion just swaps.
-export type SwitchEffect = "beam" | "blocks" | "deal" | "pixels" | "scan" | "fade";
-
-export const ZONE_EFFECTS: Record<ZoneId, SwitchEffect> = {
-  ai: "beam",
-  chain: "blocks",
-  casino: "deal",
-  mmo: "pixels",
-  matrix: "scan",
-};
 
 const wipeIn = keyframes`
   0% { opacity: 0; clip-path: inset(0 var(--from-right) 0 var(--from-left)); filter: blur(6px) saturate(1.6); transform: scale(0.99); }

@@ -7,6 +7,7 @@ import { faCodeBranch } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { FilterChip } from "@/components/Controls";
+import { branchToCheckout, byStartDescending, industryMatches, matchesPerBranch, splitBranches } from "@/components/History/branches";
 import { VENTURE_COLOUR } from "@/components/History/config";
 import { HistoryEntry } from "@/components/History/HistoryEntry";
 import { Panel, PanelTitle } from "@/components/Panel";
@@ -17,7 +18,6 @@ import { industryAnchor, SECTION_IDS } from "@/config/sections";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
 import useTabs from "@/hooks/useTabs";
-import { toMonthIndex } from "@/packages/insights/career";
 import { fill } from "@/packages/text/format";
 import { fadeIn } from "@/styles/keyframes";
 import { IndustryLink } from "@/types/headline";
@@ -167,32 +167,20 @@ const MoreNode = styled.span(() => [
 
 const MoreText = tw.p`m-0 p-[14px] text-sm text-[#bbb] bg-[#0d0d0d] border-[1px] border-dashed border-[#5c4a26]`;
 
-const byStartDescending = (entries: Resume[]) => [...entries].sort((first, second) => toMonthIndex(second.from) - toMonthIndex(first.from));
-
 // My history as a commit graph, with two branches to check out: the work I was hired for, and the companies I
 // founded or co-founded. Switching runs a git checkout and the branch's commits land one by one.
 export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, education, labels, industries }: HistoryProps) => {
   const workRef = useRef<HTMLOListElement>(null);
   const foundedRef = useRef<HTMLOListElement>(null);
   const educationRef = useRef<HTMLOListElement>(null);
-  const sortedExperience = useMemo(() => byStartDescending(experience), [experience]);
   const branches = useMemo(() => {
-    const work = sortedExperience.filter((entry) => !entry.isVenture);
-    const founded = sortedExperience.filter((entry) => entry.isVenture);
+    const names = {
+      main: { label: labels.workTab, branch: labels.workBranch, ref: workRef },
+      venture: { label: labels.foundedTab, branch: labels.foundedBranch, ref: foundedRef },
+    };
 
-    return [
-      { label: labels.workTab, branch: labels.workBranch, lane: "main" as const, entries: work, count: work.length, unlisted: 0, ref: workRef },
-      {
-        label: labels.foundedTab,
-        branch: labels.foundedBranch,
-        lane: "venture" as const,
-        entries: founded,
-        count: Math.max(foundedTotal, founded.length),
-        unlisted: Math.max(0, foundedTotal - founded.length),
-        ref: foundedRef,
-      },
-    ];
-  }, [foundedTotal, labels, sortedExperience]);
+    return splitBranches(experience, foundedTotal).map((branch) => ({ ...branch, ...names[branch.lane] }));
+  }, [experience, foundedTotal, labels]);
   const [checkouts, setCheckouts] = useState(0);
   const onSelect = useCallback(() => setCheckouts((count) => count + 1), []);
   const { active, select, listProps, tabProps, panelProps } = useTabs({ count: branches.length, onSelect });
@@ -201,18 +189,14 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
   const industryKeys = useMemo(() => industries.map((link) => link.industry), [industries]);
   const [industry, setIndustry] = useIndustryFromHash(industryKeys);
   const selected = industries.find((link) => link.industry === industry);
-  const matches = industry ? sortedExperience.filter((entry) => entry.industries?.includes(industry)).length : 0;
-  const matchesPerBranch = branches.map((branch) => (industry ? branch.entries.filter((entry) => entry.industries?.includes(industry)).length : branch.count));
+  const matches = industryMatches(branches, industry);
+  const branchMatches = matchesPerBranch(branches, industry);
 
   // An industry with nothing on the open branch checks out the branch that has it.
   useEffect(() => {
-    if (!industry || matchesPerBranch[active] > 0) {
-      return;
-    }
+    const target = industry ? branchToCheckout(branchMatches, active) : null;
 
-    const target = matchesPerBranch.findIndex((count) => count > 0);
-
-    if (target >= 0) {
+    if (target !== null) {
       select(target);
     }
     // Only when the industry changes: the reader may still pick the empty branch afterwards.
@@ -258,7 +242,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
                 <Tab key={branch.branch} {...tabProps(index)} isOn={index === active}>
                   <FontAwesomeIcon icon={faCodeBranch} aria-hidden="true" />
                   {branch.label}
-                  <TabCount isOn={index === active} aria-hidden="true">{matchesPerBranch[index]}</TabCount>
+                  <TabCount isOn={index === active} aria-hidden="true">{branchMatches[index]}</TabCount>
                 </Tab>
               ))}
             </TabList>

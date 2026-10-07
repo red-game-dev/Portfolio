@@ -11,7 +11,8 @@ interface SquaresProps {
 
 // One square per pull request: 6px squares on an 8px pitch.
 const PITCH = 8;
-const DEFAULT_COLUMNS = 48;
+// Narrow until the grid has measured itself, so the first paint never pushes past a phone's width.
+const MIN_COLUMNS = 10;
 
 // Squares are painted by two gradients over a solid fill, so even 500 of them are two elements, not 500.
 const squares = css`
@@ -21,7 +22,7 @@ const squares = css`
 `;
 
 const Grid = styled.div(() => [
-  tw`relative w-full`,
+  tw`relative w-full min-w-0 overflow-hidden`,
   css`
     clip-path: inset(0 0 calc((1 - var(--squares-progress, 0)) * 100%) 0);
 
@@ -40,7 +41,7 @@ const ReadableText = tw.span`sr-only`;
 // The grid fills from the top as the reader scrolls past it.
 export const Squares: FC<SquaresProps> = ({ count, label }: SquaresProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
-  const [columns, setColumns] = useState(DEFAULT_COLUMNS);
+  const [columns, setColumns] = useState(MIN_COLUMNS);
 
   useScrollProgressVar(gridRef, "--squares-progress", 0.85);
 
@@ -51,7 +52,7 @@ export const Squares: FC<SquaresProps> = ({ count, label }: SquaresProps) => {
       return;
     }
 
-    const observer = new ResizeObserver(() => setColumns(Math.max(10, Math.floor(grid.clientWidth / PITCH))));
+    const observer = new ResizeObserver(() => setColumns(Math.max(MIN_COLUMNS, Math.floor(grid.clientWidth / PITCH))));
 
     observer.observe(grid);
 

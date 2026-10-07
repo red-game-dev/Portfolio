@@ -23,7 +23,8 @@ const Scope = tw.p`m-0 mb-[20px] text-sm text-[#999] max-w-[70ch]`;
 
 const Totals = tw.div`grid gap-[18px] md:grid-cols-2`;
 
-const Total = tw.div`flex flex-col gap-[10px] p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
+// min-w-0: a grid item otherwise grows to fit the squares it holds, and the squares then measure that.
+const Total = tw.div`flex flex-col gap-[10px] min-w-0 p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
 const Label = tw.h3`m-0 text-base font-semibold text-white`;
 

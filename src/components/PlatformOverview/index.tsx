@@ -10,7 +10,7 @@ import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useTabs from "@/hooks/useTabs";
-import { BlueprintLabels, BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
+import { BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
 import { ExpertiseContent } from "@/types/case-studies";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -19,7 +19,6 @@ interface PlatformOverviewProps {
   expertise: ExpertiseContent;
   // Which drawings this section shows, fetched as it nears the screen.
   blueprintSection: BlueprintSectionId;
-  blueprintLabels: BlueprintLabels;
 }
 
 const Groups = tw.div`mt-[25px] lg:mt-[35px] mb-[25px] flex flex-col gap-[14px]`;
@@ -53,7 +52,7 @@ const Kind = tw.li`text-xs leading-none text-white bg-[#161616] rounded-[2px] py
 // Expertise across the career: each tile is a kind of system built at several companies, grouped by kind
 // under tabs, and my own platform follows as one worked example, not the only one. Every group stays in
 // the page, the closed ones hidden.
-export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, blueprintSection, blueprintLabels }: PlatformOverviewProps) => {
+export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, blueprintSection }: PlatformOverviewProps) => {
   const switcher = useSwitch();
   const { play } = switcher;
   const onSelect = useCallback((next: number, previous: number) => play(next > previous ? 1 : -1), [play]);
@@ -101,7 +100,7 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
       <PanelText>{expertise.exampleDescription}</PanelText>
     </Panel>
     <Example>
-      <BlueprintSection section={blueprintSection} labels={blueprintLabels} />
+      <BlueprintSection section={blueprintSection} />
     </Example>
   </Section>
   );

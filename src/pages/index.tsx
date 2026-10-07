@@ -1,6 +1,7 @@
 import { About } from "@/components/About";
 import { AiUsage } from "@/components/AiUsage";
 import { Arena } from "@/components/Arena";
+import { BlueprintLabelsProvider } from "@/components/Blueprint/context";
 import { CaseStudies } from "@/components/CaseStudies";
 import { CodeReview } from "@/components/CodeReview";
 import { Cover } from "@/components/Cover";
@@ -35,115 +36,113 @@ const hireDialogs = createHireDialogs(portfolioData);
 export default function Home() {
   return (
     <Layout title={portfolioData.details.name}>
-      <Cover
-        intro={portfolioData.intro}
-        image={portfolioData.cover}
-        typingsTitles={portfolioData.typingsTitles}
-        headline={portfolioData.headline}
-        cvUrl={portfolioData.cv}
-        email={portfolioData.details.email}
-      />
-      <Glance
-        content={portfolioData.lens.glance}
-        details={portfolioData.details}
-        headline={portfolioData.headline}
-        experience={portfolioData.experience}
-        roster={portfolioData.roster}
-        stations={forgeStations}
-        cvUrl={portfolioData.cv}
-      />
-      <About
-        {...portfolioData.details}
-        linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
-        cvUrl={portfolioData.cv}
-        github={portfolioData.github}
-        stackoverflow={portfolioData.stackoverflow}
-      />
-      <Terminal
-        intro={portfolioData.sections.terminal}
-        content={portfolioData.terminal}
-        createSession={createPortfolioTerminal}
-      />
-      <Services
-        groups={portfolioData.serviceGroups}
-        actions={portfolioData.serviceActions}
-        intro={portfolioData.sections.services}
-        email={portfolioData.details.email}
-        linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
-        productGroup={portfolioData.lens.productServiceGroup}
-      />
-      <History
-        intro={portfolioData.sections.history}
-        experience={portfolioData.experience}
-        foundedTotal={portfolioData.foundedTotal}
-        education={portfolioData.education}
-        labels={portfolioData.historyLabels}
-        industries={portfolioData.headline.industries}
-      />
-      <AiUsage {...aiUsage} blueprintSection="ai" blueprintLabels={portfolioData.blueprintLabels} />
-      <Web3
-        intro={portfolioData.sections.web3}
-        content={portfolioData.web3}
-        blueprintSection="chain"
-        blueprintLabels={portfolioData.blueprintLabels}
-      />
-      <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
-      <PlatformOverview
-        intro={portfolioData.sections.platform}
-        expertise={portfolioData.expertise}
-        blueprintSection="platform"
-        blueprintLabels={portfolioData.blueprintLabels}
-      />
-      <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
-      <IGaming
-        intro={portfolioData.sections.igaming}
-        content={portfolioData.igaming}
-        blueprintSection="casino"
-        blueprintLabels={portfolioData.blueprintLabels}
-      />
-      <Roster
-        intro={portfolioData.sections.roster}
-        {...portfolioData.roster}
-        hireDialogs={hireDialogs}
-        carouselLabels={portfolioData.carouselLabels}
-        closeLabel={portfolioData.terminal.red.labels.close}
-      />
-      <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
-      <Talents
-        intro={portfolioData.sections.talents}
-        talents={portfolioData.skills.teamplayer}
-        content={portfolioData.talents}
-      />
-      <CaseStudies
-        caseStudies={portfolioData.caseStudies}
-        intro={portfolioData.sections.caseStudies}
-        filters={portfolioData.caseStudyFilters}
-        industries={portfolioData.headline.industries}
-        labels={portfolioData.bossLabels}
-        caseLabels={portfolioData.lens.caseLabels}
-        carouselLabels={portfolioData.carouselLabels}
-      />
-      <Duels intro={portfolioData.sections.duels} {...portfolioData.duels} />
-      <Projects
-        projects={portfolioData.projects}
-        intro={portfolioData.sections.projects}
-        content={portfolioData.projectMap}
-        blueprintLabels={portfolioData.blueprintLabels}
-      />
-      <EngineRoom intro={portfolioData.sections.engineRoom} blueprintSection="mmo" labels={portfolioData.blueprintLabels} />
-      <Recommendations
-        intro={portfolioData.sections.recommendations}
-        recommendations={portfolioData.recommendations}
-      />
-      <Arena intro={portfolioData.sections.arena} content={portfolioData.arena} />
-      <Finale
-        content={portfolioData.finale}
-        bossCount={portfolioData.caseStudies.length}
-        duelCount={portfolioData.duels.rounds.length}
-        email={portfolioData.details.email}
-        linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
-        cvUrl={portfolioData.cv}
-      />
+      <BlueprintLabelsProvider labels={portfolioData.blueprintLabels}>
+        <Cover
+          intro={portfolioData.intro}
+          image={portfolioData.cover}
+          typingsTitles={portfolioData.typingsTitles}
+          headline={portfolioData.headline}
+          cvUrl={portfolioData.cv}
+          email={portfolioData.details.email}
+        />
+        <Glance
+          content={portfolioData.lens.glance}
+          details={portfolioData.details}
+          headline={portfolioData.headline}
+          experience={portfolioData.experience}
+          roster={portfolioData.roster}
+          stations={forgeStations}
+          cvUrl={portfolioData.cv}
+        />
+        <About
+          {...portfolioData.details}
+          linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
+          cvUrl={portfolioData.cv}
+          github={portfolioData.github}
+          stackoverflow={portfolioData.stackoverflow}
+        />
+        <Terminal
+          intro={portfolioData.sections.terminal}
+          content={portfolioData.terminal}
+          createSession={createPortfolioTerminal}
+        />
+        <Services
+          groups={portfolioData.serviceGroups}
+          actions={portfolioData.serviceActions}
+          intro={portfolioData.sections.services}
+          email={portfolioData.details.email}
+          linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
+          productGroup={portfolioData.lens.productServiceGroup}
+        />
+        <History
+          intro={portfolioData.sections.history}
+          experience={portfolioData.experience}
+          foundedTotal={portfolioData.foundedTotal}
+          education={portfolioData.education}
+          labels={portfolioData.historyLabels}
+          industries={portfolioData.headline.industries}
+        />
+        <AiUsage {...aiUsage} blueprintSection="ai" />
+        <Web3
+          intro={portfolioData.sections.web3}
+          content={portfolioData.web3}
+          blueprintSection="chain"
+        />
+        <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
+        <PlatformOverview
+          intro={portfolioData.sections.platform}
+          expertise={portfolioData.expertise}
+          blueprintSection="platform"
+        />
+        <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
+        <IGaming
+          intro={portfolioData.sections.igaming}
+          content={portfolioData.igaming}
+          blueprintSection="casino"
+        />
+        <Roster
+          intro={portfolioData.sections.roster}
+          {...portfolioData.roster}
+          hireDialogs={hireDialogs}
+          carouselLabels={portfolioData.carouselLabels}
+          closeLabel={portfolioData.terminal.red.labels.close}
+        />
+        <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
+        <Talents
+          intro={portfolioData.sections.talents}
+          talents={portfolioData.skills.teamplayer}
+          content={portfolioData.talents}
+        />
+        <CaseStudies
+          caseStudies={portfolioData.caseStudies}
+          intro={portfolioData.sections.caseStudies}
+          filters={portfolioData.caseStudyFilters}
+          industries={portfolioData.headline.industries}
+          labels={portfolioData.bossLabels}
+          caseLabels={portfolioData.lens.caseLabels}
+          carouselLabels={portfolioData.carouselLabels}
+        />
+        <Duels intro={portfolioData.sections.duels} {...portfolioData.duels} />
+        <Projects
+          projects={portfolioData.projects}
+          intro={portfolioData.sections.projects}
+          content={portfolioData.projectMap}
+        />
+        <EngineRoom intro={portfolioData.sections.engineRoom} blueprintSection="mmo" />
+        <Recommendations
+          intro={portfolioData.sections.recommendations}
+          recommendations={portfolioData.recommendations}
+        />
+        <Arena intro={portfolioData.sections.arena} content={portfolioData.arena} />
+        <Finale
+          content={portfolioData.finale}
+          bossCount={portfolioData.caseStudies.length}
+          duelCount={portfolioData.duels.rounds.length}
+          email={portfolioData.details.email}
+          linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
+          cvUrl={portfolioData.cv}
+        />
+      </BlueprintLabelsProvider>
     </Layout>
   );
 }

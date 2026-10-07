@@ -11,7 +11,7 @@ import { Stack } from "@/components/Web3/Stack";
 import { TxFlow } from "@/components/Web3/TxFlow";
 import { blockHash, GENESIS_HASH } from "@/components/Web3/utils/blockHash";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
-import { BlueprintLabels, BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
+import { BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
 import { Web3Content } from "@/types/domains";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -20,7 +20,6 @@ interface Web3Props {
   content: Web3Content;
   // Which drawings this section shows, fetched as it nears the screen.
   blueprintSection: BlueprintSectionId;
-  blueprintLabels: BlueprintLabels;
 }
 
 const Statement = tw.p`m-0 text-base md:text-lg text-white max-w-[70ch]`;
@@ -34,7 +33,7 @@ const Blueprints = tw.div`mt-[25px] lg:mt-[35px]`;
 const Chain = tw.ol`list-none m-0 p-0 grid gap-[14px] md:grid-cols-2`;
 
 // Web3 as a chain of blocks: every capability is a block that points at the one before it.
-export const Web3: FC<Web3Props> = ({ intro, content, blueprintSection, blueprintLabels }: Web3Props) => {
+export const Web3: FC<Web3Props> = ({ intro, content, blueprintSection }: Web3Props) => {
   const hashes = useMemo(() => content.capabilities.map((capability) => blockHash(capability.name)), [content.capabilities]);
 
   return (
@@ -65,7 +64,7 @@ export const Web3: FC<Web3Props> = ({ intro, content, blueprintSection, blueprin
         </Chain>
       </Panel>
       <Blueprints>
-        <BlueprintSection section={blueprintSection} labels={blueprintLabels} />
+        <BlueprintSection section={blueprintSection} />
       </Blueprints>
     </Section>
   );

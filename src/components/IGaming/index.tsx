@@ -13,7 +13,7 @@ import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
 import useLoaded from "@/hooks/useLoaded";
-import { BlueprintLabels, BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
+import { BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
 import { IGamingContent } from "@/types/domains";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -22,7 +22,6 @@ interface IGamingProps {
   content: IGamingContent;
   // Which drawings this section shows, fetched as it nears the screen.
   blueprintSection: BlueprintSectionId;
-  blueprintLabels: BlueprintLabels;
 }
 
 interface DealtProps {
@@ -102,7 +101,7 @@ const QuoteSource = tw.cite`block mt-[6px] text-xs not-italic text-[#999]`;
 const loadLiveTable = () => import("@/components/IGaming/LiveTable").then((module) => module.LiveTable);
 
 // iGaming as a live table: each capability is a card, played from your hand onto the felt.
-export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection, blueprintLabels }: IGamingProps) => {
+export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection }: IGamingProps) => {
   const cardsRef = useRef<HTMLUListElement>(null);
   const isDealt = useInView(cardsRef, { threshold: 0.2 });
   // With the game layer the cards are played at a live table; the quick view deals them straight out.
@@ -147,7 +146,7 @@ export const IGaming: FC<IGamingProps> = ({ intro, content, blueprintSection, bl
         </Footer>
       </Table>
       <Blueprints>
-        <BlueprintSection section={blueprintSection} labels={blueprintLabels} />
+        <BlueprintSection section={blueprintSection} />
       </Blueprints>
     </Section>
   );

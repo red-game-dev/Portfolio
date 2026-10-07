@@ -43,12 +43,10 @@ import {
 import { ScreenCarousel } from "@/components/Projects/ScreenCarousel";
 import useModalDialog from "@/hooks/useModalDialog";
 import { collapseWhitespace } from "@/packages/text/format";
-import { BlueprintLabels } from "@/types/blueprints";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
 
 interface RegionDialogProps {
   project: ProjectDetail | null;
-  blueprintLabels: BlueprintLabels;
   previous: ProjectDetail | null;
   next: ProjectDetail | null;
   content: ProjectMapContent;
@@ -59,7 +57,7 @@ interface RegionDialogProps {
 }
 
 export const RegionDialog: FC<RegionDialogProps> = ({
-  project, blueprintLabels, previous, next, content, period, onClose, onPrevious, onNext,
+  project, previous, next, content, period, onClose, onPrevious, onNext,
 }: RegionDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const { labels } = content;
@@ -166,7 +164,7 @@ export const RegionDialog: FC<RegionDialogProps> = ({
                   />
                 </>
               )}
-              <VentureBlueprint key={project.title} id={project.deepDive.blueprintId} labels={blueprintLabels} />
+              <VentureBlueprint key={project.title} id={project.deepDive.blueprintId} />
             </Deep>
           )}
           <Footer>

@@ -108,7 +108,7 @@ const Gate = () => (
   <AppLoaderProvider>
     <AppLoader />
     <LensProvider>
-      <LensGate content={portfolioData.lens} counts={{ zones: 5, bosses: 3 }} />
+      <LensGate content={portfolioData.lens} counts={{ zones: 5, bosses: 3 }} candidate={{ name: "Red", role: "Architect", checks: ["Available now"] }} />
       <Probe />
     </LensProvider>
   </AppLoaderProvider>

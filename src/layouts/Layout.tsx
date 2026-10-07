@@ -35,6 +35,13 @@ const TRAIL = { sections: createJourneyTrail(portfolioData), labels: portfolioDa
 
 const LENS_COUNTS = { zones: ZONE_BOUNDARIES.length, bosses: portfolioData.caseStudies.length };
 
+// The recruiter's entrance shows me as a candidate, from the facts the page states.
+const LENS_CANDIDATE = {
+  name: portfolioData.details.name,
+  role: portfolioData.headline.roles[0]?.label ?? portfolioData.details.intro,
+  checks: portfolioData.details.facts,
+};
+
 const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   const { isLoading } = useAppLoaderStateHook();
 
@@ -47,7 +54,7 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   return (
     <>
       <AppLoader />
-      <LensGate content={portfolioData.lens} counts={LENS_COUNTS} />
+      <LensGate content={portfolioData.lens} counts={LENS_COUNTS} candidate={LENS_CANDIDATE} />
       <Container>
         <Header
           title={title}

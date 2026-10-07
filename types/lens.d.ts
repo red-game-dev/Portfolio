@@ -39,6 +39,13 @@ export interface HireLens {
   skillGroups: SkillPick[];
 }
 
+// Who the recruiter's entrance shows: taken from the details on the page, so every tick is a real fact.
+export interface EntranceCandidate {
+  name: string;
+  role: string;
+  checks: string[];
+}
+
 export interface RecruiterGlanceContent {
   title: string;
   description: string;
@@ -119,7 +126,8 @@ export interface LensContent {
   // The service group the product view puts first.
   productServiceGroup: string;
   entrances: {
-    recruiter: { title: string };
+    // A candidate card moving through a recruiter's pipeline, its facts ticked on the way, stamped at the end.
+    recruiter: { title: string; stages: string[]; stamp: string };
     product: { title: string; stages: RoadmapStage[] };
     engineer: { lines: string[]; granted: string };
   };

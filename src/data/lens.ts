@@ -227,7 +227,7 @@ export const lensContent: LensContent = {
   },
   productServiceGroup: "Product & Growth",
   entrances: {
-    recruiter: { title: "Opening the facts" },
+    recruiter: { title: "A candidate worth a look", stages: ["Sourced", "Screened", "Shortlisted"], stamp: "Shortlisted" },
     product: {
       title: "Plotting the roadmap",
       stages: [

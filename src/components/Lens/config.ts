@@ -9,7 +9,11 @@ export const LENS_SPRITES: Record<Lens, SpriteArt> = {
 
 // How long each entrance takes. Reduced motion skips straight to the exit.
 export const ENTRANCE_TIMING = {
-  recruiterMs: 650,
+  // The recruiter's candidate card: in, a tick per fact, the stamp, then a moment to read it.
+  recruiterIntroMs: 250,
+  recruiterCheckMs: 220,
+  recruiterStampMs: 350,
+  recruiterHoldMs: 700,
   productStageMs: 480,
   productHoldMs: 700,
   engineerLineMs: 360,

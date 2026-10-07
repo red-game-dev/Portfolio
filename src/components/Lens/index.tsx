@@ -14,11 +14,12 @@ import { loadEntrance } from "@/components/Lens/loaders";
 import { DEFAULT_LENS, Lens } from "@/config/lenses";
 import useModalDialog from "@/hooks/useModalDialog";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
-import { LensContent } from "@/types/lens";
+import { EntranceCandidate, LensContent } from "@/types/lens";
 
 interface LensGateProps {
   content: LensContent;
   counts: { zones: number; bosses: number };
+  candidate: EntranceCandidate;
 }
 
 interface LeavingProps {
@@ -110,7 +111,7 @@ const Cards = tw.div`grid gap-[12px] md:gap-[20px] w-full max-w-[1080px] md:grid
 
 // Before the page: the reader picks who they are, like a character select, and that view's entrance plays.
 // Returning readers and ?view= links never see this; the header switch changes the view from then on.
-export const LensGate: FC<LensGateProps> = ({ content, counts }: LensGateProps) => {
+export const LensGate: FC<LensGateProps> = ({ content, counts, candidate }: LensGateProps) => {
   const { lens, switchLens } = useLensStateHook();
   const { status, chooseLens, finishEntrance } = useLensStatusHook();
   const { isLoading } = useAppLoaderStateHook();
@@ -211,7 +212,7 @@ export const LensGate: FC<LensGateProps> = ({ content, counts }: LensGateProps) 
                 </Cards>
               </Chooser>
             ) : (
-              <Entrance lens={lens} content={content.entrances} counts={counts} onDone={leave} />
+              <Entrance lens={lens} content={content.entrances} counts={counts} candidate={candidate} onDone={leave} />
             )}
           </Screen>
         </Shell>

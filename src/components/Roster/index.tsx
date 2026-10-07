@@ -7,7 +7,7 @@ import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel } from "@/components/Panel";
 import { CharacterCard } from "@/components/Roster/CharacterCard";
-import { TerminalDialog } from "@/components/Terminal/TerminalDialog";
+import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
@@ -81,7 +81,7 @@ export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters, hireD
           />
         </Cards>
       </Panel>
-      <TerminalDialog dialog={dialog} closeLabel={closeLabel} onClose={() => setDialog(null)} onNavigate={goTo} />
+      {dialog && <LazyTerminalDialog dialog={dialog} closeLabel={closeLabel} onClose={() => setDialog(null)} onNavigate={goTo} />}
     </Section>
   );
 };

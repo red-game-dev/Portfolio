@@ -3,7 +3,7 @@ import { FC, useEffect, useMemo, useState } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { Panel } from "@/components/Panel";
-import { RegionDialog } from "@/components/Projects/RegionDialog";
+import { LazyRegionDialog } from "@/components/Projects/LazyRegionDialog";
 import { WorldMap } from "@/components/Projects/WorldMap";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS } from "@/config/sections";
@@ -81,7 +81,8 @@ export const Projects: FC<ProjectsProps> = ({ projects, intro, content, blueprin
       <Panel>
         <WorldMap projects={ordered} activeKind={activeKind} describe={describe} hint={labels.hint} undatedLabel={labels.undated} onOpen={setOpenIndex} />
       </Panel>
-      <RegionDialog
+      {open && (
+        <LazyRegionDialog
         project={open}
         blueprintLabels={blueprintLabels}
         previous={openIndex !== null && openIndex > 0 ? ordered[openIndex - 1] : null}
@@ -91,7 +92,8 @@ export const Projects: FC<ProjectsProps> = ({ projects, intro, content, blueprin
         onClose={() => setOpenIndex(null)}
         onPrevious={() => setOpenIndex((index) => (index === null ? null : Math.max(0, index - 1)))}
         onNext={() => setOpenIndex((index) => (index === null ? null : Math.min(ordered.length - 1, index + 1)))}
-      />
+        />
+      )}
     </Section>
   );
 };

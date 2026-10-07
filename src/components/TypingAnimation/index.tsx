@@ -1,9 +1,10 @@
-import { FC, Fragment, useMemo } from "react";
+import { FC, Fragment, useMemo, useRef } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import { useTypewriter } from "@/components/TypingAnimation/hooks/useTypewriter";
+import useInView from "@/hooks/useInView";
 
 interface TypingAnimationProps {
   // Phrases with the highlighted part in <strong>, as written in the content.
@@ -89,16 +90,22 @@ const renderSegments = (segments: Segment[], typed?: number, caret?: JSX.Element
 const TypingAnimation: FC<TypingAnimationProps> = ({ typingData }: TypingAnimationProps) => {
   const phrases = useMemo(() => typingData.map(toSegments), [typingData]);
   const lengths = useMemo(() => phrases.map((segments) => segments.reduce((total, segment) => total + segment.text.length, 0)), [phrases]);
-  const { index, typed } = useTypewriter(lengths);
+  const stackRef = useRef<HTMLParagraphElement>(null);
+  // Stops typing while the cover is scrolled away, and carries on from the same letter on the way back.
+  const isOnScreen = useInView(stackRef, { once: false, threshold: 0 });
+  const { index, typed } = useTypewriter(lengths, isOnScreen);
   const current = phrases[index] ?? [];
+  // The same every keystroke, so React skips them while the visible line changes.
+  const sizers = useMemo(() => phrases.map((segments, phrase) => (
+    <Sizer key={phrase} aria-hidden="true">{renderSegments(segments)}</Sizer>
+  )), [phrases]);
+  const spoken = useMemo(() => phrases.map((segments) => segments.map((segment) => segment.text).join("")).join(". "), [phrases]);
 
   return (
-    <Stack id="typing-title">
-      {phrases.map((segments, phrase) => (
-        <Sizer key={phrase} aria-hidden="true">{renderSegments(segments)}</Sizer>
-      ))}
+    <Stack ref={stackRef} id="typing-title">
+      {sizers}
       <span aria-hidden="true">{renderSegments(current, typed, <Caret />)}</span>
-      <Screen>{phrases.map((segments) => segments.map((segment) => segment.text).join("")).join(". ")}</Screen>
+      <Screen>{spoken}</Screen>
     </Stack>
   );
 };

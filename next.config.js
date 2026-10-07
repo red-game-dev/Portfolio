@@ -13,6 +13,10 @@ module.exports = withBundleAnalyzer({
   sassOptions: {
     includePaths: [join(__dirname, 'src/styles')],
   },
+  images: {
+    // 55 is for pictures shown blurred, such as the cover, where a lighter encode costs nothing visible.
+    qualities: [55, 75],
+  },
   i18n: {
     locales: ["en"],
     defaultLocale: "en",

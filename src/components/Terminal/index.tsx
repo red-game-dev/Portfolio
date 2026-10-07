@@ -6,7 +6,7 @@ import tw, { css, styled } from "twin.macro";
 import { faStar } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { TerminalDialog } from "@/components/Terminal/TerminalDialog";
+import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { TerminalDialog as TerminalDialogContent, TerminalEffect, TerminalLineKind, TerminalSession } from "@/packages/interaction/terminal";
@@ -292,15 +292,17 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
           );
         })}
       </Suggestions>
-      <TerminalDialog
-        dialog={dialog}
-        closeLabel={content.red.labels.close}
-        onClose={() => {
-          setDialog(null);
-          inputRef.current?.focus({ preventScroll: true });
-        }}
-        onNavigate={scrollToSection}
-      />
+      {dialog && (
+        <LazyTerminalDialog
+          dialog={dialog}
+          closeLabel={content.red.labels.close}
+          onClose={() => {
+            setDialog(null);
+            inputRef.current?.focus({ preventScroll: true });
+          }}
+          onNavigate={scrollToSection}
+        />
+      )}
     </Section>
   );
 };

@@ -8,7 +8,7 @@ import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontaw
 
 import useAnimationProgress from "@/hooks/useAnimationProgress";
 import useInView from "@/hooks/useInView";
-import { activityStats, DayRange } from "@/packages/insights/activity";
+import { activityStats, ActivityStats, DayRange } from "@/packages/insights/activity";
 import { CodeReviewContent, GithubActivity } from "@/types/code-review";
 
 interface ActivityProps {
@@ -28,6 +28,8 @@ const LEVEL_OPACITY = [0, 0.3, 0.5, 0.75, 1];
 // The run: each year's row is scanned in, one after another, then the achievements unlock in turn.
 const SWEEP_MS = 1100;
 const ROW_STAGGER_MS = 260;
+// How long the badge numbers take to count up.
+const COUNT_MS = 900;
 const UNLOCK_STAGGER_MS = 140;
 
 const Box = tw.div`flex flex-col gap-[14px] mt-[18px] p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
@@ -206,6 +208,53 @@ interface Achievement {
   text: string;
 }
 
+interface AchievementsProps {
+  stats: ActivityStats;
+  achievements: ActivityProps["achievements"];
+  isShown: boolean;
+  // When the first badge unlocks, once the years have loaded in.
+  unlockAt: number;
+}
+
+// The badges unlock one after another once the years have loaded, their numbers counting up meanwhile. The
+// count is clocked here, so only the badges re-render while it runs, never the year grids.
+const Achievements: FC<AchievementsProps> = ({ stats, achievements, isShown, unlockAt }: AchievementsProps) => {
+  const counted = useAnimationProgress(isShown, COUNT_MS, unlockAt);
+  const list: Achievement[] = [
+    { icon: faFire, value: stats.longestDayStreak, text: achievements.dayStreak },
+    { icon: faCalendarCheck, value: stats.longestWeekStreak, text: achievements.weekStreak },
+    { icon: faBolt, value: stats.activeDays, text: achievements.activeDays },
+    ...(stats.perfectWeeks > 0 ? [{ icon: faCrown, value: stats.perfectWeeks, text: achievements.perfectWeeks }] : []),
+  ];
+  const busiest = stats.busiestMonth;
+
+  return (
+    <Badges>
+      {list.map((item, order) => {
+        const [before, after = ""] = item.text.split("{n}");
+
+        return (
+          <Badge key={item.text} isShown={isShown} delay={unlockAt + order * UNLOCK_STAGGER_MS}>
+            <Medal aria-hidden="true"><FontAwesomeIcon icon={item.icon} /></Medal>
+            <BadgeText>
+              <BadgeValue aria-hidden="true">{`${before}${Math.round(item.value * counted)}${after}`}</BadgeValue>
+              <Spoken>{item.text.replace("{n}", String(item.value))}</Spoken>
+            </BadgeText>
+          </Badge>
+        );
+      })}
+      {busiest && (
+        <Badge isShown={isShown} delay={unlockAt + list.length * UNLOCK_STAGGER_MS}>
+          <Medal aria-hidden="true"><FontAwesomeIcon icon={faTrophy} /></Medal>
+          <BadgeText>
+            {achievements.busiestMonth.replace("{month}", achievements.months[busiest.month]).replace("{year}", String(busiest.year))}
+          </BadgeText>
+        </Badge>
+      )}
+    </Badges>
+  );
+};
+
 // Every day on GitHub for the years shown, as a run: each row loads in, its longest streak lights up, and
 // the streaks and records unlock as achievements. The shading is GitHub's own bucketing; no counts.
 export const Activity: FC<ActivityProps> = ({ activity, title, description, yearLabel, achievements }: ActivityProps) => {
@@ -218,17 +267,6 @@ export const Activity: FC<ActivityProps> = ({ activity, title, description, year
     streak: toStreakPath(year, stats.yearStreaks[year] ?? null),
   })), [activity.years, stats]);
   const unlockAt = (rows.length - 1) * ROW_STAGGER_MS + SWEEP_MS;
-  // Numbers count up while the badges unlock.
-  const progress = useAnimationProgress(isShown, unlockAt + 900);
-  const counted = (value: number) => Math.round(value * Math.min(1, Math.max(0, (progress * (unlockAt + 900) - unlockAt) / 900)));
-
-  const list: Achievement[] = [
-    { icon: faFire, value: stats.longestDayStreak, text: achievements.dayStreak },
-    { icon: faCalendarCheck, value: stats.longestWeekStreak, text: achievements.weekStreak },
-    { icon: faBolt, value: stats.activeDays, text: achievements.activeDays },
-    ...(stats.perfectWeeks > 0 ? [{ icon: faCrown, value: stats.perfectWeeks, text: achievements.perfectWeeks }] : []),
-  ];
-  const busiest = stats.busiestMonth;
 
   return (
     <Box>
@@ -258,29 +296,7 @@ export const Activity: FC<ActivityProps> = ({ activity, title, description, year
       </div>
       <Legend>{achievements.streakLegend}</Legend>
       <AchievementsTitle>{achievements.title}</AchievementsTitle>
-      <Badges>
-        {list.map((item, order) => {
-          const [before, after = ""] = item.text.split("{n}");
-
-          return (
-            <Badge key={item.text} isShown={isShown} delay={unlockAt + order * UNLOCK_STAGGER_MS}>
-              <Medal aria-hidden="true"><FontAwesomeIcon icon={item.icon} /></Medal>
-              <BadgeText>
-                <BadgeValue aria-hidden="true">{`${before}${counted(item.value)}${after}`}</BadgeValue>
-                <Spoken>{item.text.replace("{n}", String(item.value))}</Spoken>
-              </BadgeText>
-            </Badge>
-          );
-        })}
-        {busiest && (
-          <Badge isShown={isShown} delay={unlockAt + list.length * UNLOCK_STAGGER_MS}>
-            <Medal aria-hidden="true"><FontAwesomeIcon icon={faTrophy} /></Medal>
-            <BadgeText>
-              {achievements.busiestMonth.replace("{month}", achievements.months[busiest.month]).replace("{year}", String(busiest.year))}
-            </BadgeText>
-          </Badge>
-        )}
-      </Badges>
+      <Achievements stats={stats} achievements={achievements} isShown={isShown} unlockAt={unlockAt} />
     </Box>
   );
 };

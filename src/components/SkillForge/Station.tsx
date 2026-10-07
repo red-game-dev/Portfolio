@@ -131,10 +131,10 @@ const formatMeta = (content: ForgeContent, years: number, months: number, places
 export const Station: FC<StationProps> = ({ id, title, description, items, content }: StationProps) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const isActive = useInView(panelRef, { threshold: 0.15 });
-  const progress = useAnimationProgress(isActive, REFINE_MS);
-  const masks = useMemo(() => items.map((item) => toBinaryMask(item.name)), [items]);
-  // Skill names only decode in the full view; the others read them straight away.
+  // Skill names only decode in the full view; the others read them straight away, with no clock running.
   const isPlain = useLensStateHook().settings.decode !== "all";
+  const progress = useAnimationProgress(isActive && !isPlain, REFINE_MS);
+  const masks = useMemo(() => items.map((item) => toBinaryMask(item.name)), [items]);
 
   return (
     <Panel id={id} ref={panelRef}>

@@ -12,6 +12,31 @@ interface InViewOptions {
   rootMargin?: string;
 }
 
+export type InViewMode = "replay" | "once" | "follow";
+
+export const inViewModeOf = (once: boolean | undefined): InViewMode => {
+  if (once === undefined) {
+    return "replay";
+  }
+
+  return once ? "once" : "follow";
+};
+
+// Whether the element counts as in view after an observation, given whether it did before. Past the
+// threshold always counts; a replay stays on while any of it is still on screen; once stays on for good.
+export const nextInView = (mode: InViewMode, entry: Pick<IntersectionObserverEntry, "isIntersecting" | "intersectionRatio">, threshold: number, wasInView: boolean) => {
+  const isPast = entry.isIntersecting && entry.intersectionRatio >= threshold;
+
+  switch (mode) {
+    case "once":
+      return wasInView || isPast;
+    case "follow":
+      return isPast;
+    default:
+      return isPast || (wasInView && entry.isIntersecting);
+  }
+};
+
 // IntersectionObserver based, so it costs nothing while scrolling.
 export default function useInView<TElement extends Element>(ref: RefObject<TElement>, { threshold = 0.25, once, rootMargin = "0px" }: InViewOptions = {}) {
   const [isInView, setIsInView] = useState(false);
@@ -29,29 +54,17 @@ export default function useInView<TElement extends Element>(ref: RefObject<TElem
       return;
     }
 
-    const isReplay = once === undefined;
+    const mode = inViewModeOf(once);
+    let wasInView = false;
+    // A replay also hears about the element leaving entirely, not only about it crossing the threshold.
     const observer = new IntersectionObserver(([entry]) => {
-      if (isReplay) {
-        if (entry.isIntersecting && entry.intersectionRatio >= threshold) {
-          setIsInView(true);
-        } else if (!entry.isIntersecting) {
-          setIsInView(false);
-        }
+      wasInView = nextInView(mode, entry, threshold, wasInView);
+      setIsInView(wasInView);
 
-        return;
-      }
-
-      if (!once) {
-        setIsInView(entry.isIntersecting);
-
-        return;
-      }
-
-      if (entry.isIntersecting) {
-        setIsInView(true);
+      if (mode === "once" && wasInView) {
         observer.disconnect();
       }
-    }, { threshold: isReplay ? [0, threshold] : threshold, rootMargin });
+    }, { threshold: mode === "replay" ? [0, threshold] : threshold, rootMargin });
 
     observer.observe(element);
 

@@ -94,8 +94,8 @@ export const cvDocumentContent: Pick<PortfolioData, "cvDocument"> = {
     skillsLabel: "Skills, with years of use",
     skills: [
       { label: "AI and machine learning", names: ["PyTorch", "TensorFlow", "Python", "ChatGPT / GPT-4"] },
-      { label: "Languages", names: ["Typescript", "Javascript", "C/C++", "C#, .NET", "Rust", "Solidity", "Kotlin", "SQL"] },
-      { label: "Platforms", names: ["NodeJS", "NestJS", "React", "NextJs", "Vue", "React Native", "PostgreSQL", "Redis"] },
+      { label: "Languages", names: ["TypeScript", "JavaScript", "C/C++", "C#, .NET", "Rust", "Solidity", "Kotlin", "SQL"] },
+      { label: "Platforms", names: ["Node.js", "NestJS", "React", "Next.js", "Vue", "React Native", "PostgreSQL", "Redis"] },
       { label: "Cloud and delivery", names: ["AWS", "GCP", "Cloudflare", "Docker", "GKE / Kubernetes", "CI/CD", "Code Review"] },
     ],
     educationLabel: "Education",

@@ -73,7 +73,7 @@ const Heading = tw.h2`m-0 mb-[5px] pb-[2px] text-[10.5pt] font-bold text-[#1f6b4
 
 const Paragraph = tw.p`m-0 mb-[4px]`;
 
-const List = tw.ul`m-0 pl-[14px]`;
+const List = tw.ul`m-0 pl-[16px] list-disc`;
 
 const Item = tw.li`mb-[2px]`;
 

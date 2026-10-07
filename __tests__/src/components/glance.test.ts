@@ -22,10 +22,10 @@ describe("glance helpers", () => {
   });
 
   test("skills keep the order asked for, take the forge's years and drop anything under a year", () => {
-    const stations = [station([["React", 9], ["Golang", 0]]), station([["Typescript", 9]])];
+    const stations = [station([["React", 9], ["Golang", 0]]), station([["TypeScript", 9]])];
 
-    expect(pickSkillYears(stations, ["Typescript", "Golang", "React", "Unknown"])).toEqual([
-      { name: "Typescript", years: 9 },
+    expect(pickSkillYears(stations, ["TypeScript", "Golang", "React", "Unknown"])).toEqual([
+      { name: "TypeScript", years: 9 },
       { name: "React", years: 9 },
     ]);
   });

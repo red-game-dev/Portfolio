@@ -694,7 +694,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
         "Projects from every phase, starting about six years before college",
         "Still growing: new experiments land here alongside my roles",
       ],
-      techStack: ["ReactJS", "Unity", "Angular", "C/C++", "PHP", "NodeJS", "Flutter", "Python", "Astro", "SVN"],
+      techStack: ["ReactJS", "Unity", "Angular", "C/C++", "PHP", "Node.js", "Flutter", "Python", "Astro", "SVN"],
       link: "https://drive.google.com/drive/folders/0B1gPxpJpFGW5SGhXeS1pTzA4Tmc?resourcekey=0-amvzxbZpCBhf7bV-GVUmTg&usp=share_link",
       from: "2003",
     },

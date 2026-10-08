@@ -4,10 +4,8 @@ export interface TimelapseMilestone {
   label: string;
 }
 
-// The time-lapse of this site's codebase growing, in "How I use AI".
+// The time-lapse of this site's codebase growing, its own section after the finale; its intro is in the sections.
 export interface TimelapseContent {
-  title: string;
-  description: string[];
   show: string;
   hide: string;
   // The facts shown above the city, for readers who want the numbers.

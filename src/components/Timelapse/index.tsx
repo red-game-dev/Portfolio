@@ -1,35 +1,39 @@
 import { FC, useState } from "react";
 
-import tw, { styled } from "twin.macro";
-
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { actionStyle } from "@/components/Controls";
-import { Panel, PanelTitle } from "@/components/Panel";
+import { ActionButton } from "@/components/Controls";
+import { Panel } from "@/components/Panel";
+import { Section } from "@/components/Section";
+import { SectionText } from "@/components/Text/SectionText";
 import { RepoTimelapse } from "@/components/Timelapse/RepoTimelapse";
+import { SECTION_IDS } from "@/config/sections";
+import { SectionIntros } from "@/types/sections-intros";
 import { TimelapseContent } from "@/types/timelapse";
 
-const Description = tw.p`m-0 mt-[10px] text-sm text-[#bbb] max-w-[70ch]`;
+interface TimelapseProps {
+  intro: SectionIntros;
+  content: TimelapseContent;
+}
 
-const Toggle = styled.button(() => [actionStyle(false), tw`mt-[16px]`]);
+const BODY = `${SECTION_IDS.timelapse}-body`;
 
-const ID = "repo-timelapse";
-
-// The repo time-lapse, closed until a reader who likes the numbers opens it: nothing of it, not even its history,
-// loads before then.
-export const Timelapse: FC<TimelapseContent> = (content: TimelapseContent) => {
+// The last section, after the finale, for readers who liked the site: its own history as a time-lapse, closed
+// until they open it, so nothing of it, not even the history, loads before then.
+export const Timelapse: FC<TimelapseProps> = ({ intro, content }: TimelapseProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Panel>
-      <PanelTitle>{content.title}</PanelTitle>
-      {content.description.map((paragraph) => <Description key={paragraph}>{paragraph}</Description>)}
-      <Toggle type="button" aria-expanded={isOpen} aria-controls={ID} onClick={() => setIsOpen((open) => !open)}>
-        <FontAwesomeIcon icon={isOpen ? faChevronUp : faChevronDown} aria-hidden="true" />
-        {isOpen ? content.hide : content.show}
-      </Toggle>
-      <div id={ID}>{isOpen && <RepoTimelapse {...content} />}</div>
-    </Panel>
+    <Section id={SECTION_IDS.timelapse}>
+      <SectionText intro={intro} />
+      <Panel>
+        <ActionButton type="button" isPrimary={false} aria-expanded={isOpen} aria-controls={BODY} onClick={() => setIsOpen((open) => !open)}>
+          <FontAwesomeIcon icon={isOpen ? faChevronUp : faChevronDown} aria-hidden="true" />
+          {isOpen ? content.hide : content.show}
+        </ActionButton>
+        <div id={BODY}>{isOpen && <RepoTimelapse {...content} />}</div>
+      </Panel>
+    </Section>
   );
 };

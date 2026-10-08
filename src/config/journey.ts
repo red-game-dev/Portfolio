@@ -32,5 +32,5 @@ export const JOURNEY_STOPS: JourneyStop[] = [
   stop("engineering", "chain", SECTION_IDS.skillAreas, SECTION_IDS.codeReview),
   stop("igaming", "casino", SECTION_IDS.igaming, SECTION_IDS.igaming),
   stop("game", "mmo", SECTION_IDS.roster, SECTION_IDS.arena),
-  stop("beyond", "beyond", SECTION_IDS.finale, SECTION_IDS.finale),
+  stop("beyond", "beyond", SECTION_IDS.finale, SECTION_IDS.timelapse),
 ];

@@ -30,4 +30,5 @@ export const createJourneyTrail = (data: PortfolioData): TrailSection[] => [
   { id: SECTION_IDS.recommendations, title: data.sections.recommendations.title },
   { id: SECTION_IDS.arena, title: data.sections.arena.title },
   { id: SECTION_IDS.finale, title: data.finale.kicker },
+  { id: SECTION_IDS.timelapse, title: data.sections.timelapse.title },
 ];

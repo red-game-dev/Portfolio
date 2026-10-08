@@ -298,5 +298,15 @@ export const sectionsContent: Pick<PortfolioData, "sections"> = {
         "Lines from my reference letters from Authentic Gaming and reNFT, attributed by role. A reference from KPMG is available on request.",
       ],
     },
+    // After the finale, for readers who stayed: the site's own history as a time-lapse they can open.
+    timelapse: {
+      title: "Like the site?",
+      description: [
+        "Watch it being built: every commit since the first, replayed as a city that grows. Each building is a part of the codebase, " +
+          "as tall as its lines of code.",
+        "The site started in 2022 and sat mostly still until 2026. The rebuild came after, with agents working under the rules, " +
+          "checks and reviews described in How I use AI.",
+      ],
+    },
   },
 };

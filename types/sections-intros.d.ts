@@ -11,6 +11,7 @@ export interface SectionIntros {
 
 // Every section with an intro, including one per skill group for the forge's stations.
 export type SectionIntroKey = SkillGroup | "terminal" | "history" | "services" | "aiUsage" | "skillAreas" | "caseStudies" | "web3"
-  | "igaming" | "codeReview" | "platform" | "engineRoom" | "arena" | "duels" | "forge" | "talents" | "roster" | "projects" | "recommendations";
+  | "igaming" | "codeReview" | "platform" | "engineRoom" | "arena" | "duels" | "forge" | "talents" | "roster" | "projects" | "recommendations"
+  | "timelapse";
 
 export type SectionIntroMap = Record<SectionIntroKey, SectionIntros>;

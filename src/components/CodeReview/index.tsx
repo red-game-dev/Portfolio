@@ -10,16 +10,13 @@ import { Squares } from "@/components/CodeReview/Squares";
 import { Panel } from "@/components/Panel";
 import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
-import { Timelapse } from "@/components/Timelapse";
 import { SECTION_IDS } from "@/config/sections";
 import { CodeReviewContent } from "@/types/code-review";
 import { SectionIntros } from "@/types/sections-intros";
-import { TimelapseContent } from "@/types/timelapse";
 
 interface CodeReviewProps {
   intro: SectionIntros;
   content: CodeReviewContent;
-  timelapse: TimelapseContent;
 }
 
 const Scope = tw.p`m-0 mb-[20px] text-sm text-[#999] max-w-[70ch]`;
@@ -49,7 +46,6 @@ const Link = styled.a(() => [
 
 const Muted = tw.p`m-0 text-sm text-[#aaa]`;
 
-const TimelapseGap = tw.div`mt-[25px] lg:mt-[35px]`;
 
 const Quote = styled.blockquote(() => [
   tw`m-0 pl-[12px] text-sm italic text-[#ddd]`,
@@ -76,9 +72,8 @@ const Point = styled.li(() => [
 ]);
 
 // Pull requests merged and reviewed on my main account, drawn one square each with no totals, a year by
-// year activity chart, then a library my own platform depends on and everything else; and, for readers who like
-// the numbers, this site's own history as a time-lapse they can open.
-export const CodeReview: FC<CodeReviewProps> = ({ intro, content, timelapse }: CodeReviewProps) => (
+// year activity chart, then a library my own platform depends on and everything else.
+export const CodeReview: FC<CodeReviewProps> = ({ intro, content }: CodeReviewProps) => (
   <Section id={SECTION_IDS.codeReview}>
     <SectionText intro={intro} />
     <Panel>
@@ -121,8 +116,5 @@ export const CodeReview: FC<CodeReviewProps> = ({ intro, content, timelapse }: C
         ))}
       </Highlights>
     </Panel>
-    <TimelapseGap>
-      <Timelapse {...timelapse} />
-    </TimelapseGap>
   </Section>
 );

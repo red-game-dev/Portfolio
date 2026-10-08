@@ -20,6 +20,7 @@ import { SkillAreas } from "@/components/SkillAreas";
 import { SkillForge } from "@/components/SkillForge";
 import { Talents } from "@/components/Talents";
 import { Terminal } from "@/components/Terminal";
+import { Timelapse } from "@/components/Timelapse";
 import { Web3 } from "@/components/Web3";
 import { portfolioData } from "@/data/resume";
 import Layout from "@/layouts/Layout";
@@ -96,7 +97,7 @@ export default function Home() {
           expertise={portfolioData.expertise}
           blueprintSection="platform"
         />
-        <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} timelapse={portfolioData.timelapse} />
+        <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
         <IGaming
           intro={portfolioData.sections.igaming}
           content={portfolioData.igaming}
@@ -147,6 +148,7 @@ export default function Home() {
           linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
           cvUrl={portfolioData.cv}
         />
+        <Timelapse intro={portfolioData.sections.timelapse} content={portfolioData.timelapse} />
       </BlueprintLabelsProvider>
     </Layout>
   );

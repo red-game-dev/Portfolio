@@ -69,6 +69,13 @@ const ContactLink = tw.a`text-[#444] no-underline`;
 
 const Block = tw.section`mt-[12px]`;
 
+// A short block printed whole, so its heading never sits alone at the foot of a page.
+const KeptBlock = styled(Block)(() => [
+  css`
+    break-inside: avoid;
+  `,
+]);
+
 const Heading = tw.h2`m-0 mb-[5px] pb-[2px] text-[10.5pt] font-bold text-[#1f6b47] border-0 border-b-[1px] border-solid border-[#d8d8d8]`;
 
 const Paragraph = tw.p`m-0 mb-[4px]`;
@@ -166,7 +173,7 @@ export default function Resume() {
           ))}
           <Muted>{cv.moreVentures}</Muted>
         </Block>
-        <Block>
+        <KeptBlock>
           <Heading>{cv.skillsLabel}</Heading>
           {cv.skills.map((line) => (
             <Paragraph key={line.label}>
@@ -174,15 +181,15 @@ export default function Resume() {
               {line.names.map(withYears).join(", ")}
             </Paragraph>
           ))}
-        </Block>
-        <Block>
+        </KeptBlock>
+        <KeptBlock>
           <Heading>{cv.educationLabel}</Heading>
           {cv.education.map((line) => <Paragraph key={line}>{line}</Paragraph>)}
           <Paragraph>
             <strong>{cv.languagesLabel}: </strong>
             {cv.languages}
           </Paragraph>
-        </Block>
+        </KeptBlock>
       </Sheet>
       <ScreenActions>
         <PrintButton type="button" onClick={() => window.print()}>{cv.printLabel}</PrintButton>

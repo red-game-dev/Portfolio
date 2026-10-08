@@ -80,6 +80,7 @@ export const SKILL_FIRST_USED: Record<string, string> = {
   Laravel: "Jan 2018",
   // The earliest use on record is KPMG; my own products came after, so nothing counts before it.
   PyTorch: "Feb 2019",
+  TensorFlow: "Feb 2019",
 };
 
 // Which skill groups are forge stations, in order. Languages and team skills are talents instead.

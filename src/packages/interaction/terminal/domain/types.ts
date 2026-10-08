@@ -30,7 +30,9 @@ export type TerminalEffect =
   | { type: "clear" }
   | { type: "navigate"; target: string }
   | { type: "open"; url: string }
-  | { type: "dialog"; dialog: TerminalDialog };
+  | { type: "dialog"; dialog: TerminalDialog }
+  // A question for the host to answer in its own time, quickly or in depth, printing the answer when it has it.
+  | { type: "ask"; question: string; depth: "quick" | "deep" };
 
 export interface CommandResult {
   lines: TerminalLine[];

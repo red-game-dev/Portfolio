@@ -1,3 +1,6 @@
+import { AskSourceKey } from "@/config/ask";
+import { AskErrorCode } from "@/packages/ai/ask";
+
 // Something a visitor can ask me to do, such as "red migrate app". Services and case studies are named by
 // their titles, so the answer always points at real content on the page.
 export interface TerminalIntent {
@@ -40,6 +43,29 @@ export interface TerminalRed {
   intents: TerminalIntent[];
 }
 
+// The agent behind "ask": an AI that answers from the site's own content.
+export interface TerminalAsk {
+  summary: string;
+  usage: string;
+  // Shown under the usage, each after "ask ".
+  examples: string[];
+  deeperSummary: string;
+  thinking: string;
+  thinkingDeeper: string;
+  // Printed before the first answer of a visit.
+  notice: string;
+  // "{model}" is replaced with the model that answered.
+  answeredBy: string;
+  nothingToDeepen: string;
+  deeperLabel: string;
+  stopLabel: string;
+  sourcesLabel: string;
+  answeringLabel: string;
+  errors: Record<AskErrorCode, string>;
+  // The name each source is shown under, as a link to its section.
+  sources: Record<AskSourceKey, string>;
+}
+
 export interface TerminalContent {
   prompt: string;
   welcome: string[];
@@ -60,4 +86,5 @@ export interface TerminalContent {
     subject: string;
   };
   red: TerminalRed;
+  ask: TerminalAsk;
 }

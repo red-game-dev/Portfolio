@@ -223,6 +223,23 @@ export const caseStudiesContent: Pick<PortfolioData, "caseStudyFilters" | "caseS
       loot: "Every open choice becomes a numbered decision",
     },
     {
+      domain: "ai",
+      area: "Agentic engineering",
+      title: "This site, built with agents and accepted like production",
+      summary: ["This portfolio is built with Claude Code inside rules I wrote, and nothing ships until the deployed preview proves it."],
+      points: [
+        "320+ commits and 390+ tests across 57 suites, from game simulations to the content itself",
+        "A context file of hard rules the agent reads first, and a memory of one fact per file that carries across sessions",
+        "Content is typed data: tests fail when a drawing names an employer, a skill claims years no role backs, or an eval asks for a fact the site does not state",
+        "Accepted on the deployed preview only: Playwright drives it at phone and desktop width and reads the console for hydration errors no type check sees",
+        "Packages are kept free of React by a lint rule, so an agent cannot couple them to the page",
+        "The agent in the terminal answers from the same data on Gemini, Claude or OpenAI behind one adapter each, with evals for grounding and prompt injection",
+      ],
+      tags: ["Claude Code", "Context engineering", "Evals"],
+      audiences: ["ai"],
+      loot: "An agent is only as good as the checks it cannot skip",
+    },
+    {
       domain: "web3",
       area: "Web3 and mobile",
       title: "Fan tokens for 1.5M+ users in 167 countries",

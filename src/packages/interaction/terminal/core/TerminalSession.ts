@@ -67,6 +67,11 @@ export class TerminalSession {
     return result.effect;
   }
 
+  // Prints lines that arrive later than the command that asked for them, such as a streamed answer.
+  public print(lines: TerminalLine[]): void {
+    this.append(lines);
+  }
+
   // Walks back and forth through what was typed, like the up and down arrows in a shell.
   public recall(direction: "previous" | "next"): string {
     if (this.history.length === 0) {

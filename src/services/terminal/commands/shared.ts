@@ -15,6 +15,7 @@ export const GROUPS = {
   work: "See the work",
   contact: "Get in touch",
   red: "Ask me to do it",
+  ask: "Ask my agent",
   around: "Get around",
   fun: "Just for fun",
   terminal: "Terminal",

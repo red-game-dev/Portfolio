@@ -30,6 +30,25 @@ describe("portfolio terminal", () => {
     expect(session.execute("cv")).toEqual({ type: "open", url: "/cv/redeemer-pace-cv.pdf" });
   });
 
+  test("ask hands the question to the page, and deeper asks the same one again in depth", () => {
+    const session = createPortfolioTerminal();
+
+    expect(session.execute("deeper")).toBeUndefined();
+    expect(session.output[session.output.length - 1].kind).toBe("error");
+    expect(session.execute("ask")).toBeUndefined();
+    expect(session.execute("ask what did red build at kpmg?")).toEqual({ type: "ask", question: "what did red build at kpmg?", depth: "quick" });
+    expect(session.execute("deeper")).toEqual({ type: "ask", question: "what did red build at kpmg?", depth: "deep" });
+  });
+
+  test("an answer printed later joins the output", () => {
+    const session = createPortfolioTerminal();
+    const before = session.output.length;
+
+    session.print([{ kind: "output", text: "Red built it." }]);
+
+    expect(session.output.slice(before)).toEqual([{ kind: "output", text: "Red built it." }]);
+  });
+
   test("an unknown command points back to help", () => {
     const session = createPortfolioTerminal();
 
@@ -118,7 +137,7 @@ describe("portfolio commands", () => {
   test("help lists the groups in their order", () => {
     const order = [...new Set(commands.map((command) => command.group))];
 
-    expect(order).toEqual([GROUPS.red, GROUPS.me, GROUPS.work, GROUPS.contact, GROUPS.around, GROUPS.fun]);
+    expect(order).toEqual([GROUPS.red, GROUPS.ask, GROUPS.me, GROUPS.work, GROUPS.contact, GROUPS.around, GROUPS.fun]);
   });
 });
 

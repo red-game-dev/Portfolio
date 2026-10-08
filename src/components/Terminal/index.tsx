@@ -9,10 +9,22 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Section } from "@/components/Section";
 import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
+import { ASK_HISTORY_TURNS, type AskSourceKey } from "@/config/ask";
 import { SECTION_IDS } from "@/config/sections";
 import { prefersReducedMotion, scrollBehavior } from "@/packages/accessibility/motion";
+import type { AskDepth, AskErrorCode, AskTurn } from "@/packages/ai/ask";
 import { scrollToElement, settleAtTop } from "@/packages/interaction/scroll-frame";
-import { TerminalDialog as TerminalDialogContent, TerminalEffect, TerminalLineKind, TerminalSession } from "@/packages/interaction/terminal";
+import {
+  error,
+  output,
+  system,
+  TerminalDialog as TerminalDialogContent,
+  TerminalEffect,
+  TerminalLine,
+  TerminalLineKind,
+  TerminalSession
+} from "@/packages/interaction/terminal";
+import { fill } from "@/packages/text/format";
 import { SectionIntros } from "@/types/sections-intros";
 import { TerminalContent } from "@/types/terminal";
 
@@ -129,6 +141,38 @@ const Suggestion = styled.button(({ isFeatured }: { isFeatured: boolean }) => [
 
 const FeaturedLabel = tw.span`font-sans font-semibold`;
 
+const blink = keyframes`
+  50% { opacity: 0; }
+`;
+
+// The cursor at the end of an answer still being written.
+const Caret = styled.span(() => [
+  tw`inline-block w-[7px] h-[1em] ml-[2px] align-text-bottom bg-[var(--accent)]`,
+  css`
+    animation: ${blink} 1s steps(1) infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  `,
+]);
+
+const FollowUps = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[14px]`;
+
+const SourcesLabel = tw.span`text-xs text-[#888]`;
+
+// What is being answered right now, while it streams in.
+interface Asking {
+  depth: AskDepth;
+  text: string;
+}
+
+// What the reader can do after an answer: ask for more, or go to the sections it came from.
+interface FollowUp {
+  sources: AskSourceKey[];
+  canDeepen: boolean;
+}
+
 const scrollToSection = (target: string) => {
   const element = document.getElementById(target);
 
@@ -167,7 +211,81 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
   const [pendingDialog, setPendingDialog] = useState<TerminalDialogContent | null>(null);
   const [dialog, setDialog] = useState<TerminalDialogContent | null>(null);
   const [hasRunFeatured, setHasRunFeatured] = useState(false);
+  const [asking, setAsking] = useState<Asking | null>(null);
+  const [followUp, setFollowUp] = useState<FollowUp | null>(null);
+  const askHistory = useRef<AskTurn[]>([]);
+  const askController = useRef<AbortController | null>(null);
+  const hasShownNotice = useRef(false);
   const total = session.output.length;
+
+  const isSource = (key: string): key is AskSourceKey => key in content.ask.sources;
+
+  // Lines that arrive after their command are shown at once: they already streamed in as the answer.
+  const printNow = (lines: TerminalLine[]) => {
+    session.print(lines);
+    setVisibleCount(session.output.length);
+    setVersion((version) => version + 1);
+  };
+
+  const ask = async (question: string, depth: AskDepth) => {
+    askController.current?.abort();
+
+    const controller = new AbortController();
+
+    askController.current = controller;
+    setFollowUp(null);
+
+    if (!hasShownNotice.current) {
+      hasShownNotice.current = true;
+      session.print([system(content.ask.notice)]);
+    }
+
+    setAsking({ depth, text: "" });
+
+    // The client is fetched on the first question, so a visit that never asks never downloads it.
+    const { askRed } = await import("@/services/ask/client");
+    let text = "";
+    let model = "";
+    let sources: AskSourceKey[] = [];
+    let failure: AskErrorCode | null = null;
+
+    for await (const event of askRed({ question, depth, history: askHistory.current }, controller.signal)) {
+      if (event.type === "model") {
+        model = event.label;
+      } else if (event.type === "text") {
+        text += event.text;
+        setAsking({ depth, text });
+      } else if (event.type === "sources") {
+        sources = event.keys.filter(isSource);
+      } else if (event.type === "error") {
+        failure = event.code;
+      }
+    }
+
+    // A newer question took over; its answer prints instead.
+    if (askController.current !== controller) {
+      return;
+    }
+
+    const answer = text.trim();
+
+    askController.current = null;
+    setAsking(null);
+    printNow([
+      ...(answer ? [output(answer)] : []),
+      ...(answer && model ? [system(fill(content.ask.answeredBy, { model }))] : []),
+      ...(failure ? [error(content.ask.errors[failure])] : []),
+    ]);
+
+    if (answer && !failure) {
+      askHistory.current = [...askHistory.current, { question, answer }].slice(-ASK_HISTORY_TURNS);
+      setFollowUp({ sources, canDeepen: depth === "quick" && !controller.signal.aborted });
+    }
+  };
+
+  const stopAsking = () => askController.current?.abort();
+
+  useEffect(() => () => askController.current?.abort(), []);
 
   const apply = (effect: TerminalEffect | undefined) => {
     if (effect?.type === "navigate") {
@@ -180,6 +298,10 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
 
     if (effect?.type === "dialog") {
       setPendingDialog(effect.dialog);
+    }
+
+    if (effect?.type === "ask") {
+      void ask(effect.question, effect.depth);
     }
   };
 
@@ -271,6 +393,12 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
           {session.output.slice(0, visibleCount).map((line, index) => (
             <Line key={index} kind={line.kind}>{line.text}</Line>
           ))}
+          {asking && (
+            <Line kind="output" aria-hidden="true">
+              {asking.text}
+              <Caret />
+            </Line>
+          )}
         </Screen>
         <Form onSubmit={onSubmit}>
           <Prompt htmlFor="terminal-input">{content.prompt}</Prompt>
@@ -287,6 +415,18 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
           />
         </Form>
       </Window>
+      {(asking || followUp) && (
+        <FollowUps aria-label={content.ask.summary}>
+          {asking && <Suggestion type="button" isFeatured={false} onClick={stopAsking}>{content.ask.stopLabel}</Suggestion>}
+          {followUp?.canDeepen && <Suggestion type="button" isFeatured onClick={() => run("deeper")}>{content.ask.deeperLabel}</Suggestion>}
+          {followUp && followUp.sources.length > 0 && <SourcesLabel>{content.ask.sourcesLabel}</SourcesLabel>}
+          {followUp?.sources.map((key) => (
+            <Suggestion key={key} type="button" isFeatured={false} onClick={() => scrollToSection(SECTION_IDS[key])}>
+              {content.ask.sources[key]}
+            </Suggestion>
+          ))}
+        </FollowUps>
+      )}
       <Suggestions>
         {content.suggestions.map((suggestion) => {
           const isFeatured = suggestion === content.featured && !hasRunFeatured;

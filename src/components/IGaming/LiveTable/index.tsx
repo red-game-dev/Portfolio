@@ -2,7 +2,7 @@ import { FC, MouseEvent, useEffect, useLayoutEffect, useMemo, useRef, useState }
 
 import tw, { css, styled } from "twin.macro";
 
-import { faRotateLeft } from "@fortawesome/pro-solid-svg-icons";
+import { faRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Dealer } from "@/components/IGaming/LiveTable/Dealer";

@@ -3,7 +3,7 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { faCodeBranch } from "@fortawesome/pro-solid-svg-icons";
+import { faCodeBranch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { FilterChip } from "@/components/Controls";

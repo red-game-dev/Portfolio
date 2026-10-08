@@ -1,19 +1,20 @@
+
 import {
   faArrowRightArrowLeft,
-  faBrainCircuit,
+  faBrain,
   faBullhorn,
   faCloudArrowUp,
   faCog,
   faCreditCard,
   faCubes,
-  faGamepadModern,
+  faGamepad,
   faGaugeHigh,
   faLayerGroup,
   faPlane,
   faShieldHalved,
   faSitemap,
   faWandMagicSparkles,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/free-solid-svg-icons";
 
 import { PortfolioData } from "@/types/portfolio";
 
@@ -101,7 +102,7 @@ export const servicesContent: Pick<PortfolioData, "serviceActions" | "serviceGro
       services: [
         {
           title: "Enterprise AI Enablement & Agent Workflows",
-          icon: faBrainCircuit,
+          icon: faBrain,
           description: `I help an engineering organisation adopt AI agents safely and get real speed from them, from the policy down
           to the repository.`,
           points: [
@@ -178,7 +179,7 @@ export const servicesContent: Pick<PortfolioData, "serviceActions" | "serviceGro
         },
         {
           title: "Games & Real Time Systems",
-          icon: faGamepadModern,
+          icon: faGamepad,
           description: "I design and build game and live systems where latency and scale decide the experience.",
           points: [
             "Game UI in PixiJS, WebGL and canvas",

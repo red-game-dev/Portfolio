@@ -1,3 +1,4 @@
+
 import {
   faChessKnight,
   faCode,
@@ -5,11 +6,11 @@ import {
   faCrown,
   faCubes,
   faDragon,
-  faRocketLaunch,
+  faRocket,
   faServer,
   faSitemap,
   faUsersGear,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/free-solid-svg-icons";
 
 import { PortfolioData } from "@/types/portfolio";
 
@@ -94,7 +95,7 @@ export const rosterContent: Pick<PortfolioData, "roster"> = {
       {
         characterClass: "Product Engineer",
         hero: "artificer",
-        icon: faRocketLaunch,
+        icon: faRocket,
         tenures: [
           { company: "Gods of Zushin", from: "Apr 2015" },
           { company: "reNFT", from: "Jan 2023", to: "Aug 2023" },

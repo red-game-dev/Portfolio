@@ -3,6 +3,7 @@ import { BlueprintLabels } from "@/types/blueprints";
 import { CarouselLabels } from "@/types/carousel";
 import { CaseStudy, CaseStudyFilters, ExpertiseContent } from "@/types/case-studies";
 import { CodeReviewContent } from "@/types/code-review";
+import { CvDocument } from "@/types/cv-document";
 import { Detail } from "@/types/details";
 import { IGamingContent, Web3Content } from "@/types/domains";
 import { ForgeContent, TalentsContent } from "@/types/forge";
@@ -29,6 +30,7 @@ export interface PortfolioData {
   terminal: TerminalContent;
   cover: string;
   cv: string;
+  cvDocument: CvDocument;
   typingsTitles: string[];
   details: Detail;
   github: Github[];

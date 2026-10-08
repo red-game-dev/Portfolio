@@ -21,7 +21,7 @@ npx jest -t "renders every section" --watchAll=false           # single test by 
 ANALYZE=true npm run build                   # bundle analysis (@next/bundle-analyzer, does not auto-open)
 ```
 
-`npm install` pulls `@fortawesome/pro-*` packages, which require an authenticated FontAwesome Pro npm registry token. It lives in the machine's global `~/.npmrc` (`@fortawesome:registry` + `_authToken`), deliberately **not** a project `.npmrc`, since `.gitignore` does not exclude one and this repo is public.
+Icons are the free Font Awesome set (`@fortawesome/free-solid-svg-icons`, `free-brands`), installed from the public npm registry with no token. The committed project `.npmrc` points the `@fortawesome` scope at registry.npmjs.org, overriding any global `~/.npmrc` that still routes it to the Pro registry; it must never hold a token, since this repo is public. The few icons the free set lacks (castle, candlestick chart, treasure chest) are drawn in `src/config/icons.ts` on Font Awesome's 512 unit grid.
 
 Use Node 22+ (`.nvmrc` pins 22.6.0, `engines` allows `22.x || 24.x`). Node 23 is not a Vercel target and triggers an `Exit handler never called!` bug in npm 10.9 that aborts installs midway and leaves `node_modules` corrupt; `rm -rf node_modules` and reinstall on 22/24 to recover. Run `nvm use` before any npm command; the global default here is 23.
 

@@ -3,7 +3,7 @@ import { FC, useEffect, useRef, useState } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
-import { faArrowRotateLeft, faEnvelope, faFileArrowDown } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowRotateLeft, faEnvelope, faFileArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { BinaryRain } from "@/components/BinaryRain";

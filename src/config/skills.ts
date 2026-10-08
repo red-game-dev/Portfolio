@@ -3,7 +3,7 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "SQL": ["PostgreSQL", "MariaDB", "SQL"],
   "NoSQL": ["MongoDB", "Redis"],
   // Writing React, Vue, Node.js, Backbone or jQuery is writing JavaScript, and front end frameworks mean HTML and CSS.
-  "Javascript": ["JS", "JavaScript", "React", "Vue.js", "Node.js", "Backbone.js", "JQuery"],
+  "JavaScript": ["JS", "JavaScript", "React", "Vue.js", "Node.js", "Backbone.js", "jQuery"],
   "HTML / CSS": ["HTML", "CSS", "SASS", "React", "Vue.js", "Web Development"],
   "LESS / SASS": ["SASS"],
   // PixiJS draws through WebGL onto a canvas, so every PixiJS role counts for both.
@@ -37,7 +37,7 @@ export const SKILL_RELEASES: Record<string, string> = {
   "Digital Ocean": "Jan 2013",
   "Laravel": "Jun 2011",
   "Stripe": "Sep 2011",
-  "Typescript": "Oct 2012",
+  "TypeScript": "Oct 2012",
   "React": "May 2013",
   "Docker": "Mar 2013",
   "Electron": "Jul 2013",
@@ -48,14 +48,14 @@ export const SKILL_RELEASES: Record<string, string> = {
   "React Native": "Mar 2015",
   "Rust": "May 2015",
   "Solidity": "Aug 2015",
-  "Graphql": "Sep 2015",
+  "GraphQL": "Sep 2015",
   "Strapi": "Oct 2015",
   "Vercel": "Nov 2015",
   "Helm": "Nov 2015",
   "Kotlin": "Feb 2016",
   "Storybook": "Apr 2016",
   "Figma": "Sep 2016",
-  "NextJs": "Oct 2016",
+  "Next.js": "Oct 2016",
   "Nuxt / Nuxt 4": "Oct 2016",
   "Svelte": "Nov 2016",
   "NestJS": "Feb 2017",
@@ -64,6 +64,8 @@ export const SKILL_RELEASES: Record<string, string> = {
   "pnpm": "Jun 2017",
   "Cloudflare Workers": "Sep 2017",
   "Tailwind CSS": "Nov 2017",
+  "TensorFlow": "Nov 2015",
+  "PyTorch": "Sep 2016",
   "Playwright": "Jan 2020",
   "Supabase": "Jan 2020",
   "Railway": "Jan 2020",
@@ -76,6 +78,9 @@ export const SKILL_RELEASES: Record<string, string> = {
 // Where I remember first using a tool later than a long role's start, the year it really began.
 export const SKILL_FIRST_USED: Record<string, string> = {
   Laravel: "Jan 2018",
+  // The earliest use on record is KPMG; my own products came after, so nothing counts before it.
+  PyTorch: "Feb 2019",
+  TensorFlow: "Feb 2019",
 };
 
 // Which skill groups are forge stations, in order. Languages and team skills are talents instead.

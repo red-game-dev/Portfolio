@@ -3,7 +3,7 @@ import { FC, useMemo, useRef } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { faBolt, faCalendarCheck, faCrown, faFire, faTrophy } from "@fortawesome/pro-duotone-svg-icons";
+import { faBolt, faCalendarCheck, faCrown, faFire, faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 
 import useAnimationProgress from "@/hooks/useAnimationProgress";

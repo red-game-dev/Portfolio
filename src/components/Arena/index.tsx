@@ -2,7 +2,7 @@ import { FC, useCallback, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { faHeart } from "@fortawesome/pro-solid-svg-icons";
+import { faHeart } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useBugRaid } from "@/components/Arena/hooks/useBugRaid";

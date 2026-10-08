@@ -1,7 +1,6 @@
 import tw, { css, styled } from "twin.macro";
 
-import { faEnvelope, faFileArrowDown } from "@fortawesome/pro-duotone-svg-icons";
-import { faChevronDown } from "@fortawesome/pro-solid-svg-icons";
+import { faChevronDown, faEnvelope, faFileArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 

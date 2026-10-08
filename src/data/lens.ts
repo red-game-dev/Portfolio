@@ -61,7 +61,7 @@ export const lensContent: LensContent = {
           roleClasses: ["Architect", "Tech Lead", "CTO"],
           skillGroups: [
             { label: "Architecture", names: ["draw.io / C4 model", "Design Systems", "Micro-frontends", "CI/CD", "Docker", "GKE / Kubernetes"] },
-            { label: "Languages and frameworks", names: ["Typescript", "NodeJS", "NestJS", "React", "Vue", "PostgreSQL"] },
+            { label: "Languages and frameworks", names: ["TypeScript", "Node.js", "NestJS", "React", "Vue", "PostgreSQL"] },
             { label: "Cloud", names: ["AWS", "GCP", "Cloudflare", "Vercel"] },
           ],
         },
@@ -71,7 +71,7 @@ export const lensContent: LensContent = {
           fit: "CEO and CTO of my own social network and MMORPG, then co-founder and CTO of CoinOn: product, team and technology at once.",
           roleClasses: ["CTO", "CEO", "Architect", "Tech Lead"],
           skillGroups: [
-            { label: "Platform", names: ["Typescript", "NodeJS", "PostgreSQL", "AWS", "Cloudflare", "Docker", "CI/CD"] },
+            { label: "Platform", names: ["TypeScript", "Node.js", "PostgreSQL", "AWS", "Cloudflare", "Docker", "CI/CD"] },
             { label: "Product and growth", names: ["Stripe", "PayPal", "HubSpot", "Mailchimp", "Google Analytics 4"] },
           ],
         },
@@ -81,7 +81,7 @@ export const lensContent: LensContent = {
           fit: "14 startups built as founder or co-founder, from the first commit to running the product and the community around it.",
           roleClasses: ["CTO", "CEO", "Product Engineer", "Backend Engineer", "Frontend Engineer"],
           skillGroups: [
-            { label: "Full stack", names: ["Typescript", "React", "NextJs", "NodeJS", "NestJS", "PostgreSQL", "Supabase"] },
+            { label: "Full stack", names: ["TypeScript", "React", "Next.js", "Node.js", "NestJS", "PostgreSQL", "Supabase"] },
             { label: "Shipping", names: ["Vercel", "Railway", "Docker", "CI/CD", "Stripe"] },
           ],
         },
@@ -91,8 +91,8 @@ export const lensContent: LensContent = {
           fit: "Frontend engineer and lead from design systems to canvas and WebGL, in React, Vue and Next.js.",
           roleClasses: ["Frontend Engineer", "Tech Lead"],
           skillGroups: [
-            { label: "Frameworks", names: ["React", "Vue", "NextJs", "Nuxt / Nuxt 4", "Typescript", "Javascript"] },
-            { label: "Craft", names: ["Design Systems", "State Management", "RxJS", "Canvas", "WebGL", "PixiJs", "Tailwind CSS", "Storybook"] },
+            { label: "Frameworks", names: ["React", "Vue", "Next.js", "Nuxt / Nuxt 4", "TypeScript", "JavaScript"] },
+            { label: "Craft", names: ["Design Systems", "State Management", "RxJS", "Canvas", "WebGL", "PixiJS", "Tailwind CSS", "Storybook"] },
             { label: "Testing", names: ["Jest", "Playwright", "TDD (Test Driven Development)"] },
           ],
         },
@@ -102,8 +102,8 @@ export const lensContent: LensContent = {
           fit: "Senior full stack engineer, front to back: TypeScript, Node.js and NestJS, PostgreSQL and the cloud they run on.",
           roleClasses: ["Frontend Engineer", "Backend Engineer", "Product Engineer"],
           skillGroups: [
-            { label: "Front", names: ["React", "Vue", "NextJs", "Typescript"] },
-            { label: "Back", names: ["NodeJS", "NestJS", "PostgreSQL", "Redis", "Graphql", "PHP", "Laravel"] },
+            { label: "Front", names: ["React", "Vue", "Next.js", "TypeScript"] },
+            { label: "Back", names: ["Node.js", "NestJS", "PostgreSQL", "Redis", "GraphQL", "PHP", "Laravel"] },
             { label: "Run", names: ["Docker", "AWS", "Vercel", "CI/CD"] },
           ],
         },
@@ -124,16 +124,18 @@ export const lensContent: LensContent = {
           roleClasses: ["Blockchain Engineer", "CTO"],
           skillGroups: [
             { label: "On chain", names: ["Solidity", "Ethers.js", "Wagmi (React)", "TheGraph", "Alchemy", "Rust"] },
-            { label: "Around it", names: ["Typescript", "React", "NodeJS", "PostgreSQL"] },
+            { label: "Around it", names: ["TypeScript", "React", "Node.js", "PostgreSQL"] },
           ],
         },
         {
           id: "ai",
           label: "AI Engineer",
-          fit: "I build with AI agents: I write the rules, the context and the checks they work within, and a person reviews every change.",
+          fit: `Machine learning in production since 2019, in PyTorch and TensorFlow at KPMG and in my own products: personalised
+          suggestions and feeds. Today I build with AI agents inside rules and checks I write.`,
           roleClasses: ["Architect", "Product Engineer"],
           skillGroups: [
-            { label: "Tools", names: ["ChatGPT / GPT-4", "Typescript", "Python", "NodeJS"] },
+            { label: "Machine learning", names: ["PyTorch", "TensorFlow", "Python"] },
+            { label: "Tools", names: ["ChatGPT / GPT-4", "TypeScript", "Node.js"] },
             { label: "Practice", names: ["Code Review", "Automated Testing (unit, integration, end to end)", "CI/CD"] },
           ],
         },
@@ -144,7 +146,7 @@ export const lensContent: LensContent = {
           roleClasses: ["Game Engineer", "Frontend Engineer"],
           skillGroups: [
             { label: "Engines", names: ["C/C++", "Lua", "C#, .NET", "Unity", "Unreal Engine", "ShaderLab"] },
-            { label: "Web games", names: ["Canvas", "WebGL", "PixiJs", "Typescript"] },
+            { label: "Web games", names: ["Canvas", "WebGL", "PixiJS", "TypeScript"] },
           ],
         },
         {
@@ -166,11 +168,11 @@ export const lensContent: LensContent = {
       workLabel: "Work and availability",
       skillsLabel: "Skills, with years of use",
       skillGroups: [
-        { label: "Languages", names: ["Typescript", "Javascript", "C/C++", "C#, .NET", "Python", "PHP", "Lua", "SQL", "Solidity", "Rust", "Kotlin", "Swift", "Dart"] },
-        { label: "Frameworks", names: ["React", "Vue", "NextJs", "Nuxt / Nuxt 4", "NodeJS", "React Native", "Electron", "Laravel", "Flutter"] },
+        { label: "Languages", names: ["TypeScript", "JavaScript", "C/C++", "C#, .NET", "Python", "PHP", "Lua", "SQL", "Solidity", "Rust", "Kotlin", "Swift", "Dart"] },
+        { label: "Frameworks", names: ["React", "Vue", "Next.js", "Nuxt / Nuxt 4", "Node.js", "React Native", "Electron", "Laravel", "Flutter"] },
         {
           label: "Libraries",
-          names: ["RxJS", "State Management", "Ethers.js", "Wagmi (React)", "PixiJs", "Tailwind CSS", "Radix UI", "Jest", "Playwright", "Storybook"],
+          names: ["RxJS", "State Management", "Ethers.js", "Wagmi (React)", "PixiJS", "Tailwind CSS", "Radix UI", "Jest", "Playwright", "Storybook"],
         },
         { label: "Platforms and tools", names: ["AWS", "GCP", "Cloudflare", "Docker", "Vercel", "CI/CD", "Unity", "Unreal Engine", "Sentry"] },
         { label: "Practices", names: ["TDD (Test Driven Development)", "Automated Testing (unit, integration, end to end)", "Code Review", "Design Systems"] },

@@ -3,7 +3,7 @@ import { FC, FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { faStar } from "@fortawesome/pro-solid-svg-icons";
+import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Section } from "@/components/Section";

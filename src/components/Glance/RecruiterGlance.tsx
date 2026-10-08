@@ -1,6 +1,6 @@
 import { FC, useCallback, useMemo } from "react";
 
-import { faEnvelope, faFileArrowDown } from "@fortawesome/pro-duotone-svg-icons";
+import { faEnvelope, faFileArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { FilterChip } from "@/components/Controls";

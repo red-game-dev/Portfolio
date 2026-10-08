@@ -1,6 +1,6 @@
 import { FC, useId, useMemo, useRef, useState } from "react";
 
-import { faDatabase, faMagnifyingGlassMinus, faMagnifyingGlassPlus, faUser } from "@fortawesome/pro-duotone-svg-icons";
+import { faDatabase, faMagnifyingGlassMinus, faMagnifyingGlassPlus, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {

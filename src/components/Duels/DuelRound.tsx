@@ -2,7 +2,7 @@ import { FC, useEffect, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { faRobot, faUser } from "@fortawesome/pro-duotone-svg-icons";
+import { faRobot, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import useInView from "@/hooks/useInView";

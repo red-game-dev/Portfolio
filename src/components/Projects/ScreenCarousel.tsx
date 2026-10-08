@@ -2,7 +2,7 @@ import { FC, KeyboardEvent, useCallback, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { faChevronLeft, faChevronRight } from "@fortawesome/pro-solid-svg-icons";
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Image } from "@/components/Image";

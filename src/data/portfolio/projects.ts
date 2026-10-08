@@ -1,10 +1,9 @@
+
 import {
   faArrowsRotate,
-  faBooks,
+  faBook,
   faBoxArchive,
   faBoxesStacked,
-  faCastle,
-  faChartCandlestick,
   faChessRook,
   faCoins,
   faCompass,
@@ -14,20 +13,21 @@ import {
   faDungeon,
   faFileLines,
   faFutbol,
-  faGamepadModern,
+  faGamepad,
   faGem,
   faGlobe,
   faMobileScreen,
   faPaw,
   faPlaneDeparture,
-  faRocketLaunch,
+  faRocket,
   faStore,
   faTableColumns,
   faTowerObservation,
   faTruckFast,
   faUsers,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/free-solid-svg-icons";
 
+import { faCastle, faChartCandlestick } from "@/config/icons";
 import { PortfolioData } from "@/types/portfolio";
 
 // The project world map and every region on it.
@@ -311,7 +311,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
       to: "Sep 2020",
     },
     {
-      icon: faGamepadModern,
+      icon: faGamepad,
       kind: "game",
       status: "private",
       title: "Engine Prototypes",
@@ -321,7 +321,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
         "Prototypes and experiments in Unity and Unreal Engine",
         "Picked up again whenever an idea needs a real engine",
       ],
-      techStack: ["Unity", "Unreal Engine", "ShaderLab", "Sky Engine"],
+      techStack: ["Unity", "Unreal Engine", "ShaderLab", "Sky Engine", "PyTorch", "TensorFlow"],
       from: "Nov 2019",
     },
     {
@@ -371,7 +371,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
       to: "Jun 2025",
     },
     {
-      icon: faBooks,
+      icon: faBook,
       kind: "product",
       status: "openSource",
       title: "The Game Library",
@@ -445,7 +445,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
       to: "Nov 2018",
     },
     {
-      icon: faRocketLaunch,
+      icon: faRocket,
       kind: "game",
       status: "openSource",
       title: "GOZ Launchers",
@@ -600,7 +600,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
       from: "Sep 2026",
     },
     {
-      icon: faGamepadModern,
+      icon: faGamepad,
       kind: "game",
       status: "archived",
       title: "Arcavium",
@@ -694,7 +694,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
         "Projects from every phase, starting about six years before college",
         "Still growing: new experiments land here alongside my roles",
       ],
-      techStack: ["ReactJS", "Unity", "Angular", "C/C++", "PHP", "NodeJS", "Flutter", "Python", "Astro", "SVN"],
+      techStack: ["ReactJS", "Unity", "Angular", "C/C++", "PHP", "Node.js", "Flutter", "Python", "Astro", "SVN"],
       link: "https://drive.google.com/drive/folders/0B1gPxpJpFGW5SGhXeS1pTzA4Tmc?resourcekey=0-amvzxbZpCBhf7bV-GVUmTg&usp=share_link",
       from: "2003",
     },

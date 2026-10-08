@@ -22,7 +22,7 @@ export const profileContent: ProfileContent = {
   headline: {
     lines: [
       "Software architect who ships with AI agents. Payments, ledgers and platform architecture.",
-      "Open to architect, engineering leadership, product, blockchain and AI engineering roles, full time or B2B.",
+      "Open to applied AI and forward deployed, architect, engineering leadership, product and blockchain roles, full time or B2B.",
     ],
     availability: "Maltese citizen, EU work rights, open to relocation, available now.",
     cvLabel: "Download CV",
@@ -99,8 +99,11 @@ export const profileContent: ProfileContent = {
       `I am a software architect with 15+ years in the industry, most of them leading: CEO and CTO of my own social network and MMORPG,
       co-founder and CTO of CoinOn, then architect and tech lead at Chiliz and Conrad. I design systems that are not tied to a vendor or a framework,
       and I stay hands on while I do it.`,
-      `I build with AI agents. I write the rules, the context and the checks they work within, and a person reviews every change. The
-      "How I use AI" section shows what that looks like day to day.`,
+      `I have put machine learning into production since 2019: PyTorch and TensorFlow models for enterprise clients at KPMG and in my
+      own products, from training and fine tuning to serving: personalised suggestions for food delivery and taxi apps, social
+      feeds, ranking, vision and language.`,
+      `Today I build with AI agents. I write the rules, the context and the checks they work within, and a person reviews every change.
+      The "How I use AI" section shows what that looks like day to day.`,
       `I have worked across e-commerce, payments, iGaming, game publishing and Web3, on the engineering side and on the business side.
       That is why I can be useful to a CTO in the morning and to a marketing team in the afternoon.`,
       `I am looking for an architect, head or VP of engineering, product engineering, blockchain or AI engineering role where the
@@ -116,6 +119,7 @@ export const profileContent: ProfileContent = {
     ],
     facts: [
       "Maltese citizen with EU work rights",
+      "Offers from Google and AWS, declined to care for family",
       "Open to relocation",
       "Remote, hybrid or on site",
       "Speaks Maltese, English and Italian",

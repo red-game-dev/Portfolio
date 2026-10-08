@@ -12,6 +12,7 @@ import { sectionsContent } from "@/data/portfolio/sections";
 import { servicesContent } from "@/data/portfolio/services";
 import { skillsContent } from "@/data/portfolio/skills";
 import { terminalContent } from "@/data/portfolio/terminal";
+import { timelapseContent } from "@/data/portfolio/timelapse";
 import { PortfolioData } from "@/types/portfolio";
 
 export type { PortfolioData } from "@/types/portfolio";
@@ -21,6 +22,7 @@ export type { PortfolioData } from "@/types/portfolio";
 export const portfolioData: PortfolioData = {
   ...profileContent,
   ...terminalContent,
+  ...timelapseContent,
   ...sectionsContent,
   ...servicesContent,
   ...historyContent,

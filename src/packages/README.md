@@ -54,6 +54,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `graphics/pixel-art` | Pixel maps to one SVG path per colour, for crisp sprites at any size |
 | `insights/ai-usage` | Domain model, guard, validators, mapper and service for an AI usage breakdown, independent of any icon library or content store |
 | `insights/career` | `TenureCalculator`: years in a role from date ranges, overlaps merged; `formatPeriod` and `splitTitle` for how a role is written |
+| `insights/repo-growth` | A repository's lines per district after each commit, guarded, validated and mapped to heights against the tallest district (`RepoGrowthService`), with `frameIndexAt` and `heightBetween` for playback |
 | `insights/skills` | Years of real use per skill from roles and projects, with a rarity policy |
 | `interaction/scroll-frame` | `ScrollFrame`: one scroll and resize listener for a whole page, reading layout for every subscriber before any of them writes, at most once a frame, and listening only while it has subscribers |
 | `interaction/terminal` | A command registry, input parser and session for a text terminal, with no rendering of its own |

@@ -11,7 +11,8 @@
     "test": "jest --watch",
     "fix:links": "npx @next/codemod new-link .",
     "test:ci": "jest --watchAll=false",
-    "test:coverage": "jest --watchAll=false --coverage"
+    "test:coverage": "jest --watchAll=false --coverage",
+    "timelapse": "node scripts/timelapse.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.2.1",

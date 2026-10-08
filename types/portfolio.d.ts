@@ -21,6 +21,7 @@ import { SectionIntroMap } from "@/types/sections-intros";
 import { ServiceActions, ServiceGroup } from "@/types/services";
 import { SkillArea, SkillLists } from "@/types/skills";
 import { TerminalContent } from "@/types/terminal";
+import { TimelapseContent } from "@/types/timelapse";
 
 // The shape of everything the site says. The content lives in src/data/portfolio, one file per part of
 // the page, gathered into portfolioData by src/data/resume.ts.
@@ -68,6 +69,7 @@ export interface PortfolioData {
   igaming: IGamingContent;
   recommendations: Recommendation[];
   aiUsage: PortfolioAiUsage;
+  timelapse: TimelapseContent;
   socialMedia: {
     byUsername: {
       twitter: string;

@@ -137,6 +137,7 @@ export default function Home() {
         <Finale
           content={portfolioData.finale}
           zoneLabels={portfolioData.journeyTrail.zones}
+          contactTime={portfolioData.details.contactTime}
           bossCount={portfolioData.caseStudies.length}
           duelCount={portfolioData.duels.rounds.length}
           email={portfolioData.details.email}

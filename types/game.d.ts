@@ -97,6 +97,7 @@ export interface FinaleContent {
   objectives: string;
   ranks: FinaleRank[];
   finalQuest: string;
+  // "{time}" is replaced with when I can be reached, from the profile, so it is said in one place.
   contactNote: string;
   emailLabel: string;
   emailSubject: string;

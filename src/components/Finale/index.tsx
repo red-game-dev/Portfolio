@@ -24,6 +24,7 @@ import { FinaleContent, FinaleLaunch, FinaleRank } from "@/types/game";
 interface FinaleProps {
   content: FinaleContent;
   zoneLabels: Record<ZoneId, string>;
+  contactTime: string;
   bossCount: number;
   duelCount: number;
   email: string;
@@ -141,7 +142,7 @@ const formatTime = (ms: number) => {
 // The end of the run, and the page lifting off: the visitor launches out of the game world past every zone
 // they crossed, their run lights up as stars on the way, and the journey closes on where I want to go next,
 // with one last quest: get in touch.
-export const Finale: FC<FinaleProps> = ({ content, zoneLabels, bossCount, duelCount, email, linkedInUsername, cvUrl }: FinaleProps) => {
+export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, bossCount, duelCount, email, linkedInUsername, cvUrl }: FinaleProps) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -274,7 +275,7 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, bossCount, duelCo
         </Mission>
         <Quest>
           <QuestTitle>{content.finalQuest}</QuestTitle>
-          <Note>{content.contactNote}</Note>
+          <Note>{fill(content.contactNote, { time: contactTime.toLowerCase() })}</Note>
           <Actions>
             <ActionLink href={mailto} isPrimary>
               <FontAwesomeIcon icon={faEnvelope} aria-hidden="true" />

@@ -31,7 +31,8 @@ const StatName = tw.dt`text-xs text-[#999]`;
 
 const StatValue = tw.dd`m-0 text-lg font-semibold text-white tabular-nums`;
 
-const Stage = tw.div`relative mt-[22px] pt-[64px] border-0 border-b-[1px] border-solid border-[var(--accent-muted)]`;
+// The stage reserves room above the city for the ticker (a date and two lines), so the tallest roof never meets it.
+const Stage = tw.div`relative mt-[22px] pt-[84px] border-0 border-b-[1px] border-solid border-[var(--accent-muted)]`;
 
 const Ticker = tw.div`absolute top-0 left-0 flex flex-col gap-[2px]`;
 

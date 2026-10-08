@@ -1,6 +1,6 @@
 import { AskEvent } from "../domain/types";
 
-const EVENT_TYPES = new Set(["text", "sources", "done", "error"]);
+const EVENT_TYPES = new Set(["model", "text", "sources", "done", "error"]);
 
 const isAskEvent = (value: unknown): value is AskEvent => typeof value === "object" && value !== null
   && EVENT_TYPES.has((value as { type?: unknown }).type as string);

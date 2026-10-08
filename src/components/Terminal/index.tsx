@@ -24,6 +24,7 @@ import {
   TerminalLineKind,
   TerminalSession
 } from "@/packages/interaction/terminal";
+import { fill } from "@/packages/text/format";
 import { SectionIntros } from "@/types/sections-intros";
 import { TerminalContent } from "@/types/terminal";
 
@@ -246,11 +247,14 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
     // The client is fetched on the first question, so a visit that never asks never downloads it.
     const { askRed } = await import("@/services/ask/client");
     let text = "";
+    let model = "";
     let sources: AskSourceKey[] = [];
     let failure: AskErrorCode | null = null;
 
     for await (const event of askRed({ question, depth, history: askHistory.current }, controller.signal)) {
-      if (event.type === "text") {
+      if (event.type === "model") {
+        model = event.label;
+      } else if (event.type === "text") {
         text += event.text;
         setAsking({ depth, text });
       } else if (event.type === "sources") {
@@ -269,7 +273,11 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
 
     askController.current = null;
     setAsking(null);
-    printNow([...(answer ? [output(answer)] : []), ...(failure ? [error(content.ask.errors[failure])] : [])]);
+    printNow([
+      ...(answer ? [output(answer)] : []),
+      ...(answer && model ? [system(fill(content.ask.answeredBy, { model }))] : []),
+      ...(failure ? [error(content.ask.errors[failure])] : []),
+    ]);
 
     if (answer && !failure) {
       askHistory.current = [...askHistory.current, { question, answer }].slice(-ASK_HISTORY);

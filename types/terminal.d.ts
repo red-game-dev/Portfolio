@@ -54,6 +54,8 @@ export interface TerminalAsk {
   thinkingDeeper: string;
   // Printed before the first answer of a visit.
   notice: string;
+  // "{model}" is replaced with the model that answered.
+  answeredBy: string;
   nothingToDeepen: string;
   deeperLabel: string;
   stopLabel: string;

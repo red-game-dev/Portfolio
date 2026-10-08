@@ -1,10 +1,9 @@
 import { createHash } from "crypto";
 
-import { ASK_ANSWER_CACHE_MS, ASK_DAILY_BUDGET_USD, ASK_MODELS, ASK_PROMPT_CACHE, ASK_RATES, ASK_RESILIENCE, ASK_SOURCES } from "@/config/ask";
+import { ASK_ANSWER_CACHE_MS, ASK_DAILY_BUDGET_USD, ASK_PROMPT_CACHE, ASK_RATES, ASK_RESILIENCE, ASK_SOURCES } from "@/config/ask";
 import { portfolioData } from "@/data/resume";
 import {
   AnswerCache,
-  AnthropicMessagesModel,
   AskDepth,
   AskRecord,
   AskService,
@@ -17,6 +16,7 @@ import {
 } from "@/packages/ai/ask";
 import { createAskKnowledge } from "@/services/ask/knowledge";
 import { ASK_GUIDANCE, createAskInstructions } from "@/services/ask/prompt";
+import { createAskRoutes } from "@/services/ask/routes";
 
 // Composition root for the agent, server side only: the page must never import this file.
 
@@ -56,11 +56,9 @@ export const visitorKey = (address: string) => digest(`${process.env.ASK_SALT ??
 
 let service: AskService | null = null;
 
-// Null without an API key, or when ASK_ENABLED is "false", so the route can say the agent is resting.
+// Null when no provider has a key, or when ASK_ENABLED is "false", so the route can say the agent is resting.
 export const getAskService = (): AskService | null => {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-
-  if (!apiKey || process.env.ASK_ENABLED === "false") {
+  if (process.env.ASK_ENABLED === "false") {
     return null;
   }
 
@@ -68,17 +66,22 @@ export const getAskService = (): AskService | null => {
     return service;
   }
 
+  const routes = createAskRoutes(process.env);
+
+  if (routes.quick.length === 0) {
+    return null;
+  }
+
   const store = createStore();
   const knowledge = `${createAskInstructions(portfolioData.details.email)}\n\nKnowledge:\n\n${createAskKnowledge(portfolioData)}`;
 
+  log("ask.routes", { quick: routes.quick.map((route) => route.modelId), deep: routes.deep.map((route) => route.modelId) });
+
   service = new AskService({
-    model: new AnthropicMessagesModel({ apiKey }),
     knowledge,
     promptCache: ASK_PROMPT_CACHE,
-    models: {
-      quick: { ...ASK_MODELS.quick, guidance: ASK_GUIDANCE.quick },
-      deep: { ...ASK_MODELS.deep, guidance: ASK_GUIDANCE.deep },
-    },
+    routes,
+    guidance: ASK_GUIDANCE,
     sourceKeys: ASK_SOURCES,
     guards: {
       visitor: limitersFor(store, "visitor"),
@@ -87,7 +90,7 @@ export const getAskService = (): AskService | null => {
     },
     cache: new AnswerCache({
       store,
-      version: `ask:answer:${digest(`${knowledge}${JSON.stringify(ASK_MODELS)}${JSON.stringify(ASK_GUIDANCE)}`, 12)}`,
+      version: `ask:answer:${digest(`${knowledge}${[...routes.quick, ...routes.deep].map((route) => route.modelId).join(",")}${JSON.stringify(ASK_GUIDANCE)}`, 12)}`,
       ttlMs: ASK_ANSWER_CACHE_MS,
       hash: (text) => digest(text, 24),
     }),

@@ -4,6 +4,8 @@ import { normaliseQuestion } from "../utils/question";
 export interface CachedAnswer {
   text: string;
   sources: string[];
+  // The model that wrote it.
+  label: string;
 }
 
 export interface AnswerCacheOptions {
@@ -17,6 +19,7 @@ export interface AnswerCacheOptions {
 
 const isCachedAnswer = (value: unknown): value is CachedAnswer => typeof value === "object" && value !== null
   && typeof (value as CachedAnswer).text === "string"
+  && typeof (value as CachedAnswer).label === "string"
   && Array.isArray((value as CachedAnswer).sources)
   && (value as CachedAnswer).sources.every((key) => typeof key === "string");
 

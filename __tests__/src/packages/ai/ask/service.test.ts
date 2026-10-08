@@ -9,6 +9,7 @@ import {
   AskGuards,
   AskPlan,
   AskRecord,
+  AskRoute,
   AskService,
   AskServiceOptions,
   MemoryStore,
@@ -58,17 +59,32 @@ const createGuards = (overrides: Partial<AskGuards> = {}) => {
 
 const price = { input: 1, cacheWrite: 2, cacheRead: 0.1, output: 5 };
 
-const createService = (model: AnswerModel, extra: Partial<AskServiceOptions> = {}) => new AskService({
+const route = (model: AnswerModel, fields: Partial<AskRoute> = {}): AskRoute => ({
+  provider: "fake",
+  label: "Small",
   model,
+  modelId: "small",
+  maxTokens: 100,
+  effort: "low",
+  price,
+  tier: "quick",
+  ...fields,
+});
+
+// One model behind both depths: deep tries "large", then falls back to "small", like the real routes do.
+const routesFor = (model: AnswerModel) => ({
+  quick: [route(model)],
+  deep: [route(model, { label: "Large", modelId: "large", maxTokens: 900, effort: "medium", tier: "deep" }), route(model)],
+});
+
+const createService = (model: AnswerModel, extra: Partial<AskServiceOptions> = {}) => new AskService({
   knowledge: "Rules and knowledge",
   promptCache: "1h",
-  models: {
-    quick: { model: "small", maxTokens: 100, guidance: "Short.", price },
-    deep: { model: "large", maxTokens: 900, guidance: "Long.", price },
-  },
+  routes: routesFor(model),
+  guidance: { quick: "Short.", deep: "Long." },
   sourceKeys: ["about", "history"],
   guards: createGuards().guards,
-  resilience: { retries: 1, fallback: { deep: "quick" }, backoffMs: 1, waitForPeerMs: 40, pollMs: 10 },
+  resilience: { retries: 1, backoffMs: 1, waitForPeerMs: 40, pollMs: 10 },
   wait: () => Promise.resolve(),
   ...extra,
 });
@@ -105,10 +121,12 @@ describe("AskService answering", () => {
     const events = await collect(service.answer(await planFor(service, { question: "What did he lead?" })));
 
     expect(textOf(events).trim()).toBe("Red led it, well.");
+    expect(events[0]).toEqual({ type: "model", label: "Small" });
     expect(events.slice(-2)).toEqual([{ type: "sources", keys: ["history"] }, { type: "done" }]);
     // 100 * 1 + 1000 * 0.1 + 50 * 5 micro dollars.
     expect(spent).toEqual([450]);
-    expect(records[0]).toMatchObject({ outcome: "answered", model: "small", attempts: 1, costMicros: 450, sources: ["history"], isFirstQuestion: true });
+    expect(records[0]).toMatchObject({ outcome: "answered", provider: "fake", model: "small", attempts: 1, costMicros: 450 });
+    expect(records[0]).toMatchObject({ sources: ["history"], isFirstQuestion: true });
   });
 
   test("sends the knowledge as a cached block, the guidance after it, and the history before the question", async () => {
@@ -120,6 +138,7 @@ describe("AskService answering", () => {
     expect(model.requests[0]).toEqual({
       model: "large",
       maxTokens: 900,
+      effort: "medium",
       system: [{ text: "Rules and knowledge", cache: "1h" }, { text: "Long." }],
       messages: [
         { role: "user", content: "Q" },
@@ -140,12 +159,23 @@ describe("AskService answering", () => {
     expect(records[0]).toMatchObject({ outcome: "answered", model: "small", attempts: 3 });
   });
 
+  test("a provider that refuses outright, such as on a bad key, is skipped for the next one without a retry", async () => {
+    const free = new FakeModel([[new ModelError(401, "bad key")]]);
+    const paid = new FakeModel([["From the paid one."]]);
+    const quick = [route(free, { provider: "free", label: "Free" }), route(paid, { provider: "paid", label: "Paid" })];
+    const service = createService(free, { routes: { quick, deep: [] } });
+    const events = await collect(service.answer({ request: { question: "Q", depth: "quick", history: [] } }));
+
+    expect(free.requests).toHaveLength(1);
+    expect(events.slice(0, 2)).toEqual([{ type: "model", label: "Paid" }, { type: "text", text: "From the paid one." }]);
+  });
+
   test("never retries once words are shown, and never retries what cannot succeed", async () => {
     const midway = new FakeModel([["Half", new ModelError(529, "overloaded")]]);
     const refused = new FakeModel([[new ModelError(400, "bad request")]]);
 
     expect(await collect(createService(midway).answer({ request: { question: "Q", depth: "quick", history: [] } })))
-      .toEqual([{ type: "text", text: "Half" }, { type: "error", code: "failed" }]);
+      .toEqual([{ type: "model", label: "Small" }, { type: "text", text: "Half" }, { type: "error", code: "failed" }]);
     expect(midway.requests).toHaveLength(1);
 
     await collect(createService(refused).answer({ request: { question: "Q", depth: "quick", history: [] } }));
@@ -165,7 +195,7 @@ describe("AskService answering", () => {
     const events = await collect(createService(model, { onRecord: (record) => records.push(record) })
       .answer({ request: { question: "Q", depth: "quick", history: [] } }, controller.signal));
 
-    expect(events).toEqual([{ type: "text", text: "Start" }]);
+    expect(events).toEqual([{ type: "model", label: "Small" }, { type: "text", text: "Start" }]);
     expect(records[0].outcome).toBe("stopped");
   });
 });
@@ -200,8 +230,13 @@ describe("AskService guarding", () => {
     const plan: AskPlan = await planFor(second, { question: "  what has red built " });
     const events = await collect(second.answer(plan));
 
-    expect(plan.cached).toEqual({ text: "Cached once.", sources: ["about"] });
-    expect(events).toEqual([{ type: "text", text: "Cached once." }, { type: "sources", keys: ["about"] }, { type: "done" }]);
+    expect(plan.cached).toEqual({ text: "Cached once.", sources: ["about"], label: "Small" });
+    expect(events).toEqual([
+      { type: "model", label: "Small" },
+      { type: "text", text: "Cached once." },
+      { type: "sources", keys: ["about"] },
+      { type: "done" },
+    ]);
     expect(model.requests).toHaveLength(1);
     expect(everyone.take).not.toHaveBeenCalled();
   });
@@ -229,13 +264,13 @@ describe("AskService guarding", () => {
 
         // The leader finishes while the follower waits.
         if (polls === 2) {
-          await cache.set("Popular?", "quick", { text: "Shared.", sources: [] });
+          await cache.set("Popular?", "quick", { text: "Shared.", sources: [], label: "Small" });
         }
       },
     });
 
     expect((await planFor(leader, { question: "Popular?" })).cached).toBeUndefined();
-    expect((await planFor(follower, { question: "Popular?" })).cached).toEqual({ text: "Shared.", sources: [] });
+    expect((await planFor(follower, { question: "Popular?" })).cached).toEqual({ text: "Shared.", sources: [], label: "Small" });
     expect(polls).toBe(2);
   });
 });

@@ -37,7 +37,8 @@ const mergeUsage = (usage: TokenUsage, raw: RawUsage | undefined): TokenUsage =>
 });
 
 // Claude through the Messages API, streamed. Cached system blocks are marked for prompt caching with their
-// time to live; the usage arrives as the last chunk so the caller can price the call.
+// time to live, effort maps onto output_config, and the usage arrives as the last chunk so the caller can price
+// the call. Thinking, on models that think, is never shown: only text deltas are passed on.
 export class AnthropicMessagesModel implements AnswerModel {
   private readonly options: AnthropicModelOptions;
 
@@ -64,6 +65,7 @@ export class AnthropicMessagesModel implements AnswerModel {
           ...(block.cache ? { cache_control: { type: "ephemeral", ...(block.cache === "1h" ? { ttl: "1h" } : {}) } } : {}),
         })),
         messages: request.messages,
+        ...(request.effort ? { output_config: { effort: request.effort } } : {}),
       }),
       signal,
     });

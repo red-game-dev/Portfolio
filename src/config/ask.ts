@@ -3,24 +3,83 @@ import { SectionKey } from "@/config/sections";
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
 
-// Haiku answers first, quickly and cheaply. "Go deeper" asks Sonnet for the longer answer, and falls back to
-// Haiku if Sonnet is overloaded. Prices are US dollars per million tokens, with cache writes at the one hour
-// rate the knowledge is cached at.
-export const ASK_MODELS = {
-  quick: {
-    model: "claude-haiku-4-5-20251001",
-    maxTokens: 450,
-    price: { input: 1, cacheWrite: 2, cacheRead: 0.1, output: 5 },
-  },
-  deep: {
-    model: "claude-sonnet-5-5",
-    maxTokens: 1000,
-    price: { input: 2, cacheWrite: 4, cacheRead: 0.1, output: 10 },
-  },
-} as const;
+// Every provider Ask Red can run on, each a model per depth. Gemini's free tier is tried first; Claude and
+// OpenAI stand behind it and only run when their key is set. Prices are US dollars per million tokens, with
+// cache writes at the one hour rate. Gemini is priced at nothing because its free tier costs nothing; turn on
+// billing for the key's project and its paid prices belong here instead. Thinking counts toward maxTokens.
+export type AskProviderId = "gemini" | "anthropic" | "openai";
 
-// The knowledge is about 22k tokens. Cached for an hour it costs twice as much to write as for five minutes,
-// and pays off on a site where questions arrive minutes apart.
+export interface AskProviderModel {
+  id: string;
+  label: string;
+  maxTokens: number;
+  effort: "low" | "medium" | "high";
+  price: { input: number; cacheWrite: number; cacheRead: number; output: number };
+}
+
+export interface AskProviderConfig {
+  // Which adapter speaks to it.
+  api: "anthropic" | "openai";
+  // The environment variable holding its key.
+  keyEnv: string;
+  baseUrl?: string;
+  maxTokensField?: "max_tokens" | "max_completion_tokens";
+  models: Record<"quick" | "deep", AskProviderModel>;
+}
+
+const FREE = { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 };
+
+export const ASK_PROVIDERS: Record<AskProviderId, AskProviderConfig> = {
+  gemini: {
+    api: "openai",
+    keyEnv: "GEMINI_API_KEY",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+    maxTokensField: "max_tokens",
+    models: {
+      quick: { id: "gemini-3.8-flash", label: "Gemini 3.8 Flash", maxTokens: 1200, effort: "low", price: FREE },
+      deep: { id: "gemini-3.8-flash", label: "Gemini 3.8 Flash", maxTokens: 2500, effort: "medium", price: FREE },
+    },
+  },
+  anthropic: {
+    api: "anthropic",
+    keyEnv: "ANTHROPIC_API_KEY",
+    models: {
+      quick: {
+        id: "claude-haiku-5-5",
+        label: "Claude Haiku 5.5",
+        maxTokens: 1200,
+        effort: "low",
+        price: { input: 0.1, cacheWrite: 0.2, cacheRead: 0.01, output: 0.5 },
+      },
+      deep: {
+        id: "claude-sonnet-5-5",
+        label: "Claude Sonnet 5.5",
+        maxTokens: 2500,
+        effort: "medium",
+        price: { input: 2, cacheWrite: 4, cacheRead: 0.1, output: 10 },
+      },
+    },
+  },
+  openai: {
+    api: "openai",
+    keyEnv: "OPENAI_API_KEY",
+    baseUrl: "https://api.openai.com/v1",
+    maxTokensField: "max_completion_tokens",
+    models: {
+      quick: { id: "gpt-5.4-mini", label: "GPT-5.4 mini", maxTokens: 1200, effort: "low", price: { input: 0.75, cacheWrite: 0.75, cacheRead: 0.075, output: 4.5 } },
+      deep: { id: "gpt-6.1-sol", label: "GPT-6.1 Sol", maxTokens: 2500, effort: "medium", price: { input: 2, cacheWrite: 2, cacheRead: 0.1, output: 10 } },
+    },
+  },
+};
+
+// The order providers are tried in: the free one first. ASK_PROVIDERS in the environment overrides it with a
+// comma separated list, such as "anthropic,gemini". A deep question that no deep route can answer falls back
+// to the quick routes, and that answer is not cached as the deep one.
+export const ASK_PROVIDER_ORDER: AskProviderId[] = ["gemini", "anthropic", "openai"];
+
+// The knowledge is about 22k tokens. On Claude, cached for an hour it costs twice as much to write as for five
+// minutes, and pays off on a site where questions arrive minutes apart. Gemini and OpenAI cache a repeated
+// prefix on their own.
 export const ASK_PROMPT_CACHE = "1h" as const;
 
 // Sliding windows counted in the shared store, so they hold across every server instance: per visitor on
@@ -38,7 +97,7 @@ export const ASK_RATES = {
 
 // Spend per UTC day before the agent rests until tomorrow; ASK_DAILY_BUDGET_USD overrides it. The hard monthly
 // cap is the spend limit on the key's workspace in the Anthropic Console.
-export const ASK_DAILY_BUDGET_USD = 3;
+export const ASK_DAILY_BUDGET_USD = 1;
 
 // First questions and their answers are shared for a day, keyed by a hash of the knowledge and the models, so
 // a deploy that changes either starts afresh.
@@ -46,7 +105,6 @@ export const ASK_ANSWER_CACHE_MS = 24 * HOUR;
 
 export const ASK_RESILIENCE = {
   retries: 1,
-  fallback: { deep: "quick" },
   timeoutMs: 45 * 1000,
   backoffMs: 400,
   waitForPeerMs: 8 * 1000,

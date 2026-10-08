@@ -15,9 +15,10 @@ export interface AskRequest {
 
 export type AskErrorCode = "invalid" | "limited" | "unavailable" | "failed";
 
-// What an answer streams back, in order: text as it is written, the sections it drew on, then done. An error
+// What an answer streams back, in order: the model answering, text as it is written, the sections it drew on, then done. An error
 // can arrive instead of done if the model fails midway.
 export type AskEvent =
+  | { type: "model"; label: string }
   | { type: "text"; text: string }
   | { type: "sources"; keys: string[] }
   | { type: "done" }
@@ -36,9 +37,14 @@ export interface SystemBlock {
   cache?: "5m" | "1h";
 }
 
+// How hard the model thinks before it answers, mapped by each adapter onto its provider's own setting.
+export type ModelEffort = "low" | "medium" | "high";
+
 export interface ModelRequest {
   model: string;
+  // The whole output, thinking included on models that think.
   maxTokens: number;
+  effort?: ModelEffort;
   system: SystemBlock[];
   messages: ModelMessage[];
 }

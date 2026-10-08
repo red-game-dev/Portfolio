@@ -1,19 +1,26 @@
 import { AskLimits, resolveAskLimits } from "../config/limits";
 import { AnswerCache, CachedAnswer } from "../core/AnswerCache";
 import { ModelError } from "../domain/errors";
-import { AnswerModel, AskDepth, AskErrorCode, AskEvent, AskRequest, ModelMessage, ModelPrice, ModelRequest, SystemBlock, TokenUsage } from "../domain/types";
+import { AnswerModel, AskDepth, AskErrorCode, AskEvent, AskRequest, ModelEffort, ModelMessage, ModelPrice, ModelRequest, SystemBlock, TokenUsage } from "../domain/types";
 import { parseAskRequest } from "../guards/askRequest";
 import { costMicros, NO_USAGE } from "../utils/cost";
 import { withoutEmDashes } from "../utils/dashes";
 import { SourceSplitter } from "../utils/sources";
 import { sleep, withTimeout } from "../utils/time";
 
-export interface AskModelChoice {
-  model: string;
+// One provider's model, ready to answer at one depth. A depth has a list of these, tried in order.
+export interface AskRoute {
+  provider: string;
+  // How the answer is credited, such as "Gemini 3.8 Flash".
+  label: string;
+  model: AnswerModel;
+  modelId: string;
   maxTokens: number;
-  // Added after the cached knowledge, so it never breaks the cached prefix.
-  guidance: string;
+  effort?: ModelEffort;
   price: ModelPrice;
+  // The depth this route is meant for. A deep question answered by a quick route is a downgrade, and is not
+  // cached as the deep answer.
+  tier: AskDepth;
 }
 
 export interface Limiter {
@@ -34,10 +41,9 @@ export interface AskGuards {
 }
 
 export interface AskResilience {
-  // Further tries of the same model when it is rate limited or overloaded before the first word.
+  // Further tries of the same route when it is rate limited or overloaded before the first word, before the
+  // next route is tried.
   retries: number;
-  // The depth to fall back to once the retries are spent, such as deep to quick.
-  fallback: Partial<Record<AskDepth, AskDepth>>;
   timeoutMs: number;
   backoffMs: number;
   // How long a request waits for another one already asking the same first question.
@@ -50,6 +56,7 @@ export type AskOutcome = "answered" | "cached" | "failed" | "stopped";
 // One line per answer, for logs and dashboards.
 export interface AskRecord {
   depth: AskDepth;
+  provider: string;
   model: string;
   outcome: AskOutcome;
   attempts: number;
@@ -62,11 +69,13 @@ export interface AskRecord {
 }
 
 export interface AskServiceOptions {
-  model: AnswerModel;
   // The instructions and the knowledge, sent as one cached block.
   knowledge: string;
   promptCache?: SystemBlock["cache"];
-  models: Record<AskDepth, AskModelChoice>;
+  // Per depth, the routes to try in order, such as a free provider first and paid ones behind it.
+  routes: Record<AskDepth, AskRoute[]>;
+  // Added after the cached knowledge, so it never breaks the cached prefix.
+  guidance: Record<AskDepth, string>;
   // The section keys an answer may cite.
   sourceKeys: readonly string[];
   guards: AskGuards;
@@ -87,7 +96,6 @@ export type AskPreparation = { plan: AskPlan } | { error: AskErrorCode };
 
 const DEFAULT_RESILIENCE: AskResilience = {
   retries: 1,
-  fallback: {},
   timeoutMs: 45 * 1000,
   backoffMs: 400,
   waitForPeerMs: 8 * 1000,
@@ -101,10 +109,11 @@ const addUsage = (total: TokenUsage, usage: TokenUsage): TokenUsage => ({
   output: total.output + usage.output,
 });
 
-// Answers questions about one body of knowledge for many visitors at once. Everything that can refuse runs
-// before the model is called (the request, the visitor's limit, the shared cache, the limit for everyone and
-// the daily budget), so the host can answer with a status code. Then the answer streams back as events, with
-// retries and a fallback model while nothing has been shown yet, and is priced, logged and cached.
+// Answers questions about one body of knowledge for many visitors at once, on whichever providers it is given.
+// Everything that can refuse runs before a model is called (the request, the visitor's limit, the shared
+// cache, the limit for everyone and the daily budget), so the host can answer with a status code. Then the
+// answer streams back as events from the first route that answers, retrying and moving down the routes while
+// nothing has been shown yet, and is priced, logged and cached.
 export class AskService {
   private readonly options: AskServiceOptions;
   private readonly limits: AskLimits;
@@ -148,11 +157,12 @@ export class AskService {
   public async* answer(plan: AskPlan, signal?: AbortSignal): AsyncGenerator<AskEvent> {
     const started = this.now();
     const { request, cached } = plan;
-    const record = (fields: Pick<AskRecord, "model" | "outcome" | "attempts" | "firstTokenMs" | "usage" | "costMicros" | "sources">) => {
+    const record = (fields: Pick<AskRecord, "provider" | "model" | "outcome" | "attempts" | "firstTokenMs" | "usage" | "costMicros" | "sources">) => {
       this.options.onRecord?.({ ...fields, depth: request.depth, ms: this.now() - started, isFirstQuestion: request.history.length === 0 });
     };
 
     if (cached) {
+      yield { type: "model", label: cached.label };
       yield { type: "text", text: cached.text };
 
       if (cached.sources.length > 0) {
@@ -160,12 +170,12 @@ export class AskService {
       }
 
       yield { type: "done" };
-      record({ model: "cache", outcome: "cached", attempts: 0, firstTokenMs: 0, usage: NO_USAGE, costMicros: 0, sources: cached.sources });
+      record({ provider: "cache", model: cached.label, outcome: "cached", attempts: 0, firstTokenMs: 0, usage: NO_USAGE, costMicros: 0, sources: cached.sources });
 
       return;
     }
 
-    const depths = this.attemptsFor(request.depth);
+    const attemptRoutes = this.attemptsFor(request.depth);
     const timeout = withTimeout(this.resilience.timeoutMs, signal);
     const splitter = new SourceSplitter();
     let text = "";
@@ -173,24 +183,29 @@ export class AskService {
     let cost = 0;
     let firstTokenMs: number | null = null;
     let attempts = 0;
-    let usedDepth = request.depth;
-    let failure: unknown = null;
+    let route: AskRoute | undefined = attemptRoutes[0];
+    let failure: unknown = attemptRoutes.length === 0 ? new ModelError(503, "No route can answer") : null;
 
     try {
-      for (const [index, depth] of depths.entries()) {
-        const choice = this.options.models[depth];
+      let index = 0;
+
+      while (index < attemptRoutes.length) {
+        const candidate = attemptRoutes[index];
 
         attempts = index + 1;
-        usedDepth = depth;
+        route = candidate;
         failure = null;
 
         try {
-          for await (const chunk of this.options.model.stream(this.modelRequest(request, choice), timeout.signal)) {
+          for await (const chunk of candidate.model.stream(this.modelRequest(request, candidate), timeout.signal)) {
             if (chunk.type === "usage") {
               usage = addUsage(usage, chunk.usage);
-              cost += costMicros(chunk.usage, choice.price);
+              cost += costMicros(chunk.usage, candidate.price);
             } else {
-              firstTokenMs ??= this.now() - started;
+              if (firstTokenMs === null) {
+                firstTokenMs = this.now() - started;
+                yield { type: "model", label: candidate.label };
+              }
 
               const shown = withoutEmDashes(splitter.push(chunk.text));
 
@@ -206,20 +221,31 @@ export class AskService {
         } catch (error) {
           failure = error;
 
-          const canRetry = firstTokenMs === null && !timeout.signal.aborted && error instanceof ModelError && error.isRetryable && index < depths.length - 1;
-
-          if (!canRetry) {
+          // Once words are shown, or the time is up, the answer stands as it is.
+          if (firstTokenMs !== null || timeout.signal.aborted) {
             break;
           }
 
-          await this.wait(this.resilience.backoffMs * 2 ** index, timeout.signal);
+          // A busy route gets its retries; anything else, such as a bad key, moves straight to the next route.
+          const isRetryable = error instanceof ModelError && error.isRetryable;
+          const next = isRetryable ? index + 1 : attemptRoutes.findIndex((other, at) => at > index && other !== candidate);
+
+          if (next < 0 || next >= attemptRoutes.length) {
+            break;
+          }
+
+          if (attemptRoutes[next] === candidate) {
+            await this.wait(this.resilience.backoffMs * 2 ** index, timeout.signal);
+          }
+
+          index = next;
         }
       }
     } finally {
       timeout.clear();
     }
 
-    const model = this.options.models[usedDepth].model;
+    const served = { provider: route?.provider ?? "none", model: route?.modelId ?? "none" };
 
     if (failure) {
       const isStopped = Boolean(signal?.aborted);
@@ -229,7 +255,7 @@ export class AskService {
       }
 
       await this.settle(() => this.options.guards.budget.spend(cost));
-      record({ model, outcome: isStopped ? "stopped" : "failed", attempts, firstTokenMs, usage, costMicros: cost, sources: [] });
+      record({ ...served, outcome: isStopped ? "stopped" : "failed", attempts, firstTokenMs, usage, costMicros: cost, sources: [] });
 
       return;
     }
@@ -249,27 +275,25 @@ export class AskService {
     yield { type: "done" };
 
     const answer = text.trim();
-    const isCacheable = request.history.length === 0 && usedDepth === request.depth && answer.length > 0;
+    const isCacheable = request.history.length === 0 && route?.tier === request.depth && answer.length > 0;
 
     await this.settle(() => this.options.guards.budget.spend(cost));
 
     if (isCacheable && this.options.cache) {
       const cache = this.options.cache;
 
-      await this.settle(() => cache.set(request.question, request.depth, { text: answer, sources: keys }));
+      await this.settle(() => cache.set(request.question, request.depth, { text: answer, sources: keys, label: route?.label ?? "" }));
     }
 
-    record({ model, outcome: "answered", attempts, firstTokenMs, usage, costMicros: cost, sources: keys });
+    record({ ...served, outcome: "answered", attempts, firstTokenMs, usage, costMicros: cost, sources: keys });
   }
 
-  // The depths to try in order: the asked one, its retries, then its fallback.
-  private attemptsFor(depth: AskDepth): AskDepth[] {
-    const fallback = this.resilience.fallback[depth];
-
-    return [...Array.from({ length: this.resilience.retries + 1 }, () => depth), ...(fallback && fallback !== depth ? [fallback] : [])];
+  // Every route for the depth in order, each repeated for its retries.
+  private attemptsFor(depth: AskDepth): AskRoute[] {
+    return this.options.routes[depth].flatMap((route) => Array.from({ length: this.resilience.retries + 1 }, () => route));
   }
 
-  private modelRequest(request: AskRequest, choice: AskModelChoice): ModelRequest {
+  private modelRequest(request: AskRequest, route: AskRoute): ModelRequest {
     const messages: ModelMessage[] = [
       ...request.history.flatMap((turn): ModelMessage[] => [
         { role: "user", content: turn.question },
@@ -279,9 +303,10 @@ export class AskService {
     ];
 
     return {
-      model: choice.model,
-      maxTokens: choice.maxTokens,
-      system: [{ text: this.options.knowledge, cache: this.options.promptCache ?? "5m" }, { text: choice.guidance }],
+      model: route.modelId,
+      maxTokens: route.maxTokens,
+      effort: route.effort,
+      system: [{ text: this.options.knowledge, cache: this.options.promptCache ?? "5m" }, { text: this.options.guidance[request.depth] }],
       messages,
     };
   }

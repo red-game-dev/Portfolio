@@ -233,7 +233,7 @@ export const caseStudiesContent: Pick<PortfolioData, "caseStudyFilters" | "caseS
         "Content is typed data: tests fail when a drawing names an employer, a skill claims years no role backs, or an eval asks for a fact the site does not state",
         "Accepted on the deployed preview only: Playwright drives it at phone and desktop width and reads the console for hydration errors no type check sees",
         "Packages are kept free of React by a lint rule, so an agent cannot couple them to the page",
-        "The agent in the terminal answers from the same data with Claude, with evals for grounding and prompt injection",
+        "The agent in the terminal answers from the same data on Gemini, Claude or OpenAI behind one adapter each, with evals for grounding and prompt injection",
       ],
       tags: ["Claude Code", "Context engineering", "Evals"],
       audiences: ["ai"],

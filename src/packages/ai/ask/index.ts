@@ -6,6 +6,7 @@ export { ModelError } from "./domain/errors";
 export { StoreError } from "./domain/storeError";
 export { parseAskRequest } from "./guards/askRequest";
 export { AnthropicMessagesModel } from "./models/AnthropicMessagesModel";
+export { OpenAICompatibleModel } from "./models/OpenAICompatibleModel";
 export { AskService } from "./services/AskService";
 export { MemoryStore } from "./stores/MemoryStore";
 export { ResilientStore } from "./stores/ResilientStore";
@@ -31,6 +32,7 @@ export type {
   CacheStore,
   CounterStore,
   ModelChunk,
+  ModelEffort,
   ModelMessage,
   ModelPrice,
   ModelRequest,
@@ -38,14 +40,15 @@ export type {
   TokenUsage
 } from "./domain/types";
 export type { AnthropicModelOptions } from "./models/AnthropicMessagesModel";
+export type { OpenAICompatibleOptions } from "./models/OpenAICompatibleModel";
 export type {
   AskGuards,
-  AskModelChoice,
   AskOutcome,
   AskPlan,
   AskPreparation,
   AskRecord,
   AskResilience,
+  AskRoute,
   AskServiceOptions,
   Budget,
   Limiter

@@ -139,7 +139,11 @@ export const terminalContent: Pick<PortfolioData, "terminal"> = {
       deeperSummary: "The longer answer to your last question, from a larger model",
       thinking: "Reading the site...",
       thinkingDeeper: "Reading the site again, more carefully...",
-      notice: "Answers come from an AI agent (Claude) that reads only this site. It can be wrong, so check anything important with me.",
+      notice: [
+        "Answers come from an AI agent that reads only this site. Free tier models may keep what you type, so leave out anything",
+        "private. It can be wrong: check anything important with me.",
+      ].join(" "),
+      answeredBy: "Answered by {model}",
       nothingToDeepen: "Ask something first: ask <your question>",
       deeperLabel: "Go deeper",
       stopLabel: "Stop",

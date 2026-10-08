@@ -46,3 +46,8 @@ eslint-results.sarif
 analyze/nodejs.html
 # playwright mcp artifacts
 .playwright-mcp/
+
+# agent setup: personal settings, the private denylist and session notes stay local
+.claude/settings.local.json
+.claude/private/
+.claude/sessions/

@@ -2,6 +2,7 @@ import { portfolioData, PortfolioData } from "@/data/resume";
 import { clearCommand, Command, CommandRegistry, createHelpCommand, createManCommand, system, TerminalSession } from "@/packages/interaction/terminal";
 import { fill } from "@/packages/text/format";
 import { createAroundCommands } from "@/services/terminal/commands/around";
+import { createAskCommands } from "@/services/terminal/commands/ask";
 import { createContactCommands } from "@/services/terminal/commands/contact";
 import { createFunCommands } from "@/services/terminal/commands/fun";
 import { createMeCommands } from "@/services/terminal/commands/me";
@@ -15,6 +16,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
   const context = createCommandContext(data);
   const commands: Command[] = [
     { ...createRedCommand(data), group: GROUPS.red },
+    ...createAskCommands(context),
     ...createMeCommands(context),
     ...createWorkCommands(context),
     ...createContactCommands(context),

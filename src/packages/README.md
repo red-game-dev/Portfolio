@@ -21,13 +21,14 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `validators/` | Business rules, returning every error instead of stopping at the first |
 | `mappers/` | One-way transforms from one shape to another |
 | `services/` | Orchestration of the above for a caller |
-| `sources/`, `schedulers/`, `renderers/` | Swappable implementations of a port |
+| `sources/`, `schedulers/`, `renderers/`, `models/` | Swappable implementations of a port |
 | `utils/` | Small pure functions with no state |
 
 ## Catalogue
 
 | Package | What it gives you |
 |---|---|
+| `ai/ask` | Question answering over one body of knowledge: a request guard, a sliding window `RateLimiter`, an `AskService` that streams events (text, cited sources, done or error) and splits the sources line off the answer, an `AnthropicMessagesModel` that streams Claude with the knowledge prompt cached, and NDJSON encode and read for the wire |
 | `accessibility/motion` | The reduced motion preference, safe to call during server rendering |
 | `accessibility/roving` | `rovingTarget`, where arrows, Home and End move focus in a row of tabs or cards |
 | `browser/storage` | `readStored` and `writeStored`: guarded localStorage that validates what it reads and survives private windows and full quotas |

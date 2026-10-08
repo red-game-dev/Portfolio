@@ -82,7 +82,7 @@ export default function Home() {
           labels={portfolioData.historyLabels}
           industries={portfolioData.headline.industries}
         />
-        <AiUsage {...aiUsage} blueprintSection="ai" />
+        <AiUsage {...aiUsage} blueprintSection="ai" timelapse={portfolioData.timelapse} />
         <Web3
           intro={portfolioData.sections.web3}
           content={portfolioData.web3}

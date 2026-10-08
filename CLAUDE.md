@@ -19,6 +19,7 @@ npm run test:coverage                        # once, with coverage of src/ (data
 npx jest __tests__/src/pages/index.test.tsx --watchAll=false   # single test file
 npx jest -t "renders every section" --watchAll=false           # single test by name
 ANALYZE=true npm run build                   # bundle analysis (@next/bundle-analyzer, does not auto-open)
+npm run timelapse                            # rewrite the repo time-lapse's history from git (commit the JSON)
 ```
 
 Icons are the free Font Awesome set (`@fortawesome/free-solid-svg-icons`, `free-brands`), installed from the public npm registry with no token. The committed project `.npmrc` points the `@fortawesome` scope at registry.npmjs.org, overriding any global `~/.npmrc` that still routes it to the Pro registry; it must never hold a token, since this repo is public. The few icons the free set lacks (castle, candlestick chart, treasure chest) are drawn in `src/config/icons.ts` on Font Awesome's 512 unit grid.
@@ -135,6 +136,10 @@ It is built in layers, each a package with the usual folders, so nothing is writ
 Tokens: the whole site goes in every prompt, because retrieval would cut tokens but drop context and break the cached prefix; caching makes the full prefix cheap instead. `PortfolioKnowledgeMapper` drops lines the site says twice, and a test holds the prompt under `ASK_KNOWLEDGE_TOKEN_BUDGET`. The daily budget is $1 (`ASK_DAILY_BUDGET_USD`), priced from each provider's reported usage; free tier answers cost nothing against it, and the hard monthly caps are the spend limits set with each paid provider. Visitors are counted by a salted hash of their address (`ASK_SALT`). Every answer writes one `ask.answer` JSON line (provider, model, outcome, attempts, time to first token, tokens, cache hit ratio, cost) and the routes are logged once as `ask.routes`.
 
 The rules the agent answers by are in `prompt.ts`. `src/services/ask/evals.ts` holds the evals: a test checks every term they expect is in the knowledge, and `ASK_EVAL_URL=<deployment> npx jest __tests__/src/services/ask/evals.test.ts --watchAll=false` runs them against the real models.
+
+### The repo time-lapse
+
+"How I use AI" ends with this site's codebase as a city that grows commit by commit (`AiUsage/RepoTimelapse.tsx`): one building per district, as tall as its lines of code, with the date, the commit count, the total lines and the milestone reached. Vercel builds do not carry the full git history, so `npm run timelapse` (`scripts/timelapse.mjs`) writes the history to `src/data/timelapse/history.json`, which is committed; re-run it after a big change. The page loads it, and `services/repo-growth` that guards, validates and maps it through `insights/repo-growth`, with a dynamic import as the panel comes near, so neither is in the page bundle. Building heights are CSS variables written each frame and revealed with a clip, so windows never stretch; React state changes only with the commit shown. It plays once when first seen, pauses off screen, can be scrubbed, and shows the finished city at once under reduced motion. District labels and milestones are content (`timelapse.ts`); tests check every district has a label and every milestone falls inside the history.
 
 ### Reveals replay
 

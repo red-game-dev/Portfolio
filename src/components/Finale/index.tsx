@@ -3,26 +3,27 @@ import { FC, useEffect, useRef, useState } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
-import { faArrowRotateLeft, faEnvelope, faFileArrowDown } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRotateLeft, faEnvelope, faFileArrowDown, faRocket, faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { BinaryRain } from "@/components/BinaryRain";
 import { ActionLink, actionStyle } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
+import { useLaunch } from "@/components/Finale/hooks/useLaunch";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
 import { Section } from "@/components/Section";
 import { SECTION_IDS } from "@/config/sections";
 import { SOCIAL_URLS } from "@/config/social";
-import { FINALE_RAIN_CONFIG } from "@/config/theme";
-import { ZONE_BOUNDARIES } from "@/config/zones";
+import { CROSSED_ZONES, ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
 import useInView from "@/hooks/useInView";
 import { scrollBehavior } from "@/packages/accessibility/motion";
+import type { LaunchSnapshot } from "@/packages/games/launch";
 import { fill } from "@/packages/text/format";
-import { FinaleContent, FinaleRank } from "@/types/game";
+import { FinaleContent, FinaleLaunch, FinaleRank } from "@/types/game";
 
 interface FinaleProps {
   content: FinaleContent;
+  zoneLabels: Record<ZoneId, string>;
   bossCount: number;
   duelCount: number;
   email: string;
@@ -30,9 +31,44 @@ interface FinaleProps {
   cvUrl: string;
 }
 
-const Screen = tw.div`relative h-[150px] md:h-[190px] overflow-hidden border-[1px] border-solid border-[#3a2f17]`;
+const Board = tw.div`relative h-[220px] md:h-[280px] overflow-hidden border-[1px] border-solid border-[var(--accent-muted)]`;
 
-const ReadableText = tw.span`sr-only`;
+const Canvas = tw.canvas`absolute inset-0 w-full h-full`;
+
+const Status = tw.p`absolute top-[12px] left-[14px] m-0 text-xs font-semibold text-[var(--accent)]`;
+
+const Controls = tw.div`flex flex-row flex-wrap items-center gap-[12px] mt-[14px]`;
+
+const LaunchButton = styled.button(() => [
+  actionStyle(true),
+  css`
+    touch-action: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  `,
+]);
+
+const Hint = tw.p`m-0 text-xs text-[#999] max-w-[60ch]`;
+
+const Mission = styled.div(({ isLit }: { isLit: boolean }) => [
+  tw`flex flex-col gap-[8px] mt-[26px] p-[18px] bg-[#0b0d16] border-[1px] border-solid border-[var(--accent-muted)]`,
+  css`
+    transition: border-color 0.6s ease;
+  `,
+  isLit && tw`border-[var(--accent)]`,
+]);
+
+const MissionTitle = tw.h3`m-0 text-sm font-semibold text-[var(--accent)]`;
+
+const MissionLine = tw.p`m-0 text-lg md:text-xl font-semibold text-white leading-snug max-w-[60ch]`;
+
+const StarMark = styled.span(({ isLit }: { isLit: boolean }) => [
+  tw`mr-[6px] text-[#333]`,
+  css`
+    transition: color 0.4s ease;
+  `,
+  isLit && tw`text-[var(--accent)]`,
+]);
 
 const Heading = tw.div`flex flex-col gap-[6px] mt-[26px]`;
 
@@ -83,16 +119,33 @@ const Restart = styled.button(() => actionStyle(false));
 
 const rankFor = (ranks: FinaleRank[], done: number) => [...ranks].sort((first, second) => second.min - first.min).find((rank) => done >= rank.min) ?? ranks[0];
 
+// What the board says, and what a screen reader hears, at each moment of the launch.
+const statusOf = (launch: FinaleLaunch, { status, passed }: LaunchSnapshot, zoneLabels: Record<ZoneId, string>) => {
+  if (status === "charging") {
+    return launch.charging;
+  }
+
+  if (status === "launching") {
+    return passed > 0 ? fill(launch.leaving, { zone: zoneLabels[CROSSED_ZONES[passed - 1]] }) : launch.liftOff;
+  }
+
+  return status === "orbit" ? launch.orbit : "";
+};
+
 const formatTime = (ms: number) => {
   const seconds = Math.floor(ms / 1000);
 
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 };
 
-// The end of the run: the rain spells out a thank you, the visitor sees what they actually did on the way
-// down, earns a rank for it, and gets one last quest: get in touch.
-export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, linkedInUsername, cvUrl }: FinaleProps) => {
+// The end of the run, and the page lifting off: the visitor launches out of the game world past every zone
+// they crossed, their run lights up as stars on the way, and the journey closes on where I want to go next,
+// with one last quest: get in touch.
+export const Finale: FC<FinaleProps> = ({ content, zoneLabels, bossCount, duelCount, email, linkedInUsername, cvUrl }: FinaleProps) => {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { snapshot, isReady, onPointerDown, onPointerUp, onPointerCancel, onClick } = useLaunch(boardRef, canvasRef);
   const isReached = useInView(sectionRef, { threshold: 0.2 });
   const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore } = useGameStateHook();
   const [runMs, setRunMs] = useState<number | null>(null);
@@ -114,6 +167,10 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
     bestScore > 0,
   ];
   const done = objectives.filter(Boolean).length;
+  const isOrbit = snapshot.status === "orbit";
+  // One star per stat, lit as each zone falls behind, the last one in orbit.
+  const isLit = (index: number) => isOrbit || snapshot.passed > index;
+  const hint = `${SECTION_IDS.finale}-hint`;
   const rank = rankFor(content.ranks, done);
   const body = fill(content.emailBody, { rank: rank.name, bosses: `${defeatedBosses}/${bossCount}`, duels: `${duelsWon}/${duelCount}` });
   const mailto = `mailto:${email}?subject=${encodeURIComponent(content.emailSubject)}&body=${encodeURIComponent(body)}`;
@@ -121,10 +178,26 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
   return (
     <Section id={SECTION_IDS.finale} ref={sectionRef}>
       <Panel>
-        <Screen>
-          <ReadableText>{content.screenLabel}</ReadableText>
-          <BinaryRain message={content.screen} config={FINALE_RAIN_CONFIG} />
-        </Screen>
+        <Board ref={boardRef} role="img" aria-label={content.launch.boardLabel}>
+          <Canvas ref={canvasRef} aria-hidden="true" />
+          <Status role="status">{statusOf(content.launch, snapshot, zoneLabels)}</Status>
+        </Board>
+        <Controls>
+          <LaunchButton
+            type="button"
+            disabled={!isReady}
+            aria-describedby={hint}
+            onPointerDown={onPointerDown}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerCancel}
+            onContextMenu={(event) => event.preventDefault()}
+            onClick={onClick}
+          >
+            <FontAwesomeIcon icon={isOrbit ? faArrowRotateLeft : faRocket} aria-hidden="true" />
+            {isOrbit ? content.launch.again : content.launch.hold}
+          </LaunchButton>
+          <Hint id={hint}>{content.launch.hint}</Hint>
+        </Controls>
         <Heading>
           <Kicker>{content.kicker}</Kicker>
           <Title>
@@ -134,27 +207,57 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
         <SummaryTitle>{content.summaryTitle}</SummaryTitle>
         <Stats>
           <Stat isDone={objectives[0]}>
-            <StatName>{content.stats.zones}</StatName>
+            <StatName>
+              <StarMark isLit={isLit(0)} aria-hidden="true">
+                <FontAwesomeIcon icon={faStar} />
+              </StarMark>
+              {content.stats.zones}
+            </StatName>
             <StatValue isDone={objectives[0]}>{`${zonesVisited}/${zoneCount}`}</StatValue>
           </Stat>
           <Stat isDone={objectives[1]}>
-            <StatName>{content.stats.bosses}</StatName>
+            <StatName>
+              <StarMark isLit={isLit(1)} aria-hidden="true">
+                <FontAwesomeIcon icon={faStar} />
+              </StarMark>
+              {content.stats.bosses}
+            </StatName>
             <StatValue isDone={objectives[1]}>{`${defeatedBosses}/${bossCount}`}</StatValue>
           </Stat>
           <Stat isDone={objectives[2]}>
-            <StatName>{content.stats.duels}</StatName>
+            <StatName>
+              <StarMark isLit={isLit(2)} aria-hidden="true">
+                <FontAwesomeIcon icon={faStar} />
+              </StarMark>
+              {content.stats.duels}
+            </StatName>
             <StatValue isDone={objectives[2]}>{`${duelsWon}/${duelCount}`}</StatValue>
           </Stat>
           <Stat isDone={objectives[3]}>
-            <StatName>{content.stats.character}</StatName>
+            <StatName>
+              <StarMark isLit={isLit(3)} aria-hidden="true">
+                <FontAwesomeIcon icon={faStar} />
+              </StarMark>
+              {content.stats.character}
+            </StatName>
             <StatValue isDone={objectives[3]}>{characterClass ?? content.none}</StatValue>
           </Stat>
           <Stat isDone={objectives[4]}>
-            <StatName>{content.stats.raid}</StatName>
+            <StatName>
+              <StarMark isLit={isLit(4)} aria-hidden="true">
+                <FontAwesomeIcon icon={faStar} />
+              </StarMark>
+              {content.stats.raid}
+            </StatName>
             <StatValue isDone={objectives[4]}>{bestScore > 0 ? bestScore : content.notPlayed}</StatValue>
           </Stat>
           <Stat isDone={false}>
-            <StatName>{content.stats.time}</StatName>
+            <StatName>
+              <StarMark isLit={isLit(5)} aria-hidden="true">
+                <FontAwesomeIcon icon={faStar} />
+              </StarMark>
+              {content.stats.time}
+            </StatName>
             <StatValue isDone={false}>{runMs === null ? "0:00" : formatTime(runMs)}</StatValue>
           </Stat>
         </Stats>
@@ -165,6 +268,10 @@ export const Finale: FC<FinaleProps> = ({ content, bossCount, duelCount, email, 
             <RankMeta>{fill(content.objectives, { done, total: objectives.length })}</RankMeta>
           </RankText>
         </Rank>
+        <Mission isLit={isOrbit}>
+          <MissionTitle>{content.missionTitle}</MissionTitle>
+          <MissionLine>{content.mission}</MissionLine>
+        </Mission>
         <Quest>
           <QuestTitle>{content.finalQuest}</QuestTitle>
           <Note>{content.contactNote}</Note>

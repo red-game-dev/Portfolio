@@ -1,3 +1,5 @@
+import type { ZoneId } from "@/config/zones";
+
 export interface DuelRound {
   agent: string;
   human: string;
@@ -60,11 +62,25 @@ export interface FinaleRank {
   name: string;
 }
 
+// The launch out of the game world, and what each moment of it is called.
+export interface FinaleLaunch {
+  boardLabel: string;
+  hold: string;
+  charging: string;
+  liftOff: string;
+  orbit: string;
+  // Read out as each zone falls behind; "{zone}" is replaced.
+  leaving: string;
+  again: string;
+  hint: string;
+}
+
 export interface FinaleContent {
   kicker: string;
   title: string;
-  screen: string[];
-  screenLabel: string;
+  launch: FinaleLaunch;
+  missionTitle: string;
+  mission: string;
   summaryTitle: string;
   stats: {
     zones: string;
@@ -103,7 +119,7 @@ export interface HudLabels {
 export interface JourneyTrailContent {
   // "{index}", "{total}" and "{zone}" are replaced.
   zoneLabel: string;
-  zones: Record<"matrix" | "ai" | "chain" | "casino" | "mmo", string>;
+  zones: Record<ZoneId, string>;
   // Titles for the parts of the page without a section intro.
   titles: {
     started: string;

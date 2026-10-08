@@ -27,6 +27,16 @@ Use Node 22+ (`.nvmrc` pins 22.6.0, `engines` allows `22.x || 24.x`). Node 23 is
 
 Without `node_modules`, `npx tsc` and `npx eslint` do not fail cleanly: npx downloads the wrong packages instead (`tsc@2` is an unrelated squatter, and ESLint 9 rejects the legacy `.eslintrc.json`). Install first. `npm run lint` calls ESLint 8 directly because Next 16 removed `next lint`.
 
+## Working with agents
+
+The repo carries its own agent setup; the skills hold procedure and point back here for the architecture.
+
+- **Skills** (`.claude/skills/`, loaded when they apply): `content-rules`, `evidence-check`, `verify-on-preview` (with the Lighthouse thresholds), `content-entry`, `section-authoring`, `performance-budget`, `blueprint-authoring` and `ask-agent`; `design-review` runs only when asked. The Upstash skills in `.agents/skills/` are vendored, pinned in `skills-lock.json`, and kept as published.
+- **Commands** (`.claude/commands/`): `/verify`, `/release-check`, `/audit-copy`, `/add-entry <kind>`, `/eval-ask [url]`, `/save-session` and `/resume-session` (notes in the gitignored `.claude/sessions/`).
+- **Hooks** (`.claude/settings.json`) warn and never block: after an edit to a content file they report em dashes, emojis and private names; before a commit they check the staged copy and the message (no em dash, no Co-Authored-By trailer); before a push they warn when the branch carries another open pull request's commits.
+- The rules live once, in `scripts/agent/rules.mjs`, shared by the hooks, `scripts/agent/audit.mjs` and `__tests__/src/data/contentRules.test.ts`. Names that must never appear on the site are listed in the gitignored `.claude/private/denylist.txt`, so the rule never names them in this public repo; without that file the name check is skipped, so ask Red before naming any client.
+- No MCP configuration is committed: the browser tools the verification needs come with the session.
+
 ## Verifying changes
 
 **Verify against the deployed Vercel preview using the Playwright MCP tools, not a local dev server or local build.** Push the branch, let the preview deploy, then drive Playwright against the preview URL and read its console. Local runs are slow, crash-prone on this machine, and do not reflect what actually ships.

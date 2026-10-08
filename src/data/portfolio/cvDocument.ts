@@ -126,7 +126,13 @@ export const cvDocumentContent: Pick<PortfolioData, "cvDocument"> = {
     moreVentures: "14 startups built in total; every one is on redgame.dev.",
     skillsLabel: "Skills, with years of use",
     skills: [
-      { label: "AI and machine learning", names: ["PyTorch", "TensorFlow", "Python", "ChatGPT / GPT-4"] },
+      {
+        label: "AI and machine learning",
+        names: [
+          "PyTorch", "TensorFlow", "Python", "Claude Code Max CLI", "Gemini Enterprise", "ChatGPT / GPT-4", "Strapi MCP",
+          "Agentic Implementation with Human-in-the-loop Review", "Parallel Sub-agent Orchestration for Multi-source Audits",
+        ],
+      },
       {
         label: "Languages",
         names: [

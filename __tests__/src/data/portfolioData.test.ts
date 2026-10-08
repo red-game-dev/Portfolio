@@ -219,6 +219,15 @@ describe("the CV", () => {
     expect(words).toBeLessThan(1500);
   });
 
+  // The roles I apply for screen for the agent tools first, and those are too new to reach the five year bar below.
+  test("names the agent tools and workflows a screen for applied AI roles looks for", () => {
+    const named = new Set(cvDocument.skills.flatMap((line) => line.names));
+
+    const agentic = ["Claude Code Max CLI", "Gemini Enterprise", "Strapi MCP", "Agentic Implementation with Human-in-the-loop Review"];
+
+    expect(agentic.filter((name) => !named.has(name))).toEqual([]);
+  });
+
   test("names every core skill with five or more years of evidence, so no keyword a screen looks for is missing", () => {
     const named = new Set(cvDocument.skills.flatMap((line) => line.names));
     const core = new Set<string>(["programming", "frontend", "backend", "mobile", "blockchain", "cloud", "testing", "ai"]);

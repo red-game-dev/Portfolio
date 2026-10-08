@@ -44,7 +44,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       { min: 5, name: "Legend" },
     ],
     finalQuest: "Final quest: start a conversation",
-    contactNote: "How did you find the journey? The best time to reach me is after 4:30 PM CET on business days.",
+    contactNote: "How did you find the journey? Write to me {time}.",
     emailLabel: "Email me",
     emailSubject: "I finished your portfolio run",
     emailBody: "Rank {rank}. Bosses {bosses}, duels {duels}.",

@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/agent/content-hook.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Checking the copy rules"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit *)",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/agent/git-hook.mjs\"",
+            "timeout": 20,
+            "statusMessage": "Checking the commit"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push *)",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/agent/git-hook.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Checking the branch before push"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -6,7 +6,7 @@ export const sectionsContent: Pick<PortfolioData, "sections"> = {
     terminal: {
       title: "Ask the Terminal",
       description: [
-        "Prefer the command line? Everything on this page is one command away. Start with help.",
+        "Prefer the command line? Everything on this page is one command away, and ask puts your question to my AI agent, which answers from this site. Start with help.",
       ],
     },
     history: {

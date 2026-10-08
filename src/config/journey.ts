@@ -1,7 +1,7 @@
 import { SECTION_IDS } from "@/config/sections";
 import { ZoneId } from "@/config/zones";
 
-export type StopKey = "who" | "offer" | "history" | "ai" | "web3" | "engineering" | "igaming" | "game";
+export type StopKey = "who" | "offer" | "history" | "ai" | "web3" | "engineering" | "igaming" | "game" | "beyond";
 
 // One stop of the journey: the run of sections it covers, in page order, and the zone it belongs to.
 export interface JourneyStop {
@@ -31,5 +31,6 @@ export const JOURNEY_STOPS: JourneyStop[] = [
   stop("web3", "chain", SECTION_IDS.web3, SECTION_IDS.web3),
   stop("engineering", "chain", SECTION_IDS.skillAreas, SECTION_IDS.codeReview),
   stop("igaming", "casino", SECTION_IDS.igaming, SECTION_IDS.igaming),
-  stop("game", "mmo", SECTION_IDS.roster, SECTION_IDS.finale),
+  stop("game", "mmo", SECTION_IDS.roster, SECTION_IDS.arena),
+  stop("beyond", "beyond", SECTION_IDS.finale, SECTION_IDS.finale),
 ];

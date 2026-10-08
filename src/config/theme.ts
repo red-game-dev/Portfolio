@@ -1,4 +1,4 @@
-import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
+import { CROSSED_ZONES, ZONE_ACCENTS, ZoneId } from "@/config/zones";
 import type {
   BlockSnapTransitionOptions,
   CasinoSceneOptions,
@@ -8,9 +8,12 @@ import type {
   EmberSceneOptions,
   NeuralSceneOptions,
   PortalTransitionOptions,
-  RainSceneOptions
+  RainSceneOptions,
+  StarfieldSceneOptions,
+  WarpTransitionOptions
 } from "@/packages/effects/backdrop";
 import type { RainConfigOverrides } from "@/packages/effects/binary-rain";
+import type { LaunchTheme } from "@/packages/games/launch";
 import { hexToRgb, rgbChannels } from "@/packages/graphics/colour";
 
 // Runtime colours for things twin.macro cannot reach, such as canvas drawing. Styled components keep
@@ -46,6 +49,7 @@ export const BACKDROP_THEME: {
   chain: ChainSceneOptions;
   casino: CasinoSceneOptions;
   ember: EmberSceneOptions;
+  stars: StarfieldSceneOptions;
 } = {
   rain: { color: COLORS.accent, headColor: "#eafff3", glowColor: `rgba(${COLORS.accentRgb}, 0.8)`, intensity: 0.3 },
   neural: { linkRgb: COLORS.accentRgb, nodeColor: COLORS.accent, pulseColor: "rgba(234, 255, 243, 0.95)", intensity: 0.75 },
@@ -58,6 +62,7 @@ export const BACKDROP_THEME: {
     intensity: 0.6,
   },
   ember: { emberColor: rgbaOf("mmo", 0.95), intensity: 0.75 },
+  stars: { star: [236, 241, 255], nebula: [rgbOf("beyond"), rgbOf("chain")], intensity: 0.85 },
 };
 
 // The moments between zones, matched to each zone's accent in globals.css.
@@ -66,23 +71,20 @@ export const TRANSITION_THEME: {
   snap: BlockSnapTransitionOptions;
   flip: ChipFlipTransitionOptions;
   portal: PortalTransitionOptions;
+  warp: WarpTransitionOptions;
 } = {
   collapse: { from: rgbOf("matrix"), to: rgbOf("ai"), fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" },
   snap: { from: rgbOf("ai"), to: rgbOf("chain"), cell: 64 },
   flip: { chipColors: [rgbOf("casino"), rgbOf("mmo"), rgbOf("ai")], rim: [255, 255, 255] },
   portal: { ring: rgbOf("mmo"), glow: [255, 170, 60] },
+  warp: { streak: rgbOf("beyond"), flash: [236, 241, 255] },
 };
 
-// The finale's rain, in the MMO zone's gold.
-export const FINALE_RAIN_CONFIG: RainConfigOverrides = {
-  theme: {
-    background: "#0d0b06",
-    trail: ZONE_ACCENTS.mmo,
-    head: "#fff3d6",
-    letter: "#fff8e8",
-    freshLetter: "#ffffff",
-    caret: ZONE_ACCENTS.mmo,
-    glow: rgbaOf("mmo", 0.85),
-  },
+// The launch out of the game world: the warm horizon of the zone being left, the bands of the zones crossed
+// bottom first, and the starlight of Beyond.
+export const LAUNCH_THEME: Partial<LaunchTheme> = {
+  window: ZONE_ACCENTS.beyond,
+  fin: "#3e4a6b",
+  horizon: rgbaOf("mmo", 0.35),
+  markers: CROSSED_ZONES.map((zone) => ZONE_ACCENTS[zone]),
 };
-

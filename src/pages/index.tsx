@@ -136,6 +136,7 @@ export default function Home() {
         <Arena intro={portfolioData.sections.arena} content={portfolioData.arena} />
         <Finale
           content={portfolioData.finale}
+          zoneLabels={portfolioData.journeyTrail.zones}
           bossCount={portfolioData.caseStudies.length}
           duelCount={portfolioData.duels.rounds.length}
           email={portfolioData.details.email}

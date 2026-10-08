@@ -48,6 +48,12 @@
   --accent-rgb: 255, 196, 92;
 }
 
+:root[data-zone="beyond"] {
+  --accent: #c4d2ff;
+  --accent-muted: #3e4a6b;
+  --accent-rgb: 196, 210, 255;
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     transition: none;

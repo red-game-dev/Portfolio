@@ -1,0 +1,117 @@
+import { FrameLoop, FrameScheduler } from "@/packages/animation/frame-loop";
+import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { RandomSource } from "@/packages/math/random";
+
+import { DEFAULT_LAUNCH_THEME, LaunchConfig, LaunchConfigOverrides, LaunchTheme, resolveLaunchConfig } from "../config";
+import { LaunchRenderer, LaunchSize, LaunchSnapshot } from "../domain/types";
+import { CanvasLaunchRenderer } from "../renderers/CanvasLaunchRenderer";
+import { LaunchSimulation } from "./LaunchSimulation";
+
+export interface LaunchOptions {
+  config?: LaunchConfigOverrides;
+  random?: RandomSource;
+  scheduler?: FrameScheduler;
+  // Called when the status or the bands passed change, never once per frame.
+  onChange?: (snapshot: LaunchSnapshot) => void;
+}
+
+export interface LaunchCanvasOptions extends LaunchOptions {
+  // Only the colours that differ from the default theme.
+  theme?: Partial<LaunchTheme>;
+}
+
+// Runs the launch on the shared frame loop and draws it. The loop runs only while something moves: it
+// starts on a press and stops on the pad or in orbit, leaving the last frame on screen.
+export class LaunchGame extends FrameLoop {
+  private readonly renderer: LaunchRenderer;
+  private readonly simulation: LaunchSimulation;
+  private readonly onChange: (snapshot: LaunchSnapshot) => void;
+  private lastSnapshot: LaunchSnapshot;
+
+  constructor(renderer: LaunchRenderer, options: LaunchOptions = {}) {
+    const config: LaunchConfig = resolveLaunchConfig(options.config);
+
+    super({ framesPerSecond: config.framesPerSecond, maxStepMs: config.maxStepMs, scheduler: options.scheduler });
+
+    this.renderer = renderer;
+    this.simulation = new LaunchSimulation({ width: 0, height: 0 }, { config, random: options.random ?? Math.random });
+    this.onChange = options.onChange ?? (() => undefined);
+    this.lastSnapshot = this.simulation.snapshot;
+  }
+
+  public get snapshot(): LaunchSnapshot {
+    return this.lastSnapshot;
+  }
+
+  public static forCanvas(context: Canvas2DContext, options: LaunchCanvasOptions = {}): LaunchGame {
+    return new LaunchGame(new CanvasLaunchRenderer(context, { ...DEFAULT_LAUNCH_THEME, ...options.theme }), options);
+  }
+
+  public resize(size: LaunchSize, pixelRatio = 1): void {
+    if (size.width <= 0 || size.height <= 0) {
+      return;
+    }
+
+    this.simulation.resize(size);
+    this.renderer.resize(size, pixelRatio);
+    this.renderer.draw(this.simulation.state, 0);
+  }
+
+  public press(): void {
+    this.simulation.press();
+    this.publishAndRun();
+  }
+
+  public release(): void {
+    this.simulation.release();
+  }
+
+  public launch(): void {
+    this.simulation.launch();
+    this.publishAndRun();
+  }
+
+  // Straight to orbit with one still frame, for readers who prefer no motion.
+  public complete(): void {
+    this.simulation.complete();
+    this.stop();
+    this.renderer.draw(this.simulation.state, 0);
+    this.publish();
+  }
+
+  public reset(): void {
+    this.simulation.reset();
+    this.stop();
+    this.renderer.draw(this.simulation.state, 0);
+    this.publish();
+  }
+
+  protected update(deltaMs: number): void {
+    this.simulation.step(deltaMs);
+    this.publish();
+  }
+
+  protected render(now: number): void {
+    const { state } = this.simulation;
+
+    this.renderer.draw(state, now);
+
+    if (state.status === "orbit" || state.status === "ready") {
+      this.stop();
+    }
+  }
+
+  private publishAndRun(): void {
+    this.publish();
+    this.start();
+  }
+
+  private publish(): void {
+    const next = this.simulation.snapshot;
+
+    if (next.status !== this.lastSnapshot.status || next.passed !== this.lastSnapshot.passed) {
+      this.lastSnapshot = next;
+      this.onChange(next);
+    }
+  }
+}

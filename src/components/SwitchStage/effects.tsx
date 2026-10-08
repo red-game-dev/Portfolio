@@ -51,6 +51,12 @@ const scanIn = keyframes`
   100% { clip-path: inset(0 0 0 0); filter: none; }
 `;
 
+const warpIn = keyframes`
+  0% { opacity: 0; transform: scale(0.94); filter: blur(4px) brightness(1.8); }
+  60% { opacity: 1; filter: blur(0) brightness(1.15); }
+  100% { opacity: 1; transform: none; filter: none; }
+`;
+
 // A 2px line, so moving it by top costs nothing worth measuring.
 const scanLine = keyframes`
   0% { top: 0; opacity: 1; }
@@ -83,6 +89,11 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
   effect === "scan" && css`
     ${CONTENT} {
       animation: ${scanIn} ${SWITCH_MS}ms steps(14, end) both;
+    }
+  `,
+  effect === "warp" && css`
+    ${CONTENT} {
+      animation: ${warpIn} ${SWITCH_MS}ms cubic-bezier(0.16, 1, 0.3, 1) both;
     }
   `,
   css`

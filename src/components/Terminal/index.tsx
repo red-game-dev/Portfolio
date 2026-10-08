@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Section } from "@/components/Section";
 import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
-import type { AskSourceKey } from "@/config/ask";
+import { ASK_HISTORY_TURNS, type AskSourceKey } from "@/config/ask";
 import { SECTION_IDS } from "@/config/sections";
 import { prefersReducedMotion, scrollBehavior } from "@/packages/accessibility/motion";
 import type { AskDepth, AskErrorCode, AskTurn } from "@/packages/ai/ask";
@@ -36,8 +36,6 @@ interface TerminalProps {
 
 // New output arrives a line at a time, like a model streaming its answer.
 const STREAM_MS = 90;
-// Earlier exchanges sent with a question, so a follow up can lean on them.
-const ASK_HISTORY = 2;
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 const Window = styled.div(() => [
@@ -280,7 +278,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
     ]);
 
     if (answer && !failure) {
-      askHistory.current = [...askHistory.current, { question, answer }].slice(-ASK_HISTORY);
+      askHistory.current = [...askHistory.current, { question, answer }].slice(-ASK_HISTORY_TURNS);
       setFollowUp({ sources, canDeepen: depth === "quick" && !controller.signal.aborted });
     }
   };

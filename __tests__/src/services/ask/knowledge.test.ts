@@ -1,10 +1,11 @@
-import { ASK_SOURCES } from "@/config/ask";
+import { ASK_KNOWLEDGE_TOKEN_BUDGET, ASK_SOURCES } from "@/config/ask";
 import { portfolioData } from "@/data/resume";
+import { estimateTokens } from "@/packages/ai/engine";
 import { ASK_EVALS } from "@/services/ask/evals";
-import { createAskKnowledge } from "@/services/ask/knowledge";
+import { PortfolioKnowledgeMapper } from "@/services/ask/knowledge";
 import { createAskInstructions } from "@/services/ask/prompt";
 
-const knowledge = createAskKnowledge(portfolioData);
+const knowledge = new PortfolioKnowledgeMapper().map(portfolioData);
 const lower = knowledge.toLowerCase();
 
 describe("what the agent knows", () => {
@@ -24,6 +25,16 @@ describe("what the agent knows", () => {
   test("the phone number stays off it: the agent points people to email", () => {
     expect(knowledge).not.toContain(portfolioData.details.phone);
     expect(knowledge).toContain(portfolioData.details.email);
+  });
+
+  test("it stays within its token budget, since all of it is sent with every question", () => {
+    expect(estimateTokens(`${createAskInstructions(portfolioData.details.email)}${knowledge}`)).toBeLessThanOrEqual(ASK_KNOWLEDGE_TOKEN_BUDGET);
+  });
+
+  test("no line is said twice, apart from headings and stacks that belong to their entry", () => {
+    const lines = knowledge.split("\n").filter((line) => line && !line.startsWith("#") && !line.startsWith("Stack:"));
+
+    expect(lines.length).toBe(new Set(lines).size);
   });
 
   test("the terminal names every source it can link to", () => {

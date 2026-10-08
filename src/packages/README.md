@@ -28,7 +28,11 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 
 | Package | What it gives you |
 |---|---|
-| `ai/ask` | Question answering on any AI provider, for many instances at once: an `AnswerModel` port with `AnthropicMessagesModel` and `OpenAICompatibleModel` (OpenAI, Gemini, Groq, OpenRouter and other Chat Completions APIs) as adapters; an `AskService` that tries ordered routes per depth (retrying a busy one, skipping a refusing one), refuses before any model call, lets one request answer a burst of identical questions, prices each answer from reported usage and streams events (model, text, cited sources, done or error); `SlidingWindowLimiter`, `SpendBudget` and `AnswerCache` over shared store ports, with `MemoryStore`, `UpstashRestStore` (Redis over REST, pipelined) and `ResilientStore` (falls back for a cooldown when the shared store fails); NDJSON encode and read for the wire |
+| `ai/ask` | The question answering domain: `isAskBody`, `AskRequestValidator` and `AskRequestMapper` for what arrives, `PromptMapper` for the engine request, `AnswerCache` and `SourceSplitter`, `AskService` (refuses before any model call, coalesces a burst of the same question, turns engine events into ask events, prices, caches and logs), the wire format and one status map |
+| `ai/engine` | Text generation on any provider: the `ModelProvider` port, `StreamingProvider` with `AnthropicProvider` and `OpenAICompatibleProvider`, request and event mappers, stream guards, `RouteValidator`, and `AiEngine` (ordered routes per tier, skip on refusal, fallback tiers, usage priced per route, always a report) |
+| `http/api-client` | `ApiClient` on fetchff for JSON and streamed bodies with typed results: one global client and instances that inherit from it |
+| `server/kv` | `KeyValueStore` with `MemoryStore`, `UpstashStore` (pipelined, through the official client) and `ResilientStore` (memory for a cooldown when the shared store fails) |
+| `server/quota` | `SlidingWindowLimiter` and `DailyQuota` over a shared counter |
 | `accessibility/motion` | The reduced motion preference, safe to call during server rendering |
 | `accessibility/roving` | `rovingTarget`, where arrows, Home and End move focus in a row of tabs or cards |
 | `browser/storage` | `readStored` and `writeStored`: guarded localStorage that validates what it reads and survives private windows and full quotas |

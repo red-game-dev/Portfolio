@@ -1,5 +1,7 @@
 import { ASK_PROVIDER_ORDER, ASK_PROVIDERS, AskProviderConfig, AskProviderId } from "@/config/ask";
-import { AnswerModel, AnthropicMessagesModel, AskDepth, AskRoute, OpenAICompatibleModel } from "@/packages/ai/ask";
+import { AskDepth } from "@/packages/ai/ask";
+import { AnthropicProvider, ModelProvider, OpenAICompatibleProvider, Route } from "@/packages/ai/engine";
+import { ApiClient } from "@/packages/http/api-client";
 
 type Env = Record<string, string | undefined>;
 
@@ -14,29 +16,28 @@ export const activeProviders = (env: Env): AskProviderId[] => {
   return [...new Set(order)].filter((id) => Boolean(env[ASK_PROVIDERS[id].keyEnv]));
 };
 
-// One adapter per provider, chosen by the API it speaks.
-const createModel = (config: AskProviderConfig, apiKey: string, fetcher?: typeof fetch): AnswerModel => (config.api === "anthropic"
-  ? new AnthropicMessagesModel({ apiKey, fetcher })
-  : new OpenAICompatibleModel({ apiKey, baseUrl: config.baseUrl ?? "", maxTokensField: config.maxTokensField, fetcher }));
+// One engine provider per configured provider, chosen by the API it speaks, each with its own client instance
+// made from `client`.
+const createProvider = (id: AskProviderId, config: AskProviderConfig, apiKey: string, client: ApiClient): ModelProvider => (config.api === "anthropic"
+  ? new AnthropicProvider({ apiKey, client })
+  : new OpenAICompatibleProvider({
+    name: id,
+    apiKey,
+    baseURL: config.baseURL ?? "",
+    maxTokensField: config.maxTokensField,
+    sendsCacheKey: config.sendsCacheKey,
+    client,
+  }));
 
-// Per depth, every active provider's model for it, in order. A deep question then falls back to the quick
-// models it has not already tried, so a busy deep model still gets an answer.
-export const createAskRoutes = (env: Env, fetcher?: typeof fetch): Record<AskDepth, AskRoute[]> => {
+// Per depth, every active provider's model for it, in order, as engine routes.
+export const createAskRoutes = (env: Env, client: ApiClient = ApiClient.global()): Record<AskDepth, Route[]> => {
   const providers = activeProviders(env).map((id) => {
     const config = ASK_PROVIDERS[id];
 
-    return { id, config, model: createModel(config, env[config.keyEnv] ?? "", fetcher) };
+    return { config, provider: createProvider(id, config, env[config.keyEnv] ?? "", client) };
   });
-  const routesFor = (tier: AskDepth): AskRoute[] => providers.map(({ id, config, model }) => {
-    const choice = config.models[tier];
 
-    return { provider: id, label: choice.label, model, modelId: choice.id, maxTokens: choice.maxTokens, effort: choice.effort, price: choice.price, tier };
-  });
-  const deep = routesFor("deep");
-  const quick = routesFor("quick");
+  const routesFor = (tier: AskDepth): Route[] => providers.map(({ config, provider }) => ({ provider, spec: config.models[tier], tier }));
 
-  return {
-    quick,
-    deep: [...deep, ...quick.filter((route) => !deep.some((tried) => tried.provider === route.provider && tried.modelId === route.modelId))],
-  };
+  return { quick: routesFor("quick"), deep: routesFor("deep") };
 };

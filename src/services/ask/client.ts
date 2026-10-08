@@ -1,36 +1,23 @@
 import { ASK_ENDPOINT } from "@/config/ask";
-import { AskErrorCode, AskEvent, AskRequest, readAskEvents } from "@/packages/ai/ask";
+import { askErrorForStatus, AskEvent, AskRequest, readAskEvents } from "@/packages/ai/ask";
+import { ApiClient } from "@/packages/http/api-client";
 
-const STATUS_ERRORS: Record<number, AskErrorCode> = { 400: "invalid", 429: "limited", 503: "unavailable" };
-
-// Asks the agent and yields its answer as it streams. Never throws: a failure arrives as an error event, and
-// an abort simply ends the stream.
+// Asks the agent through the app's global API client and yields its answer as it streams. Never throws: a failure
+// arrives as an error event, and a stop simply ends the stream. Nothing is retried: a question costs money, and
+// the server already moves between providers.
 export async function* askRed(request: AskRequest, signal?: AbortSignal): AsyncGenerator<AskEvent> {
-  let response: Response;
+  const result = await ApiClient.global().postStream<AskRequest>(ASK_ENDPOINT, request, { signal });
 
-  try {
-    response = await fetch(ASK_ENDPOINT, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(request),
-      signal,
-    });
-  } catch {
-    if (!signal?.aborted) {
-      yield { type: "error", code: "failed" };
+  if (!result.ok) {
+    if (!result.isCancelled && !signal?.aborted) {
+      yield { type: "error", code: askErrorForStatus(result.status) };
     }
 
     return;
   }
 
-  if (!response.ok || !response.body) {
-    yield { type: "error", code: STATUS_ERRORS[response.status] ?? "failed" };
-
-    return;
-  }
-
   try {
-    yield* readAskEvents(response.body);
+    yield* readAskEvents(result.data);
   } catch {
     if (!signal?.aborted) {
       yield { type: "error", code: "failed" };

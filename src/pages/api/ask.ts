@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { AskErrorCode, encodeAskEvent } from "@/packages/ai/ask";
+import { ASK_ERROR_STATUS, AskErrorCode, encodeAskEvent } from "@/packages/ai/ask";
 import { getAskService, visitorKey } from "@/services/ask/server";
-
-const STATUS: Record<AskErrorCode, number> = { invalid: 400, limited: 429, unavailable: 503, failed: 502 };
 
 export const config = { api: { bodyParser: { sizeLimit: "16kb" } } };
 
@@ -13,17 +11,21 @@ const firstHeader = (value: string | string[] | undefined) => (Array.isArray(val
 const isSameOrigin = (request: NextApiRequest) => {
   const origin = firstHeader(request.headers.origin);
 
+  if (!origin) {
+    return false;
+  }
+
   try {
-    return Boolean(origin) && new URL(origin as string).host === request.headers.host;
+    return new URL(origin).host === request.headers.host;
   } catch {
     return false;
   }
 };
 
-const refuse = (response: NextApiResponse, code: AskErrorCode) => response.status(STATUS[code]).json({ error: code });
+const refuse = (response: NextApiResponse, code: AskErrorCode) => response.status(ASK_ERROR_STATUS[code]).json({ error: code });
 
-// Ask Red: a question about this site, answered by Claude from the site's own content, streamed back as one
-// JSON event per line.
+// Ask Red: a question about this site, answered from the site's own content by the domain service, streamed
+// back as one JSON event per line. The route only speaks HTTP; every decision is the service's.
 const handler = async (request: NextApiRequest, response: NextApiResponse) => {
   if (request.method !== "POST") {
     response.setHeader("Allow", "POST");

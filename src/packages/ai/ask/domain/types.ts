@@ -28,11 +28,12 @@ export interface ModelMessage {
   content: string;
 }
 
-// A cached block is sent once and read back cheaply on later calls, so a long, unchanging knowledge base
-// belongs in one.
+// A cached block is written once and read back at a fraction of the price while it stays warm, so a long,
+// unchanging knowledge base belongs in one. An hour costs more to write than five minutes and pays off when
+// questions arrive minutes apart.
 export interface SystemBlock {
   text: string;
-  isCached?: boolean;
+  cache?: "5m" | "1h";
 }
 
 export interface ModelRequest {
@@ -42,7 +43,40 @@ export interface ModelRequest {
   messages: ModelMessage[];
 }
 
-// The port a language model sits behind: the answer arrives as it is written.
-export interface AnswerModel {
-  stream(request: ModelRequest, signal?: AbortSignal): AsyncIterable<string>;
+// Tokens one call used, split the way they are priced.
+export interface TokenUsage {
+  input: number;
+  cacheWrite: number;
+  cacheRead: number;
+  output: number;
 }
+
+// US dollars per million tokens, which is also micro dollars per token.
+export interface ModelPrice {
+  input: number;
+  cacheWrite: number;
+  cacheRead: number;
+  output: number;
+}
+
+export type ModelChunk = { type: "text"; text: string } | { type: "usage"; usage: TokenUsage };
+
+// The port a language model sits behind: the answer arrives as it is written, then what it cost.
+export interface AnswerModel {
+  stream(request: ModelRequest, signal?: AbortSignal): AsyncIterable<ModelChunk>;
+}
+
+// A counter shared by every server instance. `add` creates the key with its time to live if it is new, adds
+// to it, and reads other keys in the same round trip.
+export interface CounterStore {
+  add(key: string, by: number, ttlMs: number, alsoRead?: string[]): Promise<{ value: number; read: number[] }>;
+}
+
+// Strings with a time to live, plus `claim`: set only if absent, true for the one caller that set it.
+export interface CacheStore {
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string, ttlMs: number): Promise<void>;
+  claim(key: string, ttlMs: number): Promise<boolean>;
+}
+
+export type AskStore = CounterStore & CacheStore;

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { AskErrorCode, encodeAskEvent } from "@/packages/ai/ask";
-import { getAskService } from "@/services/ask/server";
+import { getAskService, visitorKey } from "@/services/ask/server";
 
 const STATUS: Record<AskErrorCode, number> = { invalid: 400, limited: 429, unavailable: 503, failed: 502 };
 
@@ -41,8 +41,8 @@ const handler = async (request: NextApiRequest, response: NextApiResponse) => {
     return refuse(response, "unavailable");
   }
 
-  const client = firstHeader(request.headers["x-real-ip"]) ?? firstHeader(request.headers["x-forwarded-for"]) ?? request.socket.remoteAddress ?? "unknown";
-  const prepared = service.prepare(request.body, client);
+  const address = firstHeader(request.headers["x-real-ip"]) ?? firstHeader(request.headers["x-forwarded-for"]) ?? request.socket.remoteAddress ?? "unknown";
+  const prepared = await service.prepare(request.body, visitorKey(address));
 
   if ("error" in prepared) {
     return refuse(response, prepared.error);
@@ -62,12 +62,11 @@ const handler = async (request: NextApiRequest, response: NextApiResponse) => {
     "X-Accel-Buffering": "no",
   });
 
-  for await (const event of service.answer(prepared.request, controller.signal)) {
-    if (controller.signal.aborted) {
-      break;
+  // Runs to the end even if the reader leaves: a stopped answer still has to be priced and logged.
+  for await (const event of service.answer(prepared.plan, controller.signal)) {
+    if (!controller.signal.aborted) {
+      response.write(encodeAskEvent(event));
     }
-
-    response.write(encodeAskEvent(event));
   }
 
   response.end();

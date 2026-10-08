@@ -1,4 +1,4 @@
-import { DEFAULT_ASK_LIMITS, parseAskRequest, RateLimiter } from "@/packages/ai/ask";
+import { DEFAULT_ASK_LIMITS, MemoryStore, parseAskRequest, slidingCount, SlidingWindowLimiter, SpendBudget } from "@/packages/ai/ask";
 
 describe("parseAskRequest", () => {
   test("trims the question and defaults to a quick answer", () => {
@@ -30,30 +30,67 @@ describe("parseAskRequest", () => {
   });
 });
 
-describe("RateLimiter", () => {
-  test("allows the limit within the window, then refuses until hits age out", () => {
-    let now = 0;
-    const limiter = new RateLimiter({ limit: 2, windowMs: 1000 }, () => now);
-
-    expect([limiter.take("a"), limiter.take("a"), limiter.take("a")]).toEqual([true, true, false]);
-    expect(limiter.take("b")).toBe(true);
-
-    now = 999;
-    expect(limiter.take("a")).toBe(false);
-
-    now = 1000;
-    expect(limiter.take("a")).toBe(true);
+describe("SlidingWindowLimiter", () => {
+  test("the estimate weighs the previous window by how much of it still overlaps", () => {
+    expect(slidingCount(10, 2, 0.25)).toBe(9.5);
+    expect(slidingCount(10, 2, 1)).toBe(2);
   });
 
-  test("a refused hit does not count against the next window", () => {
+  test("holds across instances that share a store", async () => {
     let now = 0;
-    const limiter = new RateLimiter({ limit: 1, windowMs: 100 }, () => now);
+    const store = new MemoryStore(() => now);
+    const first = new SlidingWindowLimiter(store, "rate", { limit: 2, windowMs: 1000 }, () => now);
+    const second = new SlidingWindowLimiter(store, "rate", { limit: 2, windowMs: 1000 }, () => now);
 
-    limiter.take("a");
-    now = 50;
-    limiter.take("a");
+    expect(await first.take("a")).toBe(true);
+    expect(await second.take("a")).toBe(true);
+    expect(await first.take("a")).toBe(false);
+    expect(await second.take("b")).toBe(true);
+
+    // Half way into the next window, half of the last window's 3 hits still count: 1.5 + 1 is over 2.
+    now = 1500;
+    expect(await first.take("a")).toBe(false);
+
+    now = 2000;
+    expect(await first.take("a")).toBe(true);
+  });
+});
+
+describe("SpendBudget", () => {
+  test("has room until the day's spend reaches the limit, and starts again the next UTC day", async () => {
+    let now = Date.UTC(2026, 9, 8, 23, 0);
+    const budget = new SpendBudget(new MemoryStore(() => now), "spend", 1000, () => now);
+
+    expect(await budget.hasRoom()).toBe(true);
+    await budget.spend(600);
+    expect(await budget.hasRoom()).toBe(true);
+    await budget.spend(400.2);
+    expect(await budget.hasRoom()).toBe(false);
+
+    now = Date.UTC(2026, 9, 9, 0, 1);
+    expect(await budget.hasRoom()).toBe(true);
+  });
+});
+
+describe("MemoryStore", () => {
+  test("counters keep the time to live they were created with, and expire", async () => {
+    let now = 0;
+    const store = new MemoryStore(() => now);
+
+    expect((await store.add("k", 1, 100)).value).toBe(1);
+    now = 60;
+    expect((await store.add("k", 2, 100, ["other"])).value).toBe(3);
     now = 100;
+    expect((await store.add("k", 1, 100)).value).toBe(1);
+  });
 
-    expect(limiter.take("a")).toBe(true);
+  test("only the first claim wins until it expires", async () => {
+    let now = 0;
+    const store = new MemoryStore(() => now);
+
+    expect(await store.claim("lock", 50)).toBe(true);
+    expect(await store.claim("lock", 50)).toBe(false);
+    now = 50;
+    expect(await store.claim("lock", 50)).toBe(true);
   });
 });

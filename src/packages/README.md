@@ -28,7 +28,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 
 | Package | What it gives you |
 |---|---|
-| `ai/ask` | Question answering over one body of knowledge: a request guard, a sliding window `RateLimiter`, an `AskService` that streams events (text, cited sources, done or error) and splits the sources line off the answer, an `AnthropicMessagesModel` that streams Claude with the knowledge prompt cached, and NDJSON encode and read for the wire |
+| `ai/ask` | Question answering for many instances at once: a request guard; `SlidingWindowLimiter`, `SpendBudget` and `AnswerCache` over shared store ports, with `MemoryStore`, `UpstashRestStore` (Redis over REST, pipelined) and `ResilientStore` (falls back for a cooldown when the shared store fails); an `AskService` that refuses before any model call, lets one request answer a burst of identical questions, retries and falls back while nothing is shown, prices each answer from reported usage and streams events (text, cited sources, done or error); an `AnthropicMessagesModel` that streams Claude with the knowledge cached; NDJSON encode and read for the wire |
 | `accessibility/motion` | The reduced motion preference, safe to call during server rendering |
 | `accessibility/roving` | `rovingTarget`, where arrows, Home and End move focus in a row of tabs or cards |
 | `browser/storage` | `readStored` and `writeStored`: guarded localStorage that validates what it reads and survives private windows and full quotas |

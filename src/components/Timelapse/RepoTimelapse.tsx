@@ -5,9 +5,8 @@ import tw, { css, styled } from "twin.macro";
 import { faPause, faPlay, faRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { milestoneAt, playbackPosition, TIMELAPSE_MS } from "@/components/AiUsage/timelapse";
 import { actionStyle } from "@/components/Controls";
-import { Panel, PanelTitle } from "@/components/Panel";
+import { growthSince, milestoneAt, playbackPosition, TIMELAPSE_MS } from "@/components/Timelapse/timelapse";
 import useInView from "@/hooks/useInView";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import type { RepoGrowthView } from "@/packages/insights/repo-growth";
@@ -16,12 +15,21 @@ import { TimelapseContent } from "@/types/timelapse";
 
 type HeightAt = (view: RepoGrowthView, position: number, district: number) => number;
 
+type IndexAt = (view: RepoGrowthView, date: string) => number;
+
 interface Loaded {
   view: RepoGrowthView;
   heightAt: HeightAt;
+  indexAt: IndexAt;
 }
 
-const Description = tw.p`m-0 mt-[10px] text-sm text-[#bbb] max-w-[70ch]`;
+const Stats = tw.dl`m-0 mt-[18px] grid grid-cols-2 md:grid-cols-4 gap-[10px]`;
+
+const Stat = tw.div`flex flex-col gap-[4px] p-[10px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
+
+const StatName = tw.dt`text-xs text-[#999]`;
+
+const StatValue = tw.dd`m-0 text-lg font-semibold text-white tabular-nums`;
 
 const Stage = tw.div`relative mt-[22px] pt-[64px] border-0 border-b-[1px] border-solid border-[var(--accent-muted)]`;
 
@@ -88,13 +96,11 @@ const Loading = tw.p`absolute inset-0 flex items-center justify-center m-0 text-
 
 const formatLines = (count: number) => Math.round(count).toLocaleString("en-US");
 
-// This site's codebase as a city that grows commit by commit. The history and the code that reads it load as
-// the panel comes near; it plays once when first seen, pauses off screen, and can be scrubbed. Heights are
-// written as CSS variables on each building, so only the commit counter re-renders while it plays.
+// This site's codebase as a city that grows commit by commit, mounted once a reader opens it. The history and
+// the code that reads it load then; it plays once when first seen, pauses off screen, and can be scrubbed. Heights
+// are written as CSS variables on each building, so only the commit counter re-renders while it plays.
 export const RepoTimelapse: FC<TimelapseContent> = (content: TimelapseContent) => {
-  const panelRef = useRef<HTMLDivElement>(null);
   const cityRef = useRef<HTMLDivElement>(null);
-  const isNear = useInView(panelRef, { once: true, rootMargin: "600px" });
   const isOnScreen = useInView(cityRef, { once: false, threshold: 0.4 });
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [frame, setFrame] = useState(0);
@@ -104,22 +110,18 @@ export const RepoTimelapse: FC<TimelapseContent> = (content: TimelapseContent) =
   const hasAutoplayed = useRef(false);
 
   useEffect(() => {
-    if (!isNear || loaded) {
-      return;
-    }
-
     let isGone = false;
 
-    void import("@/services/repo-growth").then(({ repoGrowthView, heightBetween }) => {
+    void import("@/services/repo-growth").then(({ repoGrowthView, heightBetween, frameIndexAt }) => {
       if (!isGone) {
-        setLoaded({ view: repoGrowthView, heightAt: heightBetween });
+        setLoaded({ view: repoGrowthView, heightAt: heightBetween, indexAt: frameIndexAt });
       }
     });
 
     return () => {
       isGone = true;
     };
-  }, [isNear, loaded]);
+  }, []);
 
   const paint = useCallback((next: number) => {
     const city = cityRef.current;
@@ -201,11 +203,30 @@ export const RepoTimelapse: FC<TimelapseContent> = (content: TimelapseContent) =
   const milestone = view ? milestoneAt(content.milestones, view, frame) : null;
   const districts = view?.districts ?? Object.keys(content.districts);
   const linesOf = (district: number) => formatLines((current?.heights[district] ?? 0) * (view?.peak ?? 0));
+  const today = view?.frames[lastFrame];
 
   return (
-    <Panel ref={panelRef}>
-      <PanelTitle>{content.title}</PanelTitle>
-      {content.description.map((paragraph) => <Description key={paragraph}>{paragraph}</Description>)}
+    <>
+      {loaded && view && today && (
+        <Stats>
+          <Stat>
+            <StatName>{content.stats.commits}</StatName>
+            <StatValue>{formatLines(view.frames.length)}</StatValue>
+          </Stat>
+          <Stat>
+            <StatName>{content.stats.first}</StatName>
+            <StatValue>{view.frames[0].date}</StatValue>
+          </Stat>
+          <Stat>
+            <StatName>{content.stats.lines}</StatName>
+            <StatValue>{formatLines(today.total)}</StatValue>
+          </Stat>
+          <Stat>
+            <StatName>{content.stats.growth}</StatName>
+            <StatValue>{fill(content.growth, { times: growthSince(view, loaded.indexAt(view, content.growthSince)) })}</StatValue>
+          </Stat>
+        </Stats>
+      )}
       <Stage>
         {current && (
           <Ticker>
@@ -248,6 +269,6 @@ export const RepoTimelapse: FC<TimelapseContent> = (content: TimelapseContent) =
           onChange={onScrub}
         />
       </Controls>
-    </Panel>
+    </>
   );
 };

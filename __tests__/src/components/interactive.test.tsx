@@ -190,6 +190,7 @@ describe("RecruiterGlance", () => {
       roster={portfolioData.roster}
       stations={createForgeStations(portfolioData)}
       cvUrl={portfolioData.cv}
+      fullResume={portfolioData.fullResume}
     />,
   );
 

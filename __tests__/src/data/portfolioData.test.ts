@@ -4,10 +4,12 @@ import { join } from "path";
 import { minWideWidth } from "@/components/Blueprint/utils/layout";
 import { isLens, LENS_SETTINGS, LENS_STAT_MAX, LENSES } from "@/config/lenses";
 import { AUDIENCE_ANCHORS, industryAnchor, ROLE_ANCHORS } from "@/config/sections";
+import { FORGE_STATIONS } from "@/config/skills";
 import { loadSectionBlueprints, loadVentureBlueprint } from "@/data/blueprints";
 import { ALL_VENTURE_BLUEPRINTS, SECTION_BLUEPRINTS } from "@/data/blueprints/all";
 import { portfolioData } from "@/data/resume";
 import { DEFAULT_HERO_CLASSES } from "@/packages/games/heroes";
+import { createForgeStations } from "@/services/skills";
 import { BlueprintSection } from "@/types/blueprints";
 
 const normalise = (name: string) => name.trim().toLowerCase();
@@ -209,9 +211,21 @@ describe("the CV", () => {
     expect(cvDocument.skills.flatMap((line) => line.names).filter((name) => !listed.has(name))).toEqual([]);
   });
 
-  test("stays short enough to read in a minute", () => {
+  // Too short and a keyword screen or a recruiter skimming it drops me; too long and it is no longer the short one.
+  test("is dense enough to pass a screen and short enough to stay near three pages", () => {
     const words = [...cvDocument.summary, ...cvDocument.highlights, ...cvDocument.roles.flatMap((role) => role.bullets)].join(" ").split(/\s+/).length;
 
-    expect(words).toBeLessThan(850);
+    expect(words).toBeGreaterThan(900);
+    expect(words).toBeLessThan(1500);
+  });
+
+  test("names every core skill with five or more years of evidence, so no keyword a screen looks for is missing", () => {
+    const named = new Set(cvDocument.skills.flatMap((line) => line.names));
+    const core = new Set<string>(["programming", "frontend", "backend", "mobile", "blockchain", "cloud", "testing", "ai"]);
+    const stations = createForgeStations(portfolioData).filter((_, index) => core.has(FORGE_STATIONS[index]));
+    const missing = stations.flatMap((station) => station.items).filter((item) => item.isTracked && item.years >= 5 && !named.has(item.name))
+.map((item) => item.name);
+
+    expect(missing).toEqual([]);
   });
 });

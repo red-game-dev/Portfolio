@@ -92,14 +92,22 @@ const RoleDates = tw.span`text-[9pt] text-[#555] whitespace-nowrap`;
 
 const Muted = tw.p`m-0 text-[9.5pt] text-[#444]`;
 
-const PrintButton = styled.button(() => [
-  tw`fixed right-[20px] bottom-[20px] h-[42px] px-[18px] cursor-pointer text-sm font-semibold text-white bg-[#1f6b47] border-0 rounded-[3px]`,
+// On screen only: print this CV, or take the full résumé instead.
+const ScreenActions = styled.div(() => [
+  tw`fixed right-[20px] bottom-[20px] flex flex-row flex-wrap justify-end gap-[10px]`,
   css`
     @media print {
       display: none;
     }
   `,
 ]);
+
+const PrintButton = tw.button`h-[42px] px-[18px] cursor-pointer text-sm font-semibold text-white bg-[#1f6b47] border-0 rounded-[3px]`;
+
+const FullResumeLink = tw.a`
+  inline-flex items-center h-[42px] px-[18px] text-sm font-semibold text-[#1f6b47] bg-white
+  border-[1px] border-solid border-[#1f6b47] rounded-[3px] no-underline
+`;
 
 const withYears = (name: string) => {
   const years = yearsOf.get(name) ?? 0;
@@ -176,7 +184,10 @@ export default function Resume() {
           </Paragraph>
         </Block>
       </Sheet>
-      <PrintButton type="button" onClick={() => window.print()}>{cv.printLabel}</PrintButton>
+      <ScreenActions>
+        <PrintButton type="button" onClick={() => window.print()}>{cv.printLabel}</PrintButton>
+        <FullResumeLink href={portfolioData.fullResume.url} download>{portfolioData.fullResume.label}</FullResumeLink>
+      </ScreenActions>
     </>
   );
 }

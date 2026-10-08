@@ -7,6 +7,7 @@ type ProfileContent = Pick<PortfolioData,
   | "headline"
   | "cover"
   | "cv"
+  | "fullResume"
   | "github"
   | "stackoverflow"
   | "typingsTitles"
@@ -63,6 +64,8 @@ export const profileContent: ProfileContent = {
   },
   cover: "/images/cover-picture.webp",
   cv: "/cv/redeemer-pace-cv.pdf",
+  // The longer version, every role in full, for readers who want everything after the short CV.
+  fullResume: { url: "/cv/redeemer-pace-full-resume.pdf", label: "Full résumé (14 pages)" },
   github: [
     {
       name: "Me",

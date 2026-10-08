@@ -106,7 +106,7 @@ export const terminalContent: Pick<PortfolioData, "terminal"> = {
             "Planning the switch per market, with a way back",
             "Counting licence, hosting and infrastructure for both",
           ],
-          services: ["CMS & Platform Migration", "Software Architecture & Technical Leadership"],
+          services: ["Migration & Modernisation", "Software Architecture & Technical Leadership"],
           cases: ["A migration that pays for itself", "Infrastructure that can be switched"],
           subject: "Migrating our platform",
         },

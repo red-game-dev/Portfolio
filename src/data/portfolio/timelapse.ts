@@ -1,13 +1,26 @@
 import { PortfolioData } from "@/types/portfolio";
 
-// The time-lapse of this site being built, commit by commit, from the history `npm run timelapse` writes.
+// The time-lapse of this site being built, commit by commit, from the history `npm run timelapse` writes. It sits
+// with the code review for readers who like the numbers, closed until they open it.
 export const timelapseContent: Pick<PortfolioData, "timelapse"> = {
   timelapse: {
     title: "Watch this site being built",
     description: [
       "Every commit since the first, replayed. Each building is a part of the codebase, as tall as its lines of code.",
-      "The site started in 2022 and sat mostly still until 2026. The rebuild came after, with agents working under the rules, checks and reviews this section describes.",
+      "The site started in 2022 and sat mostly still until 2026. The rebuild came after, with agents working under the rules, " +
+        "checks and reviews described in How I use AI.",
     ],
+    show: "Show the time-lapse",
+    hide: "Hide the time-lapse",
+    stats: {
+      commits: "Commits",
+      first: "First commit",
+      lines: "Lines at the last commit",
+      growth: "Growth since the rebuild began",
+    },
+    // The date growth is measured from, and how it reads: "{times}" is replaced with the multiple.
+    growthSince: "2026-10-05",
+    growth: "{times} times",
     districts: {
       components: "Components",
       packages: "Packages",

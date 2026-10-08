@@ -8,6 +8,18 @@ export interface TimelapseMilestone {
 export interface TimelapseContent {
   title: string;
   description: string[];
+  show: string;
+  hide: string;
+  // The facts shown above the city, for readers who want the numbers.
+  stats: {
+    commits: string;
+    first: string;
+    lines: string;
+    growth: string;
+  };
+  growthSince: string;
+  // "{times}" is replaced.
+  growth: string;
   // One label per district in the generated history, by its id; a test checks none is missing.
   districts: Record<string, string>;
   milestones: TimelapseMilestone[];

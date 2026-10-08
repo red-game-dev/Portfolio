@@ -58,15 +58,18 @@ export const servicesContent: Pick<PortfolioData, "serviceActions" | "serviceGro
           emailSubject: "Payments and ledgers",
         },
         {
-          title: "CMS & Platform Migration",
+          title: "Migration & Modernisation",
           icon: faArrowRightArrowLeft,
-          description: "I plan and lead migrations off legacy platforms, from the first audit to the rollout per market.",
+          description: `I plan and lead migrations off legacy systems, from the first audit to the last cut over. I have moved a storefront
+          in 16 markets off AEM to a headless CMS, an unstable mobile app onto a new core, Backbone frontends to Redux and RxJS,
+          brownfield client systems in finance, iGaming and pharmatech, and a Web3 platform from Polkadot parachains to a chain of its
+          own.`,
           points: [
-            "Content and component audit, with redirects, forms and translations counted",
-            "Content model and CMS evaluation",
+            "An audit of what moves: components, content, data, integrations, redirects and translations, all counted",
+            "The target picked on evidence: a scored evaluation of platforms, frameworks or chains",
             "An adapter so old and new run side by side behind a feature flag",
             "A working proof of concept before commitment",
-            "Rollout plan per market with rollback",
+            "Rollout per market or per slice, with monitoring and rollback",
             "A business case that shows what the move saves, licence and running cost included",
           ],
           emailSubject: "Platform migration",

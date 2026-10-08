@@ -20,11 +20,13 @@ import { scrollBehavior } from "@/packages/accessibility/motion";
 import type { LaunchSnapshot } from "@/packages/games/launch";
 import { fill } from "@/packages/text/format";
 import { FinaleContent, FinaleLaunch, FinaleRank } from "@/types/game";
+import { DocumentLink } from "@/types/portfolio";
 
 interface FinaleProps {
   content: FinaleContent;
   zoneLabels: Record<ZoneId, string>;
   contactTime: string;
+  fullResume: DocumentLink;
   bossCount: number;
   duelCount: number;
   email: string;
@@ -142,7 +144,7 @@ const formatTime = (ms: number) => {
 // The end of the run, and the page lifting off: the visitor launches out of the game world past every zone
 // they crossed, their run lights up as stars on the way, and the journey closes on where I want to go next,
 // with one last quest: get in touch.
-export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, bossCount, duelCount, email, linkedInUsername, cvUrl }: FinaleProps) => {
+export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, bossCount, duelCount, email, linkedInUsername, cvUrl, fullResume }: FinaleProps) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -288,6 +290,10 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
             <ActionLink href={cvUrl} download isPrimary={false}>
               <FontAwesomeIcon icon={faFileArrowDown} aria-hidden="true" />
               {content.cvLabel}
+            </ActionLink>
+            <ActionLink href={fullResume.url} download isPrimary={false}>
+              <FontAwesomeIcon icon={faFileArrowDown} aria-hidden="true" />
+              {fullResume.label}
             </ActionLink>
             <Restart type="button" onClick={() => window.scrollTo({ top: 0, behavior: scrollBehavior() })}>
               <FontAwesomeIcon icon={faArrowRotateLeft} aria-hidden="true" />

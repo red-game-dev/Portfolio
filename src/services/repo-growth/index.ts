@@ -16,3 +16,4 @@ export const repoGrowthService = new RepoGrowthService(new SnapshotRepoGrowthSou
 export const repoGrowthView = repoGrowthService.getView();
 
 export { heightBetween } from "@/packages/insights/repo-growth";
+export { frameIndexAt } from "@/packages/insights/repo-growth";

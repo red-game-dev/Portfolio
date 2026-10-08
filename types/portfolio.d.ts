@@ -23,6 +23,12 @@ import { SkillArea, SkillLists } from "@/types/skills";
 import { TerminalContent } from "@/types/terminal";
 import { TimelapseContent } from "@/types/timelapse";
 
+// A document the site offers, and what its link says.
+export interface DocumentLink {
+  url: string;
+  label: string;
+}
+
 // The shape of everything the site says. The content lives in src/data/portfolio, one file per part of
 // the page, gathered into portfolioData by src/data/resume.ts.
 export interface PortfolioData {
@@ -31,6 +37,7 @@ export interface PortfolioData {
   terminal: TerminalContent;
   cover: string;
   cv: string;
+  fullResume: DocumentLink;
   cvDocument: CvDocument;
   typingsTitles: string[];
   details: Detail;

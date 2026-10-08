@@ -53,11 +53,13 @@ export default function Home() {
           roster={portfolioData.roster}
           stations={forgeStations}
           cvUrl={portfolioData.cv}
+          fullResume={portfolioData.fullResume}
         />
         <About
           {...portfolioData.details}
           linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
           cvUrl={portfolioData.cv}
+          fullResume={portfolioData.fullResume}
           github={portfolioData.github}
           stackoverflow={portfolioData.stackoverflow}
         />
@@ -82,7 +84,7 @@ export default function Home() {
           labels={portfolioData.historyLabels}
           industries={portfolioData.headline.industries}
         />
-        <AiUsage {...aiUsage} blueprintSection="ai" timelapse={portfolioData.timelapse} />
+        <AiUsage {...aiUsage} blueprintSection="ai" />
         <Web3
           intro={portfolioData.sections.web3}
           content={portfolioData.web3}
@@ -94,7 +96,7 @@ export default function Home() {
           expertise={portfolioData.expertise}
           blueprintSection="platform"
         />
-        <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
+        <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} timelapse={portfolioData.timelapse} />
         <IGaming
           intro={portfolioData.sections.igaming}
           content={portfolioData.igaming}
@@ -138,6 +140,7 @@ export default function Home() {
           content={portfolioData.finale}
           zoneLabels={portfolioData.journeyTrail.zones}
           contactTime={portfolioData.details.contactTime}
+          fullResume={portfolioData.fullResume}
           bossCount={portfolioData.caseStudies.length}
           duelCount={portfolioData.duels.rounds.length}
           email={portfolioData.details.email}

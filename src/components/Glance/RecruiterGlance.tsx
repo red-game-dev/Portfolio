@@ -44,7 +44,7 @@ interface RecruiterGlanceProps extends Omit<GlanceProps, "content"> {
 // For a shortlist: roles, years, work rights, the stack with years, industries and recent roles, with the
 // CV one click away. Plain text, no effects. A recruiter can say what they are hiring for, and the glance
 // leads with why I fit it and the years and skills that role asks for.
-export const RecruiterGlance: FC<RecruiterGlanceProps> = ({ content, details, headline, experience, roster, stations, cvUrl }: RecruiterGlanceProps) => {
+export const RecruiterGlance: FC<RecruiterGlanceProps> = ({ content, details, headline, experience, roster, stations, cvUrl, fullResume }: RecruiterGlanceProps) => {
   const rosterLevels = useMemo(() => createRosterLevels(roster), [roster]);
   const ids = useMemo(() => content.hires.map((hire) => hire.id), [content.hires]);
   const parse = useCallback((hash: string) => hiringFromHash(hash, ids), [ids]);
@@ -68,6 +68,10 @@ export const RecruiterGlance: FC<RecruiterGlanceProps> = ({ content, details, he
           <Action isPrimary href={cvUrl} download>
             <FontAwesomeIcon icon={faFileArrowDown} aria-hidden="true" />
             {headline.cvLabel}
+          </Action>
+          <Action isPrimary={false} href={fullResume.url} download>
+            <FontAwesomeIcon icon={faFileArrowDown} aria-hidden="true" />
+            {fullResume.label}
           </Action>
           <Action isPrimary={false} href={`mailto:${details.email}`}>
             <FontAwesomeIcon icon={faEnvelope} aria-hidden="true" />

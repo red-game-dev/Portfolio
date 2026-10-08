@@ -16,10 +16,12 @@ import { balancedColumns } from "@/packages/math/grid";
 import { collapseWhitespace } from "@/packages/text/format";
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
+import { DocumentLink } from "@/types/portfolio";
 
 interface AboutProps extends Detail {
   linkedInUsername: string;
   cvUrl: string;
+  fullResume: DocumentLink;
   github: Github[];
   stackoverflow: string;
 }
@@ -107,7 +109,7 @@ const PARAGRAPH_DELAY_MS = 260;
 const PARAGRAPH_DECODE_MS = 1400;
 
 export const About: FC<AboutProps> = ({
-  name, intro, hook, paragraphs, proof, facts, image, phone, email, cvUrl, github, stackoverflow, linkedInUsername, portrait,
+  name, intro, hook, paragraphs, proof, facts, image, phone, email, cvUrl, fullResume, github, stackoverflow, linkedInUsername, portrait,
 }: AboutProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(contentRef, { threshold: 0.2 });
@@ -160,6 +162,13 @@ export const About: FC<AboutProps> = ({
               <InnerButtonIcon icon={faGoogleDrive} /> {" "}
               <InnerButtonText>
                 CV
+              </InnerButtonText>
+            </Button>
+            <Button href={fullResume.url} target="_blank" aria-label={fullResume.label}>
+              <AnimatedCircle />
+              <InnerButtonIcon icon={faGoogleDrive} /> {" "}
+              <InnerButtonText>
+                {fullResume.label}
               </InnerButtonText>
             </Button>
             <Button href={SOCIAL_URLS.linkedIn(linkedInUsername)} target="_blank" aria-label="View LinkedIn">

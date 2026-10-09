@@ -104,6 +104,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const pilot = useRef<Pilot | null>(null);
   const scheduleSave = usePilotSync(pilot);
   const isPausedForHangar = useRef(false);
+  const isPausedForMap = useRef(false);
   const held = useRef(new Set<string>());
   const touches = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef(0);
@@ -266,13 +267,25 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }, "image/png");
   }, [back, game]);
 
+  // The map holds a run still while it is open, so nothing can hit the ship while the pilot finds the way, and
+  // lets it go on when it closes. Held still, the game draws the map once.
   const toggleMap = useCallback(() => {
-    setIsMapOpen((isOpen) => {
-      game?.setMap(!isOpen);
+    const isOpen = !isMapOpen;
 
-      return !isOpen;
-    });
-  }, [game]);
+    if (isOpen && game?.isRunning && isFlying) {
+      isPausedForMap.current = true;
+      game.pause();
+    }
+
+    game?.setMap(isOpen);
+
+    if (!isOpen && isPausedForMap.current) {
+      isPausedForMap.current = false;
+      game?.resume();
+    }
+
+    setIsMapOpen(isOpen);
+  }, [game, isFlying, isMapOpen]);
 
   useEffect(() => {
     const onVisibility = () => {

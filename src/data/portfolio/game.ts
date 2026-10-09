@@ -38,7 +38,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         "behind it, land on the Moon or Mars, skim the giants for fuel. Too near the Sun and the ship melts, one system at a time. Past " +
         "the Kuiper belt, something waits.",
       controls: "Point where to fly: the ship turns and burns towards it, harder the further you point. Arrow keys turn and burn, Down " +
-        "brakes. The wheel, a pinch or + and - zoom, M opens the map. The guns aim themselves at threats; click someone to lock on, F " +
+        "brakes. The wheel, a pinch or + and - zoom, M opens the map, which holds the run still. The guns aim themselves at threats; " +
+        "click someone to lock on, F " +
         "holds fire. Rocks and crashes cannot destroy the ship in the solar system, but the Sun can, and past the Kuiper belt anything " +
         "can. Fly through gold coins to pick up Red Coin. Hold still beside a wreck to salvage it. H opens the hangar and U does " +
         "whatever is ready. C takes a photo. P pauses, Escape leaves.",

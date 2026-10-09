@@ -187,10 +187,17 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
         context.moveTo(x, groundY - high);
         context.lineTo(cx, cy - tall * 0.04);
         context.stroke();
-        context.fillStyle = index % 2 === 0 ? `rgb(${shade(240)}, ${shade(110)}, ${shade(40)})` : `rgb(${shade(240)}, ${shade(240)}, ${shade(236)})`;
-        context.beginPath();
-        context.ellipse(cx, cy, base * 0.55, tall * 0.07, 0, Math.PI, 0);
-        context.fill();
+        // A canopy lying in a soft heap, in orange and white gores.
+        for (let gore = 0; gore < 6; gore += 1) {
+          const from = Math.PI + (gore / 6) * Math.PI;
+
+          context.fillStyle = (gore + index) % 2 === 0 ? `rgb(${shade(240)}, ${shade(112)}, ${shade(40)})` : `rgb(${shade(242)}, ${shade(240)}, ${shade(234)})`;
+          context.beginPath();
+          context.moveTo(cx, cy);
+          context.ellipse(cx, cy, base * 0.55, tall * 0.075, 0, from, from + Math.PI / 6);
+          context.closePath();
+          context.fill();
+        }
       });
     }
 
@@ -198,26 +205,46 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     context.translate(x, groundY + bob);
     context.rotate(tilt);
 
-    const body = context.createLinearGradient(0, -high, 0, 0);
+    // Curved sides lit from the sun's side, dark on the other, as a cone of metal is under one light.
+    const lit = this.scene?.sun ? Math.sign(this.scene.sun.side) || 1 : 1;
+    const body = context.createLinearGradient(-base / 2 * lit, 0, base / 2 * lit, 0);
 
-    body.addColorStop(0, `rgb(${shade(226)}, ${shade(229)}, ${shade(234)})`);
-    body.addColorStop(0.7, `rgb(${shade(196)}, ${shade(190)}, ${shade(184)})`);
-    body.addColorStop(1, `rgb(${shade(110)}, ${shade(84)}, ${shade(60)})`);
+    body.addColorStop(0, `rgb(${shade(120)}, ${shade(124)}, ${shade(132)})`);
+    body.addColorStop(0.45, `rgb(${shade(214)}, ${shade(218)}, ${shade(224)})`);
+    body.addColorStop(0.7, `rgb(${shade(236)}, ${shade(238)}, ${shade(242)})`);
+    body.addColorStop(1, `rgb(${shade(150)}, ${shade(154)}, ${shade(162)})`);
     context.fillStyle = body;
     context.beginPath();
     context.moveTo(-base / 2, 0);
-    context.lineTo(-top / 2, -high);
-    context.lineTo(top / 2, -high);
-    context.lineTo(base / 2, 0);
+    context.quadraticCurveTo(-base * 0.44, -high * 0.55, -top / 2, -high);
+    context.quadraticCurveTo(0, -high - tall * 0.05, top / 2, -high);
+    context.quadraticCurveTo(base * 0.44, -high * 0.55, base / 2, 0);
     context.closePath();
     context.fill();
-    // The heat shield, charred black brown, and the hatch on top.
-    context.fillStyle = `rgb(${shade(58)}, ${shade(40)}, ${shade(30)})`;
-    context.fillRect(-base / 2, -high * 0.1, base, high * 0.1);
-    context.fillStyle = `rgb(${shade(150)}, ${shade(154)}, ${shade(160)})`;
-    context.fillRect(-top * 0.3, -high - tall * 0.03, top * 0.6, tall * 0.03);
-    context.fillStyle = "rgba(20, 28, 44, 0.9)";
-    [-1, 1].forEach((side) => context.fillRect(side * base * 0.16 - base * 0.05, -high * 0.62, base * 0.1, high * 0.12));
+    // Streaks of soot up from the shield, from the way in.
+    const soot = context.createLinearGradient(0, 0, 0, -high);
+
+    soot.addColorStop(0, `rgba(${shade(70)}, ${shade(52)}, ${shade(38)}, 0.85)`);
+    soot.addColorStop(0.35, "rgba(60, 45, 35, 0.25)");
+    soot.addColorStop(1, "rgba(60, 45, 35, 0)");
+    context.fillStyle = soot;
+    context.fill();
+    // The heat shield, charred black brown and a little proud of the sides; the docking ring on top.
+    context.fillStyle = `rgb(${shade(50)}, ${shade(36)}, ${shade(28)})`;
+    context.beginPath();
+    context.ellipse(0, -high * 0.02, base * 0.53, high * 0.08, 0, 0, Math.PI * 2);
+    context.fill();
+    context.fillStyle = `rgb(${shade(140)}, ${shade(144)}, ${shade(152)})`;
+    context.beginPath();
+    context.ellipse(0, -high - tall * 0.02, top * 0.32, tall * 0.025, 0, 0, Math.PI * 2);
+    context.fill();
+    // Two windows, catching the sky.
+    context.fillStyle = "rgba(24, 34, 54, 0.92)";
+    [-1, 1].forEach((side) => {
+      context.beginPath();
+      context.ellipse(side * base * 0.15, -high * 0.58, base * 0.045, high * 0.065, side * 0.25, 0, Math.PI * 2);
+      context.fill();
+    });
 
     if (isSea) {
       // The flotation collar and the sea washing over the capsule's lower edge.

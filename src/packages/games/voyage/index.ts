@@ -4,7 +4,7 @@ export { VoyageGame } from "./core/VoyageGame";
 export { VoyageSimulation } from "./core/VoyageSimulation";
 export { DEFAULT_UNIVERSE_NAMES } from "./config/names";
 export { UniverseGenerator } from "./generators/UniverseGenerator";
-export { arrivalSpeed, bindingEnergy, craterKm, impactEnergy, impactOutcome, isOnCourse } from "./systems/impacts";
+export { arrivalSpeed, bindingEnergy, craterKm, impactEnergy, impactOutcome, isOnCourseNow, predictApproach } from "./systems/impacts";
 export { leadDirection } from "./systems/combat";
 export { MODULE_IDS } from "./domain/components";
 export { NO_INPUT } from "./domain/input";

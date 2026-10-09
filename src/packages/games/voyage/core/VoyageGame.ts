@@ -699,6 +699,7 @@ export class VoyageGame extends FrameLoop {
     const offs = [
       tell("landed", ({ body }) => ({ kind: "landed", body })),
       tell("tookOff", ({ body }) => ({ kind: "tookOff", body })),
+      tell("recovered", ({ body }) => ({ kind: "recovered", body })),
       tell("emergency", ({ body }) => ({ kind: "emergency", body })),
       tell("captured", ({ isSingularity }) => ({ kind: "captured", isSingularity })),
       tell("destroyed", () => ({ kind: "destroyed" })),

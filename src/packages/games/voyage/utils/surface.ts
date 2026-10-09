@@ -3,6 +3,7 @@ import type { GlobeLook } from "@/packages/graphics/globe";
 import type { Air, Ground, Relief } from "@/packages/graphics/landscape";
 
 import { GROUND_BY_KIND, GroundPreset, GROUNDS, SKIES } from "../config/skies";
+import { HOME_WORLD } from "../domain/content";
 
 const DEG = 180 / Math.PI;
 // Mars changes from place to place: dune fields, rolling plains, mountains.
@@ -74,7 +75,7 @@ const spotHash = (latitude: number, longitude: number) => Math.abs(Math.floor((l
 export const groundAt = (id: string, look: GlobeLook | undefined, sample: Rgb | null, latitude: number, longitude: number, isHome: boolean): GroundPreset => {
   const hash = spotHash(latitude, longitude);
 
-  if (isHome && id === "earth") {
+  if (isHome && id === HOME_WORLD) {
     return earthGround(sample, latitude);
   }
 

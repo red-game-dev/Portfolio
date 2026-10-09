@@ -17,9 +17,10 @@ export type SurfaceBiome =
   | "lava";
 
 // Where the ship stands on a world: which one (its id), the spot (degrees north and east), the local solar time
-// (hours), and what the ground is.
+// (hours), what the ground is, and whether it is home, where a capsule comes down and a new rocket waits.
 export interface SurfaceInfo {
   body: string;
+  isHome: boolean;
   latitude: number;
   longitude: number;
   hours: number;

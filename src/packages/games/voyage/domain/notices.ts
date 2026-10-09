@@ -6,7 +6,7 @@ import { ItemStack } from "./loot";
 
 // Something the UI may want to say, as it happens, beyond what the snapshot shows.
 export type VoyageNotice =
-  | { kind: "landed" | "tookOff" | "emergency"; body: string }
+  | { kind: "landed" | "tookOff" | "emergency" | "recovered"; body: string }
   | { kind: "captured"; isSingularity: boolean }
   | { kind: "destroyed" }
   | { kind: "flare"; flareClass: FlareClass; isHeading: boolean }

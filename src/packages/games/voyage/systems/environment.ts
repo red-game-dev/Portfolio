@@ -1,4 +1,5 @@
 import { Body, Ship } from "../domain/components";
+import { HOME_WORLD } from "../domain/content";
 import { auForRadius } from "../utils/scale";
 import { VoyageContext } from "./context";
 import { isInSystem } from "./queries";
@@ -63,7 +64,7 @@ export const environmentAt = (context: VoyageContext, body: Body, ship: Ship): E
   bodies.forEach((place) => {
     const away = Math.hypot(body.x - place.x, body.y - place.y);
 
-    if (place.id === "earth" && away < place.radius * SHELTER_RADII) {
+    if (place.id === HOME_WORLD && away < place.radius * SHELTER_RADII) {
       radiation *= 0.15;
     }
 

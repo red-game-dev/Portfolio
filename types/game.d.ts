@@ -254,6 +254,10 @@ export interface FinaleSurface {
   time: string;
   biomes: Record<SurfaceBiome, string>;
   takeOff: string;
+  // Home: a new rocket stands ready (at the finale's pad, "{pad}"), and how to launch it.
+  ready: string;
+  readyAt: string;
+  launch: string;
 }
 
 export interface FinaleVoyage {
@@ -323,6 +327,10 @@ export interface FinaleVoyage {
   // "{body}" is replaced.
   landed: string;
   tookOff: string;
+  // Home safely, met and given a new rocket.
+  recovered: string;
+  // After a run ends: what is kept for the next one.
+  kept: string;
   emergency: string;
   captured: string;
   // "{class}" is replaced with the flare's class; the second when its storm heads for the ship.

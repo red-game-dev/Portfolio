@@ -2,6 +2,7 @@ import type { System } from "@/packages/games/engine";
 import { randomBetween } from "@/packages/math/random";
 import { angleBetween } from "@/packages/physics/newtonian";
 
+import { HOME_WORLD } from "../domain/content";
 import { FlareClass } from "../domain/events";
 import { VoyageContext } from "./context";
 import { bodyById, distanceFromStar, isInSystem, shipOf } from "./queries";
@@ -56,7 +57,7 @@ export class WeatherSystem implements System<VoyageContext> {
       state.nextFlareAt = state.elapsedMs + randomBetween(random, config.weather.every[0], config.weather.every[1]) * 1000;
     }
 
-    const earth = bodyById(context, "earth");
+    const earth = bodyById(context, HOME_WORLD);
 
     // Moved on in place: most steps there are none, and none should cost an array.
     let kept = 0;

@@ -1,7 +1,7 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { GlobePose, northUp } from "@/packages/graphics/globe";
 
-import { SystemBody } from "../../domain/content";
+import { HOME_WORLD, SystemBody } from "../../domain/content";
 import { VoyageState } from "../../domain/state";
 import { VoyageFrame } from "../frame";
 import { paintGlow } from "../paint/space";
@@ -125,7 +125,7 @@ export class GlobesLayer implements RenderLayer<VoyageFrame> {
       pose,
       time: now / 1000,
       light: lightOn(body.au, star.luminosity),
-      aurora: body.id === "earth" ? state.aurora : 0,
+      aurora: body.id === HOME_WORLD ? state.aurora : 0,
       craters: state.craters[body.id] ?? [],
     });
   }

@@ -98,6 +98,8 @@ interface VoyageDialogProps {
   // One name per universe, in the game's order.
   universes: string[];
   best: number;
+  // The pad the finale's launch flew from, where a new rocket waits when the crew comes home.
+  homePad: string | null;
   onRecord: (score: number) => void;
   onClose: () => void;
 }
@@ -118,7 +120,7 @@ const SOUND = 0.995;
 // text everything it shows: where the ship is, its hull, shields and fuel as MMO bars, any system that is hurt,
 // the score, the live telemetry, and each moment said once. A card starts, pauses and ends a run; a button opens
 // the map. Opens itself on mount.
-export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, onRecord, onClose }: VoyageDialogProps) => {
+export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, homePad, onRecord, onClose }: VoyageDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLCanvasElement>(null);
@@ -430,7 +432,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           <SurfaceLine>{content.surface.biomes[snapshot.surface.biome]}</SurfaceLine>
           <SurfaceLine>{formatLatLon(snapshot.surface.latitude, snapshot.surface.longitude)}</SurfaceLine>
           <SurfaceLine>{fill(content.surface.time, { time: formatHours(snapshot.surface.hours) })}</SurfaceLine>
-          <SurfaceHint>{content.surface.takeOff}</SurfaceHint>
+          {snapshot.surface.isHome && <SurfaceLine>{homePad ? fill(content.surface.readyAt, { pad: homePad }) : content.surface.ready}</SurfaceLine>}
+          <SurfaceHint>{snapshot.surface.isHome ? content.surface.launch : content.surface.takeOff}</SurfaceHint>
         </SurfaceCard>
       )}
       {snapshot && status === "flying" && !isHangarOpen && !isPhoto && (
@@ -550,6 +553,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 {daily && <Text>{fill(content.career.daily.result, { score: daily.score })}</Text>}
                 {daily?.isBest && <Badge>{content.career.daily.newBest}</Badge>}
                 <Text>{voyagePlace(content, snapshot, universes)}</Text>
+                <Text>{content.kept}</Text>
                 <Buttons>
                   <ActionButton type="button" isPrimary onClick={() => start()}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />

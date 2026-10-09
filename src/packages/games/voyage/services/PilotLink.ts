@@ -3,6 +3,7 @@ import { RANKS } from "../career/config/ranks";
 import { CareerEvent, Peril } from "../career/domain/career";
 import { Career, CareerOutcome } from "../career/services/Career";
 import { VoyageSimulation } from "../core/VoyageSimulation";
+import { HOME_WORLD } from "../domain/content";
 import { VoyageNotice } from "../domain/notices";
 import { VoyageSnapshot } from "../domain/snapshot";
 import { configForLevel } from "../economy/config/tiers";
@@ -64,7 +65,7 @@ export class PilotLink {
     this.isRunSettled = false;
     this.count({ kind: "upgraded", level: this.hangar.level });
     // Every run starts at Earth, which is passed already, so no passing tells the codex of it.
-    this.discover(codexId("worlds", "earth"));
+    this.discover(codexId("worlds", HOME_WORLD));
   }
 
   public attach(): () => void {

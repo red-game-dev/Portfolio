@@ -89,6 +89,9 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           lava: "Cooling lava fields",
         },
         takeOff: "Burn to lift off",
+        ready: "Recovered. A new rocket stands fuelled and ready.",
+        readyAt: "Recovered. A new rocket stands fuelled and ready at {pad}.",
+        launch: "Burn to launch it",
       },
       intro: "The real solar system, every planet and moon where it is today, turning as it really turns. Fly to Venus, to the Sun or " +
         "behind it, land on the Moon or Mars, skim the giants for fuel. Too near the Sun and the ship melts, one system at a time. Past " +
@@ -101,7 +104,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         "whatever is ready. C takes a photo. P pauses, Escape leaves.",
       canvasLabel: "Your ship, flying out through space",
       start: "Fly",
-      again: "Fly again",
+      again: "Start again from Earth",
       close: "Back to the page",
       pause: "Pause",
       resume: "Resume",
@@ -159,6 +162,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       },
       landed: "Landed on {body}",
       tookOff: "Lifting off {body}",
+      recovered: "Welcome home: the crew is recovered and a new rocket is rolled out",
+      kept: "Your ship, hold, Red Coin and rank are kept.",
       emergency: "Emergency burn: {body}'s pressure would have crushed the hull",
       captured: "It has you. Nothing escapes now.",
       flare: "Solar flare, class {class}",

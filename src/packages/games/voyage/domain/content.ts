@@ -1,6 +1,9 @@
 import type { KeplerElements, Pole, Vec3 } from "@/packages/physics/kepler";
 import type { Atmosphere } from "@/packages/physics/newtonian";
 
+// The world every run sets out from and comes home to.
+export const HOME_WORLD = "earth";
+
 // What kind of air a body has: none, thin, thick enough to fly through, or a giant's, with no ground under it.
 export type AtmosphereKind = "none" | "thin" | "thick" | "giant";
 

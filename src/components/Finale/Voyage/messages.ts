@@ -91,6 +91,8 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
       return notice.isBlown ? content.supernova : fill(content.supernovaWarning, { seconds: Math.round(notice.seconds) });
     case "burst":
       return notice.isFired ? content.burst : fill(content.burstWarning, { seconds: Math.round(notice.seconds) });
+    case "recovered":
+      return content.recovered;
     case "landed":
     case "tookOff":
     case "emergency":

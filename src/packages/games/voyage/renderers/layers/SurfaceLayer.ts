@@ -3,7 +3,7 @@ import { Rgb, rgbToHex } from "@/packages/graphics/colour";
 import { blackbody, globeFrame, surfacePoint } from "@/packages/graphics/globe";
 import { LandscapePainter, Scene, SkyBody } from "@/packages/graphics/landscape";
 
-import { SystemBody } from "../../domain/content";
+import { HOME_WORLD, SystemBody } from "../../domain/content";
 import { SurfaceInfo } from "../../domain/surface";
 import { markOf, tierOf } from "../../economy/config/tiers";
 import { airFor, groundAt, phaseOf, skyPlace, solarHours, toGround } from "../../utils/surface";
@@ -123,7 +123,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     this.up = up;
     this.landedAt = state.elapsedMs;
     this.scene = { air: airFor(place.id, look, place.air?.pressureBar ?? null, isHome), sun: null, bodies: [], ground: toGround(preset, latitude, longitude) };
-    this.info = { body: place.id, latitude, longitude, hours: 12, biome: preset.biome };
+    this.info = { body: place.id, isHome: isHome && place.id === HOME_WORLD, latitude, longitude, hours: 12, biome: preset.biome };
   }
 
   // The star, and the planet or moons in the sky, where they stand now: they move as the world goes round.
@@ -161,6 +161,76 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     if (this.info) {
       this.info.hours = solarHours(this.up, towardsStar);
     }
+  }
+
+  // A crew capsule down on Earth: a blunt cone, its heat shield charred from the way in and its sides streaked,
+  // two windows and the hatch on top. At sea it rides the swell in its orange flotation collar, the water over its
+  // lower edge; on land its parachutes lie spread beside it, their lines running back to it.
+  private drawCapsule(x: number, groundY: number, tall: number, light: number, now: number, isSea: boolean): void {
+    const context = this.kit.front.context;
+    const base = tall * 0.78;
+    const top = base * 0.42;
+    const high = tall * 0.6;
+    const bob = isSea ? Math.sin(now * 0.0025) * tall * 0.025 : 0;
+    const tilt = isSea ? Math.sin(now * 0.0017) * 0.06 : 0;
+    const shade = (value: number) => Math.round(value * (0.25 + 0.75 * light));
+
+    if (!isSea) {
+      // The parachutes, spread on the ground off to one side, striped orange and white.
+      [-1, 0.2, 1].forEach((offset, index) => {
+        const cx = x + base * (1.35 + index * 0.55) * (offset < 0 ? -1 : 1);
+        const cy = groundY + tall * (0.04 + index * 0.03);
+
+        context.strokeStyle = `rgba(${shade(230)}, ${shade(230)}, ${shade(230)}, 0.5)`;
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(x, groundY - high);
+        context.lineTo(cx, cy - tall * 0.04);
+        context.stroke();
+        context.fillStyle = index % 2 === 0 ? `rgb(${shade(240)}, ${shade(110)}, ${shade(40)})` : `rgb(${shade(240)}, ${shade(240)}, ${shade(236)})`;
+        context.beginPath();
+        context.ellipse(cx, cy, base * 0.55, tall * 0.07, 0, Math.PI, 0);
+        context.fill();
+      });
+    }
+
+    context.save();
+    context.translate(x, groundY + bob);
+    context.rotate(tilt);
+
+    const body = context.createLinearGradient(0, -high, 0, 0);
+
+    body.addColorStop(0, `rgb(${shade(226)}, ${shade(229)}, ${shade(234)})`);
+    body.addColorStop(0.7, `rgb(${shade(196)}, ${shade(190)}, ${shade(184)})`);
+    body.addColorStop(1, `rgb(${shade(110)}, ${shade(84)}, ${shade(60)})`);
+    context.fillStyle = body;
+    context.beginPath();
+    context.moveTo(-base / 2, 0);
+    context.lineTo(-top / 2, -high);
+    context.lineTo(top / 2, -high);
+    context.lineTo(base / 2, 0);
+    context.closePath();
+    context.fill();
+    // The heat shield, charred black brown, and the hatch on top.
+    context.fillStyle = `rgb(${shade(58)}, ${shade(40)}, ${shade(30)})`;
+    context.fillRect(-base / 2, -high * 0.1, base, high * 0.1);
+    context.fillStyle = `rgb(${shade(150)}, ${shade(154)}, ${shade(160)})`;
+    context.fillRect(-top * 0.3, -high - tall * 0.03, top * 0.6, tall * 0.03);
+    context.fillStyle = "rgba(20, 28, 44, 0.9)";
+    [-1, 1].forEach((side) => context.fillRect(side * base * 0.16 - base * 0.05, -high * 0.62, base * 0.1, high * 0.12));
+
+    if (isSea) {
+      // The flotation collar and the sea washing over the capsule's lower edge.
+      context.fillStyle = `rgb(${shade(240)}, ${shade(120)}, ${shade(30)})`;
+      context.beginPath();
+      context.ellipse(0, -high * 0.08, base * 0.62, tall * 0.05, 0, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = this.scene ? this.scene.ground.colour : "#164a78";
+      context.globalAlpha *= 0.85;
+      context.fillRect(-base, -high * 0.05, base * 2, high * 0.2);
+    }
+
+    context.restore();
   }
 
   private starColour(kelvin: number): string {
@@ -213,6 +283,14 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     }
 
     context.globalAlpha = alpha;
+
+    // Home: the capsule that brought the crew down, not the ship; a new rocket lifts off in its place.
+    if (this.info?.isHome && !isLeaving) {
+      this.drawCapsule(x, groundY, tall, light, now, this.scene?.ground.relief === "sea");
+      context.globalAlpha = 1;
+
+      return;
+    }
 
     if (isLeaving) {
       const flame = this.kit.sprite(`flame:${theme.flameCore}:${size}`, size * 1.1, size * 2.8, paintFlame(theme.flameCore, theme.flameEdge));

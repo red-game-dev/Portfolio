@@ -8,6 +8,7 @@ import useHashState, { useHashValue } from "@/hooks/useHashState";
 import useInView from "@/hooks/useInView";
 import useModalDialog from "@/hooks/useModalDialog";
 import useScrollLock, { usePageHeld } from "@/hooks/useScrollLock";
+import useSettledAnchors from "@/hooks/useSettledAnchors";
 
 const root = () => document.documentElement.style.overflow;
 
@@ -225,6 +226,45 @@ describe("useInView", () => {
     expect(getByText("unseen")).toBeInTheDocument();
     rerender(<Later isShown />);
     expect(getByText("seen")).toBeInTheDocument();
+  });
+});
+
+describe("useSettledAnchors", () => {
+  beforeEach(() => jest.useFakeTimers());
+
+  afterEach(() => {
+    jest.useRealTimers();
+    document.body.replaceChildren();
+  });
+
+  // A settle starts by listening for the scroll the jump begins.
+  const settles = (listen: jest.SpyInstance) => listen.mock.calls.some(([type]) => type === "scroll");
+
+  it("settles the target of a same page link however deep inside it the click lands, and of no other link", () => {
+    const { unmount } = renderHook(() => useSettledAnchors());
+    const target = document.createElement("section");
+    const local = document.createElement("a");
+    const inner = document.createElement("span");
+    const away = document.createElement("a");
+
+    target.id = "far";
+    local.href = "#far";
+    away.href = "https://example.com/elsewhere#far";
+    away.addEventListener("click", (event) => event.preventDefault());
+    local.append(inner);
+    document.body.append(target, local, away);
+
+    const listen = jest.spyOn(window, "addEventListener");
+
+    away.click();
+    expect(settles(listen)).toBe(false);
+
+    inner.click();
+    expect(settles(listen)).toBe(true);
+
+    listen.mockRestore();
+    jest.runOnlyPendingTimers();
+    unmount();
   });
 });
 

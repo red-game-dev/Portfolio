@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import { closestTo } from "@/packages/interaction/focus";
 import { settleAtTop } from "@/packages/interaction/scroll-frame";
 
 // The element a link jumps to, when it is a link to somewhere on this page.
@@ -13,8 +14,8 @@ const targetOf = (link: HTMLAnchorElement) => (link.hash && link.origin === wind
 export default function useSettledAnchors() {
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
-      const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href*='#']") : null;
-      const target = link ? targetOf(link) : null;
+      const link = closestTo(event.target, "a[href*='#']");
+      const target = link instanceof HTMLAnchorElement ? targetOf(link) : null;
 
       if (target) {
         settleAtTop(target);

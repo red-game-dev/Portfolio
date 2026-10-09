@@ -252,9 +252,23 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       context.beginPath();
       context.ellipse(0, -high * 0.08, base * 0.62, tall * 0.05, 0, 0, Math.PI * 2);
       context.fill();
-      context.fillStyle = this.scene ? this.scene.ground.colour : "#164a78";
-      context.globalAlpha *= 0.85;
-      context.fillRect(-base, -high * 0.05, base * 2, high * 0.2);
+      // The sea round its base: a rippled waterline in the colour of the surface near by, the capsule's lower edge
+      // showing through it.
+      context.fillStyle = this.scene ? this.scene.ground.far : "#2b6b9a";
+      context.globalAlpha *= 0.7;
+      context.beginPath();
+      context.moveTo(-base * 0.78, 0);
+
+      for (let step = 0; step <= 12; step += 1) {
+        const across = -base * 0.78 + (step / 12) * base * 1.56;
+
+        context.lineTo(across, -high * 0.06 + Math.sin(now * 0.004 + step * 1.3) * high * 0.025);
+      }
+
+      context.lineTo(base * 0.78, high * 0.1);
+      context.ellipse(0, high * 0.1, base * 0.78, high * 0.05, 0, 0, Math.PI);
+      context.closePath();
+      context.fill();
     }
 
     context.restore();

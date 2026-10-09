@@ -9,9 +9,11 @@ import { RenderKit } from "./kit";
 const TAU = Math.PI * 2;
 // The compass ring round a stop in sight, in CSS pixels; a stop drawn bigger than this needs no ring.
 const RING_RADIUS = 18;
-// Sunlight (W/m^2) where the glare begins, and how much more washes the view out: from inside Mercury's orbit.
+// Sunlight (W/m^2) where the glare begins (inside Mercury's orbit), how many orders of magnitude more it takes
+// to reach its full strength (the Sun's surface), and that strength.
 const GLARE_FROM = 20000;
-const GLARE_FULL = 400000;
+const GLARE_DECADES = 3.5;
+const GLARE_MAX = 0.55;
 
 // Over everything: inside a giant the clouds close in as the air thickens, a planet's air hazes the view, heat and
 // a failing hull redden the edges, the fall into a black hole darkens to nothing, the tunnel between universes
@@ -108,9 +110,10 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
     front.context.globalAlpha = 1;
   }
 
-  // Close to the star its light is blinding: the whole view washes out, more the closer the ship flies.
+  // Close to the star its light is blinding: the whole view washes out, more the closer the ship flies, growing
+  // with the order of magnitude of the sunlight rather than the sunlight itself, as an eye or a camera does.
   private drawGlare({ state }: VoyageFrame): void {
-    const glare = Math.min(0.75, Math.max(0, (state.readings.sunlight - GLARE_FROM) / GLARE_FULL));
+    const glare = GLARE_MAX * Math.min(1, Math.max(0, Math.log10(state.readings.sunlight / GLARE_FROM) / GLARE_DECADES));
 
     if (glare <= 0) {
       return;

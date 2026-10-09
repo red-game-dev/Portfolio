@@ -3,6 +3,7 @@ import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useRef,
 import { usePilotSync } from "@/components/Finale/Voyage/hooks/usePilotSync";
 import { VOYAGE_TEXTURES, VOYAGE_THEME } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import { decodeImage } from "@/packages/browser/images";
 import type { CareerView, EconomyView, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
 import type { Pilot } from "@/services/voyage/pilot";
 
@@ -27,34 +28,11 @@ const KEY_ZOOM = 1.25;
 
 const keyOf = (event: KeyboardEvent<HTMLElement>) => (event.key.length === 1 ? event.key.toLowerCase() : event.key);
 
-// Each real map, fetched and decoded once a visit, however often the voyage is opened.
-const decoded = new Map<string, Promise<HTMLImageElement>>();
-
-const decode = (url: string): Promise<HTMLImageElement> => {
-  const known = decoded.get(url);
-
-  if (known) {
-    return known;
-  }
-
-  const image = new Image();
-
-  image.decoding = "async";
-  image.src = url;
-
-  const ready = image.decode().then(() => image);
-
-  ready.catch(() => decoded.delete(url));
-  decoded.set(url, ready);
-
-  return ready;
-};
-
 // Hands the game each real map as soon as it has loaded, in order, so Earth arrives first. A game already gone
 // takes none: its renderer ignores what comes after it is disposed.
 const loadTextures = (game: VoyageGame) => {
   Object.entries(VOYAGE_TEXTURES).forEach(([id, url]) => {
-    decode(url).then((image) => game.setTexture(id, image), () => undefined);
+    decodeImage(url).then((image) => game.setTexture(id, image), () => undefined);
   });
 };
 

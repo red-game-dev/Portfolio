@@ -65,8 +65,11 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const ship = world.stores.ship.get(state.ship);
     const ground = state.phase !== "lost" && ship?.landedOn ? state.system.bodies.find((candidate) => candidate.id === ship.landedOn) : undefined;
 
-    if (ground && ship?.landedOffset && ground.id !== this.body) {
-      this.land(frame, ground, Math.atan2(ship.landedOffset.y, ship.landedOffset.x));
+    const up = ship?.landedOffset ? Math.atan2(ship.landedOffset.y, ship.landedOffset.x) : 0;
+
+    // A new world, or another spot on the same one.
+    if (ground && ship?.landedOffset && (ground.id !== this.body || Math.abs(Math.atan2(Math.sin(up - this.up), Math.cos(up - this.up))) > 0.01)) {
+      this.land(frame, ground, up);
     }
 
     this.shown = Math.max(0, Math.min(1, this.shown + (ground ? 1 : -1) * (dt / FADE_SECONDS)));
@@ -96,7 +99,8 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const { front } = this.kit;
     const { width, height } = front;
     const horizon = height * HORIZON_SHARE;
-    const sky = this.painter.paint({ context: front.context, width, height, horizon, fieldOfView: FIELD_OF_VIEW, drop: 0, density: 1, now, opacity: this.shown }, scene);
+    const view = { context: front.context, width, height, horizon, fieldOfView: FIELD_OF_VIEW, drop: 0, density: 1, now, opacity: this.shown, isWholeSky: true };
+    const sky = this.painter.paint(view, scene);
 
     this.drawShip(frame, horizon, sky.light, !ground);
     front.context.globalAlpha = 1;

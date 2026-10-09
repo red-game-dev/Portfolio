@@ -1,3 +1,4 @@
+export { EARTH_LOOK } from "./config/earth";
 export { CanvasGlobeRenderer } from "./core/CanvasGlobeRenderer";
 export { WebGLGlobeRenderer } from "./core/WebGLGlobeRenderer";
 export { MAX_CRATERS } from "./shaders/common";

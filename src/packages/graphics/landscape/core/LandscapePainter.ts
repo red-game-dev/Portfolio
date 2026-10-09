@@ -48,6 +48,12 @@ export class LandscapePainter {
     this.stars = Array.from({ length: STARS }, () => ({ x: random(), y: random(), size: 0.4 + random() * 1.3, phase: random() * TAU }));
   }
 
+  // Where an elevation (degrees) falls on the view: by the field of view, or with the whole sky spread from the
+  // horizon to the top.
+  public static heightOf({ horizon, height, fieldOfView, isWholeSky }: Frame, elevation: number): number {
+    return isWholeSky ? horizon - horizon * Math.max(-1, Math.min(1, elevation / 90)) : horizon - elevation * (height / fieldOfView);
+  }
+
   public paint(frame: Frame, scene: Scene): SkyLight {
     const sky = skyLight(scene.air, scene.sun?.elevation ?? -90, frame.density);
 
@@ -62,7 +68,9 @@ export class LandscapePainter {
     return sky;
   }
 
-  public paintSky({ context, width, height, horizon, fieldOfView }: Frame, sky: SkyLight, scene: Scene): void {
+  public paintSky(frame: Frame, sky: SkyLight, scene: Scene): void {
+    const { context, width, height, horizon } = frame;
+
     const gradient = context.createLinearGradient(0, 0, 0, Math.max(1, horizon));
 
     gradient.addColorStop(0, rgbCss(sky.zenith));
@@ -76,7 +84,7 @@ export class LandscapePainter {
     // Dusk: the sky glows on the side the sun is going down.
     if (sky.glowStrength > 0.02 && scene.sun) {
       const x = width * (0.5 + scene.sun.side * SPREAD);
-      const y = horizon - Math.max(0, scene.sun.elevation) * (height / fieldOfView);
+      const y = LandscapePainter.heightOf(frame, Math.max(0, scene.sun.elevation));
       const reach = Math.max(width, height) * 0.75;
       const glow = context.createRadialGradient(x, y, 0, x, y, reach);
 
@@ -105,7 +113,8 @@ export class LandscapePainter {
     context.globalAlpha = opacity;
   }
 
-  public paintSun({ context, width, height, horizon, fieldOfView, density }: Frame, scene: Scene): void {
+  public paintSun(frame: Frame, scene: Scene): void {
+    const { context, width, height, fieldOfView, density } = frame;
     const { sun, air } = scene;
 
     if (!sun || sun.elevation < -sun.radius * 2) {
@@ -114,7 +123,7 @@ export class LandscapePainter {
 
     const perDegree = height / fieldOfView;
     const x = width * (0.5 + sun.side * SPREAD);
-    const y = horizon - sun.elevation * perDegree;
+    const y = LandscapePainter.heightOf(frame, sun.elevation);
     const radius = Math.max(2.2, sun.radius * perDegree);
     const colour = sunColour(sun.colour, air, sun.elevation, density);
     const haze = air ? air.haze * density : 0;
@@ -135,13 +144,14 @@ export class LandscapePainter {
     }
   }
 
-  public paintBodies({ context, width, height, horizon, fieldOfView, density, opacity = 1 }: Frame, scene: Scene): void {
+  public paintBodies(frame: Frame, scene: Scene): void {
+    const { context, width, height, horizon, fieldOfView, density, opacity = 1 } = frame;
     const perDegree = height / fieldOfView;
     const daylight = scene.air ? smoothstep(-4, 12, scene.sun?.elevation ?? -90) * scene.air.strength * density : 0;
 
     scene.bodies.forEach((body) => {
       const x = width * (0.5 + body.side * SPREAD);
-      const y = horizon - body.elevation * perDegree;
+      const y = LandscapePainter.heightOf(frame, body.elevation);
       const radius = Math.max(1.5, body.radius * perDegree);
 
       if (y - radius > horizon) {

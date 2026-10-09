@@ -1,5 +1,6 @@
 import { FrameLoop, FrameScheduler } from "@/packages/animation/frame-loop";
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { CanvasGlobeRenderer, GlobeRenderer, WebGLGlobeRenderer } from "@/packages/graphics/globe";
 import { RandomSource } from "@/packages/math/random";
 
 import { DEFAULT_LAUNCH_LABELS, DEFAULT_LAUNCH_THEME, LaunchConfig, LaunchConfigOverrides, LaunchLabels, LaunchTheme, resolveLaunchConfig } from "../config";
@@ -49,7 +50,10 @@ export class LaunchGame extends FrameLoop {
   }
 
   public static forCanvas(context: Canvas2DContext, options: LaunchCanvasOptions = {}): LaunchGame {
-    return new LaunchGame(new CanvasLaunchRenderer(context, { ...DEFAULT_LAUNCH_THEME, ...options.theme }, options.labels ?? DEFAULT_LAUNCH_LABELS), options);
+    // The Earth below is drawn by the GPU where there is one, from its real maps.
+    const globes: GlobeRenderer = (typeof document !== "undefined" ? WebGLGlobeRenderer.create(document.createElement("canvas")) : null) ?? new CanvasGlobeRenderer();
+
+    return new LaunchGame(new CanvasLaunchRenderer(context, { ...DEFAULT_LAUNCH_THEME, ...options.theme }, options.labels ?? DEFAULT_LAUNCH_LABELS, globes), options);
   }
 
   public resize(size: LaunchSize, pixelRatio = 1): void {
@@ -60,6 +64,21 @@ export class LaunchGame extends FrameLoop {
     this.simulation.resize(size);
     this.renderer.resize(size, pixelRatio);
     this.renderer.draw(this.simulation.state, 0);
+  }
+
+  // A real map for the Earth below; a still board is drawn again to show it.
+  public setTexture(id: string, image: TexImageSource): void {
+    this.renderer.setTexture?.(id, image);
+
+    if (!this.isRunning) {
+      this.renderer.draw(this.simulation.state, 0);
+    }
+  }
+
+  // Stops for good and gives back what the renderer holds on the GPU.
+  public dispose(): void {
+    this.stop();
+    this.renderer.dispose?.();
   }
 
   public press(): void {

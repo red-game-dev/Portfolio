@@ -38,6 +38,8 @@ export class LaunchSimulation {
       sunElevation: solarElevation(subsolar, site.latitude, site.longitude),
       // East of the pad (the Sun not yet past its noon there) is the right of the view.
       sunSide: wrapDegrees(site.longitude - subsolar.longitude) < 0 ? 0.62 : -0.62,
+      subsolarLatitude: subsolar.latitude,
+      subsolarLongitude: subsolar.longitude,
       size,
       status: "ready",
       charge: 0,

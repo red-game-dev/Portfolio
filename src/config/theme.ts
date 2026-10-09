@@ -118,3 +118,6 @@ export const VOYAGE_TEXTURES: Record<string, string> = {
   "mercury": "/images/voyage/mercury.webp",
   "pluto": "/images/voyage/pluto.webp",
 };
+
+// The maps the launch's Earth below is drawn from: the voyage's own, so each is fetched once.
+export const LAUNCH_TEXTURES: Readonly<Record<string, string>> = Object.fromEntries(Object.entries(VOYAGE_TEXTURES).filter(([id]) => id.startsWith("earth-")));

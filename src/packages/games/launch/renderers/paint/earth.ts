@@ -33,66 +33,30 @@ export interface LimbScene {
   // The Sun's height over the pad (degrees) and its side of the view.
   sunElevation: number;
   sunSide: number;
-  now: number;
 }
 
-// Earth from on high: the curve of the planet rising into the bottom of the view and rounding as the rocket climbs,
-// blue sea with cloud streaks by day, dark with city lights by night, the thin bright band of the air along its edge
-// (and the green of the airglow over the night side), and a sunrise or sunset glow where the edge meets the Sun.
-export const paintLimb = (context: Canvas2DContext, { width, height, rise, sunElevation, sunSide, now }: LimbScene): void => {
-  if (rise <= 0) {
+// Where the Earth's curve sits: rising into the bottom of the view and rounding as the rocket climbs.
+export const limbOf = ({ width, height, rise }: LimbScene) => {
+  const radius = width * (6 - 4.4 * smoothstep(0, 1, rise));
+  const top = height * (1.06 - 0.34 * rise);
+
+  return { x: width / 2, y: top + radius, radius, top };
+};
+
+// The air along the Earth's edge, over the globe itself: a bright thin band, softening outwards, green airglow
+// over the night side, and a sunrise or sunset glow where the edge meets the Sun.
+export const paintAirglow = (context: Canvas2DContext, scene: LimbScene): void => {
+  if (scene.rise <= 0) {
     return;
   }
 
-  const radius = width * (6 - 4.4 * smoothstep(0, 1, rise));
-  const top = height * (1.06 - 0.34 * rise);
-  const cx = width / 2;
-  const cy = top + radius;
-  const day = smoothstep(-8, 8, sunElevation);
-  const sea: Rgb = mixRgb([4, 8, 18], [26, 82, 150], day);
-  const surface = context.createRadialGradient(cx, cy, radius * 0.96, cx, cy, radius);
-
-  surface.addColorStop(0, rgba(sea, 1));
-  surface.addColorStop(1, rgba(mixRgb(sea, [120, 170, 230], 0.45 * day), 1));
-  context.fillStyle = surface;
-  context.beginPath();
-  context.arc(cx, cy, radius, 0, TAU);
-  context.fill();
-
-  context.save();
-  context.beginPath();
-  context.arc(cx, cy, radius, 0, TAU);
-  context.clip();
-
-  // Weather by day, the lights of cities by night, drifting slowly as the planet turns under the rocket.
-  const drift = (now * 0.004) % width;
-
-  for (let streak = 0; streak < 18; streak += 1) {
-    const sx = ((streak * 97.3 + drift) % (width * 1.4)) - width * 0.2;
-    const depth = (streak % 6) / 6;
-    const sy = top + height * (0.04 + depth * 0.4);
-
-    if (day > 0.1) {
-      context.fillStyle = `rgba(245, 248, 255, ${0.28 * day})`;
-      context.beginPath();
-      context.ellipse(sx, sy, width * (0.05 + (streak % 5) * 0.02) * (0.6 + depth), 2 + depth * 5, 0, 0, TAU);
-      context.fill();
-    }
-
-    if (day < 0.9) {
-      context.fillStyle = `rgba(255, 200, 120, ${0.7 * (1 - day)})`;
-      context.fillRect(sx + (streak % 3) * 7, sy + 3, 1.2 + depth, 1.2 + depth);
-      context.fillRect(sx - (streak % 4) * 5, sy + 6, 1, 1);
-    }
-  }
-
-  context.restore();
-
-  // The air along the edge: a bright thin band, softening outwards; airglow over the night side.
+  const { width } = scene;
+  const { x: cx, y: cy, radius, top } = limbOf(scene);
+  const day = smoothstep(-8, 8, scene.sunElevation);
   const band = context.createRadialGradient(cx, cy, radius * 0.995, cx, cy, radius * 1.03);
 
-  band.addColorStop(0, rgba(mixRgb([60, 200, 120], [130, 190, 255], day), 0.55 + 0.35 * day));
-  band.addColorStop(0.35, rgba([90, 150, 255], 0.35 * Math.max(0.25, day)));
+  band.addColorStop(0, rgba(mixRgb([60, 200, 120], [130, 190, 255], day), 0.45 + 0.35 * day));
+  band.addColorStop(0.35, rgba([90, 150, 255], 0.3 * Math.max(0.25, day)));
   band.addColorStop(1, "rgba(60, 110, 255, 0)");
   context.fillStyle = band;
   context.beginPath();
@@ -100,11 +64,10 @@ export const paintLimb = (context: Canvas2DContext, { width, height, rise, sunEl
   context.arc(cx, cy, radius * 0.995, 0, TAU, true);
   context.fill();
 
-  // Where the Sun is near the horizon below, the edge burns orange on its side.
-  const twilight = 1 - Math.min(1, Math.abs(sunElevation) / 12);
+  const twilight = 1 - Math.min(1, Math.abs(scene.sunElevation) / 12);
 
   if (twilight > 0) {
-    const gx = cx + sunSide * width * 0.42;
+    const gx = cx + scene.sunSide * width * 0.42;
     const reach = width * 0.55;
     const glow = context.createRadialGradient(gx, top, 0, gx, top, reach);
 

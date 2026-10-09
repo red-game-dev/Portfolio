@@ -1,5 +1,6 @@
 import { Canvas2DContext, CanvasRenderer } from "@/packages/graphics/canvas";
 import { mixRgb, Rgb, shadeHex } from "@/packages/graphics/colour";
+import { EARTH_LOOK, GlobeLook, GlobeRenderer, northUp } from "@/packages/graphics/globe";
 import { Air, Ground, LandscapePainter, Scene, SkyLight } from "@/packages/graphics/landscape";
 import { easeInOut, smoothstep } from "@/packages/math/easing";
 import { createSeededRandom } from "@/packages/math/random";
@@ -7,7 +8,7 @@ import { formatDuration, formatNumber } from "@/packages/text/format";
 
 import { LaunchLabels, LaunchTheme, VEHICLES } from "../config";
 import { LaunchLand, LaunchMilestone, LaunchSize, LaunchState } from "../domain/types";
-import { paintCloud, paintLimb } from "./paint/earth";
+import { limbOf, paintAirglow, paintCloud } from "./paint/earth";
 import { paintPad } from "./paint/pad";
 import { BUILDS, nozzles, paintPlume, paintVehicle, PLUMES, Stack } from "./paint/vehicles";
 import { Smoke } from "./Smoke";
@@ -27,6 +28,8 @@ const TRUE_SCALE = 160;
 // How the sky darkens with height as the eye sees it: still blue a few km up, deep blue by twenty, black by sixty.
 const SKY_FADE_KM = 22;
 const FIELD_OF_VIEW = 46;
+// Earth's air is a skin a sixtieth of its radius thick at this scale, not the glowing shell a small globe wears.
+const EARTH_BELOW: GlobeLook = { ...EARTH_LOOK, atmosphere: EARTH_LOOK.atmosphere ? { ...EARTH_LOOK.atmosphere, thickness: 0.012 } : undefined };
 const TAU = Math.PI * 2;
 // The rocket's height on the board, and where its base sits on the pad and once the camera follows it.
 const ROCKET_SHARE = 0.44;
@@ -55,12 +58,14 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
   private readonly painter = new LandscapePainter(11);
   private readonly smoke = new Smoke();
   private readonly clouds: Cloud[];
+  private readonly globes: GlobeRenderer;
   private lastNow = 0;
 
-  constructor(context: Canvas2DContext, theme: LaunchTheme, labels: LaunchLabels) {
+  constructor(context: Canvas2DContext, theme: LaunchTheme, labels: LaunchLabels, globes: GlobeRenderer) {
     super(context, { background: "#04060c" });
     this.theme = theme;
     this.labels = labels;
+    this.globes = globes;
 
     const random = createSeededRandom(29);
 
@@ -70,6 +75,15 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
 
   public resize({ width, height }: LaunchSize, pixelRatio: number): void {
     this.resizeSurface(width, height, pixelRatio);
+    this.globes.resize(width, height, Math.min(2, pixelRatio));
+  }
+
+  public setTexture(id: string, image: TexImageSource): void {
+    this.globes.setTexture(id, image);
+  }
+
+  public dispose(): void {
+    this.globes.dispose();
   }
 
   public draw(state: LaunchState, now: number): void {
@@ -111,7 +125,7 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     const rocketLight = Math.max(sky.light, floodlights * 0.85, state.status === "launching" ? 0.38 : 0.22);
 
     this.drawClouds(toY, sky, x, baseY, state, false);
-    paintLimb(this.context, { width, height, rise: smoothstep(14, 200, state.altitudeKm), sunElevation: state.sunElevation, sunSide: state.sunSide, now });
+    this.drawEarth(state, smoothstep(14, 200, state.altitudeKm), now);
     paintPad(this.context, {
       width,
       height,
@@ -148,6 +162,42 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     }
 
     this.context.globalAlpha = 1;
+  }
+
+  // The Earth from on high, as it really looks: the GPU's globe from its real maps (continents, clouds, the glint
+  // of the sea, city lights on the night side), lit from where the Sun is at that moment and turned so its real
+  // longitudes lie under the light; the band of the air along its edge over it.
+  private drawEarth(state: LaunchState, rise: number, now: number): void {
+    if (rise <= 0) {
+      return;
+    }
+
+    const { width, height } = this.size;
+    const scene = { width, height, rise, sunElevation: state.sunElevation, sunSide: state.sunSide };
+    const limb = limbOf(scene);
+    // The Sun's side and height, as an angle from the Earth's centre: overhead light comes from straight up, a
+    // Sun below the horizon from below the edge.
+    const lightAngle = -Math.PI / 2 + Math.sign(state.sunSide || 1) * ((90 - state.sunElevation) * Math.PI) / 180;
+
+    this.globes.drawGlobe(this.context, {
+      x: limb.x,
+      y: limb.y,
+      radius: limb.radius,
+      look: EARTH_BELOW,
+      pose: {
+        lightAngle,
+        subsolarLatitude: state.subsolarLatitude,
+        subsolarLongitude: state.subsolarLongitude,
+        // Seen from over the pad's latitude, so the land round it lies along the visible curve.
+        viewElevation: Math.max(15, Math.min(75, 90 - Math.abs(state.site.latitude))),
+        isTurned: northUp(lightAngle, false),
+      },
+      time: now / 1000,
+      light: 1,
+      aurora: 0,
+      craters: [],
+    });
+    paintAirglow(this.context, scene);
   }
 
   // How far through the climb a moment comes for this rocket, or never.

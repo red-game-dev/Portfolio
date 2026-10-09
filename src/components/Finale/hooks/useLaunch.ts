@@ -1,9 +1,10 @@
 import { MouseEvent, PointerEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
 
-import { LAUNCH_THEME } from "@/config/theme";
+import { LAUNCH_TEXTURES, LAUNCH_THEME } from "@/config/theme";
 import { CROSSED_ZONES } from "@/config/zones";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { decodeImage } from "@/packages/browser/images";
 import type { LaunchSnapshot } from "@/packages/games/launch";
 import { FinaleLaunchSite } from "@/types/game";
 
@@ -47,6 +48,19 @@ export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject
     },
     resize: (launch, { width, height, pixelRatio }) => launch.resize({ width, height }, pixelRatio),
   }, [site]);
+
+  // The real maps of the Earth below, once the board is built; and the GPU given back when it goes.
+  useEffect(() => {
+    if (!game) {
+      return undefined;
+    }
+
+    Object.entries(LAUNCH_TEXTURES).forEach(([id, url]) => {
+      decodeImage(url).then((image) => game.setTexture(id, image), () => undefined);
+    });
+
+    return () => game.dispose();
+  }, [game]);
 
   const launchNow = useCallback(() => {
     if (prefersReducedMotion()) {

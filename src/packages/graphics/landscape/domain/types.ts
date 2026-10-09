@@ -80,4 +80,7 @@ export interface Frame {
   now: number;
   // How opaque the whole view is drawn, for fading it in and out over another (1 unless given).
   opacity?: number;
+  // The whole sky from the horizon to the zenith at the top of the view, as a tall phone screen shows it, so the
+  // sun and anything else above the horizon is always in view (sizes still by `fieldOfView`).
+  isWholeSky?: boolean;
 }

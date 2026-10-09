@@ -67,6 +67,9 @@ export interface LaunchState {
   // the view (east to the right).
   sunElevation: number;
   sunSide: number;
+  // The point on Earth under the Sun (degrees), so the Earth below is lit and turned as it really is.
+  subsolarLatitude: number;
+  subsolarLongitude: number;
   // The bands passed on the way up, out of `markers`.
   markers: number;
   passed: number;
@@ -93,4 +96,7 @@ export interface LaunchSnapshot {
 export interface LaunchRenderer {
   resize(size: LaunchSize, pixelRatio: number): void;
   draw(state: LaunchState, now: number): void;
+  // A real map of the Earth below, as it arrives.
+  setTexture?(id: string, image: TexImageSource): void;
+  dispose?(): void;
 }

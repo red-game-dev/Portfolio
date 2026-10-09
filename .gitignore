@@ -51,3 +51,4 @@ analyze/nodejs.html
 .claude/settings.local.json
 .claude/private/
 .claude/sessions/
+.claude/worktrees/

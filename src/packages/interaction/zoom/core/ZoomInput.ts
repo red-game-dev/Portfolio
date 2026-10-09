@@ -17,6 +17,11 @@ export class ZoomInput {
     return this.pinch.count;
   }
 
+  // Whether two or more pointers are down: a pinch, not one pointer for the host to steer or drag with.
+  public get isPinching(): boolean {
+    return this.pinch.isPinching;
+  }
+
   // A wheel's vertical travel (a wheel event's deltaY).
   public wheel(deltaY: number): number {
     return Math.exp(-deltaY * this.options.wheel);
@@ -27,8 +32,8 @@ export class ZoomInput {
     return direction > 0 ? this.options.step : 1 / this.options.step;
   }
 
-  // Where pointer `id` is now. Null while fewer than two are down (one pointer is not a pinch, so the host can steer
-  // or drag with it); during a pinch, the factor since the last reading, 1 when there is nothing to apply yet.
+  // Where pointer `id` is now: the factor a pinch zooms by since the last reading, or null when there is nothing to
+  // apply (one pointer, or the first reading of a pinch).
   public track(id: number, x: number, y: number): number | null {
     return this.pinch.track(id, x, y);
   }

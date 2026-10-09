@@ -14,8 +14,13 @@ export class PinchTracker {
     return this.order.length;
   }
 
-  // Where pointer `id` is now. Returns null while fewer than two pointers are down; during a pinch, the factor the
-  // spread changed by since the last reading: 1 on the first reading of a pinch, or while the two touch.
+  // Whether two or more pointers are down, which makes them a pinch rather than one pointer to steer or drag with.
+  public get isPinching(): boolean {
+    return this.order.length >= 2;
+  }
+
+  // Where pointer `id` is now. Returns the factor the pinch's spread changed by since the last reading, or null when
+  // there is nothing to apply: fewer than two pointers, the first reading of a pinch, or the two touching.
   public track(id: number, x: number, y: number): number | null {
     const point = this.points.get(id);
 
@@ -34,12 +39,11 @@ export class PinchTracker {
       return null;
     }
 
-    const spread = Math.hypot(first.x - second.x, first.y - second.y);
-    const factor = this.spread > 0 && spread > 0 ? spread / this.spread : 1;
+    const previous = this.spread;
 
-    this.spread = spread;
+    this.spread = Math.hypot(first.x - second.x, first.y - second.y);
 
-    return factor;
+    return previous > 0 && this.spread > 0 ? this.spread / previous : null;
   }
 
   // A pointer lifted or gone. With fewer than two left, the next pinch starts afresh.

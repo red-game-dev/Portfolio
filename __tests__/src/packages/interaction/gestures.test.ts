@@ -94,15 +94,18 @@ describe("PinchTracker", () => {
     expect(pinch.track(1, 0, 0)).toBeNull();
     expect(pinch.track(1, 10, 0)).toBeNull();
     expect(pinch.count).toBe(1);
+    expect(pinch.isPinching).toBe(false);
   });
 
-  test("answers 1 as a pinch begins, then how much the spread changed", () => {
+  test("applies nothing as a pinch begins, then how much the spread changed, even when it did not", () => {
     const pinch = new PinchTracker();
 
     pinch.track(1, 0, 0);
-    expect(pinch.track(2, 100, 0)).toBe(1);
+    expect(pinch.track(2, 100, 0)).toBeNull();
+    expect(pinch.isPinching).toBe(true);
     expect(pinch.track(2, 200, 0)).toBe(2);
     expect(pinch.track(1, 100, 0)).toBe(0.5);
+    expect(pinch.track(1, 100, 0)).toBe(1);
   });
 
   test("measures the first two pointers down and ignores a third", () => {
@@ -114,12 +117,12 @@ describe("PinchTracker", () => {
     expect(pinch.track(2, 0, 100)).toBe(2);
   });
 
-  test("applies nothing while the two touch", () => {
+  test("applies nothing while the two touch, or as they part", () => {
     const pinch = new PinchTracker();
 
     pinch.track(1, 10, 10);
-    expect(pinch.track(2, 10, 10)).toBe(1);
-    expect(pinch.track(2, 30, 10)).toBe(1);
+    expect(pinch.track(2, 10, 10)).toBeNull();
+    expect(pinch.track(2, 30, 10)).toBeNull();
     expect(pinch.track(2, 50, 10)).toBe(2);
   });
 
@@ -130,8 +133,9 @@ describe("PinchTracker", () => {
     pinch.track(2, 100, 0);
     pinch.release(1);
     expect(pinch.count).toBe(1);
+    expect(pinch.isPinching).toBe(false);
     expect(pinch.track(2, 100, 0)).toBeNull();
-    expect(pinch.track(3, 100, 50)).toBe(1);
+    expect(pinch.track(3, 100, 50)).toBeNull();
     expect(pinch.track(3, 100, 100)).toBe(2);
     pinch.release(9);
     expect(pinch.count).toBe(2);
@@ -145,6 +149,7 @@ describe("PinchTracker", () => {
     pinch.clear();
     expect(pinch.count).toBe(0);
     expect(pinch.track(2, 50, 0)).toBeNull();
+    expect(pinch.track(1, 50, 50)).toBeNull();
   });
 });
 

@@ -24,12 +24,15 @@ describe("ZoomInput", () => {
     const input = zoom();
 
     expect(input.track(1, 0, 0)).toBeNull();
-    expect(input.track(2, 100, 0)).toBe(1);
+    expect(input.isPinching).toBe(false);
+    expect(input.track(2, 100, 0)).toBeNull();
+    expect(input.isPinching).toBe(true);
     expect(input.pointers).toBe(2);
     expect(input.track(2, 150, 0)).toBe(1.5);
 
     input.release(2);
     expect(input.pointers).toBe(1);
+    expect(input.isPinching).toBe(false);
     expect(input.track(1, 10, 0)).toBeNull();
 
     input.clear();

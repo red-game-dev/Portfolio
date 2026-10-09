@@ -172,7 +172,8 @@ export interface HoleConfig {
 }
 
 export interface PickupConfig {
-  score: number;
+  // How near the ship a coin is drawn in to it (world units).
+  magnet: number;
   repair: number;
   shield: number;
   fuel: number;
@@ -297,7 +298,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     lostMs: 3200,
     jumpMs: 1600,
   },
-  pickups: { score: 25, repair: 150, shield: 200, fuel: 35 },
+  pickups: { magnet: 1.1, repair: 150, shield: 200, fuel: 35 },
   scoring: { perUnit: 6, pickup: 25, universe: 500, landing: 150, discovery: 100 },
   units: { kmPerSecond: 7, kmPerAu: 149597870.7 },
   universes: 5,

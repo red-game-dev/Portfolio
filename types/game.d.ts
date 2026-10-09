@@ -63,6 +63,16 @@ export interface FinaleRank {
 }
 
 // The launch out of the game world, and what each moment of it is called.
+// Whether the reader wants to play: the first time, the journey goes on by itself after a count unless they say
+// no thanks. "{seconds}" is replaced.
+export interface FinaleInvite {
+  question: string;
+  starting: string;
+  play: string;
+  playIn: string;
+  decline: string;
+}
+
 export interface FinaleLaunch {
   boardLabel: string;
   hold: string;
@@ -73,7 +83,7 @@ export interface FinaleLaunch {
   leaving: string;
   hint: string;
   // In orbit: carry on into space, or press the button nobody should press.
-  continue: string;
+  invite: FinaleInvite;
   doNotPress: string;
   orbitHint: string;
   // "{seconds}" is replaced.

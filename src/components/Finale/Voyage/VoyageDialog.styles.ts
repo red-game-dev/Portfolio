@@ -247,8 +247,27 @@ export const ShipLine = tw.p`m-0 text-[11px] md:text-xs text-[#9aa3bb]`;
 
 // Red Coin gold, Void Shards violet.
 export const Coin = styled.dd(({ isShards = false }: { isShards?: boolean }) => [
-  tw`m-0 font-semibold`,
+  tw`relative m-0 font-semibold`,
   isShards ? tw`text-[#c58bff]` : tw`text-[#ffd76a]`,
+]);
+
+const floatGain = keyframes`
+  0% { opacity: 0; transform: translateY(4px); }
+  15% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-16px); }
+`;
+
+// What a count just rose by, floating up off it and gone.
+export const Gain = styled.span(() => [
+  tw`absolute right-0 bottom-full text-[11px] md:text-xs font-bold whitespace-nowrap pointer-events-none`,
+  css`
+    animation: ${floatGain} 1.2s ease-out both;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation-name: none;
+      opacity: 1;
+    }
+  `,
 ]);
 
 // Faults on board, each with its fix; the buttons take clicks through the HUD.

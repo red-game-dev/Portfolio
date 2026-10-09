@@ -20,7 +20,13 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       orbit: "In orbit",
       leaving: "Leaving {zone}",
       hint: "It launches by itself when you get here. To launch it yourself, hold the button, or press it once. Space and Enter work too.",
-      continue: "Continue the journey?",
+      invite: {
+        question: "Want to play a game?",
+        starting: "The journey goes on by itself in {seconds} seconds, unless you choose No thanks.",
+        play: "Yes, continue the journey",
+        playIn: "Yes, continue the journey ({seconds})",
+        decline: "No thanks",
+      },
       doNotPress: "Do not press",
       orbitHint: "Whatever you do, do not press the red button.",
       countdown: "Self destruct in {seconds}",
@@ -34,8 +40,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       controls: "Point where to fly: the ship turns and burns towards it, harder the further you point. Arrow keys turn and burn, Down " +
         "brakes. The wheel, a pinch or + and - zoom, M opens the map. The guns aim themselves at threats; click someone to lock on, F " +
         "holds fire. Rocks and crashes cannot destroy the ship in the solar system, but the Sun can, and past the Kuiper belt anything " +
-        "can. Hold still beside a wreck to salvage it. H opens the hangar and U does whatever is ready. C takes a photo. P pauses, " +
-        "Escape leaves.",
+        "can. Fly through gold coins to pick up Red Coin. Hold still beside a wreck to salvage it. H opens the hangar and U does " +
+        "whatever is ready. C takes a photo. P pauses, Escape leaves.",
       canvasLabel: "Your ship, flying out through space",
       start: "Fly",
       again: "Fly again",
@@ -259,7 +265,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         plans: { make: "Make", locked: "Plan not found yet: search wrecks", hullPlans: "Hull blueprints" },
         ledger: {
           balance: "Balance",
-          empty: "Nothing earned yet. Reach new places, land, bring down hostiles, save worlds and salvage wrecks.",
+          empty: "Nothing earned yet. Pick up gold coins, reach new places, land, bring down hostiles, save worlds and salvage wrecks.",
           memos: {
             discovery: "Reached {detail}",
             landing: "Landed on {detail}",
@@ -267,6 +273,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
             rescue: "Saved {detail}",
             boss: "Brought down {detail}",
             universe: "Reached universe {detail}",
+            coin: "Picked up a Red Coin",
             flight: "Flight pay for {detail} points",
             recycling: "Broke down {detail}",
             blueprintCopy: "Sold spare plans",

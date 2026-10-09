@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -9,7 +9,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton, ActionLink, actionStyle } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
+import { useInvite } from "@/components/Finale/hooks/useInvite";
 import { useLaunch } from "@/components/Finale/hooks/useLaunch";
+import { INVITE_SECONDS } from "@/components/Finale/invite";
 import { LazyVoyageDialog } from "@/components/Finale/Voyage/LazyVoyageDialog";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
@@ -71,6 +73,11 @@ const LaunchButton = styled.button(() => [
 
 const Hint = tw.p`m-0 text-xs text-[#999] max-w-[60ch]`;
 
+// In orbit: would the reader like to play? The first time, with a count before the journey goes on by itself.
+const Ask = tw.div`flex flex-col gap-[4px] mt-[18px]`;
+
+const AskTitle = tw.h3`m-0 text-lg font-semibold text-white`;
+
 // The big red button of every film: a domed cap on a striped hazard plate, pressed in when held.
 const RedButton = styled.button(() => [
   tw`flex flex-row items-center gap-[12px] p-0 bg-transparent border-0 cursor-pointer text-sm font-semibold text-white`,
@@ -128,7 +135,7 @@ const StarMark = styled.span(({ isLit }: { isLit: boolean }) => [
   isLit && tw`text-[var(--accent)]`,
 ]);
 
-const Heading = tw.div`flex flex-col gap-[6px] mt-[26px]`;
+const Heading = tw.div`flex flex-col gap-[6px] mb-[18px]`;
 
 const Kicker = tw.p`m-0 text-xs font-semibold text-[var(--accent)]`;
 
@@ -217,6 +224,10 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
   const [isVoyaging, setIsVoyaging] = useState(false);
   const [runMs, setRunMs] = useState<number | null>(null);
+  // Whether the board is on screen now, not just once, so the count before the journey goes on by itself only
+  // runs while the ship can be seen.
+  const isBoardShown = useInView(boardRef, { threshold: 0.6, once: false });
+  const openVoyage = useCallback(() => setIsVoyaging(true), []);
   const zoneCount = ZONE_BOUNDARIES.length;
 
   // Read the first time the end is reached and kept, so the number neither ticks while it is read nor
@@ -236,6 +247,8 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   ];
   const done = objectives.filter(Boolean).length;
   const isOrbit = snapshot.status === "orbit";
+  const invite = useInvite({ isOrbit, isInView: isBoardShown, isOpen: isVoyaging, open: openVoyage });
+  const isCounting = invite.count !== null;
   // In orbit, or blowing up there: the choices of what to do next stay on screen.
   const isAloft = isOrbit || snapshot.status === "destructing" || snapshot.status === "exploding";
   const isOnPad = snapshot.status === "ready" || snapshot.status === "charging";
@@ -249,17 +262,34 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   return (
     <Section id={SECTION_IDS.finale} ref={sectionRef}>
       <Panel>
+        <Heading>
+          <Kicker>{content.kicker}</Kicker>
+          <Title>
+            <DecodedText text={content.title} isActive={isReached} />
+          </Title>
+        </Heading>
         <Board ref={boardRef} role="img" aria-label={content.launch.boardLabel} isAlarm={snapshot.status === "destructing"}>
           <Canvas ref={canvasRef} aria-hidden="true" />
           <Status role="status">{statusOf(content.launch, snapshot, zoneLabels)}</Status>
         </Board>
+        {isAloft && (
+          <Ask>
+            <AskTitle>{content.launch.invite.question}</AskTitle>
+            {isCounting && <Hint role="status">{fill(content.launch.invite.starting, { seconds: INVITE_SECONDS })}</Hint>}
+          </Ask>
+        )}
         <Controls>
           {isAloft ? (
             <>
-              <ActionButton type="button" isPrimary disabled={!isOrbit} onClick={() => setIsVoyaging(true)}>
+              <ActionButton type="button" isPrimary disabled={!isOrbit} onClick={invite.accept}>
                 <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
-                {content.launch.continue}
+                {isCounting ? fill(content.launch.invite.playIn, { seconds: invite.count ?? 0 }) : content.launch.invite.play}
               </ActionButton>
+              {isCounting && (
+                <ActionButton type="button" isPrimary={false} onClick={invite.decline}>
+                  {content.launch.invite.decline}
+                </ActionButton>
+              )}
               <RedButton type="button" disabled={!isOrbit} aria-describedby={hint} onClick={selfDestruct}>
                 <Plate aria-hidden="true">
                   <Cap className="cap" />
@@ -296,12 +326,6 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
             onClose={() => setIsVoyaging(false)}
           />
         )}
-        <Heading>
-          <Kicker>{content.kicker}</Kicker>
-          <Title>
-            <DecodedText text={content.title} isActive={isReached} />
-          </Title>
-        </Heading>
         <SummaryTitle>{content.summaryTitle}</SummaryTitle>
         <Stats>
           <Stat isDone={objectives[0]}>

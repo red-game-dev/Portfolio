@@ -19,6 +19,7 @@ import { ActionButton } from "@/components/Controls";
 import { rankName } from "@/components/Finale/Voyage/career";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
 import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
+import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
 import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
@@ -46,6 +47,7 @@ import {
   FrameName,
   Frames,
   FrameTrack,
+  Gain,
   Hud,
   HudButtons,
   IconButton,
@@ -134,6 +136,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const todayBest = career?.daily?.day === today ? career.daily.best : 0;
   const dailyNote = todayBest > 0 ? `${content.career.daily.note} ${fill(content.career.daily.best, { score: todayBest })}` : content.career.daily.note;
   const ship = economy ? shipName(content.economy, economy.tier, economy.mark) : "";
+  // Coin and shards as they come in, each shown rising off its count.
+  const redGains = useGains(economy ? economy.purse.RED : null);
+  const voidGains = useGains(economy ? economy.purse.VOID : null);
   // What the voyage says, one line at a time: a burst waits its turn.
   const [messages, setMessages] = useState<Array<{ id: number; text: string }>>([]);
   const messageId = useRef(0);
@@ -369,11 +374,17 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             <>
               <Reading>
                 <ReadingName>{copy.symbols.RED}</ReadingName>
-                <Coin aria-label={`${economy.purse.RED} ${copy.currencies.RED}`}>{economy.purse.RED.toLocaleString("en-GB")}</Coin>
+                <Coin aria-label={`${economy.purse.RED} ${copy.currencies.RED}`}>
+                  {economy.purse.RED.toLocaleString("en-GB")}
+                  {redGains.map((gain) => <Gain key={gain.id} aria-hidden="true">{`+${gain.amount}`}</Gain>)}
+                </Coin>
               </Reading>
               <Reading>
                 <ReadingName>{copy.symbols.VOID}</ReadingName>
-                <Coin isShards aria-label={`${economy.purse.VOID} ${copy.currencies.VOID}`}>{economy.purse.VOID}</Coin>
+                <Coin isShards aria-label={`${economy.purse.VOID} ${copy.currencies.VOID}`}>
+                  {economy.purse.VOID}
+                  {voidGains.map((gain) => <Gain key={gain.id} aria-hidden="true">{`+${gain.amount}`}</Gain>)}
+                </Coin>
               </Reading>
             </>
           )}

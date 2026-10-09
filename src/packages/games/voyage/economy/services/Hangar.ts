@@ -462,6 +462,8 @@ export class Hangar {
         return { ...REWARDS.universe };
       case "mission":
         return { RED: Math.max(0, Math.round(deed.coin)), VOID: 0 };
+      case "coin":
+        return { ...REWARDS.coin };
       default:
         return emptyPurse();
     }

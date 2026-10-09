@@ -2,10 +2,14 @@ import {
   CatalogLootTable,
   configForLevel,
   DEFAULT_VOYAGE_CONFIG,
+  Hangar,
   Loot,
+  newProfile,
   NO_INPUT,
+  PilotLink,
   radiusForAu,
   resolveVoyageConfig,
+  REWARDS,
   SolarSystemSource,
   SystemService,
   VoyageConfig,
@@ -81,6 +85,36 @@ const wreckBeside = (simulation: VoyageSimulation, loot: Loot, kind: WreckKind =
 const CARGO: Loot = { items: [{ id: "titanium", count: 2 }], blueprints: ["recipe:nozzle"] };
 
 describe("voyage salvage and breakdowns", () => {
+  test("a Red Coin close by is drawn in to the ship, picked up and paid into the wallet; one out of reach stays", () => {
+    const simulation = create();
+    const hangar = new Hangar(newProfile());
+    const link = new PilotLink({ simulation, hangar, career: null, nameOf: (id) => id, notify: () => undefined, refresh: () => undefined });
+    const { world } = simulation;
+    const ship = park(simulation);
+    const coinAt = (dx: number) => {
+      const coin = world.spawn();
+
+      world.stores.body.set(coin, { x: ship.x + dx, y: ship.y, vx: 0, vy: 0, prevX: ship.x + dx, prevY: ship.y, radius: 0.045, mass: 0.01 });
+      world.stores.pickup.set(coin, { kind: "coin" });
+
+      return coin;
+    };
+
+    link.attach();
+
+    const near = coinAt(defaults.pickups.magnet * 0.8);
+    const far = coinAt(defaults.pickups.magnet * 4);
+    const before = hangar.purse.RED;
+
+    world.flush();
+    simulation.step(1500);
+
+    expect(world.isAlive(near)).toBe(false);
+    expect(world.isAlive(far)).toBe(true);
+    expect(hangar.purse.RED).toBe(before + REWARDS.coin.RED);
+    expect(hangar.view().history.some((row) => row.memo === "coin")).toBe(true);
+  });
+
   test("a wreck is salvaged by holding alongside it at its speed, and gives up what it held once", () => {
     const simulation = create();
     const found: Loot[] = [];

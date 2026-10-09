@@ -9,15 +9,16 @@ export interface Rewards {
   deflection: Purse;
   boss: Purse;
   universe: Purse;
+  coin: Purse;
   bountyPerLevel: number;
   pointsPerCoin: number;
   knownBlueprint: Purse;
 }
 
 // What each deed pays: a new place reached, a first landing, a world saved by breaking or turning a rock, a boss
-// brought down, a universe reached through a black hole (and a Void Shard torn from it); a bounty per level of
-// the hostile downed; Red Coin for every so many points at the end of a run, which counts every rock and pickup;
-// and for a plan found that was already known.
+// brought down, a universe reached through a black hole (and a Void Shard torn from it), a Red Coin picked up in
+// flight; a bounty per level of the hostile downed; Red Coin for every so many points at the end of a run, which
+// counts every rock and pickup; and for a plan found that was already known.
 export const REWARDS: Rewards = {
   discovery: purse(15),
   landing: purse(25),
@@ -25,6 +26,7 @@ export const REWARDS: Rewards = {
   deflection: purse(80),
   boss: purse(250, 3),
   universe: purse(100, 1),
+  coin: purse(5),
   bountyPerLevel: 6,
   pointsPerCoin: 40,
   knownBlueprint: purse(20),

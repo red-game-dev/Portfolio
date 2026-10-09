@@ -86,6 +86,12 @@ export class PilotLink {
         this.discoverPlace(body);
       }),
       events.on("skimmed", ({ body }) => this.count({ kind: "skimmed", body })),
+      // A Red Coin picked up in flight goes straight into the wallet.
+      events.on("collected", ({ kind }) => {
+        if (kind === "coin") {
+          this.pay({ kind: "coin" });
+        }
+      }),
       events.on("downed", ({ role, level }) => {
         if (role === "fighter") {
           this.pay({ kind: "bounty", level });

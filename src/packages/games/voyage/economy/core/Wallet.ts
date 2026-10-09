@@ -20,6 +20,7 @@ export const INCOME: Readonly<Record<EarningReason, string>> = {
   boss: "income:bosses",
   universe: "income:universes",
   mission: "income:missions",
+  coin: "income:coins",
   salvage: "income:salvage",
   flight: "income:flight",
   recycling: "income:recycling",

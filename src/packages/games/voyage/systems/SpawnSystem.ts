@@ -131,7 +131,7 @@ export class SpawnSystem implements System<VoyageContext> {
     const kind = this.pickKind(random(), parts ? parts.ship.fuel / parts.ship.maxFuel : 1, parts ? parts.health.hull / parts.health.maxHull : 1,
       parts ? parts.health.shields / parts.health.maxShields : 1);
 
-    world.stores.body.set(item, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius: kind === "score" ? 0.045 : 0.06, mass: 0.01 });
+    world.stores.body.set(item, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius: kind === "coin" ? 0.045 : 0.06, mass: 0.01 });
     world.stores.pickup.set(item, { kind });
   }
 
@@ -148,6 +148,6 @@ export class SpawnSystem implements System<VoyageContext> {
       return "shield";
     }
 
-    return roll < 0.12 ? "fuel" : "score";
+    return roll < 0.12 ? "fuel" : "coin";
   }
 }

@@ -1,5 +1,5 @@
 import type { RenderLayer } from "@/packages/games/engine";
-import { Rgb, rgbToHex } from "@/packages/graphics/colour";
+import { Rgb, rgbToHex, shadeHex } from "@/packages/graphics/colour";
 import { blackbody, globeFrame, surfacePoint } from "@/packages/graphics/globe";
 import { LandscapePainter, Scene, SkyBody } from "@/packages/graphics/landscape";
 import { angleBetween, RAD, TAU } from "@/packages/math/angles";
@@ -174,7 +174,8 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const high = tall * 0.6;
     const bob = isSea ? Math.sin(now * 0.0025) * tall * 0.025 : 0;
     const tilt = isSea ? Math.sin(now * 0.0017) * 0.06 : 0;
-    const shade = (value: number) => Math.round(value * (0.25 + 0.75 * light));
+    // Never darker than a quarter lit, so the capsule still reads at night.
+    const ambient = 0.25 + 0.75 * light;
 
     if (!isSea) {
       // The parachutes, spread on the ground off to one side, striped orange and white.
@@ -182,7 +183,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
         const cx = x + base * (1.35 + index * 0.55) * (offset < 0 ? -1 : 1);
         const cy = groundY + tall * (0.04 + index * 0.03);
 
-        context.strokeStyle = `rgba(${shade(230)}, ${shade(230)}, ${shade(230)}, 0.5)`;
+        context.strokeStyle = shadeHex("#e6e6e6", ambient, 0.5);
         context.lineWidth = 1;
         context.beginPath();
         context.moveTo(x, groundY - high);
@@ -192,7 +193,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
         for (let gore = 0; gore < 6; gore += 1) {
           const from = Math.PI + (gore / 6) * Math.PI;
 
-          context.fillStyle = (gore + index) % 2 === 0 ? `rgb(${shade(240)}, ${shade(112)}, ${shade(40)})` : `rgb(${shade(242)}, ${shade(240)}, ${shade(234)})`;
+          context.fillStyle = shadeHex((gore + index) % 2 === 0 ? "#f07028" : "#f2f0ea", ambient);
           context.beginPath();
           context.moveTo(cx, cy);
           context.ellipse(cx, cy, base * 0.55, tall * 0.075, 0, from, from + Math.PI / 6);
@@ -210,10 +211,10 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const lit = this.scene?.sun ? Math.sign(this.scene.sun.side) || 1 : 1;
     const body = context.createLinearGradient(-base / 2 * lit, 0, base / 2 * lit, 0);
 
-    body.addColorStop(0, `rgb(${shade(120)}, ${shade(124)}, ${shade(132)})`);
-    body.addColorStop(0.45, `rgb(${shade(214)}, ${shade(218)}, ${shade(224)})`);
-    body.addColorStop(0.7, `rgb(${shade(236)}, ${shade(238)}, ${shade(242)})`);
-    body.addColorStop(1, `rgb(${shade(150)}, ${shade(154)}, ${shade(162)})`);
+    body.addColorStop(0, shadeHex("#787c84", ambient));
+    body.addColorStop(0.45, shadeHex("#d6dae0", ambient));
+    body.addColorStop(0.7, shadeHex("#eceef2", ambient));
+    body.addColorStop(1, shadeHex("#969aa2", ambient));
     context.fillStyle = body;
     context.beginPath();
     context.moveTo(-base / 2, 0);
@@ -225,31 +226,31 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     // Streaks of soot up from the shield, from the way in.
     const soot = context.createLinearGradient(0, 0, 0, -high);
 
-    soot.addColorStop(0, `rgba(${shade(70)}, ${shade(52)}, ${shade(38)}, 0.85)`);
+    soot.addColorStop(0, shadeHex("#463426", ambient, 0.85));
     soot.addColorStop(0.35, "rgba(60, 45, 35, 0.25)");
     soot.addColorStop(1, "rgba(60, 45, 35, 0)");
     context.fillStyle = soot;
     context.fill();
     // The heat shield, charred black brown and a little proud of the sides; the docking ring on top.
-    context.fillStyle = `rgb(${shade(50)}, ${shade(36)}, ${shade(28)})`;
+    context.fillStyle = shadeHex("#32241c", ambient);
     context.beginPath();
-    context.ellipse(0, -high * 0.02, base * 0.53, high * 0.08, 0, 0, Math.PI * 2);
+    context.ellipse(0, -high * 0.02, base * 0.53, high * 0.08, 0, 0, TAU);
     context.fill();
-    context.fillStyle = `rgb(${shade(140)}, ${shade(144)}, ${shade(152)})`;
+    context.fillStyle = shadeHex("#8c9098", ambient);
     context.beginPath();
-    context.ellipse(0, -high - tall * 0.02, top * 0.32, tall * 0.025, 0, 0, Math.PI * 2);
+    context.ellipse(0, -high - tall * 0.02, top * 0.32, tall * 0.025, 0, 0, TAU);
     context.fill();
     // Two windows, catching the sky.
     context.fillStyle = "rgba(24, 34, 54, 0.92)";
     [-1, 1].forEach((side) => {
       context.beginPath();
-      context.ellipse(side * base * 0.15, -high * 0.58, base * 0.045, high * 0.065, side * 0.25, 0, Math.PI * 2);
+      context.ellipse(side * base * 0.15, -high * 0.58, base * 0.045, high * 0.065, side * 0.25, 0, TAU);
       context.fill();
     });
 
     if (isSea) {
       // The flotation collar and the sea washing over the capsule's lower edge.
-      context.fillStyle = `rgb(${shade(240)}, ${shade(120)}, ${shade(30)})`;
+      context.fillStyle = shadeHex("#f0781e", ambient);
       context.beginPath();
       context.ellipse(0, -high * 0.08, base * 0.62, tall * 0.05, 0, 0, TAU);
       context.fill();

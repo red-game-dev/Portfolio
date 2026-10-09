@@ -281,7 +281,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       hasRun: snapshot !== null && snapshot.status !== "ready",
       isHangarOpen,
       isPhoto,
-      hasHangar: Boolean(game?.economy),
+      // The view kept from the game, not `game.economy`, which builds a fresh one on every read.
+      hasHangar: economy !== null,
       hasSuggestion: Boolean(economy?.suggestion),
       hasGame: game !== null,
     });

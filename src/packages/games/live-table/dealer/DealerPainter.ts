@@ -1,5 +1,6 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { TAU } from "@/packages/math/angles";
+import { lerp } from "@/packages/math/easing";
 
 import { DealerLook, DealerOutfit } from "./outfits";
 
@@ -480,7 +481,7 @@ export class DealerPainter {
       context.stroke();
       context.lineWidth = 0.9;
       [0.62, 0.8, 0.94].forEach((t, index) => {
-        const x = inner + (outer - inner) * t;
+        const x = lerp(inner, outer, t);
         const y = 82 - (82 - lid) * (1 - (2 * t - 1) ** 2) - 0.4;
 
         context.beginPath();

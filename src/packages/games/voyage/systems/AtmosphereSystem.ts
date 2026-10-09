@@ -1,4 +1,5 @@
 import type { System } from "@/packages/games/engine";
+import { lerp } from "@/packages/math/easing";
 import { densityAt, dragDeceleration, entryHeating } from "@/packages/physics/newtonian";
 
 import { AirModel } from "../domain/content";
@@ -27,7 +28,7 @@ export const pressureAt = (air: AirModel, altitude: number): number => {
 // inside a giant.
 export const airTemperatureAt = (air: AirModel, altitude: number): number => (altitude < 0
   ? air.temperatureC + (-altitude / (air.scaleHeight * DEPTH_SQUEEZE)) * DEPTH_WARMING
-  : air.temperatureC + (air.topTemperatureC - air.temperatureC) * Math.min(1, altitude / air.top));
+  : lerp(air.temperatureC, air.topTemperatureC, Math.min(1, altitude / air.top)));
 
 // Air: drag slows the ship and entry heats its hull, in proportion to density and the square and the cube of its
 // speed. Skimming a giant's upper air scoops fuel. Past the pressure the hull is built for, it is crushed, harder

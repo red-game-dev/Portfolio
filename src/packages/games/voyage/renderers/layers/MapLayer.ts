@@ -2,7 +2,7 @@ import type { RenderLayer } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
 
-import { VoyageFrame } from "../frame";
+import { lerpX, lerpY, VoyageFrame } from "../frame";
 import { Surface } from "../Surface";
 import { RenderKit } from "./kit";
 
@@ -76,8 +76,8 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
       return;
     }
 
-    const shipX = ship.prevX + (ship.x - ship.prevX) * alpha;
-    const shipY = ship.prevY + (ship.y - ship.prevY) * alpha;
+    const shipX = lerpX(ship, alpha);
+    const shipY = lerpY(ship, alpha);
     const { system } = state;
     const centreX = inSystem ? system.star.x : shipX;
     const centreY = inSystem ? system.star.y : shipY;
@@ -216,8 +216,8 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     const cx = RADAR_MARGIN + radius;
     const cy = front.height - RADAR_MARGIN - radius;
     const scale = radius / RADAR_RANGE;
-    const shipX = ship.prevX + (ship.x - ship.prevX) * alpha;
-    const shipY = ship.prevY + (ship.y - ship.prevY) * alpha;
+    const shipX = lerpX(ship, alpha);
+    const shipY = lerpY(ship, alpha);
     const inSystem = state.phase !== "lost";
     const plot = (x: number, y: number, size: number, colour: string) => {
       const dx = (x - shipX) * scale;

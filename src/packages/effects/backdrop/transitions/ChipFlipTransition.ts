@@ -1,7 +1,7 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { Rgb, rgba } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
-import { easeInOut, pulse } from "@/packages/math/easing";
+import { easeInOut, lerp, pulse } from "@/packages/math/easing";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { SceneSize, SceneTransition } from "../domain/types";
@@ -55,8 +55,8 @@ export class ChipFlipTransition implements SceneTransition {
 
     context.lineWidth = 2;
     this.chips.forEach((chip) => {
-      const x = chip.startX + (chip.endX - chip.startX) * travel;
-      const y = chip.startY + (chip.endY - chip.startY) * travel;
+      const x = lerp(chip.startX, chip.endX, travel);
+      const y = lerp(chip.startY, chip.endY, travel);
       // The flip: the chip's width follows the cosine of its spin.
       const width = Math.max(0.5, chip.radius * Math.abs(Math.cos(travel * Math.PI * chip.spin)));
 

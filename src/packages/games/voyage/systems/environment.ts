@@ -1,3 +1,5 @@
+import { lerp } from "@/packages/math/easing";
+
 import { Body, Ship } from "../domain/components";
 import { HOME_WORLD } from "../domain/content";
 import { auForRadius } from "../utils/scale";
@@ -80,7 +82,7 @@ export const environmentAt = (context: VoyageContext, body: Body, ship: Ship): E
       // Day or night where the ship is: the sun's height over it.
       const facing = ((body.x - place.x) * (star.x - place.x) + (body.y - place.y) * (star.y - place.y)) / (away * Math.hypot(star.x - place.x, star.y - place.y) || 1);
 
-      temperatureC = place.nightC + (place.dayC - place.nightC) * Math.max(0, facing);
+      temperatureC = lerp(place.nightC, place.dayC, Math.max(0, facing));
     }
   });
 
@@ -88,7 +90,7 @@ export const environmentAt = (context: VoyageContext, body: Body, ship: Ship): E
     // Thick air sets the temperature; thin air only nudges it.
     const weight = Math.min(1, state.readings.pressureBar / 0.05);
 
-    temperatureC = temperatureC + (state.readings.airC - temperatureC) * weight;
+    temperatureC = lerp(temperatureC, state.readings.airC, weight);
   }
 
   return { temperatureC, sunlight, radiation, heatAngle };

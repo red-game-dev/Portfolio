@@ -1,5 +1,6 @@
 import { Canvas2DContext, createGlowSprite, DrawableSurface } from "@/packages/graphics/canvas";
 import { clamp } from "@/packages/math/clamp";
+import { lerp } from "@/packages/math/easing";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
@@ -106,8 +107,8 @@ export class NeuralScene implements Scene {
       this.pulses.forEach((pulse) => {
         const from = this.nodes[pulse.from];
         const to = this.nodes[pulse.to];
-        const x = from.x + (to.x - from.x) * pulse.progress;
-        const y = from.y + (to.y - from.y) * pulse.progress;
+        const x = lerp(from.x, to.x, pulse.progress);
+        const y = lerp(from.y, to.y, pulse.progress);
 
         context.drawImage((this.glow as DrawableSurface).surface, x - 9, y - 9, 18, 18);
       });

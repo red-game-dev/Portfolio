@@ -21,7 +21,7 @@ import { CatalogLootTable } from "../economy/core/CatalogLootTable";
 import { EconomyView, ShipStatus, Suggestion } from "../economy/domain/economy";
 import { Hangar } from "../economy/services/Hangar";
 import { CanvasVoyageRenderer, VoyageRenderer } from "../renderers/CanvasVoyageRenderer";
-import { universeOf } from "../renderers/frame";
+import { lerpX, lerpY, universeOf } from "../renderers/frame";
 import { PilotLink } from "../services/PilotLink";
 import { SystemService } from "../services/SystemService";
 import { SolarSystemSource } from "../sources/SolarSystemSource";
@@ -625,8 +625,8 @@ export class VoyageGame extends FrameLoop {
       return;
     }
 
-    const x = body.prevX + (body.x - body.prevX) * alpha;
-    const y = body.prevY + (body.y - body.prevY) * alpha;
+    const x = lerpX(body, alpha);
+    const y = lerpY(body, alpha);
     const speed = Math.hypot(body.vx, body.vy);
     const lookAhead = state.capture ? 0 : 0.4;
     const fall = state.capture?.progress ?? 0;

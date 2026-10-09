@@ -1,4 +1,4 @@
-import { FC, FocusEvent, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -19,6 +19,7 @@ import { Section } from "@/components/Section";
 import { SECTION_IDS } from "@/config/sections";
 import { SOCIAL_URLS } from "@/config/social";
 import { CROSSED_ZONES, ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
+import useFocusLeave from "@/hooks/useFocusLeave";
 import useInView from "@/hooks/useInView";
 import { scrollBehavior } from "@/packages/accessibility/motion";
 import type { LaunchSnapshot } from "@/packages/games/launch";
@@ -220,8 +221,7 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   const boardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isBoardInView = useInView(boardRef, { threshold: 0.6, once: true });
-  const { snapshot, site, isReady, onPointerDown, onPointerUp, onPointerCancel, onClick, selfDestruct } = useLaunch(boardRef, canvasRef, isBoardInView,
-    content.launch.sites, content.launch.readout);
+  const { snapshot, site, isReady, press, selfDestruct } = useLaunch(boardRef, canvasRef, isBoardInView, content.launch.sites, content.launch.readout);
   const isReached = useInView(sectionRef, { threshold: 0.2 });
   const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
   const [isVoyaging, setIsVoyaging] = useState(false);
@@ -233,11 +233,7 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   // Focus on the choice in orbit holds the count, so a keyboard reader is never rushed while deciding. Whatever
   // held focus before orbit (the launch button) is gone by then, so reaching or leaving orbit starts afresh.
   const [isChoosing, setIsChoosing] = useState(false);
-  const onChoiceBlur = (event: FocusEvent<HTMLDivElement>) => {
-    if (!(event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))) {
-      setIsChoosing(false);
-    }
-  };
+  const onChoiceBlur = useFocusLeave(() => setIsChoosing(false));
   const zoneCount = ZONE_BOUNDARIES.length;
 
   // Read the first time the end is reached and kept, so the number neither ticks while it is read nor
@@ -319,11 +315,11 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
                   type="button"
                   disabled={!isReady || !isOnPad}
                   aria-describedby={hint}
-                  onPointerDown={onPointerDown}
-                  onPointerUp={onPointerUp}
-                  onPointerCancel={onPointerCancel}
-                  onContextMenu={(event) => event.preventDefault()}
-                  onClick={onClick}
+                  onPointerDown={press.onPointerDown}
+                  onPointerUp={press.onPointerUp}
+                  onPointerCancel={press.onPointerCancel}
+                  onContextMenu={press.onContextMenu}
+                  onClick={press.onClick}
                 >
                   <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
                   {content.launch.hold}

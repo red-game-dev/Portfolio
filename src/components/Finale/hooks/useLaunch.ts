@@ -1,5 +1,6 @@
-import { MouseEvent, PointerEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 
+import { usePressGesture } from "@/components/Finale/hooks/usePressGesture";
 import { LAUNCH_TEXTURES, LAUNCH_THEME } from "@/config/theme";
 import { CROSSED_ZONES } from "@/config/zones";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
@@ -23,7 +24,6 @@ export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject
   labels: { altitude: string; speed: string }) => {
   const [snapshot, setSnapshot] = useState<LaunchSnapshot>(READY);
   const [site, setSite] = useState<FinaleLaunchSite | null>(null);
-  const pressedAt = useRef<number | null>(null);
   const hasLaunchedItself = useRef(false);
 
   useEffect(() => {
@@ -88,48 +88,28 @@ export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject
     }
   }, [game]);
 
-  const onPointerDown = useCallback((event: PointerEvent<HTMLButtonElement>) => {
-    if (!game || (snapshot.status !== "ready" && snapshot.status !== "charging")) {
-      return;
-    }
+  // The launch button: held on the pad it charges, let go it releases, and a tap launches by itself. Keyboards and
+  // assistive technology press it once, which launches too.
+  const press = usePressGesture({
+    tapMs: TAP_MS,
+    canPress: () => game !== null && (snapshot.status === "ready" || snapshot.status === "charging"),
+    onPress: () => {
+      if (prefersReducedMotion()) {
+        game?.complete();
+      } else {
+        game?.press();
+      }
+    },
+    onRelease: (kind) => {
+      game?.release();
 
-    event.currentTarget.setPointerCapture(event.pointerId);
-    pressedAt.current = event.timeStamp;
+      if (kind === "tap") {
+        launchNow();
+      }
+    },
+    onCancel: () => game?.release(),
+    onPointerlessClick: launchNow,
+  });
 
-    if (prefersReducedMotion()) {
-      game.complete();
-    } else {
-      game.press();
-    }
-  }, [game, snapshot.status]);
-
-  const onPointerUp = useCallback((event: PointerEvent<HTMLButtonElement>) => {
-    if (pressedAt.current === null) {
-      return;
-    }
-
-    const heldMs = event.timeStamp - pressedAt.current;
-
-    pressedAt.current = null;
-
-    game?.release();
-
-    if (heldMs < TAP_MS) {
-      launchNow();
-    }
-  }, [game, launchNow]);
-
-  const onPointerCancel = useCallback(() => {
-    pressedAt.current = null;
-    game?.release();
-  }, [game]);
-
-  // Keyboards and assistive technology click without a pointer (detail is 0): that is a single press.
-  const onClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    if (event.detail === 0) {
-      launchNow();
-    }
-  }, [launchNow]);
-
-  return { snapshot, site, isReady: game !== null, onPointerDown, onPointerUp, onPointerCancel, onClick, selfDestruct };
+  return { snapshot, site, isReady: game !== null, press, selfDestruct };
 };

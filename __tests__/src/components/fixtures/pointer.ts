@@ -38,3 +38,13 @@ export const installPointerEvents = () => {
     };
   }
 };
+
+// A pointer event at a moment of its own, for anything timed by the events' timeStamps. Fire it with
+// `fireEvent(element, event)`.
+export const pointerAt = (type: string, timeStamp: number, init: PointerEventInit = {}) => {
+  const event = new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 7, pointerType: "touch", ...init });
+
+  Object.defineProperty(event, "timeStamp", { value: timeStamp });
+
+  return event;
+};

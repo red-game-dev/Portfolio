@@ -1,5 +1,6 @@
 import { Canvas2DContext, createDrawableSurface, DrawableSurface } from "@/packages/graphics/canvas";
 import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
@@ -92,7 +93,7 @@ export class CasinoScene implements Scene {
   }
 
   public resize({ width, height, pixelRatio }: SceneSize): void {
-    const chipCount = Math.round(Math.min(22, Math.max(8, (width * height) / AREA_PER_CHIP)));
+    const chipCount = Math.round(clamp((width * height) / AREA_PER_CHIP, 8, 22));
 
     this.width = width;
     this.height = height;

@@ -1,6 +1,7 @@
 import type { Camera } from "@/packages/games/engine";
 import { Pool } from "@/packages/games/engine";
 import { DrawableSurface } from "@/packages/graphics/canvas";
+import { clamp01 } from "@/packages/math/clamp";
 
 import { Surface } from "./Surface";
 
@@ -43,7 +44,7 @@ export class ParticleSystem {
   }
 
   public setBudget(share: number): void {
-    this.budget = Math.max(60, Math.round(LIMIT * Math.max(0, Math.min(1, share))));
+    this.budget = Math.max(60, Math.round(LIMIT * clamp01(share)));
   }
 
   public emit(kind: ParticleKind, x: number, y: number, vx: number, vy: number, life: number, size: number, sprite: DrawableSurface | null, options: {

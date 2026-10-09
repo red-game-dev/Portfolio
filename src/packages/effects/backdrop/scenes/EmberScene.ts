@@ -1,5 +1,6 @@
 import { Canvas2DContext, createGlowSprite, DrawableSurface } from "@/packages/graphics/canvas";
 import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
@@ -38,7 +39,7 @@ export class EmberScene implements Scene {
   }
 
   public resize({ width, height, pixelRatio }: SceneSize): void {
-    const count = Math.round(Math.min(MAX_EMBERS, Math.max(MIN_EMBERS, (width * height) / AREA_PER_EMBER)));
+    const count = Math.round(clamp((width * height) / AREA_PER_EMBER, MIN_EMBERS, MAX_EMBERS));
 
     this.width = width;
     this.height = height;

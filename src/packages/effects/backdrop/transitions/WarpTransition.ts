@@ -1,9 +1,10 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { Rgb, rgba } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
+import { pulse } from "@/packages/math/easing";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { SceneSize, SceneTransition } from "../domain/types";
-import { pulse, Rgb, rgba } from "../utils/colour";
 
 export interface WarpTransitionOptions {
   streak: Rgb;
@@ -66,7 +67,7 @@ export class WarpTransition implements SceneTransition {
     context.stroke();
 
     // A flash as the jump lands, brightest just past the middle.
-    const flash = pulse(Math.min(1, Math.max(0, (progress - 0.45) / 0.35)));
+    const flash = pulse((progress - 0.45) / 0.35);
 
     if (flash > 0) {
       context.fillStyle = rgba(this.options.flash, 0.28 * flash);

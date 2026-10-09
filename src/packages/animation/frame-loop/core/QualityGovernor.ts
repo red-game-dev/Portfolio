@@ -1,3 +1,5 @@
+import { clamp } from "@/packages/math/clamp";
+
 export interface QualityGovernorOptions {
   // How many quality levels there are, 0 the finest.
   levels: number;
@@ -30,7 +32,7 @@ export class QualityGovernor {
 
   constructor(options: QualityGovernorOptions) {
     this.options = { start: 0, windowMs: 1500, slowMs: 22, fastMs: 14, recoverAfterMs: 8000, maxRecoveries: 1, ...options };
-    this.current = Math.max(0, Math.min(this.options.levels - 1, this.options.start));
+    this.current = clamp(this.options.start, 0, this.options.levels - 1);
   }
 
   public get level(): number {

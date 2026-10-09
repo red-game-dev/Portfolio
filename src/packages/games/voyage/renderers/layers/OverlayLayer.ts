@@ -1,5 +1,6 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
+import { clamp01 } from "@/packages/math/clamp";
 import { createSeededRandom } from "@/packages/math/random";
 
 import { VoyageFrame } from "../frame";
@@ -118,7 +119,7 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
   // Close to the star its light is blinding: the whole view washes out, more the closer the ship flies, growing
   // with the order of magnitude of the sunlight rather than the sunlight itself, as an eye or a camera does.
   private drawGlare({ state }: VoyageFrame): void {
-    const glare = GLARE_MAX * Math.min(1, Math.max(0, Math.log10(state.readings.sunlight / GLARE_FROM) / GLARE_DECADES));
+    const glare = GLARE_MAX * clamp01(Math.log10(state.readings.sunlight / GLARE_FROM) / GLARE_DECADES);
 
     if (glare <= 0) {
       return;

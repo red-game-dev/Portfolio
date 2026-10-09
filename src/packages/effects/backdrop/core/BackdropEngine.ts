@@ -1,10 +1,11 @@
 import { FrameLoop, FrameScheduler } from "@/packages/animation/frame-loop";
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { clamp01 } from "@/packages/math/clamp";
+import { easeInOut } from "@/packages/math/easing";
 import { RandomSource } from "@/packages/math/random";
 
 import { BackdropConfig, BackdropConfigOverrides, resolveBackdropConfig } from "../config";
 import { Scene, SceneFactory, SceneSize, SceneTransition, TransitionFactory, transitionKey } from "../domain/types";
-import { easeInOut } from "../utils/easing";
 import { SceneCompositor } from "./SceneCompositor";
 
 export interface BackdropOptions {
@@ -109,7 +110,7 @@ export class BackdropEngine extends FrameLoop {
   protected render(now: number): void {
     // A frame's timestamp is when the frame began, which can be a moment before the scene change that
     // happened during it, so the fade is clamped at both ends rather than going briefly negative.
-    const linear = Math.min(1, Math.max(0, (now - this.fadeStartedAt) / this.config.fadeMs));
+    const linear = clamp01((now - this.fadeStartedAt) / this.config.fadeMs);
     const progress = this.previous ? easeInOut(linear) : 1;
     const layers = this.previous
       ? [{ scene: this.previous, alpha: 1 - progress }, { scene: this.current, alpha: progress }]

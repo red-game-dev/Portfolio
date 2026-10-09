@@ -1,5 +1,6 @@
 import { hexToRgb, mixRgb, Rgb, rgba, rgbCss, scaleRgb } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 import { smoothstep } from "@/packages/math/easing";
 import { createSeededRandom } from "@/packages/math/random";
 
@@ -51,7 +52,7 @@ export class LandscapePainter {
   // Where an elevation (degrees) falls on the view: by the field of view, or with the whole sky spread from the
   // horizon to the top.
   public static heightOf({ horizon, height, fieldOfView, isWholeSky }: Frame, elevation: number): number {
-    return isWholeSky ? horizon - horizon * Math.max(-1, Math.min(1, elevation / 90)) : horizon - elevation * (height / fieldOfView);
+    return isWholeSky ? horizon - horizon * clamp(elevation / 90, -1, 1) : horizon - elevation * (height / fieldOfView);
   }
 
   public paint(frame: Frame, scene: Scene): SkyLight {
@@ -173,7 +174,7 @@ export class LandscapePainter {
       const lit = context.createLinearGradient(x - radius * body.lightSide, y, x + radius * body.lightSide, y);
 
       lit.addColorStop(0, rgbCss(scaleRgb(face, 0.12)));
-      lit.addColorStop(Math.max(0.01, Math.min(0.99, 1 - body.lit)), rgbCss(scaleRgb(face, 0.18)));
+      lit.addColorStop(clamp(1 - body.lit, 0.01, 0.99), rgbCss(scaleRgb(face, 0.18)));
       lit.addColorStop(1, rgbCss(face));
       context.fillStyle = lit;
       context.beginPath();

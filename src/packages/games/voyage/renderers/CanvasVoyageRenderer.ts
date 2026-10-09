@@ -4,7 +4,7 @@ import { Rgb } from "@/packages/graphics/colour";
 import { CanvasGlobeRenderer, GlobeRenderer } from "@/packages/graphics/globe";
 import type { LensSource } from "@/packages/graphics/webgl";
 import { TAU } from "@/packages/math/angles";
-import { clamp01, wrap } from "@/packages/math/clamp";
+import { clamp, clamp01, wrap } from "@/packages/math/clamp";
 
 import { VoyageTheme } from "../config";
 import { VoyageWorld } from "../core/world";
@@ -157,7 +157,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   }
 
   public setQuality(level: number): void {
-    const index = Math.max(0, Math.min(QUALITY.particles.length - 1, level));
+    const index = clamp(level, 0, QUALITY.particles.length - 1);
 
     this.quality = index;
     this.kit.particles.setBudget(QUALITY.particles[index]);

@@ -1,4 +1,5 @@
 import { DEG, wrapDegrees } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
 import { SubsolarPoint } from "../domain/types";
 import { daysSinceJ2000 } from "./time";
@@ -25,5 +26,5 @@ export const solarElevation = (subsolar: SubsolarPoint, latitude: number, longit
   const sine = Math.sin(latitude * DEG) * Math.sin(subsolar.latitude * DEG) +
     Math.cos(latitude * DEG) * Math.cos(subsolar.latitude * DEG) * Math.cos((longitude - subsolar.longitude) * DEG);
 
-  return Math.asin(Math.max(-1, Math.min(1, sine))) / DEG;
+  return Math.asin(clamp(sine, -1, 1)) / DEG;
 };

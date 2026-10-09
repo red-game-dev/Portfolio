@@ -1,8 +1,8 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { Rgb, rgba } from "@/packages/graphics/colour";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
-import { Rgb, rgba } from "../utils/colour";
 
 export interface ChainSceneOptions {
   block: Rgb;

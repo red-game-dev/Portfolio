@@ -1,4 +1,5 @@
 import { Canvas2DContext, createGlowSprite, DrawableSurface } from "@/packages/graphics/canvas";
+import { clamp } from "@/packages/math/clamp";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
@@ -51,11 +52,11 @@ export class NeuralScene implements Scene {
   }
 
   public resize({ width, height, pixelRatio }: SceneSize): void {
-    const count = Math.round(Math.min(MAX_NODES, Math.max(MIN_NODES, (width * height) / AREA_PER_NODE)));
+    const count = Math.round(clamp((width * height) / AREA_PER_NODE, MIN_NODES, MAX_NODES));
 
     this.width = width;
     this.height = height;
-    this.linkDistance = Math.min(170, Math.max(110, width / 7));
+    this.linkDistance = clamp(width / 7, 110, 170);
     this.nodes = Array.from({ length: count }, () => ({
       x: randomBetween(this.random, 0, width),
       y: randomBetween(this.random, 0, height),

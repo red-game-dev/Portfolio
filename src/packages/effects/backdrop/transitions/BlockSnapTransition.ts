@@ -1,8 +1,9 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { mixRgb, Rgb, rgba } from "@/packages/graphics/colour";
+import { clamp01 } from "@/packages/math/clamp";
+import { easeInOut, pulse } from "@/packages/math/easing";
 
 import { SceneSize, SceneTransition } from "../domain/types";
-import { mixRgb, pulse, Rgb, rgba } from "../utils/colour";
-import { clamp01, easeInOut } from "../utils/easing";
 
 export interface BlockSnapTransitionOptions {
   from: Rgb;

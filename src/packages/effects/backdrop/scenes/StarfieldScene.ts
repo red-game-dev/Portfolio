@@ -1,9 +1,10 @@
 import { Canvas2DContext, createDrawableSurface, DrawableSurface } from "@/packages/graphics/canvas";
+import { Rgb, rgba } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
-import { Rgb, rgba } from "../utils/colour";
 
 export interface StarfieldSceneOptions {
   star: Rgb;
@@ -50,7 +51,7 @@ export class StarfieldScene implements Scene {
   }
 
   public resize({ width, height, pixelRatio }: SceneSize): void {
-    const count = Math.round(Math.min(MAX_STARS, Math.max(MIN_STARS, (width * height) / AREA_PER_STAR)));
+    const count = Math.round(clamp((width * height) / AREA_PER_STAR, MIN_STARS, MAX_STARS));
 
     this.width = width;
     this.height = height;

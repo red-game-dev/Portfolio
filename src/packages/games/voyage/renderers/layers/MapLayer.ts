@@ -1,5 +1,6 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
 import { VoyageFrame } from "../frame";
 import { Surface } from "../Surface";
@@ -80,7 +81,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     const { system } = state;
     const centreX = inSystem ? system.star.x : shipX;
     const centreY = inSystem ? system.star.y : shipY;
-    const reach = inSystem ? Math.min(system.edge * 1.06, Math.max(32, Math.hypot(shipX - centreX, shipY - centreY) * 1.25)) : 16;
+    const reach = inSystem ? clamp(Math.hypot(shipX - centreX, shipY - centreY) * 1.25, 32, system.edge * 1.06) : 16;
     const scale = (Math.min(front.width, front.height) / 2) * 0.88 / reach;
     const toX = (x: number) => cx + (x - centreX) * scale;
     const toY = (y: number) => cy + (y - centreY) * scale;

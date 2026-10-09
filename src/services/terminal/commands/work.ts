@@ -2,6 +2,7 @@ import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { activityStats } from "@/packages/insights/activity";
 import { startYear } from "@/packages/insights/career";
 import { Command, error, heading, output, system } from "@/packages/interaction/terminal";
+import { clamp } from "@/packages/math/clamp";
 import { collapseWhitespace, fill } from "@/packages/text/format";
 import { CommandContext, GROUPS } from "@/services/terminal/commands/shared";
 import { Audience } from "@/types/case-studies";
@@ -98,7 +99,7 @@ export const createWorkCommands = (context: CommandContext): Command[] => {
       usage: "stack [count]",
       summary: "The skills I have used longest, from the work itself",
       run: ([count]) => {
-        const shown = rankedSkills().slice(0, Math.min(40, Math.max(1, Number(count) || 12)));
+        const shown = rankedSkills().slice(0, clamp(Number(count) || 12, 1, 40));
 
         return {
           lines: [

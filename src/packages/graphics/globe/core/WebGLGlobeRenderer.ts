@@ -1,6 +1,7 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { createProgram } from "@/packages/graphics/webgl";
 import { DEG } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
 import { GlobeDraw, GlobeLook, GlobeRenderer, StarDraw } from "../domain/types";
 import { MAX_CRATERS, VERTEX } from "../shaders/common";
@@ -158,7 +159,7 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
   }
 
   public setDetail(octaves: number): void {
-    this.octaves = Math.max(1, Math.min(5, Math.round(octaves)));
+    this.octaves = clamp(Math.round(octaves), 1, 5);
   }
 
   // A map uploaded once, with mipmaps so it stays clean when the globe is small. Maps wrap round in longitude.

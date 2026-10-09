@@ -1,10 +1,10 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { Rgb, rgba } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
+import { easeInOut, pulse } from "@/packages/math/easing";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { SceneSize, SceneTransition } from "../domain/types";
-import { pulse, Rgb, rgba } from "../utils/colour";
-import { easeInOut } from "../utils/easing";
 
 export interface ChipFlipTransitionOptions {
   chipColors: Rgb[];

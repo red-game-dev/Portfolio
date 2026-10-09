@@ -1,4 +1,5 @@
 import { DEG } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
 import { GlobePose } from "../domain/types";
 
@@ -70,6 +71,6 @@ const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 // The latitude and longitude (radians) under a view space normal, the way the shader reads them.
 export const surfacePoint = (frame: GlobeFrame, normal: Vec3): { latitude: number; longitude: number } => ({
-  latitude: Math.asin(Math.max(-1, Math.min(1, dot(normal, frame.pole)))),
+  latitude: Math.asin(clamp(dot(normal, frame.pole), -1, 1)),
   longitude: frame.spin + Math.atan2(dot(normal, frame.east), dot(normal, frame.front)),
 });

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DECODE_TIMING } from "@/components/DecodedText/config";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { decodeFrame, toBinaryMask } from "@/packages/encoding/binary";
+import { clamp } from "@/packages/math/clamp";
 
 interface DecodeProgress {
   revealed: number;
@@ -45,7 +46,7 @@ export const useDecodedText = (text: string, isActive: boolean, delay = 0, durat
     const step = (time: number) => {
       startedAt = startedAt ?? time;
 
-      const revealed = Math.min(length, Math.max(0, Math.floor((time - startedAt - delay) / characterMs)));
+      const revealed = clamp(Math.floor((time - startedAt - delay) / characterMs), 0, length);
       const tick = Math.floor((time - startedAt) / DECODE_TIMING.tickMs);
 
       setProgress(settleAt(revealed, tick));

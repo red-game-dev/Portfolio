@@ -3,6 +3,7 @@ import { mixRgb, Rgb, shadeHex } from "@/packages/graphics/colour";
 import { EARTH_LOOK, GlobeLook, GlobeRenderer, northUp } from "@/packages/graphics/globe";
 import { Air, Ground, LandscapePainter, Scene, SkyLight } from "@/packages/graphics/landscape";
 import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 import { easeInOut, smoothstep } from "@/packages/math/easing";
 import { createSeededRandom } from "@/packages/math/random";
 import { formatDuration, formatNumber } from "@/packages/text/format";
@@ -189,7 +190,7 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
         subsolarLatitude: state.subsolarLatitude,
         subsolarLongitude: state.subsolarLongitude,
         // Seen from over the pad's latitude, so the land round it lies along the visible curve.
-        viewElevation: Math.max(15, Math.min(75, 90 - Math.abs(state.site.latitude))),
+        viewElevation: clamp(90 - Math.abs(state.site.latitude), 15, 75),
         isTurned: northUp(lightAngle, false),
       },
       time: now / 1000,
@@ -297,7 +298,7 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     const { site, ascent, status } = state;
     const separation = this.separationAt(state);
     // Once the stage below has dropped clear, the stage still flying eases down its own axis to where the camera follows.
-    const settle = stack.hasCore ? 0 : easeInOut(Math.max(0, Math.min(1, (ascent - separation - 0.03) / 0.12))) * height * BUILDS[site.vehicle].coreTop;
+    const settle = stack.hasCore ? 0 : easeInOut((ascent - separation - 0.03) / 0.12) * height * BUILDS[site.vehicle].coreTop;
     const meco = this.momentAt(state, "meco");
     const seco = this.momentAt(state, "seco");
     const upperFrom = site.vehicle === "steel" ? separation - 0.012 : separation + 0.012;
@@ -447,7 +448,7 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
       `${this.labels.altitude} ${formatNumber(state.altitudeKm, state.altitudeKm < 10 ? 1 : 0, true)} km`,
       `${this.labels.speed} ${formatNumber(state.speedKmh)} km/h`,
     ];
-    const size = Math.max(10, Math.min(13, width / 30));
+    const size = clamp(width / 30, 10, 13);
 
     context.textAlign = "right";
     context.textBaseline = "bottom";

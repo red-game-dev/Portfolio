@@ -3,7 +3,7 @@ import { FaultKind, ShipEffect } from "../../domain/faults";
 import { ITEMS } from "../config/catalog";
 import { FAULT_FIXES, recipeBlueprint, recipeById, RECIPES, UNIVERSAL_FIX } from "../config/recipes";
 import { REWARDS, VOID_PRICE } from "../config/rewards";
-import { cargoFor, configForLevel, markOf, MAX_LEVEL, tierOf } from "../config/tiers";
+import { cargoFor, clampLevel, configForLevel, markOf, tierOf } from "../config/tiers";
 import { upgradeCost } from "../config/upgrades";
 import { Backpack } from "../core/Backpack";
 import { emptyPurse, Wallet } from "../core/Wallet";
@@ -84,7 +84,7 @@ export class Hangar {
     this.catalog = catalog;
     this.now = now;
     this.base = base;
-    this.shipLevel = Math.max(0, Math.min(MAX_LEVEL, Math.floor(profile.level)));
+    this.shipLevel = clampLevel(profile.level);
     this.backpack = new Backpack(cargoFor(this.shipLevel), profile.cargo, catalog);
     this.wallet = Wallet.from(profile.ledger);
     this.known = new Set(profile.blueprints);
@@ -106,7 +106,7 @@ export class Hangar {
 
   // Takes on a profile written elsewhere (another tab's newer save), dropping what this one held.
   public replace(profile: EconomyProfile): void {
-    this.shipLevel = Math.max(0, Math.min(MAX_LEVEL, Math.floor(profile.level)));
+    this.shipLevel = clampLevel(profile.level);
     this.backpack = new Backpack(cargoFor(this.shipLevel), profile.cargo, this.catalog);
     this.wallet = Wallet.from(profile.ledger);
     this.known = new Set(profile.blueprints);

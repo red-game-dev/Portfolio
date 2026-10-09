@@ -1,6 +1,7 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { GlobePose, northUp } from "@/packages/graphics/globe";
 import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
 import { HOME_WORLD, SystemBody } from "../../domain/content";
 import { VoyageState } from "../../domain/state";
@@ -19,7 +20,7 @@ const FLARE_MS = 4000;
 // starlight from the sky.
 const lightOn = (au: number, luminosity: number): number => (luminosity <= 0
   ? 0.07
-  : Math.max(0.3, Math.min(1.15, 1.1 - 0.12 * Math.log(Math.max(au, 0.05) / Math.sqrt(luminosity)))));
+  : clamp(1.1 - 0.12 * Math.log(Math.max(au, 0.05) / Math.sqrt(luminosity)), 0.3, 1.15));
 
 // The Sun and every body, drawn by the GPU each frame: lit from where the Sun really is, turned to where they
 // really are on the mission clock, a moon that keeps one face to its planet keeping it, Earth's aurora as bright

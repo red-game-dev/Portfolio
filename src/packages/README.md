@@ -74,7 +74,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `physics/newtonian` | Newtonian physics as pure functions: a `GravityField` floored at each surface, symplectic integration and exponential damping, orbital speeds and surface gravity, tidal pull, time dilation, and an exponential atmosphere with drag and entry heating |
 | `math/angles` | `TAU`, `DEG` and `RAD` for turns, degrees and radians, `wrapDegrees` and `wrapRadians`, the shortest turn between two headings (`angleBetween`) and a heading part of the way to another (`lerpAngle`) |
 | `math/clamp` | `clamp` and `clamp01`, and `wrap` for values that go round like a clock or a compass |
-| `math/easing` | `easeInOut`, `easeIn`, `smoothstep` and `lerp`, shared by the backdrop, the landscape and the games |
+| `math/easing` | `easeInOut`, `easeIn`, `smoothstep`, `lerp` and `pulse` (up and back down, the shape of a flash), shared by the backdrop, the landscape and the games |
 | `math/hex-grid` | Pointy topped hex grid geometry and a snaking route through it, for map layouts |
 | `math/random` | Seedable random source for repeatable visuals and tests |
 | `text/format` | `fill` for `{name}` templates and `collapseWhitespace`; numbers (`formatNumber`), clocks and dates (`formatDuration`, `formatHours`, `formatLocalTime`, `formatDateTime`, `utcDay`, `twoDigits`) and places (`formatLatLon`) |

@@ -1,4 +1,5 @@
 import { DEG, wrapDegrees } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
 import { Pole, SubsolarPoint, Vec3 } from "../domain/types";
 import { centuriesSinceJ2000, daysSinceJ2000 } from "./time";
@@ -24,7 +25,7 @@ export const subsolarLatitude = (pole: Vec3, position: Vec3): number => {
   const distance = Math.hypot(position.x, position.y, position.z) || 1;
   const toSun = -(pole.x * position.x + pole.y * position.y + pole.z * position.z) / distance;
 
-  return Math.asin(Math.max(-1, Math.min(1, toSun))) / DEG;
+  return Math.asin(clamp(toSun, -1, 1)) / DEG;
 };
 
 // The point on Earth under the Sun at Julian Day `jd`, from Earth's own place round the Sun: the Sun's right

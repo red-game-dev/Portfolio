@@ -1,9 +1,9 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { mixRgb, Rgb, rgba } from "@/packages/graphics/colour";
+import { easeInOut, pulse } from "@/packages/math/easing";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { SceneSize, SceneTransition } from "../domain/types";
-import { mixRgb, pulse, Rgb, rgba } from "../utils/colour";
-import { easeInOut } from "../utils/easing";
 
 export interface CollapseTransitionOptions {
   from: Rgb;

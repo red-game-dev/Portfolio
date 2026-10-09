@@ -1,10 +1,11 @@
 import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { BugRaidConfig } from "../config";
 import { Bug, BugRaidSize, BugRaidSnapshot, BugRaidState } from "../domain/types";
 import { compact } from "../utils/compact";
-import { clamp, distanceSquared } from "../utils/geometry";
+import { distanceSquared } from "../utils/geometry";
 import { pickKind, spawnInterval } from "../utils/spawn";
 
 export interface BugRaidSimulationDependencies {

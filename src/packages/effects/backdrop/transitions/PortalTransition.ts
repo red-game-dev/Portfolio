@@ -1,9 +1,11 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { Rgb, rgba } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
+import { clamp01 } from "@/packages/math/clamp";
+import { pulse } from "@/packages/math/easing";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { SceneSize, SceneTransition } from "../domain/types";
-import { pulse, Rgb, rgba } from "../utils/colour";
 
 export interface PortalTransitionOptions {
   ring: Rgb;
@@ -54,7 +56,7 @@ export class PortalTransition implements SceneTransition {
     context.fillRect(0, 0, this.width, this.height);
 
     for (let ring = 0; ring < RINGS; ring += 1) {
-      const local = Math.min(1, Math.max(0, progress * 1.4 - ring * 0.18));
+      const local = clamp01(progress * 1.4 - ring * 0.18);
 
       if (local > 0 && local < 1) {
         context.strokeStyle = rgba(this.options.ring, (1 - local) * 0.9);

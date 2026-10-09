@@ -1,5 +1,6 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
 import { Alien } from "../../domain/components";
 import { FactionSpec } from "../../domain/universe";
@@ -165,7 +166,7 @@ export class AliensLayer implements RenderLayer<VoyageFrame> {
     context.globalCompositeOperation = "source-over";
     front.blit(this.kit.sprite(`rock:${entity % 6}:false:${size}`, size, size, paintRock(entity % 6, false)), x, y, drawn, drawn, spin);
 
-    const width = Math.max(30, Math.min(90, drawn));
+    const width = clamp(drawn, 30, 90);
 
     context.fillStyle = "rgba(5, 8, 18, 0.7)";
     context.fillRect(x - width / 2 - 1, y - drawn * 0.6 - 6, width + 2, 5);

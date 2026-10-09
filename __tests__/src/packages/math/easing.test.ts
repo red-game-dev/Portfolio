@@ -1,4 +1,4 @@
-import { easeIn, easeInOut, lerp, smoothstep } from "@/packages/math/easing";
+import { easeIn, easeInOut, lerp, pulse, smoothstep } from "@/packages/math/easing";
 
 describe("math/easing", () => {
   test("eases in and out from 0 to 1, clamped outside", () => {
@@ -13,5 +13,13 @@ describe("math/easing", () => {
     expect(smoothstep(-4, 12, -10)).toBe(0);
     expect(smoothstep(-4, 12, 4)).toBe(0.5);
     expect(smoothstep(-4, 12, 30)).toBe(1);
+  });
+
+  test("a pulse rises from 0 to 1 and falls back as progress runs 0 to 1, and rests at 0 outside", () => {
+    expect(pulse(0)).toBe(0);
+    expect(pulse(0.5)).toBe(1);
+    expect(pulse(1)).toBeCloseTo(0, 12);
+    expect(pulse(-1)).toBe(0);
+    expect(pulse(0.25)).toBeCloseTo(pulse(0.75), 12);
   });
 });

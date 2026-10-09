@@ -1,7 +1,7 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { createSeededRandom } from "@/packages/math/random";
 
-import { VoyageStyle } from "../../domain/types";
+import { VoyageStyle } from "../../domain/theme";
 
 const TAU = Math.PI * 2;
 

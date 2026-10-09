@@ -30,6 +30,14 @@ export const Stage = styled.div(() => [
 
 export const Canvas = tw.canvas`absolute inset-0 w-full h-full`;
 
+// The GPU lens between the two 2D canvases; hidden until a black hole is on screen.
+export const LensCanvas = styled.canvas(() => [
+  tw`absolute inset-0 w-full h-full`,
+  css`
+    visibility: hidden;
+  `,
+]);
+
 // How to play, always there for a screen reader, whatever card is showing.
 export const ControlsNote = tw.p`sr-only`;
 
@@ -41,17 +49,65 @@ export const Hud = styled.header(() => [
   `,
 ]);
 
+export const Vitals = tw.div`flex flex-col gap-[6px] min-w-0`;
+
 export const Place = tw.p`m-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`;
 
-export const Readout = tw.dl`m-0 flex flex-row flex-wrap items-center justify-end gap-x-[16px] gap-y-[4px] text-sm tabular-nums`;
+export const Bars = tw.dl`m-0 flex flex-col gap-[4px] w-[150px] md:w-[210px]`;
+
+export const BarRow = styled.div(() => [
+  tw`grid items-center gap-x-[8px] gap-y-[2px] text-xs tabular-nums`,
+  css`
+    grid-template-columns: 1fr auto;
+  `,
+]);
+
+export const BarLabel = tw.dt`text-[#9aa3bb]`;
+
+export const BarValue = tw.dd`m-0 text-right text-white`;
+
+export const BarTrack = styled.div(() => [
+  tw`relative h-[6px] overflow-hidden bg-[rgba(255,255,255,0.12)]`,
+  css`
+    grid-column: 1 / -1;
+  `,
+]);
+
+// The fill moves by transform alone, so updating it costs no layout.
+export const BarFill = styled.div(({ colour }: { colour: string }) => [
+  tw`absolute inset-0`,
+  css`
+    background: ${colour};
+    transform-origin: left center;
+    transition: transform 0.25s linear;
+  `,
+]);
+
+export const TelemetryPanel = styled.section(() => [
+  tw`absolute right-[12px] bottom-[12px] md:right-[18px] md:bottom-[18px] p-[10px] md:p-[12px] pointer-events-none`,
+  css`
+    min-width: 200px;
+    max-width: min(78vw, 300px);
+    background: rgba(5, 8, 18, 0.72);
+    border: 1px solid rgba(196, 210, 255, 0.25);
+  `,
+]);
+
+export const TelemetryTitle = tw.h2`m-0 mb-[6px] text-xs font-semibold text-[#c4d2ff]`;
+
+export const TelemetryList = tw.dl`m-0 grid grid-cols-2 gap-x-[12px] gap-y-[3px] text-xs tabular-nums`;
+
+export const TelemetryName = tw.dt`text-[#9aa3bb]`;
+
+export const TelemetryValue = tw.dd`m-0 text-right text-white`;
+
+export const Readout = tw.dl`m-0 flex flex-row flex-wrap items-center justify-end gap-x-[16px] gap-y-[4px] text-sm tabular-nums pointer-events-none`;
 
 export const Reading = tw.div`flex flex-row items-baseline gap-[6px]`;
 
 export const ReadingName = tw.dt`text-xs text-[#9aa3bb]`;
 
 export const ReadingValue = tw.dd`m-0 font-semibold text-white`;
-
-export const Shields = tw.span`flex flex-row gap-[4px] text-[#4fd8ff]`;
 
 export const HudButtons = tw.div`flex flex-row gap-[8px] pointer-events-auto`;
 

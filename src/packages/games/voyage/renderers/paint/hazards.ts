@@ -1,7 +1,7 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { createSeededRandom } from "@/packages/math/random";
 
-import { VoyageStyle } from "../../domain/types";
+import { VoyageStyle } from "../../domain/theme";
 
 const TAU = Math.PI * 2;
 
@@ -184,26 +184,39 @@ export const paintHazard = (style: VoyageStyle, colour: string, accent: string) 
   }
 };
 
-// Something to catch: a glowing orb for score, a ring with a cross for a shield.
-export const paintPickup = (kind: "score" | "shield", colour: string) => (context: Canvas2DContext, width: number) => {
+// Something to catch: a glowing orb for score, a ring with a cross for shields, a canister for fuel, a wrench
+// cross for hull repair, each with a soft glow round it.
+export const paintPickup = (kind: "score" | "shield" | "fuel" | "repair", colour: string) => (context: Canvas2DContext, width: number) => {
   const c = width / 2;
   const r = width / 2;
   const glow = context.createRadialGradient(c, c, 0, c, c, r);
 
-  glow.addColorStop(0, kind === "score" ? "#ffffff" : "rgba(255, 255, 255, 0.4)");
+  glow.addColorStop(0, kind === "score" ? "#ffffff" : "rgba(255, 255, 255, 0.35)");
   glow.addColorStop(0.28, colour);
   glow.addColorStop(1, "rgba(0, 0, 0, 0)");
   context.fillStyle = glow;
   context.fillRect(0, 0, width, width);
+  context.fillStyle = "#ffffff";
+  context.strokeStyle = "#ffffff";
+  context.lineWidth = Math.max(1.5, r * 0.09);
 
   if (kind === "shield") {
-    context.strokeStyle = "#ffffff";
-    context.lineWidth = Math.max(1.5, r * 0.1);
     context.beginPath();
-    context.arc(c, c, r * 0.48, 0, TAU);
+    context.arc(c, c, r * 0.46, 0, TAU);
     context.stroke();
-    context.fillStyle = "#ffffff";
-    context.fillRect(c - r * 0.06, c - r * 0.26, r * 0.12, r * 0.52);
-    context.fillRect(c - r * 0.26, c - r * 0.06, r * 0.52, r * 0.12);
+    context.fillRect(c - r * 0.06, c - r * 0.24, r * 0.12, r * 0.48);
+    context.fillRect(c - r * 0.24, c - r * 0.06, r * 0.48, r * 0.12);
+  } else if (kind === "fuel") {
+    context.fillRect(c - r * 0.2, c - r * 0.28, r * 0.4, r * 0.56);
+    context.fillRect(c - r * 0.08, c - r * 0.38, r * 0.16, r * 0.1);
+    context.fillStyle = colour;
+    context.fillRect(c - r * 0.12, c - r * 0.05, r * 0.24, r * 0.25);
+  } else if (kind === "repair") {
+    context.save();
+    context.translate(c, c);
+    context.rotate(Math.PI / 4);
+    context.fillRect(-r * 0.07, -r * 0.34, r * 0.14, r * 0.68);
+    context.fillRect(-r * 0.34, -r * 0.07, r * 0.68, r * 0.14);
+    context.restore();
   }
 };

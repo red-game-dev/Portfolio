@@ -1,21 +1,25 @@
-export { DEFAULT_VOYAGE_CONFIG, DEFAULT_VOYAGE_THEME, resolveVoyageConfig, SOLAR_ROUTE } from "./config";
+export { DEFAULT_VOYAGE_CONFIG, DEFAULT_VOYAGE_THEME, resolveVoyageConfig } from "./config";
 export { VoyageGame } from "./core/VoyageGame";
 export { VoyageSimulation } from "./core/VoyageSimulation";
+export { NO_INPUT } from "./domain/input";
+export { isSolarSystemData } from "./guards/isSolarSystemData";
+export { RouteMapper } from "./mappers/RouteMapper";
+export { SnapshotMapper } from "./mappers/SnapshotMapper";
+export { TelemetryMapper } from "./mappers/TelemetryMapper";
+export { RouteService } from "./services/RouteService";
+export { SOLAR_SYSTEM, SolarSystemSource } from "./sources/SolarSystemSource";
+export { SolarSystemValidator } from "./validators/SolarSystemValidator";
 export { CanvasVoyageRenderer } from "./renderers/CanvasVoyageRenderer";
-export type { VoyageConfig, VoyageConfigOverrides, VoyageScoring, VoyageTheme, VoyageUniverseTheme } from "./config";
-export type { VoyageCanvasOptions, VoyageOptions } from "./core/VoyageGame";
-export type {
-  VoyageBody,
-  VoyageHazard,
-  VoyageHole,
-  VoyageInput,
-  VoyagePhase,
-  VoyagePickup,
-  VoyageRenderer,
-  VoyageRouteStop,
-  VoyageSize,
-  VoyageSnapshot,
-  VoyageState,
-  VoyageStatus,
-  VoyageStyle,
-} from "./domain/types";
+export type { FlightConfig, HoleConfig, ShipConfig, SpawnConfig, VoyageConfig, VoyageConfigOverrides, VoyageTheme, VoyageUniverseTheme } from "./config";
+export type { VoyageCanvases, VoyageCanvasOptions, VoyageNotice, VoyageOptions } from "./core/VoyageGame";
+export type { VoyageStores, VoyageWorld } from "./core/world";
+export type { VoyageRenderer } from "./renderers/CanvasVoyageRenderer";
+export type { VoyageFrame } from "./renderers/frame";
+export type { Body, Decal, Health, Hazard, Hole, Pickup, PickupKind, Ship, Spin } from "./domain/components";
+export type { AtmosphereKind, BeltData, BodyData, Route, RouteBelt, RouteBody, SolarSystemData } from "./domain/content";
+export type { DamageKind, VoyageEvents, VoyagePhase } from "./domain/events";
+export type { VoyageInput } from "./domain/input";
+export type { Telemetry, VoyageSnapshot } from "./domain/snapshot";
+export type { Capture, Readings, VoyageState, VoyageStatus, Waypoint } from "./domain/state";
+export type { VoyageStyle } from "./domain/theme";
+export type { RouteLayout } from "./mappers/RouteMapper";

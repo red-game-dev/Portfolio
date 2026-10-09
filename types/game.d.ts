@@ -96,6 +96,36 @@ export interface FinaleVoyage {
   score: string;
   best: string;
   shields: string;
+  hull: string;
+  fuel: string;
+  // The live readings in the corner, and the units each is shown in ("{value}" is replaced).
+  telemetry: {
+    title: string;
+    gravity: string;
+    altitude: string;
+    speed: string;
+    sun: string;
+    air: string;
+    temperature: string;
+    dilation: string;
+    next: string;
+  };
+  units: {
+    gravity: string;
+    altitude: string;
+    speed: string;
+    au: string;
+    pressure: string;
+    temperature: string;
+    dilation: string;
+    km: string;
+    millionKm: string;
+  };
+  // "{body}" is replaced.
+  landed: string;
+  tookOff: string;
+  emergency: string;
+  captured: string;
   // "{au}" is replaced with the distance from the Sun.
   distance: string;
   // "{count}" and "{name}" are replaced.

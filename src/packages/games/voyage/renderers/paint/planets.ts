@@ -82,7 +82,44 @@ const atmosphere = (context: Canvas2DContext, c: number, r: number, colour: stri
   context.fill();
 };
 
+// A continent: a cluster of overlapping rounded blobs in one solid colour.
+const continent = (context: Canvas2DContext, x: number, y: number, size: number, random: RandomSource) => {
+  for (let index = 0; index < 8; index += 1) {
+    const angle = random() * TAU;
+    const reach = random() * size;
+
+    context.beginPath();
+    context.ellipse(x + Math.cos(angle) * reach, y + Math.sin(angle) * reach * 0.7, size * (0.35 + random() * 0.4), size * (0.2 + random() * 0.25),
+      random() * Math.PI, 0, TAU);
+    context.fill();
+  }
+};
+
 const BODIES: Record<string, { paint: BodyPaint; glow?: string }> = {
+  earth: {
+    glow: "rgba(110, 170, 255, 0.55)",
+    paint: (context, c, r, random) => {
+      base(context, c, r, "#2a6fd0", "#0d2a63");
+
+      for (let index = 0; index < 6; index += 1) {
+        context.fillStyle = index % 3 === 2 ? "#a88c5c" : "#3d7a45";
+        continent(context, c + (random() - 0.5) * r * 1.6, c + (random() - 0.5) * r * 1.6, r * (0.18 + random() * 0.16), random);
+      }
+
+      context.fillStyle = "#f2f6ff";
+      context.beginPath();
+      context.ellipse(c, c - r * 0.93, r * 0.45, r * 0.12, 0, 0, TAU);
+      context.fill();
+      context.fillStyle = "rgba(255, 255, 255, 0.45)";
+
+      for (let index = 0; index < 14; index += 1) {
+        context.beginPath();
+        context.ellipse(c + (random() - 0.5) * r * 1.8, c + (random() - 0.5) * r * 1.8, r * (0.12 + random() * 0.3), r * (0.025 + random() * 0.04),
+          random() * 0.5 - 0.25, 0, TAU);
+        context.fill();
+      }
+    },
+  },
   moon: {
     paint: (context, c, r, random) => {
       base(context, c, r, "#b9b9b6", "#77777a");
@@ -322,4 +359,30 @@ export const paintEarthCap = (radius: number) => (context: Canvas2DContext, widt
   context.fillStyle = glow;
   disc(context, cx, cy, radius * (1 + EARTH_GLOW));
   context.fill();
+};
+
+// The air round a body, from its surface to the top of its atmosphere, in its own tint: thick and bright for
+// Earth, a faint haze for Mars and Pluto, a deep cloud deck for the giants. Centred in a square `width` across
+// that spans the top of the air.
+export const paintHalo = (tint: string, surfaceShare: number) => (context: Canvas2DContext, width: number) => {
+  const c = width / 2;
+  const halo = context.createRadialGradient(c, c, c * surfaceShare * 0.96, c, c, c);
+
+  halo.addColorStop(0, tint);
+  halo.addColorStop(0.35, tint.replace(/[\d.]+\)$/, "0.18)"));
+  halo.addColorStop(1, "rgba(0, 0, 0, 0)");
+  context.fillStyle = halo;
+  disc(context, c, c, c);
+  context.fill();
+};
+
+// The tint each body's air shows, from close by and from inside.
+export const AIR_TINT: Record<string, string> = {
+  earth: "rgba(120, 180, 255, 0.55)",
+  mars: "rgba(230, 150, 110, 0.3)",
+  pluto: "rgba(170, 200, 255, 0.18)",
+  jupiter: "rgba(220, 190, 150, 0.45)",
+  saturn: "rgba(235, 215, 165, 0.42)",
+  uranus: "rgba(170, 235, 240, 0.42)",
+  neptune: "rgba(110, 150, 255, 0.45)",
 };

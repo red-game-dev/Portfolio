@@ -1,0 +1,67 @@
+import type { System } from "@/packages/games/engine";
+import { clamp } from "@/packages/math/clamp";
+import { angleBetween } from "@/packages/physics/newtonian";
+
+import { VoyageContext } from "./context";
+import { shipOf } from "./queries";
+
+// How much thrust a worn hull still gives: engines lose power as the ship falls apart.
+const efficiency = (hull: number, maxHull: number) => 0.55 + 0.45 * (hull / maxHull);
+
+// Turns the player's intent into the ship's motion: turn towards the aim (or with keys) at the ship's turn rate,
+// burn along the nose, brake against the velocity, and pay for both in fuel. Landed, a burn lifts off.
+export class ControlSystem implements System<VoyageContext> {
+  public readonly name = "control";
+
+  public update(context: VoyageContext, dt: number): void {
+    const { state, input, config, events } = context;
+    const parts = shipOf(context);
+
+    if (!parts || state.status !== "flying" || state.capture || state.phase === "lost") {
+      return;
+    }
+
+    const { body, ship, health } = parts;
+    const { thrust, brake, turnRate, burn } = config.ship;
+    const step = turnRate * dt;
+
+    if (input.aim) {
+      ship.angle += clamp(angleBetween(ship.angle, Math.atan2(input.aim.y - body.y, input.aim.x - body.x)), -step, step);
+    } else if (input.turn !== 0) {
+      ship.angle += clamp(input.turn, -1, 1) * step;
+    }
+
+    const power = ship.fuel > 0 ? clamp(input.thrust, 0, 1) : 0;
+
+    ship.thrust = power;
+    ship.isBraking = input.brake && ship.fuel > 0;
+
+    if (ship.landedOn) {
+      if (power > 0.15) {
+        events.emit("tookOff", { body: ship.landedOn });
+        ship.landedOn = null;
+      } else {
+        body.vx = 0;
+        body.vy = 0;
+
+        return;
+      }
+    }
+
+    const push = thrust * power * efficiency(health.hull, health.maxHull);
+
+    body.vx += Math.cos(ship.angle) * push * dt;
+    body.vy += Math.sin(ship.angle) * push * dt;
+
+    const speed = Math.hypot(body.vx, body.vy);
+
+    if (ship.isBraking && speed > 0) {
+      const slow = Math.min(speed, brake * dt);
+
+      body.vx -= (body.vx / speed) * slow;
+      body.vy -= (body.vy / speed) * slow;
+    }
+
+    ship.fuel = Math.max(0, ship.fuel - burn * (power + (ship.isBraking ? 0.6 : 0)) * dt);
+  }
+}

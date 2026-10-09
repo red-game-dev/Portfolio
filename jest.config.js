@@ -20,6 +20,8 @@ const customJestConfig = {
   coverageProvider: "v8",
   testPathIgnorePatterns: [
     "<rootDir>/.next/",
+    // Agents' worktrees are whole copies of the repository; their tests are theirs to run.
+    "<rootDir>/.claude/",
     "<rootDir>/node_modules/",
     "<rootDir>/__tests__/__mocks__/",
     "<rootDir>/__tests__/setups/",
@@ -31,6 +33,7 @@ const customJestConfig = {
     "\\.(jpg|jpeg|png|gif|svg)$": ["<rootDir>/__tests__/__mocks__/fileMock.js"],
   },
   moduleDirectories: ["node_modules", "<rootDir>/"],
+  modulePathIgnorePatterns: ["<rootDir>/.claude/"],
   setupFilesAfterEnv: ["<rootDir>/__tests__/setups/jest.setup.js"],
   testEnvironment: "jest-environment-jsdom",
 };

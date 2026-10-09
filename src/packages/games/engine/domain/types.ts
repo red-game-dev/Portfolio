@@ -5,6 +5,8 @@ export type Entity = number;
 export interface System<TContext> {
   readonly name: string;
   update(context: TContext, dt: number): void;
+  // Forgets whatever it carries from one step to the next (timers, flags), for a run that starts afresh.
+  reset?(): void;
 }
 
 // A rectangle in world units.

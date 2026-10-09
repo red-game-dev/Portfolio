@@ -170,9 +170,12 @@ export interface VoyageCareerCopy {
   // "{progress}" and "{target}", then "{xp}" and "{coin}", then "{count}".
   progress: string;
   reward: string;
+  rewardXp: string;
   done: string;
   // Notices: "{mission}", "{xp}" and "{coin}"; "{rank}"; "{name}".
   missionDone: string;
+  // The same for a mission that pays no coin.
+  missionDoneXp: string;
   promoted: string;
   discovered: string;
   codexTitle: string;
@@ -192,7 +195,7 @@ export interface VoyageCareerCopy {
   daily: { start: string; title: string; note: string; best: string; result: string; newBest: string };
   ghost: string;
   // "{date}" is replaced in the file's name.
-  photo: { open: string; close: string; save: string; hint: string; file: string };
+  photo: { title: string; open: string; close: string; save: string; hint: string; file: string };
 }
 
 export interface FinaleVoyage {

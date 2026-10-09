@@ -272,6 +272,8 @@ export class VoyageGame extends FrameLoop {
   // the best run of it so far flying beside the ship.
   public play(mode: "free" | "daily" = "free"): void {
     const day = dayKey(this.now());
+
+    this.setPhotoMode(false);
     const isDaily = mode === "daily";
 
     this.simulation.start(isDaily ? dailyEpoch(day) : this.now(), isDaily ? { day, seed: dailySeed(day) } : null);
@@ -291,6 +293,13 @@ export class VoyageGame extends FrameLoop {
   }
 
   public resume(): void {
+    // Held still for a photo, it goes on only when photo mode ends.
+    if (this.isPhoto) {
+      this.wasRunningBeforePhoto = this.simulation.state.status === "flying";
+
+      return;
+    }
+
     if (this.simulation.state.status === "flying") {
       this.lastFrameAt = 0;
       this.start();
@@ -372,6 +381,9 @@ export class VoyageGame extends FrameLoop {
 
         hangar.reset();
         this.career?.replace({ xp: 0, active: [], done: [], contracts: 0, codex: [], daily: null });
+        // A pilot starting over has no best run of the day to fly beside.
+        this.ghost = null;
+        this.renderer.setGhost(null);
         this.redraw();
 
         return true;
@@ -431,6 +443,8 @@ export class VoyageGame extends FrameLoop {
 
     if (isOn) {
       this.wasRunningBeforePhoto = this.isRunning;
+      // Nothing steers while the view is held, nor towards where the pointer was after.
+      this.pointer = null;
       this.stop();
     }
 

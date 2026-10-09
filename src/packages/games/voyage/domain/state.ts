@@ -144,6 +144,8 @@ export interface VoyageState {
   // The day of the daily voyage this run is (UTC, "2026-10-09"), or null for a free run; the giants skimmed.
   daily: string | null;
   skimmed: Set<string>;
+  // The nearest the ship has come to our Sun this run, in AU.
+  closestAu: number;
   faults: Fault[];
   nextFaultId: number;
   salvage: { wreck: Entity; progress: number } | null;

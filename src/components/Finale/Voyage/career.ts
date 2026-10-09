@@ -96,7 +96,7 @@ export const careerNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
 
   switch (notice.kind) {
     case "missionDone":
-      return fill(copy.missionDone, { mission: missionName(content, notice.mission), xp: notice.xp, coin: notice.coin });
+      return fill(notice.coin > 0 ? copy.missionDone : copy.missionDoneXp, { mission: missionName(content, notice.mission), xp: notice.xp, coin: notice.coin });
     case "promoted":
       return fill(copy.promoted, { rank: rankName(content, notice.rank) });
     case "discovered": {

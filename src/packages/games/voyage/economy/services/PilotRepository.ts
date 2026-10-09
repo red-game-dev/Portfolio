@@ -45,6 +45,10 @@ export class PilotRepository {
     await Promise.all([this.repository.clear(), this.ghost.clear()]);
   }
 
+  public clearGhost(): Promise<void> {
+    return this.ghost.clear();
+  }
+
   public loadGhost(): Promise<GhostRun | null> {
     return this.ghost.load();
   }

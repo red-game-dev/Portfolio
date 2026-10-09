@@ -1,6 +1,7 @@
 import type { System } from "@/packages/games/engine";
 
 import { Waypoint } from "../domain/state";
+import { auForRadius } from "../utils/scale";
 import { VoyageContext } from "./context";
 import { distanceFromStar, isInSystem, isSolar, shipOf } from "./queries";
 
@@ -32,6 +33,11 @@ export class NavigationSystem implements System<VoyageContext> {
       const { system } = state;
       const solar = isSolar(context);
       const out = distanceFromStar(context, body);
+
+      // The nearest the ship has come to our Sun this run (AU), measured every step so no fast pass is missed.
+      if (solar) {
+        state.closestAu = Math.min(state.closestAu, auForRadius(system.scale, Math.max(out, system.star.radius)));
+      }
 
       system.bodies.forEach((place) => {
         if (!place.isShattered && !state.passed.has(place.id) && Math.hypot(place.x - body.x, place.y - body.y) < place.radius * PASS_RADII + PASS_MARGIN) {

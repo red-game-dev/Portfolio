@@ -17,6 +17,10 @@ export class ThermalSystem implements System<VoyageContext> {
   public readonly name = "thermal";
   private isMelting = false;
 
+  public reset(): void {
+    this.isMelting = false;
+  }
+
   public update(context: VoyageContext, dt: number): void {
     const { state, config, events } = context;
     const parts = shipOf(context);

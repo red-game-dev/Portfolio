@@ -2,7 +2,7 @@ import { CODEX, CODEX_IDS } from "../config/codex";
 import { BOARD_SIZE, contractFor, MISSIONS, missionById } from "../config/missions";
 import { rankFor, RANKS } from "../config/ranks";
 import { advance, targetOf } from "../core/MissionBoard";
-import { CareerEvent, CareerProfile, CareerView, MissionDone, MissionProgress, MissionSpec } from "../domain/career";
+import { CareerEvent, CareerProfile, CareerView, MissionDone, MissionGoal, MissionProgress, MissionSpec } from "../domain/career";
 
 // A pilot who has done nothing yet.
 export const newCareer = (): CareerProfile => ({ xp: 0, active: [], done: [], contracts: 0, codex: [], daily: null });
@@ -84,9 +84,15 @@ export class Career {
     });
 
     done.forEach(({ mission, xp }) => {
+      const isContract = mission.id.startsWith("contract:");
+
       this.profile.xp += xp;
-      this.profile.done.push(mission.id);
-      this.profile.contracts += mission.id.startsWith("contract:") ? 1 : 0;
+      // Contracts are only counted: their ids would pile up for ever.
+      this.profile.contracts += isContract ? 1 : 0;
+
+      if (!isContract) {
+        this.profile.done.push(mission.id);
+      }
     });
 
     if (done.length > 0) {
@@ -100,6 +106,11 @@ export class Career {
     const rank = this.rank;
 
     return { done, promoted: rank > rankBefore ? rank : null };
+  }
+
+  // Whether a mission of this kind is on the board, so what only it would count need not be offered.
+  public isWatching(kind: MissionGoal["kind"]): boolean {
+    return this.profile.active.some((entry) => missionById(entry.id)?.goal.kind === kind);
   }
 
   // Marks something seen in the codex; whether it was new.
@@ -148,7 +159,7 @@ export class Career {
       missions: this.profile.active.map((entry) => ({ entry, mission: missionById(entry.id) }))
         .filter((item): item is { entry: MissionProgress; mission: MissionSpec } => item.mission !== null)
         .map(({ entry, mission }) => ({ mission, progress: entry.progress, target: targetOf(mission.goal) })),
-      done: this.profile.done.length,
+      done: this.profile.done.length + this.profile.contracts,
       codex: CODEX.map((entry) => ({ entry, isFound: found.has(entry.id) })),
       found: CODEX.filter((entry) => found.has(entry.id)).length,
       daily: this.profile.daily ? { ...this.profile.daily } : null,

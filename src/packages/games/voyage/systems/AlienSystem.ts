@@ -49,6 +49,10 @@ export class AlienSystem implements System<VoyageContext> {
   public readonly name = "aliens";
   private sincePopulate = POPULATE_MS;
 
+  public reset(): void {
+    this.sincePopulate = POPULATE_MS;
+  }
+
   public update(context: VoyageContext, dt: number): void {
     const { state, world } = context;
     const parts = shipOf(context);

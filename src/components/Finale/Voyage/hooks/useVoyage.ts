@@ -18,6 +18,9 @@ const KEYS: Record<string, "left" | "right" | "burn" | "brake"> = {
   s: "brake",
 };
 
+// How far an arrow looks round in photo mode (CSS pixels the view moves).
+const PHOTO_PAN: Record<string, [number, number] | undefined> = { ArrowLeft: [60, 0], ArrowRight: [-60, 0], ArrowUp: [0, 60], ArrowDown: [0, -60] };
+
 // How much a notch of the wheel, or a key, zooms.
 const WHEEL_ZOOM = 0.0015;
 const KEY_ZOOM = 1.25;
@@ -88,7 +91,9 @@ export interface VoyageNames {
 
 export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labels, universes, syllables }: VoyageNames) => {
   const [snapshot, setSnapshot] = useState<VoyageSnapshot | null>(null);
-  const [notice, setNotice] = useState<VoyageNotice | null>(null);
+  // Notices queue up: several can come in the same moment (a run paid, a mission done, a promotion), and each
+  // must be heard.
+  const [notices, setNotices] = useState<VoyageNotice[]>([]);
   const [isPaused, setIsPaused] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [economy, setEconomy] = useState<EconomyView | null>(null);
@@ -134,7 +139,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
           career: opened.career,
           ghost,
           onChange: setSnapshot,
-          onNotice: setNotice,
+          onNotice: (next) => setNotices((queue) => [...queue, next]),
           onEconomy: setEconomy,
           onCareer: setCareer,
           // A better run of today's daily voyage is kept as the ghost to fly beside next time.
@@ -182,7 +187,19 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
   }, [game, snapshot]);
 
-  const act = useCallback((action: VoyageAction) => game?.act(action) ?? false, [game]);
+  // Done with the first `count` notices.
+  const takeNotices = useCallback((count: number) => setNotices((queue) => queue.slice(count)), []);
+
+  const act = useCallback((action: VoyageAction) => {
+    const isDone = game?.act(action) ?? false;
+
+    // Starting over wipes the kept ghost too.
+    if (isDone && action.kind === "reset") {
+      void pilot.current?.repository.clearGhost();
+    }
+
+    return isDone;
+  }, [game]);
 
   const follow = useCallback((suggestion: Suggestion) => game?.follow(suggestion) ?? false, [game]);
 
@@ -290,6 +307,17 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     // With the hangar open, only its own keys work: the run is held still under it. In photo mode the same goes
     // for its own: zoom, the camera key and Escape.
     if (isHangarOpen && key !== "h" && key !== "Escape" && key !== "u") {
+      return;
+    }
+
+    // Photo mode is looked round with the arrows too, not only by dragging.
+    if (isPhoto && PHOTO_PAN[key]) {
+      event.preventDefault();
+
+      const [dx, dy] = PHOTO_PAN[key];
+
+      game?.panBy(dx, dy);
+
       return;
     }
 
@@ -451,7 +479,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
   return {
     snapshot,
-    notice,
+    notices,
+    takeNotices,
     economy,
     career,
     isPhoto,

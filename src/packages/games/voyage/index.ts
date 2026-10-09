@@ -40,6 +40,7 @@ export { GHOST_STRIDE } from "./domain/ghost";
 export { ghostAt, GhostRecorder, placeCode } from "./core/GhostRecorder";
 export { isGhostRun } from "./guards/isGhostRun";
 export { dailyEpoch, dailySeed, dayKey } from "./utils/daily";
+export { StepRandom } from "./utils/stepRandom";
 export { PilotLink } from "./services/PilotLink";
 export type {
   ClockConfig,

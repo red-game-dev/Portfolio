@@ -120,10 +120,15 @@ export class PilotLink {
       events.on("salvaged", ({ wreck, kind, loot }) => {
         const { kept, lost, blueprints } = hangar.stow(loot);
 
-        // What does not fit stays on the wreck for when there is room.
+        // What does not fit stays on the wreck for when there is room; the wreck counts as salvaged only once
+        // it is stripped, so a full hold cannot salvage one wreck over and over.
         simulation.returnLoot(wreck, { items: lost, blueprints: [] });
         this.notify({ kind: "salvaged", wreck: kind, kept, lost, blueprints });
-        this.count({ kind: "salvaged" });
+
+        if (lost.length === 0) {
+          this.count({ kind: "salvaged" });
+        }
+
         this.discover(codexId("wrecks", kind));
         kept.forEach(({ id }) => this.discover(codexId("things", id), false));
       }),
@@ -165,9 +170,9 @@ export class PilotLink {
         this.peril = null;
       }
 
-      const { au } = snapshot.telemetry;
+      const au = this.simulation.state.closestAu;
 
-      if (au !== null && au < SUN_WATCH_AU) {
+      if (au < SUN_WATCH_AU && this.career?.isWatching("sun")) {
         this.count({ kind: "sun", au });
       }
 
@@ -217,7 +222,10 @@ export class PilotLink {
 
   private settle({ done, promoted }: CareerOutcome): void {
     done.forEach(({ mission, xp, coin }) => {
-      this.hangar.reward({ kind: "mission", id: mission.id, coin });
+      if (coin > 0) {
+        this.hangar.reward({ kind: "mission", id: mission.id, coin });
+      }
+
       this.notify({ kind: "missionDone", mission: mission.id, xp, coin });
     });
 

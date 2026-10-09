@@ -151,7 +151,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, career, is
                     <Meter role="meter" aria-label={missionName(content, mission.id)} aria-valuemin={0} aria-valuemax={target} aria-valuenow={progress}>
                       <BarFill colour="#7dffcf" style={{ transform: `scaleX(${target > 0 ? progress / target : 0})` }} />
                     </Meter>
-                    <Note>{fill(careerCopy.reward, { xp: mission.xp, coin: mission.coin })}</Note>
+                    <Note>{fill(mission.coin > 0 ? careerCopy.reward : careerCopy.rewardXp, { xp: mission.xp, coin: mission.coin })}</Note>
                   </Item>
                 ))}
               </Items>

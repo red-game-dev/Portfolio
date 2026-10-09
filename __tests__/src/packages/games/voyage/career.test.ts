@@ -25,6 +25,7 @@ import {
   RANKS,
   resolveVoyageConfig,
   SolarSystemSource,
+  StepRandom,
   SystemService,
   VoyageConfig,
   VoyageNotice,
@@ -188,5 +189,60 @@ describe("voyage career", () => {
     expect(career.hasFound(codexId("worlds", "mars"))).toBe(true);
     expect(hangar.purse.RED).toBeGreaterThanOrEqual(25 + 15 + MISSIONS[0].coin);
     expect(hangar.view().history.some((row) => row.memo === "mission:landMoon")).toBe(true);
+  });
+
+  test("a daily run's draws start over at every step, so what one pilot does differently does not change the rest", () => {
+    const first = new StepRandom(dailySeed("2026-10-09"));
+    const second = new StepRandom(dailySeed("2026-10-09"));
+
+    first.reseed(240);
+    second.reseed(240);
+    // One pilot's ship was hit this step, which drew from it twice more.
+    first.next();
+    first.next();
+    first.reseed(241);
+    second.reseed(241);
+    expect([first.next(), first.next()]).toEqual([second.next(), second.next()]);
+  });
+
+  test("a wreck salvaged with a full hold is not counted until it is stripped, and a mission paying no coin writes no entry", () => {
+    const simulation = create();
+    const hangar = new Hangar({ ...newProfile(), cargo: [{ id: "titanium", count: 7 }] });
+    const career = new Career({ ...newCareer(), active: [{ id: "salvageOne", progress: 0 }, { id: "upgradeThree", progress: 0 }] });
+    const link = new PilotLink({ simulation, hangar, career, nameOf: (id) => id, notify: () => undefined, refresh: () => undefined });
+
+    link.attach();
+    simulation.start(EPOCH);
+    link.startRun();
+    simulation.events.emit("salvaged", { wreck: 0, x: 0, y: 0, kind: "rocket", loot: { items: [{ id: "titanium", count: 2 }], blueprints: [] } });
+    expect(career.view().missions.find(({ mission }) => mission.id === "salvageOne")?.progress).toBe(0);
+
+    simulation.events.emit("salvaged", { wreck: 0, x: 0, y: 0, kind: "rocket", loot: { items: [], blueprints: [] } });
+    expect(career.view().missions.some(({ mission }) => mission.id === "salvageOne")).toBe(false);
+
+    const entries = hangar.view().history.length;
+
+    link.upgraded(3);
+    expect(hangar.view().history.length).toBe(entries);
+  });
+
+  test("contracts are counted, not kept by id, and the Sun's nearest pass is told only to a mission that wants it", () => {
+    const career = new Career({ ...newCareer(), xp: 99999, done: MISSIONS.map((mission) => mission.id) });
+
+    expect(career.isWatching("sun")).toBe(false);
+    [1, 2, 3, 4].forEach(() => career.record({ kind: "salvaged" }));
+    expect(career.toProfile().done).toHaveLength(MISSIONS.length);
+    expect(career.toProfile().contracts).toBe(1);
+    expect(career.view().done).toBe(MISSIONS.length + 1);
+    expect(new Career().isWatching("land")).toBe(true);
+  });
+
+  test("the nearest the ship comes to the Sun is measured every step", () => {
+    const simulation = create();
+
+    simulation.start(EPOCH);
+    simulation.step(100);
+    expect(simulation.state.closestAu).toBeGreaterThan(0.9);
+    expect(simulation.state.closestAu).toBeLessThan(1.1);
   });
 });

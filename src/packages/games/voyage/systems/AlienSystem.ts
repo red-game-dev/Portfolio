@@ -21,8 +21,11 @@ const GUNS: Record<Weapon["kind"], [number, number, number, number]> = {
   spit: [18, 1.1, 5, 4.5],
   photoid: [700, 0.2, 60, 9],
 };
-// Packs are let go this far from the ship when not chasing it; a fleeing one escapes this far.
+// Packs are let go this far from the ship when not chasing it; a fleeing one escapes this far. Traders keep to
+// a few at a time; a fight is fought close enough to see.
 const LET_GO = 32;
+const MAX_TRADERS = 3;
+const FIGHT_RANGE = 2.4;
 const ESCAPED = 18;
 // A ram costs both sides this much.
 const RAM = 45;
@@ -78,8 +81,11 @@ export class AlienSystem implements System<VoyageContext> {
     const wanted = Math.round((config.life.packs + cosmos.danger * config.life.packsPerDanger) * 2.5);
     const living = world.stores.alien.values.filter((alien) => alien.role !== "whale" && alien.role !== "boss").length;
 
-    if (cosmos.factions.length > 0 && living < wanted) {
-      const faction = cosmos.factions[Math.floor(random() * cosmos.factions.length)];
+    const traders = world.stores.alien.values.filter((alien) => alien.role === "trader").length;
+    const open = cosmos.factions.filter((faction) => faction.disposition !== "peaceful" || traders < MAX_TRADERS);
+
+    if (open.length > 0 && living < wanted) {
+      const faction = open[Math.floor(random() * open.length)];
       const home = this.spot(context, randomBetween(random, config.life.spawnDistance[0], config.life.spawnDistance[1]));
 
       for (let member = 0; member < (faction.disposition === "peaceful" ? 1 : faction.pack); member += 1) {
@@ -218,7 +224,7 @@ export class AlienSystem implements System<VoyageContext> {
 
     if (alien.mode === "chase") {
       const weapon = world.stores.weapon.get(entity);
-      const range = (weapon?.range ?? 3) * 0.7;
+      const range = Math.min(FIGHT_RANGE, (weapon?.range ?? 3) * 0.7);
       const closing = distance > range + 0.8 ? 1 : distance < range - 0.8 ? -1 : 0;
       const circle = entity % 2 === 0 ? 1 : -1;
 

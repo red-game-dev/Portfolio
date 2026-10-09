@@ -11,6 +11,7 @@ const RADAR_RADIUS_NARROW = 44;
 const RADAR_RANGE = 9;
 const RADAR_MARGIN = 14;
 const LABEL_FONT = "11px Roboto, Arial, sans-serif";
+const RADAR_STANDING = { hostile: "#ff8a5c", territorial: "#ffb347", neutral: "#ffd76a", peaceful: "#6ee7a8" };
 const INK = "#c4d2ff";
 
 // The ship as a small arrow pointing where it is pointed.
@@ -247,6 +248,25 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
 
       if (hole) {
         plot(hole.x, hole.y, 3.5, theme.disk);
+      }
+    });
+
+    // Who lives here, coloured as their nameplates are: red once coming for the ship.
+    world.stores.alien.entities.forEach((entity, index) => {
+      const alien = world.stores.alien.values[index];
+      const at = world.stores.body.get(entity);
+      const disposition = alien.faction >= 0 ? state.cosmos?.factions[alien.faction]?.disposition : "peaceful";
+
+      if (at) {
+        plot(at.x, at.y, alien.role === "boss" ? 3.6 : alien.role === "whale" ? 3 : 2, alien.threat > 0 ? "#ff4d5e" : RADAR_STANDING[disposition ?? "peaceful"]);
+      }
+    });
+
+    world.stores.impactor.entities.forEach((entity) => {
+      const at = world.stores.body.get(entity);
+
+      if (at) {
+        plot(at.x, at.y, 2.6, "#ff8a5c");
       }
     });
 

@@ -73,8 +73,11 @@ const DEADZONE = 26;
 const FULL_THRUST_SHARE = 0.32;
 // World units across the shorter side of the screen at zoom 1.
 const UNITS_ACROSS = 2.2;
-// How near a click must land to lock onto something (CSS pixels).
+// How near a click must land to lock onto something (CSS pixels); how far off an attacker draws the camera
+// back to show it, and the room left round it (world units).
 const LOCK_SLACK = 30;
+const ATTACK_REACH = 7;
+const ATTACK_MARGIN = 0.9;
 // How far the player can zoom out and in, against the camera's own choice.
 const ZOOM_RANGE: [number, number] = [0.3, 3];
 
@@ -263,6 +266,24 @@ export class VoyageGame extends FrameLoop {
     }
   }
 
+  // How far the nearest one coming for the ship is, within reach of a fight; null when none is.
+  private nearestAttacker(x: number, y: number): number | null {
+    const { world } = this.simulation;
+    let nearest: number | null = null;
+
+    world.stores.alien.entities.forEach((entity, index) => {
+      const alien = world.stores.alien.values[index];
+      const at = world.stores.body.get(entity);
+      const distance = at ? Math.hypot(at.x - x, at.y - y) : Infinity;
+
+      if (alien.threat > 0 && alien.mode !== "evade" && distance < ATTACK_REACH && (nearest === null || distance < nearest)) {
+        nearest = distance;
+      }
+    });
+
+    return nearest;
+  }
+
   // A place's made up name where it has one, else its id for the host to name.
   private nameOf(id: string): string {
     return this.simulation.state.cosmos?.names[id] ?? id;
@@ -321,6 +342,15 @@ export class VoyageGame extends FrameLoop {
     const lookAhead = state.capture ? 0 : 0.4;
     const fall = state.capture?.progress ?? 0;
     let zoom = 1 - Math.min(0.3, (speed / config.ship.maxSpeed) * 0.3);
+
+    // In a fight, pull back far enough to see who is shooting.
+    const attacker = this.nearestAttacker(x, y);
+
+    if (attacker !== null) {
+      const fit = Math.min(this.size.width, this.size.height) / 2 / this.camera.scale * this.camera.zoom;
+
+      zoom = Math.min(zoom, Math.max(0.45, fit / (attacker + ATTACK_MARGIN)));
+    }
 
     if (ship?.landedOn) {
       zoom = 1.2;

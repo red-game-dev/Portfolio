@@ -1,4 +1,4 @@
-import { RandomSource } from "@/packages/math/random";
+import { pick, RandomSource } from "@/packages/math/random";
 
 import { GlyphSource } from "../domain/types";
 
@@ -15,6 +15,6 @@ export class CharacterGlyphSource implements GlyphSource {
   }
 
   public next(random: RandomSource): string {
-    return this.characters[Math.floor(random() * this.characters.length)];
+    return pick(random, this.characters);
   }
 }

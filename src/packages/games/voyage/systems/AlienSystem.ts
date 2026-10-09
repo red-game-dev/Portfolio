@@ -1,6 +1,6 @@
 import type { Entity, System } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
-import { randomBetween } from "@/packages/math/random";
+import { pick, randomBetween } from "@/packages/math/random";
 
 import { Alien, AlienRole, Weapon } from "../domain/components";
 import { FactionSpec } from "../domain/universe";
@@ -113,7 +113,7 @@ export class AlienSystem implements System<VoyageContext> {
     const open = cosmos.factions.filter((faction) => faction.disposition !== "peaceful" || traders < MAX_TRADERS);
 
     if (open.length > 0 && living < wanted) {
-      const faction = open[Math.floor(random() * open.length)];
+      const faction = pick(random, open);
       const home = this.spot(context, randomBetween(random, config.life.spawnDistance[0], config.life.spawnDistance[1]));
 
       for (let member = 0; member < (faction.disposition === "peaceful" ? 1 : faction.pack); member += 1) {
@@ -141,7 +141,7 @@ export class AlienSystem implements System<VoyageContext> {
       return;
     }
 
-    const faction = fighters[Math.floor(random() * fighters.length)];
+    const faction = pick(random, fighters);
     const home = this.spot(context, 12);
 
     state.boss = this.spawn(context, faction, "boss", home.x, home.y);

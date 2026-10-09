@@ -1,4 +1,4 @@
-import { createSeededRandom, randomBetween } from "@/packages/math/random";
+import { createSeededRandom, pick, randomBetween } from "@/packages/math/random";
 
 describe("math/random", () => {
   test("the same seed replays the same sequence", () => {
@@ -26,5 +26,25 @@ describe("math/random", () => {
     const values = Array.from({ length: 200 }, () => randomBetween(random, 5, 10));
 
     expect(values.every((value) => value >= 5 && value < 10)).toBe(true);
+  });
+
+  test("pick takes one item for one draw, the whole range reachable, and nothing from an empty list", () => {
+    const items = ["a", "b", "c", "d"];
+
+    expect(pick(() => 0, items)).toBe("a");
+    expect(pick(() => 0.5, items)).toBe("c");
+    expect(pick(() => 0.999, items)).toBe("d");
+    // A source that returned 1 still lands on the last item.
+    expect(pick(() => 1, items)).toBe("d");
+    expect(pick(() => 0.3, [])).toBeUndefined();
+
+    let draws = 0;
+
+    pick(() => {
+      draws += 1;
+
+      return 0.2;
+    }, items);
+    expect(draws).toBe(1);
   });
 });

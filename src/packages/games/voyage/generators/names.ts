@@ -1,8 +1,6 @@
-import { RandomSource } from "@/packages/math/random";
+import { pick, RandomSource } from "@/packages/math/random";
 
 import { Disposition, UniverseNames } from "../domain/universe";
-
-const pick = <T>(random: RandomSource, items: readonly T[]): T => items[Math.min(items.length - 1, Math.floor(random() * items.length))];
 
 const capitalise = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 

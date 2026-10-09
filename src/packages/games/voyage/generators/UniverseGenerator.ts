@@ -1,7 +1,7 @@
 import { hslToHex } from "@/packages/graphics/colour";
 import type { GlobeLook, SurfaceKind } from "@/packages/graphics/globe";
 import { TAU } from "@/packages/math/angles";
-import { createSeededRandom, RandomSource, randomBetween } from "@/packages/math/random";
+import { createSeededRandom, pick, RandomSource, randomBetween } from "@/packages/math/random";
 import { poleVector } from "@/packages/physics/kepler";
 import { muForSurfaceGravity } from "@/packages/physics/newtonian";
 
@@ -84,8 +84,6 @@ const weighted = <T>(random: RandomSource, options: Array<[T, number]>): T => {
 
   return options[options.length - 1][0];
 };
-
-const pick = <T>(random: RandomSource, items: readonly T[]): T => items[Math.min(items.length - 1, Math.floor(random() * items.length))];
 
 // Makes universes. Everything in one comes from its seed, so a run that passes the same way sees the same
 // universes, and every one differs from the last: its star (or none), worlds whose kind follows from how much
@@ -317,7 +315,7 @@ export class UniverseGenerator {
 
   private belt(random: RandomSource, bodies: SystemBody[], scale: SystemScale) {
     const distances = bodies.map((body) => (body.orbit.kind === "circle" ? body.orbit.distance : 0)).sort((first, second) => first - second);
-    const after = distances[Math.floor(random() * distances.length)] ?? 10;
+    const after = pick(random, distances) ?? 10;
     const inner = after + 2.5;
 
     return { id: "belt", inner, outer: inner + randomBetween(random, 2.5, 5), density: randomBetween(random, 0.5, 1.2), isIcy: auForRadius(scale, inner) > 4 };

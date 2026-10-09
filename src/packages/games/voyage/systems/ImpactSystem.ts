@@ -1,7 +1,7 @@
 import type { System } from "@/packages/games/engine";
 import { RAD, TAU } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
-import { randomBetween } from "@/packages/math/random";
+import { pick, randomBetween } from "@/packages/math/random";
 
 import { SystemBody } from "../domain/content";
 import { VoyageContext } from "./context";
@@ -88,7 +88,7 @@ export class ImpactSystem implements System<VoyageContext> {
     }
 
     const near = state.system.bodies.filter((body) => !body.isShattered && Math.hypot(body.x - parts.body.x, body.y - parts.body.y) < TARGET_REACH);
-    const target = near[Math.floor(random() * near.length)];
+    const target = pick(random, near);
 
     if (!target) {
       return;

@@ -1,7 +1,7 @@
 import { Canvas2DContext, createGlowSprite, DrawableSurface } from "@/packages/graphics/canvas";
 import { clamp } from "@/packages/math/clamp";
 import { lerp } from "@/packages/math/easing";
-import { randomBetween, RandomSource } from "@/packages/math/random";
+import { pick, randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
 
@@ -167,7 +167,7 @@ export class NeuralScene implements Scene {
       return;
     }
 
-    const target = neighbours[Math.floor(this.random() * neighbours.length)];
+    const target = pick(this.random, neighbours);
 
     this.pulses.push({ from, to: target.index, progress: 0, speed: randomBetween(this.random, 0.0007, 0.0014) });
   }

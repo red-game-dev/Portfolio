@@ -18,3 +18,7 @@ export const createSeededRandom = (seed: number): RandomSource => {
 };
 
 export const randomBetween = (random: RandomSource, min: number, max: number) => min + random() * (max - min);
+
+// One of `items`, each as likely as the others, for one draw of `random` (undefined when there are none). The
+// index is held below the length, so a source that ever returned 1 still lands on the last item.
+export const pick = <T>(random: RandomSource, items: readonly T[]): T => items[Math.min(items.length - 1, Math.floor(random() * items.length))];

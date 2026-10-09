@@ -34,15 +34,22 @@ export const distanceFromStar = ({ state }: VoyageContext, body: Body): number =
 
 export const bodyById = ({ state }: VoyageContext, id: string): SystemBody | undefined => state.system.bodies.find((body) => body.id === id);
 
-// Whether the ship is among the planets, where their bodies, air and the star are part of the world.
-export const isInSystem = ({ state }: VoyageContext): boolean => state.phase === "solar" || state.phase === "singularity";
+// Whether the ship is among worlds (ours or a universe's), where their bodies, air and the star are part of the
+// world: everywhere but lost between universes.
+export const isInSystem = ({ state }: VoyageContext): boolean => state.phase !== "lost";
+
+// Whether the ship is in our own solar system.
+export const isSolar = ({ state }: VoyageContext): boolean => state.phase === "solar" || state.phase === "singularity";
 
 // Half the diagonal of the view, in world units: just past it, things are out of sight.
 export const viewRadius = ({ state }: VoyageContext): number => Math.hypot(state.view.halfWidth, state.view.halfHeight);
 
-// Takes everything but the ship out of the world, as a black hole does.
+// Takes everything but the ship out of the world, as a black hole does: rocks, pickups, holes, who lived there,
+// shots in flight, rocks headed for worlds and passing ships.
 export const clearSpace = ({ world, state }: VoyageContext): void => {
-  [world.stores.hazard, world.stores.pickup, world.stores.hole].forEach((store) => store.entities.forEach((entity) => world.despawn(entity)));
+  [world.stores.hazard, world.stores.pickup, world.stores.hole, world.stores.alien, world.stores.projectile, world.stores.impactor, world.stores.traffic]
+    .forEach((store) => store.entities.forEach((entity) => world.despawn(entity)));
+  state.lockedTarget = null;
   state.capture = null;
   state.storms = [];
 };

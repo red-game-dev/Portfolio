@@ -2,7 +2,7 @@ import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useRef,
 
 import { VOYAGE_TEXTURES, VOYAGE_THEME } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
-import type { VoyageGame, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
+import type { UniverseNames, VoyageGame, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
 
 // What each key asks of the ship: arrows and WASD turn and burn, down and S brake.
 const KEYS: Record<string, "left" | "right" | "burn" | "brake"> = {
@@ -76,7 +76,13 @@ export interface VoyageCanvasRefs {
 // Binds the voyage to its canvases: its code fetched when the dialog opens, the real maps after it, sized to the
 // stage, paused when the tab is hidden, flown by a mouse (no press needed), a finger (while it is down) or the
 // keys, zoomed by the wheel, a pinch or + and -, and its map opened with M.
-export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, labels: Record<string, string>) => {
+export interface VoyageNames {
+  labels: Record<string, string>;
+  universes: string[];
+  syllables: UniverseNames;
+}
+
+export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labels, universes, syllables }: VoyageNames) => {
   const [snapshot, setSnapshot] = useState<VoyageSnapshot | null>(null);
   const [notice, setNotice] = useState<VoyageNotice | null>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -98,7 +104,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, labels
 
       const voyage = Game.forCanvas(
         { back: context, front: frontContext, lens: lens.current, globe: document.createElement("canvas") },
-        { theme: VOYAGE_THEME, labels, quality: startingQuality(), onChange: setSnapshot, onNotice: setNotice },
+        { theme: VOYAGE_THEME, labels, universeNames: universes, syllables, quality: startingQuality(), onChange: setSnapshot, onNotice: setNotice },
       );
 
       loadTextures(voyage);
@@ -132,6 +138,12 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, labels
     setIsPaused(false);
     stage.current?.focus();
   }, [game, stage]);
+
+  const toggleGuns = useCallback(() => {
+    if (snapshot) {
+      game?.setAutoFire(!snapshot.autoFire);
+    }
+  }, [game, snapshot]);
 
   const toggleMap = useCallback(() => {
     setIsMapOpen((isOpen) => {
@@ -181,11 +193,14 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, labels
     } else if (key === "m" && snapshot && snapshot.status !== "ready") {
       event.preventDefault();
       toggleMap();
+    } else if (key === "f" && isFlying) {
+      event.preventDefault();
+      toggleGuns();
     } else if ((key === "+" || key === "=" || key === "-") && game) {
       event.preventDefault();
       game.zoomBy(key === "-" ? 1 / KEY_ZOOM : KEY_ZOOM);
     }
-  }, [applyKeys, game, isFlying, isPaused, pause, resume, snapshot, toggleMap]);
+  }, [applyKeys, game, isFlying, isPaused, pause, resume, snapshot, toggleGuns, toggleMap]);
 
   const onKeyUp = useCallback((event: KeyboardEvent<HTMLElement>) => {
     if (held.current.delete(keyOf(event))) {
@@ -226,6 +241,11 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, labels
   }, [game]);
 
   const onPointerDown = useCallback((event: PointerEvent<HTMLElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+
+    // A click or a tap on someone locks the guns on them; on nothing, lets go.
+    game?.lockAt({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+
     if (event.pointerType !== "mouse") {
       event.currentTarget.setPointerCapture(event.pointerId);
 
@@ -235,7 +255,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, labels
     }
 
     pointAt(event);
-  }, [pointAt, trackTouch]);
+  }, [game, pointAt, trackTouch]);
 
   const onPointerMove = useCallback((event: PointerEvent<HTMLElement>) => {
     if (event.pointerType !== "mouse" && trackTouch(event)) {
@@ -270,6 +290,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, labels
     pause,
     resume,
     toggleMap,
+    toggleGuns,
     onKeyDown,
     onKeyUp,
     onWheel,

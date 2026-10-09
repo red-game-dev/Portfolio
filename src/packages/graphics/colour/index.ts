@@ -14,3 +14,16 @@ export const rgbChannels = (hex: string) => hexToRgb(hex).join(", ");
 export const mixRgb = (from: Rgb, to: Rgb, amount: number): Rgb => [0, 1, 2].map((index) => Math.round(from[index] + (to[index] - from[index]) * amount)) as Rgb;
 
 export const rgba = ([red, green, blue]: Rgb, alpha: number) => `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(3)})`;
+
+// A colour from hue (degrees), saturation and lightness (0 to 1), as "#rrggbb".
+export const hslToHex = (hue: number, saturation: number, lightness: number): string => {
+  const h = ((hue % 360) + 360) % 360;
+  const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+  const x = chroma * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = lightness - chroma / 2;
+  const [r, g, b] = h < 60 ? [chroma, x, 0] : h < 120 ? [x, chroma, 0] : h < 180 ? [0, chroma, x] : h < 240 ? [0, x, chroma] : h < 300 ? [x, 0, chroma] : [chroma, 0, x];
+  const hex = (value: number) => Math.round((value + m) * 255).toString(16)
+.padStart(2, "0");
+
+  return `#${hex(r)}${hex(g)}${hex(b)}`;
+};

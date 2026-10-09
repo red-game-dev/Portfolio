@@ -8,9 +8,10 @@ import { RandomSource } from "@/packages/math/random";
 import { DEFAULT_VOYAGE_THEME, resolveVoyageConfig, VoyageConfigOverrides, VoyageTheme } from "../config";
 import { ModuleId } from "../domain/components";
 import { StarSystem } from "../domain/content";
-import { FlareClass, VoyageEvents } from "../domain/events";
+import { FlareClass, ImpactOutcome, VoyageEvents } from "../domain/events";
 import { VoyageInput } from "../domain/input";
 import { VoyageSnapshot } from "../domain/snapshot";
+import { UniverseNames } from "../domain/universe";
 import { CanvasVoyageRenderer, VoyageRenderer } from "../renderers/CanvasVoyageRenderer";
 import { universeOf } from "../renderers/frame";
 import { SystemService } from "../services/SystemService";
@@ -25,7 +26,14 @@ export type VoyageNotice =
   | { kind: "flare"; flareClass: FlareClass; isHeading: boolean }
   | { kind: "storm" }
   | { kind: "failing"; module: ModuleId; isGone: boolean }
-  | { kind: "melting"; temperatureC: number };
+  | { kind: "melting"; temperatureC: number }
+  | { kind: "impactAlert"; target: string; diameterKm: number; seconds: number }
+  | { kind: "impact"; target: string; outcome: ImpactOutcome; craterKm: number }
+  | { kind: "impactorBroken" | "deflected"; target: string }
+  | { kind: "boss"; name: string; isFallen: boolean }
+  | { kind: "heard" | "wormhole" }
+  | { kind: "supernova"; seconds: number; isBlown: boolean }
+  | { kind: "burst"; seconds: number; isFired: boolean };
 
 export interface VoyageOptions {
   config?: VoyageConfigOverrides;
@@ -34,8 +42,11 @@ export interface VoyageOptions {
   system?: StarSystem;
   // When the mission clock starts, for each run (ms since 1970); the real now unless a host says otherwise.
   now?: () => number;
-  // What to call each place on the system map, by id.
+  // What to call each place on the system map, by id; what the first universes are called (the site's zones,
+  // in the order of the theme's), and the syllables the rest are named from.
   labels?: Record<string, string>;
+  universeNames?: string[];
+  syllables?: UniverseNames;
   onChange?: (snapshot: VoyageSnapshot) => void;
   onNotice?: (notice: VoyageNotice) => void;
   // The quality level to start at (0 the finest); it steps down by itself if frames run slow.
@@ -64,6 +75,11 @@ const DEADZONE = 26;
 const FULL_THRUST_SHARE = 0.32;
 // World units across the shorter side of the screen at zoom 1.
 const UNITS_ACROSS = 2.2;
+// How near a click must land to lock onto something (CSS pixels); how far off an attacker draws the camera
+// back to show it, and the room left round it (world units).
+const LOCK_SLACK = 30;
+const ATTACK_REACH = 7;
+const ATTACK_MARGIN = 0.9;
 // How far the player can zoom out and in, against the camera's own choice.
 const ZOOM_RANGE: [number, number] = [0.3, 3];
 
@@ -142,6 +158,8 @@ export class VoyageGame extends FrameLoop {
       config: { ...config, universes: theme.universes.length },
       random: options.random ?? Math.random,
       epochMs: (options.now ?? Date.now)(),
+      names: options.syllables,
+      themes: theme.universes.map((universe, index) => ({ ...universe, name: options.universeNames?.[index] ?? universe.style })),
     });
     const presenter = lens ? LensingPresenter.create(lens) : null;
     const globes: GlobeRenderer = (globe ? WebGLGlobeRenderer.create(globe) : null) ?? new CanvasGlobeRenderer();
@@ -224,6 +242,37 @@ export class VoyageGame extends FrameLoop {
     this.presenter?.dispose();
   }
 
+  // Locks the guns on whoever, or whatever rock, is under a point on the screen (CSS pixels); a point on
+  // nothing lets go. Returns whether something was locked.
+  public lockAt(position: { x: number; y: number }): boolean {
+    const { world, state } = this.simulation;
+    const x = this.camera.toWorldX(position.x);
+    const y = this.camera.toWorldY(position.y);
+    let best: number | null = null;
+    let nearest = LOCK_SLACK / this.camera.scale;
+
+    [world.stores.alien, world.stores.impactor].forEach((store) => store.entities.forEach((entity) => {
+      const at = world.stores.body.get(entity);
+      const distance = at ? Math.hypot(at.x - x, at.y - y) - at.radius : Infinity;
+
+      if (distance < nearest) {
+        best = entity;
+        nearest = distance;
+      }
+    }));
+
+    this.simulation.lock(best);
+
+    return state.lockedTarget !== null;
+  }
+
+  // Whether the guns fire by themselves at what threatens the ship.
+  public setAutoFire(isOn: boolean): void {
+    this.simulation.setAutoFire(isOn);
+    this.publish(true);
+  }
+
+
   protected update(deltaMs: number): void {
     this.simulation.advance(deltaMs, this.input());
     this.followShip(deltaMs / 1000, false);
@@ -248,6 +297,29 @@ export class VoyageGame extends FrameLoop {
     if (this.overFor(now) > WRECK_MS && state.status === "over") {
       this.stop();
     }
+  }
+
+  // How far the nearest one coming for the ship is, within reach of a fight; null when none is.
+  private nearestAttacker(x: number, y: number): number | null {
+    const { world } = this.simulation;
+    let nearest: number | null = null;
+
+    world.stores.alien.entities.forEach((entity, index) => {
+      const alien = world.stores.alien.values[index];
+      const at = world.stores.body.get(entity);
+      const distance = at ? Math.hypot(at.x - x, at.y - y) : Infinity;
+
+      if (alien.threat > 0 && alien.mode !== "evade" && distance < ATTACK_REACH && (nearest === null || distance < nearest)) {
+        nearest = distance;
+      }
+    });
+
+    return nearest;
+  }
+
+  // A place's made up name where it has one, else its id for the host to name.
+  private nameOf(id: string): string {
+    return this.simulation.state.cosmos?.names[id] ?? id;
   }
 
   private overFor(now: number): number {
@@ -303,6 +375,15 @@ export class VoyageGame extends FrameLoop {
     const lookAhead = state.capture ? 0 : 0.4;
     const fall = state.capture?.progress ?? 0;
     let zoom = 1 - Math.min(0.3, (speed / config.ship.maxSpeed) * 0.3);
+
+    // In a fight, pull back far enough to see who is shooting.
+    const attacker = this.nearestAttacker(x, y);
+
+    if (attacker !== null) {
+      const fit = Math.min(this.size.width, this.size.height) / 2 / this.camera.scale * this.camera.zoom;
+
+      zoom = Math.min(zoom, Math.max(0.45, fit / (attacker + ATTACK_MARGIN)));
+    }
 
     if (ship?.landedOn) {
       zoom = 1.2;
@@ -369,6 +450,15 @@ export class VoyageGame extends FrameLoop {
       tell("storm", () => ({ kind: "storm" })),
       tell("failing", ({ module, isGone }) => ({ kind: "failing", module, isGone })),
       tell("melting", ({ temperatureC }) => ({ kind: "melting", temperatureC })),
+      tell("impactAlert", ({ target, diameterKm, seconds }) => ({ kind: "impactAlert", target: this.nameOf(target), diameterKm, seconds })),
+      tell("impact", ({ target, outcome, craterKm }) => ({ kind: "impact", target: this.nameOf(target), outcome, craterKm })),
+      tell("impactorBroken", ({ target }) => ({ kind: "impactorBroken", target: this.nameOf(target) })),
+      tell("deflected", ({ target }) => ({ kind: "deflected", target: this.nameOf(target) })),
+      tell("boss", ({ name, isFallen }) => ({ kind: "boss", name, isFallen })),
+      tell("heard", () => ({ kind: "heard" })),
+      tell("wormhole", () => ({ kind: "wormhole" })),
+      tell("supernova", ({ seconds, isBlown }) => ({ kind: "supernova", seconds, isBlown })),
+      tell("burst", ({ seconds, isFired }) => ({ kind: "burst", seconds, isFired })),
     ];
 
     return () => {

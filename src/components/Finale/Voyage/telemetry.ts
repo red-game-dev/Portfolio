@@ -52,7 +52,9 @@ export const telemetryRows = (content: FinaleVoyage, snapshot: VoyageSnapshot): 
     telemetry.timeDilation > 1.005
       ? { label: labels.dilation, value: sense(fill(units.dilation, { value: formatNumber(telemetry.timeDilation, 2) })), isKey: true }
       : null,
-    waypoint ? { label: labels.next, value: sense(`${stops[waypoint.id] ?? waypoint.id}, ${formatDistance(content, waypoint.distanceKm)}`), isKey: true } : null,
+    waypoint
+      ? { label: labels.next, value: sense(`${waypoint.name ?? stops[waypoint.id] ?? waypoint.id}, ${formatDistance(content, waypoint.distanceKm)}`), isKey: true }
+      : null,
   ];
 
   return rows.filter((row): row is TelemetryRow => row !== null);

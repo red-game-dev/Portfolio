@@ -8,6 +8,7 @@ import { VoyageWorld } from "../core/world";
 import { VoyageEvents } from "../domain/events";
 import { VoyageState } from "../domain/state";
 import { lerpX, lerpY, VoyageFrame } from "./frame";
+import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
 import { EffectsLayer } from "./layers/EffectsLayer";
 import { GlobesLayer } from "./layers/GlobesLayer";
@@ -15,6 +16,8 @@ import { HolesLayer } from "./layers/HolesLayer";
 import { RenderKit } from "./layers/kit";
 import { MapLayer } from "./layers/MapLayer";
 import { OverlayLayer } from "./layers/OverlayLayer";
+import { PhenomenaLayer } from "./layers/PhenomenaLayer";
+import { ProjectilesLayer } from "./layers/ProjectilesLayer";
 import { ShipLayer } from "./layers/ShipLayer";
 import { ThingsLayer } from "./layers/ThingsLayer";
 import { WeatherLayer } from "./layers/WeatherLayer";
@@ -69,10 +72,18 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.light = new EffectsLayer(this.kit, "front");
     this.overlay = new OverlayLayer(this.kit);
     this.map = new MapLayer(this.kit);
-    this.backLayers = new RenderPipeline([new BackdropLayer(this.kit), new GlobesLayer(this.kit), new WeatherLayer(this.kit), new HolesLayer(this.kit, "back")]);
+    this.backLayers = new RenderPipeline([
+      new BackdropLayer(this.kit),
+      new PhenomenaLayer(this.kit),
+      new GlobesLayer(this.kit),
+      new WeatherLayer(this.kit),
+      new HolesLayer(this.kit, "back"),
+    ]);
     this.frontLayers = new RenderPipeline([
       new HolesLayer(this.kit, "front"),
       new ThingsLayer(this.kit),
+      new AliensLayer(this.kit),
+      new ProjectilesLayer(this.kit),
       this.effects,
       this.ship,
       this.light,
@@ -195,6 +206,51 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
         this.overlay.flashScreen("#ffb070", 0.25 + strength * 0.5);
         camera.addTrauma(0.15 + strength * 0.3);
       }),
+      events.on("fired", ({ x, y, angle, team }) => {
+        const colour = team === "ship" ? "rgba(255, 220, 140, 1)" : "rgba(255, 120, 100, 1)";
+        const flash = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
+
+        particles.emit("glow", x, y, Math.cos(angle) * 0.3, Math.sin(angle) * 0.3, 0.08, 0.05, flash, { drag: 4 });
+      }),
+      events.on("struck", ({ x, y, toShields }) => this.sparks(x, y, toShields > 0 ? 5 : 8, toShields > 0 ? theme.shield : theme.flameEdge)),
+      events.on("downed", ({ x, y, role }) => {
+        const big = role === "boss" ? 3 : role === "whale" ? 2.4 : 1;
+
+        this.blast(x, y, 0.12 * big, camera, big > 1 ? 0.7 : 0.25);
+      }),
+      events.on("shattered", ({ x, y, radius }) => this.debris(x, y, radius, 10)),
+      events.on("impactorBroken", ({ x, y }) => {
+        this.blast(x, y, 0.15, camera, 0.3);
+        this.debris(x, y, 0.12, 16);
+      }),
+      events.on("impact", ({ x, y, outcome }) => {
+        const scale = outcome === "shattered" ? 6 : outcome === "catastrophe" ? 3 : outcome === "airburst" ? 0.8 : 1.4;
+
+        this.blast(x, y, 0.15 * scale, camera, Math.min(1, 0.2 * scale));
+        this.overlay.flashScreen("#fff1d6", Math.min(1, 0.15 * scale));
+
+        if (outcome !== "airburst") {
+          this.debris(x, y, 0.1 * scale, Math.round(12 * scale));
+        }
+      }),
+      events.on("supernova", ({ isBlown }) => {
+        if (isBlown) {
+          this.overlay.flashScreen("#ffffff", 1);
+          camera.addTrauma(0.8);
+        }
+      }),
+      events.on("burst", ({ isFired }) => {
+        if (isFired) {
+          this.overlay.flashScreen("#e8d8ff", 0.9);
+          camera.addTrauma(0.5);
+        }
+      }),
+      events.on("heard", () => this.overlay.flashScreen("#ff2030", 0.35)),
+      events.on("wormhole", () => {
+        this.overlay.flashScreen("#9ad8ff", 0.8);
+        camera.addTrauma(0.4);
+      }),
+      events.on("boss", ({ isFallen }) => camera.addTrauma(isFallen ? 0.9 : 0.4)),
       events.on("failing", ({ isGone }) => {
         const state = this.lastState;
         const body = state && this.lastWorld ? this.lastWorld.stores.body.get(state.ship) : undefined;
@@ -215,10 +271,49 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.light.clear();
   }
 
-  // A shower of sparks off the hull, as a system gives out.
-  private sparks(x: number, y: number, count: number): void {
-    const { particles, theme } = this.kit;
-    const spark = this.kit.cache.get(`glow:${theme.flameCore}`, 64, 64, paintGlow(theme.flameCore));
+  // A fireball and a ring of shock, as something is destroyed or something strikes.
+  private blast(x: number, y: number, radius: number, camera: Camera, trauma: number): void {
+    const { particles } = this.kit;
+    const fire = this.kit.cache.get("fire", 64, 64, paintGlow("rgba(255, 120, 40, 1)"));
+    const white = this.kit.cache.get("glow:#ffffff", 64, 64, paintGlow("#ffffff"));
+    const smoke = this.kit.cache.get("smoke", 64, 64, paintGlow("rgba(70, 70, 78, 0.9)"));
+
+    this.light.shockwave(x, y, radius * 30, 0.9);
+    particles.emit("glow", x, y, 0, 0, 0.5, radius * 5, white, { grow: -radius * 4, drag: 1 });
+
+    for (let index = 0; index < 18; index += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.3 + Math.random() * 1.6;
+
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+
+      particles.emit("glow", x, y, vx, vy, 0.4 + Math.random() * 0.5, radius * (1 + Math.random() * 1.5), fire, { drag: 1.8, grow: radius });
+      particles.emit("smoke", x, y, vx * 0.3, vy * 0.3, 1 + Math.random(), radius * 1.2, smoke, { drag: 0.9, grow: radius * 2 });
+    }
+
+    camera.addTrauma(trauma);
+  }
+
+  // Rock flung out in pieces.
+  private debris(x: number, y: number, radius: number, count: number): void {
+    const { particles } = this.kit;
+    const dust = this.kit.cache.get("glow:rgba(190, 170, 150, 1)", 64, 64, paintGlow("rgba(190, 170, 150, 1)"));
+
+    for (let index = 0; index < count; index += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.2 + Math.random() * 1.1;
+
+      const size = radius * (0.3 + Math.random() * 0.5);
+
+      particles.emit("smoke", x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, 0.8 + Math.random() * 0.8, size, dust, { drag: 0.6 });
+    }
+  }
+
+  // A shower of sparks, as a system gives out or a shot strikes.
+  private sparks(x: number, y: number, count: number, colour = this.kit.theme.flameCore): void {
+    const { particles } = this.kit;
+    const spark = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
 
     for (let index = 0; index < count; index += 1) {
       const angle = Math.random() * Math.PI * 2;

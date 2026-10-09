@@ -54,7 +54,7 @@ export class BackdropLayer implements RenderLayer<VoyageFrame> {
       this.kit.tile(back, backdrop, BACKDROP_TILE, -camera.x * base * depth, -camera.y * base * depth + state.elapsedMs * (universe.style === "matrix" ? 0.06 : 0), 0.9);
     }
 
-    if (state.phase === "solar" || state.phase === "singularity") {
+    if (state.system.star.luminosity > 0) {
       const { star, scale } = state.system;
       const out = Math.hypot(camera.x - star.x, camera.y - star.y);
 

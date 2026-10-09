@@ -2,11 +2,12 @@ import type { System } from "@/packages/games/engine";
 import { randomBetween } from "@/packages/math/random";
 
 import { VoyageContext } from "./context";
+import { missionTime, placeBodies } from "./orbits";
 import { placeBody, shipOf } from "./queries";
 
-// Time and the story: the singularity's pull grows once Pluto is behind until nothing escapes it; inside a
-// black hole the ship is lost for a while; out the other side it wakes in a universe, somewhere it has not been,
-// with black holes kept round it as the ways onward.
+// Time and the story: the singularity's pull grows once the ship is past the edge until nothing escapes it;
+// inside a black hole the ship is lost for a while; out the other side it wakes in a universe never seen
+// before, with black holes kept round it as the ways onward.
 export class PhaseSystem implements System<VoyageContext> {
   public readonly name = "phase";
 
@@ -41,30 +42,53 @@ export class PhaseSystem implements System<VoyageContext> {
     }
   }
 
+  // Out the other side: a universe made from the run's seed and how many have come before, its worlds set on
+  // their orbits, its strange things wound up, and the ship somewhere among them.
   private arrive(context: VoyageContext): void {
-    const { state, config, events, random } = context;
+    const { state, config, events, random, universes, themes } = context;
     const parts = shipOf(context);
-    const all = Array.from({ length: config.universes }, (_, index) => index).filter((index) => index !== state.universe);
-    const unseen = all.filter((index) => !state.visited.includes(index));
-    const choices = unseen.length > 0 ? unseen : all;
-    const universe = state.universes === 0 ? 0 : choices[Math.min(choices.length - 1, Math.floor(random() * choices.length))] ?? 0;
+    const index = state.universes;
+    const cosmos = universes.generate(index, state.runSeed + (index + 1) * 7919, themes[index] ?? null);
+    const supernova = cosmos.phenomena.some((phenomenon) => phenomenon.kind === "supernova");
 
-    state.universe = universe;
+    placeBodies(cosmos.system, missionTime(state.clock, state.elapsedMs));
+    state.cosmos = cosmos;
+    state.system = cosmos.system;
+    state.universe = index;
     state.universes += 1;
-    state.visited = state.visited.includes(universe) ? state.visited : [...state.visited, universe];
+    state.visited = [...state.visited, index];
     state.score += config.scoring.universe;
     state.phase = "universe";
     state.phaseMs = 0;
     state.passing = null;
+    state.storms = [];
+    state.craters = {};
+    state.boss = null;
+    state.bossFallen = false;
+    state.lockedTarget = null;
+    state.signature = 0;
+    state.phenomena = {
+      supernova: supernova ? { blowsAt: state.elapsedMs + randomBetween(random, 35, 70) * 1000, shock: 0, hasHit: false, isWarned: false } : null,
+      burst: null,
+      nextBurstAt: null,
+      pulsarAngle: random() * Math.PI * 2,
+      strikeAt: null,
+      jumpedAt: -1e9,
+    };
 
     if (parts) {
-      placeBody(parts.body, 0, 0, 0, -0.6);
+      const angle = random() * Math.PI * 2;
+      const out = cosmos.system.edge * 0.55;
+
+      placeBody(parts.body, cosmos.system.star.x + Math.cos(angle) * out, cosmos.system.star.y + Math.sin(angle) * out, 0, 0);
       parts.ship.angle = -Math.PI / 2;
       parts.ship.prevAngle = parts.ship.angle;
+      parts.ship.landedOn = null;
+      parts.ship.landedOffset = null;
       parts.health.rechargeIn = 0;
     }
 
-    events.emit("phase", { phase: "universe", universe });
+    events.emit("phase", { phase: "universe", universe: index });
   }
 
   private keepHoles(context: VoyageContext): void {

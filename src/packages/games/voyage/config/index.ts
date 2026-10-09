@@ -71,6 +71,36 @@ export interface WeatherConfig {
   auroraFade: number;
 }
 
+// The ship's gun: what it fires and how, and how far it reaches.
+export interface ArmsConfig {
+  damage: number;
+  rate: number;
+  range: number;
+  speed: number;
+  heat: number;
+  // A rock is shot down when it would hit within this many seconds.
+  threatSeconds: number;
+}
+
+// Who lives in the universes: how many groups round the ship (more as danger grows), how far out they appear,
+// and when the universe's boss shows itself (seconds there).
+export interface LifeConfig {
+  packs: number;
+  packsPerDanger: number;
+  spawnDistance: [number, number];
+  bossAfter: number;
+}
+
+// Rocks headed for worlds: how often (seconds), how fast, their real sizes in the solar system and in the
+// universes (km), and the share of the universes' that are whole planetoids.
+export interface ImpactConfig {
+  every: [number, number];
+  speed: [number, number];
+  solarKm: [number, number];
+  universeKm: [number, number];
+  planetoid: number;
+}
+
 export interface ClockConfig {
   // Mission hours that pass for each second flown.
   hoursPerSecond: number;
@@ -137,6 +167,11 @@ export interface VoyageConfig {
   flight: FlightConfig;
   thermal: ThermalConfig;
   weather: WeatherConfig;
+  arms: ArmsConfig;
+  life: LifeConfig;
+  impacts: ImpactConfig;
+  // Seconds between ships passing.
+  traffic: [number, number];
   spawn: SpawnConfig;
   holes: HoleConfig;
   pickups: PickupConfig;
@@ -183,6 +218,10 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     pressureBar: 50,
   },
   weather: { every: [55, 120], speed: [0.45, 1.2], width: [0.6, 1.5], heading: 0.45, drain: 280, sensors: 0.2, radiation: 60000, auroraFade: 0.05 },
+  arms: { damage: 32, rate: 3.2, range: 6.5, speed: 7, heat: 3, threatSeconds: 1.6 },
+  life: { packs: 2, packsPerDanger: 1, spawnDistance: [9, 16], bossAfter: 45 },
+  impacts: { every: [70, 150], speed: [0.7, 1.2], solarKm: [0.5, 15], universeKm: [200, 3500], planetoid: 0.3 },
+  traffic: [25, 60],
   spawn: { open: 5, belt: 28, universe: 13, universeGrowth: 4, minRadius: 0.04, maxRadius: 0.13, pickups: 5, cometEvery: [45, 100] },
   holes: {
     singularityMu: 4,

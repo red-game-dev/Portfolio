@@ -2,7 +2,7 @@ import type { System } from "@/packages/games/engine";
 
 import { Waypoint } from "../domain/state";
 import { VoyageContext } from "./context";
-import { distanceFromStar, isInSystem, shipOf } from "./queries";
+import { distanceFromStar, isInSystem, isSolar, shipOf } from "./queries";
 
 // How close to a body counts as visiting it, in its own radii, plus a margin.
 const PASS_RADII = 5;
@@ -30,15 +30,16 @@ export class NavigationSystem implements System<VoyageContext> {
 
     if (isInSystem(context)) {
       const { system } = state;
+      const solar = isSolar(context);
       const out = distanceFromStar(context, body);
 
       system.bodies.forEach((place) => {
-        if (!state.passed.has(place.id) && Math.hypot(place.x - body.x, place.y - body.y) < place.radius * PASS_RADII + PASS_MARGIN) {
+        if (!place.isShattered && !state.passed.has(place.id) && Math.hypot(place.x - body.x, place.y - body.y) < place.radius * PASS_RADII + PASS_MARGIN) {
           this.pass(context, place.id);
         }
       });
 
-      if (!state.passed.has(system.star.id) && out < system.star.radius * STAR_RADII) {
+      if (solar && !state.passed.has(system.star.id) && out < system.star.radius * STAR_RADII) {
         this.pass(context, system.star.id);
       }
 
@@ -48,7 +49,7 @@ export class NavigationSystem implements System<VoyageContext> {
         }
       });
 
-      if (out > system.edge && state.singularitySince === null) {
+      if (solar && out > system.edge && state.singularitySince === null) {
         const speed = Math.hypot(body.vx, body.vy);
         // Ahead of the ship if it is moving, otherwise straight out from the star.
         const dx = speed > 0.2 ? body.vx / speed : (body.x - system.star.x) / out;
@@ -97,6 +98,15 @@ export class NavigationSystem implements System<VoyageContext> {
         candidates.push({ id: isSingularity ? "singularity" : "hole", x: hole.x, y: hole.y, radius: isSingularity ? config.holes.singularityHorizon : hole.radius });
       }
     });
+
+    // In a universe, its worlds not yet seen are as much a way to go as its black holes.
+    if (state.phase === "universe") {
+      state.system.bodies.forEach((body) => {
+        if (!body.isShattered && !state.passed.has(body.id)) {
+          candidates.push({ id: body.id, x: body.x, y: body.y, radius: body.radius });
+        }
+      });
+    }
 
     if (candidates.length === 0 && state.phase !== "universe") {
       const { system } = state;

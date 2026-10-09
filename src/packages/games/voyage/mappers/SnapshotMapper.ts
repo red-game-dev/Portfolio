@@ -1,10 +1,11 @@
 import { Mapper } from "@/packages/core/domain";
+import type { Entity } from "@/packages/games/engine";
 import type { Vec3 } from "@/packages/physics/kepler";
 
 import { VoyageConfig } from "../config";
 import { VoyageWorld } from "../core/world";
 import { MODULE_IDS, Modules } from "../domain/components";
-import { VoyageSnapshot } from "../domain/snapshot";
+import { Frame, IncomingRock, VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState } from "../domain/state";
 import { auForRadius } from "../utils/scale";
 import { TelemetryMapper } from "./TelemetryMapper";
@@ -46,10 +47,17 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       fuel: Math.ceil(ship?.fuel ?? 0),
       maxFuel: ship?.maxFuel ?? 0,
       score: Math.floor(state.score),
-      passing: state.passing,
-      landedOn: ship?.landedOn ?? null,
+      universeName: state.phase === "universe" && state.cosmos ? state.cosmos.name : null,
+      passing: state.passing ? state.cosmos?.names[state.passing] ?? state.passing : null,
+      landedOn: ship?.landedOn ? state.cosmos?.names[ship.landedOn] ?? ship.landedOn : null,
       modules: MODULE_IDS.reduce<Modules>((all, id) => ({ ...all, [id]: Math.round(modules[id] * 100) / 100 }), { ...SOUND }),
-      waypoint: state.waypoint && body ? { id: state.waypoint.id, distanceKm: this.distanceKm(state, body.x, body.y) } : null,
+      waypoint: state.waypoint && body
+        ? { id: state.waypoint.id, name: state.cosmos?.names[state.waypoint.id] ?? null, distanceKm: this.distanceKm(state, body.x, body.y) }
+        : null,
+      target: state.lockedTarget !== null ? this.frame(state, world, state.lockedTarget) : null,
+      boss: state.boss !== null ? this.frame(state, world, state.boss) : null,
+      autoFire: state.autoFire,
+      incoming: body ? this.incoming(state, world, body.x, body.y) : null,
       telemetry: body && ship ? this.telemetry.map({ state, body, ship }) : {
         gravity: 0,
         dominant: null,
@@ -65,6 +73,67 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
         missionTime: state.clock.epochMs,
       },
     };
+  }
+
+  // Someone the guns are on, or the boss, for an MMO frame.
+  private frame(state: VoyageState, world: VoyageWorld, entity: Entity): Frame | null {
+    const alien = world.stores.alien.get(entity);
+    const health = world.stores.health.get(entity);
+    const impactor = world.stores.impactor.get(entity);
+
+    if (alien && health) {
+      const faction = alien.faction >= 0 ? state.cosmos?.factions[alien.faction] : undefined;
+
+      return {
+        name: faction?.name ?? "",
+        level: alien.level,
+        disposition: faction?.disposition ?? "peaceful",
+        role: alien.role,
+        hull: Math.ceil(Math.max(0, health.hull)),
+        maxHull: health.maxHull,
+        shields: Math.floor(health.shields),
+        maxShields: health.maxShields,
+      };
+    }
+
+    if (impactor) {
+      return { name: "", level: 0, disposition: null, role: null, hull: Math.ceil(impactor.hp), maxHull: Math.ceil(impactor.maxHp), shields: 0, maxShields: 0 };
+    }
+
+    return null;
+  }
+
+  // The nearest rock headed for a world: what it will hit, how big it is, and how long it has to go.
+  private incoming(state: VoyageState, world: VoyageWorld, x: number, y: number): IncomingRock | null {
+    let nearest: IncomingRock | null = null;
+    let best = Infinity;
+
+    world.stores.impactor.entities.forEach((entity, index) => {
+      const impactor = world.stores.impactor.values[index];
+      const rock = world.stores.body.get(entity);
+      const target = state.system.bodies.find((body) => body.id === impactor.target);
+
+      if (!rock || !target) {
+        return;
+      }
+
+      const distance = Math.hypot(rock.x - x, rock.y - y);
+      const closing = Math.hypot(rock.vx - target.vx, rock.vy - target.vy) || 1;
+
+      if (distance < best) {
+        best = distance;
+        nearest = {
+          target: state.cosmos?.names[target.id] ?? target.id,
+          diameterKm: Math.round(impactor.diameterKm * 10) / 10,
+          seconds: Math.max(0, Math.round((Math.hypot(rock.x - target.x, rock.y - target.y) - target.radius) / closing)),
+          hp: Math.ceil(Math.max(0, impactor.hp)),
+          maxHp: Math.ceil(impactor.maxHp),
+          isOnCourse: impactor.isOnCourse,
+        };
+      }
+    });
+
+    return nearest;
   }
 
   // The real distance to the compass's target: near it, measured in its own kilometres; across the system,

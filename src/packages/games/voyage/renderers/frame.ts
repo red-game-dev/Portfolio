@@ -31,6 +31,13 @@ export const SIZE_STEP = 2;
 
 export const sizeBucket = (pixels: number) => Math.max(SIZE_STEP, Math.round(pixels / SIZE_STEP) * SIZE_STEP);
 
-export const universeOf = (state: Readonly<VoyageState>, theme: VoyageTheme): VoyageUniverseTheme | null => (
-  state.phase === "universe" && state.universe >= 0 ? theme.universes[state.universe % theme.universes.length] ?? null : null
-);
+// The look of the universe the ship is in: its own, from its seed.
+export const universeOf = (state: Readonly<VoyageState>, theme: VoyageTheme): VoyageUniverseTheme | null => {
+  const { cosmos } = state;
+
+  if (state.phase !== "universe" || !cosmos) {
+    return null;
+  }
+
+  return { style: cosmos.style, accent: cosmos.accent, deep: cosmos.deep, hazard: cosmos.hazard || theme.danger };
+};

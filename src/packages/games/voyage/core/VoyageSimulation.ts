@@ -3,12 +3,16 @@ import { RandomSource } from "@/packages/math/random";
 import { createFieldSample, GravityField } from "@/packages/physics/newtonian";
 
 import { VoyageConfig } from "../config";
+import { DEFAULT_UNIVERSE_NAMES } from "../config/names";
 import { StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
 import { NO_INPUT, VoyageInput } from "../domain/input";
 import { VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState, VoyageStatus } from "../domain/state";
+import { UniverseNames } from "../domain/universe";
+import { UniverseGenerator, UniverseTheme } from "../generators/UniverseGenerator";
 import { SnapshotMapper } from "../mappers/SnapshotMapper";
+import { AlienSystem } from "../systems/AlienSystem";
 import { AtmosphereSystem } from "../systems/AtmosphereSystem";
 import { CaptureSystem } from "../systems/CaptureSystem";
 import { CollisionSystem } from "../systems/CollisionSystem";
@@ -16,14 +20,19 @@ import { VoyageContext } from "../systems/context";
 import { ControlSystem } from "../systems/ControlSystem";
 import { GravitySystem } from "../systems/GravitySystem";
 import { HealthSystem } from "../systems/HealthSystem";
+import { ImpactSystem } from "../systems/ImpactSystem";
 import { MotionSystem } from "../systems/MotionSystem";
 import { NavigationSystem } from "../systems/NavigationSystem";
 import { missionTime, placeBodies } from "../systems/orbits";
 import { OrbitSystem } from "../systems/OrbitSystem";
 import { PhaseSystem } from "../systems/PhaseSystem";
+import { PhenomenaSystem } from "../systems/PhenomenaSystem";
+import { ProjectileSystem } from "../systems/ProjectileSystem";
 import { SpawnSystem } from "../systems/SpawnSystem";
 import { SurfaceSystem } from "../systems/SurfaceSystem";
 import { ThermalSystem } from "../systems/ThermalSystem";
+import { TrafficSystem } from "../systems/TrafficSystem";
+import { WeaponSystem } from "../systems/WeaponSystem";
 import { AURORA_BASE, WeatherSystem } from "../systems/WeatherSystem";
 import { cloneSystem } from "../utils/system";
 import { createVoyageStores, VoyageWorld } from "./world";
@@ -31,6 +40,9 @@ import { createVoyageStores, VoyageWorld } from "./world";
 interface VoyageSimulationOptions {
   config: VoyageConfig;
   random: RandomSource;
+  // What universes are called and how the first ones look; made up from defaults where left out.
+  names?: UniverseNames;
+  themes?: UniverseTheme[];
   // The real moment the mission clock starts from (ms since 1970): now, for a visitor, so the planets are where
   // they really are today.
   epochMs: number;
@@ -42,8 +54,9 @@ const START_SPEED = 0.75;
 const START_C = 20;
 
 // The voyage as a world of entities and a fixed order of systems, stepped at a fixed rate so every run with the
-// same seed, clock and input plays out the same: the orbits first, then intent and navigation, then forces,
-// heat, motion, contact, and what follows from it. Hosts drive it with `advance` (real time) and tests with
+// same seed, clock and input plays out the same: the orbits first, then intent and navigation, then forces and
+// heat, the living deciding what to do and the guns firing, motion, contact, shots and impacts landing, the
+// strange things acting, and what follows from it all. Hosts drive it with `advance` (real time) and tests with
 // `step` (exact time).
 export class VoyageSimulation {
   public readonly world: VoyageWorld;
@@ -51,16 +64,17 @@ export class VoyageSimulation {
   private readonly pipeline: SystemPipeline<VoyageContext>;
   private readonly context: VoyageContext;
   private readonly snapshots: SnapshotMapper;
-  // The system as it was given, never flown in: each run flies a copy of it.
+  // The real solar system every run starts in, whichever universe the last one ended in, as it was given:
+  // each run flies a copy of it.
   private readonly home: StarSystem;
 
-  constructor(system: StarSystem, { config, random, epochMs }: VoyageSimulationOptions) {
+  constructor(system: StarSystem, { config, random, epochMs, names = DEFAULT_UNIVERSE_NAMES, themes = [] }: VoyageSimulationOptions) {
     this.world = new World(createVoyageStores());
     this.snapshots = new SnapshotMapper(config);
     this.home = system;
     this.context = {
       world: this.world,
-      state: this.fresh(cloneSystem(system), "ready", epochMs, config),
+      state: this.fresh(cloneSystem(system), "ready", epochMs, config, random),
       config,
       input: NO_INPUT,
       events: this.events,
@@ -70,6 +84,8 @@ export class VoyageSimulation {
       sources: [],
       sourceIds: [],
       grid: new SpatialHash(0.5),
+      universes: new UniverseGenerator(config.layout, names),
+      themes,
     };
     this.pipeline = new SystemPipeline<VoyageContext>([
       new OrbitSystem(),
@@ -79,12 +95,18 @@ export class VoyageSimulation {
       new GravitySystem(),
       new AtmosphereSystem(),
       new ThermalSystem(),
+      new AlienSystem(),
+      new WeaponSystem(),
       new MotionSystem(),
       new SurfaceSystem(),
       new CollisionSystem(),
+      new ProjectileSystem(),
+      new ImpactSystem(),
       new CaptureSystem(),
+      new PhenomenaSystem(),
       new HealthSystem(),
       new WeatherSystem(),
+      new TrafficSystem(),
       new SpawnSystem(),
     ], { stepMs: config.stepMs, maxSteps: config.maxSteps });
     this.placeShip();
@@ -111,11 +133,20 @@ export class VoyageSimulation {
     this.context.state.view = { halfWidth, halfHeight };
   }
 
+  // Locks the guns on someone or something, or lets go.
+  public lock(entity: number | null): void {
+    this.context.state.lockedTarget = entity !== null && this.world.isAlive(entity) ? entity : null;
+  }
+
+  public setAutoFire(isOn: boolean): void {
+    this.context.state.autoFire = isOn;
+  }
+
   // A new run from Earth, whatever the last one ended in, with the clock starting again from `epochMs` (or from
   // where the last run's started).
   public start(epochMs = this.context.state.clock.epochMs): void {
     this.world.clear();
-    this.context.state = this.fresh(cloneSystem(this.home), "flying", epochMs, this.context.config);
+    this.context.state = this.fresh(cloneSystem(this.home), "flying", epochMs, this.context.config, this.context.random);
     this.context.state.view = { ...this.context.state.view };
     this.placeShip();
     this.pipeline.reset();
@@ -176,10 +207,13 @@ export class VoyageSimulation {
       decals: [],
     });
     this.world.stores.modules.set(ship, { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 });
+    const { arms } = config;
+
+    this.world.stores.weapon.set(ship, { kind: "cannon", damage: arms.damage, rate: arms.rate, range: arms.range, speed: arms.speed, heat: arms.heat, cooldown: 0 });
     state.ship = ship;
   }
 
-  private fresh(system: StarSystem, status: VoyageStatus, epochMs: number, config: VoyageConfig): VoyageState {
+  private fresh(system: StarSystem, status: VoyageStatus, epochMs: number, config: VoyageConfig, random: RandomSource): VoyageState {
     const clock = { epochMs, hoursPerSecond: config.clock.hoursPerSecond };
 
     placeBodies(system, missionTime(clock, 0));
@@ -217,6 +251,8 @@ export class VoyageSimulation {
         environmentC: START_C,
         sunlight: 0,
         radiation: 0,
+        tidal: 0,
+        nebula: 0,
       },
       storms: [],
       aurora: AURORA_BASE,
@@ -224,6 +260,17 @@ export class VoyageSimulation {
       flare: null,
       nextFlareAt: null,
       nextCometAt: null,
+      cosmos: null,
+      runSeed: Math.floor(random() * 2 ** 31),
+      lockedTarget: null,
+      autoFire: true,
+      signature: 0,
+      craters: {},
+      phenomena: { supernova: null, burst: null, nextBurstAt: null, pulsarAngle: 0, strikeAt: null, jumpedAt: -1e9 },
+      boss: null,
+      bossFallen: false,
+      nextImpactAt: null,
+      nextTrafficAt: null,
       view: this.context?.state.view ?? { halfWidth: 2, halfHeight: 2 },
     };
   }

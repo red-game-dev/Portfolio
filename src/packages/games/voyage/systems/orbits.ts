@@ -2,7 +2,7 @@ import { centuriesSinceJ2000, daysSinceJ2000, DEG, earthSubsolarPoint, heliocent
 
 import { StarSystem, SystemBody } from "../domain/content";
 import { MissionClock } from "../domain/state";
-import { radiusForAu } from "../utils/scale";
+import { auForRadius, radiusForAu } from "../utils/scale";
 
 const MS_PER_HOUR = 3600000;
 
@@ -37,6 +37,7 @@ export const placeBodies = (system: StarSystem, moment: number, dt = 0): void =>
   const days = daysSinceJ2000(jd);
   const hours = days * 24;
   const byId = byIdOf(system);
+  const radiusFor = (distance: number) => auForRadius(system.scale, distance);
 
   system.bodies.forEach((body) => {
     const lastX = body.x;
@@ -52,6 +53,17 @@ export const placeBodies = (system: StarSystem, moment: number, dt = 0): void =>
       // Screen y runs down, so the ecliptic's anticlockwise stays anticlockwise on screen.
       body.x = system.star.x + Math.cos(angle) * distance;
       body.y = system.star.y - Math.sin(angle) * distance;
+    } else if (body.orbit.kind === "circle") {
+      const phase = (body.orbit.longitudeAtEpoch + (360 * days) / body.orbit.periodDays) * DEG;
+      // A generated world has no real place round the Sun; its direction from its star stands in for one.
+      const out = radiusFor(body.orbit.distance);
+
+      body.real.x = Math.cos(phase) * out;
+      body.real.y = Math.sin(phase) * out;
+      body.real.z = 0;
+      body.au = out;
+      body.x = system.star.x + Math.cos(phase) * body.orbit.distance;
+      body.y = system.star.y - Math.sin(phase) * body.orbit.distance;
     } else {
       const parent = byId.get(body.orbit.parent);
       const phase = (body.orbit.longitudeAtEpoch + (360 * days) / body.orbit.periodDays) * DEG;

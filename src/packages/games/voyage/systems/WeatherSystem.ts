@@ -27,7 +27,7 @@ export class WeatherSystem implements System<VoyageContext> {
     state.aurora = Math.max(AURORA_BASE, state.aurora - config.weather.auroraFade * dt);
     state.stormDose *= Math.exp(-DOSE_FADE * dt);
 
-    if (state.status !== "flying" || !isInSystem(context)) {
+    if (state.status !== "flying" || !isInSystem(context) || state.system.star.luminosity <= 0) {
       return;
     }
 

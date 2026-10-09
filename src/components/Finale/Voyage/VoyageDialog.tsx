@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
 
-import { faMap, faPause, faPlay, faRocket, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCrosshairs, faMap, faPause, faPlay, faRocket, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton } from "@/components/Controls";
@@ -10,6 +10,7 @@ import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import {
   Badge,
   BarFill,
+  BossFrame,
   BarLabel,
   BarRow,
   Bars,
@@ -21,9 +22,14 @@ import {
   ControlsNote,
   Credits,
   Dialog,
+  FrameMeta,
+  FrameName,
+  Frames,
+  FrameTrack,
   Hud,
   HudButtons,
   IconButton,
+  Incoming,
   LensCanvas,
   Message,
   Overlay,
@@ -39,6 +45,7 @@ import {
   Systems,
   SystemsTitle,
   SystemTrack,
+  TargetFrame,
   TelemetryList,
   TelemetryName,
   TelemetryPanel,
@@ -50,7 +57,7 @@ import {
   Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import useModalDialog from "@/hooks/useModalDialog";
-import type { ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
+import type { Frame, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
 import { fill } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
@@ -83,8 +90,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const frontRef = useRef<HTMLCanvasElement>(null);
   const lensRef = useRef<HTMLCanvasElement>(null);
   const onBackdropClick = useModalDialog(dialogRef, true);
-  const voyage = useVoyage({ stage: stageRef, back: backRef, front: frontRef, lens: lensRef }, content.stops);
-  const { snapshot, notice, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap } = voyage;
+  const voyage = useVoyage({ stage: stageRef, back: backRef, front: frontRef, lens: lensRef }, { labels: content.stops, universes, syllables: content.universeNames });
+  const { snapshot, notice, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;
   const [message, setMessage] = useState<{ id: number; text: string } | null>(null);
   const previous = useRef<VoyageSnapshot | null>(null);
   const bestBefore = useRef(best);
@@ -126,6 +133,24 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     { label: content.fuel, value: snapshot.fuel, max: snapshot.maxFuel, colour: BAR_COLOUR.fuel },
   ] : [];
   const hurt = snapshot ? SYSTEMS.filter((id) => snapshot.modules[id] < SOUND) : [];
+  const { combat } = content;
+  // An MMO frame's name line: who, and their level and standing (or the rock's size).
+  const describe = (frame: Frame) => ({
+    name: frame.role === "whale" ? combat.roles.whale : frame.role === "trader" ? combat.roles.trader : frame.name || combat.rock,
+    meta: frame.disposition ? `${fill(combat.level, { level: frame.level })}, ${combat.dispositions[frame.disposition]}` : "",
+  });
+  const frameBars = (frame: Frame) => (
+    <>
+      <FrameTrack role="meter" aria-label={content.hull} aria-valuemin={0} aria-valuemax={frame.maxHull} aria-valuenow={frame.hull}>
+        <BarFill colour={BAR_COLOUR.hullLow} style={{ transform: `scaleX(${frame.maxHull > 0 ? frame.hull / frame.maxHull : 0})` }} />
+      </FrameTrack>
+      {frame.maxShields > 0 && (
+        <FrameTrack role="meter" aria-label={content.shields} aria-valuemin={0} aria-valuemax={frame.maxShields} aria-valuenow={frame.shields}>
+          <BarFill colour={BAR_COLOUR.shields} style={{ transform: `scaleX(${frame.shields / frame.maxShields})` }} />
+        </FrameTrack>
+      )}
+    </>
+  );
 
   return (
     <Dialog ref={dialogRef} onClose={onClose} onClick={onBackdropClick} onKeyDown={voyage.onKeyDown} onKeyUp={voyage.onKeyUp} aria-label={content.title}>
@@ -183,6 +208,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
               </Systems>
             </>
           )}
+          {status === "flying" && snapshot?.target && (
+            <TargetFrame aria-label={describe(snapshot.target).name}>
+              <FrameName>
+                {describe(snapshot.target).name}
+                <FrameMeta>{describe(snapshot.target).meta}</FrameMeta>
+              </FrameName>
+              {frameBars(snapshot.target)}
+            </TargetFrame>
+          )}
         </Vitals>
         <Readout>
           <Reading>
@@ -195,6 +229,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </Reading>
         </Readout>
         <HudButtons>
+          {status === "flying" && snapshot && (
+            <IconButton type="button" onClick={toggleGuns} aria-label={snapshot.autoFire ? combat.autoFire : combat.holdFire} aria-pressed={snapshot.autoFire}>
+              <FontAwesomeIcon icon={faCrosshairs} aria-hidden="true" style={{ opacity: snapshot.autoFire ? 1 : 0.45 }} />
+            </IconButton>
+          )}
           {status !== "ready" && (
             <IconButton type="button" onClick={toggleMap} aria-label={isMapOpen ? content.closeMap : content.map} aria-pressed={isMapOpen}>
               <FontAwesomeIcon icon={faMap} aria-hidden="true" />
@@ -222,6 +261,35 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             ))}
           </TelemetryList>
         </TelemetryPanel>
+      )}
+      {status === "flying" && snapshot && (snapshot.boss || snapshot.incoming) && (
+        <Frames>
+          {snapshot.boss && (
+            <BossFrame aria-label={combat.boss}>
+              <FrameName>
+                {snapshot.boss.name}
+                <FrameMeta>{`${combat.boss}, ${fill(combat.level, { level: snapshot.boss.level })}`}</FrameMeta>
+              </FrameName>
+              {frameBars(snapshot.boss)}
+            </BossFrame>
+          )}
+          {snapshot.incoming && (
+            <Incoming role="status">
+              {fill(combat.incoming, {
+                diameter: snapshot.incoming.diameterKm,
+                target: content.stops[snapshot.incoming.target] ?? snapshot.incoming.target,
+                seconds: snapshot.incoming.seconds,
+              })}
+              {!snapshot.incoming.isOnCourse && ` (${combat.willMiss})`}
+              <FrameTrack role="meter" aria-label={combat.rock} aria-valuemin={0} aria-valuemax={snapshot.incoming.maxHp} aria-valuenow={snapshot.incoming.hp}>
+                <BarFill
+                  colour={BAR_COLOUR.hullLow}
+                  style={{ transform: `scaleX(${snapshot.incoming.maxHp > 0 ? snapshot.incoming.hp / snapshot.incoming.maxHp : 0})` }}
+                />
+              </FrameTrack>
+            </Incoming>
+          )}
+        </Frames>
       )}
       {message && status === "flying" && <Message key={message.id} role="status">{message.text}</Message>}
       {(status !== "flying" || isPaused) && (

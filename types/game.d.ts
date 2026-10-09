@@ -155,6 +155,44 @@ export interface FinaleVoyage {
   gone: string;
   // "{temperature}" is replaced.
   melting: string;
+  // Universes past the site's zones are named from these syllables, and a faction by its manner.
+  universeNames: {
+    starts: string[];
+    middles: string[];
+    places: string[];
+    factions: Record<"hostile" | "territorial" | "neutral" | "peaceful", string[]>;
+  };
+  // The guns and the MMO frames for what they are on.
+  combat: {
+    autoFire: string;
+    holdFire: string;
+    // "{level}" is replaced.
+    level: string;
+    boss: string;
+    rock: string;
+    dispositions: Record<"hostile" | "territorial" | "neutral" | "peaceful", string>;
+    roles: { whale: string; trader: string };
+    // "{diameter}", "{target}" and "{seconds}" are replaced.
+    incoming: string;
+    willMiss: string;
+  };
+  // "{diameter}", "{target}" and "{seconds}" are replaced.
+  impactAlert: string;
+  // What an impact did, "{target}" and "{crater}" replaced.
+  impact: Record<"crater" | "airburst" | "catastrophe" | "shattered", string>;
+  // "{target}" is replaced.
+  impactorBroken: string;
+  deflected: string;
+  // "{name}" is replaced.
+  bossAppears: string;
+  bossFalls: string;
+  heard: string;
+  // "{seconds}" is replaced.
+  supernovaWarning: string;
+  supernova: string;
+  burstWarning: string;
+  burst: string;
+  wormhole: string;
   // "{au}" is replaced with the distance from the Sun.
   distance: string;
   // "{count}" and "{name}" are replaced.

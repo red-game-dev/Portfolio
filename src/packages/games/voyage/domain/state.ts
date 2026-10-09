@@ -2,6 +2,7 @@ import type { Entity } from "@/packages/games/engine";
 
 import { StarSystem } from "./content";
 import { VoyagePhase } from "./events";
+import { UniverseSpec } from "./universe";
 
 export type VoyageStatus = "ready" | "flying" | "over";
 
@@ -42,6 +43,29 @@ export interface Storm {
   hasHitEarth: boolean;
 }
 
+// A scar left on a world by an impact: where (degrees), how wide (degrees of arc), and how hot it still glows.
+export interface Crater {
+  longitude: number;
+  latitude: number;
+  size: number;
+  heat: number;
+}
+
+// How far a supernova's shock front spreads before it has thinned to nothing (world units).
+export const SHOCK_FADES = 300;
+
+// What the strange things in a universe are doing now: a supernova's countdown and shock front, a gamma-ray
+// burst's warning line, a pulsar's beam angle.
+export interface PhenomenaState {
+  supernova: { blowsAt: number; shock: number; hasHit: boolean; isWarned: boolean } | null;
+  burst: { angle: number; x: number; y: number; firesAt: number } | null;
+  nextBurstAt: number | null;
+  pulsarAngle: number;
+  // The dark forest's strike on its way; when the ship last went through a wormhole.
+  strikeAt: number | null;
+  jumpedAt: number;
+}
+
 // Readings taken while flying, for the telemetry the UI turns into real units.
 export interface Readings {
   // m/s^2 from everything pulling, and what pulls hardest: a body's id, the star's, "singularity" or "hole".
@@ -59,6 +83,10 @@ export interface Readings {
   environmentC: number;
   sunlight: number;
   radiation: number;
+  // How hard tides pull the ship apart (world units per second squared across it), and how deep it is in a
+  // nebula (0 to 1).
+  tidal: number;
+  nebula: number;
 }
 
 // Everything about a run that is not an entity.
@@ -95,6 +123,20 @@ export interface VoyageState {
   flare: { angle: number; strength: number; at: number } | null;
   nextFlareAt: number | null;
   nextCometAt: number | null;
+  // The universe the ship is in, all of it from its seed, and the seed universes are made from on this run.
+  cosmos: UniverseSpec | null;
+  runSeed: number;
+  // What the guns are locked on (chosen by the player), and whether they fire by themselves at what threatens.
+  lockedTarget: Entity | null;
+  autoFire: boolean;
+  // How loud the ship has been (engines, guns), which a dark forest hears.
+  signature: number;
+  craters: Record<string, Crater[]>;
+  phenomena: PhenomenaState;
+  boss: Entity | null;
+  bossFallen: boolean;
+  nextImpactAt: number | null;
+  nextTrafficAt: number | null;
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

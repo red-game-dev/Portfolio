@@ -1,8 +1,6 @@
 import { FaultKind } from "../../domain/faults";
 import { Recipe } from "../domain/economy";
-import { ItemStack } from "../domain/items";
-
-const stack = (id: string, count = 1): ItemStack => ({ id, count });
+import { ItemStack, stack } from "../domain/items";
 
 const recipe = (id: string, needs: ItemStack[], coin: number, isKnown: boolean, count = 1): Recipe => ({ id, makes: stack(id, count), needs, coin, isKnown });
 

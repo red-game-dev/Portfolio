@@ -59,6 +59,9 @@ interface VoyageSimulationOptions {
   level?: number;
 }
 
+// Below this share of what it can be, a part of the ship is worth spending something on.
+const NEED = 0.95;
+
 // Where the ship waits before a run: just above Earth's air, nose up.
 const START_RADII = 1.55;
 const START_SPEED = 0.75;
@@ -186,7 +189,8 @@ export class VoyageSimulation {
     }
   }
 
-  // Whether any of these would do the ship good now.
+  // Whether any of these would do the ship real good now: something below `NEED` of what it can be, a fault on
+  // board, or a hull running hot. A scratch on the sensors is not worth a repair kit.
   public wouldHelp(effects: readonly ShipEffect[]): boolean {
     const parts = shipOf(this.context);
 
@@ -199,13 +203,13 @@ export class VoyageSimulation {
     return effects.some((effect) => {
       switch (effect.kind) {
         case "hull":
-          return health.hull < health.maxHull;
+          return health.hull < health.maxHull * NEED;
         case "module":
-          return effect.module === "worst" ? MODULE_IDS.some((id) => modules[id] < 1) : modules[effect.module] < 1;
+          return effect.module === "worst" ? MODULE_IDS.some((id) => modules[id] < NEED) : modules[effect.module] < NEED;
         case "fuel":
-          return ship.fuel < ship.maxFuel;
+          return ship.fuel < ship.maxFuel * NEED;
         case "shields":
-          return health.shields < health.maxShields * modules.shields;
+          return health.shields < health.maxShields * modules.shields * NEED;
         case "cool":
           return ship.temperatureC > this.context.state.readings.environmentC + 5;
         case "fix":

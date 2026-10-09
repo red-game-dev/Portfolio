@@ -221,5 +221,7 @@ describe("voyage salvage and breakdowns", () => {
     partsOf(simulation).ship.fuel = 5;
     expect(simulation.wouldHelp([{ kind: "fuel", share: 0.45 }])).toBe(true);
     expect(simulation.wouldHelp([{ kind: "fix", fault: 99 }])).toBe(false);
+    Object.assign(simulation.world.stores.modules.get(simulation.state.ship) ?? {}, { sensors: 0.99 });
+    expect(simulation.wouldHelp([{ kind: "hull", share: 0.3 }, { kind: "module", module: "worst", amount: 0.35 }])).toBe(false);
   });
 });

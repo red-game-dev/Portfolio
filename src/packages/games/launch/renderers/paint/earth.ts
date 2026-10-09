@@ -105,11 +105,12 @@ export const paintLimb = (context: Canvas2DContext, { width, height, rise, sunEl
 
   if (twilight > 0) {
     const gx = cx + sunSide * width * 0.42;
-    const glow = context.createRadialGradient(gx, top, 0, gx, top, width * 0.55);
+    const reach = width * 0.55;
+    const glow = context.createRadialGradient(gx, top, 0, gx, top, reach);
 
     glow.addColorStop(0, `rgba(255, 150, 70, ${0.55 * twilight})`);
     glow.addColorStop(1, "rgba(255, 120, 60, 0)");
     context.fillStyle = glow;
-    context.fillRect(0, top - width * 0.3, width, width * 0.6);
+    context.fillRect(gx - reach, top - reach, reach * 2, reach * 2);
   }
 };

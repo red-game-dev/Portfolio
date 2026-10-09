@@ -23,14 +23,14 @@ export const skyLight = (air: Air | null, elevation: number, density = 1): SkyLi
   const zenith = mixRgb(night, mixRgb(SPACE, hexToRgb(air.zenith), strength), day);
   const horizonByDay = mixRgb(SPACE, hexToRgb(air.horizon), strength);
   const horizon = mixRgb(mixRgb(night, horizonByDay, day), hexToRgb(air.dusk), dusk * 0.75 * strength);
-  const stars = clamp01((1 - smoothstep(-14, -3, elevation) * strength) * (1 - air.haze) + (1 - strength) * 0.6);
+  const stars = clamp01((1 - smoothstep(-14, -3, elevation) * strength) ** 2 * (1 - air.haze));
 
   return {
     zenith,
     horizon,
     glow: hexToRgb(air.dusk),
     glowStrength: dusk * strength,
-    stars: Math.min(1, stars),
+    stars,
     light: Math.max(0.06 + 0.1 * strength, day),
   };
 };

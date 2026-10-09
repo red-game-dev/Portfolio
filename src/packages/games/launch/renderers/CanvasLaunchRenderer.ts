@@ -24,8 +24,8 @@ const SEA: Ground = { relief: "sea", colour: "#164a78", far: "#2b6b9a", hasRocks
 // Above this height the view compresses (metres): the pad and tower at true scale, the climb to orbit on a log
 // scale, so the clouds and the sky go past at a pace the eye can follow.
 const TRUE_SCALE = 160;
-// The air's scale height (km): it thins by e every this far up.
-const SCALE_HEIGHT_KM = 8.5;
+// How the sky darkens with height as the eye sees it: still blue a few km up, deep blue by twenty, black by sixty.
+const SKY_FADE_KM = 22;
 const FIELD_OF_VIEW = 46;
 const TAU = Math.PI * 2;
 // The rocket's height on the board, and where its base sits on the pad and once the camera follows it.
@@ -94,7 +94,7 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     const camera = Math.max(0, stretch(altitude) - (padY - height * FOLLOW_SHARE) / perMetre);
     const toY = (metres: number) => padY - (stretch(metres) - camera) * perMetre;
     const groundY = toY(0);
-    const density = Math.exp(-state.altitudeKm / SCALE_HEIGHT_KM);
+    const density = Math.exp(-((state.altitudeKm / SKY_FADE_KM) ** 1.4));
     const scene: Scene = {
       air: EARTH_AIR,
       sun: { elevation: state.sunElevation, side: state.sunSide, radius: 0.27, colour: "#fff3d6" },
@@ -108,7 +108,7 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     const shake = state.status === "destructing" ? Math.sin(now * 0.09) * (1.5 + state.destructMs / 600) : 0;
     // The floodlights carry the pad and the rocket at night, until the rocket climbs out of their reach.
     const floodlights = (1 - sky.light) * (1 - smoothstep(0.05, 0.6, state.altitudeKm));
-    const rocketLight = Math.max(sky.light, floodlights * 0.85, 0.22);
+    const rocketLight = Math.max(sky.light, floodlights * 0.85, state.status === "launching" ? 0.38 : 0.22);
 
     this.drawClouds(toY, sky, x, baseY, state, false);
     paintLimb(this.context, { width, height, rise: smoothstep(14, 200, state.altitudeKm), sunElevation: state.sunElevation, sunSide: state.sunSide, now });
@@ -246,15 +246,17 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     const context = this.context;
     const { site, ascent, status } = state;
     const separation = this.separationAt(state);
-    const settle = stack.hasCore ? 0 : easeInOut(Math.min(1, (ascent - separation) / 0.08)) * height * BUILDS[site.vehicle].coreTop;
+    // Once the stage below has dropped clear, the stage still flying eases down its own axis to where the camera follows.
+    const settle = stack.hasCore ? 0 : easeInOut(Math.max(0, Math.min(1, (ascent - separation - 0.03) / 0.12))) * height * BUILDS[site.vehicle].coreTop;
     const meco = this.momentAt(state, "meco");
     const seco = this.momentAt(state, "seco");
     const upperFrom = site.vehicle === "steel" ? separation - 0.012 : separation + 0.012;
     const plumes = PLUMES[site.vehicle];
 
     context.save();
-    context.translate(x, baseY + settle);
+    context.translate(x, baseY);
     context.rotate((state.pitch * Math.PI) / 180 * site.downrange);
+    context.translate(0, settle);
 
     // The exhaust of a launch flown at twilight, high in sunlight over a dark Earth: a vast glowing bloom.
     const twilight = state.sunElevation < -3 && state.sunElevation > -22 ? smoothstep(50, 120, state.altitudeKm) : 0;
@@ -323,8 +325,11 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
 
       context.save();
       context.globalAlpha = 1 - t / 1.8;
-      context.translate(x + dx * t * height * 0.4, baseY + (0.18 * t + 0.32 * t * t) * height);
-      context.rotate(tilt + spin * t);
+      context.translate(x, baseY);
+      context.rotate(tilt);
+      // Falling back along the way it came, drifting aside, turning over slowly.
+      context.translate(dx * t * height * 0.25, (0.3 * t + 0.85 * t * t) * height);
+      context.rotate(spin * t * 0.45);
       paintVehicle(context, site.vehicle, height, stack, light);
       context.restore();
     };

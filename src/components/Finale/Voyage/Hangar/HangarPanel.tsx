@@ -335,19 +335,27 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, career, is
           {career && (
             <>
               <Note>{fill(careerCopy.codexFound, { found: career.found, total: career.codex.length })}</Note>
-              {CODEX_ORDER.map((category) => (
-                <Block key={category} aria-labelledby={`codex-${category}`}>
-                  <Subheading id={`codex-${category}`}>{careerCopy.categories[category]}</Subheading>
-                  <Items>
-                    {career.codex.filter(({ entry }) => entry.category === category).map(({ entry, isFound }) => (
-                      <Item key={entry.id}>
-                        <ItemName colour={isFound ? "#ffffff" : "#5d6680"}>{isFound ? codexName(content, entry) : careerCopy.unknown}</ItemName>
-                        {isFound && codexNotes(content, entry).map((line) => <Note key={line}>{line}</Note>)}
-                      </Item>
-                    ))}
-                  </Items>
-                </Block>
-              ))}
+              {CODEX_ORDER.map((category) => {
+                const entries = career.codex.filter(({ entry }) => entry.category === category);
+                const found = entries.filter(({ isFound }) => isFound);
+
+                return (
+                  <Block key={category} aria-labelledby={`codex-${category}`}>
+                    <Subheading id={`codex-${category}`}>{careerCopy.categories[category]}</Subheading>
+                    {found.length > 0 && (
+                      <Items>
+                        {found.map(({ entry }) => (
+                          <Item key={entry.id}>
+                            <ItemName colour="#ffffff">{codexName(content, entry)}</ItemName>
+                            {codexNotes(content, entry).map((line) => <Note key={line}>{line}</Note>)}
+                          </Item>
+                        ))}
+                      </Items>
+                    )}
+                    {found.length < entries.length && <Note>{fill(careerCopy.unknown, { count: entries.length - found.length })}</Note>}
+                  </Block>
+                );
+              })}
             </>
           )}
         </TabPanel>

@@ -63,6 +63,8 @@ export class PilotLink {
     this.peril = null;
     this.isRunSettled = false;
     this.count({ kind: "upgraded", level: this.hangar.level });
+    // Every run starts at Earth, which is passed already, so no passing tells the codex of it.
+    this.discover(codexId("worlds", "earth"));
   }
 
   public attach(): () => void {
@@ -81,6 +83,7 @@ export class PilotLink {
         }
 
         this.count({ kind: "landed", body });
+        this.discoverPlace(body);
       }),
       events.on("skimmed", ({ body }) => this.count({ kind: "skimmed", body })),
       events.on("downed", ({ role, level }) => {

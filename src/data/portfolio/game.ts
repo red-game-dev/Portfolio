@@ -389,7 +389,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         },
         progress: "{progress} of {target}",
         reward: "+{xp} XP, +{coin} RC",
-        done: "{count} missions done",
+        done: "Missions done: {count}",
         missionDone: "Mission complete: {mission}. +{xp} XP, +{coin} Red Coin",
         promoted: "Promoted to {rank}",
         discovered: "New in the codex: {name}",
@@ -405,7 +405,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           wrecks: "Wrecks",
           things: "Things found",
         },
-        unknown: "Not found yet",
+        unknown: "{count} more to find",
         kinds: {
           rocky: { name: "Rocky world", note: "Bare rock, warmed by its star." },
           cratered: { name: "Cratered world", note: "Airless, and pitted by billions of years of impacts." },

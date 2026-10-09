@@ -179,6 +179,7 @@ export interface VoyageCareerCopy {
   // "{found}" and "{total}" are replaced.
   codexFound: string;
   categories: Record<"worlds" | "kinds" | "universes" | "stars" | "phenomena" | "life" | "wrecks" | "things", string>;
+  // "{count}" is replaced with how many in a category are still to find.
   unknown: string;
   kinds: Record<string, NamedNote>;
   universes: Record<string, NamedNote>;

@@ -649,6 +649,9 @@ export class VoyageGame extends FrameLoop {
 
         this.onNotice({ kind: "salvaged", wreck: kind, kept, lost, blueprints });
       }),
+      // A fault, or its fix, changes what can be mended from the hold.
+      events.on("fault", () => this.publishEconomy(true)),
+      events.on("fixed", () => this.publishEconomy(true)),
       hangar.subscribe(() => this.publishEconomy(true)),
     ];
   }

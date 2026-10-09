@@ -111,7 +111,9 @@ export const TelemetryName = tw.dt`text-[#9aa3bb]`;
 
 export const TelemetryValue = tw.dd`m-0 text-right text-white`;
 
-export const Readout = tw.dl`m-0 flex flex-row flex-wrap items-center justify-end gap-x-[16px] gap-y-[4px] text-sm tabular-nums pointer-events-none`;
+// Two by two on a phone, so the place beside it keeps its room; in a row where there is space.
+export const Readout = tw.dl`m-0 grid grid-cols-2 gap-x-[12px] gap-y-[2px] md:flex md:flex-row md:flex-wrap md:items-center md:justify-end md:gap-x-[16px]
+  md:gap-y-[4px] text-sm tabular-nums pointer-events-none`;
 
 export const Reading = tw.div`flex flex-row items-baseline gap-[6px]`;
 

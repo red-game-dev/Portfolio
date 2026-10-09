@@ -153,7 +153,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   ] : [];
   const hurt = snapshot ? SYSTEMS.filter((id) => snapshot.modules[id] < SOUND) : [];
   const { combat, economy: copy } = content;
-  const repairs = status === "flying" ? economy?.repairs ?? [] : [];
+  // Faults come from the run itself, so each shows the moment it happens; what fixes it, from the hangar.
+  const repairs = status === "flying" && economy && snapshot ? snapshot.faults.map(({ id, kind }) => ({
+    fault: id,
+    kind,
+    parts: economy.repairs.find((repair) => repair.fault === id)?.parts ?? null,
+  })) : [];
   // An MMO frame's name line: who, and their level and standing (or the rock's size).
   const describe = (frame: Frame) => ({
     name: frame.role === "whale" ? combat.roles.whale : frame.role === "trader" ? combat.roles.trader : frame.name || combat.rock,

@@ -5,6 +5,7 @@ import tw, { css, styled } from "twin.macro";
 import { faHammer } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { Bits } from "@/components/DecodedText";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { Panel, PanelText } from "@/components/Panel";
 import { revealedCharacters } from "@/components/SkillForge/utils/reveal";
@@ -157,9 +158,9 @@ export const Station: FC<StationProps> = ({ id, title, description, items, conte
             <li key={item.name} data-rarity={item.rarity} style={{ transitionDelay: `${index * 25}ms` }}>
               <span className="name">
                 <span className="sr-only">{item.name}</span>
-                <span aria-hidden="true">
-                  {isPlain || revealed >= length ? item.name : decodeFrame(item.name, masks[index], revealed, Math.floor(progress * 40))}
-                </span>
+                {isPlain || revealed >= length
+                  ? <span aria-hidden="true">{item.name}</span>
+                  : <Bits aria-hidden="true" data-bits={decodeFrame(item.name, masks[index], revealed, Math.floor(progress * 40))} />}
               </span>
               <span className="tier">
                 <span>{content.rarity[item.rarity]}</span>

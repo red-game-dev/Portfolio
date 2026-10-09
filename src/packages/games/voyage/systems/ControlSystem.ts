@@ -1,6 +1,6 @@
 import type { System } from "@/packages/games/engine";
+import { angleBetween } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
-import { angleBetween } from "@/packages/physics/newtonian";
 
 import { VoyageContext } from "./context";
 import { isMisfiring } from "./faults";

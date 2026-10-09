@@ -1,5 +1,6 @@
 import { hslToHex } from "@/packages/graphics/colour";
 import type { GlobeLook, SurfaceKind } from "@/packages/graphics/globe";
+import { TAU } from "@/packages/math/angles";
 import { createSeededRandom, RandomSource, randomBetween } from "@/packages/math/random";
 import { poleVector } from "@/packages/physics/kepler";
 import { muForSurfaceGravity } from "@/packages/physics/newtonian";
@@ -354,7 +355,7 @@ export class UniverseGenerator {
     }
 
     return [...chosen].map((kind) => {
-      const angle = random() * Math.PI * 2;
+      const angle = random() * TAU;
       const out = randomBetween(random, edge * 0.35, edge * 0.85);
       const toAngle = angle + randomBetween(random, 1.5, 4);
       const toOut = randomBetween(random, edge * 0.35, edge * 0.9);

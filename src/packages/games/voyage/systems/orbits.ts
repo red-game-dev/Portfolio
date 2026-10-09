@@ -1,4 +1,5 @@
-import { centuriesSinceJ2000, daysSinceJ2000, DEG, earthSubsolarPoint, heliocentricPosition, julianDay, subsolarLatitude, wrapDegrees } from "@/packages/physics/kepler";
+import { DEG, wrapDegrees } from "@/packages/math/angles";
+import { centuriesSinceJ2000, daysSinceJ2000, earthSubsolarPoint, heliocentricPosition, julianDay, subsolarLatitude } from "@/packages/physics/kepler";
 
 import { HOME_WORLD, StarSystem, SystemBody } from "../domain/content";
 import { MissionClock } from "../domain/state";

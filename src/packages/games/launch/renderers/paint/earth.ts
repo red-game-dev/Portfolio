@@ -1,8 +1,7 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { mixRgb, Rgb, rgba } from "@/packages/graphics/colour";
+import { TAU } from "@/packages/math/angles";
 import { smoothstep } from "@/packages/math/easing";
-
-const TAU = Math.PI * 2;
 
 // A cumulus cloud: soft overlapping puffs, lit on top and greyer underneath, in the colour the sky lights it.
 export const paintCloud = (context: Canvas2DContext, x: number, y: number, size: number, colour: Rgb, alpha: number): void => {

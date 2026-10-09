@@ -2,6 +2,7 @@ import { Canvas2DContext, CanvasRenderer } from "@/packages/graphics/canvas";
 import { mixRgb, Rgb, shadeHex } from "@/packages/graphics/colour";
 import { EARTH_LOOK, GlobeLook, GlobeRenderer, northUp } from "@/packages/graphics/globe";
 import { Air, Ground, LandscapePainter, Scene, SkyLight } from "@/packages/graphics/landscape";
+import { TAU } from "@/packages/math/angles";
 import { easeInOut, smoothstep } from "@/packages/math/easing";
 import { createSeededRandom } from "@/packages/math/random";
 import { formatDuration, formatNumber } from "@/packages/text/format";
@@ -30,7 +31,6 @@ const SKY_FADE_KM = 22;
 const FIELD_OF_VIEW = 46;
 // Earth's air is a skin a sixtieth of its radius thick at this scale, not the glowing shell a small globe wears.
 const EARTH_BELOW: GlobeLook = { ...EARTH_LOOK, atmosphere: EARTH_LOOK.atmosphere ? { ...EARTH_LOOK.atmosphere, thickness: 0.012 } : undefined };
-const TAU = Math.PI * 2;
 // The rocket's height on the board, and where its base sits on the pad and once the camera follows it.
 const ROCKET_SHARE = 0.44;
 const PAD_SHARE = 0.88;

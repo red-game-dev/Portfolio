@@ -1,4 +1,5 @@
 import { hexToRgb, mixRgb, Rgb, rgba, rgbCss, scaleRgb } from "@/packages/graphics/colour";
+import { TAU } from "@/packages/math/angles";
 import { smoothstep } from "@/packages/math/easing";
 import { createSeededRandom } from "@/packages/math/random";
 
@@ -6,7 +7,6 @@ import { Frame, Ground, Scene, SkyLight } from "../domain/types";
 import { skyLight, sunColour } from "../utils/sky";
 import { RELIEF, ridgeline } from "../utils/terrain";
 
-const TAU = Math.PI * 2;
 // Samples across each layer of land, stars in the sky, and things scattered on the ground near by.
 const SAMPLES = 72;
 const STARS = 170;

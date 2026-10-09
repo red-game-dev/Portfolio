@@ -1,4 +1,5 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { SceneSize, SceneTransition } from "../domain/types";
@@ -62,7 +63,7 @@ export class ChipFlipTransition implements SceneTransition {
       context.fillStyle = rgba(this.options.chipColors[chip.color] ?? this.options.rim, strength * 0.8);
       context.strokeStyle = rgba(this.options.rim, strength * 0.7);
       context.beginPath();
-      context.ellipse(x, y, width, chip.radius, 0, 0, Math.PI * 2);
+      context.ellipse(x, y, width, chip.radius, 0, 0, TAU);
       context.fill();
       context.stroke();
     });

@@ -1,4 +1,5 @@
 import type { RenderLayer } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
 import { createSeededRandom } from "@/packages/math/random";
 
 import { VoyageFrame } from "../frame";
@@ -6,7 +7,6 @@ import { paintDarkness, paintVignette } from "../paint/overlay";
 import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
 
-const TAU = Math.PI * 2;
 // The compass ring round a stop in sight, in CSS pixels; a stop drawn bigger than this needs no ring.
 const RING_RADIUS = 18;
 // Sunlight (W/m^2) where the glare begins (inside Mercury's orbit), how many orders of magnitude more it takes

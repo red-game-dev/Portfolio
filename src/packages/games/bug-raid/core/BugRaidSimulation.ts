@@ -1,3 +1,4 @@
+import { TAU } from "@/packages/math/angles";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { BugRaidConfig } from "../config";
@@ -165,7 +166,7 @@ export class BugRaidSimulation {
       y: -radius,
       speed: randomBetween(this.random, minSpeed, maxSpeed),
       hitsLeft: hits,
-      phase: this.random() * Math.PI * 2,
+      phase: this.random() * TAU,
       sidestepInMs: sidestepEveryMs,
     };
   }

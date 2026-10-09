@@ -1,5 +1,6 @@
+import { DEG, wrapDegrees } from "@/packages/math/angles";
+
 import { SubsolarPoint } from "../domain/types";
-import { DEG, wrapDegrees } from "./angles";
 import { daysSinceJ2000 } from "./time";
 
 // The point on Earth under the Sun at Julian Day `jd`, from the Astronomical Almanac's low precision formulae for

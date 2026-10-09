@@ -1,3 +1,5 @@
+import { DEG } from "@/packages/math/angles";
+
 import { GlobePose } from "../domain/types";
 
 export type Vec3 = [number, number, number];
@@ -5,8 +7,6 @@ export type Vec3 = [number, number, number];
 // How far round towards the viewer the light sits, so a globe shows more day than night, as a planet seen a
 // little from the sunward side does.
 export const PHASE = 0.55;
-
-const DEG = Math.PI / 180;
 
 // A globe's frame in its own view space, where x points along the screen at `angle` (towards its light, or away
 // from it when turned), y is the screen direction a quarter turn anticlockwise from that, and z comes out of the

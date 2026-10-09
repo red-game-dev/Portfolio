@@ -1,4 +1,6 @@
 import type { Entity, System } from "@/packages/games/engine";
+import { angleBetween } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
 import { Body } from "../domain/components";
 import { fire, leadDirection } from "./combat";
@@ -157,8 +159,7 @@ export class WeaponSystem implements System<VoyageContext> {
     const speed = Math.hypot(shot.vx, shot.vy);
     const heading = Math.atan2(shot.vy, shot.vx);
     const wanted = Math.atan2(quarry.y - shot.y, quarry.x - shot.x);
-    const turn = Math.atan2(Math.sin(wanted - heading), Math.cos(wanted - heading));
-    const next = heading + Math.max(-MISSILE_TURN * dt, Math.min(MISSILE_TURN * dt, turn));
+    const next = heading + clamp(angleBetween(heading, wanted), -MISSILE_TURN * dt, MISSILE_TURN * dt);
 
     shot.vx = Math.cos(next) * speed;
     shot.vy = Math.sin(next) * speed;

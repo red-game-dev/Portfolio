@@ -1,10 +1,9 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { createSeededRandom } from "@/packages/math/random";
 
 import { PickupKind } from "../../domain/components";
 import { VoyageStyle } from "../../domain/theme";
-
-const TAU = Math.PI * 2;
 
 // The invader every pixel world has, eleven by eight.
 const INVADER = [

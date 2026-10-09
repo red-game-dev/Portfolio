@@ -1,5 +1,6 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { shadeHex } from "@/packages/graphics/colour";
+import { TAU } from "@/packages/math/angles";
 
 import { LaunchLand, LaunchVehicle } from "../../domain/types";
 
@@ -135,7 +136,7 @@ export const paintPad = (context: Canvas2DContext, scene: PadScene): void => {
   context.fillRect(tankX - tankRadius * 0.8, groundY - tankRadius * 3, 1, tankRadius * 3);
   context.fillRect(tankX + tankRadius * 0.8, groundY - tankRadius * 3, 1, tankRadius * 3);
   context.beginPath();
-  context.arc(tankX, groundY - tankRadius * 3.6, tankRadius, 0, Math.PI * 2);
+  context.arc(tankX, groundY - tankRadius * 3.6, tankRadius, 0, TAU);
   context.fill();
 
   if (floodlights <= 0.05) {

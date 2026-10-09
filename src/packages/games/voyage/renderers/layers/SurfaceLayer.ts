@@ -2,6 +2,8 @@ import type { RenderLayer } from "@/packages/games/engine";
 import { Rgb, rgbToHex } from "@/packages/graphics/colour";
 import { blackbody, globeFrame, surfacePoint } from "@/packages/graphics/globe";
 import { LandscapePainter, Scene, SkyBody } from "@/packages/graphics/landscape";
+import { angleBetween, RAD, TAU } from "@/packages/math/angles";
+import { clamp01, wrap } from "@/packages/math/clamp";
 
 import { HOME_WORLD, SystemBody } from "../../domain/content";
 import { SurfaceInfo } from "../../domain/surface";
@@ -13,7 +15,6 @@ import { paintFlame, SHIP_HEIGHT, SHIP_WIDTH } from "../paint/space";
 import { GlobesLayer } from "./GlobesLayer";
 import { RenderKit } from "./kit";
 
-const DEG = 180 / Math.PI;
 // The Sun's radius (km), and the km in an AU, for how large it stands in a sky of ours.
 const SUN_KM = 696000;
 const KM_PER_AU = 149597870.7;
@@ -68,11 +69,11 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const up = ship?.landedOffset ? Math.atan2(ship.landedOffset.y, ship.landedOffset.x) : 0;
 
     // A new world, or another spot on the same one.
-    if (ground && ship?.landedOffset && (ground.id !== this.body || Math.abs(Math.atan2(Math.sin(up - this.up), Math.cos(up - this.up))) > 0.01)) {
+    if (ground && ship?.landedOffset && (ground.id !== this.body || Math.abs(angleBetween(this.up, up)) > 0.01)) {
       this.land(frame, ground, up);
     }
 
-    this.shown = Math.max(0, Math.min(1, this.shown + (ground ? 1 : -1) * (dt / FADE_SECONDS)));
+    this.shown = clamp01(this.shown + (ground ? 1 : -1) * (dt / FADE_SECONDS));
 
     // A still frame (a photo, the map over a held run) shows the ground at once if the ship is on it.
     if (dt === 0 && ground) {
@@ -113,8 +114,8 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const frame = globeFrame(this.globes.poseOf(state, place));
     const offset = up - frame.angle;
     const point = surfacePoint(frame, [Math.cos(offset), -Math.sin(offset), 0]);
-    const latitude = point.latitude * DEG;
-    const longitude = ((((point.longitude * DEG + 180) % 360) + 360) % 360) - 180;
+    const latitude = point.latitude * RAD;
+    const longitude = wrap(point.longitude * RAD + 180, 360) - 180;
     const map = look?.surface.map;
     const sample = map ? this.sample(map, longitude, latitude, look?.surface.centreLongitude ?? 0) : null;
     const preset = groundAt(place.id, look, sample, latitude, longitude, isHome);
@@ -137,7 +138,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
 
     scene.sun = star.luminosity <= 0 ? null : {
       ...sunPlace,
-      radius: isHome ? Math.asin(Math.min(1, SUN_KM / (Math.max(place.au, 0.01) * KM_PER_AU))) * DEG : Math.max(0.05, Math.atan(star.radius / distance) * DEG * 0.35),
+      radius: isHome ? Math.asin(Math.min(1, SUN_KM / (Math.max(place.au, 0.01) * KM_PER_AU))) * RAD : Math.max(0.05, Math.atan(star.radius / distance) * RAD * 0.35),
       colour: starLook ? this.starColour(starLook.temperatureK) : "#fff3d6",
     };
 
@@ -152,7 +153,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       return {
         ...skyPlace(this.up, towards),
         ...phaseOf(towards, towardsStar),
-        radius: Math.asin(Math.min(1, (other.radius * other.kmPerUnit) / Math.max(kilometres, 1))) * DEG,
+        radius: Math.asin(Math.min(1, (other.radius * other.kmPerUnit) / Math.max(kilometres, 1))) * RAD,
         colour: look?.surface.palette[2] ?? "#c8c8c8",
         hasRings: Boolean(look?.rings),
       };
@@ -250,7 +251,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       // The flotation collar and the sea washing over the capsule's lower edge.
       context.fillStyle = `rgb(${shade(240)}, ${shade(120)}, ${shade(30)})`;
       context.beginPath();
-      context.ellipse(0, -high * 0.08, base * 0.62, tall * 0.05, 0, 0, Math.PI * 2);
+      context.ellipse(0, -high * 0.08, base * 0.62, tall * 0.05, 0, 0, TAU);
       context.fill();
       // The sea round its base: a rippled waterline in the colour of the surface near by, the capsule's lower edge
       // showing through it.
@@ -309,7 +310,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     context.globalAlpha = alpha * (isLeaving ? Math.max(0, 1 - lift / (height * 0.3)) : 1) * 0.45;
     context.fillStyle = "#000000";
     context.beginPath();
-    context.ellipse(x - sunSide * wide * 0.4, groundY + 2, wide * 0.8, wide * 0.16, 0, 0, Math.PI * 2);
+    context.ellipse(x - sunSide * wide * 0.4, groundY + 2, wide * 0.8, wide * 0.16, 0, 0, TAU);
     context.fill();
 
     // Lights on the ground in front of it once it is dark.
@@ -365,7 +366,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       context.fillStyle = this.scene.ground.colour;
       [-1, 1].forEach((side) => {
         context.beginPath();
-        context.ellipse(x + side * wide * (0.6 + progress * 1.6), groundY - tall * 0.05, wide * (0.4 + progress), tall * (0.1 + progress * 0.15), 0, 0, Math.PI * 2);
+        context.ellipse(x + side * wide * (0.6 + progress * 1.6), groundY - tall * 0.05, wide * (0.4 + progress), tall * (0.1 + progress * 0.15), 0, 0, TAU);
         context.fill();
       });
     }

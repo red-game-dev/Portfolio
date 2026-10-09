@@ -1,9 +1,8 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { createSeededRandom } from "@/packages/math/random";
 
 import { VoyageStyle } from "../../domain/theme";
-
-const TAU = Math.PI * 2;
 
 // One layer of stars in a square tile, repeated across the screen and scrolled: faint and many far away, fewer
 // and brighter close by, the nearest with a soft halo.

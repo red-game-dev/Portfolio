@@ -1,3 +1,5 @@
+import { wrap } from "@/packages/math/clamp";
+
 // A whole number padded to two digits, as clocks write hours, minutes and seconds.
 export const twoDigits = (value: number): string => String(Math.floor(Math.abs(value))).padStart(2, "0");
 
@@ -11,7 +13,7 @@ export const formatDuration = (seconds: number, { withHours = false }: { withHou
 
 // A time of day given in hours, "16:20" (wrapping past midnight).
 export const formatHours = (hours: number): string => {
-  const minutes = Math.floor((((hours % 24) + 24) % 24) * 60);
+  const minutes = Math.floor(wrap(hours, 24) * 60);
 
   return `${twoDigits(minutes / 60)}:${twoDigits(minutes % 60)}`;
 };

@@ -1,6 +1,7 @@
+import { TAU, wrapDegrees } from "@/packages/math/angles";
 import { easeInOut } from "@/packages/math/easing";
 import { RandomSource } from "@/packages/math/random";
-import { julianDay, solarElevation, sunSubsolarPoint, wrapDegrees } from "@/packages/physics/kepler";
+import { julianDay, solarElevation, sunSubsolarPoint } from "@/packages/physics/kepler";
 
 import { ALTITUDE_KM, CLOCK_S, DEFAULT_LAUNCH_SITE, LaunchConfig, PITCH_DEG, SPEED_KMH, VEHICLES } from "../config";
 import { LaunchSite, LaunchSize, LaunchSnapshot, LaunchState } from "../domain/types";
@@ -118,7 +119,7 @@ export class LaunchSimulation {
       countdown: Math.ceil(this.config.countdownMs / 1000),
       explosion: 0,
       debris: Array.from({ length: this.config.debris }, () => ({
-        angle: this.random() * Math.PI * 2,
+        angle: this.random() * TAU,
         speed: 0.25 + this.random() * 0.75,
         size: 2 + this.random() * 5,
       })),

@@ -1,10 +1,10 @@
 import type { RenderLayer } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
 
 import { VoyageFrame } from "../frame";
 import { Surface } from "../Surface";
 import { RenderKit } from "./kit";
 
-const TAU = Math.PI * 2;
 // The radar in the corner: its radius in CSS pixels (smaller on narrow screens) and how far it sees (world units).
 const RADAR_RADIUS = 58;
 const RADAR_RADIUS_NARROW = 44;

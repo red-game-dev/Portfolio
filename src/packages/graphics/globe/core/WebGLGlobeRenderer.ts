@@ -1,5 +1,6 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { createProgram } from "@/packages/graphics/webgl";
+import { DEG } from "@/packages/math/angles";
 
 import { GlobeDraw, GlobeLook, GlobeRenderer, StarDraw } from "../domain/types";
 import { MAX_CRATERS, VERTEX } from "../shaders/common";
@@ -10,8 +11,6 @@ import { globeFrame } from "../utils/frame";
 import { visibleRegion } from "../utils/region";
 
 type GlCanvas = HTMLCanvasElement | OffscreenCanvas;
-
-const DEG = Math.PI / 180;
 
 // The most device pixels a globe is drawn with: a full screen at a pixel ratio of two is about this.
 const MAX_PIXELS = 3840 * 2160;

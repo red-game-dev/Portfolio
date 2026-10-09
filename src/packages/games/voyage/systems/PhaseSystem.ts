@@ -1,4 +1,5 @@
 import type { System } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
 
 import { VoyageContext } from "./context";
@@ -71,13 +72,13 @@ export class PhaseSystem implements System<VoyageContext> {
       supernova: supernova ? { blowsAt: state.elapsedMs + randomBetween(random, 35, 70) * 1000, shock: 0, hasHit: false, isWarned: false } : null,
       burst: null,
       nextBurstAt: null,
-      pulsarAngle: random() * Math.PI * 2,
+      pulsarAngle: random() * TAU,
       strikeAt: null,
       jumpedAt: -1e9,
     };
 
     if (parts) {
-      const angle = random() * Math.PI * 2;
+      const angle = random() * TAU;
       const out = cosmos.system.edge * 0.55;
 
       placeBody(parts.body, cosmos.system.star.x + Math.cos(angle) * out, cosmos.system.star.y + Math.sin(angle) * out, 0, 0);
@@ -100,7 +101,7 @@ export class PhaseSystem implements System<VoyageContext> {
     }
 
     for (let count = world.stores.hole.size; count < config.holes.perUniverse; count += 1) {
-      const angle = random() * Math.PI * 2;
+      const angle = random() * TAU;
       const distance = randomBetween(random, config.holes.spawnDistance[0], config.holes.spawnDistance[1]);
       const x = parts.body.x + Math.cos(angle) * distance;
       const y = parts.body.y + Math.sin(angle) * distance;

@@ -1,9 +1,8 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 
 import { HullTier } from "../../economy/domain/economy";
 import { paintShip, SHIP_WIDTH } from "./space";
-
-const TAU = Math.PI * 2;
 
 export interface HullColours {
   hull: string;

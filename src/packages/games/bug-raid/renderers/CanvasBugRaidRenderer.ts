@@ -1,4 +1,5 @@
 import { Canvas2DContext, CanvasRenderer, CanvasSurface, createDrawableSurface } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 
 import { BugRaidConfig, BugRaidTheme, DEFAULT_BUG_RAID_THEME } from "../config";
 import { Bug, BugKind, BugRaidRenderer, BugRaidSize, BugRaidState } from "../domain/types";
@@ -42,10 +43,10 @@ const paintBug = (context: Canvas2DContext, size: number, radius: number, color:
   context.stroke();
 
   context.beginPath();
-  context.ellipse(centre, centre - radius * 0.1, radius * 0.6, radius * 0.8, 0, 0, Math.PI * 2);
+  context.ellipse(centre, centre - radius * 0.1, radius * 0.6, radius * 0.8, 0, 0, TAU);
   context.fill();
   context.beginPath();
-  context.arc(centre, centre + radius * 0.75, radius * 0.32, 0, Math.PI * 2);
+  context.arc(centre, centre + radius * 0.75, radius * 0.32, 0, TAU);
   context.fill();
 
   // A seam down the shell.
@@ -158,7 +159,7 @@ export class CanvasBugRaidRenderer extends CanvasRenderer<BugRaidState> implemen
     this.context.strokeStyle = this.theme.splat;
     this.context.lineWidth = 2;
     this.context.beginPath();
-    this.context.arc(x, y, 8 + progress * 22, 0, Math.PI * 2);
+    this.context.arc(x, y, 8 + progress * 22, 0, TAU);
     this.context.stroke();
     this.context.globalAlpha = 1;
   }
@@ -169,7 +170,7 @@ export class CanvasBugRaidRenderer extends CanvasRenderer<BugRaidState> implemen
     context.strokeStyle = this.theme.cursor;
     context.lineWidth = 1.5;
     context.beginPath();
-    context.arc(x, y, 14, 0, Math.PI * 2);
+    context.arc(x, y, 14, 0, TAU);
     context.moveTo(x - 22, y);
     context.lineTo(x - 8, y);
     context.moveTo(x + 8, y);

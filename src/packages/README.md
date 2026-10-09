@@ -72,7 +72,8 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `interaction/zoom` | `ZoomInput`: one zoom from a wheel, a pinch (through `gestures`) and keys, each answered as a factor so the host keeps its own range |
 | `physics/kepler` | Where things are in the real sky: Kepler's equation on JPL's elements (`heliocentricPosition`), Julian days, poles and seasons (`poleVector`, `subsolarLatitude`), the point on Earth under the Sun (`earthSubsolarPoint`, or from the almanac with `sunSubsolarPoint`) and the Sun's height anywhere (`solarElevation`) |
 | `physics/newtonian` | Newtonian physics as pure functions: a `GravityField` floored at each surface, symplectic integration and exponential damping, orbital speeds and surface gravity, tidal pull, time dilation, and an exponential atmosphere with drag and entry heating |
-| `math/clamp` | `clamp` and `clamp01` |
+| `math/angles` | `TAU`, `DEG` and `RAD` for turns, degrees and radians, `wrapDegrees` and `wrapRadians`, the shortest turn between two headings (`angleBetween`) and a heading part of the way to another (`lerpAngle`) |
+| `math/clamp` | `clamp` and `clamp01`, and `wrap` for values that go round like a clock or a compass |
 | `math/easing` | `easeInOut`, `easeIn`, `smoothstep` and `lerp`, shared by the backdrop, the landscape and the games |
 | `math/hex-grid` | Pointy topped hex grid geometry and a snaking route through it, for map layouts |
 | `math/random` | Seedable random source for repeatable visuals and tests |

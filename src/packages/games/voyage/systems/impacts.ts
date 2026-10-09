@@ -1,4 +1,5 @@
 import type { Entity } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
 
 import { SystemBody } from "../domain/content";
@@ -148,7 +149,7 @@ export const breakUp = (context: VoyageContext, entity: Entity): void => {
   const share = pieces > 0 ? pieces ** (-1 / 3) : 0;
 
   for (let index = 0; index < pieces; index += 1) {
-    const angle = (index / pieces) * Math.PI * 2 + random();
+    const angle = (index / pieces) * TAU + random();
     const spread = randomBetween(random, 0.25, 0.55);
     const piece = world.spawn();
     const x = rock.x + Math.cos(angle) * rock.radius * 0.5;
@@ -159,7 +160,7 @@ export const breakUp = (context: VoyageContext, entity: Entity): void => {
     const vy = rock.vy + Math.sin(angle) * spread;
 
     world.stores.body.set(piece, { x, y, vx, vy, prevX: x, prevY: y, radius, mass: impactorMass(radius) });
-    world.stores.spin.set(piece, { angle: random() * Math.PI * 2, rate: randomBetween(random, -2, 2) });
+    world.stores.spin.set(piece, { angle: random() * TAU, rate: randomBetween(random, -2, 2) });
     world.stores.impactor.set(piece, {
       target: impactor.target,
       hp: impactor.maxHp * 0.15,

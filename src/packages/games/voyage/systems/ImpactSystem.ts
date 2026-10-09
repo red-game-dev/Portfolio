@@ -1,4 +1,6 @@
 import type { System } from "@/packages/games/engine";
+import { RAD, TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 import { randomBetween } from "@/packages/math/random";
 
 import { SystemBody } from "../domain/content";
@@ -16,7 +18,6 @@ const LET_GO = 26;
 // How fast scars cool: a crater, and a world's melted face (heat a second).
 const CRATER_COOLING = 0.03;
 const MELT_COOLING = 0.008;
-const DEG = 180 / Math.PI;
 // How many times an aim is corrected before a course is given up as one gravity will not allow, and how often
 // (ms) a rock's course is looked at again.
 const AIM_ATTEMPTS = 5;
@@ -99,7 +100,7 @@ export class ImpactSystem implements System<VoyageContext> {
     // Small rocks are far more common than big ones.
     const diameterKm = isPlanetoid ? randomBetween(random, 0.25, 0.7) * target.radius * target.kmPerUnit : smallest * (largest / smallest) ** (random() ** 2);
     const radius = isPlanetoid ? Math.min(target.radius * 0.7, diameterKm / target.kmPerUnit / 2) : 0.07 + 0.1 * Math.min(1, diameterKm / largest);
-    const angle = random() * Math.PI * 2;
+    const angle = random() * TAU;
     const distance = randomBetween(random, START_DISTANCE[0], START_DISTANCE[1]);
     const speed = randomBetween(random, config.impacts.speed[0], config.impacts.speed[1]);
     const x = target.x + Math.cos(angle) * distance;
@@ -116,7 +117,7 @@ export class ImpactSystem implements System<VoyageContext> {
     const maxHp = 80 * (radius / 0.1) ** 3;
 
     world.stores.body.set(rock, { x, y, vx: course.vx, vy: course.vy, prevX: x, prevY: y, radius, mass: impactorMass(radius) });
-    world.stores.spin.set(rock, { angle: random() * Math.PI * 2, rate: randomBetween(random, -0.8, 0.8) });
+    world.stores.spin.set(rock, { angle: random() * TAU, rate: randomBetween(random, -0.8, 0.8) });
     world.stores.impactor.set(rock, { target: target.id, hp: maxHp, maxHp, diameterKm, isFragment: false, isOnCourse: true });
     events.emit("impactAlert", { target: target.id, diameterKm, seconds });
   }
@@ -157,9 +158,9 @@ export class ImpactSystem implements System<VoyageContext> {
 
     if (outcome === "crater" || outcome === "catastrophe") {
       addCrater(context, target.id, {
-        longitude: target.subsolarLongitude - (angle - toStar) * DEG,
+        longitude: target.subsolarLongitude - (angle - toStar) * RAD,
         latitude: randomBetween(random, -25, 25),
-        size: Math.min(80, Math.max(2.5, (outcome === "catastrophe" ? 3 : 1) * (crater / radiusKm) * DEG)),
+        size: clamp((outcome === "catastrophe" ? 3 : 1) * (crater / radiusKm) * RAD, 2.5, 80),
         heat: 1,
       });
     }
@@ -193,7 +194,7 @@ export class ImpactSystem implements System<VoyageContext> {
     target.air = null;
 
     for (let index = 0; index < pieces; index += 1) {
-      const angle = (index / pieces) * Math.PI * 2 + random() * 0.3;
+      const angle = (index / pieces) * TAU + random() * 0.3;
       const speed = randomBetween(random, 0.3, 1.1);
       const out = target.radius * randomBetween(random, 0.3, 1);
       const rock = world.spawn();
@@ -205,7 +206,7 @@ export class ImpactSystem implements System<VoyageContext> {
       const vy = target.vy + Math.sin(angle) * speed;
 
       world.stores.body.set(rock, { x, y, vx, vy, prevX: x, prevY: y, radius, mass: radius * radius * 60 });
-      world.stores.spin.set(rock, { angle: random() * Math.PI * 2, rate: randomBetween(random, -1.5, 1.5) });
+      world.stores.spin.set(rock, { angle: random() * TAU, rate: randomBetween(random, -1.5, 1.5) });
       world.stores.hazard.set(rock, { shape: Math.floor(random() * 6), isIcy: false, isComet: false });
     }
   }

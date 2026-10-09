@@ -1,4 +1,5 @@
 import type { RenderLayer } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
 
 import { Alien } from "../../domain/components";
 import { FactionSpec } from "../../domain/universe";
@@ -8,7 +9,6 @@ import { paintRock } from "../paint/hazards";
 import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
 
-const TAU = Math.PI * 2;
 // MMO colours for how someone stands towards the ship.
 const STANDING = { aggro: "#ff4d5e", hostile: "#ff8a5c", territorial: "#ffb347", neutral: "#ffd76a", peaceful: "#6ee7a8" };
 const SHIELD = "#4fd8ff";

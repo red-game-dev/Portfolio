@@ -1,4 +1,5 @@
 import type { System } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
 
 import { PickupKind } from "../domain/components";
@@ -66,7 +67,7 @@ export class SpawnSystem implements System<VoyageContext> {
 
     state.nextCometAt = state.elapsedMs + randomBetween(random, soonest, latest) * 1000;
 
-    const from = random() * Math.PI * 2;
+    const from = random() * TAU;
     const distance = reach + 2.5;
     const x = parts.body.x + Math.cos(from) * distance;
     const y = parts.body.y + Math.sin(from) * distance;
@@ -77,7 +78,7 @@ export class SpawnSystem implements System<VoyageContext> {
     const radius = randomBetween(random, 0.1, 0.16);
 
     world.stores.body.set(comet, { x, y, vx: Math.cos(heading) * speed, vy: Math.sin(heading) * speed, prevX: x, prevY: y, radius, mass: radius * radius * 60 });
-    world.stores.spin.set(comet, { angle: random() * Math.PI * 2, rate: randomBetween(random, -0.6, 0.6) });
+    world.stores.spin.set(comet, { angle: random() * TAU, rate: randomBetween(random, -0.6, 0.6) });
     world.stores.hazard.set(comet, { shape: Math.floor(random() * 6), isIcy: true, isComet: true });
   }
 
@@ -104,7 +105,7 @@ export class SpawnSystem implements System<VoyageContext> {
     const parts = shipOf(context);
     const body = parts?.body ?? { x: 0, y: 0, vx: 0, vy: 0 };
     const speed = Math.hypot(body.vx, body.vy);
-    const angle = speed > 0.3 && random() < 0.75 ? Math.atan2(body.vy, body.vx) + (random() - 0.5) * 2.2 : random() * Math.PI * 2;
+    const angle = speed > 0.3 && random() < 0.75 ? Math.atan2(body.vy, body.vx) + (random() - 0.5) * 2.2 : random() * TAU;
     const distance = reach + SPAWN_MARGIN + random() * SPAWN_DEPTH;
 
     return { x: body.x + Math.cos(angle) * distance, y: body.y + Math.sin(angle) * distance };
@@ -115,11 +116,11 @@ export class SpawnSystem implements System<VoyageContext> {
     const { x, y } = this.placeNear(context, reach);
     const radius = config.spawn.minRadius + (config.spawn.maxRadius - config.spawn.minRadius) * random() * random();
     const drift = randomBetween(random, 0.05, 0.35);
-    const heading = random() * Math.PI * 2;
+    const heading = random() * TAU;
     const rock = world.spawn();
 
     world.stores.body.set(rock, { x, y, vx: Math.cos(heading) * drift, vy: Math.sin(heading) * drift, prevX: x, prevY: y, radius, mass: radius * radius * 60 });
-    world.stores.spin.set(rock, { angle: random() * Math.PI * 2, rate: randomBetween(random, -1.4, 1.4) });
+    world.stores.spin.set(rock, { angle: random() * TAU, rate: randomBetween(random, -1.4, 1.4) });
     world.stores.hazard.set(rock, { shape: Math.floor(random() * 6), isIcy, isComet: false });
   }
 

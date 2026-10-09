@@ -1,10 +1,10 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
+import { wrap } from "@/packages/math/clamp";
 
 import { GlobeDraw, GlobeRenderer, StarDraw } from "../domain/types";
 import { blackbody } from "../utils/colour";
 import { globeFrame } from "../utils/frame";
-
-const TAU = Math.PI * 2;
 
 const isDrawable = (image: TexImageSource): image is Exclude<TexImageSource, ImageData> => typeof ImageData === "undefined" || !(image instanceof ImageData);
 
@@ -49,7 +49,7 @@ export class CanvasGlobeRenderer implements GlobeRenderer {
       const height = Number(map.height);
       const left = (look.surface.centreLongitude ?? 0) - 180;
       const facing = (globeFrame(pose).spin * 180) / Math.PI;
-      const start = ((((facing - 90 - left) / 360) % 1) + 1) % 1;
+      const start = wrap((facing - 90 - left) / 360, 1);
       const first = Math.min(0.5, 1 - start);
 
       target.drawImage(map, start * width, 0, first * width, height, x - radius, y - radius, (first / 0.5) * radius * 2, radius * 2);

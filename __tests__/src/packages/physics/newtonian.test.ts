@@ -1,5 +1,4 @@
 import {
-  angleBetween,
   circularSpeed,
   createFieldSample,
   densityAt,
@@ -79,10 +78,5 @@ describe("physics/newtonian", () => {
     expect(densityAt(air, 0.6)).toBe(0);
     expect(dragDeceleration(1, 2, 0.5)).toBe(2);
     expect(entryHeating(1, 2, 1) / entryHeating(1, 1, 1)).toBe(8);
-  });
-
-  test("the shortest turn between two angles goes the short way round", () => {
-    expect(angleBetween(0.1, -0.1)).toBeCloseTo(-0.2, 10);
-    expect(angleBetween(3, -3)).toBeCloseTo(2 * Math.PI - 6, 10);
   });
 });

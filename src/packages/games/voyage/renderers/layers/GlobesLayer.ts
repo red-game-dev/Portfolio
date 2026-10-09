@@ -1,5 +1,6 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { GlobePose, northUp } from "@/packages/graphics/globe";
+import { TAU } from "@/packages/math/angles";
 
 import { HOME_WORLD, SystemBody } from "../../domain/content";
 import { VoyageState } from "../../domain/state";
@@ -108,7 +109,7 @@ export class GlobesLayer implements RenderLayer<VoyageFrame> {
     if (radius < POINT_RADIUS) {
       back.context.fillStyle = look.surface.palette[2];
       back.context.beginPath();
-      back.context.arc(x, y, POINT_RADIUS, 0, Math.PI * 2);
+      back.context.arc(x, y, POINT_RADIUS, 0, TAU);
       back.context.fill();
 
       return;

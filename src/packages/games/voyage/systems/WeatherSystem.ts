@@ -1,6 +1,6 @@
 import type { System } from "@/packages/games/engine";
+import { angleBetween, TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
-import { angleBetween } from "@/packages/physics/newtonian";
 
 import { HOME_WORLD } from "../domain/content";
 import { FlareClass } from "../domain/events";
@@ -41,7 +41,7 @@ export class WeatherSystem implements System<VoyageContext> {
       const strength = random() ** 1.6;
       const shipAngle = parts ? Math.atan2(parts.body.y - star.y, parts.body.x - star.x) : 0;
       const isHeading = random() < config.weather.heading;
-      const angle = isHeading ? shipAngle + (random() - 0.5) * 0.4 : random() * Math.PI * 2;
+      const angle = isHeading ? shipAngle + (random() - 0.5) * 0.4 : random() * TAU;
 
       state.storms.push({
         angle,

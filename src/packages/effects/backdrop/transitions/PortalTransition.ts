@@ -1,4 +1,5 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { SceneSize, SceneTransition } from "../domain/types";
@@ -35,7 +36,7 @@ export class PortalTransition implements SceneTransition {
     this.width = width;
     this.height = height;
     this.sparks = Array.from({ length: SPARKS }, () => ({
-      angle: randomBetween(this.random, 0, Math.PI * 2),
+      angle: randomBetween(this.random, 0, TAU),
       speed: randomBetween(this.random, 0.4, 1),
     }));
   }
@@ -59,7 +60,7 @@ export class PortalTransition implements SceneTransition {
         context.strokeStyle = rgba(this.options.ring, (1 - local) * 0.9);
         context.lineWidth = 2 + (1 - local) * 4;
         context.beginPath();
-        context.arc(centreX, centreY, reach * local, 0, Math.PI * 2);
+        context.arc(centreX, centreY, reach * local, 0, TAU);
         context.stroke();
       }
     }

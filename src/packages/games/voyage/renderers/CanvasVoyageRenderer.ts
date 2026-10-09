@@ -3,6 +3,8 @@ import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { Rgb } from "@/packages/graphics/colour";
 import { CanvasGlobeRenderer, GlobeRenderer } from "@/packages/graphics/globe";
 import type { LensSource } from "@/packages/graphics/webgl";
+import { TAU } from "@/packages/math/angles";
+import { clamp01, wrap } from "@/packages/math/clamp";
 
 import { VoyageTheme } from "../config";
 import { VoyageWorld } from "../core/world";
@@ -248,7 +250,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
         const glow = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
 
         for (let index = 0; index < 14; index += 1) {
-          const spread = (index / 14) * Math.PI * 2;
+          const spread = (index / 14) * TAU;
 
           particles.emit("glow", x, y, Math.cos(spread) * 0.9, Math.sin(spread) * 0.9, 0.45, 0.05, glow, { drag: 3 });
         }
@@ -260,7 +262,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       }),
       events.on("captured", () => camera.addTrauma(0.3)),
       events.on("storm", ({ strength }) => {
-        this.ship.flashShield(Math.random() * Math.PI * 2);
+        this.ship.flashShield(Math.random() * TAU);
         this.overlay.flashScreen("#ffb070", 0.25 + strength * 0.5);
         camera.addTrauma(0.15 + strength * 0.3);
       }),
@@ -314,7 +316,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
         const glow = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
 
         for (let index = 0; index < 18; index += 1) {
-          const spread = (index / 18) * Math.PI * 2;
+          const spread = (index / 18) * TAU;
 
           particles.emit("glow", x, y, Math.cos(spread) * 0.7, Math.sin(spread) * 0.7, 0.6, 0.05, glow, { drag: 2.5 });
         }
@@ -372,8 +374,8 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       return null;
     }
 
-    const across = ((((longitude - (centreLongitude - 180)) / 360) % 1) + 1) % 1;
-    const down = Math.max(0, Math.min(1, 0.5 - latitude / 180));
+    const across = wrap((longitude - (centreLongitude - 180)) / 360, 1);
+    const down = clamp01(0.5 - latitude / 180);
 
     try {
       this.sampler.clearRect(0, 0, 1, 1);
@@ -397,7 +399,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     particles.emit("glow", x, y, 0, 0, 0.5, radius * 5, white, { grow: -radius * 4, drag: 1 });
 
     for (let index = 0; index < 18; index += 1) {
-      const angle = Math.random() * Math.PI * 2;
+      const angle = Math.random() * TAU;
       const speed = 0.3 + Math.random() * 1.6;
 
       const vx = Math.cos(angle) * speed;
@@ -416,7 +418,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     const dust = this.kit.cache.get("glow:rgba(190, 170, 150, 1)", 64, 64, paintGlow("rgba(190, 170, 150, 1)"));
 
     for (let index = 0; index < count; index += 1) {
-      const angle = Math.random() * Math.PI * 2;
+      const angle = Math.random() * TAU;
       const speed = 0.2 + Math.random() * 1.1;
 
       const size = radius * (0.3 + Math.random() * 0.5);
@@ -431,7 +433,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     const spark = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
 
     for (let index = 0; index < count; index += 1) {
-      const angle = Math.random() * Math.PI * 2;
+      const angle = Math.random() * TAU;
       const speed = 0.6 + Math.random() * 1.6;
 
       particles.emit("glow", x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, 0.2 + Math.random() * 0.35, 0.012 + Math.random() * 0.02, spark, { drag: 2.5 });
@@ -458,7 +460,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     particles.emit("glow", x, y, vx, vy, 0.9, radius * 14, white, { grow: -radius * 10, drag: 1 });
 
     for (let index = 0; index < 40; index += 1) {
-      const spread = Math.random() * Math.PI * 2;
+      const spread = Math.random() * TAU;
       const speed = 0.4 + Math.random() * 2.4;
 
       particles.emit("glow", x, y, vx + Math.cos(spread) * speed, vy + Math.sin(spread) * speed, 0.5 + Math.random() * 0.8, radius * (2 + Math.random() * 3), fire,

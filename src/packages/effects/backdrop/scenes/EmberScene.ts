@@ -1,4 +1,5 @@
 import { Canvas2DContext, createGlowSprite, DrawableSurface } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
@@ -82,7 +83,7 @@ export class EmberScene implements Scene {
       y,
       speed: randomBetween(this.random, 0.012, 0.035),
       size: randomBetween(this.random, 4, 11),
-      phase: randomBetween(this.random, 0, Math.PI * 2),
+      phase: randomBetween(this.random, 0, TAU),
       sway: randomBetween(this.random, 6, 22),
     };
   }

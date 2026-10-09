@@ -1,4 +1,5 @@
 import { Canvas2DContext, createDrawableSurface, DrawableSurface } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
@@ -90,7 +91,7 @@ export class StarfieldScene implements Scene {
       y,
       size: randomBetween(this.random, layer.size[0], layer.size[1]),
       speed: randomBetween(this.random, layer.speed[0], layer.speed[1]),
-      phase: randomBetween(this.random, 0, Math.PI * 2),
+      phase: randomBetween(this.random, 0, TAU),
       brightness: randomBetween(this.random, layer.brightness[0], layer.brightness[1]),
     };
   }

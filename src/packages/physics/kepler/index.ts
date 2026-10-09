@@ -1,4 +1,3 @@
-export { DEG, wrapDegrees, wrapRadians } from "./utils/angles";
 export { heliocentricPosition, periodDays, solveKepler } from "./utils/orbit";
 export { earthSubsolarPoint, OBLIQUITY, poleVector, subsolarLatitude } from "./utils/pole";
 export { solarElevation, sunSubsolarPoint } from "./utils/sun";

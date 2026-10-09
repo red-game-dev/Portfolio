@@ -1,5 +1,6 @@
+import { DEG, wrapDegrees } from "@/packages/math/angles";
+
 import { Pole, SubsolarPoint, Vec3 } from "../domain/types";
-import { DEG, wrapDegrees } from "./angles";
 import { centuriesSinceJ2000, daysSinceJ2000 } from "./time";
 
 // The tilt of Earth's equator to the ecliptic at J2000, in degrees.

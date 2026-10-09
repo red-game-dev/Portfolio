@@ -1,33 +1,31 @@
 import { hexToRgb, mixRgb, Rgb, rgbToHex } from "@/packages/graphics/colour";
 import type { GlobeLook } from "@/packages/graphics/globe";
 import type { Air, Ground, Relief } from "@/packages/graphics/landscape";
+import { angleBetween, RAD } from "@/packages/math/angles";
+import { clamp, wrap } from "@/packages/math/clamp";
 
 import { GROUND_BY_KIND, GroundPreset, GROUNDS, SKIES } from "../config/skies";
 import { HOME_WORLD } from "../domain/content";
 
-const DEG = 180 / Math.PI;
 // Mars changes from place to place: dune fields, rolling plains, mountains.
 const MARS_RELIEFS: readonly Relief[] = ["dunes", "hills", "mountains"];
-
-// The shortest turn from one world angle to another, in radians.
-const turn = (from: number, to: number) => Math.atan2(Math.sin(to - from), Math.cos(to - from));
 
 // Where something stands in the sky for someone on a world: `up` is the world angle straight up from the spot,
 // `towards` the angle from the world's centre to the thing. Overhead when they agree, on the horizon a quarter
 // turn off, below it beyond; and how far across the view it sits, from -0.9 (one edge) to 0.9 (the other).
 export const skyPlace = (up: number, towards: number): { elevation: number; side: number } => {
-  const offset = turn(up, towards);
+  const offset = angleBetween(up, towards);
 
-  return { elevation: 90 - Math.abs(offset) * DEG, side: Math.sign(offset) * Math.min(1, Math.abs(offset) / (Math.PI / 2)) * 0.9 };
+  return { elevation: 90 - Math.abs(offset) * RAD, side: Math.sign(offset) * Math.min(1, Math.abs(offset) / (Math.PI / 2)) * 0.9 };
 };
 
 // The local solar time at the spot: noon with the star overhead, six with it on one horizon, eighteen on the other.
-export const solarHours = (up: number, towardsStar: number): number => (((12 + (turn(up, towardsStar) * DEG) / 15) % 24) + 24) % 24;
+export const solarHours = (up: number, towardsStar: number): number => wrap(12 + (angleBetween(up, towardsStar) * RAD) / 15, 24);
 
 // How much of something in the sky is lit, seen from the ground, and from which side: full opposite the star,
 // new beside it.
 export const phaseOf = (towards: number, towardsStar: number): { lit: number; lightSide: number } => {
-  const apart = turn(towards, towardsStar);
+  const apart = angleBetween(towards, towardsStar);
 
   return { lit: (1 - Math.cos(apart)) / 2, lightSide: apart > 0 ? 1 : -1 };
 };
@@ -125,7 +123,7 @@ export const airFor = (id: string, look: GlobeLook | undefined, pressureBar: num
   }
 
   const tint = hexToRgb(look?.atmosphere?.colour ?? look?.surface.palette[2] ?? "#8aa4d6");
-  const strength = Math.max(0.15, Math.min(1, Math.log10(1 + pressureBar * 100) / 2));
+  const strength = clamp(Math.log10(1 + pressureBar * 100) / 2, 0.15, 1);
 
   return {
     zenith: rgbToHex(mixRgb(tint, [0, 0, 0], 0.35)),

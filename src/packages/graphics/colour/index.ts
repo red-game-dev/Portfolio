@@ -1,3 +1,5 @@
+import { wrap } from "@/packages/math/clamp";
+
 export type Rgb = [number, number, number];
 
 // "#4bffa5" (or "#4bf") as [75, 255, 165].
@@ -33,7 +35,7 @@ export const shadeHex = (hex: string, light: number, alpha = 1): string => {
 
 // A colour from hue (degrees), saturation and lightness (0 to 1), as "#rrggbb".
 export const hslToHex = (hue: number, saturation: number, lightness: number): string => {
-  const h = ((hue % 360) + 360) % 360;
+  const h = wrap(hue, 360);
   const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
   const x = chroma * (1 - Math.abs(((h / 60) % 2) - 1));
   const m = lightness - chroma / 2;

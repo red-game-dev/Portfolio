@@ -1,3 +1,4 @@
+import { wrapDegrees } from "@/packages/math/angles";
 import {
   centuriesSinceJ2000,
   earthSubsolarPoint,
@@ -10,7 +11,6 @@ import {
   solveKepler,
   subsolarLatitude,
   sunSubsolarPoint,
-  wrapDegrees,
 } from "@/packages/physics/kepler";
 
 // JPL's elements for the Earth and Moon barycentre and for Mars, valid 1800 to 2050.

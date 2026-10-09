@@ -1,4 +1,5 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { SceneSize, SceneTransition } from "../domain/types";
@@ -36,7 +37,7 @@ export class WarpTransition implements SceneTransition {
     this.width = width;
     this.height = height;
     this.streaks = Array.from({ length: STREAKS }, () => ({
-      angle: randomBetween(this.random, 0, Math.PI * 2),
+      angle: randomBetween(this.random, 0, TAU),
       start: randomBetween(this.random, 0.02, 0.3),
       speed: randomBetween(this.random, 0.6, 1.2),
     }));

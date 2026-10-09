@@ -1,9 +1,8 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { createSeededRandom } from "@/packages/math/random";
 
 import { HullShape } from "../../domain/universe";
-
-const TAU = Math.PI * 2;
 
 export type CraftShape = HullShape | "trader" | "whale" | "rocket" | "starship";
 

@@ -91,6 +91,8 @@ export const useVoyage = (stageRef: RefObject<HTMLElement>, canvasRef: RefObject
 
     if (STEER_KEYS[key] && isFlying) {
       event.preventDefault();
+      // Keys take over from the pointer until it moves again.
+      game?.release();
       held.current.add(key);
       steerFromKeys();
     } else if (key === "p" && isFlying) {
@@ -102,7 +104,7 @@ export const useVoyage = (stageRef: RefObject<HTMLElement>, canvasRef: RefObject
         pause();
       }
     }
-  }, [isFlying, isPaused, pause, resume, steerFromKeys]);
+  }, [game, isFlying, isPaused, pause, resume, steerFromKeys]);
 
   const onKeyUp = useCallback((event: KeyboardEvent<HTMLElement>) => {
     if (held.current.delete(keyOf(event))) {

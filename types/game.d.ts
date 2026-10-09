@@ -98,17 +98,28 @@ export interface FinaleVoyage {
   shields: string;
   hull: string;
   fuel: string;
-  // The live readings in the corner, and the units each is shown in ("{value}" is replaced).
+  // Wheel, pinch and keys zoom; the map shows the whole system.
+  map: string;
+  closeMap: string;
+  // Where the planet maps come from.
+  credits: string;
+  // The live readings in the corner, and the units each is shown in ("{value}" is replaced). Readings go dark
+  // when the sensors fail.
   telemetry: {
     title: string;
+    clock: string;
     gravity: string;
     altitude: string;
     speed: string;
     sun: string;
     air: string;
     temperature: string;
+    outside: string;
+    sunlight: string;
+    radiation: string;
     dilation: string;
     next: string;
+    noSignal: string;
   };
   units: {
     gravity: string;
@@ -117,15 +128,33 @@ export interface FinaleVoyage {
     au: string;
     pressure: string;
     temperature: string;
+    sunlight: string;
+    radiation: string;
     dilation: string;
     km: string;
     millionKm: string;
+    // "{date}" is replaced with the mission clock's date and time.
+    clock: string;
+  };
+  // The ship's systems, by id, and the panel they are listed in.
+  systems: {
+    title: string;
+    names: Record<string, string>;
   };
   // "{body}" is replaced.
   landed: string;
   tookOff: string;
   emergency: string;
   captured: string;
+  // "{class}" is replaced with the flare's class; the second when its storm heads for the ship.
+  flare: string;
+  flareHeading: string;
+  storm: string;
+  // "{system}" is replaced.
+  failing: string;
+  gone: string;
+  // "{temperature}" is replaced.
+  melting: string;
   // "{au}" is replaced with the distance from the Sun.
   distance: string;
   // "{count}" and "{name}" are replaced.

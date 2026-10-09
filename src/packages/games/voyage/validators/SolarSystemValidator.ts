@@ -2,43 +2,58 @@ import { toValidationResult, ValidationResult, Validator } from "@/packages/core
 
 import { SolarSystemData } from "../domain/content";
 
-// The rules the layout depends on: the way out starts at 1 AU and only goes outward, every body is a real size
-// and pulls, air matches its kind, the belts sit inside the route, and the black hole waits past the last body.
+// The rules the layout depends on: every id is unique; every body is a real size that pulls; a moon circles a
+// planet listed before it, and nothing else circles a planet; air has pressure; rings sit outside their planet;
+// belts run outward; and the black hole waits past every body and belt.
 export class SolarSystemValidator extends Validator<SolarSystemData> {
-  public validate({ bodies, belts, singularityAu }: SolarSystemData): ValidationResult {
+  public validate({ star, bodies, belts, edgeAu }: SolarSystemData): ValidationResult {
     const errors: string[] = [];
-    const last = bodies[bodies.length - 1];
+    const seen = new Set<string>([star.id]);
 
-    if (bodies.length < 2 || bodies[0].au !== 1) {
-      errors.push("the route needs at least two bodies and must start at 1 AU");
+    if (star.radiusKm <= 0 || star.surfaceGravity <= 0 || star.temperatureK <= 0) {
+      errors.push("the star needs a positive radius, gravity and temperature");
     }
 
-    bodies.forEach((body, index) => {
-      if (index > 0 && body.au <= bodies[index - 1].au) {
-        errors.push(`${body.id} is not further from the Sun than the body before it`);
+    bodies.forEach((body) => {
+      if (seen.has(body.id)) {
+        errors.push(`${body.id} is listed twice`);
       }
 
       if (body.radiusKm <= 0 || body.surfaceGravity <= 0) {
         errors.push(`${body.id} needs a positive radius and surface gravity`);
       }
 
-      if (Math.abs(body.offset) > 1) {
-        errors.push(`${body.id} sits more than one step to the side`);
+      if (body.orbit.kind === "moon") {
+        const { parent } = body.orbit;
+
+        if (body.kind !== "moon" || !seen.has(parent) || parent === star.id || body.orbit.distanceKm <= 0 || body.orbit.periodDays === 0) {
+          errors.push(`${body.id} must be a moon circling a body listed before it`);
+        }
+      } else if (body.kind === "moon" || body.orbit.elements.a.value <= 0 || body.orbit.elements.e.value >= 1) {
+        errors.push(`${body.id} must circle the Sun on a closed orbit`);
       }
 
-      if ((body.atmosphere === "none") !== (body.surfacePressureBar === 0)) {
-        errors.push(`${body.id} has air that does not match its kind`);
+      if (body.air && body.air.pressureBar <= 0) {
+        errors.push(`${body.id} has air with no pressure`);
       }
+
+      if (body.rings && (body.rings.innerKm <= body.radiusKm || body.rings.outerKm <= body.rings.innerKm)) {
+        errors.push(`${body.id} has rings that do not sit outside it`);
+      }
+
+      seen.add(body.id);
     });
+
+    const furthest = Math.max(...bodies.map((body) => (body.orbit.kind === "sun" ? body.orbit.elements.a.value * (1 + body.orbit.elements.e.value) : 0)));
 
     belts.forEach((belt) => {
-      if (belt.fromAu >= belt.toAu || belt.fromAu < 1 || (last && belt.toAu > last.au)) {
-        errors.push(`${belt.id} must run outward and lie inside the route`);
+      if (belt.fromAu >= belt.toAu || belt.fromAu <= 0 || belt.toAu > edgeAu) {
+        errors.push(`${belt.id} must run outward and lie inside the edge`);
       }
     });
 
-    if (last && singularityAu <= last.au) {
-      errors.push("the black hole must lie past the last body");
+    if (edgeAu <= furthest) {
+      errors.push("the black hole must lie past every orbit");
     }
 
     return toValidationResult(errors);

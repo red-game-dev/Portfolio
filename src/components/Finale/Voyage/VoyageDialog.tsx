@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
 
-import { faPause, faPlay, faRocket, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faMap, faPause, faPlay, faRocket, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton } from "@/components/Controls";
@@ -19,6 +19,7 @@ import {
   Canvas,
   Card,
   ControlsNote,
+  Credits,
   Dialog,
   Hud,
   HudButtons,
@@ -33,6 +34,11 @@ import {
   Readout,
   Score,
   Stage,
+  SystemName,
+  SystemRow,
+  Systems,
+  SystemsTitle,
+  SystemTrack,
   TelemetryList,
   TelemetryName,
   TelemetryPanel,
@@ -44,7 +50,7 @@ import {
   Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import useModalDialog from "@/hooks/useModalDialog";
-import type { VoyageSnapshot } from "@/packages/games/voyage";
+import type { ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
 import { fill } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
@@ -59,12 +65,17 @@ interface VoyageDialogProps {
 
 const CONTROLS_ID = "voyage-controls";
 
-// Hull green turning red as it fails, shields blue, fuel gold.
-const BAR_COLOUR = { hull: "#6ee7a8", hullLow: "#ff4d5e", shields: "#4fd8ff", fuel: "#ffd76a" };
+// Hull green turning red as it fails, shields blue, fuel gold; a hurt system amber, then red.
+const BAR_COLOUR = { hull: "#6ee7a8", hullLow: "#ff4d5e", shields: "#4fd8ff", fuel: "#ffd76a", worn: "#ffb347", failing: "#ff4d5e" };
+
+// The systems in the order the panel lists them, and how sound one must be to stay off it.
+const SYSTEMS: readonly ModuleId[] = ["hull", "engines", "shields", "sensors", "fuel", "radiators"];
+const SOUND = 0.995;
 
 // The voyage, full screen: the game on its canvases (a 2D back, the GPU lens, a 2D front), and over it in plain
-// text everything it shows: where the ship is, its hull, shields and fuel as MMO bars, the score, the live
-// telemetry, and each moment said once. A card starts, pauses and ends a run. Opens itself on mount.
+// text everything it shows: where the ship is, its hull, shields and fuel as MMO bars, any system that is hurt,
+// the score, the live telemetry, and each moment said once. A card starts, pauses and ends a run; a button opens
+// the map. Opens itself on mount.
 export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, onRecord, onClose }: VoyageDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -72,8 +83,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const frontRef = useRef<HTMLCanvasElement>(null);
   const lensRef = useRef<HTMLCanvasElement>(null);
   const onBackdropClick = useModalDialog(dialogRef, true);
-  const voyage = useVoyage({ stage: stageRef, back: backRef, front: frontRef, lens: lensRef });
-  const { snapshot, notice, isReady, isPaused, play, pause, resume } = voyage;
+  const voyage = useVoyage({ stage: stageRef, back: backRef, front: frontRef, lens: lensRef }, content.stops);
+  const { snapshot, notice, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap } = voyage;
   const [message, setMessage] = useState<{ id: number; text: string } | null>(null);
   const previous = useRef<VoyageSnapshot | null>(null);
   const bestBefore = useRef(best);
@@ -114,6 +125,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     { label: content.shields, value: snapshot.shields, max: snapshot.maxShields, colour: BAR_COLOUR.shields },
     { label: content.fuel, value: snapshot.fuel, max: snapshot.maxFuel, colour: BAR_COLOUR.fuel },
   ] : [];
+  const hurt = snapshot ? SYSTEMS.filter((id) => snapshot.modules[id] < SOUND) : [];
 
   return (
     <Dialog ref={dialogRef} onClose={onClose} onClick={onBackdropClick} onKeyDown={voyage.onKeyDown} onKeyUp={voyage.onKeyUp} aria-label={content.title}>
@@ -128,6 +140,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         onPointerUp={voyage.onPointerEnd}
         onPointerCancel={voyage.onPointerEnd}
         onPointerLeave={voyage.onPointerEnd}
+        onWheel={voyage.onWheel}
       >
         <Canvas ref={backRef} aria-hidden="true" />
         <LensCanvas ref={lensRef} aria-hidden="true" />
@@ -150,6 +163,26 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
               ))}
             </Bars>
           )}
+          {status === "flying" && hurt.length > 0 && snapshot && (
+            <>
+              <SystemsTitle>{content.systems.title}</SystemsTitle>
+              <Systems>
+                {hurt.map((id) => {
+                  const share = snapshot.modules[id];
+                  const name = content.systems.names[id] ?? id;
+
+                  return (
+                    <SystemRow key={id}>
+                      <SystemName>{name}</SystemName>
+                      <SystemTrack role="meter" aria-label={name} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(share * 100)}>
+                        <BarFill colour={share < 0.35 ? BAR_COLOUR.failing : BAR_COLOUR.worn} style={{ transform: `scaleX(${share})` }} />
+                      </SystemTrack>
+                    </SystemRow>
+                  );
+                })}
+              </Systems>
+            </>
+          )}
         </Vitals>
         <Readout>
           <Reading>
@@ -162,6 +195,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </Reading>
         </Readout>
         <HudButtons>
+          {status !== "ready" && (
+            <IconButton type="button" onClick={toggleMap} aria-label={isMapOpen ? content.closeMap : content.map} aria-pressed={isMapOpen}>
+              <FontAwesomeIcon icon={faMap} aria-hidden="true" />
+            </IconButton>
+          )}
           {status === "flying" && (
             <IconButton type="button" onClick={isPaused ? resume : pause} aria-label={isPaused ? content.resume : content.pause}>
               <FontAwesomeIcon icon={isPaused ? faPlay : faPause} aria-hidden="true" />
@@ -177,7 +215,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>
             {telemetryRows(content, snapshot).map((row) => (
-              <TelemetryRow key={row.label}>
+              <TelemetryRow key={row.label} isKey={row.isKey}>
                 <TelemetryName>{row.label}</TelemetryName>
                 <TelemetryValue>{row.value}</TelemetryValue>
               </TelemetryRow>
@@ -200,6 +238,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                     {content.start}
                   </ActionButton>
                 </Buttons>
+                <Credits>{content.credits}</Credits>
               </>
             )}
             {status === "flying" && isPaused && (

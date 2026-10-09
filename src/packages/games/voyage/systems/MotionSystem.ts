@@ -2,7 +2,7 @@ import type { System } from "@/packages/games/engine";
 import { damp } from "@/packages/physics/newtonian";
 
 import { VoyageContext } from "./context";
-import { shipOf } from "./queries";
+import { bodyById, shipOf } from "./queries";
 
 // Moves everything by its velocity, one fixed step at a time, keeping the previous position for drawing between
 // steps; bleeds the ship's velocity through its dampers and caps its speed; turns what spins; and counts the
@@ -50,6 +50,14 @@ export class MotionSystem implements System<VoyageContext> {
     for (const body of bodies) {
       body.x += body.vx * dt;
       body.y += body.vy * dt;
+    }
+
+    // A landed ship stays where it set down on its world, wherever the world has moved.
+    const ground = parts?.ship.landedOn ? bodyById(context, parts.ship.landedOn) : undefined;
+
+    if (parts && ground && parts.ship.landedOffset) {
+      parts.body.x = ground.x + parts.ship.landedOffset.x;
+      parts.body.y = ground.y + parts.ship.landedOffset.y;
     }
   }
 }

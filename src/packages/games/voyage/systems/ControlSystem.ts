@@ -3,13 +3,14 @@ import { clamp } from "@/packages/math/clamp";
 import { angleBetween } from "@/packages/physics/newtonian";
 
 import { VoyageContext } from "./context";
-import { shipOf } from "./queries";
+import { bodyById, shipOf } from "./queries";
 
-// How much thrust a worn hull still gives: engines lose power as the ship falls apart.
-const efficiency = (hull: number, maxHull: number) => 0.55 + 0.45 * (hull / maxHull);
+// How much thrust the ship still gives: less as the hull falls apart, far less as the engines melt.
+const efficiency = (hull: number, maxHull: number, engines: number) => (0.55 + 0.45 * (hull / maxHull)) * (0.25 + 0.75 * engines);
 
 // Turns the player's intent into the ship's motion: turn towards the aim (or with keys) at the ship's turn rate,
-// burn along the nose, brake against the velocity, and pay for both in fuel. Landed, a burn lifts off.
+// burn along the nose, brake against the velocity, and pay for both in fuel. Landed, a burn lifts off with the
+// ground's own motion.
 export class ControlSystem implements System<VoyageContext> {
   public readonly name = "control";
 
@@ -21,7 +22,7 @@ export class ControlSystem implements System<VoyageContext> {
       return;
     }
 
-    const { body, ship, health } = parts;
+    const { body, ship, health, modules } = parts;
     const { thrust, brake, turnRate, burn } = config.ship;
     const step = turnRate * dt;
 
@@ -37,18 +38,23 @@ export class ControlSystem implements System<VoyageContext> {
     ship.isBraking = input.brake && ship.fuel > 0;
 
     if (ship.landedOn) {
+      const ground = bodyById(context, ship.landedOn);
+
       if (power > 0.15) {
         events.emit("tookOff", { body: ship.landedOn });
         ship.landedOn = null;
+        ship.landedOffset = null;
+        body.vx = ground?.vx ?? 0;
+        body.vy = ground?.vy ?? 0;
       } else {
-        body.vx = 0;
-        body.vy = 0;
+        body.vx = ground?.vx ?? 0;
+        body.vy = ground?.vy ?? 0;
 
         return;
       }
     }
 
-    const push = thrust * power * efficiency(health.hull, health.maxHull);
+    const push = thrust * power * efficiency(health.hull, health.maxHull, modules.engines);
 
     body.vx += Math.cos(ship.angle) * push * dt;
     body.vy += Math.sin(ship.angle) * push * dt;

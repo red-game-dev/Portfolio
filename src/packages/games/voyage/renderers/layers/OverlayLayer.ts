@@ -3,7 +3,6 @@ import { createSeededRandom } from "@/packages/math/random";
 
 import { VoyageFrame } from "../frame";
 import { paintDarkness, paintVignette } from "../paint/overlay";
-import { AIR_TINT } from "../paint/planets";
 import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
 
@@ -43,8 +42,11 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
       const ship = world.stores.ship.get(state.ship);
       const health = world.stores.health.get(state.ship);
 
-      if (ship && ship.heat > 0.3) {
-        this.vignette("rgba(255, 110, 30, 0.85)", Math.min(1, (ship.heat - 0.3) * 1.4));
+      // Heat reddens the edges from half the plating's rating, fully at it.
+      const melt = frame.config.thermal.ratings.hull;
+
+      if (ship && ship.temperatureC > melt * 0.5) {
+        this.vignette("rgba(255, 110, 30, 0.85)", Math.min(1, (ship.temperatureC - melt * 0.5) / (melt * 0.5)));
       }
 
       if (health && state.status === "flying" && health.hull / health.maxHull < 0.3) {
@@ -81,21 +83,22 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
     }
   }
 
-  // Inside a giant's clouds the view closes in with the density; a rocky planet's air is only a haze.
-  private drawAir({ state }: VoyageFrame): void {
+  // Inside air the view hazes in the air's own colour, closing in with its density: a giant's clouds and the
+  // depths of Venus or Titan swallow the view, Earth's sky is a blue haze, Mars's barely there.
+  private drawAir({ state, theme }: VoyageFrame): void {
     const { readings } = state;
-    const tint = readings.airOf ? AIR_TINT[readings.airOf] : undefined;
-    const body = state.route.bodies.find((candidate) => candidate.id === readings.airOf);
+    const body = state.system.bodies.find((candidate) => candidate.id === readings.airOf);
+    const tint = readings.airOf ? theme.bodies[readings.airOf]?.atmosphere?.colour : undefined;
 
     if (!tint || !body || readings.density <= 0) {
       return;
     }
 
     const { front } = this.kit;
-    const thickness = body.isGiant ? Math.min(0.9, 0.12 + readings.density * 0.45) : Math.min(0.35, readings.density * 0.3);
+    const thickness = body.isGiant ? Math.min(0.9, 0.12 + readings.density * 0.45) : Math.min(0.85, Math.sqrt(readings.density) * 0.3);
 
     front.context.globalAlpha = thickness;
-    front.context.fillStyle = tint.replace(/[\d.]+\)$/, "1)");
+    front.context.fillStyle = tint;
     front.context.fillRect(0, 0, front.width, front.height);
     front.context.globalAlpha = 1;
   }

@@ -16,7 +16,8 @@ export interface Spin {
   rate: number;
 }
 
-// The ship's own state beyond its body: where it points, what its engines are doing, its fuel and its heat.
+// The ship's own state beyond its body: where it points, what its engines are doing, its fuel and how hot its
+// hull is.
 export interface Ship {
   angle: number;
   prevAngle: number;
@@ -25,11 +26,20 @@ export interface Ship {
   isBraking: boolean;
   fuel: number;
   maxFuel: number;
-  // Hull heat from entry and friction: 0 is cold, 1 is where it starts to fail.
-  heat: number;
-  // The body it is resting on, if landed.
+  // The hull's temperature in Celsius, from sunlight, air and entry, and the hottest it has been.
+  temperatureC: number;
+  // The body it is resting on, if landed, and where on it, from its centre.
   landedOn: string | null;
+  landedOffset: { x: number; y: number } | null;
 }
+
+// The systems that keep a ship flying, each from 0 (gone) to 1 (sound). Each has a temperature it was built for
+// (see `ThermalConfig`); past it, it starts to fail.
+export type ModuleId = "hull" | "engines" | "shields" | "sensors" | "fuel" | "radiators";
+
+export const MODULE_IDS: readonly ModuleId[] = ["hull", "engines", "shields", "sensors", "fuel", "radiators"];
+
+export type Modules = Record<ModuleId, number>;
 
 // A mark left where the hull was hit, in the ship's own frame: the angle round it (0 is the nose, clockwise),
 // how bad, and what kind, which grows from a dent to a scorch to a breach as the hull fails.
@@ -55,6 +65,8 @@ export interface Hazard {
   // Which drawn variant it is.
   shape: number;
   isIcy: boolean;
+  // A comet: an icy rock whose tails grow as it nears the star.
+  isComet: boolean;
 }
 
 export type PickupKind = "score" | "shield" | "fuel" | "repair";

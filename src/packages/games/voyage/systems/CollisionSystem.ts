@@ -1,11 +1,14 @@
 import type { System } from "@/packages/games/engine";
 
+import { MODULE_IDS } from "../domain/components";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
 import { shipOf } from "./queries";
 
 // The rock size the impact damage is measured against.
 const REFERENCE_RADIUS = 0.08;
+// How much of a system one repair kit restores.
+const REPAIR_SHARE = 0.35;
 
 // Contact between the ship and everything else, found through a spatial hash so the cost grows with what is near
 // the ship, not with what is in the world. A rock hits as hard as its size times the square of the closing speed,
@@ -91,7 +94,7 @@ export class CollisionSystem implements System<VoyageContext> {
       return;
     }
 
-    const { ship, health } = parts;
+    const { ship, health, modules } = parts;
 
     if (kind === "score") {
       state.score += config.scoring.pickup;
@@ -101,8 +104,12 @@ export class CollisionSystem implements System<VoyageContext> {
       health.shields = Math.min(health.maxShields, health.shields + config.pickups.shield);
     } else {
       health.hull = Math.min(health.maxHull, health.hull + config.pickups.repair);
-      // A patched hull loses its worst scar.
+      // A patched hull loses its worst scar, and its worst system is patched up too.
       health.decals.sort((first, second) => second.severity - first.severity).shift();
+
+      const worst = MODULE_IDS.reduce((low, id) => (modules[id] < modules[low] ? id : low), MODULE_IDS[0]);
+
+      modules[worst] = Math.min(1, modules[worst] + REPAIR_SHARE);
     }
 
     events.emit("collected", { kind, x, y });

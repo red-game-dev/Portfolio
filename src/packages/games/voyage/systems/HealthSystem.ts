@@ -1,11 +1,10 @@
 import type { System } from "@/packages/games/engine";
 
 import { VoyageContext } from "./context";
-import { applyDamage } from "./damage";
 import { shipOf } from "./queries";
 
-// Over time: shields recharge after a pause without hits, the hull sheds heat (and burns while it is over its
-// limit), and when the hull is gone the ship is destroyed and the run ends.
+// Over time: shields recharge after a pause without hits, only as far and as fast as their generator still
+// allows; and when the hull is gone the ship is destroyed and the run ends.
 export class HealthSystem implements System<VoyageContext> {
   public readonly name = "health";
 
@@ -17,19 +16,16 @@ export class HealthSystem implements System<VoyageContext> {
       return;
     }
 
-    const { body, ship, health } = parts;
+    const { body, ship, health, modules } = parts;
+    const ceiling = health.maxShields * modules.shields;
 
     health.rechargeIn = Math.max(0, health.rechargeIn - dt * 1000);
 
-    if (health.rechargeIn === 0) {
-      health.shields = Math.min(health.maxShields, health.shields + config.ship.shieldRegen * dt);
+    if (health.rechargeIn === 0 && health.shields < ceiling) {
+      health.shields = Math.min(ceiling, health.shields + config.ship.shieldRegen * modules.shields * dt);
     }
 
-    if (ship.heat > 1) {
-      applyDamage(context, config.flight.overheat * (ship.heat - 1 + 0.5) * dt, ship.angle, "heat");
-    }
-
-    ship.heat = Math.max(0, ship.heat - config.flight.cooling * ship.heat * dt);
+    health.shields = Math.min(health.shields, ceiling);
 
     if (health.hull <= 0) {
       state.status = "over";

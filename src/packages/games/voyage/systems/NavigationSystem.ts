@@ -2,13 +2,19 @@ import type { System } from "@/packages/games/engine";
 
 import { Waypoint } from "../domain/state";
 import { VoyageContext } from "./context";
-import { distanceFromOrigin, shipOf } from "./queries";
+import { distanceFromStar, isInSystem, shipOf } from "./queries";
 
-// How close to a body counts as passing it, in its own radii, plus a margin.
+// How close to a body counts as visiting it, in its own radii, plus a margin.
 const PASS_RADII = 5;
+const PASS_MARGIN = 0.5;
+// The star counts as visited this many of its radii out: close enough to feel it.
+const STAR_RADII = 2.2;
+// How far ahead of the ship the singularity wakes, past the edge.
+const SINGULARITY_AHEAD = 9;
 
-// Knows where the ship is on the way out: marks each body and belt passed (and scores the discovery), wakes the
-// singularity once the last body is behind, and points the compass at what comes next.
+// Knows where the ship is in the system: marks each body and belt it reaches (and scores the discovery), wakes
+// the singularity ahead of the ship once it crosses the edge of the system, and points the compass at the
+// nearest place it has not been, then out to the edge.
 export class NavigationSystem implements System<VoyageContext> {
   public readonly name = "navigation";
 
@@ -22,30 +28,34 @@ export class NavigationSystem implements System<VoyageContext> {
 
     const { body } = parts;
 
-    if (state.phase === "solar" || state.phase === "singularity") {
-      const out = distanceFromOrigin(context, body);
+    if (isInSystem(context)) {
+      const { system } = state;
+      const out = distanceFromStar(context, body);
 
-      state.route.bodies.forEach((route) => {
-        const isNear = Math.hypot(route.x - body.x, route.y - body.y) < route.radius * PASS_RADII + 0.5;
-        const isBehind = out > Math.hypot(route.x - state.route.origin.x, route.y - state.route.origin.y) + route.radius * 2;
-
-        if (!state.passed.has(route.id) && (isNear || isBehind)) {
-          this.pass(context, route.id);
+      system.bodies.forEach((place) => {
+        if (!state.passed.has(place.id) && Math.hypot(place.x - body.x, place.y - body.y) < place.radius * PASS_RADII + PASS_MARGIN) {
+          this.pass(context, place.id);
         }
       });
 
-      state.route.belts.forEach((belt) => {
-        // At or past its inner edge: a fast ship can cross a thin belt between two steps.
-        if (!state.passed.has(belt.id) && out >= belt.inner) {
+      if (!state.passed.has(system.star.id) && out < system.star.radius * STAR_RADII) {
+        this.pass(context, system.star.id);
+      }
+
+      system.belts.forEach((belt) => {
+        if (!state.passed.has(belt.id) && out >= belt.inner && out <= belt.outer) {
           this.pass(context, belt.id);
         }
       });
 
-      const last = state.route.bodies[state.route.bodies.length - 1];
-
-      if (state.passed.has(last.id) && state.singularitySince === null) {
+      if (out > system.edge && state.singularitySince === null) {
+        const speed = Math.hypot(body.vx, body.vy);
+        // Ahead of the ship if it is moving, otherwise straight out from the star.
+        const dx = speed > 0.2 ? body.vx / speed : (body.x - system.star.x) / out;
+        const dy = speed > 0.2 ? body.vy / speed : (body.y - system.star.y) / out;
+        const x = body.x + dx * SINGULARITY_AHEAD;
+        const y = body.y + dy * SINGULARITY_AHEAD;
         const hole = world.spawn();
-        const { x, y } = state.route.singularity;
 
         world.stores.body.set(hole, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius: config.holes.singularityHorizon, mass: 0 });
         world.stores.hole.set(hole, { mu: config.holes.singularityMu, horizon: config.holes.singularityHorizon, isSingularity: true });
@@ -68,34 +78,53 @@ export class NavigationSystem implements System<VoyageContext> {
     events.emit("passing", { stop: id });
   }
 
-  // The next body not yet passed, then the singularity; in a universe, the nearest black hole.
-  private waypoint({ state, world, config }: VoyageContext, x: number, y: number): Waypoint | null {
-    if (state.phase === "universe") {
-      let nearest: Waypoint | null = null;
-      let best = Infinity;
-
-      world.stores.hole.entities.forEach((entity) => {
-        const hole = world.stores.body.get(entity);
-        const distance = hole ? Math.hypot(hole.x - x, hole.y - y) : Infinity;
-
-        if (hole && distance < best) {
-          best = distance;
-          nearest = { id: "hole", x: hole.x, y: hole.y, radius: hole.radius };
-        }
-      });
-
-      return nearest;
-    }
+  // In the system: the singularity once it wakes, else the nearest planet, dwarf planet or the star not yet
+  // visited, else the edge straight out. In a universe, the nearest black hole.
+  private waypoint(context: VoyageContext, x: number, y: number): Waypoint | null {
+    const { state, world, config } = context;
 
     if (state.phase === "lost") {
       return null;
     }
 
-    const next = state.route.bodies.find((route) => !state.passed.has(route.id));
+    const candidates: Waypoint[] = [];
 
-    const { singularity } = state.route;
+    world.stores.hole.entities.forEach((entity, index) => {
+      const hole = world.stores.body.get(entity);
+      const { isSingularity } = world.stores.hole.values[index];
 
-    return next ? { id: next.id, x: next.x, y: next.y, radius: next.radius } :
-      { id: "singularity", x: singularity.x, y: singularity.y, radius: config.holes.singularityHorizon };
+      if (hole && (state.phase === "universe" || isSingularity)) {
+        candidates.push({ id: isSingularity ? "singularity" : "hole", x: hole.x, y: hole.y, radius: isSingularity ? config.holes.singularityHorizon : hole.radius });
+      }
+    });
+
+    if (candidates.length === 0 && state.phase !== "universe") {
+      const { system } = state;
+
+      system.bodies.forEach((body) => {
+        if (body.kind !== "moon" && !state.passed.has(body.id)) {
+          candidates.push({ id: body.id, x: body.x, y: body.y, radius: body.radius });
+        }
+      });
+
+      if (!state.passed.has(system.star.id)) {
+        candidates.push({ id: system.star.id, x: system.star.x, y: system.star.y, radius: system.star.radius });
+      }
+
+      if (candidates.length === 0) {
+        const out = Math.hypot(x - system.star.x, y - system.star.y) || 1;
+
+        return {
+          id: "edge",
+          x: system.star.x + ((x - system.star.x) / out) * system.edge,
+          y: system.star.y + ((y - system.star.y) / out) * system.edge,
+          radius: 0,
+        };
+      }
+    }
+
+    return candidates.reduce<Waypoint | null>((best, candidate) => (
+      !best || Math.hypot(candidate.x - x, candidate.y - y) < Math.hypot(best.x - x, best.y - y) ? candidate : best
+    ), null);
   }
 }

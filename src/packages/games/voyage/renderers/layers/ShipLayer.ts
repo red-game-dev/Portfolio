@@ -9,12 +9,15 @@ import { RenderKit } from "./kit";
 
 // Where on the hull a mark at `angle` sits, in the ship's own frame (nose up), as shares of its radius.
 const HULL = { across: 0.4, along: 1.22 };
+// The hull starts to glow above this temperature (Celsius).
+const HEAT_GLOW_C = 350;
 
 const lerpAngle = (from: number, to: number, alpha: number) => from + Math.atan2(Math.sin(to - from), Math.cos(to - from)) * alpha;
 
 // The ship: its flame (sputtering when the hull is failing), its body, the marks of every hit where it landed,
 // glowing breaches that smoke and then burn, the shimmer of its shields and their flash where a hit is caught,
-// the plasma at its nose on entry, and, falling into a black hole, stretched long and red.
+// the plasma at its nose on entry, its hull glowing as it heats and shedding molten drops once it melts, and,
+// falling into a black hole, stretched long and red.
 export class ShipLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "ship";
   private shieldFlash = 0;
@@ -28,7 +31,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     this.shieldAngle = angle;
   }
 
-  public draw({ state, world, camera, alpha, now, dt, universe, theme }: VoyageFrame): void {
+  public draw({ state, world, camera, alpha, now, dt, universe, theme, config }: VoyageFrame): void {
     const body = world.stores.body.get(state.ship);
     const ship = world.stores.ship.get(state.ship);
     const health = world.stores.health.get(state.ship);
@@ -60,6 +63,10 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     this.emitExhaust(worldX, worldY, angle, body.radius, ship.thrust, hull);
     this.emitDamage(worldX, worldY, angle, body.radius, health.decals, hull);
 
+    if (ship.temperatureC > config.thermal.ratings.hull) {
+      this.emitDrips(worldX, worldY, body.vx, body.vy, body.radius, (ship.temperatureC - config.thermal.ratings.hull) / config.thermal.ratings.hull);
+    }
+
     front.frame(x, y, angle + Math.PI / 2, squeeze, stretch);
 
     if ((ship.thrust > 0.02 || ship.isBraking) && this.sputter === 0 && !capture) {
@@ -90,11 +97,30 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
 
     health.decals.forEach((decal) => this.drawDecal(decal, r, now));
 
-    if (ship.heat > 0.25) {
+    // Hot metal glows: dull red, then orange, then white as it nears the point where the plating melts.
+    const glow = Math.min(1.2, Math.max(0, (ship.temperatureC - HEAT_GLOW_C) / (config.thermal.ratings.hull - HEAT_GLOW_C)));
+
+    if (glow > 0) {
+      const colour = glow < 0.5 ? "rgba(255, 70, 20, 1)" : glow < 0.9 ? "rgba(255, 150, 50, 1)" : "rgba(255, 235, 200, 1)";
+      const heat = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
+
+      front.context.globalCompositeOperation = "lighter";
+      front.context.globalAlpha = Math.min(1, glow * 0.85);
+
+      if (heat) {
+        front.context.drawImage(heat.surface, -r * 1.6, -r * 2.2, r * 3.2, r * 4.4);
+      }
+
+      front.context.globalCompositeOperation = "source-over";
+      front.context.globalAlpha = 1;
+    }
+
+    // Plasma at the nose on entry into air.
+    if (state.readings.density > 0.05 && ship.temperatureC > HEAT_GLOW_C) {
       const plasma = this.kit.cache.get("plasma", 64, 64, paintGlow("rgba(255, 190, 120, 1)"));
 
       front.context.globalCompositeOperation = "lighter";
-      front.context.globalAlpha = Math.min(1, (ship.heat - 0.25) * 1.2);
+      front.context.globalAlpha = Math.min(1, (ship.temperatureC - HEAT_GLOW_C) / 600);
 
       if (plasma) {
         front.context.drawImage(plasma.surface, -r * 0.9, -r * 2.1, r * 1.8, r * 1.4);
@@ -204,5 +230,19 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
       }
     });
   }
-}
 
+  // Molten metal shed as the plating gives way: bright drops that keep the ship's motion, cooling as they go.
+  private emitDrips(x: number, y: number, vx: number, vy: number, radius: number, severity: number): void {
+    if (Math.random() > Math.min(0.9, 0.25 + severity)) {
+      return;
+    }
+
+    const { particles } = this.kit;
+    const drop = this.kit.cache.get("glow:rgba(255, 200, 120, 1)", 64, 64, paintGlow("rgba(255, 200, 120, 1)"));
+    const spread = Math.random() * Math.PI * 2;
+    const kick = 0.15 + Math.random() * 0.3;
+
+    particles.emit("glow", x + Math.cos(spread) * radius, y + Math.sin(spread) * radius, vx * 0.9 + Math.cos(spread) * kick, vy * 0.9 + Math.sin(spread) * kick,
+      0.5 + Math.random() * 0.6, radius * (0.25 + Math.random() * 0.3), drop, { drag: 0.4, grow: -radius * 0.2 });
+  }
+}

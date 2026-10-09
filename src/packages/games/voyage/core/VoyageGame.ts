@@ -1,17 +1,19 @@
 import { FrameLoop, FrameScheduler } from "@/packages/animation/frame-loop";
 import { Camera } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { CanvasGlobeRenderer, GlobeRenderer, WebGLGlobeRenderer } from "@/packages/graphics/globe";
 import { LensingPresenter } from "@/packages/graphics/webgl";
 import { RandomSource } from "@/packages/math/random";
 
 import { DEFAULT_VOYAGE_THEME, resolveVoyageConfig, VoyageConfigOverrides, VoyageTheme } from "../config";
-import { Route } from "../domain/content";
-import { VoyageEvents } from "../domain/events";
+import { ModuleId } from "../domain/components";
+import { StarSystem } from "../domain/content";
+import { FlareClass, VoyageEvents } from "../domain/events";
 import { VoyageInput } from "../domain/input";
 import { VoyageSnapshot } from "../domain/snapshot";
 import { CanvasVoyageRenderer, VoyageRenderer } from "../renderers/CanvasVoyageRenderer";
 import { universeOf } from "../renderers/frame";
-import { RouteService } from "../services/RouteService";
+import { SystemService } from "../services/SystemService";
 import { SolarSystemSource } from "../sources/SolarSystemSource";
 import { VoyageSimulation } from "./VoyageSimulation";
 
@@ -19,13 +21,21 @@ import { VoyageSimulation } from "./VoyageSimulation";
 export type VoyageNotice =
   | { kind: "landed" | "tookOff" | "emergency"; body: string }
   | { kind: "captured"; isSingularity: boolean }
-  | { kind: "destroyed" };
+  | { kind: "destroyed" }
+  | { kind: "flare"; flareClass: FlareClass; isHeading: boolean }
+  | { kind: "storm" }
+  | { kind: "failing"; module: ModuleId; isGone: boolean }
+  | { kind: "melting"; temperatureC: number };
 
 export interface VoyageOptions {
   config?: VoyageConfigOverrides;
   random?: RandomSource;
   scheduler?: FrameScheduler;
-  route?: Route;
+  system?: StarSystem;
+  // When the mission clock starts, for each run (ms since 1970); the real now unless a host says otherwise.
+  now?: () => number;
+  // What to call each place on the system map, by id.
+  labels?: Record<string, string>;
   onChange?: (snapshot: VoyageSnapshot) => void;
   onNotice?: (notice: VoyageNotice) => void;
 }
@@ -35,6 +45,8 @@ export interface VoyageCanvases {
   front: Canvas2DContext;
   // The WebGL canvas between them for the black hole lens; left out, or unable, the 2D lens is drawn instead.
   lens?: HTMLCanvasElement | OffscreenCanvas | null;
+  // A canvas off screen for the GPU to draw planets and the Sun in; left out, or unable, they are drawn in 2D.
+  globe?: HTMLCanvasElement | OffscreenCanvas | null;
 }
 
 export interface VoyageCanvasOptions extends VoyageOptions {
@@ -50,6 +62,8 @@ const DEADZONE = 26;
 const FULL_THRUST_SHARE = 0.32;
 // World units across the shorter side of the screen at zoom 1.
 const UNITS_ACROSS = 2.2;
+// How far the player can zoom out and in, against the camera's own choice.
+const ZOOM_RANGE: [number, number] = [0.3, 3];
 
 const isSameMoment = (a: VoyageSnapshot, b: VoyageSnapshot) => a.status === b.status && a.phase === b.phase && a.universe === b.universe &&
   a.universes === b.universes && a.passing === b.passing && a.landedOn === b.landedOn && a.waypoint?.id === b.waypoint?.id;
@@ -67,7 +81,9 @@ export class VoyageGame extends FrameLoop {
   private readonly onChange: (snapshot: VoyageSnapshot) => void;
   private readonly onNotice: (notice: VoyageNotice) => void;
   private readonly detach: () => void;
+  private readonly now: () => number;
   private pointer: { x: number; y: number } | null = null;
+  private zoomBias = 1;
   private keys = { turn: 0, thrust: 0, brake: false };
   private lastSnapshot: VoyageSnapshot;
   private lastTickAt = 0;
@@ -85,6 +101,7 @@ export class VoyageGame extends FrameLoop {
     this.theme = theme;
     this.onChange = options.onChange ?? (() => undefined);
     this.onNotice = options.onNotice ?? (() => undefined);
+    this.now = options.now ?? (() => Date.now());
     this.lastSnapshot = simulation.snapshot;
     this.detach = this.listen(simulation.events);
   }
@@ -93,15 +110,38 @@ export class VoyageGame extends FrameLoop {
     return this.lastSnapshot;
   }
 
-  public static forCanvas({ back, front, lens }: VoyageCanvases, options: VoyageCanvasOptions = {}): VoyageGame {
+  public static forCanvas({ back, front, lens, globe }: VoyageCanvases, options: VoyageCanvasOptions = {}): VoyageGame {
     const config = resolveVoyageConfig(options.config);
     const theme = { ...DEFAULT_VOYAGE_THEME, ...options.theme };
-    const route = options.route ?? new RouteService(new SolarSystemSource(), config.layout).getView();
-    const simulation = new VoyageSimulation(route, { config: { ...config, universes: theme.universes.length }, random: options.random ?? Math.random });
+    const system = options.system ?? new SystemService(new SolarSystemSource(), config.layout).getView();
+    const simulation = new VoyageSimulation(system, {
+      config: { ...config, universes: theme.universes.length },
+      random: options.random ?? Math.random,
+      epochMs: (options.now ?? Date.now)(),
+    });
     const presenter = lens ? LensingPresenter.create(lens) : null;
-    const backCanvas = back.canvas;
+    const globes: GlobeRenderer = (globe ? WebGLGlobeRenderer.create(globe) : null) ?? new CanvasGlobeRenderer();
 
-    return new VoyageGame(simulation, new CanvasVoyageRenderer(back, front, theme), presenter, backCanvas, theme, options);
+    return new VoyageGame(simulation, new CanvasVoyageRenderer(back, front, theme, globes, options.labels ?? {}), presenter, back.canvas, theme, options);
+  }
+
+  // A real map for a body's surface (an id from `TEXTURE_IDS`), as it arrives.
+  public setTexture(id: string, image: TexImageSource): void {
+    this.renderer.setTexture(id, image);
+  }
+
+  // Zooms the view by a factor, within the player's range.
+  public zoomBy(factor: number): void {
+    this.zoomBias = Math.max(ZOOM_RANGE[0], Math.min(ZOOM_RANGE[1], this.zoomBias * factor));
+  }
+
+  // Opens or closes the map of the system over the view.
+  public setMap(isOpen: boolean): void {
+    this.renderer.setMap(isOpen);
+
+    if (!this.isRunning) {
+      this.drawFrame(performance.now(), 0);
+    }
   }
 
   public resize(size: { width: number; height: number }, pixelRatio = 1): void {
@@ -119,7 +159,8 @@ export class VoyageGame extends FrameLoop {
   }
 
   public play(): void {
-    this.simulation.start();
+    this.simulation.start(this.now());
+    this.zoomBias = 1;
     this.renderer.reset();
     this.followShip(1, true);
     this.publish(true);
@@ -242,7 +283,7 @@ export class VoyageGame extends FrameLoop {
       this.camera.jumpTo(x + body.vx * lookAhead, y + body.vy * lookAhead);
     } else {
       this.camera.follow(x + body.vx * lookAhead, y + body.vy * lookAhead, dt);
-      this.camera.easeZoom(zoom, dt);
+      this.camera.easeZoom(zoom * (state.capture ? 1 : this.zoomBias), dt);
     }
 
     this.updateView();
@@ -291,6 +332,10 @@ export class VoyageGame extends FrameLoop {
       tell("emergency", ({ body }) => ({ kind: "emergency", body })),
       tell("captured", ({ isSingularity }) => ({ kind: "captured", isSingularity })),
       tell("destroyed", () => ({ kind: "destroyed" })),
+      tell("flare", ({ class: flareClass, isHeading }) => ({ kind: "flare", flareClass, isHeading })),
+      tell("storm", () => ({ kind: "storm" })),
+      tell("failing", ({ module, isGone }) => ({ kind: "failing", module, isGone })),
+      tell("melting", ({ temperatureC }) => ({ kind: "melting", temperatureC })),
     ];
 
     return () => {

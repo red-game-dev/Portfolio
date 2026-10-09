@@ -1,3 +1,5 @@
+import { roundTo } from "@/packages/math/round";
+
 export interface Box {
   left: number;
   top: number;
@@ -14,7 +16,8 @@ export interface Route {
 // Boxes closer than this along an axis are treated as touching, so the line goes the other way.
 const MIN_GAP = 4;
 
-const round = (value: number) => Math.round(value * 10) / 10;
+// Path coordinates to a tenth of a pixel, so the drawn path stays short.
+const round = (value: number) => roundTo(value, 1);
 
 const overlap = (startA: number, endA: number, startB: number, endB: number) => {
   const start = Math.max(startA, startB);

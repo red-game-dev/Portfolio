@@ -1,5 +1,6 @@
 import { Mapper } from "@/packages/core/domain";
 import type { Entity } from "@/packages/games/engine";
+import { roundTo } from "@/packages/math/round";
 import type { Vec3 } from "@/packages/physics/kepler";
 
 import { VoyageConfig } from "../config";
@@ -52,7 +53,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       landedOn: ship?.landedOn ? state.cosmos?.names[ship.landedOn] ?? ship.landedOn : null,
       // The view from the surface is the renderer's; the game adds it.
       surface: null,
-      modules: MODULE_IDS.reduce<Modules>((all, id) => ({ ...all, [id]: Math.round(modules[id] * 100) / 100 }), { ...SOUND }),
+      modules: MODULE_IDS.reduce<Modules>((all, id) => ({ ...all, [id]: roundTo(modules[id], 2) }), { ...SOUND }),
       waypoint: state.waypoint && body
         ? { id: state.waypoint.id, name: state.cosmos?.names[state.waypoint.id] ?? null, distanceKm: this.distanceKm(state, body.x, body.y) }
         : null,
@@ -137,7 +138,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
         best = distance;
         nearest = {
           target: state.cosmos?.names[target.id] ?? target.id,
-          diameterKm: Math.round(impactor.diameterKm * 10) / 10,
+          diameterKm: roundTo(impactor.diameterKm, 1),
           seconds: Math.max(0, Math.round((Math.hypot(rock.x - target.x, rock.y - target.y) - target.radius) / closing)),
           hp: Math.ceil(Math.max(0, impactor.hp)),
           maxHp: Math.ceil(impactor.maxHp),

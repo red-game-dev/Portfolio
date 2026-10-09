@@ -1,5 +1,5 @@
 import {
-  collapseWhitespace, fill, formatDateTime, formatDuration, formatHours, formatLatLon, formatLocalTime, formatNumber, twoDigits, utcDay,
+  capitalise, collapseWhitespace, fill, formatDateTime, formatDuration, formatHours, formatLatLon, formatLocalTime, formatNumber, twoDigits, utcDay,
 } from "@/packages/text/format";
 
 describe("fill", () => {
@@ -14,6 +14,15 @@ describe("fill", () => {
 
   it("does not read values off the object's prototype", () => {
     expect(fill("{toString}", {})).toBe("{toString}");
+  });
+});
+
+describe("capitalise", () => {
+  it("upper cases the first letter only, and leaves empty text empty", () => {
+    expect(capitalise("mars")).toBe("Mars");
+    expect(capitalise("derelict freighter")).toBe("Derelict freighter");
+    expect(capitalise("Io")).toBe("Io");
+    expect(capitalise("")).toBe("");
   });
 });
 

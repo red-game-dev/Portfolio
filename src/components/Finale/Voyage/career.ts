@@ -1,5 +1,5 @@
 import type { CodexEntry, VoyageNotice } from "@/packages/games/voyage";
-import { fill, formatNumber } from "@/packages/text/format";
+import { capitalise, fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 
@@ -22,11 +22,8 @@ export const codexName = (content: FinaleVoyage, { category, subject }: Pick<Cod
   const copy = content.career;
 
   switch (category) {
-    case "worlds": {
-      const name = content.stops[subject] ?? subject;
-
-      return name.charAt(0).toUpperCase() + name.slice(1);
-    }
+    case "worlds":
+      return capitalise(content.stops[subject] ?? subject);
     case "kinds":
       return copy.kinds[subject]?.name ?? subject;
     case "universes":
@@ -39,9 +36,8 @@ export const codexName = (content: FinaleVoyage, { category, subject }: Pick<Cod
       return copy.life[subject]?.name ?? subject;
     case "wrecks": {
       const wrecks: Record<string, string | undefined> = content.economy.salvage.wrecks;
-      const name = wrecks[subject] ?? subject;
 
-      return name.charAt(0).toUpperCase() + name.slice(1);
+      return capitalise(wrecks[subject] ?? subject);
     }
     case "things":
       return content.economy.items[subject]?.name ?? subject;

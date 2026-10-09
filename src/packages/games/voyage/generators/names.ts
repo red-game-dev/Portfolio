@@ -1,8 +1,7 @@
 import { pick, RandomSource } from "@/packages/math/random";
+import { capitalise } from "@/packages/text/format";
 
 import { Disposition, UniverseNames } from "../domain/universe";
-
-const capitalise = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 
 // A made up word of two or three syllables, from the host's own syllables.
 export const nameWord = (random: RandomSource, names: UniverseNames): string => {

@@ -45,6 +45,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `effects/binary-rain` | Falling binary rain that assembles a message, built on `frame-loop` and `graphics/canvas` |
 | `effects/pixel-reveal` | An image materialising from binary to pixels to full resolution, built on `frame-loop` and `graphics/canvas` |
 | `encoding/binary` | Text to binary, same length masks, and the frame by frame decode used for text reveals |
+| `encoding/hash` | `hashText`: a stable, non cryptographic polynomial hash of text, the same on the server and in every browser, and `hexHash` for one written as so many hex digits |
 | `graphics/rig` | A small sprite engine: a `RigModel` (layers back to front, each with optional bounds, cache keys and motion), skins as data, an `Animator` for one shot and repeating cues, a `RigRenderer` that paints each layer once per skin and step into a `SpriteCache` and blits it, and a `RigActor` on `frame-loop` |
 | `insights/activity` | `activityStats`: active days, day and week streaks (across years), perfect weeks, the busiest month and each year's longest run, from a contribution calendar |
 | `finance/ledger` | A double entry `Ledger` in many currencies: integer minor units, transactions checked to balance in every currency before they are written, balances on each account's normal side, exchange through trading accounts, books closed into an opening balance, and plain data to keep and replay |
@@ -77,6 +78,6 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `math/easing` | `easeInOut`, `easeIn`, `smoothstep`, `lerp` and `pulse` (up and back down, the shape of a flash), shared by the backdrop, the landscape and the games |
 | `math/hex-grid` | Pointy topped hex grid geometry and a snaking route through it, for map layouts |
 | `math/random` | Seedable random source for repeatable visuals and tests, `randomBetween` and `pick` (one item of a list) for one draw each |
-| `text/format` | `fill` for `{name}` templates and `collapseWhitespace`; numbers (`formatNumber`), clocks and dates (`formatDuration`, `formatHours`, `formatLocalTime`, `formatDateTime`, `utcDay`, `twoDigits`) and places (`formatLatLon`) |
+| `text/format` | `fill` for `{name}` templates, `collapseWhitespace` and `capitalise`; numbers (`formatNumber`), clocks and dates (`formatDuration`, `formatHours`, `formatLocalTime`, `formatDateTime`, `utcDay`, `twoDigits`) and places (`formatLatLon`) |
 
 Tests mirror this tree under `__tests__/src/packages/`.

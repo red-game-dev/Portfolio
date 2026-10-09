@@ -19,6 +19,10 @@ export class MalfunctionSystem implements System<VoyageContext> {
   public readonly name = "malfunction";
   private sinceCheck = 0;
 
+  public reset(): void {
+    this.sinceCheck = 0;
+  }
+
   public update(context: VoyageContext, dt: number): void {
     const { state, config } = context;
     const parts = shipOf(context);

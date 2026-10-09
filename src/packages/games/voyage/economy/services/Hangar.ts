@@ -9,7 +9,7 @@ import { Backpack } from "../core/Backpack";
 import { emptyPurse, Wallet } from "../core/Wallet";
 import { CargoRow, Cost, CurrencyCode, Deed, EconomyView, Purse, Recipe, ShipStats, ShipStatus, Shortfall, Stowed, Suggestion } from "../domain/economy";
 import { ItemSpec, ItemStack, Loot } from "../domain/items";
-import { PilotProfile, PilotRecords } from "../domain/profile";
+import { EconomyProfile, PilotRecords } from "../domain/profile";
 
 // How many ledger entries the UI is shown.
 const HISTORY = 30;
@@ -40,8 +40,8 @@ interface Exchange {
 
 export const newRecords = (): PilotRecords => ({ runs: 0, bestScore: 0, universes: 0, bosses: 0, rescues: 0, salvaged: 0 });
 
-// A pilot who has never flown: a Rocket Mk I, an empty hold, the plans everyone knows, no money.
-export const newProfile = (): PilotProfile => ({
+// A hangar that has never flown: a Rocket Mk I, an empty hold, the plans everyone knows, no money.
+export const newEconomyProfile = (): EconomyProfile => ({
   savedAt: 0,
   level: 0,
   cargo: [],
@@ -77,7 +77,7 @@ export class Hangar {
   private revision = 0;
   private cache: HangarCache = { revision: -1, next: undefined, statusKey: null, suggestion: undefined };
 
-  constructor(profile: PilotProfile, { now = Date.now, catalog = ITEMS, base = DEFAULT_VOYAGE_CONFIG }: HangarOptions = {}) {
+  constructor(profile: EconomyProfile, { now = Date.now, catalog = ITEMS, base = DEFAULT_VOYAGE_CONFIG }: HangarOptions = {}) {
     this.catalog = catalog;
     this.now = now;
     this.base = base;
@@ -98,11 +98,11 @@ export class Hangar {
 
   // Starts over as a pilot who has never flown.
   public reset(): void {
-    this.replace(newProfile());
+    this.replace(newEconomyProfile());
   }
 
   // Takes on a profile written elsewhere (another tab's newer save), dropping what this one held.
-  public replace(profile: PilotProfile): void {
+  public replace(profile: EconomyProfile): void {
     this.shipLevel = Math.max(0, Math.min(MAX_LEVEL, Math.floor(profile.level)));
     this.backpack = new Backpack(cargoFor(this.shipLevel), profile.cargo, this.catalog);
     this.wallet = Wallet.from(profile.ledger);
@@ -382,7 +382,7 @@ export class Hangar {
     };
   }
 
-  public toProfile(): PilotProfile {
+  public toProfile(): EconomyProfile {
     return {
       savedAt: this.now(),
       level: this.shipLevel,
@@ -440,6 +440,8 @@ export class Hangar {
         return { ...REWARDS.boss };
       case "universe":
         return { ...REWARDS.universe };
+      case "mission":
+        return { RED: Math.max(0, Math.round(deed.coin)), VOID: 0 };
       default:
         return emptyPurse();
     }
@@ -519,6 +521,8 @@ const detailOf = (deed: Deed): string => {
       return deed.name;
     case "universe":
       return String(deed.index);
+    case "mission":
+      return deed.id;
     default:
       return "";
   }

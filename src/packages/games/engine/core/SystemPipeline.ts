@@ -56,7 +56,9 @@ export class SystemPipeline<TContext> {
     this.systems.forEach((system) => system.update(context, dt));
   }
 
+  // A fresh start: no time owed, and every system's own memory of the last run forgotten.
   public reset(): void {
     this.accumulated = 0;
+    this.systems.forEach((system) => system.reset?.());
   }
 }

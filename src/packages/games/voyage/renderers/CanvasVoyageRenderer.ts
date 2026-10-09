@@ -6,11 +6,13 @@ import type { LensSource } from "@/packages/graphics/webgl";
 import { VoyageTheme } from "../config";
 import { VoyageWorld } from "../core/world";
 import { VoyageEvents } from "../domain/events";
+import { GhostRun } from "../domain/ghost";
 import { VoyageState } from "../domain/state";
 import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
 import { EffectsLayer } from "./layers/EffectsLayer";
+import { GhostLayer } from "./layers/GhostLayer";
 import { GlobesLayer } from "./layers/GlobesLayer";
 import { HolesLayer } from "./layers/HolesLayer";
 import { RenderKit } from "./layers/kit";
@@ -39,6 +41,10 @@ export interface VoyageRenderer {
   setMap(isOpen: boolean): void;
   // How fine to draw, 0 the finest (see `QUALITY`).
   setQuality(level: number): void;
+  // The ghost to fly beside the ship, or none.
+  setGhost(run: GhostRun | null): void;
+  // Photo mode: no radar, map, compass or arrows.
+  setPhoto(isOn: boolean): void;
   dispose(): void;
 }
 
@@ -62,6 +68,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   private readonly light: EffectsLayer;
   private readonly overlay: OverlayLayer;
   private readonly map: MapLayer;
+  private readonly ghost: GhostLayer;
   private lastState: Readonly<VoyageState> | null = null;
   private lastWorld: VoyageWorld | null = null;
   private quality = 0;
@@ -73,6 +80,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.light = new EffectsLayer(this.kit, "front");
     this.overlay = new OverlayLayer(this.kit);
     this.map = new MapLayer(this.kit);
+    this.ghost = new GhostLayer(this.kit);
     this.backLayers = new RenderPipeline([
       new BackdropLayer(this.kit),
       new PhenomenaLayer(this.kit),
@@ -87,6 +95,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       new AliensLayer(this.kit),
       new ProjectilesLayer(this.kit),
       this.effects,
+      this.ghost,
       this.ship,
       this.light,
       this.overlay,
@@ -117,6 +126,15 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.quality = index;
     this.kit.particles.setBudget(QUALITY.particles[index]);
     this.kit.globes.setDetail(QUALITY.octaves[index]);
+  }
+
+  public setGhost(run: GhostRun | null): void {
+    this.ghost.run = run;
+  }
+
+  public setPhoto(isOn: boolean): void {
+    this.map.isHidden = isOn;
+    this.overlay.showsGuides = !isOn;
   }
 
   public dispose(): void {

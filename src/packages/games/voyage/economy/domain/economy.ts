@@ -38,7 +38,7 @@ export interface Recipe {
 }
 
 // Why money moved, which names the account it moved through.
-export type EarningReason = "discovery" | "landing" | "bounty" | "rescue" | "boss" | "universe" | "salvage" | "flight" | "recycling";
+export type EarningReason = "discovery" | "landing" | "bounty" | "rescue" | "boss" | "universe" | "mission" | "salvage" | "flight" | "recycling";
 
 export type SpendingReason = "upgrade" | "crafting" | "repair" | "exchange";
 
@@ -57,7 +57,8 @@ export type Deed =
   | { kind: "bounty"; level: number }
   | { kind: "rescue"; target: string; isDeflected: boolean }
   | { kind: "boss"; name: string }
-  | { kind: "universe"; index: number };
+  | { kind: "universe"; index: number }
+  | { kind: "mission"; id: string; coin: number };
 
 // What the economy needs to know of the ship to suggest the next thing to do: whether it is flying, its faults,
 // and its hull, fuel and shields as shares, and its heat as a share of what its plating is built for.

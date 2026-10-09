@@ -20,6 +20,8 @@ const GLARE_MAX = 0.55;
 // streams past, the compass points the way from the edge of the screen, and flashes fade.
 export class OverlayLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "overlay";
+  // The compass and the arrows to attackers; off in photo mode, where a picture wants no guides.
+  public showsGuides = true;
   private readonly streaks: Array<{ angle: number; speed: number; offset: number }>;
   private flash = 0;
   private flashColour = "#ffffff";
@@ -64,8 +66,10 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
         this.drawFall(frame);
       }
 
-      this.drawCompass(frame);
-      this.drawAttackers(frame);
+      if (this.showsGuides) {
+        this.drawCompass(frame);
+        this.drawAttackers(frame);
+      }
     }
 
     this.flash = Math.max(0, this.flash - dt * 2.5);

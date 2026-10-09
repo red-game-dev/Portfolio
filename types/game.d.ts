@@ -147,6 +147,57 @@ export interface VoyageEconomyCopy {
   reset: { button: string; confirm: string; yes: string; no: string };
 }
 
+interface NamedNote {
+  name: string;
+  note: string;
+}
+
+// The career: missions and ranks, the codex of everything found, the daily voyage, its ghost and photo mode.
+// Templates replace "{name}" placeholders.
+export interface VoyageCareerCopy {
+  tabs: { pilot: string; codex: string };
+  ranks: Record<string, string>;
+  // "{rank}" and "{ship}" are replaced.
+  shipLine: string;
+  // "{xp}" is replaced; then "{xp}" and "{rank}" for what the next rank takes.
+  xp: string;
+  nextRank: string;
+  topRank: string;
+  missionsTitle: string;
+  missions: Record<string, string>;
+  // "{count}" is replaced.
+  contracts: Record<"salvage" | "bounty" | "rescue", string>;
+  // "{progress}" and "{target}", then "{xp}" and "{coin}", then "{count}".
+  progress: string;
+  reward: string;
+  rewardXp: string;
+  done: string;
+  // Notices: "{mission}", "{xp}" and "{coin}"; "{rank}"; "{name}".
+  missionDone: string;
+  // The same for a mission that pays no coin.
+  missionDoneXp: string;
+  promoted: string;
+  discovered: string;
+  codexTitle: string;
+  // "{found}" and "{total}" are replaced.
+  codexFound: string;
+  categories: Record<"worlds" | "kinds" | "universes" | "stars" | "phenomena" | "life" | "wrecks" | "things", string>;
+  // "{count}" is replaced with how many in a category are still to find.
+  unknown: string;
+  kinds: Record<string, NamedNote>;
+  universes: Record<string, NamedNote>;
+  stars: Record<string, NamedNote>;
+  phenomena: Record<string, NamedNote>;
+  life: Record<string, NamedNote>;
+  wreckNotes: Record<string, string>;
+  // Real figures for our own worlds, "{value}" (or "{day}" and "{night}") replaced.
+  facts: { radius: string; gravity: string; day: string; locked: string; pressure: string; temperature: string; surface: string };
+  daily: { start: string; title: string; note: string; best: string; result: string; newBest: string };
+  ghost: string;
+  // "{date}" is replaced in the file's name.
+  photo: { title: string; open: string; close: string; save: string; hint: string; file: string };
+}
+
 export interface FinaleVoyage {
   title: string;
   intro: string;
@@ -278,6 +329,7 @@ export interface FinaleVoyage {
   // "{coin}" is replaced with the Red Coin a run's points paid.
   pay: string;
   economy: VoyageEconomyCopy;
+  career: VoyageCareerCopy;
 }
 
 export interface FinaleContent {

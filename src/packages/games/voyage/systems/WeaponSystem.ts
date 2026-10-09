@@ -21,6 +21,10 @@ export class WeaponSystem implements System<VoyageContext> {
   public readonly name = "weapons";
   private restFor = 0;
 
+  public reset(): void {
+    this.restFor = 0;
+  }
+
   public update(context: VoyageContext, dt: number): void {
     const { world, state } = context;
 

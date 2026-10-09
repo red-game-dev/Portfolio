@@ -59,4 +59,8 @@ export interface VoyageEvents {
   salvaged: { wreck: number; x: number; y: number; kind: WreckKind; loot: Loot };
   fault: { kind: FaultKind; module: ModuleId };
   fixed: { kind: FaultKind };
+  // The ship skimmed a giant's air for fuel, the first time this run for that giant; it took the full force of a
+  // supernova's shock or a gamma ray burst (whether it lives through it is known a moment later).
+  skimmed: { body: string };
+  weathered: { peril: "supernova" | "burst" };
 }

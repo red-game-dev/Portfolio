@@ -41,6 +41,7 @@ import { TrafficSystem } from "../systems/TrafficSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 import { AURORA_BASE, WeatherSystem } from "../systems/WeatherSystem";
 import { WreckSystem } from "../systems/WreckSystem";
+import { StepRandom } from "../utils/stepRandom";
 import { cloneSystem } from "../utils/system";
 import { createVoyageStores, VoyageWorld } from "./world";
 
@@ -81,11 +82,17 @@ export class VoyageSimulation {
   // The real solar system every run starts in, whichever universe the last one ended in, as it was given:
   // each run flies a copy of it.
   private readonly home: StarSystem;
+  // Where a free run's randomness comes from; a daily run swaps in one seeded from its day, started over at every
+  // step (`StepRandom`), and counts its steps.
+  private readonly freeRandom: RandomSource;
+  private daily: StepRandom | null = null;
+  private stepIndex = 0;
 
   constructor(system: StarSystem, { config, random, epochMs, names = DEFAULT_UNIVERSE_NAMES, themes = [], loot = NO_LOOT_TABLE, level = 0 }: VoyageSimulationOptions) {
     this.world = new World(createVoyageStores());
     this.snapshots = new SnapshotMapper(config);
     this.home = system;
+    this.freeRandom = random;
     this.context = {
       world: this.world,
       state: this.fresh(cloneSystem(system), "ready", epochMs, config, random, level),
@@ -282,9 +289,16 @@ export class VoyageSimulation {
 
   // A new run from Earth, whatever the last one ended in, with the clock starting again from `epochMs` (or from
   // where the last run's started).
-  public start(epochMs = this.context.state.clock.epochMs): void {
+  // A daily voyage passes its day and seed: everything random in the run then comes from that seed, so everyone
+  // flying it that day meets the same universes, rocks and wrecks for the same flying.
+  public start(epochMs = this.context.state.clock.epochMs, daily: { day: string; seed: number } | null = null): void {
     this.world.clear();
+    this.daily = daily ? new StepRandom(daily.seed) : null;
+    this.stepIndex = 0;
+    this.context.random = this.daily?.next ?? this.freeRandom;
     this.context.state = this.fresh(cloneSystem(this.home), "flying", epochMs, this.context.config, this.context.random, this.context.state.level);
+    this.context.state.daily = daily?.day ?? null;
+    this.daily?.reseed(0);
     this.context.state.view = { ...this.context.state.view };
     this.placeShip();
     this.pipeline.reset();
@@ -294,7 +308,7 @@ export class VoyageSimulation {
   public advance(frameMs: number, input: VoyageInput = NO_INPUT): number {
     this.context.input = input;
 
-    return this.pipeline.advance(this.context, frameMs, () => this.world.flush());
+    return this.pipeline.advance(this.context, frameMs, () => this.afterStep());
   }
 
   // Exactly `ms` of game time, for tests.
@@ -303,8 +317,15 @@ export class VoyageSimulation {
 
     for (let elapsed = 0; elapsed < ms; elapsed += this.context.config.stepMs) {
       this.pipeline.runOnce(this.context);
-      this.world.flush();
+      this.afterStep();
     }
+  }
+
+  // Despawns what a step let go of, and on a daily voyage starts the next step's draws over from its number.
+  private afterStep(): void {
+    this.world.flush();
+    this.stepIndex += 1;
+    this.daily?.reseed(this.stepIndex);
   }
 
   private placeShip(): void {
@@ -412,6 +433,9 @@ export class VoyageSimulation {
       nextImpactAt: null,
       nextTrafficAt: null,
       level,
+      daily: null,
+      skimmed: new Set(),
+      closestAu: Infinity,
       faults: [],
       nextFaultId: 1,
       salvage: null,

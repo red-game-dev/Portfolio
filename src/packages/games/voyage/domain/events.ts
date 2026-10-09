@@ -46,8 +46,9 @@ export interface VoyageEvents {
   // It hit: where, how hard against what holds the world together, and what came of it.
   impact: { target: string; x: number; y: number; ratio: number; craterKm: number; outcome: ImpactOutcome };
   // It was broken up, or pushed off course so it will miss.
-  impactorBroken: { x: number; y: number; target: string; isFragment: boolean };
-  deflected: { target: string; isFragment: boolean };
+  // Which rock (entity) is said too, so a world saved is counted once per rock.
+  impactorBroken: { rock: number; x: number; y: number; target: string; isFragment: boolean };
+  deflected: { rock: number; target: string; isFragment: boolean };
   // The strange things: a dark forest hears the ship and strikes, a star collapses and blows, a gamma ray burst
   // lines up and fires, a wormhole throws the ship across the universe, tides stretch it.
   heard: { seconds: number };
@@ -55,7 +56,7 @@ export interface VoyageEvents {
   burst: { seconds: number; isFired: boolean };
   wormhole: { x: number; y: number };
   // A wreck stripped of what it held (perhaps nothing), something on board breaking down, and a fault fixed.
-  salvaged: { x: number; y: number; kind: WreckKind; loot: Loot };
+  salvaged: { wreck: number; x: number; y: number; kind: WreckKind; loot: Loot };
   fault: { kind: FaultKind; module: ModuleId };
   fixed: { kind: FaultKind };
 }

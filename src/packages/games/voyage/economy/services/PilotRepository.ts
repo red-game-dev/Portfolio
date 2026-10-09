@@ -28,4 +28,8 @@ export class PilotRepository {
   public clear(): Promise<void> {
     return this.repository.clear();
   }
+
+  public close(): void {
+    this.repository.close();
+  }
 }

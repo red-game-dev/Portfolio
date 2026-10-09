@@ -47,6 +47,10 @@ export class Repository<T> {
     }
   }
 
+  public close(): void {
+    this.adapter.close();
+  }
+
   public async clear(): Promise<void> {
     try {
       await this.adapter.delete(this.key);

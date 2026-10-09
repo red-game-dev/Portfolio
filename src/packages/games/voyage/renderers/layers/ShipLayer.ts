@@ -1,13 +1,19 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 
+import { VoyageTheme } from "../../config";
 import { Decal } from "../../domain/components";
 import { markOf, tierOf } from "../../economy/config/tiers";
+import { HullTier } from "../../economy/domain/economy";
 import { lerpX, lerpY, sizeBucket, VoyageFrame } from "../frame";
 import { paintBreach, paintDent, paintScorch, paintShieldRing, tintRed } from "../paint/damage";
 import { ION_TIERS, NOZZLES, paintHull } from "../paint/ships";
 import { paintFlame, paintGlow, SHIP_HEIGHT, SHIP_WIDTH } from "../paint/space";
 import { RenderKit } from "./kit";
+
+// How each kind of hit is painted, and its sprite's key, made once.
+const DECAL_PAINTERS: Record<Decal["kind"], (context: Canvas2DContext, width: number) => void> = { dent: paintDent, scorch: paintScorch, breach: paintBreach };
+const DECAL_KEYS: Record<Decal["kind"], string> = { dent: "decal:dent", scorch: "decal:scorch", breach: "decal:breach" };
 
 // The blue white of an ion drive, for the great ships.
 const ION = { core: "#eef8ff", edge: "#5fb8ff" };
@@ -29,6 +35,8 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
   private shieldFlash = 0;
   private shieldAngle = 0;
   private sputter = 0;
+  // The hull's painter, made again only when the hull, its mark or the universe's colour changes.
+  private painter: { key: string; paint: ReturnType<typeof paintHull> } | null = null;
 
   constructor(private readonly kit: RenderKit) {}
 
@@ -53,7 +61,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const accent = universe?.accent ?? theme.danger;
     const tier = tierOf(state.level);
     const mark = markOf(state.level);
-    const sprite = this.kit.sprite(`ship:${tier}:${mark}:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, paintHull(tier, mark, { ...theme, accent }));
+    const sprite = this.kit.sprite(`ship:${tier}:${mark}:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, this.hullPainter(tier, mark, accent, theme));
     const worldX = lerpX(body, alpha);
     const worldY = lerpY(body, alpha);
     const x = camera.toScreenX(worldX);
@@ -147,14 +155,19 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     this.drawShields(x, y, r, health.shields / health.maxShields, dt);
   }
 
+  private hullPainter(tier: HullTier, mark: number, accent: string, theme: VoyageTheme): ReturnType<typeof paintHull> {
+    const key = `${tier}:${mark}:${accent}`;
+
+    if (this.painter?.key !== key) {
+      this.painter = { key, paint: paintHull(tier, mark, { ...theme, accent }) };
+    }
+
+    return this.painter.paint;
+  }
+
   private drawDecal(decal: Decal, r: number, now: number): void {
     const { front } = this.kit;
-    const sprites: Record<Decal["kind"], (context: Canvas2DContext, width: number) => void> = {
-      dent: paintDent,
-      scorch: paintScorch,
-      breach: paintBreach,
-    };
-    const sprite = this.kit.cache.get(`decal:${decal.kind}`, 96, 96, sprites[decal.kind]);
+    const sprite = this.kit.cache.get(DECAL_KEYS[decal.kind], 96, 96, DECAL_PAINTERS[decal.kind]);
     const size = r * (0.4 + decal.severity * 0.45);
     const px = Math.sin(decal.angle) * r * HULL.across;
     const py = -Math.cos(decal.angle) * r * HULL.along;

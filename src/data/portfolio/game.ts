@@ -303,7 +303,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           progress: "Salvaging the {wreck}: hold still",
           found: "Salvaged: {items}",
           nothing: "The {wreck} held nothing worth taking",
-          holdFull: "Hold full, left behind: {items}",
+          holdFull: "Hold full, left on the wreck: {items}",
           blueprint: "Blueprint found: {name}",
         },
         suggestion: {

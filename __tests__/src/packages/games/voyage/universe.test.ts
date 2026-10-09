@@ -400,4 +400,36 @@ describe("strange things", () => {
     expect(novas).toEqual([false, true]);
     expect(ship.health.hull).toBeLessThan(hull);
   });
+
+  test("a supernova's shock strikes even a ship flying fast into it, which once slipped between two steps", () => {
+    const simulation = create();
+
+    intoUniverse(simulation);
+
+    const ship = partsOf(simulation);
+
+    withPhenomenon(simulation, { kind: "supernova", x: ship.body.x, y: ship.body.y + 30 });
+    simulation.state.system.bodies.forEach((body) => Object.assign(body, { x: 1e4, y: 1e4 }));
+    simulation.state.phenomena.supernova = { blowsAt: simulation.state.elapsedMs, shock: 0, hasHit: false, isWarned: true };
+
+    const { x } = ship.body;
+
+    for (let elapsed = 0; elapsed < 9000 && !simulation.state.phenomena.supernova?.hasHit; elapsed += defaults.stepMs) {
+      // Diving straight at the star, as fast as the ship goes.
+      Object.assign(ship.body, { x, prevX: x, vx: 0, vy: 3 });
+      simulation.step(defaults.stepMs);
+    }
+
+    expect(simulation.state.phenomena.supernova?.hasHit).toBe(true);
+  });
+});
+
+describe("void universes", () => {
+  test("hold only solid dark worlds, never giants with no air to enter", () => {
+    const VOID = { ...ZONE, style: "void" as const };
+    const worlds = Array.from({ length: 30 }, (_, index) => generator.generate(6 + index, 500 + index * 31, VOID).system.bodies).flat();
+
+    expect(worlds.length).toBeGreaterThan(20);
+    expect(worlds.every((world) => !world.isGiant && world.isLandable)).toBe(true);
+  });
 });

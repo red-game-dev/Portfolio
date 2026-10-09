@@ -562,4 +562,23 @@ describe("space round the ship", () => {
     expect(telemetry.speedKmS).toBeCloseTo(2 * defaults.units.kmPerSecond, 0);
     expect(telemetry.au).toBeCloseTo(10, 0);
   });
+
+  test("every run flies a fresh copy of the system, so nothing done to a world in one run is there in the next", () => {
+    const simulation = create();
+    const marsOf = () => simulation.state.system.bodies.find((body) => body.id === "mars");
+    const before = marsOf();
+
+    if (!before) {
+      throw new Error("no Mars");
+    }
+
+    const { mu, air } = before;
+
+    Object.assign(before, { mu: 0, air: null });
+    simulation.start();
+
+    expect(marsOf()).not.toBe(before);
+    expect(marsOf()?.mu).toBe(mu);
+    expect(marsOf()?.air).toEqual(air);
+  });
 });

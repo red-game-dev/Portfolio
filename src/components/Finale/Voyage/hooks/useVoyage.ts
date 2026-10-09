@@ -1,5 +1,6 @@
 import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useRef, useState, WheelEvent } from "react";
 
+import { usePilotSync } from "@/components/Finale/Voyage/hooks/usePilotSync";
 import { VOYAGE_TEXTURES, VOYAGE_THEME } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import type { EconomyView, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
@@ -17,24 +18,54 @@ const KEYS: Record<string, "left" | "right" | "burn" | "brake"> = {
   s: "brake",
 };
 
-// Progress is kept this long after the last change, so a burst of finds is one write.
-const SAVE_DELAY_MS = 800;
-
 // How much a notch of the wheel, or a key, zooms.
 const WHEEL_ZOOM = 0.0015;
 const KEY_ZOOM = 1.25;
 
 const keyOf = (event: KeyboardEvent<HTMLElement>) => (event.key.length === 1 ? event.key.toLowerCase() : event.key);
 
-// Hands the game each real map as soon as it has loaded, in order, so Earth arrives first.
+// Each real map, fetched and decoded once a visit, however often the voyage is opened.
+const decoded = new Map<string, Promise<HTMLImageElement>>();
+
+const decode = (url: string): Promise<HTMLImageElement> => {
+  const known = decoded.get(url);
+
+  if (known) {
+    return known;
+  }
+
+  const image = new Image();
+
+  image.decoding = "async";
+  image.src = url;
+
+  const ready = image.decode().then(() => image);
+
+  ready.catch(() => decoded.delete(url));
+  decoded.set(url, ready);
+
+  return ready;
+};
+
+// Hands the game each real map as soon as it has loaded, in order, so Earth arrives first. A game already gone
+// takes none: its renderer ignores what comes after it is disposed.
 const loadTextures = (game: VoyageGame) => {
   Object.entries(VOYAGE_TEXTURES).forEach(([id, url]) => {
-    const image = new Image();
-
-    image.decoding = "async";
-    image.src = url;
-    image.decode().then(() => game.setTexture(id, image), () => undefined);
+    decode(url).then((image) => game.setTexture(id, image), () => undefined);
   });
+};
+
+// Where to start on quality: a phone with little memory or few cores starts a step or two down, so its first
+// seconds are smooth; every device then steps down further by itself if its frames run slow.
+const startingQuality = (): number => {
+  const memory = "deviceMemory" in navigator && typeof navigator.deviceMemory === "number" ? navigator.deviceMemory : 8;
+  const cores = navigator.hardwareConcurrency || 8;
+
+  if (memory <= 2 || cores <= 2) {
+    return 2;
+  }
+
+  return memory <= 4 || cores <= 4 ? 1 : 0;
 };
 
 export interface VoyageCanvasRefs {
@@ -55,18 +86,6 @@ export interface VoyageNames {
   syllables: UniverseNames;
 }
 
-// Writes the pilot's progress now, if there is any waiting.
-const saveNow = (pilot: Pilot | null, timer: { current: number | null }) => {
-  if (timer.current !== null) {
-    window.clearTimeout(timer.current);
-    timer.current = null;
-  }
-
-  if (pilot) {
-    void pilot.repository.save(pilot.hangar.toProfile());
-  }
-};
-
 export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labels, universes, syllables }: VoyageNames) => {
   const [snapshot, setSnapshot] = useState<VoyageSnapshot | null>(null);
   const [notice, setNotice] = useState<VoyageNotice | null>(null);
@@ -75,16 +94,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const [economy, setEconomy] = useState<EconomyView | null>(null);
   const [isHangarOpen, setIsHangarOpen] = useState(false);
   const pilot = useRef<Pilot | null>(null);
-  const saveTimer = useRef<number | null>(null);
+  const scheduleSave = usePilotSync(pilot);
   const isPausedForHangar = useRef(false);
   const held = useRef(new Set<string>());
-  const scheduleSave = useCallback(() => {
-    if (saveTimer.current !== null) {
-      window.clearTimeout(saveTimer.current);
-    }
-
-    saveTimer.current = window.setTimeout(() => saveNow(pilot.current, saveTimer), SAVE_DELAY_MS);
-  }, []);
   const touches = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef(0);
   const game = useCanvasEngine(back, {
@@ -111,6 +123,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
           labels,
           universeNames: universes,
           syllables,
+          quality: startingQuality(),
           hangar: opened.hangar,
           onChange: setSnapshot,
           onNotice: setNotice,
@@ -127,19 +140,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   }, []);
   const isFlying = snapshot?.status === "flying";
 
-  useEffect(() => {
-    const flush = () => saveNow(pilot.current, saveTimer);
-
-    window.addEventListener("pagehide", flush);
-
-    return () => {
-      window.removeEventListener("pagehide", flush);
-
-      if (saveTimer.current !== null) {
-        flush();
-      }
-    };
-  }, []);
+  // Closing the voyage gives its GPU contexts and textures back, not just stops it.
+  useEffect(() => () => game?.dispose(), [game]);
 
   const play = useCallback(() => {
     held.current.clear();
@@ -182,6 +184,10 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     } else if (!isOpen && isPausedForHangar.current) {
       isPausedForHangar.current = false;
       game?.resume();
+    }
+
+    // Focus comes back to the voyage, which the hangar's keys and the game's both listen on.
+    if (!isOpen) {
       stage.current?.focus();
     }
   }, [game, isFlying, stage]);
@@ -218,6 +224,11 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
     const key = keyOf(event);
+
+    // The browser's own shortcuts (Ctrl+H, Cmd+U) are left to the browser.
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+      return;
+    }
 
     // With the hangar open, only its own keys work: the run is held still under it.
     if (isHangarOpen && key !== "h" && key !== "Escape" && key !== "u") {

@@ -1,6 +1,6 @@
 import { Camera, EventBus, RenderPipeline } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
-import type { GlobeRenderer } from "@/packages/graphics/globe";
+import { CanvasGlobeRenderer, GlobeRenderer } from "@/packages/graphics/globe";
 import type { LensSource } from "@/packages/graphics/webgl";
 
 import { VoyageTheme } from "../config";
@@ -37,7 +37,13 @@ export interface VoyageRenderer {
   reset(): void;
   setTexture(id: string, image: TexImageSource): void;
   setMap(isOpen: boolean): void;
+  // How fine to draw, 0 the finest (see `QUALITY`).
+  setQuality(level: number): void;
+  dispose(): void;
 }
+
+// What each quality level keeps: the share of the particle budget, and the octaves of noise the GPU's globes sum.
+const QUALITY = { particles: [1, 0.7, 0.45, 0.3], octaves: [5, 4, 3, 3] };
 
 // The pixel ratio the 2D surfaces draw at, at most: past two the eye gains nothing and the GPU pays four times.
 const MAX_PIXEL_RATIO = 2;
@@ -58,6 +64,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   private readonly map: MapLayer;
   private lastState: Readonly<VoyageState> | null = null;
   private lastWorld: VoyageWorld | null = null;
+  private quality = 0;
 
   constructor(back: Canvas2DContext, front: Canvas2DContext, theme: VoyageTheme, globes: GlobeRenderer, labels: Record<string, string> = {}) {
     this.kit = new RenderKit(new Surface(back), new Surface(front), new SurfaceCache(), new ParticleSystem(), theme, globes, labels);
@@ -104,7 +111,27 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.map.isOpen = isOpen;
   }
 
+  public setQuality(level: number): void {
+    const index = Math.max(0, Math.min(QUALITY.particles.length - 1, level));
+
+    this.quality = index;
+    this.kit.particles.setBudget(QUALITY.particles[index]);
+    this.kit.globes.setDetail(QUALITY.octaves[index]);
+  }
+
+  public dispose(): void {
+    this.kit.globes.dispose();
+    this.kit.cache.clear();
+  }
+
   public draw(frame: VoyageFrame): void {
+    // A lost GPU context (a phone under memory pressure, a backgrounded tab) leaves the planets to the 2D
+    // fallback rather than undrawn.
+    if (this.kit.globes.isGpu && !this.kit.globes.available) {
+      this.kit.globes = new CanvasGlobeRenderer();
+      this.setQuality(this.quality);
+    }
+
     this.lastState = frame.state;
     this.lastWorld = frame.world;
     this.backLayers.draw(frame);

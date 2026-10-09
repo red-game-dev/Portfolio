@@ -69,6 +69,10 @@ export class LocalStorageAdapter implements StoreAdapter {
     return Promise.resolve(keys);
   }
 
+  public close(): void {
+    // Holds no connection.
+  }
+
   private full(key: string): string {
     return `${this.namespace}:${key}`;
   }

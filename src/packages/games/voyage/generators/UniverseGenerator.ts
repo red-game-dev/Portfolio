@@ -169,7 +169,8 @@ export class UniverseGenerator {
       const id = `u${index}-${order}`;
       const au = auForRadius(scale, distance);
       const equilibriumC = star ? 278.6 * star.luminosity ** 0.25 / Math.sqrt(au) + ABSOLUTE_ZERO : -230;
-      const isGiant = equilibriumC < 30 && random() < 0.38;
+      // A void's worlds are dark rocks drifting without a star: no giants, which would need air to be entered.
+      const isGiant = !isVoid && equilibriumC < 30 && random() < 0.38;
       const kind = this.kindFor(random, equilibriumC, isGiant, isVoid);
       const radius = isGiant ? randomBetween(random, 0.65, 1.2) : randomBetween(random, 0.17, 0.45);
       const gravity = isGiant ? randomBetween(random, 9, 28) : 2 + (radius / 0.45) * randomBetween(random, 4, 12);

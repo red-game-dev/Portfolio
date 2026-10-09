@@ -13,6 +13,7 @@ import {
   newProfile,
   PilotRepository,
   recipeBlueprint,
+  RECIPES,
   TIERS,
   tierOf,
   upgradeCost,
@@ -224,5 +225,49 @@ describe("voyage economy", () => {
 
     back.reset();
     expect([back.purse, back.count("scrap"), back.level]).toEqual([{ RED: 0, VOID: 0 }, 0, 0]);
+  });
+
+  test("a ledger with an entry it can no longer accept keeps every other coin", () => {
+    const wallet = Wallet.open();
+
+    wallet.earn("boss", { RED: 250 }, "boss", 1);
+    wallet.earn("landing", { RED: 25 }, "landing:Mars", 2);
+
+    const snapshot = wallet.toSnapshot();
+    const broken = { ...snapshot, journal: [...snapshot.journal, { ...snapshot.journal[0], id: "bad", postings: [{ account: "nowhere", currency: "RED", amount: 9 }] }] };
+
+    expect(Wallet.from(broken).purse.RED).toBe(275);
+  });
+
+  test("nothing can be made and broken down for more than it cost", () => {
+    RECIPES.forEach((recipe) => {
+      const cost = recipe.coin + recipe.needs.reduce((sum, need) => sum + ITEMS[need.id].value * need.count, 0);
+
+      expect(ITEMS[recipe.makes.id].value * recipe.makes.count).toBeLessThan(cost);
+    });
+  });
+
+  test("breaking down is written in the ledger as recycling, and the suggestion stays the same object while nothing changes", () => {
+    const hangar = hangarWith({ scrap: 2, wiring: 1, fuelCell: 1 });
+    const flying = { isFlying: true, faults: [], hull: 1, fuel: 0.1, shields: 1, heat: 0 };
+    const first = hangar.suggest(flying);
+
+    expect(hangar.suggest({ ...flying })).toBe(first);
+    hangar.recycle("scrap");
+    expect(hangar.view().history[0].memo).toBe("recycling:scrap");
+    expect(hangar.suggest(flying)).not.toBe(first);
+  });
+
+  test("a profile from an older release with fewer records is still read, and another tab's newer save can be taken on", () => {
+    const profile = hangarWith({ scrap: 4 }, { coin: 30 }).toProfile();
+    const older = Object.fromEntries(Object.entries(profile.records).filter(([key]) => key !== "salvaged"));
+
+    expect(isPilotProfile({ ...profile, records: older })).toBe(true);
+    expect(isPilotProfile({ ...profile, savedAt: undefined })).toBe(false);
+
+    const other = hangarWith();
+
+    other.replace(profile);
+    expect([other.purse.RED, other.count("scrap")]).toEqual([30, 4]);
   });
 });

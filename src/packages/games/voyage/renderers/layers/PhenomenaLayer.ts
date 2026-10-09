@@ -3,6 +3,7 @@ import { Canvas2DContext } from "@/packages/graphics/canvas";
 import type { StarLook } from "@/packages/graphics/globe";
 import { createSeededRandom } from "@/packages/math/random";
 
+import { SHOCK_FADES } from "../../domain/state";
 import { PhenomenonSpec } from "../../domain/universe";
 import { VoyageFrame } from "../frame";
 import { paintGlow } from "../paint/space";
@@ -132,7 +133,7 @@ export class PhenomenaLayer implements RenderLayer<VoyageFrame> {
       case "magnetar": {
         const isPulsar = phenomenon.kind === "pulsar";
 
-        if (isPulsar) {
+        if (isPulsar && camera.sees(phenomenon.x, phenomenon.y, PULSAR_REACH)) {
           const beam = state.phenomena.pulsarAngle;
           const reach = PULSAR_REACH * camera.scale;
 
@@ -174,7 +175,7 @@ export class PhenomenaLayer implements RenderLayer<VoyageFrame> {
         const nova = state.phenomena.supernova;
         const isBlown = nova !== null && state.elapsedMs >= nova.blowsAt;
 
-        if (nova && isBlown) {
+        if (nova && isBlown && nova.shock < SHOCK_FADES) {
           const shock = nova.shock * camera.scale;
 
           context.globalCompositeOperation = "lighter";

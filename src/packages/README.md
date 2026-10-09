@@ -37,7 +37,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `accessibility/roving` | `rovingTarget`, where arrows, Home and End move focus in a row of tabs or cards |
 | `browser/storage` | `readStored` and `writeStored`: guarded localStorage that validates what it reads and survives private windows and full quotas |
 | `browser/store` | Storage adapters chosen by need (`createStore`: IndexedDB for large or lasting data, localStorage for small, memory when neither works) and a versioned, validated `Repository` that migrates old data and never throws |
-| `animation/frame-loop` | `FrameLoop` base class with fixed rate stepping and clamping, plus `AnimationFrameScheduler`, `TimeoutScheduler` and `ManualScheduler` |
+| `animation/frame-loop` | `FrameLoop` base class with fixed rate stepping and clamping, plus `AnimationFrameScheduler`, `TimeoutScheduler` and `ManualScheduler`, and `QualityGovernor`, which steps a renderer's quality down when frames run slow and back up after a long fast stretch |
 | `core/content` | `ContentSource` port, `InMemoryContentSource`, and the `ContentService` base that runs source, guard, validator and mapper in order |
 | `core/domain` | `Validator` and `Mapper` base classes, `ValidationError`, primitive guards |
 | `effects/backdrop` | A scene engine for full page backgrounds: crossfades between scenes and plays a transition keyed by the pair of scenes it moves between; scenes from matrix rain to a starfield, transitions from a collapse to a warp |

@@ -44,8 +44,8 @@ export const ITEMS: Readonly<Record<string, ItemSpec>> = Object.fromEntries([
   item("sensorArray", "part", "uncommon", 1, 22, ["wreck"], { mends: "sensors" }),
   item("fuelLine", "part", "common", 1, 12, ["wreck"], { mends: "fuel" }),
   item("radiatorFin", "part", "uncommon", 2, 18, ["wreck"], { mends: "radiators" }),
-  item("repairKit", "consumable", "uncommon", 1, 25, ["wreck"], { use: { kind: "repair", hull: 0.3, module: 0.35 } }),
-  item("fuelCell", "consumable", "common", 1, 10, ["wreck"], { use: { kind: "fuel", share: 0.45 } }),
+  item("repairKit", "consumable", "uncommon", 1, 12, ["wreck"], { use: { kind: "repair", hull: 0.3, module: 0.35 } }),
+  item("fuelCell", "consumable", "common", 1, 8, ["wreck"], { use: { kind: "fuel", share: 0.45 } }),
   item("shieldCell", "consumable", "uncommon", 1, 18, ["wreck", "alien"], { use: { kind: "shields", share: 1 } }),
   item("coolantFlask", "consumable", "uncommon", 1, 14, ["wreck", "comet"], { use: { kind: "coolant", degrees: 250 } }),
 ].map((spec) => [spec.id, spec]));

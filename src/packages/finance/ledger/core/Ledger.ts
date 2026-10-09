@@ -34,6 +34,24 @@ export class Ledger {
     return ledger;
   }
 
+  // A ledger rebuilt from a snapshot that may hold entries it can no longer accept (a renamed account, a hand
+  // edit): every entry that still checks out is kept, the rest are left out and counted, so one bad entry never
+  // costs the whole of it.
+  public static recover(snapshot: LedgerSnapshot): { ledger: Ledger; skipped: number } {
+    const ledger = new Ledger(snapshot.currencies, snapshot.accounts);
+    let skipped = 0;
+
+    snapshot.journal.forEach((transaction) => {
+      try {
+        ledger.post(transaction);
+      } catch {
+        skipped += 1;
+      }
+    });
+
+    return { ledger, skipped };
+  }
+
   public currency(code: string): Currency | undefined {
     return this.currencies.get(code);
   }

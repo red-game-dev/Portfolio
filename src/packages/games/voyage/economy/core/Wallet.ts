@@ -56,13 +56,10 @@ export class Wallet {
     return new Wallet(new Ledger(CURRENCIES));
   }
 
-  // A wallet from its kept ledger, replayed through every check; a ledger that does not replay starts empty.
+  // A wallet from its kept ledger, replayed through every check. An entry that no longer checks out is left out
+  // on its own; the rest of the money is kept.
   public static from(snapshot: LedgerSnapshot): Wallet {
-    try {
-      return new Wallet(Ledger.from(snapshot));
-    } catch {
-      return Wallet.open();
-    }
+    return new Wallet(Ledger.recover(snapshot).ledger);
   }
 
   public canAfford(cost: Partial<Purse>): boolean {

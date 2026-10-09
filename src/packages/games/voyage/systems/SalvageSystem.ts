@@ -69,13 +69,16 @@ export class SalvageSystem implements System<VoyageContext> {
     state.salvage = { wreck: nearest, progress: wreck.progress };
 
     if (wreck.progress >= 1) {
-      wreck.isEmpty = true;
-      state.salvage = null;
-      events.emit("salvaged", { x: at.x, y: at.y, kind: wreck.kind, loot: wreck.loot });
-      wreck.loot = { items: [], blueprints: [] };
+      const { loot } = wreck;
 
-      // Ore and ice are scooped up whole; a hulk is left drifting, stripped.
-      if (wreck.kind === "ore" || wreck.kind === "ice") {
+      wreck.isEmpty = true;
+      wreck.loot = { items: [], blueprints: [] };
+      state.salvage = null;
+      // Whatever the hold has no room for is handed back to the wreck (`returnLoot`) before this returns.
+      events.emit("salvaged", { wreck: nearest, x: at.x, y: at.y, kind: wreck.kind, loot });
+
+      // Ore and ice are scooped up whole once nothing is left on them; a hulk is left drifting, stripped.
+      if (wreck.isEmpty && (wreck.kind === "ore" || wreck.kind === "ice")) {
         world.despawn(nearest);
       }
     }

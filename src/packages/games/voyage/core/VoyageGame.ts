@@ -1,4 +1,4 @@
-import { FrameLoop, FrameScheduler } from "@/packages/animation/frame-loop";
+import { FrameLoop, FrameScheduler, QualityGovernor } from "@/packages/animation/frame-loop";
 import { Camera } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { CanvasGlobeRenderer, GlobeRenderer, WebGLGlobeRenderer } from "@/packages/graphics/globe";
@@ -74,6 +74,8 @@ export interface VoyageOptions {
   // wrecks hold nothing.
   hangar?: Hangar;
   onEconomy?: (view: EconomyView) => void;
+  // The quality level to start at (0 the finest); it steps down by itself if frames run slow.
+  quality?: number;
 }
 
 export interface VoyageCanvases {
@@ -108,9 +110,23 @@ const ZOOM_RANGE: [number, number] = [0.3, 3];
 // Deeds big enough to announce what they paid.
 const ANNOUNCED: ReadonlyArray<Deed["kind"]> = ["boss", "universe", "rescue"];
 
-const isSameMoment = (a: VoyageSnapshot, b: VoyageSnapshot) => a.status === b.status && a.phase === b.phase && a.universe === b.universe &&
-  a.universes === b.universes && a.passing === b.passing && a.landedOn === b.landedOn && a.waypoint?.id === b.waypoint?.id && a.level === b.level &&
-  a.faults.length === b.faults.length && (a.salvage === null) === (b.salvage === null);
+// The most pixels per CSS pixel the canvases draw at, by quality level: a phone that cannot keep up at its full
+// sharpness steps down until it can, which cuts the GPU's fill work by up to three quarters.
+const QUALITY_RATIOS: readonly number[] = [2, 1.5, 1.25, 1];
+
+// What changes the snapshot at once rather than on the next tick.
+interface Moment {
+  status: string;
+  phase: string;
+  universe: number;
+  universes: number;
+  passing: string | null;
+  landedOn: string | null;
+  waypoint: string | null;
+  level: number;
+  faults: number;
+  isSalvaging: boolean;
+}
 
 // Hosts a voyage on the shared frame loop: steps the simulation in fixed steps, flies the camera after the ship,
 // turns pointer and keys into intent, draws through the renderer and the GPU lens, and tells the UI only what
@@ -138,8 +154,12 @@ export class VoyageGame extends FrameLoop {
   private readonly baseConfig: VoyageConfig;
   private readonly onEconomy: (view: EconomyView) => void;
   private landed = new Set<string>();
+  private savedRocks = new Set<number>();
   private isRunPaid = false;
-  private suggestionKey = "";
+  private lastSuggestion: Suggestion | null | undefined = undefined;
+  private devicePixelRatio = 1;
+  private readonly governor: QualityGovernor;
+  private moment: Moment | null = null;
 
   constructor(simulation: VoyageSimulation, renderer: VoyageRenderer, presenter: LensingPresenter | null, backCanvas: TexImageSource | null, theme: VoyageTheme,
     options: VoyageOptions = {}) {
@@ -162,6 +182,13 @@ export class VoyageGame extends FrameLoop {
 
     this.lastSnapshot = simulation.snapshot;
     this.detach = this.listen(simulation.events);
+    this.governor = new QualityGovernor({ levels: QUALITY_RATIOS.length, start: options.quality ?? 0 });
+    this.renderer.setQuality(this.governor.level);
+  }
+
+  // How finely it is drawing now, 0 the finest.
+  public get quality(): number {
+    return this.governor.level;
   }
 
   public get snapshot(): VoyageSnapshot {
@@ -216,9 +243,9 @@ export class VoyageGame extends FrameLoop {
     }
 
     this.size = size;
+    this.devicePixelRatio = pixelRatio;
     this.camera.resize(size, Math.min(size.width, size.height) / UNITS_ACROSS);
-    this.renderer.resize(size.width, size.height, pixelRatio);
-    this.presenter?.resize(size.width, size.height, pixelRatio);
+    this.applySharpness();
     this.updateView();
     this.followShip(1, true);
     this.drawFrame(performance.now(), 0);
@@ -226,6 +253,7 @@ export class VoyageGame extends FrameLoop {
 
   public play(): void {
     this.landed = new Set();
+    this.savedRocks = new Set();
     this.isRunPaid = false;
     this.simulation.start(this.now());
     this.zoomBias = 1;
@@ -260,9 +288,12 @@ export class VoyageGame extends FrameLoop {
     }
   }
 
+  // Stops for good and gives back everything it holds on the GPU.
   public dispose(): void {
     this.stop();
     this.detach();
+    this.renderer.dispose();
+    this.presenter?.dispose();
   }
 
   // Does what the pilot asked of the hangar; whatever it does to the ship is applied to the run. Returns whether
@@ -283,7 +314,7 @@ export class VoyageGame extends FrameLoop {
           return false;
         }
 
-        simulation.refit(configForLevel(this.baseConfig, level), level);
+        // The hangar's change has already refitted the ship.
         this.onNotice({ kind: "upgraded", level, tier: tierOf(level), mark: markOf(level) });
         this.redraw();
 
@@ -296,7 +327,8 @@ export class VoyageGame extends FrameLoop {
       case "trade":
         return hangar.trade(action.direction);
       case "use":
-        return isFlying && this.applyEffects(hangar.use(action.item));
+        // Nothing is used up for nothing: a repair kit on a sound ship stays in the hold.
+        return isFlying && simulation.wouldHelp(hangar.effectsFor(action.item)) && this.applyEffects(hangar.use(action.item));
       case "repair": {
         const fault = simulation.state.faults.find((entry) => entry.id === action.fault);
 
@@ -308,7 +340,6 @@ export class VoyageGame extends FrameLoop {
         }
 
         hangar.reset();
-        simulation.refit(configForLevel(this.baseConfig, hangar.level), hangar.level);
         this.redraw();
 
         return true;
@@ -372,6 +403,12 @@ export class VoyageGame extends FrameLoop {
 
   protected render(now: number): void {
     const dt = this.lastFrameAt > 0 ? Math.min(0.1, (now - this.lastFrameAt) / 1000) : 0;
+    const level = this.lastFrameAt > 0 ? this.governor.sample(now - this.lastFrameAt, now) : null;
+
+    if (level !== null) {
+      this.renderer.setQuality(level);
+      this.applySharpness();
+    }
 
     this.lastFrameAt = now;
     this.camera.tick(dt);
@@ -628,14 +665,15 @@ export class VoyageGame extends FrameLoop {
           pay({ kind: "boss", name });
         }
       }),
-      // A world is saved once per rock: breaking or turning the pieces of one already broken pays nothing more.
-      events.on("impactorBroken", ({ target, isFragment }) => {
-        if (!isFragment) {
+      // A world is saved once per rock: turning it and then breaking it, or breaking the pieces of one already
+      // broken, pays nothing more.
+      events.on("impactorBroken", ({ rock, target, isFragment }) => {
+        if (!isFragment && this.firstSave(rock)) {
           pay({ kind: "rescue", target: this.nameOf(target), isDeflected: false });
         }
       }),
-      events.on("deflected", ({ target, isFragment }) => {
-        if (!isFragment) {
+      events.on("deflected", ({ rock, target, isFragment }) => {
+        if (!isFragment && this.firstSave(rock)) {
           pay({ kind: "rescue", target: this.nameOf(target), isDeflected: true });
         }
       }),
@@ -644,16 +682,34 @@ export class VoyageGame extends FrameLoop {
           pay({ kind: "universe", index: universe });
         }
       }),
-      events.on("salvaged", ({ kind, loot }) => {
+      events.on("salvaged", ({ wreck, kind, loot }) => {
         const { kept, lost, blueprints } = hangar.stow(loot);
 
+        // What does not fit stays on the wreck for when there is room.
+        this.simulation.returnLoot(wreck, { items: lost, blueprints: [] });
         this.onNotice({ kind: "salvaged", wreck: kind, kept, lost, blueprints });
       }),
       // A fault, or its fix, changes what can be mended from the hold.
       events.on("fault", () => this.publishEconomy(true)),
       events.on("fixed", () => this.publishEconomy(true)),
-      hangar.subscribe(() => this.publishEconomy(true)),
+      hangar.subscribe(() => {
+        // A level that changed from outside a run (a reset, another tab's save) refits the ship too.
+        if (hangar.level !== this.simulation.state.level) {
+          this.simulation.refit(configForLevel(this.baseConfig, hangar.level), hangar.level);
+        }
+
+        this.publishEconomy(true);
+      }),
     ];
+  }
+
+  // Whether this is the first time a rock has been stopped this run.
+  private firstSave(rock: number): boolean {
+    const isFirst = !this.savedRocks.has(rock);
+
+    this.savedRocks.add(rock);
+
+    return isFirst;
   }
 
   // The economy reaches the UI when it changes, and when the thing most worth doing does.
@@ -663,23 +719,31 @@ export class VoyageGame extends FrameLoop {
     }
 
     const status = this.shipStatus();
-    const key = JSON.stringify(this.hangar.suggest(status));
+    const suggestion = this.hangar.suggest(status);
 
-    if (force || key !== this.suggestionKey) {
-      this.suggestionKey = key;
+    if (force || suggestion !== this.lastSuggestion) {
+      this.lastSuggestion = suggestion;
       this.onEconomy(this.hangar.view(status));
     }
   }
 
+  // Sizes the canvases at the device's pixel ratio, as far as the quality level allows.
+  private applySharpness(): void {
+    const ratio = Math.min(this.devicePixelRatio, QUALITY_RATIOS[this.governor.level]);
+
+    this.renderer.resize(this.size.width, this.size.height, ratio);
+    this.presenter?.resize(this.size.width, this.size.height, ratio);
+  }
+
+  // The snapshot is built only when it will be sent: a change of state at once, the rest on the tick.
   private publish(force: boolean, now = 0): void {
-    const next = this.simulation.snapshot;
-    const isMoment = !isSameMoment(next, this.lastSnapshot);
+    const isMoment = this.hasMomentChanged();
 
     if (force || isMoment || now - this.lastTickAt >= TICK_MS) {
-      this.lastSnapshot = next;
+      this.lastSnapshot = this.simulation.snapshot;
       this.lastTickAt = now;
-      this.onChange(next);
-      this.settleRun(next);
+      this.onChange(this.lastSnapshot);
+      this.settleRun(this.lastSnapshot);
       this.publishEconomy(force);
     }
   }
@@ -690,5 +754,36 @@ export class VoyageGame extends FrameLoop {
       this.isRunPaid = true;
       this.onNotice({ kind: "paid", coin: this.hangar.endRun(snapshot.score) });
     }
+  }
+
+  // Whether something the UI says at once has changed since the last look, read straight from the state.
+  private hasMomentChanged(): boolean {
+    const { state, world } = this.simulation;
+    const last = this.moment;
+    const landedOn = world.stores.ship.get(state.ship)?.landedOn ?? null;
+    const waypoint = state.waypoint?.id ?? null;
+
+    const isSalvaging = state.salvage !== null;
+
+    if (last && last.status === state.status && last.phase === state.phase && last.universe === state.universe && last.universes === state.universes &&
+      last.passing === state.passing && last.landedOn === landedOn && last.waypoint === waypoint && last.level === state.level &&
+      last.faults === state.faults.length && last.isSalvaging === isSalvaging) {
+      return false;
+    }
+
+    this.moment = {
+      status: state.status,
+      phase: state.phase,
+      universe: state.universe,
+      universes: state.universes,
+      passing: state.passing,
+      landedOn,
+      waypoint,
+      level: state.level,
+      faults: state.faults.length,
+      isSalvaging,
+    };
+
+    return true;
   }
 }

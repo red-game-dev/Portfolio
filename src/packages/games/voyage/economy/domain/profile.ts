@@ -15,6 +15,8 @@ export interface PilotRecords {
 // Everything a pilot keeps between runs, as plain data: the ship's level, what is in the hold, the plans they
 // have found, their money as a ledger, and their records.
 export interface PilotProfile {
+  // When it was written (ms since 1970), so a tab can tell another tab's newer save from its own.
+  savedAt: number;
   level: number;
   cargo: ItemStack[];
   blueprints: string[];

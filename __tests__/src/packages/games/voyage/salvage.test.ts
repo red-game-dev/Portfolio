@@ -198,4 +198,28 @@ describe("voyage salvage and breakdowns", () => {
     expect(simulation.world.stores.weapon.get(simulation.state.ship)?.kind).toBe("laser");
     expect(simulation.snapshot.level).toBe(10);
   });
+
+  test("what the hold has no room for is put back on the wreck, and ore is scooped up only once nothing is left on it", () => {
+    const simulation = create();
+
+    park(simulation);
+
+    const wreck = wreckBeside(simulation, { items: [{ id: "titanium", count: 3 }], blueprints: [] }, "ore");
+
+    simulation.events.on("salvaged", ({ wreck: entity }) => simulation.returnLoot(entity, { items: [{ id: "titanium", count: 1 }], blueprints: [] }));
+    simulation.step(1500);
+
+    expect(simulation.world.isAlive(wreck)).toBe(true);
+    expect(simulation.world.stores.wreck.get(wreck)).toMatchObject({ isEmpty: false, loot: { items: [{ id: "titanium", count: 1 }] } });
+  });
+
+  test("a consumable is only worth using when it would do the ship good", () => {
+    const simulation = create();
+
+    park(simulation);
+    expect(simulation.wouldHelp([{ kind: "fuel", share: 0.45 }])).toBe(false);
+    partsOf(simulation).ship.fuel = 5;
+    expect(simulation.wouldHelp([{ kind: "fuel", share: 0.45 }])).toBe(true);
+    expect(simulation.wouldHelp([{ kind: "fix", fault: 99 }])).toBe(false);
+  });
 });

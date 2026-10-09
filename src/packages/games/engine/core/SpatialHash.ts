@@ -4,6 +4,9 @@ import { Entity } from "../domain/types";
 // loop. Columns and rows must stay within this many cells of the origin either way.
 const SPAN = 32768;
 const keyOf = (column: number, row: number) => (column + SPAN) * SPAN * 2 + (row + SPAN);
+// The marks that stop a query reporting an entity twice are only needed within one query, so they are
+// forgotten every so many refills rather than kept for every entity there ever was.
+const FORGET_EVERY = 600;
 
 // A uniform grid for finding what is near a point without testing everything against everything: insert each
 // thing into the cells it overlaps, then ask about a circle and get only the things in the cells it covers.
@@ -13,15 +16,27 @@ export class SpatialHash {
   private readonly cells = new Map<number, Entity[]>();
   private readonly seen = new Map<Entity, number>();
   private query = 0;
+  private refills = 0;
 
   constructor(cellSize: number) {
     this.cellSize = cellSize;
   }
 
+  // Empties every cell for the next refill, keeping the arrays of cells in use and dropping the ones the last
+  // fill left empty, so the grid does not grow with every place the world has been.
   public clear(): void {
-    this.cells.forEach((cell) => {
-      cell.length = 0;
+    this.cells.forEach((cell, key) => {
+      if (cell.length === 0) {
+        this.cells.delete(key);
+      } else {
+        cell.length = 0;
+      }
     });
+    this.refills += 1;
+
+    if (this.refills % FORGET_EVERY === 0) {
+      this.seen.clear();
+    }
   }
 
   public insert(entity: Entity, x: number, y: number, radius: number): void {

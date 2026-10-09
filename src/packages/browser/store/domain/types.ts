@@ -7,6 +7,8 @@ export interface StoreAdapter {
   set(key: string, value: unknown): Promise<void>;
   delete(key: string): Promise<void>;
   keys(): Promise<string[]>;
+  // Lets go of whatever connection it holds; a no-op where there is none.
+  close(): void;
 }
 
 export type StoreKind = "indexedDB" | "localStorage" | "memory";

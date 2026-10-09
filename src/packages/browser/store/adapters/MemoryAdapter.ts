@@ -25,6 +25,10 @@ export class MemoryAdapter implements StoreAdapter {
   public keys(): Promise<string[]> {
     return Promise.resolve([...this.values.keys()]);
   }
+
+  public close(): void {
+    // Holds no connection.
+  }
 }
 
 // A deep copy, so a caller changing what it saved does not change what is kept, as with the other adapters.

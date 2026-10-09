@@ -200,11 +200,21 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, isFlying, 
                 <Note>{copy.items[row.id]?.note ?? ""}</Note>
                 <Actions>
                   {row.isUsable && (
-                    <SmallButton type="button" isPrimary disabled={!isFlying} onClick={() => onAct({ kind: "use", item: row.id })}>
+                    <SmallButton
+                      type="button"
+                      isPrimary
+                      disabled={!isFlying}
+                      aria-label={`${copy.use}: ${itemName(copy, row.id)}`}
+                      onClick={() => onAct({ kind: "use", item: row.id })}
+                    >
                       {copy.use}
                     </SmallButton>
                   )}
-                  <SmallButton type="button" onClick={() => onAct({ kind: "recycle", item: row.id, count: 1 })}>
+                  <SmallButton
+                    type="button"
+                    aria-label={`${fill(copy.recycle, { value: `${row.value} ${copy.currencies.RED}` })}: ${itemName(copy, row.id)}`}
+                    onClick={() => onAct({ kind: "recycle", item: row.id, count: 1 })}
+                  >
                     {fill(copy.recycle, { value: `${row.value} ${copy.symbols.RED}` })}
                   </SmallButton>
                 </Actions>
@@ -231,7 +241,13 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, isFlying, 
                       ))}
                     </Needs>
                     <Actions>
-                      <SmallButton type="button" isPrimary disabled={!shortfall.isReady} onClick={() => onAct({ kind: "craft", recipe: recipe.id })}>
+                      <SmallButton
+                        type="button"
+                        isPrimary
+                        disabled={!shortfall.isReady}
+                        aria-label={`${copy.plans.make}: ${itemName(copy, recipe.makes.id)}`}
+                        onClick={() => onAct({ kind: "craft", recipe: recipe.id })}
+                      >
                         {copy.plans.make}
                       </SmallButton>
                     </Actions>

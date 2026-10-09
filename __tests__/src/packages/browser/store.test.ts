@@ -1,4 +1,4 @@
-import { createStore, LocalStorageAdapter, MemoryAdapter, Repository } from "@/packages/browser/store";
+import { createStore, IndexedDBAdapter, LocalStorageAdapter, MemoryAdapter, Repository } from "@/packages/browser/store";
 
 const isCount = (value: unknown): value is { count: number } => typeof value === "object" && value !== null && "count" in value && typeof value.count === "number";
 
@@ -51,5 +51,13 @@ describe("browser/store", () => {
 
     await adapter.set("save", "garbage");
     expect(await repository.load()).toEqual({ count: 0 });
+  });
+
+  test("gives up on an IndexedDB that never answers, so nothing waits on it", async () => {
+    const silent: Pick<IDBFactory, "open"> = { open: () => ({}) as IDBOpenDBRequest };
+    const started = Date.now();
+
+    expect(await IndexedDBAdapter.open(silent as IDBFactory, "never", 30)).toBeNull();
+    expect(Date.now() - started).toBeLessThan(1000);
   });
 });

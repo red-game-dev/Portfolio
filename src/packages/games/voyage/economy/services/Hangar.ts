@@ -20,6 +20,19 @@ const URGENCY: readonly FaultKind[] = ["breach", "misfire", "emitter", "fuelLeak
 // How much of a system a part fitted without a fault restores.
 const PART_SHARE = 0.4;
 
+interface HangarCache {
+  revision: number;
+  next: EconomyView["next"] | undefined;
+  statusKey: string | null;
+  suggestion: Suggestion | null | undefined;
+}
+
+// What about the ship can change the suggestion: whether it flies, its faults, and which needs are low.
+const statusKeyOf = (status: ShipStatus | null): string => (status
+  ? `${status.isFlying ? 1 : 0}|${status.faults.map((fault) => fault.id).join(",")}|${status.hull < LOW.hull ? 1 : 0}${status.fuel < LOW.fuel ? 1 : 0}` +
+    `${status.shields < LOW.shields ? 1 : 0}${status.heat > LOW.heat ? 1 : 0}`
+  : "none");
+
 interface Exchange {
   currency: CurrencyCode;
   amount: number;
@@ -29,6 +42,7 @@ export const newRecords = (): PilotRecords => ({ runs: 0, bestScore: 0, universe
 
 // A pilot who has never flown: a Rocket Mk I, an empty hold, the plans everyone knows, no money.
 export const newProfile = (): PilotProfile => ({
+  savedAt: 0,
   level: 0,
   cargo: [],
   blueprints: [],
@@ -58,6 +72,10 @@ export class Hangar {
   private known: Set<string>;
   private shipLevel: number;
   private records: PilotRecords;
+  // Counts every change, so what is worked out from the hangar (the next upgrade, the suggestion) is worked out
+  // once per change rather than on every tick that asks.
+  private revision = 0;
+  private cache: HangarCache = { revision: -1, next: undefined, statusKey: null, suggestion: undefined };
 
   constructor(profile: PilotProfile, { now = Date.now, catalog = ITEMS, base = DEFAULT_VOYAGE_CONFIG }: HangarOptions = {}) {
     this.catalog = catalog;
@@ -80,13 +98,16 @@ export class Hangar {
 
   // Starts over as a pilot who has never flown.
   public reset(): void {
-    const profile = newProfile();
+    this.replace(newProfile());
+  }
 
-    this.shipLevel = profile.level;
-    this.backpack = new Backpack(cargoFor(profile.level), profile.cargo, this.catalog);
+  // Takes on a profile written elsewhere (another tab's newer save), dropping what this one held.
+  public replace(profile: PilotProfile): void {
+    this.shipLevel = Math.max(0, Math.min(MAX_LEVEL, Math.floor(profile.level)));
+    this.backpack = new Backpack(cargoFor(this.shipLevel), profile.cargo, this.catalog);
     this.wallet = Wallet.from(profile.ledger);
     this.known = new Set(profile.blueprints);
-    this.records = newRecords();
+    this.records = { ...newRecords(), ...profile.records };
     this.changed();
   }
 
@@ -160,10 +181,16 @@ export class Hangar {
 
   // The next level up, what it costs, what is short of it and what the ship will be; null at the top.
   public nextUpgrade(): EconomyView["next"] {
-    const level = this.shipLevel + 1;
-    const cost = upgradeCost(level);
+    const cache = this.current();
 
-    return cost ? { level, tier: tierOf(level), mark: markOf(level), cost, shortfall: this.shortfall(cost), stats: this.statsFor(level) } : null;
+    if (cache.next === undefined) {
+      const level = this.shipLevel + 1;
+      const cost = upgradeCost(level);
+
+      cache.next = cost ? { level, tier: tierOf(level), mark: markOf(level), cost, shortfall: this.shortfall(cost), stats: this.statsFor(level) } : null;
+    }
+
+    return cache.next;
   }
 
   // What a ship at a level can do.
@@ -232,7 +259,7 @@ export class Hangar {
 
     const paid = spec.value * taken;
 
-    this.wallet.earn("recycling", { RED: paid }, memo("recycle", id), this.now());
+    this.wallet.earn("recycling", { RED: paid }, memo("recycling", id), this.now());
     this.changed();
 
     return paid;
@@ -255,6 +282,13 @@ export class Hangar {
     this.changed();
 
     return [{ kind: "fix", fault: fault.id }];
+  }
+
+  // What a thing would do used now, without taking it.
+  public effectsFor(id: string): ShipEffect[] {
+    const spec = this.catalog[id];
+
+    return spec ? effectsOf(spec) : [];
   }
 
   // Uses a consumable, or fits a spare part to the system it mends, and returns its effects; null when there is
@@ -306,37 +340,17 @@ export class Hangar {
 
   // The one thing most worth doing now, ready in one click: a fault fixed, a part made to fix one, a consumable
   // used when the ship needs it, the next upgrade, or what the upgrade still wants made.
+  // The same object comes back while nothing that decides it has changed, so callers can compare by identity.
   public suggest(status: ShipStatus | null): Suggestion | null {
-    if (status?.isFlying) {
-      const faults = [...status.faults].sort((first, second) => URGENCY.indexOf(first.kind) - URGENCY.indexOf(second.kind));
-      const fixable = faults.find((fault) => this.fixFor(fault.kind));
+    const cache = this.current();
+    const statusKey = statusKeyOf(status);
 
-      if (fixable) {
-        return { kind: "repair", fault: fixable.id, faultKind: fixable.kind };
-      }
-
-      const craftable = faults.map((fault) => this.craftableFor(FAULT_FIXES[fault.kind][0])).find(Boolean);
-
-      if (craftable) {
-        return { kind: "craft", recipe: craftable, reason: "fault" };
-      }
-
-      const use = this.consumableFor(status);
-
-      if (use) {
-        return use;
-      }
+    if (cache.suggestion === undefined || cache.statusKey !== statusKey) {
+      cache.statusKey = statusKey;
+      cache.suggestion = this.suggestNow(status);
     }
 
-    const next = this.nextUpgrade();
-
-    if (next?.shortfall.isReady) {
-      return { kind: "upgrade", level: next.level, tier: next.tier, mark: next.mark };
-    }
-
-    const towards = next ? this.craftableFor(next.shortfall.items) : null;
-
-    return towards ? { kind: "craft", recipe: towards, reason: "upgrade" } : null;
+    return cache.suggestion;
   }
 
   // Everything the UI shows, as plain data.
@@ -370,12 +384,46 @@ export class Hangar {
 
   public toProfile(): PilotProfile {
     return {
+      savedAt: this.now(),
       level: this.shipLevel,
       cargo: this.backpack.toStacks(),
       blueprints: [...this.known],
       ledger: this.wallet.toSnapshot(),
       records: { ...this.records },
     };
+  }
+
+  private suggestNow(status: ShipStatus | null): Suggestion | null {
+    if (status?.isFlying) {
+      const faults = [...status.faults].sort((first, second) => URGENCY.indexOf(first.kind) - URGENCY.indexOf(second.kind));
+      const fixable = faults.find((fault) => this.fixFor(fault.kind));
+
+      if (fixable) {
+        return { kind: "repair", fault: fixable.id, faultKind: fixable.kind };
+      }
+
+      const craftable = faults.map((fault) => this.craftableFor(FAULT_FIXES[fault.kind][0])).find(Boolean);
+
+      if (craftable) {
+        return { kind: "craft", recipe: craftable, reason: "fault" };
+      }
+
+      const use = this.consumableFor(status);
+
+      if (use) {
+        return use;
+      }
+    }
+
+    const next = this.nextUpgrade();
+
+    if (next?.shortfall.isReady) {
+      return { kind: "upgrade", level: next.level, tier: next.tier, mark: next.mark };
+    }
+
+    const towards = next ? this.craftableFor(next.shortfall.items) : null;
+
+    return towards ? { kind: "craft", recipe: towards, reason: "upgrade" } : null;
   }
 
   private payFor(deed: Deed): Purse {
@@ -439,7 +487,17 @@ export class Hangar {
     return spec ? { id, count, rarity: spec.rarity, volume: spec.volume, value: spec.value, isUsable: effectsOf(spec).length > 0, mends: spec.mends ?? null } : null;
   }
 
+  // What is worked out from the hangar as it stands now.
+  private current(): HangarCache {
+    if (this.cache.revision !== this.revision) {
+      this.cache = { revision: this.revision, next: undefined, statusKey: null, suggestion: undefined };
+    }
+
+    return this.cache;
+  }
+
   private changed(): void {
+    this.revision += 1;
     this.listeners.forEach((listener) => listener());
   }
 }

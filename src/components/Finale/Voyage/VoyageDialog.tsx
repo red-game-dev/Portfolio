@@ -337,7 +337,13 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           {snapshot.salvage && (
             <Salvage role="status" aria-label={fill(copy.salvage.progress, { wreck: copy.salvage.wrecks[snapshot.salvage.kind] })}>
               {fill(copy.salvage.progress, { wreck: copy.salvage.wrecks[snapshot.salvage.kind] })}
-              <FrameTrack role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(snapshot.salvage.progress * 100)}>
+              <FrameTrack
+                role="meter"
+                aria-label={copy.salvage.wrecks[snapshot.salvage.kind]}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(snapshot.salvage.progress * 100)}
+              >
                 <BarFill colour="#7dffcf" style={{ transform: `scaleX(${snapshot.salvage.progress})` }} />
               </FrameTrack>
             </Salvage>

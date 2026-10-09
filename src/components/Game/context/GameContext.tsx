@@ -6,12 +6,14 @@ import { readStored, writeStored } from "@/packages/browser/storage";
 export interface GameState {
   characterClass: string | null;
   bestScore: number;
+  voyageBest: number;
   // This visit's progress. Not remembered: every visit is a new run.
   defeatedBosses: number;
   zonesVisited: number;
   duelsWon: number;
   selectCharacter: (characterClass: string) => void;
   recordScore: (score: number) => void;
+  recordVoyage: (score: number) => void;
   defeatBoss: (boss: string) => void;
   visitZone: (zone: string) => void;
   recordDuels: (won: number) => void;
@@ -26,6 +28,7 @@ export const GameContext = createContext<GameState | null>(null);
 export const GameProvider = ({ children }: GameProviderProps) => {
   const [characterClass, setCharacterClass] = useState<string | null>(null);
   const [bestScore, setBestScore] = useState(0);
+  const [voyageBest, setVoyageBest] = useState(0);
   const [bosses, setBosses] = useState<ReadonlySet<string>>(() => new Set());
   const [zones, setZones] = useState<ReadonlySet<string>>(() => new Set());
   const [duelsWon, setDuelsWon] = useState(0);
@@ -39,6 +42,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     if (stored) {
       setCharacterClass(stored.characterClass);
       setBestScore(stored.bestScore);
+      setVoyageBest(stored.voyageBest ?? 0);
     }
   }, []);
 
@@ -49,10 +53,12 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       return;
     }
 
-    writeStored(GAME_STORAGE_KEY, { characterClass, bestScore });
-  }, [characterClass, bestScore]);
+    writeStored(GAME_STORAGE_KEY, { characterClass, bestScore, voyageBest });
+  }, [characterClass, bestScore, voyageBest]);
 
   const recordScore = useCallback((score: number) => setBestScore((current) => Math.max(current, score)), []);
+
+  const recordVoyage = useCallback((score: number) => setVoyageBest((current) => Math.max(current, score)), []);
 
   const defeatBoss = useCallback((boss: string) => {
     setBosses((current) => (current.has(boss) ? current : new Set(current).add(boss)));
@@ -68,16 +74,18 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     () => ({
       characterClass,
       bestScore,
+      voyageBest,
       defeatedBosses: bosses.size,
       zonesVisited: zones.size,
       duelsWon,
       selectCharacter: setCharacterClass,
       recordScore,
+      recordVoyage,
       defeatBoss,
       visitZone,
       recordDuels,
     }),
-    [characterClass, bestScore, bosses, zones, duelsWon, recordScore, defeatBoss, visitZone, recordDuels]
+    [characterClass, bestScore, voyageBest, bosses, zones, duelsWon, recordScore, recordVoyage, defeatBoss, visitZone, recordDuels]
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

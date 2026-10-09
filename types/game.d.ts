@@ -71,14 +71,55 @@ export interface FinaleLaunch {
   orbit: string;
   // Read out as each zone falls behind; "{zone}" is replaced.
   leaving: string;
-  again: string;
   hint: string;
+  // In orbit: carry on into space, or press the button nobody should press.
+  continue: string;
+  doNotPress: string;
+  orbitHint: string;
+  // "{seconds}" is replaced.
+  countdown: string;
+  boom: string;
+}
+
+// The voyage past orbit: out of the solar system, through a black hole, and from universe to universe.
+export interface FinaleVoyage {
+  title: string;
+  intro: string;
+  controls: string;
+  canvasLabel: string;
+  start: string;
+  again: string;
+  close: string;
+  pause: string;
+  resume: string;
+  paused: string;
+  score: string;
+  best: string;
+  shields: string;
+  // "{au}" is replaced with the distance from the Sun.
+  distance: string;
+  // "{count}" and "{name}" are replaced.
+  universe: string;
+  // What each stop on the way out is called, by its id in the game.
+  stops: Record<string, string>;
+  // "{stop}" is replaced.
+  passing: string;
+  singularity: string;
+  lost: string;
+  // "{universe}" is replaced: the first universe, then each one after.
+  arrived: string;
+  jumped: string;
+  over: string;
+  // "{score}" is replaced.
+  finalScore: string;
+  newBest: string;
 }
 
 export interface FinaleContent {
   kicker: string;
   title: string;
   launch: FinaleLaunch;
+  voyage: FinaleVoyage;
   missionTitle: string;
   mission: string;
   summaryTitle: string;

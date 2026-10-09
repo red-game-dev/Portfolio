@@ -4,4 +4,4 @@ export { LaunchSimulation } from "./core/LaunchSimulation";
 export { CanvasLaunchRenderer } from "./renderers/CanvasLaunchRenderer";
 export type { LaunchConfig, LaunchConfigOverrides, LaunchTheme } from "./config";
 export type { LaunchCanvasOptions, LaunchOptions } from "./core/LaunchGame";
-export type { LaunchRenderer, LaunchSize, LaunchSnapshot, LaunchStar, LaunchState, LaunchStatus } from "./domain/types";
+export type { LaunchDebris, LaunchRenderer, LaunchSize, LaunchSnapshot, LaunchStar, LaunchState, LaunchStatus } from "./domain/types";

@@ -14,6 +14,7 @@ import type {
 } from "@/packages/effects/backdrop";
 import type { RainConfigOverrides } from "@/packages/effects/binary-rain";
 import type { LaunchTheme } from "@/packages/games/launch";
+import type { VoyageStyle, VoyageTheme } from "@/packages/games/voyage";
 import { hexToRgb, rgbChannels } from "@/packages/graphics/colour";
 
 // Runtime colours for things twin.macro cannot reach, such as canvas drawing. Styled components keep
@@ -87,4 +88,23 @@ export const LAUNCH_THEME: Partial<LaunchTheme> = {
   fin: "#3e4a6b",
   horizon: rgbaOf("mmo", 0.35),
   markers: CROSSED_ZONES.map((zone) => ZONE_ACCENTS[zone]),
+};
+
+// What each zone becomes as a universe on the far side of the black hole, and the deep it is set in.
+const VOYAGE_UNIVERSES: Record<Exclude<ZoneId, "beyond">, { style: VoyageStyle; deep: string; hazard?: string }> = {
+  matrix: { style: "matrix", deep: "#020a06", hazard: "#ff4d5e" },
+  ai: { style: "neural", deep: "#020812", hazard: "#d17bff" },
+  chain: { style: "blocks", deep: "#07040f" },
+  casino: { style: "chips", deep: "#0f0309" },
+  mmo: { style: "pixels", deep: "#0c0802" },
+};
+
+// The voyage past orbit: Beyond's starlight on the ship, and one universe per zone crossed, in its colour.
+export const VOYAGE_THEME: Partial<VoyageTheme> = {
+  window: ZONE_ACCENTS.beyond,
+  universes: CROSSED_ZONES.flatMap((zone) => {
+    const universe = zone === "beyond" ? undefined : VOYAGE_UNIVERSES[zone];
+
+    return universe ? [{ style: universe.style, accent: ZONE_ACCENTS[zone], deep: universe.deep, hazard: universe.hazard ?? ZONE_ACCENTS[zone] }] : [];
+  }),
 };

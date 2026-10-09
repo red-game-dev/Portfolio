@@ -21,7 +21,8 @@ export interface LaunchCanvasOptions extends LaunchOptions {
 }
 
 // Runs the launch on the shared frame loop and draws it. The loop runs only while something moves: it
-// starts on a press and stops on the pad or in orbit, leaving the last frame on screen.
+// starts on a press and stops on the pad or in orbit, leaving the last frame on screen. A self destruct runs
+// through its countdown and explosion and on into the next launch without stopping.
 export class LaunchGame extends FrameLoop {
   private readonly renderer: LaunchRenderer;
   private readonly simulation: LaunchSimulation;
@@ -71,6 +72,11 @@ export class LaunchGame extends FrameLoop {
     this.publishAndRun();
   }
 
+  public selfDestruct(): void {
+    this.simulation.selfDestruct();
+    this.publishAndRun();
+  }
+
   // Straight to orbit with one still frame, for readers who prefer no motion.
   public complete(): void {
     this.simulation.complete();
@@ -109,7 +115,7 @@ export class LaunchGame extends FrameLoop {
   private publish(): void {
     const next = this.simulation.snapshot;
 
-    if (next.status !== this.lastSnapshot.status || next.passed !== this.lastSnapshot.passed) {
+    if (next.status !== this.lastSnapshot.status || next.passed !== this.lastSnapshot.passed || next.countdown !== this.lastSnapshot.countdown) {
       this.lastSnapshot = next;
       this.onChange(next);
     }

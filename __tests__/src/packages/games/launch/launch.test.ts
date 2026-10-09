@@ -31,7 +31,7 @@ describe("LaunchSimulation", () => {
     simulation.release();
     run(simulation, config.drainMs);
 
-    expect(simulation.snapshot).toEqual({ status: "ready", passed: 0 });
+    expect(simulation.snapshot).toEqual({ status: "ready", passed: 0, countdown: 0 });
     expect(simulation.state.charge).toBe(0);
   });
 
@@ -58,8 +58,36 @@ describe("LaunchSimulation", () => {
 
     expect(passed).toEqual([...passed].sort((first, second) => first - second));
     expect(new Set(passed)).toEqual(new Set([0, 1, 2, 3, 4, 5].filter((count) => passed.includes(count))));
-    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers });
+    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers, countdown: 0 });
     expect(simulation.state.altitude).toBe(1);
+  });
+
+  test("the button nobody should press counts down from three, blows the ship up and launches a new one", () => {
+    const simulation = create();
+    const countdown: number[] = [];
+
+    simulation.selfDestruct();
+    expect(simulation.state.status).toBe("ready");
+
+    simulation.complete();
+    simulation.selfDestruct();
+    expect(simulation.snapshot).toEqual({ status: "destructing", passed: config.markers, countdown: 3 });
+    expect(simulation.state.debris).toHaveLength(config.debris);
+
+    while (simulation.state.status === "destructing") {
+      simulation.step(16);
+      countdown.push(simulation.snapshot.countdown);
+    }
+
+    expect([...new Set(countdown)]).toEqual([3, 2, 1, 0]);
+    expect(simulation.state.status).toBe("exploding");
+
+    run(simulation, config.explodeMs + 32);
+    expect(simulation.state.status).toBe("charging");
+    expect(simulation.state.isAutoCharging).toBe(true);
+
+    run(simulation, config.autoChargeMs + config.ascentMs + 64);
+    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers, countdown: 0 });
   });
 
   test("pressing does nothing in flight, completing goes straight to orbit, and reset puts the ship back", () => {
@@ -67,10 +95,10 @@ describe("LaunchSimulation", () => {
 
     simulation.complete();
     simulation.press();
-    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers });
+    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers, countdown: 0 });
 
     simulation.reset();
-    expect(simulation.snapshot).toEqual({ status: "ready", passed: 0 });
+    expect(simulation.snapshot).toEqual({ status: "ready", passed: 0, countdown: 0 });
     expect(simulation.state.altitude).toBe(0);
   });
 });
@@ -99,7 +127,7 @@ describe("LaunchGame", () => {
 
     expect(game.isRunning).toBe(false);
     expect(changes.map((change) => change.status)).toEqual(["charging", "launching", ...Array(config.markers).fill("launching"), "orbit"]);
-    expect(changes[changes.length - 1]).toEqual({ status: "orbit", passed: config.markers });
+    expect(changes[changes.length - 1]).toEqual({ status: "orbit", passed: config.markers, countdown: 0 });
   });
 
   test("completing for reduced motion draws one still frame in orbit without running the loop", () => {

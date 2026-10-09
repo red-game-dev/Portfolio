@@ -4,7 +4,7 @@ import { randomBetween } from "@/packages/math/random";
 import { SystemBody } from "../domain/content";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
-import { addCrater, arrivalSpeed, bindingEnergy, craterKm, impactEnergy, impactorMass, impactOutcome, isOnCourseNow } from "./impacts";
+import { addCrater, arrivalSpeed, bindingEnergy, craterKm, impactEnergy, impactorMass, impactOutcome, isOnCourseNow, predictApproach } from "./impacts";
 import { isInSystem, isSolar, shipOf } from "./queries";
 
 // Worlds within this distance of the ship can be the target of a rock (world units), and how far from its
@@ -17,6 +17,10 @@ const LET_GO = 26;
 const CRATER_COOLING = 0.03;
 const MELT_COOLING = 0.008;
 const DEG = 180 / Math.PI;
+// How many times an aim is corrected before a course is given up as one gravity will not allow, and how often
+// (ms) a rock's course is looked at again.
+const AIM_ATTEMPTS = 5;
+const COURSE_CHECK_MS = 250;
 
 // Rocks headed for worlds. Every so often one sets out for a world near the ship, on a course that will hit it,
 // with a warning of how big it is and how long until it hits; gravity pulls it in as it comes. If it hits, its
@@ -44,6 +48,8 @@ export class ImpactSystem implements System<VoyageContext> {
       this.launch(context);
     }
 
+    const isCheckDue = Math.floor(state.elapsedMs / COURSE_CHECK_MS) !== Math.floor((state.elapsedMs - dt * 1000) / COURSE_CHECK_MS);
+
     world.stores.impactor.entities.forEach((entity, index) => {
       const impactor = world.stores.impactor.values[index];
       const rock = world.stores.body.get(entity);
@@ -57,8 +63,9 @@ export class ImpactSystem implements System<VoyageContext> {
 
       const away = Math.hypot(rock.x - target.x, rock.y - target.y);
 
-      // Gravity may carry it past without anyone touching it; then it is no longer coming.
-      if (impactor.isOnCourse && !isOnCourseNow(context, rock, target)) {
+      // Gravity may carry it past without anyone touching it; then it is no longer coming. Looked at a few times a
+      // second, not every step: following a path through the field is the dearest thing done here.
+      if (impactor.isOnCourse && isCheckDue && !isOnCourseNow(context, rock, target)) {
         impactor.isOnCourse = false;
       }
 
@@ -97,27 +104,44 @@ export class ImpactSystem implements System<VoyageContext> {
     const speed = randomBetween(random, config.impacts.speed[0], config.impacts.speed[1]);
     const x = target.x + Math.cos(angle) * distance;
     const y = target.y + Math.sin(angle) * distance;
+    const course = this.aim(context, target, x, y, distance / speed, speed);
+
+    // A course gravity will not let hit is no threat to announce: the rock is never sent.
+    if (!course) {
+      return;
+    }
+
     const seconds = distance / speed;
-    const { field, sample } = context;
-
-    // Aimed at where the target will be, less how far the difference in pull on them will bend it on the way.
-    field.sample(x, y, sample);
-
-    const ax = sample.ax;
-    const ay = sample.ay;
-
-    field.sample(target.x, target.y, sample);
-
-    const aimX = target.x + target.vx * seconds - 0.5 * (ax - sample.ax) * seconds * seconds - x;
-    const aimY = target.y + target.vy * seconds - 0.5 * (ay - sample.ay) * seconds * seconds - y;
-    const aim = Math.hypot(aimX, aimY) || 1;
     const rock = world.spawn();
     const maxHp = 80 * (radius / 0.1) ** 3;
 
-    world.stores.body.set(rock, { x, y, vx: (aimX / aim) * speed, vy: (aimY / aim) * speed, prevX: x, prevY: y, radius, mass: impactorMass(radius) });
+    world.stores.body.set(rock, { x, y, vx: course.vx, vy: course.vy, prevX: x, prevY: y, radius, mass: impactorMass(radius) });
     world.stores.spin.set(rock, { angle: random() * Math.PI * 2, rate: randomBetween(random, -0.8, 0.8) });
     world.stores.impactor.set(rock, { target: target.id, hp: maxHp, maxHp, diameterKm, isFragment: false, isOnCourse: true });
     events.emit("impactAlert", { target: target.id, diameterKm, seconds });
+  }
+
+  // A velocity that will hit: aimed at where the target will be, then corrected by however far its path through
+  // the world's gravity still misses, a few times over.
+  private aim(context: VoyageContext, target: SystemBody, x: number, y: number, seconds: number, speed: number): { vx: number; vy: number } | null {
+    let aimX = target.x + target.vx * seconds;
+    let aimY = target.y + target.vy * seconds;
+
+    for (let attempt = 0; attempt < AIM_ATTEMPTS; attempt += 1) {
+      const length = Math.hypot(aimX - x, aimY - y) || 1;
+      const course = { x, y, vx: ((aimX - x) / length) * speed, vy: ((aimY - y) / length) * speed };
+      const miss = predictApproach(context, course, target);
+
+      // Its path reaches the surface: a hit.
+      if (miss.distance < target.radius) {
+        return course;
+      }
+
+      aimX -= miss.dx;
+      aimY -= miss.dy;
+    }
+
+    return null;
   }
 
   private strike(context: VoyageContext, target: SystemBody, rock: { x: number; y: number; vx: number; vy: number }, diameterKm: number): void {

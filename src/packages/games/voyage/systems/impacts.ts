@@ -57,43 +57,52 @@ export const arrivalSpeed = (approachKmS: number, body: SystemBody): number => {
   return Math.hypot(approachKmS, escape);
 };
 
-// How long ahead (seconds) a rock's course is looked along, and in how many steps.
-const COURSE_SECONDS = 24;
-const COURSE_STEPS = 48;
+// How long ahead (seconds) a rock's course is followed, and the step it is followed in.
+const COURSE_SECONDS = 30;
+const COURSE_STEP = 0.08;
 
-// Whether a rock's path, against its target's motion and bent by the pull on it now (`ax`, `ay`), passes within
-// the target: its place sampled along p + v t + a t^2 / 2 until it would arrive or turn away.
-export const isOnCourse = (rock: { x: number; y: number; vx: number; vy: number }, body: SystemBody, ax = 0, ay = 0): boolean => {
-  const px = rock.x - body.x;
-  const py = rock.y - body.y;
-  const vx = rock.vx - body.vx;
-  const vy = rock.vy - body.vy;
+export interface Approach {
+  dx: number;
+  dy: number;
+  distance: number;
+}
 
-  for (let step = 1; step <= COURSE_STEPS; step += 1) {
-    const time = (step / COURSE_STEPS) * COURSE_SECONDS;
+// Where a rock will pass nearest its target: its path followed through the same gravity the world moves it by
+// (every body and star pulling, its target included), the target moving on as it does, until the rock arrives,
+// or has clearly passed. The offset from the target's centre at that moment, and how far.
+export const predictApproach = ({ field, sample }: VoyageContext, rock: { x: number; y: number; vx: number; vy: number }, body: SystemBody): Approach => {
+  let { x, y, vx, vy } = rock;
+  let best: Approach = { dx: x - body.x, dy: y - body.y, distance: Math.hypot(x - body.x, y - body.y) };
 
-    if (Math.hypot(px + vx * time + 0.5 * ax * time * time, py + vy * time + 0.5 * ay * time * time) < body.radius * 1.05) {
-      return true;
+  for (let time = COURSE_STEP; time <= COURSE_SECONDS; time += COURSE_STEP) {
+    field.sample(x, y, sample);
+    vx += sample.ax * COURSE_STEP;
+    vy += sample.ay * COURSE_STEP;
+    x += vx * COURSE_STEP;
+    y += vy * COURSE_STEP;
+
+    const dx = x - (body.x + body.vx * time);
+    const dy = y - (body.y + body.vy * time);
+    const distance = Math.hypot(dx, dy);
+
+    if (distance < best.distance) {
+      best = { dx, dy, distance };
+    } else if (distance > best.distance + body.radius * 4) {
+      break;
+    }
+
+    if (distance < body.radius) {
+      break;
     }
   }
 
-  return false;
+  return best;
 };
 
-// Whether a rock is on course for its target under the pull on it now.
-export const isOnCourseNow = (context: VoyageContext, rock: { x: number; y: number; vx: number; vy: number }, body: SystemBody): boolean => {
-  const { field, sample } = context;
-
-  field.sample(rock.x, rock.y, sample);
-
-  // Its target is pulled much the same way, so only the difference bends the rock's path towards it.
-  const ax = sample.ax;
-  const ay = sample.ay;
-
-  field.sample(body.x, body.y, sample);
-
-  return isOnCourse(rock, body, ax - sample.ax, ay - sample.ay);
-};
+// Whether a rock is on course for its target.
+export const isOnCourseNow = (context: VoyageContext, rock: { x: number; y: number; vx: number; vy: number }, body: SystemBody): boolean => (
+  predictApproach(context, rock, body).distance < body.radius * 1.02
+);
 
 // A shot strikes a rock headed for a world: it loses strength, and the shot's momentum pushes it, a small rock
 // far more than a planetoid. Pushed off course, it will miss; at no strength left, it breaks apart.

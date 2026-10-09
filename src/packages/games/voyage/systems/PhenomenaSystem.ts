@@ -3,6 +3,7 @@ import { randomBetween } from "@/packages/math/random";
 import { angleBetween } from "@/packages/physics/newtonian";
 
 import { Weapon } from "../domain/components";
+import { SHOCK_FADES } from "../domain/state";
 import { PhenomenonSpec } from "../domain/universe";
 import { fire, leadDirection } from "./combat";
 import { VoyageContext } from "./context";
@@ -127,11 +128,11 @@ export class PhenomenaSystem implements System<VoyageContext> {
             events.emit("supernova", { seconds: 0, isBlown: true });
           }
 
-          const before = nova.shock;
+          // The front spreads until it has thinned to nothing; the ship is struck the first time it is inside it,
+          // however fast it was flying, so it cannot slip through between two steps.
+          nova.shock = Math.min(SHOCK_FADES, nova.shock + SHOCK_SPEED * dt);
 
-          nova.shock += SHOCK_SPEED * dt;
-
-          if (!nova.hasHit && away > before && away <= nova.shock) {
+          if (!nova.hasHit && nova.shock < SHOCK_FADES && away <= nova.shock) {
             nova.hasHit = true;
 
             const spared = this.isHidden(context, phenomenon.x, phenomenon.y) ? SHADOW_SPARES : 0;

@@ -9,6 +9,8 @@ import { shipOf } from "./queries";
 const MISSILE_TURN = 2.4;
 // How much louder a shot makes the ship to anything listening.
 const SHOT_NOISE = 0.35;
+// With nothing to fire at, the gun looks again this often (seconds) rather than every step.
+const LOOK_EVERY = 0.1;
 
 // Guns and what they fire. Every gun cools down; shots run out of range; missiles turn after their quarry. The
 // ship's gun aims itself, leading its target: what the player locked onto first, then anyone coming for the
@@ -16,9 +18,12 @@ const SHOT_NOISE = 0.35;
 // neutral unless told to. Every shot warms the hull and is heard.
 export class WeaponSystem implements System<VoyageContext> {
   public readonly name = "weapons";
+  private restFor = 0;
 
   public update(context: VoyageContext, dt: number): void {
     const { world, state } = context;
+
+    this.restFor = Math.max(0, this.restFor - dt);
 
     world.stores.weapon.values.forEach((weapon) => {
       weapon.cooldown = Math.max(0, weapon.cooldown - dt);
@@ -39,11 +44,15 @@ export class WeaponSystem implements System<VoyageContext> {
     const parts = shipOf(context);
     const weapon = world.stores.weapon.get(state.ship);
 
-    if (!parts || !weapon || state.status !== "flying" || state.capture || state.phase === "lost" || weapon.cooldown > 0) {
+    if (!parts || !weapon || state.status !== "flying" || state.capture || state.phase === "lost" || weapon.cooldown > 0 || this.restFor > 0) {
       return;
     }
 
     const target = this.choose(context, parts.body, weapon.range);
+
+    if (target === null) {
+      this.restFor = LOOK_EVERY;
+    }
     const at = target !== null ? world.stores.body.get(target) : undefined;
     const aim = at ? leadDirection(parts.body, at, weapon.speed) : null;
 
@@ -54,21 +63,17 @@ export class WeaponSystem implements System<VoyageContext> {
     }
   }
 
+  // What to fire at, in one pass over each kind and without making any arrays: the lock first, then the nearest
+  // one coming for the ship, the nearest rock headed for a world, the nearest rock about to hit the ship.
   private choose(context: VoyageContext, ship: Body, range: number): Entity | null {
     const { world, state, config } = context;
-    const within = (entity: Entity, reach = range) => {
+    const distanceTo = (entity: Entity) => {
       const at = world.stores.body.get(entity);
 
-      return at ? Math.hypot(at.x - ship.x, at.y - ship.y) <= reach : false;
+      return at ? Math.hypot(at.x - ship.x, at.y - ship.y) : Infinity;
     };
-    const nearest = (entities: Entity[]) => entities.reduce<{ entity: Entity | null; distance: number }>((best, entity) => {
-      const at = world.stores.body.get(entity);
-      const distance = at ? Math.hypot(at.x - ship.x, at.y - ship.y) : Infinity;
 
-      return distance < best.distance ? { entity, distance } : best;
-    }, { entity: null, distance: Infinity }).entity;
-
-    if (state.lockedTarget !== null && world.isAlive(state.lockedTarget) && within(state.lockedTarget, range * 1.1)) {
+    if (state.lockedTarget !== null && world.isAlive(state.lockedTarget) && distanceTo(state.lockedTarget) <= range * 1.1) {
       return state.lockedTarget;
     }
 
@@ -76,27 +81,43 @@ export class WeaponSystem implements System<VoyageContext> {
       return null;
     }
 
-    const coming = world.stores.alien.entities.filter((entity, index) => {
-      const alien = world.stores.alien.values[index];
+    let best: Entity | null = null;
+    let nearest = range;
+    const aliens = world.stores.alien;
 
-      return alien.threat > 0 && alien.mode !== "evade" && within(entity);
-    });
+    for (let index = 0; index < aliens.size; index += 1) {
+      const alien = aliens.values[index];
+      const distance = alien.threat > 0 && alien.mode !== "evade" ? distanceTo(aliens.entities[index]) : Infinity;
 
-    if (coming.length > 0) {
-      return nearest(coming);
+      if (distance <= nearest) {
+        best = aliens.entities[index];
+        nearest = distance;
+      }
     }
 
-    const impactors = world.stores.impactor.entities.filter((entity) => within(entity));
-
-    if (impactors.length > 0) {
-      return nearest(impactors);
+    if (best !== null) {
+      return best;
     }
 
-    const threats = world.stores.hazard.entities.filter((entity) => {
-      const rock = world.stores.body.get(entity);
+    for (const rock of world.stores.impactor.entities) {
+      const distance = distanceTo(rock);
 
-      if (!rock || !within(entity)) {
-        return false;
+      if (distance <= nearest) {
+        best = rock;
+        nearest = distance;
+      }
+    }
+
+    if (best !== null) {
+      return best;
+    }
+
+    for (const hazard of world.stores.hazard.entities) {
+      const rock = world.stores.body.get(hazard);
+      const distance = rock ? Math.hypot(rock.x - ship.x, rock.y - ship.y) : Infinity;
+
+      if (!rock || distance > nearest) {
+        continue;
       }
 
       // When the rock passes closest, and how close.
@@ -107,10 +128,13 @@ export class WeaponSystem implements System<VoyageContext> {
       const speed = vx * vx + vy * vy;
       const time = speed > 0 ? -(px * vx + py * vy) / speed : Infinity;
 
-      return time > 0 && time < config.arms.threatSeconds && Math.hypot(px + vx * time, py + vy * time) < rock.radius + ship.radius + 0.15;
-    });
+      if (time > 0 && time < config.arms.threatSeconds && Math.hypot(px + vx * time, py + vy * time) < rock.radius + ship.radius + 0.15) {
+        best = hazard;
+        nearest = distance;
+      }
+    }
 
-    return threats.length > 0 ? nearest(threats) : null;
+    return best;
   }
 
   private home({ world }: VoyageContext, entity: Entity, target: Entity, dt: number): void {

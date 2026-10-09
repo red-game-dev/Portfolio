@@ -19,7 +19,8 @@ export class RenderKit {
     public readonly cache: SurfaceCache,
     public readonly particles: ParticleSystem,
     public readonly theme: VoyageTheme,
-    public readonly globes: GlobeRenderer,
+    // Swapped for the canvas fallback if the GPU's context is lost.
+    public globes: GlobeRenderer,
     public readonly labels: Record<string, string>,
   ) {}
 

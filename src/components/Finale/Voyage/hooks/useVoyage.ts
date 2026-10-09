@@ -22,15 +22,48 @@ const KEY_ZOOM = 1.25;
 
 const keyOf = (event: KeyboardEvent<HTMLElement>) => (event.key.length === 1 ? event.key.toLowerCase() : event.key);
 
-// Hands the game each real map as soon as it has loaded, in order, so Earth arrives first.
+// Each real map, fetched and decoded once a visit, however often the voyage is opened.
+const decoded = new Map<string, Promise<HTMLImageElement>>();
+
+const decode = (url: string): Promise<HTMLImageElement> => {
+  const known = decoded.get(url);
+
+  if (known) {
+    return known;
+  }
+
+  const image = new Image();
+
+  image.decoding = "async";
+  image.src = url;
+
+  const ready = image.decode().then(() => image);
+
+  ready.catch(() => decoded.delete(url));
+  decoded.set(url, ready);
+
+  return ready;
+};
+
+// Hands the game each real map as soon as it has loaded, in order, so Earth arrives first. A game already gone
+// takes none: its renderer ignores what comes after it is disposed.
 const loadTextures = (game: VoyageGame) => {
   Object.entries(VOYAGE_TEXTURES).forEach(([id, url]) => {
-    const image = new Image();
-
-    image.decoding = "async";
-    image.src = url;
-    image.decode().then(() => game.setTexture(id, image), () => undefined);
+    decode(url).then((image) => game.setTexture(id, image), () => undefined);
   });
+};
+
+// Where to start on quality: a phone with little memory or few cores starts a step or two down, so its first
+// seconds are smooth; every device then steps down further by itself if its frames run slow.
+const startingQuality = (): number => {
+  const memory = "deviceMemory" in navigator && typeof navigator.deviceMemory === "number" ? navigator.deviceMemory : 8;
+  const cores = navigator.hardwareConcurrency || 8;
+
+  if (memory <= 2 || cores <= 2) {
+    return 2;
+  }
+
+  return memory <= 4 || cores <= 4 ? 1 : 0;
 };
 
 export interface VoyageCanvasRefs {
@@ -71,7 +104,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
       const voyage = Game.forCanvas(
         { back: context, front: frontContext, lens: lens.current, globe: document.createElement("canvas") },
-        { theme: VOYAGE_THEME, labels, universeNames: universes, syllables, onChange: setSnapshot, onNotice: setNotice },
+        { theme: VOYAGE_THEME, labels, universeNames: universes, syllables, quality: startingQuality(), onChange: setSnapshot, onNotice: setNotice },
       );
 
       loadTextures(voyage);
@@ -81,6 +114,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     resize: (voyage, { width, height, pixelRatio }) => voyage.resize({ width, height }, pixelRatio),
   }, []);
   const isFlying = snapshot?.status === "flying";
+
+  // Closing the voyage gives its GPU contexts and textures back, not just stops it.
+  useEffect(() => () => game?.dispose(), [game]);
 
   const play = useCallback(() => {
     held.current.clear();

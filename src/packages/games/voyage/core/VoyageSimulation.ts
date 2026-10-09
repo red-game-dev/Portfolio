@@ -34,6 +34,7 @@ import { ThermalSystem } from "../systems/ThermalSystem";
 import { TrafficSystem } from "../systems/TrafficSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 import { AURORA_BASE, WeatherSystem } from "../systems/WeatherSystem";
+import { cloneSystem } from "../utils/system";
 import { createVoyageStores, VoyageWorld } from "./world";
 
 interface VoyageSimulationOptions {
@@ -63,7 +64,8 @@ export class VoyageSimulation {
   private readonly pipeline: SystemPipeline<VoyageContext>;
   private readonly context: VoyageContext;
   private readonly snapshots: SnapshotMapper;
-  // The real solar system every run starts in, whichever universe the last one ended in.
+  // The real solar system every run starts in, whichever universe the last one ended in, as it was given:
+  // each run flies a copy of it.
   private readonly home: StarSystem;
 
   constructor(system: StarSystem, { config, random, epochMs, names = DEFAULT_UNIVERSE_NAMES, themes = [] }: VoyageSimulationOptions) {
@@ -72,7 +74,7 @@ export class VoyageSimulation {
     this.home = system;
     this.context = {
       world: this.world,
-      state: this.fresh(system, "ready", epochMs, config, random),
+      state: this.fresh(cloneSystem(system), "ready", epochMs, config, random),
       config,
       input: NO_INPUT,
       events: this.events,
@@ -144,7 +146,7 @@ export class VoyageSimulation {
   // where the last run's started).
   public start(epochMs = this.context.state.clock.epochMs): void {
     this.world.clear();
-    this.context.state = this.fresh(this.home, "flying", epochMs, this.context.config, this.context.random);
+    this.context.state = this.fresh(cloneSystem(this.home), "flying", epochMs, this.context.config, this.context.random);
     this.context.state.view = { ...this.context.state.view };
     this.placeShip();
     this.pipeline.reset();

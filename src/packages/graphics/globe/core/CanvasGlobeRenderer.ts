@@ -22,6 +22,10 @@ export class CanvasGlobeRenderer implements GlobeRenderer {
     // Draws straight into the target, so there is nothing of its own to size.
   }
 
+  public setDetail(): void {
+    // Its globes are flat shaded already.
+  }
+
   public setTexture(id: string, image: TexImageSource): void {
     if (isDrawable(image)) {
       this.maps.set(id, image);

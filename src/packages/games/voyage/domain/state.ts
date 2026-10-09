@@ -51,6 +51,9 @@ export interface Crater {
   heat: number;
 }
 
+// How far a supernova's shock front spreads before it has thinned to nothing (world units).
+export const SHOCK_FADES = 300;
+
 // What the strange things in a universe are doing now: a supernova's countdown and shock front, a gamma-ray
 // burst's warning line, a pulsar's beam angle.
 export interface PhenomenaState {

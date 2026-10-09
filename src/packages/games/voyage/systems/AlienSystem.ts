@@ -6,7 +6,7 @@ import { FactionSpec } from "../domain/universe";
 import { damageAlien, fire, leadDirection } from "./combat";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
-import { placeBody, shipOf } from "./queries";
+import { placeBody, ShipParts, shipOf } from "./queries";
 
 // Each hull's size (world units), and how much bigger a boss, a trader and a whale are.
 const SIZES = { saucer: 0.12, insect: 0.1, crystal: 0.11, organic: 0.13, monolith: 0.15, swarm: 0.07 };
@@ -25,6 +25,13 @@ const GUNS: Record<Weapon["kind"], [number, number, number, number]> = {
 // a few at a time; a fight is fought close enough to see.
 const LET_GO = 32;
 const MAX_TRADERS = 3;
+// However deep the universe, no more than this many fighters and traders round the ship at once.
+const MAX_ALIENS = 18;
+// Whales appear this near their phenomenon, well inside where they are let go, so they never flicker.
+const WHALE_SPREAD = 2;
+const WHALE_REACH = LET_GO - 6;
+// Who is round the ship is looked at this often, not every step.
+const POPULATE_MS = 250;
 const FIGHT_RANGE = 2.4;
 const ESCAPED = 18;
 // A ram costs both sides this much.
@@ -40,6 +47,7 @@ const RAM = 45;
 // faster near the end.
 export class AlienSystem implements System<VoyageContext> {
   public readonly name = "aliens";
+  private sincePopulate = POPULATE_MS;
 
   public update(context: VoyageContext, dt: number): void {
     const { state, world } = context;
@@ -49,25 +57,37 @@ export class AlienSystem implements System<VoyageContext> {
       return;
     }
 
-    this.populate(context);
+    this.sincePopulate += dt * 1000;
+
+    if (this.sincePopulate >= POPULATE_MS) {
+      this.sincePopulate = 0;
+      this.populate(context, parts);
+    }
+
     this.summonBoss(context);
 
-    world.stores.alien.entities.forEach((entity, index) => {
-      if (world.isAlive(entity)) {
-        this.think(context, entity, world.stores.alien.values[index], dt);
+    const { entities, values } = world.stores.alien;
+
+    for (let index = 0; index < entities.length; index += 1) {
+      if (world.isAlive(entities[index])) {
+        this.think(context, parts, entities[index], values[index], dt);
       }
-    });
+    }
   }
 
   // Keeps packs round the ship's path, more as danger grows, and void whales where they swim.
-  private populate(context: VoyageContext): void {
+  private populate(context: VoyageContext, parts: ShipParts): void {
     const { state, world, config, random } = context;
     const cosmos = state.cosmos;
-    const parts = shipOf(context);
 
-    if (!cosmos || !parts) {
+    if (!cosmos) {
       return;
     }
+
+    // One pass: let go of the idle far behind, and count who is left.
+    let living = 0;
+    let traders = 0;
+    let hasWhales = false;
 
     world.stores.alien.entities.forEach((entity, index) => {
       const alien = world.stores.alien.values[index];
@@ -75,13 +95,16 @@ export class AlienSystem implements System<VoyageContext> {
 
       if (at && alien.role !== "boss" && alien.threat <= 0 && Math.hypot(at.x - parts.body.x, at.y - parts.body.y) > LET_GO) {
         world.despawn(entity);
+
+        return;
       }
+
+      living += alien.role === "fighter" || alien.role === "trader" ? 1 : 0;
+      traders += alien.role === "trader" ? 1 : 0;
+      hasWhales = hasWhales || alien.role === "whale";
     });
 
-    const wanted = Math.round((config.life.packs + cosmos.danger * config.life.packsPerDanger) * 2.5);
-    const living = world.stores.alien.values.filter((alien) => alien.role !== "whale" && alien.role !== "boss").length;
-
-    const traders = world.stores.alien.values.filter((alien) => alien.role === "trader").length;
+    const wanted = Math.min(MAX_ALIENS, Math.round((config.life.packs + cosmos.danger * config.life.packsPerDanger) * 2.5));
     const open = cosmos.factions.filter((faction) => faction.disposition !== "peaceful" || traders < MAX_TRADERS);
 
     if (open.length > 0 && living < wanted) {
@@ -97,9 +120,9 @@ export class AlienSystem implements System<VoyageContext> {
 
     const whales = cosmos.phenomena.find((phenomenon) => phenomenon.kind === "whales");
 
-    if (whales && !world.stores.alien.values.some((alien) => alien.role === "whale") && Math.hypot(whales.x - parts.body.x, whales.y - parts.body.y) < LET_GO) {
+    if (whales && !hasWhales && Math.hypot(whales.x - parts.body.x, whales.y - parts.body.y) < WHALE_REACH) {
       for (let member = 0; member < 3; member += 1) {
-        this.spawn(context, null, "whale", whales.x + randomBetween(random, -2, 2), whales.y + randomBetween(random, -2, 2));
+        this.spawn(context, null, "whale", whales.x + randomBetween(random, -WHALE_SPREAD, WHALE_SPREAD), whales.y + randomBetween(random, -WHALE_SPREAD, WHALE_SPREAD));
       }
     }
   }
@@ -171,14 +194,13 @@ export class AlienSystem implements System<VoyageContext> {
     return entity;
   }
 
-  private think(context: VoyageContext, entity: Entity, alien: Alien, dt: number): void {
+  private think(context: VoyageContext, parts: ShipParts, entity: Entity, alien: Alien, dt: number): void {
     const { world, state } = context;
-    const parts = shipOf(context);
     const body = world.stores.body.get(entity);
     const health = world.stores.health.get(entity);
     const faction = alien.faction >= 0 ? state.cosmos?.factions[alien.faction] : undefined;
 
-    if (!parts || !body || !health) {
+    if (!body || !health) {
       return;
     }
 

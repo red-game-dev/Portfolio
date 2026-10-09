@@ -24,6 +24,8 @@ uniform float u_canvasHeight;
 uniform vec2 u_centre;
 uniform float u_radius;
 uniform float u_angle;
+// How many octaves of noise to sum: fewer on a device that cannot keep up.
+uniform float u_octaves;
 
 // This pixel in the globe's view space, in radii: x along the screen at angle u_angle (towards the light, or
 // away from it when the globe is turned to keep north up), y a quarter turn anticlockwise from it.
@@ -60,6 +62,7 @@ float fbm(vec3 p) {
   float sum = 0.0;
   float amplitude = 0.5;
   for (int i = 0; i < 5; i++) {
+    if (float(i) >= u_octaves) { break; }
     sum += amplitude * noise(p);
     p = p * 2.03 + vec3(1.7, 9.2, 3.1);
     amplitude *= 0.5;

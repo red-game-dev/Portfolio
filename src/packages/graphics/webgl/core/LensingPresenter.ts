@@ -118,9 +118,27 @@ export class LensingPresenter {
   public resize(width: number, height: number, pixelRatio: number): void {
     const ratio = Math.min(pixelRatio, 1.5);
 
+    const pixelWidth = Math.max(1, Math.floor(width * ratio));
+    const pixelHeight = Math.max(1, Math.floor(height * ratio));
+
     this.size = { width, height, pixelRatio: ratio };
-    this.canvas.width = Math.max(1, Math.floor(width * ratio));
-    this.canvas.height = Math.max(1, Math.floor(height * ratio));
+
+    if (this.canvas.width !== pixelWidth || this.canvas.height !== pixelHeight) {
+      this.canvas.width = pixelWidth;
+      this.canvas.height = pixelHeight;
+    }
+  }
+
+  // Gives the GPU back its texture, program and context, which browsers allow only a few of at once.
+  public dispose(): void {
+    if (!this.isLost) {
+      this.gl.deleteTexture(this.texture);
+      this.gl.deleteProgram(this.program);
+      this.gl.getExtension("WEBGL_lose_context")?.loseContext();
+    }
+
+    this.isLost = true;
+    this.setActive(false);
   }
 
   // Draws `scene` bent round `lenses`, or hides itself when there are none.

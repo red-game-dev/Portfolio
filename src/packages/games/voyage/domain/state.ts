@@ -141,6 +141,9 @@ export interface VoyageState {
   // The ship's level (its hull and mark), which the renderer draws; the faults on board, and the id the next
   // takes; the wreck being salvaged and how far; and when the next derelict drifts by.
   level: number;
+  // The day of the daily voyage this run is (UTC, "2026-10-09"), or null for a free run; the giants skimmed.
+  daily: string | null;
+  skimmed: Set<string>;
   faults: Fault[];
   nextFaultId: number;
   salvage: { wreck: Entity; progress: number } | null;

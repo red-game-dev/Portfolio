@@ -3,6 +3,7 @@ import { FC, useEffect, useRef, useState } from "react";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { codexName, codexNotes, missionName, rankName } from "@/components/Finale/Voyage/career";
 import { blueprintName, formatPurse, itemName, ledgerMemo, shipName } from "@/components/Finale/Voyage/economy";
 import {
   Actions,
@@ -41,28 +42,32 @@ import {
 import { BarFill, IconButton } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { Tab, TabList } from "@/components/Tabs";
 import useTabs from "@/hooks/useTabs";
-import type { EconomyView, ShipStats, VoyageAction } from "@/packages/games/voyage";
+import type { CareerView, CodexCategory, EconomyView, ShipStats, VoyageAction } from "@/packages/games/voyage";
 import { fill } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 interface HangarPanelProps {
   content: FinaleVoyage;
   economy: EconomyView;
+  career: CareerView | null;
   isFlying: boolean;
   onAct: (action: VoyageAction) => boolean;
   onClose: () => void;
 }
+
+const CODEX_ORDER: readonly CodexCategory[] = ["worlds", "kinds", "universes", "stars", "phenomena", "life", "wrecks", "things"];
 
 const STAT_KEYS: ReadonlyArray<keyof ShipStats> = ["hull", "shields", "fuel", "thrust", "cargo", "plating", "pressure", "guns", "weapon"];
 
 // The hangar: the ship, what it can do and what the next level needs (upgraded in one click); the hold, with
 // each thing's use and worth; the plans, made from the hold; and the ledger of every coin earned and spent. Its
 // own records, the Void Shard trade and the reset sit beside them. Opening it focuses its heading.
-export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, isFlying, onAct, onClose }: HangarPanelProps) => {
+export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, career, isFlying, onAct, onClose }: HangarPanelProps) => {
   const copy = content.economy;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [isConfirming, setIsConfirming] = useState(false);
-  const tabs = [copy.tabs.ship, copy.tabs.hold, copy.tabs.plans, copy.tabs.ledger];
+  const careerCopy = content.career;
+  const tabs = [careerCopy.tabs.pilot, copy.tabs.ship, copy.tabs.hold, copy.tabs.plans, copy.tabs.ledger, careerCopy.tabs.codex];
   const { active, listProps, tabProps, panelProps } = useTabs({ count: tabs.length });
   const { next, stats } = economy;
 
@@ -111,6 +116,50 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, isFlying, 
       </Tabs>
       <Body>
         <TabPanel {...panelProps(0)}>
+          {career && (
+            <>
+              <div>
+                <ShipName>{rankName(content, career.rankId)}</ShipName>
+                <Note>
+                  {fill(careerCopy.xp, { xp: career.xp.toLocaleString("en-GB") })}
+                  {", "}
+                  {career.nextRank
+                    ? fill(careerCopy.nextRank, { xp: (career.nextRank.xp - career.xp).toLocaleString("en-GB"), rank: rankName(content, career.nextRank.id) })
+                    : careerCopy.topRank}
+                </Note>
+                <Meter
+                  role="meter"
+                  aria-label={rankName(content, career.rankId)}
+                  aria-valuemin={career.rankFloor}
+                  aria-valuemax={career.nextRank?.xp ?? career.xp}
+                  aria-valuenow={career.xp}
+                >
+                  <BarFill
+                    colour="#ffd76a"
+                    style={{ transform: `scaleX(${career.nextRank ? (career.xp - career.rankFloor) / Math.max(1, career.nextRank.xp - career.rankFloor) : 1})` }}
+                  />
+                </Meter>
+              </div>
+              <Subheading>{careerCopy.missionsTitle}</Subheading>
+              <Items>
+                {career.missions.map(({ mission, progress, target }) => (
+                  <Item key={mission.id}>
+                    <ItemTop>
+                      <ItemName colour="#ffffff">{missionName(content, mission.id)}</ItemName>
+                      <ItemCount>{fill(careerCopy.progress, { progress, target })}</ItemCount>
+                    </ItemTop>
+                    <Meter role="meter" aria-label={missionName(content, mission.id)} aria-valuemin={0} aria-valuemax={target} aria-valuenow={progress}>
+                      <BarFill colour="#7dffcf" style={{ transform: `scaleX(${target > 0 ? progress / target : 0})` }} />
+                    </Meter>
+                    <Note>{fill(careerCopy.reward, { xp: mission.xp, coin: mission.coin })}</Note>
+                  </Item>
+                ))}
+              </Items>
+              <Note>{fill(careerCopy.done, { count: career.done })}</Note>
+            </>
+          )}
+        </TabPanel>
+        <TabPanel {...panelProps(1)}>
           <div>
             <ShipName>{shipName(copy, economy.tier, economy.mark)}</ShipName>
             <Note>{copy.tierNotes[economy.tier]}</Note>
@@ -182,7 +231,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, isFlying, 
             </SmallButton>
           </Actions>
         </TabPanel>
-        <TabPanel {...panelProps(1)}>
+        <TabPanel {...panelProps(2)}>
           <div>
             <Note>{fill(copy.hold, { used: economy.used, capacity: economy.capacity })}</Note>
             <Meter role="meter" aria-label={copy.tabs.hold} aria-valuemin={0} aria-valuemax={economy.capacity} aria-valuenow={economy.used}>
@@ -222,7 +271,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, isFlying, 
             ))}
           </Items>
         </TabPanel>
-        <TabPanel {...panelProps(2)}>
+        <TabPanel {...panelProps(3)}>
           <Items>
             {economy.recipes.map(({ recipe, isKnown, shortfall }) => (
               <Item key={recipe.id}>
@@ -266,7 +315,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, isFlying, 
             </Block>
           )}
         </TabPanel>
-        <TabPanel {...panelProps(3)}>
+        <TabPanel {...panelProps(4)}>
           <Stats>
             <StatName>{copy.ledger.balance}</StatName>
             <StatValue>{formatPurse(copy, economy.purse)}</StatValue>
@@ -281,6 +330,26 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, isFlying, 
               </Entry>
             ))}
           </Entries>
+        </TabPanel>
+        <TabPanel {...panelProps(5)}>
+          {career && (
+            <>
+              <Note>{fill(careerCopy.codexFound, { found: career.found, total: career.codex.length })}</Note>
+              {CODEX_ORDER.map((category) => (
+                <Block key={category} aria-labelledby={`codex-${category}`}>
+                  <Subheading id={`codex-${category}`}>{careerCopy.categories[category]}</Subheading>
+                  <Items>
+                    {career.codex.filter(({ entry }) => entry.category === category).map(({ entry, isFound }) => (
+                      <Item key={entry.id}>
+                        <ItemName colour={isFound ? "#ffffff" : "#5d6680"}>{isFound ? codexName(content, entry) : careerCopy.unknown}</ItemName>
+                        {isFound && codexNotes(content, entry).map((line) => <Note key={line}>{line}</Note>)}
+                      </Item>
+                    ))}
+                  </Items>
+                </Block>
+              ))}
+            </>
+          )}
         </TabPanel>
       </Body>
       <Footer>

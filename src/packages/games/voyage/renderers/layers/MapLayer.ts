@@ -35,13 +35,15 @@ const drawArrow = (surface: Surface, x: number, y: number, angle: number, size: 
 export class MapLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "map";
   public isOpen = false;
+  // Off in photo mode, radar and map both.
+  public isHidden = false;
 
   constructor(private readonly kit: RenderKit) {}
 
   public draw(frame: VoyageFrame): void {
     const { state } = frame;
 
-    if (state.phase === "lost" || state.status === "ready") {
+    if (state.phase === "lost" || state.status === "ready" || this.isHidden) {
       return;
     }
 

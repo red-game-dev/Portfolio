@@ -85,6 +85,11 @@ export class AtmosphereSystem implements System<VoyageContext> {
 
       if (place.isGiant && altitude >= 0) {
         ship.fuel = Math.min(ship.maxFuel, ship.fuel + config.flight.skim * Math.min(1, density) * dt);
+
+        if (!state.skimmed.has(place.id)) {
+          state.skimmed.add(place.id);
+          events.emit("skimmed", { body: place.id });
+        }
       }
 
       const rating = config.thermal.pressureBar;

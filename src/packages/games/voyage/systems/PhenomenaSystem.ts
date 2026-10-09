@@ -134,6 +134,7 @@ export class PhenomenaSystem implements System<VoyageContext> {
 
           if (!nova.hasHit && nova.shock < SHOCK_FADES && away <= nova.shock) {
             nova.hasHit = true;
+            events.emit("weathered", { peril: "supernova" });
 
             const spared = this.isHidden(context, phenomenon.x, phenomenon.y) ? SHADOW_SPARES : 0;
 
@@ -165,6 +166,7 @@ export class PhenomenaSystem implements System<VoyageContext> {
           if (distanceToLine(body.x, body.y, burst.x, burst.y, burst.angle) < BURST_WIDTH) {
             applyDamage(context, 650 * phenomenon.strength, burst.angle + Math.PI / 2, "radiation");
             modules.sensors = Math.max(0, modules.sensors - 0.3);
+            events.emit("weathered", { peril: "burst" });
           }
 
           events.emit("burst", { seconds: 0, isFired: true });

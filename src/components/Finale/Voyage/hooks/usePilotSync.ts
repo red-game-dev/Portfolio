@@ -30,7 +30,7 @@ export const usePilotSync = (pilot: RefObject<Pilot | null>) => {
       return;
     }
 
-    const profile = opened.hangar.toProfile();
+    const profile = { ...opened.hangar.toProfile(), career: opened.career.toProfile() };
 
     void opened.repository.save(profile).then((isSaved) => {
       if (isSaved) {
@@ -73,6 +73,7 @@ export const usePilotSync = (pilot: RefObject<Pilot | null>) => {
           lastSaved.current = profile.savedAt;
           isAdopting.current = true;
           opened.hangar.replace(profile);
+          opened.career.replace(profile.career);
           isAdopting.current = false;
         }
       });

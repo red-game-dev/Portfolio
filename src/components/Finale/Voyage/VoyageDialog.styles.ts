@@ -46,6 +46,11 @@ export const Hud = styled.header(() => [
   tw`absolute top-0 left-0 right-0 flex flex-row items-start justify-between gap-[12px] p-[14px] md:p-[18px] pointer-events-none`,
   css`
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+
+    /* Hidden in photo mode, which the flex display would otherwise override. */
+    &[hidden] {
+      display: none;
+    }
   `,
 ]);
 
@@ -291,3 +296,16 @@ export const Salvage = styled.section(() => [
 ]);
 
 export const Pay = tw.p`m-0 text-sm md:text-base font-semibold text-[#ffd76a] tabular-nums`;
+
+// Photo mode's only controls, along the bottom: how to look round, save, and go back to flying.
+export const PhotoBar = styled.section(() => [
+  tw`absolute left-1/2 bottom-[16px] flex flex-row flex-wrap items-center justify-center gap-[10px] px-[14px] py-[10px]`,
+  css`
+    width: min(92vw, 560px);
+    transform: translateX(-50%);
+    background: rgba(5, 8, 18, 0.82);
+    border: 1px solid rgba(196, 210, 255, 0.35);
+  `,
+]);
+
+export const PhotoHint = tw.p`m-0 w-full text-center text-xs md:text-sm text-[#c9cfdf]`;

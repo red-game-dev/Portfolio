@@ -1,3 +1,4 @@
+import { careerNotice } from "@/components/Finale/Voyage/career";
 import { economyNotice } from "@/components/Finale/Voyage/economy";
 import type { VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
 import { fill } from "@/packages/text/format";
@@ -96,6 +97,6 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
         body: placeName(content, notice.body),
       });
     default:
-      return economyNotice(content, notice);
+      return economyNotice(content, notice) ?? careerNotice(content, notice);
   }
 };

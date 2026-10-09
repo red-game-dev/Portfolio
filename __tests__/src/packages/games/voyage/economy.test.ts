@@ -10,6 +10,7 @@ import {
   levelOf,
   markOf,
   MAX_LEVEL,
+  newCareer,
   newProfile,
   PilotRepository,
   recipeBlueprint,
@@ -212,9 +213,11 @@ describe("voyage economy", () => {
     const repository = new PilotRepository(new MemoryAdapter());
     const hangar = hangarWith({ scrap: 2 }, { coin: 40 });
 
-    expect(isPilotProfile(hangar.toProfile())).toBe(true);
-    expect(isPilotProfile({ ...hangar.toProfile(), level: -1 })).toBe(false);
-    expect(await repository.save(hangar.toProfile())).toBe(true);
+    const whole = { ...hangar.toProfile(), career: newCareer() };
+
+    expect(isPilotProfile(whole)).toBe(true);
+    expect(isPilotProfile({ ...whole, level: -1 })).toBe(false);
+    expect(await repository.save(whole)).toBe(true);
 
     const back = new Hangar(await repository.load());
 
@@ -259,7 +262,7 @@ describe("voyage economy", () => {
   });
 
   test("a profile from an older release with fewer records is still read, and another tab's newer save can be taken on", () => {
-    const profile = hangarWith({ scrap: 4 }, { coin: 30 }).toProfile();
+    const profile = { ...hangarWith({ scrap: 4 }, { coin: 30 }).toProfile(), career: newCareer() };
     const older = Object.fromEntries(Object.entries(profile.records).filter(([key]) => key !== "salvaged"));
 
     expect(isPilotProfile({ ...profile, records: older })).toBe(true);

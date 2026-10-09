@@ -27,9 +27,20 @@ export { TIER_MATERIALS, upgradeCost } from "./economy/config/upgrades";
 export { Backpack } from "./economy/core/Backpack";
 export { CatalogLootTable } from "./economy/core/CatalogLootTable";
 export { Wallet } from "./economy/core/Wallet";
-export { isPilotProfile } from "./economy/guards/isPilotProfile";
-export { Hangar, newProfile } from "./economy/services/Hangar";
-export { PilotRepository } from "./economy/services/PilotRepository";
+export { isEconomyProfile, isPilotProfile } from "./economy/guards/isPilotProfile";
+export { Hangar, newEconomyProfile } from "./economy/services/Hangar";
+export { newProfile, PilotRepository } from "./economy/services/PilotRepository";
+export { CODEX, codexId } from "./career/config/codex";
+export { contractFor, MISSIONS, missionById } from "./career/config/missions";
+export { rankFor, RANKS } from "./career/config/ranks";
+export { advance, targetOf } from "./career/core/MissionBoard";
+export { isCareerProfile } from "./career/guards/isCareerProfile";
+export { Career, newCareer } from "./career/services/Career";
+export { GHOST_STRIDE } from "./domain/ghost";
+export { ghostAt, GhostRecorder, placeCode } from "./core/GhostRecorder";
+export { isGhostRun } from "./guards/isGhostRun";
+export { dailyEpoch, dailySeed, dayKey } from "./utils/daily";
+export { PilotLink } from "./services/PilotLink";
 export type {
   ClockConfig,
   FlightConfig,
@@ -43,7 +54,8 @@ export type {
   VoyageUniverseTheme,
   WeatherConfig,
 } from "./config";
-export type { VoyageAction, VoyageCanvases, VoyageCanvasOptions, VoyageNotice, VoyageOptions } from "./core/VoyageGame";
+export type { VoyageCanvases, VoyageCanvasOptions, VoyageOptions } from "./core/VoyageGame";
+export type { VoyageAction, VoyageNotice } from "./domain/notices";
 export type { VoyageStores, VoyageWorld } from "./core/world";
 export type { VoyageRenderer } from "./renderers/CanvasVoyageRenderer";
 export type { VoyageFrame } from "./renderers/frame";
@@ -67,7 +79,24 @@ export type {
   Suggestion,
 } from "./economy/domain/economy";
 export type { ItemKind, ItemSpec, ItemUse, Rarity } from "./economy/domain/items";
-export type { PilotProfile, PilotRecords } from "./economy/domain/profile";
+export type { EconomyProfile, PilotProfile, PilotRecords } from "./economy/domain/profile";
+export type {
+  CareerEvent,
+  CareerProfile,
+  CareerView,
+  CodexCategory,
+  CodexEntry,
+  CodexFacts,
+  DailyRecord,
+  MissionDone,
+  MissionGoal,
+  MissionProgress,
+  MissionSpec,
+  Peril,
+  RankSpec,
+} from "./career/domain/career";
+export type { CareerOutcome } from "./career/services/Career";
+export type { GhostRun } from "./domain/ghost";
 export type { TierSpec } from "./economy/config/tiers";
 export type {
   AirData,

@@ -1,9 +1,22 @@
 import { FC, useEffect, useRef, useState } from "react";
 
-import { faCircleUp, faCrosshairs, faMap, faPause, faPlay, faRocket, faWarehouse, faXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCalendarDay,
+  faCamera,
+  faCircleUp,
+  faCrosshairs,
+  faDownload,
+  faMap,
+  faPause,
+  faPlay,
+  faRocket,
+  faWarehouse,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton } from "@/components/Controls";
+import { rankName } from "@/components/Finale/Voyage/career";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
 import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
@@ -40,6 +53,8 @@ import {
   Message,
   Overlay,
   Pay,
+  PhotoBar,
+  PhotoHint,
   Place,
   ReadyButton,
   Reading,
@@ -102,7 +117,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const onBackdropClick = useModalDialog(dialogRef, true);
   const voyage = useVoyage({ stage: stageRef, back: backRef, front: frontRef, lens: lensRef }, { labels: content.stops, universes, syllables: content.universeNames });
   const { snapshot, notice, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns, economy, isHangarOpen, setHangar, act, follow } = voyage;
+  const { career, isPhoto, togglePhoto, savePhoto } = voyage;
   const [pay, setPay] = useState<number | null>(null);
+  const [daily, setDaily] = useState<{ score: number; isBest: boolean } | null>(null);
+  // Today, as the daily voyage counts days: the UTC date.
+  const today = new Date().toISOString()
+.slice(0, 10);
+  const todayBest = career?.daily?.day === today ? career.daily.best : 0;
+  const dailyNote = todayBest > 0 ? `${content.career.daily.note} ${fill(content.career.daily.best, { score: todayBest })}` : content.career.daily.note;
+  const ship = economy ? shipName(content.economy, economy.tier, economy.mark) : "";
   const [message, setMessage] = useState<{ id: number; text: string } | null>(null);
   const previous = useRef<VoyageSnapshot | null>(null);
   const bestBefore = useRef(best);
@@ -134,15 +157,18 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   useEffect(() => {
     if (notice?.kind === "paid") {
       setPay(notice.coin);
+    } else if (notice?.kind === "daily") {
+      setDaily({ score: notice.score, isBest: notice.isBest });
     } else if (notice) {
       say(voyageNotice(content, notice));
     }
   }, [content, notice]);
 
-  const start = () => {
+  const start = (mode: "free" | "daily" = "free") => {
     setPay(null);
+    setDaily(null);
     setHangar(false);
-    play();
+    play(mode);
   };
 
   const hullShare = snapshot && snapshot.maxHull > 0 ? snapshot.hull / snapshot.maxHull : 1;
@@ -197,10 +223,26 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         <Canvas ref={frontRef} aria-hidden="true" />
         <ControlsNote id={CONTROLS_ID}>{content.controls}</ControlsNote>
       </Stage>
-      <Hud>
+      {isPhoto && (
+        <PhotoBar aria-label={career ? content.career.photo.open : undefined}>
+          <PhotoHint>{content.career.photo.hint}</PhotoHint>
+          <ActionButton type="button" isPrimary onClick={() => savePhoto(fill(content.career.photo.file, { date: today }))}>
+            <FontAwesomeIcon icon={faDownload} aria-hidden="true" />
+            {content.career.photo.save}
+          </ActionButton>
+          <ActionButton type="button" isPrimary={false} onClick={togglePhoto}>
+            {content.career.photo.close}
+          </ActionButton>
+        </PhotoBar>
+      )}
+      <Hud hidden={isPhoto}>
         <Vitals>
           <Place>{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
-          {economy && <ShipLine>{shipName(copy, economy.tier, economy.mark)}</ShipLine>}
+          {economy && (
+            <ShipLine>
+              {career ? fill(content.career.shipLine, { rank: rankName(content, career.rankId), ship }) : ship}
+            </ShipLine>
+          )}
           {status !== "ready" && (
             <Bars>
               {bars.map((bar) => (
@@ -299,6 +341,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </IconButton>
           )}
           {status !== "ready" && (
+            <IconButton type="button" onClick={togglePhoto} aria-label={content.career.photo.open} aria-pressed={isPhoto}>
+              <FontAwesomeIcon icon={faCamera} aria-hidden="true" />
+            </IconButton>
+          )}
+          {status !== "ready" && (
             <IconButton type="button" onClick={toggleMap} aria-label={isMapOpen ? content.closeMap : content.map} aria-pressed={isMapOpen}>
               <FontAwesomeIcon icon={faMap} aria-hidden="true" />
             </IconButton>
@@ -313,7 +360,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </IconButton>
         </HudButtons>
       </Hud>
-      {snapshot && status === "flying" && !isHangarOpen && (
+      {snapshot && status === "flying" && !isHangarOpen && !isPhoto && (
         <TelemetryPanel aria-label={content.telemetry.title}>
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>
@@ -326,7 +373,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </TelemetryList>
         </TelemetryPanel>
       )}
-      {status === "flying" && snapshot && (snapshot.boss || snapshot.incoming || snapshot.salvage || economy?.suggestion) && !isHangarOpen && (
+      {status === "flying" && snapshot && (snapshot.boss || snapshot.incoming || snapshot.salvage || economy?.suggestion) && !isHangarOpen && !isPhoto && (
         <Frames>
           {economy?.suggestion && (
             <ReadyButton type="button" onClick={() => economy.suggestion && follow(economy.suggestion)}>
@@ -375,11 +422,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           )}
         </Frames>
       )}
-      {message && status === "flying" && <Message key={message.id} role="status">{message.text}</Message>}
+      {message && status === "flying" && !isPhoto && <Message key={message.id} role="status">{message.text}</Message>}
       {economy && isHangarOpen && (
-        <HangarPanel content={content} economy={economy} isFlying={status === "flying"} onAct={act} onClose={() => setHangar(false)} />
+        <HangarPanel content={content} economy={economy} career={career} isFlying={status === "flying"} onAct={act} onClose={() => setHangar(false)} />
       )}
-      {(status !== "flying" || isPaused) && !isHangarOpen && (
+      {(status !== "flying" || isPaused) && !isHangarOpen && !isPhoto && (
         <Overlay>
           <Card>
             {status === "ready" && (
@@ -388,10 +435,16 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 <Text>{content.intro}</Text>
                 <Text>{content.controls}</Text>
                 <Buttons>
-                  <ActionButton type="button" isPrimary disabled={!isReady} onClick={start}>
+                  <ActionButton type="button" isPrimary disabled={!isReady} onClick={() => start()}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
                     {content.start}
                   </ActionButton>
+                  {career && (
+                    <ActionButton type="button" isPrimary={false} disabled={!isReady} onClick={() => start("daily")}>
+                      <FontAwesomeIcon icon={faCalendarDay} aria-hidden="true" />
+                      {content.career.daily.start}
+                    </ActionButton>
+                  )}
                   {economy && (
                     <ActionButton type="button" isPrimary={false} onClick={() => setHangar(true)}>
                       <FontAwesomeIcon icon={faWarehouse} aria-hidden="true" />
@@ -399,6 +452,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                     </ActionButton>
                   )}
                 </Buttons>
+                {career && <Text>{dailyNote}</Text>}
                 <Credits>{content.credits}</Credits>
               </>
             )}
@@ -420,12 +474,20 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 <Score role="status">{fill(content.finalScore, { score: snapshot.score })}</Score>
                 {snapshot.score > bestBefore.current && <Badge>{content.newBest}</Badge>}
                 {pay !== null && pay > 0 && <Pay>{fill(content.pay, { coin: pay })}</Pay>}
+                {daily && <Text>{fill(content.career.daily.result, { score: daily.score })}</Text>}
+                {daily?.isBest && <Badge>{content.career.daily.newBest}</Badge>}
                 <Text>{voyagePlace(content, snapshot, universes)}</Text>
                 <Buttons>
-                  <ActionButton type="button" isPrimary onClick={start}>
+                  <ActionButton type="button" isPrimary onClick={() => start()}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
                     {content.again}
                   </ActionButton>
+                  {career && (
+                    <ActionButton type="button" isPrimary={false} onClick={() => start("daily")}>
+                      <FontAwesomeIcon icon={faCalendarDay} aria-hidden="true" />
+                      {content.career.daily.start}
+                    </ActionButton>
+                  )}
                   {economy && (
                     <ActionButton type="button" isPrimary={false} onClick={() => setHangar(true)}>
                       <FontAwesomeIcon icon={faWarehouse} aria-hidden="true" />

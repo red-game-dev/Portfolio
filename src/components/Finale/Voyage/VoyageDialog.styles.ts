@@ -111,9 +111,10 @@ export const TelemetryName = tw.dt`text-[#9aa3bb]`;
 
 export const TelemetryValue = tw.dd`m-0 text-right text-white`;
 
-// Two by two on a phone, so the place beside it keeps its room; in a row where there is space.
-export const Readout = tw.dl`m-0 grid grid-cols-2 gap-x-[12px] gap-y-[2px] md:flex md:flex-row md:flex-wrap md:items-center md:justify-end md:gap-x-[16px]
-  md:gap-y-[4px] text-sm tabular-nums pointer-events-none`;
+// On a phone, a row of its own under the buttons, so the place and the bars keep their room; between them where
+// there is space.
+export const Readout = tw.dl`m-0 absolute right-[14px] top-[60px] flex flex-row flex-wrap items-center justify-end gap-x-[12px] gap-y-[2px]
+  md:static md:gap-x-[16px] md:gap-y-[4px] text-sm tabular-nums pointer-events-none`;
 
 export const Reading = tw.div`flex flex-row items-baseline gap-[6px]`;
 
@@ -197,7 +198,7 @@ const fadeLine = keyframes`
 
 // Each moment of the voyage, said once and gone. Keyed per message, so a new one plays from the start.
 export const Message = styled.p(() => [
-  tw`absolute left-1/2 top-[76px] md:top-[84px] m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
+  tw`absolute left-1/2 top-[96px] md:top-[84px] m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
   css`
     max-width: min(90vw, 520px);
     background: rgba(5, 8, 18, 0.72);

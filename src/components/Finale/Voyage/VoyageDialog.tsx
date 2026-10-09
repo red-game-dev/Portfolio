@@ -220,7 +220,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   }) : [];
   // Every way a fault can be fixed, and the ground: what to look for when nothing in the hold will do.
   const needsFor = (options: ItemStack[][]) => {
-    const parts = options.map((option) => stacksText(copy, option)).join(copy.faults.or);
+    const parts = options.map((option) => option.map(({ id, count }) => stacksText(copy, [{ id, count }])).join(copy.faults.and)).join(copy.faults.or);
 
     return `${fill(copy.faults.needs, { parts })}, ${copy.faults.ground}`;
   };

@@ -138,6 +138,8 @@ export interface VoyageEconomyCopy {
     makeAndFix: string;
     noParts: string;
     needs: string;
+    // What joins the things one way needs, and the ways themselves.
+    and: string;
     or: string;
     ground: string;
     fixed: string;

@@ -1,8 +1,6 @@
-import { Guard, isArrayOf, isRecord, isText, isTextArray } from "@/packages/core/domain";
+import { Guard, isArrayOf, isCount, isRecord, isText, isTextArray } from "@/packages/core/domain";
 
 import { CareerProfile, DailyRecord, MissionProgress } from "../domain/career";
-
-const isCount = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0;
 
 const isProgress: Guard<MissionProgress> = (value): value is MissionProgress => isRecord(value) && isText(value.id) && isCount(value.progress);
 

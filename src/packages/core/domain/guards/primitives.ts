@@ -8,6 +8,9 @@ export const isText: Guard<string> = (value): value is string => typeof value ==
 
 export const isFiniteNumber: Guard<number> = (value): value is number => typeof value === "number" && Number.isFinite(value);
 
+// A whole number of things, none or more.
+export const isCount: Guard<number> = (value): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0;
+
 export const isOptionalBoolean: Guard<boolean | undefined> = (value): value is boolean | undefined => (
   value === undefined || typeof value === "boolean"
 );

@@ -67,6 +67,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
         altitudeKm: null,
         speedKmS: 0,
         au: null,
+        toHoleAu: null,
         pressureBar: null,
         hullTemperatureC: 20,
         outsideC: 20,

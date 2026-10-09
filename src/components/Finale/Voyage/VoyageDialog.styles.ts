@@ -255,22 +255,19 @@ export const Coin = styled.dd(({ isShards = false }: { isShards?: boolean }) => 
 export const FaultList = tw.ul`m-0 mt-[4px] p-0 list-none flex flex-col gap-[4px] w-[170px] md:w-[230px] pointer-events-auto`;
 
 export const FaultRow = styled.li(() => [
-  tw`flex flex-row items-center justify-between gap-[8px] px-[6px] py-[4px] text-[11px] md:text-xs font-semibold text-[#ffd0d4]`,
+  tw`flex flex-row flex-wrap items-center justify-between gap-x-[8px] gap-y-[3px] px-[6px] py-[4px] text-[11px] md:text-xs font-semibold text-[#ffd0d4]`,
   css`
     background: rgba(40, 6, 10, 0.7);
     border: 1px solid rgba(255, 77, 94, 0.5);
   `,
 ]);
 
-export const FixButton = styled.button(() => [
-  tw`px-[8px] py-[3px] text-[11px] font-semibold cursor-pointer text-[#101010] bg-[#ffd76a] border-0`,
+// Gold when the hold can fix it; quiet when it cannot, though a tap still says what to look for.
+export const FixButton = styled.button(({ isReady }: { isReady: boolean }) => [
+  tw`px-[8px] py-[3px] text-[11px] font-semibold cursor-pointer border-0`,
+  isReady ? tw`text-[#101010] bg-[#ffd76a]` : tw`text-[#c9cfdf] bg-transparent`,
   css`
-    &:disabled {
-      cursor: not-allowed;
-      color: #c9cfdf;
-      background: transparent;
-      border: 1px solid #3a4566;
-    }
+    border: ${isReady ? "0" : "1px solid #3a4566"};
 
     &:focus-visible {
       outline: 2px solid #c4d2ff;
@@ -278,6 +275,9 @@ export const FixButton = styled.button(() => [
     }
   `,
 ]);
+
+// What a fault needs, under it, when the hold has nothing that fixes it.
+export const FaultNeed = tw.p`m-0 w-full text-[10px] md:text-[11px] font-normal leading-snug text-[#e3b5bb]`;
 
 // The one thing ready to do, in one click.
 export const ReadyButton = styled.button(() => [

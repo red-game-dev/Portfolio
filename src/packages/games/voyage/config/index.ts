@@ -133,6 +133,8 @@ export interface FaultConfig {
   aim: number;
   emitter: number;
   breach: number;
+  // Landed on any world, the crew patches one fault up for nothing every this many seconds.
+  groundFixSeconds: number;
 }
 
 export interface ClockConfig {
@@ -268,7 +270,20 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     seconds: { probe: 1.6, rocket: 2.2, starship: 3.2, alien: 2, ore: 0.5, ice: 0.6 },
     debris: 0.3,
   },
-  faults: { rate: 1 / 900, wearFactor: 5, heatFactor: 4, universeFactor: 1.6, max: 3, misfire: 0.45, leak: 1.2, coolant: 30, aim: 0.22, emitter: 0.85, breach: 4 },
+  faults: {
+    rate: 1 / 900,
+    wearFactor: 5,
+    heatFactor: 4,
+    universeFactor: 1.6,
+    max: 3,
+    misfire: 0.45,
+    leak: 1.2,
+    coolant: 30,
+    aim: 0.22,
+    emitter: 0.85,
+    breach: 4,
+    groundFixSeconds: 6,
+  },
   spawn: { open: 5, belt: 28, universe: 13, universeGrowth: 4, minRadius: 0.04, maxRadius: 0.13, pickups: 5, cometEvery: [45, 100] },
   holes: {
     singularityMu: 4,

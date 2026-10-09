@@ -4,6 +4,7 @@ import {
   DEFAULT_VOYAGE_CONFIG,
   Loot,
   NO_INPUT,
+  radiusForAu,
   resolveVoyageConfig,
   SolarSystemSource,
   SystemService,
@@ -223,5 +224,48 @@ describe("voyage salvage and breakdowns", () => {
     expect(simulation.wouldHelp([{ kind: "fix", fault: 99 }])).toBe(false);
     Object.assign(simulation.world.stores.modules.get(simulation.state.ship) ?? {}, { sensors: 0.99 });
     expect(simulation.wouldHelp([{ kind: "hull", share: 0.3 }, { kind: "module", module: "worst", amount: 0.35 }])).toBe(false);
+  });
+
+  test("landed on any world, the crew patches up the oldest fault for nothing, one at a time", () => {
+    const simulation = create();
+    const fixed: string[] = [];
+
+    simulation.events.on("fixed", ({ kind }) => fixed.push(kind));
+
+    const moon = simulation.state.system.bodies.find((body) => body.id === "moon");
+
+    if (!moon) {
+      throw new Error("no Moon");
+    }
+
+    Object.assign(partsOf(simulation).ship, { landedOn: "moon", landedOffset: { x: 0, y: -moon.radius - defaults.ship.radius } });
+    simulation.state.faults.push({ id: 1, kind: "fuelLeak", at: 0, severity: 1 }, { id: 2, kind: "glitch", at: 0, severity: 1 });
+    simulation.step((defaults.faults.groundFixSeconds + 0.5) * 1000);
+    expect(fixed).toEqual(["fuelLeak"]);
+    simulation.step(defaults.faults.groundFixSeconds * 1000);
+    expect(fixed).toEqual(["fuelLeak", "glitch"]);
+  });
+
+  test("past Saturn the compass leads outward to the black hole, never back to worlds left behind, and telemetry says how far it is", () => {
+    const simulation = create();
+    const { star, scale } = simulation.state.system;
+    const body = partsOf(simulation).body;
+    const at = (au: number) => {
+      const x = star.x + radiusForAu(scale, au);
+
+      Object.assign(body, { x, y: star.y, prevX: x, prevY: star.y, vx: 0, vy: 0 });
+      simulation.step(defaults.stepMs);
+    };
+
+    at(20);
+
+    const waypoint = simulation.state.waypoint?.id ?? "";
+
+    expect(["sun", "mercury", "venus", "mars", "jupiter", "saturn"]).not.toContain(waypoint);
+    expect(simulation.snapshot.telemetry.toHoleAu).toBeCloseTo(52 - 20, 0);
+
+    ["uranus", "neptune", "pluto", "kuiper"].forEach((id) => simulation.state.passed.add(id));
+    at(40);
+    expect(simulation.state.waypoint?.id).toBe("edge");
   });
 });

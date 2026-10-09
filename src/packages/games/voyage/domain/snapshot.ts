@@ -35,8 +35,9 @@ export interface Telemetry {
   // km above the surface (or one bar level) of the body pulling hardest, while near one.
   altitudeKm: number | null;
   speedKmS: number;
-  // Distance from the Sun; null in the universes.
+  // Distance from the Sun; null in the universes. How many AU further out the black hole waits, until it wakes.
   au: number | null;
+  toHoleAu: number | null;
   pressureBar: number | null;
   hullTemperatureC: number;
   // The temperature outside, sunlight in W/m^2 and radiation in microsieverts an hour.

@@ -33,7 +33,8 @@ interface Setup {
 
 // A hangar holding `cargo`, knowing `blueprints`, with `coin` Red Coin and `shards` Void Shards.
 const hangarWith = (cargo: Record<string, number> = {}, { coin = 0, shards = 0, level = 0, blueprints = [] }: Setup = {}) => {
-  const hangar = new Hangar({ ...newProfile(), level, blueprints }, { now: at });
+  // An empty hold, so each test holds exactly what it stows; the starter kit has a test of its own.
+  const hangar = new Hangar({ ...newProfile(), cargo: [], level, blueprints }, { now: at });
 
   Object.entries(cargo).forEach(([id, count]) => hangar.stow({ items: [{ id, count }], blueprints: [] }));
 
@@ -227,7 +228,8 @@ describe("voyage economy", () => {
     expect(await repository.load()).toEqual(newProfile());
 
     back.reset();
-    expect([back.purse, back.count("scrap"), back.level]).toEqual([{ RED: 0, VOID: 0 }, 0, 0]);
+    // Starting over is a new pilot: no money, a Rocket Mk I, and the starter kit in the hold.
+    expect([back.purse, back.count("scrap"), back.count("repairKit"), back.level]).toEqual([{ RED: 0, VOID: 0 }, 4, 1, 0]);
   });
 
   test("a ledger with an entry it can no longer accept keeps every other coin", () => {
@@ -272,5 +274,25 @@ describe("voyage economy", () => {
 
     other.replace(profile);
     expect([other.purse.RED, other.count("scrap")]).toEqual([30, 4]);
+  });
+
+  test("a new pilot starts with a starter kit: a repair kit, a fuel cell, and scrap and wiring for field repairs", () => {
+    const hangar = new Hangar(newProfile());
+
+    expect(["repairKit", "fuelCell", "scrap", "wiring"].map((id) => hangar.count(id))).toEqual([1, 1, 4, 2]);
+    expect(hangar.fixFor("misfire")).toEqual([{ id: "scrap", count: 2 }, { id: "wiring", count: 1 }]);
+  });
+
+  test("a fault the hold cannot fix as it is is fixed by first making its part from a known plan", () => {
+    const hangar = hangarWith({ scrap: 2, carbon: 1 }, { coin: 10 });
+
+    expect(hangar.fixFor("fuelLeak")).toEqual([{ id: "scrap", count: 1 }, { id: "carbon", count: 1 }]);
+
+    const kitOnly = hangarWith({ scrap: 3, wiring: 1 }, { coin: 10 });
+
+    expect(kitOnly.repairPlan("emitter")).toEqual({ craft: "repairKit", parts: [{ id: "repairKit", count: 1 }] });
+    expect(kitOnly.repair({ id: 1, kind: "emitter" })).toEqual([{ kind: "fix", fault: 1 }]);
+    expect([kitOnly.count("repairKit"), kitOnly.count("scrap")]).toEqual([0, 0]);
+    expect(hangarWith().repairPlan("breach")).toBeNull();
   });
 });

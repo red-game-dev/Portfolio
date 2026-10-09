@@ -33,13 +33,16 @@ export class TelemetryMapper extends Mapper<TelemetrySource, Telemetry> {
     const inSystem = state.phase === "solar" || state.phase === "singularity";
     const pulling = readings.dominant === system.star.id ? system.star : system.bodies.find((candidate) => candidate.id === readings.dominant);
     const isNear = inSystem && pulling !== undefined && readings.dominantDistance < pulling.radius * ALTITUDE_RADII;
+    const au = auForRadius(system.scale, Math.hypot(body.x - system.star.x, body.y - system.star.y));
 
     return {
       gravity: round(readings.gravity, readings.gravity < 0.1 ? 5 : 2),
       dominant: readings.dominant,
       altitudeKm: isNear && pulling ? Math.max(0, Math.round((readings.dominantDistance - pulling.radius) * pulling.kmPerUnit)) : null,
       speedKmS: round(Math.hypot(body.vx, body.vy) * this.config.units.kmPerSecond, 1),
-      au: inSystem ? round(auForRadius(system.scale, Math.hypot(body.x - system.star.x, body.y - system.star.y)), 2) : null,
+      au: inSystem ? round(au, 2) : null,
+      // How much further out the black hole waits, until it has woken.
+      toHoleAu: state.phase === "solar" ? round(Math.max(0, auForRadius(system.scale, system.edge) - au), 1) : null,
       pressureBar: readings.airOf ? round(readings.pressureBar, readings.pressureBar < 0.01 ? 6 : 2) : null,
       hullTemperatureC: Math.round(ship.temperatureC),
       outsideC: Math.round(readings.environmentC),

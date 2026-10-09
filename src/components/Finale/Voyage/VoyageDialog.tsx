@@ -36,6 +36,7 @@ import {
   Card,
   Coin,
   FaultList,
+  FaultNeed,
   FaultRow,
   FixButton,
   ControlsNote,
@@ -82,7 +83,7 @@ import {
   Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import useModalDialog from "@/hooks/useModalDialog";
-import type { Frame, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
+import type { Frame, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
 import { fill } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
@@ -119,7 +120,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const lensRef = useRef<HTMLCanvasElement>(null);
   const onBackdropClick = useModalDialog(dialogRef, true);
   // What the canvas writes: the places on the map, and the ghost's name.
-  const labels = useMemo(() => ({ ...content.stops, ghost: content.career.ghost }), [content]);
+  const labels = useMemo(() => ({ ...content.stops, ghost: content.career.ghost, edgeNote: content.career.edgeNote }), [content]);
   const canvases = { stage: stageRef, back: backRef, front: frontRef, lens: lensRef };
   const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames });
   const { snapshot, notices, takeNotices, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;
@@ -148,6 +149,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
 
       setMessages((queue) => [...queue, next].slice(-MESSAGE_QUEUE));
     }
+  };
+  // The answer to a tap shows at once, in place of the line already seen, and the rest still wait their turn.
+  const reply = (text: string) => {
+    messageId.current += 1;
+
+    const next = { id: messageId.current, text };
+
+    setMessages((queue) => [next, ...queue.slice(1)]);
   };
 
   // Each line shows for its moment, then the next.
@@ -212,11 +221,17 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const hurt = snapshot ? SYSTEMS.filter((id) => snapshot.modules[id] < SOUND) : [];
   const { combat, economy: copy } = content;
   // Faults come from the run itself, so each shows the moment it happens; what fixes it, from the hangar.
-  const repairs = status === "flying" && economy && snapshot ? snapshot.faults.map(({ id, kind }) => ({
-    fault: id,
-    kind,
-    parts: economy.repairs.find((repair) => repair.fault === id)?.parts ?? null,
-  })) : [];
+  const repairs = status === "flying" && economy && snapshot ? snapshot.faults.map(({ id, kind }) => {
+    const repair = economy.repairs.find((entry) => entry.fault === id);
+
+    return { fault: id, kind, parts: repair?.parts ?? null, craft: repair?.craft ?? null, options: repair?.options ?? [] };
+  }) : [];
+  // Every way a fault can be fixed, and the ground: what to look for when nothing in the hold will do.
+  const needsFor = (options: ItemStack[][]) => {
+    const parts = options.map((option) => option.map(({ id, count }) => stacksText(copy, [{ id, count }])).join(copy.faults.and)).join(copy.faults.or);
+
+    return `${fill(copy.faults.needs, { parts })}, ${copy.faults.ground}`;
+  };
   // An MMO frame's name line: who, and their level and standing (or the rock's size).
   const describe = (frame: Frame) => ({
     name: frame.role === "whale" ? combat.roles.whale : frame.role === "trader" ? combat.roles.trader : frame.name || combat.rock,
@@ -312,18 +327,20 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             <>
               <SystemsTitle>{copy.faults.title}</SystemsTitle>
               <FaultList>
-                {repairs.map(({ fault, kind, parts }) => (
+                {repairs.map(({ fault, kind, parts, craft, options }) => (
                   <FaultRow key={fault}>
                     <span>{copy.faults.names[kind]}</span>
                     <FixButton
                       type="button"
-                      disabled={!parts}
-                      title={parts ? stacksText(copy, parts) : copy.faults.noParts}
-                      aria-label={`${copy.faults.fix}: ${copy.faults.names[kind]}, ${parts ? stacksText(copy, parts) : copy.faults.noParts}`}
-                      onClick={() => act({ kind: "repair", fault })}
+                      isReady={parts !== null}
+                      aria-label={`${craft ? copy.faults.makeAndFix : copy.faults.fix}: ${copy.faults.names[kind]}${parts ? `, ${stacksText(copy, parts)}` : ""}`}
+                      aria-describedby={parts ? undefined : `fault-needs-${fault}`}
+                      // With nothing to fix it, a tap says what to look for rather than doing nothing.
+                      onClick={() => (parts ? act({ kind: "repair", fault }) : reply(needsFor(options)))}
                     >
-                      {copy.faults.fix}
+                      {craft ? copy.faults.makeAndFix : copy.faults.fix}
                     </FixButton>
+                    {!parts && <FaultNeed id={`fault-needs-${fault}`}>{needsFor(options)}</FaultNeed>}
                   </FaultRow>
                 ))}
               </FaultList>

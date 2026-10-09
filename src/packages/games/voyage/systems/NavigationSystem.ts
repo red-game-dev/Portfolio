@@ -12,10 +12,15 @@ const PASS_MARGIN = 0.5;
 const STAR_RADII = 2.2;
 // How far ahead of the ship the singularity wakes, past the edge.
 const SINGULARITY_AHEAD = 9;
+// Past this distance from the Sun (AU, beyond Saturn) the compass only leads outward, to worlds no closer in than
+// this share of the ship's own distance, then to the edge.
+const OUTBOUND_AU = 10;
+const AHEAD_SHARE = 0.9;
 
 // Knows where the ship is in the system: marks each body and belt it reaches (and scores the discovery), wakes
 // the singularity ahead of the ship once it crosses the edge of the system, and points the compass at the
-// nearest place it has not been, then out to the edge.
+// nearest place it has not been (past Saturn, only those further out), then out to the edge, where the black hole
+// waits.
 export class NavigationSystem implements System<VoyageContext> {
   public readonly name = "navigation";
 
@@ -116,24 +121,30 @@ export class NavigationSystem implements System<VoyageContext> {
 
     if (candidates.length === 0 && state.phase !== "universe") {
       const { system } = state;
+      const out = Math.hypot(x - system.star.x, y - system.star.y);
+      // Past Saturn the way leads outward: worlds left behind closer in no longer turn the compass back.
+      const isOutbound = auForRadius(system.scale, out) > OUTBOUND_AU;
+      // Ahead means further out than the ship and on its side of the Sun, never across the system behind it.
+      const isAhead = (body: { x: number; y: number }) => !isOutbound || (Math.hypot(body.x - system.star.x, body.y - system.star.y) > out * AHEAD_SHARE &&
+        (body.x - system.star.x) * (x - system.star.x) + (body.y - system.star.y) * (y - system.star.y) > 0);
 
       system.bodies.forEach((body) => {
-        if (body.kind !== "moon" && !state.passed.has(body.id)) {
+        if (body.kind !== "moon" && !state.passed.has(body.id) && isAhead(body)) {
           candidates.push({ id: body.id, x: body.x, y: body.y, radius: body.radius });
         }
       });
 
-      if (!state.passed.has(system.star.id)) {
+      if (!state.passed.has(system.star.id) && !isOutbound) {
         candidates.push({ id: system.star.id, x: system.star.x, y: system.star.y, radius: system.star.radius });
       }
 
       if (candidates.length === 0) {
-        const out = Math.hypot(x - system.star.x, y - system.star.y) || 1;
+        const away = out || 1;
 
         return {
           id: "edge",
-          x: system.star.x + ((x - system.star.x) / out) * system.edge,
-          y: system.star.y + ((y - system.star.y) / out) * system.edge,
+          x: system.star.x + ((x - system.star.x) / away) * system.edge,
+          y: system.star.y + ((y - system.star.y) / away) * system.edge,
           radius: 0,
         };
       }

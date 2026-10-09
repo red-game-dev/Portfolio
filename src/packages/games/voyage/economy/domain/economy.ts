@@ -133,6 +133,8 @@ export interface EconomyView {
   prices: { sell: number; buy: number };
   suggestion: Suggestion | null;
   // Each fault on board and what would fix it from the hold now (null when nothing would).
-  repairs: Array<{ fault: number; kind: FaultKind; parts: ItemStack[] | null }>;
+  // Each fault on board: what would fix it now (null when nothing would), the plan to make first where that is
+  // the way, and every way it can be fixed, for saying what to look for.
+  repairs: Array<{ fault: number; kind: FaultKind; parts: ItemStack[] | null; craft: string | null; options: ItemStack[][] }>;
   records: PilotRecords;
 }

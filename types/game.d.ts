@@ -129,7 +129,21 @@ export interface VoyageEconomyCopy {
   ledger: { balance: string; empty: string; memos: Record<string, string> };
   // "{price}" is replaced.
   trade: { sell: string; buy: string };
-  faults: { title: string; names: Record<FaultKey, string>; notices: Record<FaultKey, string>; fix: string; noParts: string; fixed: string };
+  // "{parts}" is replaced with every way a fault can be fixed, joined by `or`.
+  faults: {
+    title: string;
+    names: Record<FaultKey, string>;
+    notices: Record<FaultKey, string>;
+    fix: string;
+    makeAndFix: string;
+    noParts: string;
+    needs: string;
+    // What joins the things one way needs, and the ways themselves.
+    and: string;
+    or: string;
+    ground: string;
+    fixed: string;
+  };
   salvage: {
     wrecks: Record<"probe" | "rocket" | "starship" | "alien" | "ore" | "ice", string>;
     progress: string;
@@ -194,6 +208,8 @@ export interface VoyageCareerCopy {
   facts: { radius: string; gravity: string; day: string; locked: string; pressure: string; temperature: string; surface: string };
   daily: { start: string; title: string; note: string; best: string; result: string; newBest: string };
   ghost: string;
+  // What the map says where the black hole waits.
+  edgeNote: string;
   // "{date}" is replaced in the file's name.
   photo: { title: string; open: string; close: string; save: string; hint: string; file: string };
 }
@@ -235,6 +251,8 @@ export interface FinaleVoyage {
     radiation: string;
     dilation: string;
     next: string;
+    // How much further out the black hole waits, until it wakes.
+    blackHole: string;
     noSignal: string;
   };
   units: {
@@ -249,6 +267,8 @@ export interface FinaleVoyage {
     dilation: string;
     km: string;
     millionKm: string;
+    // "{value}" is replaced with AU still to go.
+    further: string;
     // "{date}" is replaced with the mission clock's date and time.
     clock: string;
   };

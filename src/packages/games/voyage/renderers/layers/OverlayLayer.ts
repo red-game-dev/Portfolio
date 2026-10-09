@@ -8,6 +8,8 @@ import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
 
 const TAU = Math.PI * 2;
+// The compass ring round a stop in sight, in CSS pixels; a stop drawn bigger than this needs no ring.
+const RING_RADIUS = 18;
 
 // Over everything: inside a giant the clouds close in as the air thickens, a planet's air hazes the view, heat and
 // a failing hull redden the edges, the fall into a black hole darkens to nothing, the tunnel between universes
@@ -152,7 +154,8 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
     front.context.globalAlpha = 1;
   }
 
-  // An arrow at the edge of the screen towards the next stop when it is out of sight, a ring round it when not.
+  // An arrow at the edge of the screen towards the next stop when it is out of sight, a ring round it when it is
+  // in sight but small, and nothing once it is big enough to see for itself.
   private drawCompass({ state, camera, now }: VoyageFrame): void {
     const { waypoint } = state;
 
@@ -170,10 +173,14 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
     front.context.fillStyle = theme.window;
 
     if (isVisible) {
+      if (waypoint.radius * camera.scale > RING_RADIUS) {
+        return;
+      }
+
       front.context.globalAlpha = 0.35 + Math.sin(now * 0.004) * 0.15;
       front.context.lineWidth = 1.5;
       front.context.beginPath();
-      front.context.arc(x, y, 18 + Math.sin(now * 0.004) * 3, 0, TAU);
+      front.context.arc(x, y, RING_RADIUS + Math.sin(now * 0.004) * 3, 0, TAU);
       front.context.stroke();
       front.context.globalAlpha = 1;
 

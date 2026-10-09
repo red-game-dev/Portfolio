@@ -84,20 +84,24 @@ export const BarFill = styled.div(({ colour }: { colour: string }) => [
 ]);
 
 export const TelemetryPanel = styled.section(() => [
-  tw`absolute right-[12px] bottom-[12px] md:right-[18px] md:bottom-[18px] p-[10px] md:p-[12px] pointer-events-none`,
+  tw`absolute right-[10px] bottom-[10px] md:right-[18px] md:bottom-[18px] p-[8px] md:p-[12px] pointer-events-none`,
   css`
-    min-width: 200px;
-    max-width: min(78vw, 300px);
+    min-width: 170px;
+    max-width: min(66vw, 300px);
     background: rgba(5, 8, 18, 0.72);
     border: 1px solid rgba(196, 210, 255, 0.25);
+
+    @media (min-width: 768px) {
+      min-width: 200px;
+    }
   `,
 ]);
 
-export const TelemetryTitle = tw.h2`m-0 mb-[6px] text-xs font-semibold text-[#c4d2ff]`;
+export const TelemetryTitle = tw.h2`m-0 mb-[4px] md:mb-[6px] text-[11px] md:text-xs font-semibold text-[#c4d2ff]`;
 
-export const TelemetryList = tw.dl`m-0 flex flex-col gap-[3px] text-xs tabular-nums`;
+export const TelemetryList = tw.dl`m-0 flex flex-col gap-[2px] md:gap-[3px] text-[11px] md:text-xs tabular-nums`;
 
-export const TelemetryRow = tw.div`flex flex-row items-baseline justify-between gap-[14px]`;
+export const TelemetryRow = tw.div`flex flex-row items-baseline justify-between gap-[10px] md:gap-[14px]`;
 
 export const TelemetryName = tw.dt`text-[#9aa3bb]`;
 

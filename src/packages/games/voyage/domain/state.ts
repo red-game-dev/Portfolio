@@ -19,6 +19,8 @@ export interface Waypoint {
   id: string;
   x: number;
   y: number;
+  // How big it is, in world units, so the compass marks only what is too small to see.
+  radius: number;
 }
 
 // Readings taken while flying, in world units, for the telemetry the UI turns into real ones.

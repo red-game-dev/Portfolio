@@ -1,5 +1,6 @@
 import type { System } from "@/packages/games/engine";
 
+import { Waypoint } from "../domain/state";
 import { VoyageContext } from "./context";
 import { distanceFromOrigin, shipOf } from "./queries";
 
@@ -68,9 +69,9 @@ export class NavigationSystem implements System<VoyageContext> {
   }
 
   // The next body not yet passed, then the singularity; in a universe, the nearest black hole.
-  private waypoint({ state, world }: VoyageContext, x: number, y: number) {
+  private waypoint({ state, world, config }: VoyageContext, x: number, y: number): Waypoint | null {
     if (state.phase === "universe") {
-      let nearest: { id: string; x: number; y: number } | null = null;
+      let nearest: Waypoint | null = null;
       let best = Infinity;
 
       world.stores.hole.entities.forEach((entity) => {
@@ -79,7 +80,7 @@ export class NavigationSystem implements System<VoyageContext> {
 
         if (hole && distance < best) {
           best = distance;
-          nearest = { id: "hole", x: hole.x, y: hole.y };
+          nearest = { id: "hole", x: hole.x, y: hole.y, radius: hole.radius };
         }
       });
 
@@ -92,6 +93,9 @@ export class NavigationSystem implements System<VoyageContext> {
 
     const next = state.route.bodies.find((route) => !state.passed.has(route.id));
 
-    return next ? { id: next.id, x: next.x, y: next.y } : { id: "singularity", x: state.route.singularity.x, y: state.route.singularity.y };
+    const { singularity } = state.route;
+
+    return next ? { id: next.id, x: next.x, y: next.y, radius: next.radius } :
+      { id: "singularity", x: singularity.x, y: singularity.y, radius: config.holes.singularityHorizon };
   }
 }

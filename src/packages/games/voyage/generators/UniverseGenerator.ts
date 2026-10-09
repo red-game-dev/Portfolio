@@ -1,7 +1,7 @@
 import { hslToHex } from "@/packages/graphics/colour";
 import type { GlobeLook, SurfaceKind } from "@/packages/graphics/globe";
 import { TAU } from "@/packages/math/angles";
-import { createSeededRandom, pick, RandomSource, randomBetween } from "@/packages/math/random";
+import { createSeededRandom, pick, pickWeighted, RandomSource, randomBetween } from "@/packages/math/random";
 import { poleVector } from "@/packages/physics/kepler";
 import { muForSurfaceGravity } from "@/packages/physics/newtonian";
 
@@ -70,20 +70,8 @@ export interface UniverseTheme {
   hazard: string;
 }
 
-const weighted = <T>(random: RandomSource, options: Array<[T, number]>): T => {
-  const total = options.reduce((sum, [, weight]) => sum + weight, 0);
-  let roll = random() * total;
-
-  for (const [option, weight] of options) {
-    roll -= weight;
-
-    if (roll <= 0) {
-      return option;
-    }
-  }
-
-  return options[options.length - 1][0];
-};
+// One of `options`, as likely as its weight beside it.
+const weighted = <T>(random: RandomSource, options: Array<[T, number]>): T => (pickWeighted(random, options, ([, weight]) => weight) ?? options[0])[0];
 
 // Makes universes. Everything in one comes from its seed, so a run that passes the same way sees the same
 // universes, and every one differs from the last: its star (or none), worlds whose kind follows from how much

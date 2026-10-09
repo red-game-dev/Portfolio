@@ -1,4 +1,5 @@
 import { clamp } from "@/packages/math/clamp";
+import { median } from "@/packages/math/stats";
 
 export interface QualityGovernorOptions {
   // How many quality levels there are, 0 the finest.
@@ -52,20 +53,19 @@ export class QualityGovernor {
       return null;
     }
 
-    const sorted = this.samples.sort((first, second) => first - second);
-    const median = sorted[Math.floor(sorted.length / 2)];
+    const typical = median(this.samples);
     const { levels, slowMs, fastMs, recoverAfterMs, maxRecoveries } = this.options;
 
     this.samples.length = 0;
     this.windowStart = now;
 
-    if (median > slowMs && this.current < levels - 1) {
+    if (typical > slowMs && this.current < levels - 1) {
       this.fastSince = null;
 
       return this.set(this.current + 1);
     }
 
-    if (median < fastMs && this.current > 0 && this.recoveries < maxRecoveries) {
+    if (typical < fastMs && this.current > 0 && this.recoveries < maxRecoveries) {
       this.fastSince = this.fastSince ?? now;
 
       if (now - this.fastSince >= recoverAfterMs) {

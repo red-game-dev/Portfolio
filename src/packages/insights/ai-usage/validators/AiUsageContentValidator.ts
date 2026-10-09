@@ -1,4 +1,5 @@
 import { toValidationResult, ValidationResult, Validator } from "@/packages/core/domain";
+import { sumBy } from "@/packages/math/stats";
 
 import { AiUsageValidationError } from "../domain/AiUsageValidationError";
 import { AiUsageContent } from "../domain/types";
@@ -25,7 +26,7 @@ export class AiUsageContentValidator extends Validator<AiUsageContent> {
       errors.push("the screen needs at least one message line");
     }
 
-    const tierTotal = content.budget.tiers.reduce((sum, tier) => sum + tier.share, 0);
+    const tierTotal = sumBy(content.budget.tiers, (tier) => tier.share);
 
     if (content.budget.tiers.length > 0 && tierTotal !== 100) {
       errors.push(`model tier shares must add up to 100, got ${tierTotal}`);

@@ -1,4 +1,4 @@
-import { createSeededRandom, pick, randomBetween } from "@/packages/math/random";
+import { createSeededRandom, pick, pickWeighted, randomBetween, randomInt } from "@/packages/math/random";
 
 describe("math/random", () => {
   test("the same seed replays the same sequence", () => {
@@ -46,5 +46,21 @@ describe("math/random", () => {
       return 0.2;
     }, items);
     expect(draws).toBe(1);
+  });
+
+  test("randomInt covers both ends of its range", () => {
+    expect(randomInt(() => 0, 2, 5)).toBe(2);
+    expect(randomInt(() => 0.999, 2, 5)).toBe(5);
+  });
+
+  test("pickWeighted lands in proportion to weight, skips the weightless, and gives null when nothing weighs", () => {
+    const options: Array<[string, number]> = [["rare", 1], ["never", 0], ["common", 3]];
+    const weightOf = ([, weight]: [string, number]) => weight;
+
+    expect(pickWeighted(() => 0, options, weightOf)?.[0]).toBe("rare");
+    expect(pickWeighted(() => 0.24, options, weightOf)?.[0]).toBe("rare");
+    expect(pickWeighted(() => 0.25, options, weightOf)?.[0]).toBe("common");
+    expect(pickWeighted(() => 0.999, options, weightOf)?.[0]).toBe("common");
+    expect(pickWeighted(() => 0.5, [["a", -2], ["b", 0]], weightOf)).toBeNull();
   });
 });

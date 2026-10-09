@@ -1,4 +1,5 @@
 import { Mapper } from "@/packages/core/domain";
+import { sum } from "@/packages/math/stats";
 
 import { RepoGrowth, RepoGrowthView } from "../domain/types";
 
@@ -14,7 +15,7 @@ export class RepoGrowthViewMapper extends Mapper<RepoGrowth, RepoGrowthView> {
       frames: frames.map(({ date, lines }) => ({
         date,
         heights: lines.map((count) => count / peak),
-        total: lines.reduce((sum, count) => sum + count, 0),
+        total: sum(lines),
       })),
     };
   }

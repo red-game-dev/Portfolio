@@ -1,3 +1,5 @@
+import { sumBy } from "@/packages/math/stats";
+
 import { MonthRange, Tenure } from "../domain/types";
 import { toMonthIndex } from "../utils/months";
 
@@ -11,8 +13,7 @@ export class TenureCalculator {
   }
 
   public months(tenures: Tenure[]): number {
-    return this.merge(tenures.map((tenure) => this.toRange(tenure)))
-      .reduce((total, range) => total + (range.end - range.start), 0);
+    return sumBy(this.merge(tenures.map((tenure) => this.toRange(tenure))), (range) => range.end - range.start);
   }
 
   public years(tenures: Tenure[]): number {

@@ -1,3 +1,5 @@
+import { sumBy } from "@/packages/math/stats";
+
 import { DEFAULT_VOYAGE_CONFIG, VoyageConfig } from "../../config";
 import { FaultKind, ShipEffect } from "../../domain/faults";
 import { ITEMS } from "../config/catalog";
@@ -238,7 +240,7 @@ export class Hangar {
     }
 
     const made = this.catalog[recipe.makes.id];
-    const room = this.backpack.free + recipe.needs.reduce((sum, need) => sum + (this.catalog[need.id]?.volume ?? 0) * need.count, 0);
+    const room = this.backpack.free + sumBy(recipe.needs, (need) => (this.catalog[need.id]?.volume ?? 0) * need.count);
 
     if (!made || made.volume * recipe.makes.count > room || !this.wallet.spend("crafting", { RED: recipe.coin }, memo("craft", id), this.now())) {
       return false;

@@ -1,4 +1,5 @@
 import { toMonthIndex } from "@/packages/insights/career";
+import { sumBy } from "@/packages/math/stats";
 import { Industry } from "@/types/industry";
 import { Resume } from "@/types/resume";
 
@@ -37,7 +38,7 @@ export const matchesPerBranch = (branches: Branch[], industry: Industry | null) 
 
 // Entries in the industry across every branch.
 export const industryMatches = (branches: Branch[], industry: Industry | null) => (industry
-  ? branches.reduce((total, branch) => total + branch.entries.filter(isIn(industry)).length, 0)
+  ? sumBy(branches, (branch) => branch.entries.filter(isIn(industry)).length)
   : 0);
 
 // An industry with nothing on the open branch checks out the first branch that has it; otherwise stay.

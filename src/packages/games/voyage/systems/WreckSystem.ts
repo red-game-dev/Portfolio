@@ -1,9 +1,8 @@
 import type { System } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
-import { randomBetween } from "@/packages/math/random";
+import { pickWeighted, randomBetween } from "@/packages/math/random";
 
 import { WreckKind } from "../domain/components";
-import { pickWeighted } from "../utils/weighted";
 import { VoyageContext } from "./context";
 import { isSolar, shipOf, viewRadius } from "./queries";
 import { leaveWreck } from "./salvage";

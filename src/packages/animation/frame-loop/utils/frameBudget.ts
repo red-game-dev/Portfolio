@@ -1,3 +1,5 @@
+import { median } from "@/packages/math/stats";
+
 import { FrameScheduler } from "../domain/types";
 
 export interface FrameBudgetOptions {
@@ -29,9 +31,7 @@ export const watchFrameBudget = (scheduler: FrameScheduler, { frames = 90, budge
       return;
     }
 
-    const sorted = [...intervals].sort((first, second) => first - second);
-
-    if (sorted[Math.floor(sorted.length / 2)] > budgetMs) {
+    if (median(intervals) > budgetMs) {
       onSlow();
     }
   };

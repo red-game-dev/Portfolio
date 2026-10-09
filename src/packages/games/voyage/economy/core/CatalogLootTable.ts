@@ -1,8 +1,7 @@
-import type { RandomSource } from "@/packages/math/random";
+import { pickWeighted, RandomSource, randomInt } from "@/packages/math/random";
 
 import { LootSituation, LootTable } from "../../domain/loot";
 import { DEEP_STYLES } from "../../domain/theme";
-import { pickWeighted, randomInt } from "../../utils/weighted";
 import { AWAY_CHANCE, BLUEPRINT_DROPS, BOSS_WEIGHTS, ITEMS, RARITY_WEIGHTS, SOURCE_ROLLS } from "../config/catalog";
 import { ItemSpec, ItemStack, Loot, RARITIES, Rarity } from "../domain/items";
 

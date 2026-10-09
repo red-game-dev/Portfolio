@@ -55,6 +55,10 @@ export const telemetryRows = (content: FinaleVoyage, snapshot: VoyageSnapshot): 
     waypoint
       ? { label: labels.next, value: sense(`${waypoint.name ?? stops[waypoint.id] ?? waypoint.id}, ${formatDistance(content, waypoint.distanceKm)}`), isKey: true }
       : null,
+    // Where the way on leads: the black hole past the edge of the system.
+    telemetry.toHoleAu !== null
+      ? { label: labels.blackHole, value: fill(units.further, { value: formatNumber(telemetry.toHoleAu, 1) }), isKey: true }
+      : null,
   ];
 
   return rows.filter((row): row is TelemetryRow => row !== null);

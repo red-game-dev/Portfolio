@@ -94,12 +94,27 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
       });
 
       context.setLineDash([4, 6]);
-      context.strokeStyle = "rgba(255, 120, 90, 0.35)";
-      context.lineWidth = 1;
+      context.strokeStyle = "rgba(255, 120, 90, 0.55)";
+      context.lineWidth = 1.5;
       context.beginPath();
       context.arc(cx, cy, system.edge * scale, 0, TAU);
       context.stroke();
       context.setLineDash([]);
+
+      // Where the black hole waits: past this ring, in whichever direction the ship crosses it. While the ring
+      // is still off the map, the note stands at the top of it instead.
+      const edgeNote = this.kit.labels.edgeNote;
+
+      if (edgeNote && state.phase === "solar") {
+        const ring = system.edge * scale;
+        const isRingShown = ring < Math.min(front.width, front.height) / 2;
+
+        context.fillStyle = "rgba(255, 150, 120, 0.95)";
+        context.textAlign = "center";
+        context.textBaseline = "bottom";
+        context.fillText(edgeNote, cx, isRingShown ? cy - ring - 4 : cy - Math.min(front.width, front.height) * 0.46);
+        context.textBaseline = "top";
+      }
 
       system.bodies.forEach((body) => {
         if (body.kind === "moon") {

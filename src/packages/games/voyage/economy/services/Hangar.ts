@@ -40,11 +40,14 @@ interface Exchange {
 
 export const newRecords = (): PilotRecords => ({ runs: 0, bestScore: 0, universes: 0, bosses: 0, rescues: 0, salvaged: 0 });
 
-// A hangar that has never flown: a Rocket Mk I, an empty hold, the plans everyone knows, no money.
+// A hangar that has never flown: a Rocket Mk I with a starter kit in the hold (a repair kit, a fuel cell, and the
+// scrap and wiring field repairs are made of), the plans everyone knows, no money.
+export const STARTER_KIT: readonly ItemStack[] = [{ id: "repairKit", count: 1 }, { id: "fuelCell", count: 1 }, { id: "scrap", count: 4 }, { id: "wiring", count: 2 }];
+
 export const newEconomyProfile = (): EconomyProfile => ({
   savedAt: 0,
   level: 0,
-  cargo: [],
+  cargo: STARTER_KIT.map((stack) => ({ ...stack })),
   blueprints: [],
   ledger: Wallet.open().toSnapshot(),
   records: newRecords(),
@@ -271,11 +274,28 @@ export class Hangar {
     return [...FAULT_FIXES[kind], UNIVERSAL_FIX].find((option) => this.backpack.has(option)) ?? null;
   }
 
-  // Takes what fixes a fault and returns the effects for the ship, or null when nothing here fixes it.
-  public repair(fault: { id: number; kind: FaultKind }): ShipEffect[] | null {
-    const parts = this.fixFor(fault.kind);
+  // How a fault would be fixed from the hold now: with what is there, or by first making its part (or a repair
+  // kit) from a known plan; null when neither can be done.
+  public repairPlan(kind: FaultKind): { craft: string | null; parts: readonly ItemStack[] } | null {
+    const parts = this.fixFor(kind);
 
-    if (!parts || !this.backpack.take(parts)) {
+    if (parts) {
+      return { craft: null, parts };
+    }
+
+    const options = [...FAULT_FIXES[kind], UNIVERSAL_FIX].filter((option) => option.length === 1 && option[0].count === 1);
+    const option = options.find((candidate) => this.craftableFor(candidate) !== null);
+    const craft = option ? this.craftableFor(option) : null;
+
+    return option && craft ? { craft, parts: option } : null;
+  }
+
+  // Takes what fixes a fault, making its part first where that is the way, and returns the effects for the ship;
+  // null when nothing here fixes it.
+  public repair(fault: { id: number; kind: FaultKind }): ShipEffect[] | null {
+    const plan = this.repairPlan(fault.kind);
+
+    if (!plan || (plan.craft !== null && !this.craft(plan.craft)) || !this.backpack.take(plan.parts)) {
       return null;
     }
 
@@ -374,9 +394,15 @@ export class Hangar {
       prices: { ...VOID_PRICE },
       suggestion: this.suggest(status),
       repairs: (status?.faults ?? []).map(({ id, kind }) => {
-        const parts = this.fixFor(kind);
+        const plan = this.repairPlan(kind);
 
-        return { fault: id, kind, parts: parts ? [...parts] : null };
+        return {
+          fault: id,
+          kind,
+          parts: plan ? [...plan.parts] : null,
+          craft: plan?.craft ?? null,
+          options: [...FAULT_FIXES[kind], UNIVERSAL_FIX].map((option) => [...option]),
+        };
       }),
       records: { ...this.records },
     };
@@ -396,7 +422,7 @@ export class Hangar {
   private suggestNow(status: ShipStatus | null): Suggestion | null {
     if (status?.isFlying) {
       const faults = [...status.faults].sort((first, second) => URGENCY.indexOf(first.kind) - URGENCY.indexOf(second.kind));
-      const fixable = faults.find((fault) => this.fixFor(fault.kind));
+      const fixable = faults.find((fault) => this.repairPlan(fault.kind));
 
       if (fixable) {
         return { kind: "repair", fault: fixable.id, faultKind: fixable.kind };

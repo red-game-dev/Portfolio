@@ -35,6 +35,7 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
     altitudeKm: null,
     speedKmS: 17.3,
     au,
+    toHoleAu: null,
     pressureBar: null,
     hullTemperatureC: 20,
     outsideC: 5,

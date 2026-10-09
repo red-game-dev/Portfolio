@@ -14,13 +14,16 @@ const CHECK_MS = 1000;
 // past what it was built for, and out in the universes; never more than a few at once, and never one already
 // broken. While it lasts, a fault does its harm: some here (a fuel leak drains the tank, a coolant leak heats the
 // hull, a breach bleeds it), the rest where the system works (a misfire in the engines' control, a glitch in the
-// guns' aim, a dead emitter in the shields' recharge). A fault lasts until it is fixed with parts from the hold.
+// guns' aim, a dead emitter in the shields' recharge). A fault lasts until it is fixed with parts from the hold,
+// or patched up by hand on the ground.
 export class MalfunctionSystem implements System<VoyageContext> {
   public readonly name = "malfunction";
   private sinceCheck = 0;
+  private onGround = 0;
 
   public reset(): void {
     this.sinceCheck = 0;
+    this.onGround = 0;
   }
 
   public update(context: VoyageContext, dt: number): void {
@@ -49,6 +52,8 @@ export class MalfunctionSystem implements System<VoyageContext> {
       bleedHull(context, faults.breach * breach * dt);
     }
 
+    this.patchOnGround(context, dt);
+
     this.sinceCheck += dt * 1000;
 
     if (this.sinceCheck >= CHECK_MS) {
@@ -57,11 +62,34 @@ export class MalfunctionSystem implements System<VoyageContext> {
     }
   }
 
+  // Landed, the crew can get out and patch the ship up by hand: the oldest fault is fixed, for nothing, after a
+  // few seconds on the ground, then the next. Nothing breaks down on the ground either.
+  private patchOnGround(context: VoyageContext, dt: number): void {
+    const { state, config, events } = context;
+    const parts = shipOf(context);
+
+    if (!parts?.ship.landedOn || state.faults.length === 0) {
+      this.onGround = 0;
+
+      return;
+    }
+
+    this.onGround += dt;
+
+    if (this.onGround >= config.faults.groundFixSeconds) {
+      const [oldest] = state.faults;
+
+      this.onGround = 0;
+      state.faults = state.faults.slice(1);
+      events.emit("fixed", { kind: oldest.kind });
+    }
+  }
+
   private roll(context: VoyageContext): void {
     const { state, config, random, events } = context;
     const parts = shipOf(context);
 
-    if (!parts || state.faults.length >= config.faults.max) {
+    if (!parts || state.faults.length >= config.faults.max || parts.ship.landedOn) {
       return;
     }
 

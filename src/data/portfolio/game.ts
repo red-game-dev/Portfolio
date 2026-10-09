@@ -65,6 +65,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         radiation: "Radiation",
         dilation: "Time dilation",
         next: "Next",
+        blackHole: "Black hole",
         noSignal: "No signal",
       },
       units: {
@@ -79,6 +80,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         dilation: "\u00d7{value}",
         km: "{value} km",
         millionKm: "{value} million km",
+        further: "{value} AU further out",
         clock: "{date} UTC",
       },
       systems: {
@@ -295,7 +297,11 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
             breach: "Hull breach: the hull is venting",
           },
           fix: "Fix",
+          makeAndFix: "Make and fix",
           noParts: "No parts for it in the hold",
+          needs: "Needs {parts}",
+          or: " or ",
+          ground: "or land on any world to patch it up",
           fixed: "{fault} fixed",
         },
         salvage: {
@@ -493,6 +499,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           newBest: "A new best for today",
         },
         ghost: "Your best today",
+        edgeNote: "Past the Kuiper belt, 52 AU out, the black hole waits",
         photo: {
           title: "Photo mode",
           open: "Take a photo",

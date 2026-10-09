@@ -150,6 +150,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       setMessages((queue) => [...queue, next].slice(-MESSAGE_QUEUE));
     }
   };
+  // The answer to a tap shows at once, in place of the line already seen, and the rest still wait their turn.
+  const reply = (text: string) => {
+    messageId.current += 1;
+
+    const next = { id: messageId.current, text };
+
+    setMessages((queue) => [next, ...queue.slice(1)]);
+  };
 
   // Each line shows for its moment, then the next.
   useEffect(() => {
@@ -328,7 +336,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                       aria-label={`${craft ? copy.faults.makeAndFix : copy.faults.fix}: ${copy.faults.names[kind]}${parts ? `, ${stacksText(copy, parts)}` : ""}`}
                       aria-describedby={parts ? undefined : `fault-needs-${fault}`}
                       // With nothing to fix it, a tap says what to look for rather than doing nothing.
-                      onClick={() => (parts ? act({ kind: "repair", fault }) : say(needsFor(options)))}
+                      onClick={() => (parts ? act({ kind: "repair", fault }) : reply(needsFor(options)))}
                     >
                       {craft ? copy.faults.makeAndFix : copy.faults.fix}
                     </FixButton>

@@ -33,9 +33,12 @@ module.exports = withBundleAnalyzer({
   // need server rendering, which the single locale above turns into a build the Vercel adapter cannot finish.
   async rewrites() {
     return [
-      // trailingSlash makes every route end in a slash, API routes included.
-      { source: '/llms.txt', destination: '/api/llms/', locale: false },
-      { source: '/llms-full.txt', destination: '/api/llms-full/', locale: false },
+      // trailingSlash makes every route end in a slash, API routes included. With the locale above, a rule that
+      // opts out of locale handling is matched against the path with the default locale in front, so both forms.
+      ...['', '/en'].flatMap((prefix) => [
+        { source: `${prefix}/llms.txt`, destination: '/api/llms/', locale: false },
+        { source: `${prefix}/llms-full.txt`, destination: '/api/llms-full/', locale: false },
+      ]),
     ]
   },
 })

@@ -125,7 +125,7 @@ export const damageImpactor = (context: VoyageContext, entity: Entity, damage: n
 
   if (target && impactor.isOnCourse && !isOnCourseNow(context, rock, target)) {
     impactor.isOnCourse = false;
-    events.emit("deflected", { target: impactor.target });
+    events.emit("deflected", { rock: entity, target: impactor.target, isFragment: impactor.isFragment });
   }
 
   if (impactor.hp <= 0) {
@@ -171,7 +171,7 @@ export const breakUp = (context: VoyageContext, entity: Entity): void => {
   }
 
   state.score += config.scoring.discovery * 2;
-  events.emit("impactorBroken", { x: rock.x, y: rock.y, target: impactor.target });
+  events.emit("impactorBroken", { rock: entity, x: rock.x, y: rock.y, target: impactor.target, isFragment: impactor.isFragment });
   world.despawn(entity);
 };
 

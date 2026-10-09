@@ -1,11 +1,22 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 
+import { VoyageTheme } from "../../config";
 import { Decal } from "../../domain/components";
+import { markOf, tierOf } from "../../economy/config/tiers";
+import { HullTier } from "../../economy/domain/economy";
 import { lerpX, lerpY, sizeBucket, VoyageFrame } from "../frame";
 import { paintBreach, paintDent, paintScorch, paintShieldRing, tintRed } from "../paint/damage";
-import { paintFlame, paintGlow, paintShip, SHIP_HEIGHT, SHIP_WIDTH } from "../paint/space";
+import { ION_TIERS, NOZZLES, paintHull } from "../paint/ships";
+import { paintFlame, paintGlow, SHIP_HEIGHT, SHIP_WIDTH } from "../paint/space";
 import { RenderKit } from "./kit";
+
+// How each kind of hit is painted, and its sprite's key, made once.
+const DECAL_PAINTERS: Record<Decal["kind"], (context: Canvas2DContext, width: number) => void> = { dent: paintDent, scorch: paintScorch, breach: paintBreach };
+const DECAL_KEYS: Record<Decal["kind"], string> = { dent: "decal:dent", scorch: "decal:scorch", breach: "decal:breach" };
+
+// The blue white of an ion drive, for the great ships.
+const ION = { core: "#eef8ff", edge: "#5fb8ff" };
 
 // Where on the hull a mark at `angle` sits, in the ship's own frame (nose up), as shares of its radius.
 const HULL = { across: 0.4, along: 1.22 };
@@ -14,7 +25,8 @@ const HEAT_GLOW_C = 350;
 
 const lerpAngle = (from: number, to: number, alpha: number) => from + Math.atan2(Math.sin(to - from), Math.cos(to - from)) * alpha;
 
-// The ship: its flame (sputtering when the hull is failing), its body, the marks of every hit where it landed,
+// The ship: its flame from every engine its hull has (fire for rockets, ion light for the great ships; sputtering
+// when the hull is failing), its body as its hull and mark, the marks of every hit where it landed,
 // glowing breaches that smoke and then burn, the shimmer of its shields and their flash where a hit is caught,
 // the plasma at its nose on entry, its hull glowing as it heats and shedding molten drops once it melts, and,
 // falling into a black hole, stretched long and red.
@@ -23,6 +35,8 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
   private shieldFlash = 0;
   private shieldAngle = 0;
   private sputter = 0;
+  // The hull's painter, made again only when the hull, its mark or the universe's colour changes.
+  private painter: { key: string; paint: ReturnType<typeof paintHull> } | null = null;
 
   constructor(private readonly kit: RenderKit) {}
 
@@ -45,7 +59,9 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const r = body.radius * camera.scale;
     const size = sizeBucket(body.radius * base);
     const accent = universe?.accent ?? theme.danger;
-    const sprite = this.kit.sprite(`ship:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, paintShip({ ...theme, accent }));
+    const tier = tierOf(state.level);
+    const mark = markOf(state.level);
+    const sprite = this.kit.sprite(`ship:${tier}:${mark}:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, this.hullPainter(tier, mark, accent, theme));
     const worldX = lerpX(body, alpha);
     const worldY = lerpY(body, alpha);
     const x = camera.toScreenX(worldX);
@@ -60,7 +76,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const squeeze = 1 - fall * 0.7;
 
     this.sputter = hull < 0.25 && Math.random() < 0.08 ? 0.12 : Math.max(0, this.sputter - dt);
-    this.emitExhaust(worldX, worldY, angle, body.radius, ship.thrust, hull);
+    this.emitExhaust(worldX, worldY, angle, body.radius, ship.thrust, hull, ION_TIERS.includes(tierOf(state.level)));
     this.emitDamage(worldX, worldY, angle, body.radius, health.decals, hull);
 
     if (ship.temperatureC > config.thermal.ratings.hull) {
@@ -70,11 +86,16 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     front.frame(x, y, angle + Math.PI / 2, squeeze, stretch);
 
     if ((ship.thrust > 0.02 || ship.isBraking) && this.sputter === 0 && !capture) {
-      const flame = this.kit.sprite(`flame:${size}`, size * 1.1, size * 2.8, paintFlame(theme.flameCore, theme.flameEdge));
+      const isIon = ION_TIERS.includes(tier);
+      const core = isIon ? ION.core : theme.flameCore;
+      const edge = isIon ? ION.edge : theme.flameEdge;
+      const flame = this.kit.sprite(`flame:${core}:${size}`, size * 1.1, size * 2.8, paintFlame(core, edge));
       const length = r * 2.8 * (0.45 + ship.thrust * 0.75) * (0.88 + Math.sin(now * 0.05) * 0.12);
 
       if (flame) {
-        front.context.drawImage(flame.surface, -r * 0.55, r * 0.9, r * 1.1, length);
+        NOZZLES[tier].forEach(({ x: nx, y: ny, size: scale }) => {
+          front.context.drawImage(flame.surface, (nx - 0.55 * scale) * r, ny * r, r * 1.1 * scale, length * scale);
+        });
       }
     }
 
@@ -83,7 +104,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
       front.context.drawImage(sprite.surface, -r * SHIP_WIDTH / 2, -r * SHIP_HEIGHT / 2, r * SHIP_WIDTH, r * SHIP_HEIGHT);
 
       if (fall > 0) {
-        const red = this.kit.sprite(`ship-red:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, tintRed(sprite));
+        const red = this.kit.sprite(`ship-red:${tier}:${mark}:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, tintRed(sprite));
 
         front.context.globalAlpha = Math.min(1, fall * 1.4) * (1 - fall * 0.6);
 
@@ -134,14 +155,19 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     this.drawShields(x, y, r, health.shields / health.maxShields, dt);
   }
 
+  private hullPainter(tier: HullTier, mark: number, accent: string, theme: VoyageTheme): ReturnType<typeof paintHull> {
+    const key = `${tier}:${mark}:${accent}`;
+
+    if (this.painter?.key !== key) {
+      this.painter = { key, paint: paintHull(tier, mark, { ...theme, accent }) };
+    }
+
+    return this.painter.paint;
+  }
+
   private drawDecal(decal: Decal, r: number, now: number): void {
     const { front } = this.kit;
-    const sprites: Record<Decal["kind"], (context: Canvas2DContext, width: number) => void> = {
-      dent: paintDent,
-      scorch: paintScorch,
-      breach: paintBreach,
-    };
-    const sprite = this.kit.cache.get(`decal:${decal.kind}`, 96, 96, sprites[decal.kind]);
+    const sprite = this.kit.cache.get(DECAL_KEYS[decal.kind], 96, 96, DECAL_PAINTERS[decal.kind]);
     const size = r * (0.4 + decal.severity * 0.45);
     const px = Math.sin(decal.angle) * r * HULL.across;
     const py = -Math.cos(decal.angle) * r * HULL.along;
@@ -181,13 +207,14 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     front.context.globalCompositeOperation = "source-over";
   }
 
-  private emitExhaust(x: number, y: number, angle: number, radius: number, thrust: number, hull: number): void {
+  private emitExhaust(x: number, y: number, angle: number, radius: number, thrust: number, hull: number, isIon: boolean): void {
     if (thrust < 0.05 || this.sputter > 0) {
       return;
     }
 
     const { particles, theme } = this.kit;
-    const glow = this.kit.cache.get(`glow:${theme.flameEdge}`, 64, 64, paintGlow(theme.flameEdge));
+    const colour = isIon ? ION.edge : theme.flameEdge;
+    const glow = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
     const backX = x - Math.cos(angle) * radius * 1.7;
     const backY = y - Math.sin(angle) * radius * 1.7;
 

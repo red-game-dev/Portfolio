@@ -58,6 +58,9 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       boss: state.boss !== null ? this.frame(state, world, state.boss) : null,
       autoFire: state.autoFire,
       incoming: body ? this.incoming(state, world, body.x, body.y) : null,
+      level: state.level,
+      faults: state.faults.map(({ id, kind }) => ({ id, kind })),
+      salvage: this.salvage(state, world),
       telemetry: body && ship ? this.telemetry.map({ state, body, ship }) : {
         gravity: 0,
         dominant: null,
@@ -73,6 +76,13 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
         missionTime: state.clock.epochMs,
       },
     };
+  }
+
+  // The wreck being salvaged, in tenths so the UI hears of it a few times, not every step.
+  private salvage(state: VoyageState, world: VoyageWorld): VoyageSnapshot["salvage"] {
+    const wreck = state.salvage ? world.stores.wreck.get(state.salvage.wreck) : undefined;
+
+    return state.salvage && wreck && state.salvage.progress > 0 ? { kind: wreck.kind, progress: Math.floor(state.salvage.progress * 10) / 10 } : null;
   }
 
   // Someone the guns are on, or the boss, for an MMO frame.

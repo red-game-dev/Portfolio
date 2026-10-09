@@ -1,6 +1,8 @@
-import { AlienRole, ModuleId, PickupKind, Weapon } from "./components";
+import { AlienRole, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
+import { FaultKind } from "./faults";
+import { Loot } from "./loot";
 
-export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "tidal";
+export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "tidal" | "breach";
 
 // What became of a world an impact struck: a crater, a burst high in its air, a scar that melted half a
 // hemisphere, or the world broken apart.
@@ -35,7 +37,7 @@ export interface VoyageEvents {
   fired: { x: number; y: number; angle: number; kind: Weapon["kind"]; team: "ship" | "aliens" };
   // Someone who lives here was struck, or destroyed; the boss shows itself, or falls.
   struck: { x: number; y: number; toShields: number };
-  downed: { x: number; y: number; role: AlienRole; faction: number };
+  downed: { x: number; y: number; role: AlienRole; faction: number; level: number };
   boss: { name: string; isFallen: boolean };
   // A drifting rock shot to pieces.
   shattered: { x: number; y: number; radius: number };
@@ -44,12 +46,17 @@ export interface VoyageEvents {
   // It hit: where, how hard against what holds the world together, and what came of it.
   impact: { target: string; x: number; y: number; ratio: number; craterKm: number; outcome: ImpactOutcome };
   // It was broken up, or pushed off course so it will miss.
-  impactorBroken: { x: number; y: number; target: string };
-  deflected: { target: string };
+  // Which rock (entity) is said too, so a world saved is counted once per rock.
+  impactorBroken: { rock: number; x: number; y: number; target: string; isFragment: boolean };
+  deflected: { rock: number; target: string; isFragment: boolean };
   // The strange things: a dark forest hears the ship and strikes, a star collapses and blows, a gamma ray burst
   // lines up and fires, a wormhole throws the ship across the universe, tides stretch it.
   heard: { seconds: number };
   supernova: { seconds: number; isBlown: boolean };
   burst: { seconds: number; isFired: boolean };
   wormhole: { x: number; y: number };
+  // A wreck stripped of what it held (perhaps nothing), something on board breaking down, and a fault fixed.
+  salvaged: { wreck: number; x: number; y: number; kind: WreckKind; loot: Loot };
+  fault: { kind: FaultKind; module: ModuleId };
+  fixed: { kind: FaultKind };
 }

@@ -1,6 +1,6 @@
 import { ComponentStore, World } from "@/packages/games/engine";
 
-import { Alien, Body, Health, Hazard, Hole, Impactor, Modules, Pickup, Projectile, Ship, Spin, Traffic, Weapon } from "../domain/components";
+import { Alien, Body, Health, Hazard, Hole, Impactor, Modules, Pickup, Projectile, Ship, Spin, Traffic, Weapon, Wreck } from "../domain/components";
 
 // One store per kind of component the voyage uses.
 export const createVoyageStores = () => ({
@@ -17,6 +17,7 @@ export const createVoyageStores = () => ({
   projectile: new ComponentStore<Projectile>(),
   impactor: new ComponentStore<Impactor>(),
   traffic: new ComponentStore<Traffic>(),
+  wreck: new ComponentStore<Wreck>(),
 });
 
 export type VoyageStores = ReturnType<typeof createVoyageStores>;

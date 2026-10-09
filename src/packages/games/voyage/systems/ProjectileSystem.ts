@@ -5,6 +5,7 @@ import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
 import { damageImpactor } from "./impacts";
 import { shipOf } from "./queries";
+import { leaveWreck } from "./salvage";
 
 // How far round a shot the grid is searched: the largest thing it can hit.
 const REACH = 1.4;
@@ -12,7 +13,7 @@ const REACH = 1.4;
 const DROP_CHANCE = 0.18;
 
 // Shots meeting what they were fired at, found through the spatial hash. The ship's shots strike the living,
-// break drifting rocks and chip and push rocks headed for worlds; theirs strike the ship. A shot is spent on
+// break drifting rocks (leaving ore or ice to gather, or a pickup) and chip and push rocks headed for worlds; theirs strike the ship. A shot is spent on
 // the first thing it hits.
 export class ProjectileSystem implements System<VoyageContext> {
   public readonly name = "projectiles";
@@ -70,7 +71,11 @@ export class ProjectileSystem implements System<VoyageContext> {
         } else {
           events.emit("shattered", { x: target.x, y: target.y, radius: target.radius });
 
-          if (random() < DROP_CHANCE && state.phase !== "lost") {
+          const hazard = world.stores.hazard.get(other);
+
+          if (random() < context.config.salvage.debris && state.phase !== "lost") {
+            leaveWreck(context, hazard?.isIcy ? "ice" : "ore", { x: target.x, y: target.y, vx: target.vx * 0.6, vy: target.vy * 0.6 });
+          } else if (random() < DROP_CHANCE && state.phase !== "lost") {
             const item = world.spawn();
 
             const { x, y } = target;

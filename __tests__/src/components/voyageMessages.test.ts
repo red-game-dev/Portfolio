@@ -26,6 +26,9 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   boss: null,
   autoFire: true,
   incoming: null,
+  level: 0,
+  faults: [],
+  salvage: null,
   telemetry: {
     gravity: 0.12,
     dominant: null,

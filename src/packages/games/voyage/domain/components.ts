@@ -1,3 +1,5 @@
+import { Loot } from "./loot";
+
 // Position, velocity and size: everything that moves and collides. `prevX` and `prevY` hold the position one
 // step back, so the renderer can draw between steps.
 export interface Body {
@@ -131,6 +133,22 @@ export interface Impactor {
 // Someone passing through: a rocket or starship of ours, or a freighter of a faction that lives here.
 export interface Traffic {
   kind: "rocket" | "starship" | "freighter";
+  faction: number;
+}
+
+// Something drifting dead: a lost probe, a rocket or a starship of ours, the hulk of one who lived here, or the
+// ore and ice left where a rock or a comet was shot apart. What it still holds, how far salvaging it has got
+// (0 to 1), how long a full salvage takes (seconds), whether it has been stripped, a seed for its look, and the
+// faction of the fallen.
+export type WreckKind = "probe" | "rocket" | "starship" | "alien" | "ore" | "ice";
+
+export interface Wreck {
+  kind: WreckKind;
+  loot: Loot;
+  progress: number;
+  seconds: number;
+  isEmpty: boolean;
+  seed: number;
   faction: number;
 }
 

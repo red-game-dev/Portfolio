@@ -4,9 +4,12 @@ import { createFieldSample, GravityField } from "@/packages/physics/newtonian";
 
 import { VoyageConfig } from "../config";
 import { DEFAULT_UNIVERSE_NAMES } from "../config/names";
+import { MODULE_IDS } from "../domain/components";
 import { StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
+import { ShipEffect } from "../domain/faults";
 import { NO_INPUT, VoyageInput } from "../domain/input";
+import { Loot, LootTable, NO_LOOT_TABLE } from "../domain/loot";
 import { VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState, VoyageStatus } from "../domain/state";
 import { UniverseNames } from "../domain/universe";
@@ -21,6 +24,7 @@ import { ControlSystem } from "../systems/ControlSystem";
 import { GravitySystem } from "../systems/GravitySystem";
 import { HealthSystem } from "../systems/HealthSystem";
 import { ImpactSystem } from "../systems/ImpactSystem";
+import { MalfunctionSystem } from "../systems/MalfunctionSystem";
 import { MotionSystem } from "../systems/MotionSystem";
 import { NavigationSystem } from "../systems/NavigationSystem";
 import { missionTime, placeBodies } from "../systems/orbits";
@@ -28,12 +32,15 @@ import { OrbitSystem } from "../systems/OrbitSystem";
 import { PhaseSystem } from "../systems/PhaseSystem";
 import { PhenomenaSystem } from "../systems/PhenomenaSystem";
 import { ProjectileSystem } from "../systems/ProjectileSystem";
+import { shipOf } from "../systems/queries";
+import { SalvageSystem } from "../systems/SalvageSystem";
 import { SpawnSystem } from "../systems/SpawnSystem";
 import { SurfaceSystem } from "../systems/SurfaceSystem";
 import { ThermalSystem } from "../systems/ThermalSystem";
 import { TrafficSystem } from "../systems/TrafficSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 import { AURORA_BASE, WeatherSystem } from "../systems/WeatherSystem";
+import { WreckSystem } from "../systems/WreckSystem";
 import { cloneSystem } from "../utils/system";
 import { createVoyageStores, VoyageWorld } from "./world";
 
@@ -46,7 +53,14 @@ interface VoyageSimulationOptions {
   // The real moment the mission clock starts from (ms since 1970): now, for a visitor, so the planets are where
   // they really are today.
   epochMs: number;
+  // What wrecks, rocks and the fallen hold; nothing, unless an economy says.
+  loot?: LootTable;
+  // The ship's level, drawn as its hull and mark; its strength is already in `config`.
+  level?: number;
 }
+
+// Below this share of what it can be, a part of the ship is worth spending something on.
+const NEED = 0.95;
 
 // Where the ship waits before a run: just above Earth's air, nose up.
 const START_RADII = 1.55;
@@ -68,13 +82,13 @@ export class VoyageSimulation {
   // each run flies a copy of it.
   private readonly home: StarSystem;
 
-  constructor(system: StarSystem, { config, random, epochMs, names = DEFAULT_UNIVERSE_NAMES, themes = [] }: VoyageSimulationOptions) {
+  constructor(system: StarSystem, { config, random, epochMs, names = DEFAULT_UNIVERSE_NAMES, themes = [], loot = NO_LOOT_TABLE, level = 0 }: VoyageSimulationOptions) {
     this.world = new World(createVoyageStores());
     this.snapshots = new SnapshotMapper(config);
     this.home = system;
     this.context = {
       world: this.world,
-      state: this.fresh(cloneSystem(system), "ready", epochMs, config, random),
+      state: this.fresh(cloneSystem(system), "ready", epochMs, config, random, level),
       config,
       input: NO_INPUT,
       events: this.events,
@@ -86,6 +100,7 @@ export class VoyageSimulation {
       grid: new SpatialHash(0.5),
       universes: new UniverseGenerator(config.layout, names),
       themes,
+      loot,
     };
     this.pipeline = new SystemPipeline<VoyageContext>([
       new OrbitSystem(),
@@ -95,11 +110,13 @@ export class VoyageSimulation {
       new GravitySystem(),
       new AtmosphereSystem(),
       new ThermalSystem(),
+      new MalfunctionSystem(),
       new AlienSystem(),
       new WeaponSystem(),
       new MotionSystem(),
       new SurfaceSystem(),
       new CollisionSystem(),
+      new SalvageSystem(),
       new ProjectileSystem(),
       new ImpactSystem(),
       new CaptureSystem(),
@@ -107,6 +124,7 @@ export class VoyageSimulation {
       new HealthSystem(),
       new WeatherSystem(),
       new TrafficSystem(),
+      new WreckSystem(),
       new SpawnSystem(),
     ], { stepMs: config.stepMs, maxSteps: config.maxSteps });
     this.placeShip();
@@ -142,11 +160,131 @@ export class VoyageSimulation {
     this.context.state.autoFire = isOn;
   }
 
+  // Refits the ship to a new level mid flight or between runs: the new config's strength, size and guns, with
+  // hull, shields and fuel kept at the same share of their new maximum.
+  public refit(config: VoyageConfig, level: number): void {
+    const parts = shipOf(this.context);
+    const weapon = this.world.stores.weapon.get(this.context.state.ship);
+
+    this.context.config = config;
+    this.context.state.level = level;
+
+    if (!parts) {
+      return;
+    }
+
+    const { body, ship, health } = parts;
+    const share = (value: number, max: number) => (max > 0 ? value / max : 1);
+
+    health.hull = share(health.hull, health.maxHull) * config.ship.hull;
+    health.maxHull = config.ship.hull;
+    health.shields = share(health.shields, health.maxShields) * config.ship.shields;
+    health.maxShields = config.ship.shields;
+    ship.fuel = share(ship.fuel, ship.maxFuel) * config.ship.fuel;
+    ship.maxFuel = config.ship.fuel;
+    body.radius = config.ship.radius;
+
+    if (weapon) {
+      Object.assign(weapon, this.weaponFor(config), { cooldown: weapon.cooldown });
+    }
+  }
+
+  // Whether any of these would do the ship real good now: something below `NEED` of what it can be, a fault on
+  // board, or a hull running hot. A scratch on the sensors is not worth a repair kit.
+  public wouldHelp(effects: readonly ShipEffect[]): boolean {
+    const parts = shipOf(this.context);
+
+    if (!parts) {
+      return false;
+    }
+
+    const { ship, health, modules } = parts;
+
+    return effects.some((effect) => {
+      switch (effect.kind) {
+        case "hull":
+          return health.hull < health.maxHull * NEED;
+        case "module":
+          return effect.module === "worst" ? MODULE_IDS.some((id) => modules[id] < NEED) : modules[effect.module] < NEED;
+        case "fuel":
+          return ship.fuel < ship.maxFuel * NEED;
+        case "shields":
+          return health.shields < health.maxShields * modules.shields * NEED;
+        case "cool":
+          return ship.temperatureC > this.context.state.readings.environmentC + 5;
+        case "fix":
+          return this.context.state.faults.some((fault) => fault.id === effect.fault);
+        default:
+          return false;
+      }
+    });
+  }
+
+  // Puts back on a wreck what the hold had no room for, to be salvaged again once there is.
+  public returnLoot(entity: number, loot: Loot): void {
+    const wreck = this.world.stores.wreck.get(entity);
+
+    if (wreck && (loot.items.length > 0 || loot.blueprints.length > 0)) {
+      wreck.loot = loot;
+      wreck.isEmpty = false;
+      wreck.progress = 0;
+    }
+  }
+
+  // Applies what was done to the ship from outside the run: a consumable, a part fitted, a fault fixed.
+  public apply(effects: readonly ShipEffect[]): void {
+    const parts = shipOf(this.context);
+    const { state, events } = this.context;
+
+    if (!parts || state.status !== "flying") {
+      return;
+    }
+
+    const { ship, health, modules } = parts;
+
+    effects.forEach((effect) => {
+      switch (effect.kind) {
+        case "hull":
+          health.hull = Math.min(health.maxHull, health.hull + health.maxHull * effect.share);
+          // A patched hull loses its worst scar.
+          health.decals.sort((first, second) => second.severity - first.severity).shift();
+          break;
+        case "module": {
+          const id = effect.module === "worst" ? MODULE_IDS.reduce((low, next) => (modules[next] < modules[low] ? next : low), MODULE_IDS[0]) : effect.module;
+
+          modules[id] = Math.min(1, modules[id] + effect.amount);
+          break;
+        }
+        case "fuel":
+          ship.fuel = Math.min(ship.maxFuel, ship.fuel + ship.maxFuel * effect.share);
+          break;
+        case "shields":
+          health.shields = Math.min(health.maxShields * modules.shields, health.shields + health.maxShields * effect.share);
+          break;
+        case "cool":
+          ship.temperatureC = Math.max(state.readings.environmentC, ship.temperatureC - effect.degrees);
+          break;
+        case "fix": {
+          const fault = state.faults.find((entry) => entry.id === effect.fault);
+
+          if (fault) {
+            state.faults = state.faults.filter((entry) => entry !== fault);
+            events.emit("fixed", { kind: fault.kind });
+          }
+
+          break;
+        }
+        default:
+          break;
+      }
+    });
+  }
+
   // A new run from Earth, whatever the last one ended in, with the clock starting again from `epochMs` (or from
   // where the last run's started).
   public start(epochMs = this.context.state.clock.epochMs): void {
     this.world.clear();
-    this.context.state = this.fresh(cloneSystem(this.home), "flying", epochMs, this.context.config, this.context.random);
+    this.context.state = this.fresh(cloneSystem(this.home), "flying", epochMs, this.context.config, this.context.random, this.context.state.level);
     this.context.state.view = { ...this.context.state.view };
     this.placeShip();
     this.pipeline.reset();
@@ -207,13 +345,15 @@ export class VoyageSimulation {
       decals: [],
     });
     this.world.stores.modules.set(ship, { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 });
-    const { arms } = config;
-
-    this.world.stores.weapon.set(ship, { kind: "cannon", damage: arms.damage, rate: arms.rate, range: arms.range, speed: arms.speed, heat: arms.heat, cooldown: 0 });
+    this.world.stores.weapon.set(ship, { ...this.weaponFor(config), cooldown: 0 });
     state.ship = ship;
   }
 
-  private fresh(system: StarSystem, status: VoyageStatus, epochMs: number, config: VoyageConfig, random: RandomSource): VoyageState {
+  private weaponFor({ arms }: VoyageConfig) {
+    return { kind: arms.kind, damage: arms.damage, rate: arms.rate, range: arms.range, speed: arms.speed, heat: arms.heat };
+  }
+
+  private fresh(system: StarSystem, status: VoyageStatus, epochMs: number, config: VoyageConfig, random: RandomSource, level: number): VoyageState {
     const clock = { epochMs, hoursPerSecond: config.clock.hoursPerSecond };
 
     placeBodies(system, missionTime(clock, 0));
@@ -271,6 +411,11 @@ export class VoyageSimulation {
       bossFallen: false,
       nextImpactAt: null,
       nextTrafficAt: null,
+      level,
+      faults: [],
+      nextFaultId: 1,
+      salvage: null,
+      nextWreckAt: null,
       view: this.context?.state.view ?? { halfWidth: 2, halfHeight: 2 },
     };
   }

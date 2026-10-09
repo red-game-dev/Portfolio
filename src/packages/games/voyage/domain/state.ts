@@ -2,6 +2,7 @@ import type { Entity } from "@/packages/games/engine";
 
 import { StarSystem } from "./content";
 import { VoyagePhase } from "./events";
+import { Fault } from "./faults";
 import { UniverseSpec } from "./universe";
 
 export type VoyageStatus = "ready" | "flying" | "over";
@@ -137,6 +138,13 @@ export interface VoyageState {
   bossFallen: boolean;
   nextImpactAt: number | null;
   nextTrafficAt: number | null;
+  // The ship's level (its hull and mark), which the renderer draws; the faults on board, and the id the next
+  // takes; the wreck being salvaged and how far; and when the next derelict drifts by.
+  level: number;
+  faults: Fault[];
+  nextFaultId: number;
+  salvage: { wreck: Entity; progress: number } | null;
+  nextWreckAt: number | null;
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

@@ -1,8 +1,10 @@
 import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useRef, useState, WheelEvent } from "react";
 
+import { usePilotSync } from "@/components/Finale/Voyage/hooks/usePilotSync";
 import { VOYAGE_TEXTURES, VOYAGE_THEME } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
-import type { UniverseNames, VoyageGame, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
+import type { EconomyView, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
+import type { Pilot } from "@/services/voyage/pilot";
 
 // What each key asks of the ship: arrows and WASD turn and burn, down and S brake.
 const KEYS: Record<string, "left" | "right" | "burn" | "brake"> = {
@@ -75,7 +77,9 @@ export interface VoyageCanvasRefs {
 
 // Binds the voyage to its canvases: its code fetched when the dialog opens, the real maps after it, sized to the
 // stage, paused when the tab is hidden, flown by a mouse (no press needed), a finger (while it is down) or the
-// keys, zoomed by the wheel, a pinch or + and -, and its map opened with M.
+// keys, zoomed by the wheel, a pinch or + and -, and its map opened with M. The pilot's hangar comes with it,
+// read back from this browser and kept again shortly after every change, when the page is left and when the
+// dialog closes; opening the hangar (H) pauses a run, and U does whatever the hangar suggests.
 export interface VoyageNames {
   labels: Record<string, string>;
   universes: string[];
@@ -87,6 +91,11 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const [notice, setNotice] = useState<VoyageNotice | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [economy, setEconomy] = useState<EconomyView | null>(null);
+  const [isHangarOpen, setIsHangarOpen] = useState(false);
+  const pilot = useRef<Pilot | null>(null);
+  const scheduleSave = usePilotSync(pilot);
+  const isPausedForHangar = useRef(false);
   const held = useRef(new Set<string>());
   const touches = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef(0);
@@ -95,18 +104,34 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     contextOptions: { alpha: false },
     nearMargin: "0px",
     create: async (context) => {
-      const { VoyageGame: Game } = await import("@/packages/games/voyage");
+      const [{ VoyageGame: Game }, { openPilot }] = await Promise.all([import("@/packages/games/voyage"), import("@/services/voyage/pilot")]);
       const frontContext = front.current?.getContext("2d");
 
       if (!frontContext) {
         throw new Error("The voyage's front canvas is missing");
       }
 
+      const opened = await openPilot();
+
+      pilot.current = opened;
+      opened.hangar.subscribe(scheduleSave);
+
       const voyage = Game.forCanvas(
         { back: context, front: frontContext, lens: lens.current, globe: document.createElement("canvas") },
-        { theme: VOYAGE_THEME, labels, universeNames: universes, syllables, quality: startingQuality(), onChange: setSnapshot, onNotice: setNotice },
+        {
+          theme: VOYAGE_THEME,
+          labels,
+          universeNames: universes,
+          syllables,
+          quality: startingQuality(),
+          hangar: opened.hangar,
+          onChange: setSnapshot,
+          onNotice: setNotice,
+          onEconomy: setEconomy,
+        },
       );
 
+      setEconomy(voyage.economy);
       loadTextures(voyage);
 
       return voyage;
@@ -145,6 +170,28 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
   }, [game, snapshot]);
 
+  const act = useCallback((action: VoyageAction) => game?.act(action) ?? false, [game]);
+
+  const follow = useCallback((suggestion: Suggestion) => game?.follow(suggestion) ?? false, [game]);
+
+  // The hangar holds a run still while it is open, and lets it go on when it closes.
+  const setHangar = useCallback((isOpen: boolean) => {
+    setIsHangarOpen(isOpen);
+
+    if (isOpen && game?.isRunning && isFlying) {
+      isPausedForHangar.current = true;
+      game.pause();
+    } else if (!isOpen && isPausedForHangar.current) {
+      isPausedForHangar.current = false;
+      game?.resume();
+    }
+
+    // Focus comes back to the voyage, which the hangar's keys and the game's both listen on.
+    if (!isOpen) {
+      stage.current?.focus();
+    }
+  }, [game, isFlying, stage]);
+
   const toggleMap = useCallback(() => {
     setIsMapOpen((isOpen) => {
       game?.setMap(!isOpen);
@@ -178,6 +225,16 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
     const key = keyOf(event);
 
+    // The browser's own shortcuts (Ctrl+H, Cmd+U) are left to the browser.
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+      return;
+    }
+
+    // With the hangar open, only its own keys work: the run is held still under it.
+    if (isHangarOpen && key !== "h" && key !== "Escape" && key !== "u") {
+      return;
+    }
+
     if (KEYS[key] && isFlying) {
       event.preventDefault();
       held.current.add(key);
@@ -196,11 +253,21 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     } else if (key === "f" && isFlying) {
       event.preventDefault();
       toggleGuns();
+    } else if (key === "h" && game?.economy) {
+      event.preventDefault();
+      setHangar(!isHangarOpen);
+    } else if (key === "Escape" && isHangarOpen) {
+      // Escape closes the hangar first, and only then the voyage.
+      event.preventDefault();
+      setHangar(false);
+    } else if (key === "u" && economy?.suggestion) {
+      event.preventDefault();
+      follow(economy.suggestion);
     } else if ((key === "+" || key === "=" || key === "-") && game) {
       event.preventDefault();
       game.zoomBy(key === "-" ? 1 / KEY_ZOOM : KEY_ZOOM);
     }
-  }, [applyKeys, game, isFlying, isPaused, pause, resume, snapshot, toggleGuns, toggleMap]);
+  }, [applyKeys, economy, follow, game, isFlying, isHangarOpen, isPaused, pause, resume, setHangar, snapshot, toggleGuns, toggleMap]);
 
   const onKeyUp = useCallback((event: KeyboardEvent<HTMLElement>) => {
     if (held.current.delete(keyOf(event))) {
@@ -283,6 +350,11 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   return {
     snapshot,
     notice,
+    economy,
+    isHangarOpen,
+    setHangar,
+    act,
+    follow,
     isReady: game !== null,
     isPaused,
     isMapOpen,

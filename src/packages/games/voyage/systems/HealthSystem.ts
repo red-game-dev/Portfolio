@@ -1,10 +1,11 @@
 import type { System } from "@/packages/games/engine";
 
 import { VoyageContext } from "./context";
+import { faultSeverity } from "./faults";
 import { shipOf } from "./queries";
 
 // Over time: shields recharge after a pause without hits, only as far and as fast as their generator still
-// allows; and when the hull is gone the ship is destroyed and the run ends.
+// allows, and barely with a faulty emitter; and when the hull is gone the ship is destroyed and the run ends.
 export class HealthSystem implements System<VoyageContext> {
   public readonly name = "health";
 
@@ -22,7 +23,9 @@ export class HealthSystem implements System<VoyageContext> {
     health.rechargeIn = Math.max(0, health.rechargeIn - dt * 1000);
 
     if (health.rechargeIn === 0 && health.shields < ceiling) {
-      health.shields = Math.min(ceiling, health.shields + config.ship.shieldRegen * modules.shields * dt);
+      const emitter = 1 - config.faults.emitter * faultSeverity(state, "emitter");
+
+      health.shields = Math.min(ceiling, health.shields + config.ship.shieldRegen * modules.shields * emitter * dt);
     }
 
     health.shields = Math.min(health.shields, ceiling);

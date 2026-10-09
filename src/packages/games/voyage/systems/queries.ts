@@ -45,11 +45,13 @@ export const isSolar = ({ state }: VoyageContext): boolean => state.phase === "s
 export const viewRadius = ({ state }: VoyageContext): number => Math.hypot(state.view.halfWidth, state.view.halfHeight);
 
 // Takes everything but the ship out of the world, as a black hole does: rocks, pickups, holes, who lived there,
-// shots in flight, rocks headed for worlds and passing ships.
+// shots in flight, rocks headed for worlds, passing ships and wrecks.
 export const clearSpace = ({ world, state }: VoyageContext): void => {
-  [world.stores.hazard, world.stores.pickup, world.stores.hole, world.stores.alien, world.stores.projectile, world.stores.impactor, world.stores.traffic]
+  [world.stores.hazard, world.stores.pickup, world.stores.hole, world.stores.alien, world.stores.projectile, world.stores.impactor, world.stores.traffic,
+    world.stores.wreck]
     .forEach((store) => store.entities.forEach((entity) => world.despawn(entity)));
   state.lockedTarget = null;
   state.capture = null;
+  state.salvage = null;
   state.storms = [];
 };

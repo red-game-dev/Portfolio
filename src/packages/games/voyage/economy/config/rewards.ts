@@ -1,0 +1,34 @@
+import { Purse } from "../domain/economy";
+
+const purse = (RED: number, VOID = 0): Purse => ({ RED, VOID });
+
+export interface Rewards {
+  discovery: Purse;
+  landing: Purse;
+  rescue: Purse;
+  deflection: Purse;
+  boss: Purse;
+  universe: Purse;
+  bountyPerLevel: number;
+  pointsPerCoin: number;
+  knownBlueprint: Purse;
+}
+
+// What each deed pays: a new place reached, a first landing, a world saved by breaking or turning a rock, a boss
+// brought down, a universe reached through a black hole (and a Void Shard torn from it); a bounty per level of
+// the hostile downed; Red Coin for every so many points at the end of a run, which counts every rock and pickup;
+// and for a plan found that was already known.
+export const REWARDS: Rewards = {
+  discovery: purse(15),
+  landing: purse(25),
+  rescue: purse(60),
+  deflection: purse(80),
+  boss: purse(250, 3),
+  universe: purse(100, 1),
+  bountyPerLevel: 6,
+  pointsPerCoin: 40,
+  knownBlueprint: purse(20),
+};
+
+// The rate Void Shards are bought and sold at, in Red Coin.
+export const VOID_PRICE: { buy: number; sell: number } = { buy: 400, sell: 150 };

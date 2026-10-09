@@ -6,6 +6,7 @@ import { VoyageConfig } from "../config";
 import { VoyageWorld } from "../core/world";
 import { VoyageEvents } from "../domain/events";
 import { VoyageInput } from "../domain/input";
+import { LootTable } from "../domain/loot";
 import { VoyageState } from "../domain/state";
 import { UniverseGenerator, UniverseTheme } from "../generators/UniverseGenerator";
 
@@ -26,4 +27,6 @@ export interface VoyageContext {
   // Makes each universe the ship reaches, the first ones in the site's zones' looks.
   universes: UniverseGenerator;
   themes: UniverseTheme[];
+  // What wrecks, rocks and the fallen hold.
+  loot: LootTable;
 }

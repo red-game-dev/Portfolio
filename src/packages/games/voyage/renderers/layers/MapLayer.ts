@@ -270,6 +270,15 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
       }
     });
 
+    // Wrecks: gold while they still hold something, grey once stripped.
+    world.stores.wreck.entities.forEach((entity, index) => {
+      const at = world.stores.body.get(entity);
+
+      if (at) {
+        plot(at.x, at.y, 1.8, world.stores.wreck.values[index].isEmpty ? "#5a6070" : "#ffd76a");
+      }
+    });
+
     context.restore();
 
     if (inSystem && state.system.star.luminosity > 0) {

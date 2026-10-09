@@ -56,7 +56,8 @@ export const Hud = styled.header(() => [
 
 export const Vitals = tw.div`flex flex-col gap-[6px] min-w-0`;
 
-export const Place = tw.p`m-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`;
+// Two lines tall on a phone whatever it says, so the bars below always clear the readout row beside it.
+export const Place = tw.p`m-0 min-h-[40px] md:min-h-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`;
 
 export const Bars = tw.dl`m-0 flex flex-col gap-[4px] w-[150px] md:w-[210px]`;
 

@@ -31,6 +31,22 @@ export const moduleAt = (angle: number): ModuleId => {
   return angle > 0 ? "fuel" : "shields";
 };
 
+// A slow loss of hull with no single place it comes from, such as air venting through a breach: no mark and no
+// hit to announce, and in the warm up the same floor as any other harm.
+export const bleedHull = (context: VoyageContext, amount: number): void => {
+  const parts = shipOf(context);
+  const { state, config } = context;
+
+  if (!parts || amount <= 0 || state.status !== "flying") {
+    return;
+  }
+
+  const { health } = parts;
+  const floor = config.isSolarSafe && state.phase !== "universe" ? health.maxHull * SAFE_FLOOR : 0;
+
+  health.hull = Math.max(Math.min(health.hull, floor), health.hull - amount);
+};
+
 // Every kind of damage goes through here: shields take it first, the hull takes what is left, the hull is
 // marked where it was hit (in the ship's own frame, so the mark turns with it), and a strike wears the system
 // under it. Marks grow worse as the hull fails; past a limit a new hit deepens the nearest old one instead. In

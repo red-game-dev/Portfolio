@@ -2,6 +2,7 @@ import type { Entity } from "@/packages/games/engine";
 
 import { Body, Weapon } from "../domain/components";
 import { VoyageContext } from "./context";
+import { leaveWreck } from "./salvage";
 
 // How large a shot is, and how long past its range it may fly.
 const SHOT_RADIUS = 0.025;
@@ -70,7 +71,8 @@ export const fire = (context: VoyageContext, shooter: Entity, weapon: Weapon, dx
 };
 
 // Damage to someone who lives here: shields first, then hull. It raises their threat towards the player, and a
-// pack fights together: everyone of the same faction near them is roused too. A peaceful one only flees.
+// pack fights together: everyone of the same faction near them is roused too. A peaceful one only flees. The
+// fallen leave their hulk drifting, with whatever they carried.
 export const damageAlien = (context: VoyageContext, entity: Entity, amount: number): void => {
   const { world, state, events, config } = context;
   const alien = world.stores.alien.get(entity);
@@ -103,7 +105,17 @@ export const damageAlien = (context: VoyageContext, entity: Entity, amount: numb
   }
 
   if (health.hull <= 0) {
-    events.emit("downed", { x: body.x, y: body.y, role: alien.role, faction: alien.faction });
+    events.emit("downed", { x: body.x, y: body.y, role: alien.role, faction: alien.faction, level: alien.level });
+    leaveWreck(context, "alien", {
+      x: body.x,
+      y: body.y,
+      vx: body.vx * 0.4,
+      vy: body.vy * 0.4,
+      radius: body.radius,
+      faction: alien.faction,
+      level: alien.level,
+      isBoss: alien.role === "boss",
+    });
 
     if (alien.role === "boss") {
       state.bossFallen = true;

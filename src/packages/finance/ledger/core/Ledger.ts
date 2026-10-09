@@ -63,6 +63,11 @@ export class Ledger {
     return transaction;
   }
 
+  // Writes postings as a transaction of their own, given its id.
+  public record(memo: string, postings: Posting[], at = Date.now()): Transaction {
+    return this.post({ id: this.nextId(at), at, memo, postings });
+  }
+
   // Moves `amount` minor units of a currency from one account to another: a debit to `to`, a credit to `from`.
   public transfer(from: string, to: string, currency: string, amount: number, memo: string, at = Date.now()): Transaction {
     return this.post({ id: this.nextId(at), at, memo, postings: [{ account: to, currency, amount }, { account: from, currency, amount: -amount }] });
@@ -94,6 +99,32 @@ export class Ledger {
   // Every transaction, or those touching one account, newest last.
   public history(account?: string): readonly Transaction[] {
     return account ? this.journal.filter((transaction) => transaction.postings.some((posting) => posting.account === account)) : this.journal;
+  }
+
+  // The same ledger with all but its last `keep` transactions closed into one opening entry that carries every
+  // account's balance forward, as books are closed at a year's end: every balance is unchanged, and the journal
+  // stops growing without bound.
+  public compacted(keep: number, memo = "Opening balances"): Ledger {
+    const cut = this.journal.length - keep;
+
+    if (cut <= 1) {
+      return Ledger.from(this.toSnapshot());
+    }
+
+    const carried = new Map<string, Posting>();
+
+    this.journal.slice(0, cut).forEach((transaction) => transaction.postings.forEach(({ account, currency, amount }) => {
+      const key = `${account}|${currency}`;
+      const posting = carried.get(key) ?? { account, currency, amount: 0 };
+
+      posting.amount += amount;
+      carried.set(key, posting);
+    }));
+
+    const at = this.journal[cut - 1].at;
+    const opening: Transaction = { id: `open-${at.toString(36)}`, at, memo, postings: [...carried.values()].filter((posting) => posting.amount !== 0) };
+
+    return Ledger.from({ ...this.toSnapshot(), journal: opening.postings.length > 0 ? [opening, ...this.journal.slice(cut)] : this.journal.slice(cut) });
   }
 
   public toSnapshot(): LedgerSnapshot {

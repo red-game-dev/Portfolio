@@ -82,6 +82,69 @@ export interface FinaleLaunch {
 }
 
 // The voyage past orbit: out of the solar system, through a black hole, and from universe to universe.
+type HullTierKey = "rocket" | "shuttle" | "corvette" | "starship" | "intergalactic";
+type FaultKey = "misfire" | "fuelLeak" | "coolantLeak" | "glitch" | "emitter" | "breach";
+type CurrencyKey = "RED" | "VOID";
+
+// The hangar: the ship's hull and mark, the hold, the money as a ledger, the plans found, the faults on board and
+// what is salvaged. Templates replace "{name}" placeholders.
+export interface VoyageEconomyCopy {
+  hangar: string;
+  openHangar: string;
+  closeHangar: string;
+  // Where progress is kept: in the browser only.
+  privacy: string;
+  tabs: { ship: string; hold: string; plans: string; ledger: string };
+  // "{tier}" and "{mark}" are replaced; marks are I to V.
+  shipName: string;
+  marks: string[];
+  tiers: Record<HullTierKey, string>;
+  tierNotes: Record<HullTierKey, string>;
+  currencies: Record<CurrencyKey, string>;
+  symbols: Record<CurrencyKey, string>;
+  stats: { hull: string; shields: string; fuel: string; thrust: string; cargo: string; plating: string; pressure: string; guns: string; weapon: string };
+  weapons: { cannon: string; laser: string };
+  // "{value}" is replaced.
+  units: { celsius: string; bar: string; times: string };
+  // "{ship}" is replaced.
+  next: string;
+  top: string;
+  needs: string;
+  // "{have}" and "{need}" are replaced.
+  have: string;
+  blueprint: string;
+  upgrade: string;
+  // "{used}" and "{capacity}" are replaced.
+  hold: string;
+  emptyHold: string;
+  use: string;
+  // "{value}" is replaced.
+  recycle: string;
+  rarities: Record<"common" | "uncommon" | "rare" | "epic" | "legendary", string>;
+  items: Record<string, { name: string; note: string }>;
+  plans: { make: string; locked: string; hullPlans: string };
+  // A ledger entry's wording by its kind, "{detail}" replaced; and what the balance row says.
+  ledger: { balance: string; empty: string; memos: Record<string, string> };
+  // "{price}" is replaced.
+  trade: { sell: string; buy: string };
+  faults: { title: string; names: Record<FaultKey, string>; notices: Record<FaultKey, string>; fix: string; noParts: string; fixed: string };
+  salvage: {
+    wrecks: Record<"probe" | "rocket" | "starship" | "alien" | "ore" | "ice", string>;
+    progress: string;
+    found: string;
+    nothing: string;
+    holdFull: string;
+    blueprint: string;
+  };
+  // "{action}" is replaced with what the one click does.
+  suggestion: { title: string; hint: string; upgrade: string; repair: string; craftFault: string; craftUpgrade: string; use: Record<"hull" | "fuel" | "shields" | "heat", string> };
+  // "{red}" and "{void}" are replaced.
+  earned: Record<"boss" | "universe" | "rescue", string>;
+  upgraded: string;
+  records: { title: string; runs: string; best: string; universes: string; bosses: string; rescues: string; salvaged: string };
+  reset: { button: string; confirm: string; yes: string; no: string };
+}
+
 export interface FinaleVoyage {
   title: string;
   intro: string;
@@ -210,6 +273,9 @@ export interface FinaleVoyage {
   // "{score}" is replaced.
   finalScore: string;
   newBest: string;
+  // "{coin}" is replaced with the Red Coin a run's points paid.
+  pay: string;
+  economy: VoyageEconomyCopy;
 }
 
 export interface FinaleContent {

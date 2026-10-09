@@ -18,6 +18,18 @@ export { missionTime, placeBodies } from "./systems/orbits";
 export { auForRadius, radiusForAu } from "./utils/scale";
 export { SolarSystemValidator } from "./validators/SolarSystemValidator";
 export { CanvasVoyageRenderer } from "./renderers/CanvasVoyageRenderer";
+export { FAULT_KINDS, FAULT_MODULE } from "./domain/faults";
+export { BLUEPRINT_DROPS, ITEMS } from "./economy/config/catalog";
+export { FAULT_FIXES, RECIPES, recipeBlueprint } from "./economy/config/recipes";
+export { REWARDS, VOID_PRICE } from "./economy/config/rewards";
+export { cargoFor, configForLevel, levelOf, markOf, MARKS, MAX_LEVEL, TIER_SPECS, TIERS, tierOf } from "./economy/config/tiers";
+export { TIER_MATERIALS, upgradeCost } from "./economy/config/upgrades";
+export { Backpack } from "./economy/core/Backpack";
+export { CatalogLootTable } from "./economy/core/CatalogLootTable";
+export { Wallet } from "./economy/core/Wallet";
+export { isPilotProfile } from "./economy/guards/isPilotProfile";
+export { Hangar, newProfile } from "./economy/services/Hangar";
+export { PilotRepository } from "./economy/services/PilotRepository";
 export type {
   ClockConfig,
   FlightConfig,
@@ -31,11 +43,32 @@ export type {
   VoyageUniverseTheme,
   WeatherConfig,
 } from "./config";
-export type { VoyageCanvases, VoyageCanvasOptions, VoyageNotice, VoyageOptions } from "./core/VoyageGame";
+export type { VoyageAction, VoyageCanvases, VoyageCanvasOptions, VoyageNotice, VoyageOptions } from "./core/VoyageGame";
 export type { VoyageStores, VoyageWorld } from "./core/world";
 export type { VoyageRenderer } from "./renderers/CanvasVoyageRenderer";
 export type { VoyageFrame } from "./renderers/frame";
-export type { Body, Decal, Health, Hazard, Hole, ModuleId, Modules, Pickup, PickupKind, Ship, Spin } from "./domain/components";
+export type { Body, Decal, Health, Hazard, Hole, ModuleId, Modules, Pickup, PickupKind, Ship, Spin, Wreck, WreckKind } from "./domain/components";
+export type { Fault, FaultKind, ShipEffect } from "./domain/faults";
+export type { ItemStack, Loot, LootSituation, LootSource, LootTable } from "./domain/loot";
+export type {
+  CargoRow,
+  Cost,
+  CurrencyCode,
+  Deed,
+  EconomyView,
+  HistoryRow,
+  HullTier,
+  Purse,
+  Recipe,
+  ShipStats,
+  ShipStatus,
+  Shortfall,
+  Stowed,
+  Suggestion,
+} from "./economy/domain/economy";
+export type { ItemKind, ItemSpec, ItemUse, Rarity } from "./economy/domain/items";
+export type { PilotProfile, PilotRecords } from "./economy/domain/profile";
+export type { TierSpec } from "./economy/config/tiers";
 export type {
   AirData,
   AirModel,

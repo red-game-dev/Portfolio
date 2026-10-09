@@ -22,7 +22,12 @@ describe("browser/store", () => {
   });
 
   test("picks IndexedDB for lasting data where it can, localStorage for small, and memory when neither works", async () => {
-    const broken: Storage = { ...window.localStorage, setItem: () => { throw new Error("blocked"); } };
+    const broken: Storage = {
+      ...window.localStorage,
+      setItem: () => {
+        throw new Error("blocked");
+      },
+    };
 
     expect((await createStore("t", { size: "large", isDurable: true }, { localStorage: window.localStorage })).kind).toBe("localStorage");
     expect((await createStore("t", { size: "small", isDurable: false }, { localStorage: window.localStorage })).kind).toBe("localStorage");

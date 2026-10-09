@@ -3,6 +3,7 @@ import type { Entity, System } from "@/packages/games/engine";
 import { Body } from "../domain/components";
 import { fire, leadDirection } from "./combat";
 import { VoyageContext } from "./context";
+import { faultSeverity } from "./faults";
 import { shipOf } from "./queries";
 
 // How hard a missile turns towards what it hunts (radians a second).
@@ -13,7 +14,7 @@ const SHOT_NOISE = 0.35;
 // Guns and what they fire. Every gun cools down; shots run out of range; missiles turn after their quarry. The
 // ship's gun aims itself, leading its target: what the player locked onto first, then anyone coming for the
 // ship, then rocks headed for a world, then a rock about to hit the ship. It never fires on the peaceful or the
-// neutral unless told to. Every shot warms the hull and is heard.
+// neutral unless told to. Glitching sensors throw its aim wide. Every shot warms the hull and is heard.
 export class WeaponSystem implements System<VoyageContext> {
   public readonly name = "weapons";
 
@@ -48,7 +49,11 @@ export class WeaponSystem implements System<VoyageContext> {
     const aim = at ? leadDirection(parts.body, at, weapon.speed) : null;
 
     if (target !== null && aim) {
-      fire(context, state.ship, weapon, aim.x, aim.y, "ship", target);
+      // Glitching sensors throw the aim off.
+      const wide = (context.random() - 0.5) * 2 * context.config.faults.aim * faultSeverity(state, "glitch");
+      const angle = Math.atan2(aim.y, aim.x) + wide;
+
+      fire(context, state.ship, weapon, Math.cos(angle), Math.sin(angle), "ship", target);
       parts.ship.temperatureC += weapon.heat;
       state.signature += SHOT_NOISE;
     }

@@ -5,13 +5,19 @@ import { CanvasGlobeRenderer, GlobeRenderer, WebGLGlobeRenderer } from "@/packag
 import { LensingPresenter } from "@/packages/graphics/webgl";
 import { RandomSource } from "@/packages/math/random";
 
-import { DEFAULT_VOYAGE_THEME, resolveVoyageConfig, VoyageConfigOverrides, VoyageTheme } from "../config";
-import { ModuleId } from "../domain/components";
+import { DEFAULT_VOYAGE_THEME, resolveVoyageConfig, VoyageConfig, VoyageConfigOverrides, VoyageTheme } from "../config";
+import { ModuleId, WreckKind } from "../domain/components";
 import { StarSystem } from "../domain/content";
 import { FlareClass, ImpactOutcome, VoyageEvents } from "../domain/events";
+import { FaultKind, ShipEffect } from "../domain/faults";
 import { VoyageInput } from "../domain/input";
+import { ItemStack } from "../domain/loot";
 import { VoyageSnapshot } from "../domain/snapshot";
 import { UniverseNames } from "../domain/universe";
+import { configForLevel, markOf, tierOf } from "../economy/config/tiers";
+import { CatalogLootTable } from "../economy/core/CatalogLootTable";
+import { Deed, EconomyView, HullTier, Purse, ShipStatus, Suggestion } from "../economy/domain/economy";
+import { Hangar } from "../economy/services/Hangar";
 import { CanvasVoyageRenderer, VoyageRenderer } from "../renderers/CanvasVoyageRenderer";
 import { universeOf } from "../renderers/frame";
 import { SystemService } from "../services/SystemService";
@@ -33,7 +39,22 @@ export type VoyageNotice =
   | { kind: "boss"; name: string; isFallen: boolean }
   | { kind: "heard" | "wormhole" }
   | { kind: "supernova"; seconds: number; isBlown: boolean }
-  | { kind: "burst"; seconds: number; isFired: boolean };
+  | { kind: "burst"; seconds: number; isFired: boolean }
+  | { kind: "salvaged"; wreck: WreckKind; kept: ItemStack[]; lost: ItemStack[]; blueprints: string[] }
+  | { kind: "fault" | "fixed"; fault: FaultKind }
+  | { kind: "upgraded"; level: number; tier: HullTier; mark: number }
+  | { kind: "earned"; deed: Deed["kind"]; amounts: Purse }
+  | { kind: "paid"; coin: number };
+
+// What the pilot can ask of the hangar from the UI, each in one click.
+export type VoyageAction =
+  | { kind: "upgrade" }
+  | { kind: "craft"; recipe: string }
+  | { kind: "recycle"; item: string; count: number }
+  | { kind: "use"; item: string }
+  | { kind: "repair"; fault: number }
+  | { kind: "trade"; direction: "sell" | "buy" }
+  | { kind: "reset" };
 
 export interface VoyageOptions {
   config?: VoyageConfigOverrides;
@@ -49,6 +70,10 @@ export interface VoyageOptions {
   syllables?: UniverseNames;
   onChange?: (snapshot: VoyageSnapshot) => void;
   onNotice?: (notice: VoyageNotice) => void;
+  // The pilot's hangar, kept between runs: their ship's level, hold and money. Left out, there is no economy and
+  // wrecks hold nothing.
+  hangar?: Hangar;
+  onEconomy?: (view: EconomyView) => void;
 }
 
 export interface VoyageCanvases {
@@ -80,9 +105,12 @@ const ATTACK_REACH = 7;
 const ATTACK_MARGIN = 0.9;
 // How far the player can zoom out and in, against the camera's own choice.
 const ZOOM_RANGE: [number, number] = [0.3, 3];
+// Deeds big enough to announce what they paid.
+const ANNOUNCED: ReadonlyArray<Deed["kind"]> = ["boss", "universe", "rescue"];
 
 const isSameMoment = (a: VoyageSnapshot, b: VoyageSnapshot) => a.status === b.status && a.phase === b.phase && a.universe === b.universe &&
-  a.universes === b.universes && a.passing === b.passing && a.landedOn === b.landedOn && a.waypoint?.id === b.waypoint?.id;
+  a.universes === b.universes && a.passing === b.passing && a.landedOn === b.landedOn && a.waypoint?.id === b.waypoint?.id && a.level === b.level &&
+  a.faults.length === b.faults.length && (a.salvage === null) === (b.salvage === null);
 
 // Hosts a voyage on the shared frame loop: steps the simulation in fixed steps, flies the camera after the ship,
 // turns pointer and keys into intent, draws through the renderer and the GPU lens, and tells the UI only what
@@ -106,6 +134,12 @@ export class VoyageGame extends FrameLoop {
   private lastFrameAt = 0;
   private overSince: number | null = null;
   private size = { width: 0, height: 0 };
+  private readonly hangar: Hangar | null;
+  private readonly baseConfig: VoyageConfig;
+  private readonly onEconomy: (view: EconomyView) => void;
+  private landed = new Set<string>();
+  private isRunPaid = false;
+  private suggestionKey = "";
 
   constructor(simulation: VoyageSimulation, renderer: VoyageRenderer, presenter: LensingPresenter | null, backCanvas: TexImageSource | null, theme: VoyageTheme,
     options: VoyageOptions = {}) {
@@ -118,12 +152,25 @@ export class VoyageGame extends FrameLoop {
     this.onChange = options.onChange ?? (() => undefined);
     this.onNotice = options.onNotice ?? (() => undefined);
     this.now = options.now ?? (() => Date.now());
+    this.hangar = options.hangar ?? null;
+    this.baseConfig = simulation.config;
+    this.onEconomy = options.onEconomy ?? (() => undefined);
+
+    if (this.hangar) {
+      simulation.refit(configForLevel(this.baseConfig, this.hangar.level), this.hangar.level);
+    }
+
     this.lastSnapshot = simulation.snapshot;
     this.detach = this.listen(simulation.events);
   }
 
   public get snapshot(): VoyageSnapshot {
     return this.lastSnapshot;
+  }
+
+  // The economy as the UI shows it, with the one thing most worth doing now; null with no hangar.
+  public get economy(): EconomyView | null {
+    return this.hangar?.view(this.shipStatus()) ?? null;
   }
 
   public static forCanvas({ back, front, lens, globe }: VoyageCanvases, options: VoyageCanvasOptions = {}): VoyageGame {
@@ -136,6 +183,7 @@ export class VoyageGame extends FrameLoop {
       epochMs: (options.now ?? Date.now)(),
       names: options.syllables,
       themes: theme.universes.map((universe, index) => ({ ...universe, name: options.universeNames?.[index] ?? universe.style })),
+      loot: options.hangar ? new CatalogLootTable() : undefined,
     });
     const presenter = lens ? LensingPresenter.create(lens) : null;
     const globes: GlobeRenderer = (globe ? WebGLGlobeRenderer.create(globe) : null) ?? new CanvasGlobeRenderer();
@@ -177,6 +225,8 @@ export class VoyageGame extends FrameLoop {
   }
 
   public play(): void {
+    this.landed = new Set();
+    this.isRunPaid = false;
     this.simulation.start(this.now());
     this.zoomBias = 1;
     this.renderer.reset();
@@ -213,6 +263,74 @@ export class VoyageGame extends FrameLoop {
   public dispose(): void {
     this.stop();
     this.detach();
+  }
+
+  // Does what the pilot asked of the hangar; whatever it does to the ship is applied to the run. Returns whether
+  // it was done.
+  public act(action: VoyageAction): boolean {
+    const { hangar, simulation } = this;
+    const isFlying = simulation.state.status === "flying";
+
+    if (!hangar) {
+      return false;
+    }
+
+    switch (action.kind) {
+      case "upgrade": {
+        const level = hangar.upgrade();
+
+        if (level === null) {
+          return false;
+        }
+
+        simulation.refit(configForLevel(this.baseConfig, level), level);
+        this.onNotice({ kind: "upgraded", level, tier: tierOf(level), mark: markOf(level) });
+        this.redraw();
+
+        return true;
+      }
+      case "craft":
+        return hangar.craft(action.recipe);
+      case "recycle":
+        return hangar.recycle(action.item, action.count) > 0;
+      case "trade":
+        return hangar.trade(action.direction);
+      case "use":
+        return isFlying && this.applyEffects(hangar.use(action.item));
+      case "repair": {
+        const fault = simulation.state.faults.find((entry) => entry.id === action.fault);
+
+        return isFlying && fault !== undefined && this.applyEffects(hangar.repair(fault));
+      }
+      case "reset":
+        if (isFlying) {
+          return false;
+        }
+
+        hangar.reset();
+        simulation.refit(configForLevel(this.baseConfig, hangar.level), hangar.level);
+        this.redraw();
+
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  // Does the one thing the hangar suggests.
+  public follow(suggestion: Suggestion): boolean {
+    switch (suggestion.kind) {
+      case "upgrade":
+        return this.act({ kind: "upgrade" });
+      case "repair":
+        return this.act({ kind: "repair", fault: suggestion.fault });
+      case "craft":
+        return this.act({ kind: "craft", recipe: suggestion.recipe });
+      case "use":
+        return this.act({ kind: "use", item: suggestion.item });
+      default:
+        return false;
+    }
   }
 
   // Locks the guns on whoever, or whatever rock, is under a point on the screen (CSS pixels); a point on
@@ -264,6 +382,45 @@ export class VoyageGame extends FrameLoop {
     if (this.overFor(now) > WRECK_MS && state.status === "over") {
       this.stop();
     }
+  }
+
+  private applyEffects(effects: ShipEffect[] | null): boolean {
+    if (!effects) {
+      return false;
+    }
+
+    this.simulation.apply(effects);
+    this.publish(true);
+
+    return true;
+  }
+
+  private redraw(): void {
+    this.publish(true);
+
+    if (!this.isRunning) {
+      this.drawFrame(performance.now(), 0);
+    }
+  }
+
+  // What the hangar needs of the ship to suggest the next thing to do.
+  private shipStatus(): ShipStatus | null {
+    const { state, world, config } = this.simulation;
+    const ship = world.stores.ship.get(state.ship);
+    const health = world.stores.health.get(state.ship);
+
+    if (!ship || !health) {
+      return null;
+    }
+
+    return {
+      isFlying: state.status === "flying",
+      faults: state.faults.map(({ id, kind }) => ({ id, kind })),
+      hull: health.maxHull > 0 ? health.hull / health.maxHull : 1,
+      fuel: ship.maxFuel > 0 ? ship.fuel / ship.maxFuel : 1,
+      shields: health.maxShields > 0 ? health.shields / health.maxShields : 1,
+      heat: ship.temperatureC / config.thermal.ratings.hull,
+    };
   }
 
   // How far the nearest one coming for the ship is, within reach of a fight; null when none is.
@@ -426,12 +583,80 @@ export class VoyageGame extends FrameLoop {
       tell("wormhole", () => ({ kind: "wormhole" })),
       tell("supernova", ({ seconds, isBlown }) => ({ kind: "supernova", seconds, isBlown })),
       tell("burst", ({ seconds, isFired }) => ({ kind: "burst", seconds, isFired })),
+      tell("fault", ({ kind }) => ({ kind: "fault", fault: kind })),
+      tell("fixed", ({ kind }) => ({ kind: "fixed", fault: kind })),
+      ...this.listenForEconomy(events),
     ];
 
     return () => {
       detachRenderer();
       offs.forEach((off) => off());
     };
+  }
+
+  // Pays the hangar for deeds and stows what is salvaged, announcing the larger sums and every find.
+  private listenForEconomy(events: VoyageSimulation["events"]): Array<() => void> {
+    const { hangar } = this;
+
+    if (!hangar) {
+      return [];
+    }
+
+    const pay = (deed: Deed) => {
+      const amounts = hangar.reward(deed);
+
+      if (ANNOUNCED.includes(deed.kind)) {
+        this.onNotice({ kind: "earned", deed: deed.kind, amounts });
+      }
+    };
+
+    return [
+      events.on("passing", ({ stop }) => pay({ kind: "discovery", place: this.nameOf(stop) })),
+      events.on("landed", ({ body }) => {
+        if (!this.landed.has(body)) {
+          this.landed.add(body);
+          pay({ kind: "landing", place: this.nameOf(body) });
+        }
+      }),
+      events.on("downed", ({ role, level }) => {
+        if (role === "fighter") {
+          pay({ kind: "bounty", level });
+        }
+      }),
+      events.on("boss", ({ name, isFallen }) => {
+        if (isFallen) {
+          pay({ kind: "boss", name });
+        }
+      }),
+      events.on("impactorBroken", ({ target }) => pay({ kind: "rescue", target, isDeflected: false })),
+      events.on("deflected", ({ target }) => pay({ kind: "rescue", target, isDeflected: true })),
+      events.on("phase", ({ phase, universe }) => {
+        if (phase === "universe") {
+          pay({ kind: "universe", index: universe });
+        }
+      }),
+      events.on("salvaged", ({ kind, loot }) => {
+        const { kept, lost, blueprints } = hangar.stow(loot);
+
+        this.onNotice({ kind: "salvaged", wreck: kind, kept, lost, blueprints });
+      }),
+      hangar.subscribe(() => this.publishEconomy(true)),
+    ];
+  }
+
+  // The economy reaches the UI when it changes, and when the thing most worth doing does.
+  private publishEconomy(force: boolean): void {
+    if (!this.hangar) {
+      return;
+    }
+
+    const status = this.shipStatus();
+    const key = JSON.stringify(this.hangar.suggest(status));
+
+    if (force || key !== this.suggestionKey) {
+      this.suggestionKey = key;
+      this.onEconomy(this.hangar.view(status));
+    }
   }
 
   private publish(force: boolean, now = 0): void {
@@ -442,6 +667,16 @@ export class VoyageGame extends FrameLoop {
       this.lastSnapshot = next;
       this.lastTickAt = now;
       this.onChange(next);
+      this.settleRun(next);
+      this.publishEconomy(force);
+    }
+  }
+
+  // A run that has ended is paid for its points, once.
+  private settleRun(snapshot: VoyageSnapshot): void {
+    if (snapshot.status === "over" && !this.isRunPaid && this.hangar) {
+      this.isRunPaid = true;
+      this.onNotice({ kind: "paid", coin: this.hangar.endRun(snapshot.score) });
     }
   }
 }

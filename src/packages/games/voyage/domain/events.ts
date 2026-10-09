@@ -1,6 +1,8 @@
-import { AlienRole, ModuleId, PickupKind, Weapon } from "./components";
+import { AlienRole, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
+import { FaultKind } from "./faults";
+import { Loot } from "./loot";
 
-export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "tidal";
+export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "tidal" | "breach";
 
 // What became of a world an impact struck: a crater, a burst high in its air, a scar that melted half a
 // hemisphere, or the world broken apart.
@@ -35,7 +37,7 @@ export interface VoyageEvents {
   fired: { x: number; y: number; angle: number; kind: Weapon["kind"]; team: "ship" | "aliens" };
   // Someone who lives here was struck, or destroyed; the boss shows itself, or falls.
   struck: { x: number; y: number; toShields: number };
-  downed: { x: number; y: number; role: AlienRole; faction: number };
+  downed: { x: number; y: number; role: AlienRole; faction: number; level: number };
   boss: { name: string; isFallen: boolean };
   // A drifting rock shot to pieces.
   shattered: { x: number; y: number; radius: number };
@@ -52,4 +54,8 @@ export interface VoyageEvents {
   supernova: { seconds: number; isBlown: boolean };
   burst: { seconds: number; isFired: boolean };
   wormhole: { x: number; y: number };
+  // A wreck stripped of what it held (perhaps nothing), something on board breaking down, and a fault fixed.
+  salvaged: { x: number; y: number; kind: WreckKind; loot: Loot };
+  fault: { kind: FaultKind; module: ModuleId };
+  fixed: { kind: FaultKind };
 }

@@ -388,8 +388,15 @@ describe("strange things", () => {
 
     const hull = ship.health.hull;
 
-    // The shock spreads at 3 world units a second; the star is about 40 away.
-    simulation.step(500 + (Math.hypot(6, 40) / 3) * 1000 + 500);
+    // The shock spreads at 3 world units a second; the star is about 40 away. The ship is held where it is, so
+    // nothing it drifts into decides the test.
+    const { x, y } = ship.body;
+
+    for (let elapsed = 0; elapsed < 500 + (Math.hypot(6, 40) / 3) * 1000 + 1500; elapsed += 100) {
+      Object.assign(ship.body, { x, y, prevX: x, prevY: y, vx: 0, vy: 0 });
+      simulation.step(100);
+    }
+
     expect(novas).toEqual([false, true]);
     expect(ship.health.hull).toBeLessThan(hull);
   });

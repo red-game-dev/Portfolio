@@ -228,3 +228,63 @@ export const Score = tw.p`m-0 text-3xl font-bold text-[#c4d2ff] tabular-nums`;
 export const Badge = tw.p`m-0 self-start px-[10px] py-[4px] text-xs font-semibold text-[#101010] bg-[#ffc45c]`;
 
 export const Buttons = tw.div`flex flex-row flex-wrap gap-[10px] mt-[6px]`;
+
+// The ship's hull and mark, under where it is.
+export const ShipLine = tw.p`m-0 text-[11px] md:text-xs text-[#9aa3bb]`;
+
+// Red Coin gold, Void Shards violet.
+export const Coin = styled.dd(({ isShards = false }: { isShards?: boolean }) => [
+  tw`m-0 font-semibold`,
+  isShards ? tw`text-[#c58bff]` : tw`text-[#ffd76a]`,
+]);
+
+// Faults on board, each with its fix; the buttons take clicks through the HUD.
+export const FaultList = tw.ul`m-0 mt-[4px] p-0 list-none flex flex-col gap-[4px] w-[170px] md:w-[230px] pointer-events-auto`;
+
+export const FaultRow = styled.li(() => [
+  tw`flex flex-row items-center justify-between gap-[8px] px-[6px] py-[4px] text-[11px] md:text-xs font-semibold text-[#ffd0d4]`,
+  css`
+    background: rgba(40, 6, 10, 0.7);
+    border: 1px solid rgba(255, 77, 94, 0.5);
+  `,
+]);
+
+export const FixButton = styled.button(() => [
+  tw`px-[8px] py-[3px] text-[11px] font-semibold cursor-pointer text-[#101010] bg-[#ffd76a] border-0`,
+  css`
+    &:disabled {
+      cursor: not-allowed;
+      color: #c9cfdf;
+      background: transparent;
+      border: 1px solid #3a4566;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #c4d2ff;
+      outline-offset: 2px;
+    }
+  `,
+]);
+
+// The one thing ready to do, in one click.
+export const ReadyButton = styled.button(() => [
+  tw`flex flex-row items-center justify-center gap-[8px] px-[12px] py-[8px] text-xs md:text-sm font-semibold cursor-pointer text-[#101010] bg-[#7dffcf] border-0
+     pointer-events-auto`,
+  css`
+    box-shadow: 0 0 0 1px rgba(125, 255, 207, 0.4), 0 0 18px rgba(125, 255, 207, 0.35);
+
+    &:focus-visible {
+      outline: 2px solid #ffffff;
+      outline-offset: 2px;
+    }
+  `,
+]);
+
+export const Salvage = styled.section(() => [
+  tw`flex flex-col gap-[4px] p-[6px] text-[11px] md:text-xs font-semibold text-[#c9fff0] bg-[rgba(4,26,22,0.75)]`,
+  css`
+    border: 1px solid rgba(125, 255, 207, 0.5);
+  `,
+]);
+
+export const Pay = tw.p`m-0 text-sm md:text-base font-semibold text-[#ffd76a] tabular-nums`;

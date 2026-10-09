@@ -1,5 +1,6 @@
-import { AlienRole, Modules } from "./components";
+import { AlienRole, Modules, WreckKind } from "./components";
 import { VoyagePhase } from "./events";
+import { FaultKind } from "./faults";
 import { VoyageStatus } from "./state";
 import { Disposition } from "./universe";
 
@@ -75,5 +76,9 @@ export interface VoyageSnapshot {
   boss: Frame | null;
   autoFire: boolean;
   incoming: IncomingRock | null;
+  // The ship's level; the faults on board, oldest first; the wreck being salvaged and how far (0 to 1).
+  level: number;
+  faults: Array<{ id: number; kind: FaultKind }>;
+  salvage: { kind: WreckKind; progress: number } | null;
   telemetry: Telemetry;
 }

@@ -2,10 +2,15 @@ import type { RenderLayer } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 
 import { Decal } from "../../domain/components";
+import { markOf, tierOf } from "../../economy/config/tiers";
 import { lerpX, lerpY, sizeBucket, VoyageFrame } from "../frame";
 import { paintBreach, paintDent, paintScorch, paintShieldRing, tintRed } from "../paint/damage";
-import { paintFlame, paintGlow, paintShip, SHIP_HEIGHT, SHIP_WIDTH } from "../paint/space";
+import { ION_TIERS, NOZZLES, paintHull } from "../paint/ships";
+import { paintFlame, paintGlow, SHIP_HEIGHT, SHIP_WIDTH } from "../paint/space";
 import { RenderKit } from "./kit";
+
+// The blue white of an ion drive, for the great ships.
+const ION = { core: "#eef8ff", edge: "#5fb8ff" };
 
 // Where on the hull a mark at `angle` sits, in the ship's own frame (nose up), as shares of its radius.
 const HULL = { across: 0.4, along: 1.22 };
@@ -14,7 +19,8 @@ const HEAT_GLOW_C = 350;
 
 const lerpAngle = (from: number, to: number, alpha: number) => from + Math.atan2(Math.sin(to - from), Math.cos(to - from)) * alpha;
 
-// The ship: its flame (sputtering when the hull is failing), its body, the marks of every hit where it landed,
+// The ship: its flame from every engine its hull has (fire for rockets, ion light for the great ships; sputtering
+// when the hull is failing), its body as its hull and mark, the marks of every hit where it landed,
 // glowing breaches that smoke and then burn, the shimmer of its shields and their flash where a hit is caught,
 // the plasma at its nose on entry, its hull glowing as it heats and shedding molten drops once it melts, and,
 // falling into a black hole, stretched long and red.
@@ -45,7 +51,9 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const r = body.radius * camera.scale;
     const size = sizeBucket(body.radius * base);
     const accent = universe?.accent ?? theme.danger;
-    const sprite = this.kit.sprite(`ship:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, paintShip({ ...theme, accent }));
+    const tier = tierOf(state.level);
+    const mark = markOf(state.level);
+    const sprite = this.kit.sprite(`ship:${tier}:${mark}:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, paintHull(tier, mark, { ...theme, accent }));
     const worldX = lerpX(body, alpha);
     const worldY = lerpY(body, alpha);
     const x = camera.toScreenX(worldX);
@@ -70,11 +78,16 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     front.frame(x, y, angle + Math.PI / 2, squeeze, stretch);
 
     if ((ship.thrust > 0.02 || ship.isBraking) && this.sputter === 0 && !capture) {
-      const flame = this.kit.sprite(`flame:${size}`, size * 1.1, size * 2.8, paintFlame(theme.flameCore, theme.flameEdge));
+      const isIon = ION_TIERS.includes(tier);
+      const core = isIon ? ION.core : theme.flameCore;
+      const edge = isIon ? ION.edge : theme.flameEdge;
+      const flame = this.kit.sprite(`flame:${core}:${size}`, size * 1.1, size * 2.8, paintFlame(core, edge));
       const length = r * 2.8 * (0.45 + ship.thrust * 0.75) * (0.88 + Math.sin(now * 0.05) * 0.12);
 
       if (flame) {
-        front.context.drawImage(flame.surface, -r * 0.55, r * 0.9, r * 1.1, length);
+        NOZZLES[tier].forEach(({ x: nx, y: ny, size: scale }) => {
+          front.context.drawImage(flame.surface, (nx - 0.55 * scale) * r, ny * r, r * 1.1 * scale, length * scale);
+        });
       }
     }
 
@@ -83,7 +96,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
       front.context.drawImage(sprite.surface, -r * SHIP_WIDTH / 2, -r * SHIP_HEIGHT / 2, r * SHIP_WIDTH, r * SHIP_HEIGHT);
 
       if (fall > 0) {
-        const red = this.kit.sprite(`ship-red:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, tintRed(sprite));
+        const red = this.kit.sprite(`ship-red:${tier}:${mark}:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, tintRed(sprite));
 
         front.context.globalAlpha = Math.min(1, fall * 1.4) * (1 - fall * 0.6);
 

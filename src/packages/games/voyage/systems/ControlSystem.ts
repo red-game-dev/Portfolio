@@ -3,13 +3,15 @@ import { clamp } from "@/packages/math/clamp";
 import { angleBetween } from "@/packages/physics/newtonian";
 
 import { VoyageContext } from "./context";
+import { isMisfiring } from "./faults";
 import { bodyById, shipOf } from "./queries";
 
 // How much thrust the ship still gives: less as the hull falls apart, far less as the engines melt.
 const efficiency = (hull: number, maxHull: number, engines: number) => (0.55 + 0.45 * (hull / maxHull)) * (0.25 + 0.75 * engines);
 
 // Turns the player's intent into the ship's motion: turn towards the aim (or with keys) at the ship's turn rate,
-// burn along the nose, brake against the velocity, and pay for both in fuel. Landed, a burn lifts off with the
+// burn along the nose (unless a misfire cuts the engines out), brake against the velocity, and pay for both in
+// fuel. Landed, a burn lifts off with the
 // ground's own motion.
 export class ControlSystem implements System<VoyageContext> {
   public readonly name = "control";
@@ -32,7 +34,8 @@ export class ControlSystem implements System<VoyageContext> {
       ship.angle += clamp(input.turn, -1, 1) * step;
     }
 
-    const power = ship.fuel > 0 ? clamp(input.thrust, 0, 1) : 0;
+    // A misfiring engine cuts out now and then, whatever is asked of it.
+    const power = ship.fuel > 0 && !isMisfiring(state, config.faults.misfire) ? clamp(input.thrust, 0, 1) : 0;
 
     ship.thrust = power;
     ship.isBraking = input.brake && ship.fuel > 0;

@@ -1,9 +1,11 @@
 import { FC, useEffect, useRef, useState } from "react";
 
-import { faCrosshairs, faMap, faPause, faPlay, faRocket, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCircleUp, faCrosshairs, faMap, faPause, faPlay, faRocket, faWarehouse, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton } from "@/components/Controls";
+import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
+import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
 import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
@@ -19,6 +21,10 @@ import {
   Buttons,
   Canvas,
   Card,
+  Coin,
+  FaultList,
+  FaultRow,
+  FixButton,
   ControlsNote,
   Credits,
   Dialog,
@@ -33,12 +39,16 @@ import {
   LensCanvas,
   Message,
   Overlay,
+  Pay,
   Place,
+  ReadyButton,
   Reading,
   ReadingName,
   ReadingValue,
   Readout,
+  Salvage,
   Score,
+  ShipLine,
   Stage,
   SystemName,
   SystemRow,
@@ -91,7 +101,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const lensRef = useRef<HTMLCanvasElement>(null);
   const onBackdropClick = useModalDialog(dialogRef, true);
   const voyage = useVoyage({ stage: stageRef, back: backRef, front: frontRef, lens: lensRef }, { labels: content.stops, universes, syllables: content.universeNames });
-  const { snapshot, notice, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;
+  const { snapshot, notice, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns, economy, isHangarOpen, setHangar, act, follow } = voyage;
+  const [pay, setPay] = useState<number | null>(null);
   const [message, setMessage] = useState<{ id: number; text: string } | null>(null);
   const previous = useRef<VoyageSnapshot | null>(null);
   const bestBefore = useRef(best);
@@ -121,10 +132,18 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   }, [best, content, onRecord, snapshot, universes]);
 
   useEffect(() => {
-    if (notice) {
+    if (notice?.kind === "paid") {
+      setPay(notice.coin);
+    } else if (notice) {
       say(voyageNotice(content, notice));
     }
   }, [content, notice]);
+
+  const start = () => {
+    setPay(null);
+    setHangar(false);
+    play();
+  };
 
   const hullShare = snapshot && snapshot.maxHull > 0 ? snapshot.hull / snapshot.maxHull : 1;
   const bars = snapshot ? [
@@ -133,7 +152,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     { label: content.fuel, value: snapshot.fuel, max: snapshot.maxFuel, colour: BAR_COLOUR.fuel },
   ] : [];
   const hurt = snapshot ? SYSTEMS.filter((id) => snapshot.modules[id] < SOUND) : [];
-  const { combat } = content;
+  const { combat, economy: copy } = content;
+  const repairs = status === "flying" ? economy?.repairs ?? [] : [];
   // An MMO frame's name line: who, and their level and standing (or the rock's size).
   const describe = (frame: Frame) => ({
     name: frame.role === "whale" ? combat.roles.whale : frame.role === "trader" ? combat.roles.trader : frame.name || combat.rock,
@@ -175,6 +195,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       <Hud>
         <Vitals>
           <Place>{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
+          {economy && <ShipLine>{shipName(copy, economy.tier, economy.mark)}</ShipLine>}
           {status !== "ready" && (
             <Bars>
               {bars.map((bar) => (
@@ -208,6 +229,27 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
               </Systems>
             </>
           )}
+          {repairs.length > 0 && (
+            <>
+              <SystemsTitle>{copy.faults.title}</SystemsTitle>
+              <FaultList>
+                {repairs.map(({ fault, kind, parts }) => (
+                  <FaultRow key={fault}>
+                    <span>{copy.faults.names[kind]}</span>
+                    <FixButton
+                      type="button"
+                      disabled={!parts}
+                      title={parts ? stacksText(copy, parts) : copy.faults.noParts}
+                      aria-label={`${copy.faults.fix}: ${copy.faults.names[kind]}, ${parts ? stacksText(copy, parts) : copy.faults.noParts}`}
+                      onClick={() => act({ kind: "repair", fault })}
+                    >
+                      {copy.faults.fix}
+                    </FixButton>
+                  </FaultRow>
+                ))}
+              </FaultList>
+            </>
+          )}
           {status === "flying" && snapshot?.target && (
             <TargetFrame aria-label={describe(snapshot.target).name}>
               <FrameName>
@@ -227,8 +269,25 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             <ReadingName>{content.best}</ReadingName>
             <ReadingValue>{Math.max(best, status === "over" ? snapshot?.score ?? 0 : 0)}</ReadingValue>
           </Reading>
+          {economy && (
+            <>
+              <Reading>
+                <ReadingName>{copy.symbols.RED}</ReadingName>
+                <Coin aria-label={`${economy.purse.RED} ${copy.currencies.RED}`}>{economy.purse.RED.toLocaleString("en-GB")}</Coin>
+              </Reading>
+              <Reading>
+                <ReadingName>{copy.symbols.VOID}</ReadingName>
+                <Coin isShards aria-label={`${economy.purse.VOID} ${copy.currencies.VOID}`}>{economy.purse.VOID}</Coin>
+              </Reading>
+            </>
+          )}
         </Readout>
         <HudButtons>
+          {economy && (
+            <IconButton type="button" onClick={() => setHangar(!isHangarOpen)} aria-label={isHangarOpen ? copy.closeHangar : copy.openHangar} aria-pressed={isHangarOpen}>
+              <FontAwesomeIcon icon={faWarehouse} aria-hidden="true" />
+            </IconButton>
+          )}
           {status === "flying" && snapshot && (
             <IconButton type="button" onClick={toggleGuns} aria-label={snapshot.autoFire ? combat.autoFire : combat.holdFire} aria-pressed={snapshot.autoFire}>
               <FontAwesomeIcon icon={faCrosshairs} aria-hidden="true" style={{ opacity: snapshot.autoFire ? 1 : 0.45 }} />
@@ -262,8 +321,22 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </TelemetryList>
         </TelemetryPanel>
       )}
-      {status === "flying" && snapshot && (snapshot.boss || snapshot.incoming) && (
+      {status === "flying" && snapshot && (snapshot.boss || snapshot.incoming || snapshot.salvage || economy?.suggestion) && !isHangarOpen && (
         <Frames>
+          {economy?.suggestion && (
+            <ReadyButton type="button" onClick={() => economy.suggestion && follow(economy.suggestion)}>
+              <FontAwesomeIcon icon={faCircleUp} aria-hidden="true" />
+              {fill(copy.suggestion.hint, { action: suggestionText(copy, economy.suggestion) })}
+            </ReadyButton>
+          )}
+          {snapshot.salvage && (
+            <Salvage role="status" aria-label={fill(copy.salvage.progress, { wreck: copy.salvage.wrecks[snapshot.salvage.kind] })}>
+              {fill(copy.salvage.progress, { wreck: copy.salvage.wrecks[snapshot.salvage.kind] })}
+              <FrameTrack role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(snapshot.salvage.progress * 100)}>
+                <BarFill colour="#7dffcf" style={{ transform: `scaleX(${snapshot.salvage.progress})` }} />
+              </FrameTrack>
+            </Salvage>
+          )}
           {snapshot.boss && (
             <BossFrame aria-label={combat.boss}>
               <FrameName>
@@ -292,7 +365,10 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </Frames>
       )}
       {message && status === "flying" && <Message key={message.id} role="status">{message.text}</Message>}
-      {(status !== "flying" || isPaused) && (
+      {economy && isHangarOpen && (
+        <HangarPanel content={content} economy={economy} isFlying={status === "flying"} onAct={act} onClose={() => setHangar(false)} />
+      )}
+      {(status !== "flying" || isPaused) && !isHangarOpen && (
         <Overlay>
           <Card>
             {status === "ready" && (
@@ -301,10 +377,16 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 <Text>{content.intro}</Text>
                 <Text>{content.controls}</Text>
                 <Buttons>
-                  <ActionButton type="button" isPrimary disabled={!isReady} onClick={play}>
+                  <ActionButton type="button" isPrimary disabled={!isReady} onClick={start}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
                     {content.start}
                   </ActionButton>
+                  {economy && (
+                    <ActionButton type="button" isPrimary={false} onClick={() => setHangar(true)}>
+                      <FontAwesomeIcon icon={faWarehouse} aria-hidden="true" />
+                      {copy.hangar}
+                    </ActionButton>
+                  )}
                 </Buttons>
                 <Credits>{content.credits}</Credits>
               </>
@@ -326,12 +408,19 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 <Title>{content.over}</Title>
                 <Score role="status">{fill(content.finalScore, { score: snapshot.score })}</Score>
                 {snapshot.score > bestBefore.current && <Badge>{content.newBest}</Badge>}
+                {pay !== null && pay > 0 && <Pay>{fill(content.pay, { coin: pay })}</Pay>}
                 <Text>{voyagePlace(content, snapshot, universes)}</Text>
                 <Buttons>
-                  <ActionButton type="button" isPrimary onClick={play}>
+                  <ActionButton type="button" isPrimary onClick={start}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
                     {content.again}
                   </ActionButton>
+                  {economy && (
+                    <ActionButton type="button" isPrimary={false} onClick={() => setHangar(true)}>
+                      <FontAwesomeIcon icon={faWarehouse} aria-hidden="true" />
+                      {copy.hangar}
+                    </ActionButton>
+                  )}
                   <ActionButton type="button" isPrimary={false} onClick={onClose}>
                     {content.close}
                   </ActionButton>

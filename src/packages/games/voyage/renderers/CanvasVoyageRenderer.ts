@@ -21,6 +21,7 @@ import { ProjectilesLayer } from "./layers/ProjectilesLayer";
 import { ShipLayer } from "./layers/ShipLayer";
 import { ThingsLayer } from "./layers/ThingsLayer";
 import { WeatherLayer } from "./layers/WeatherLayer";
+import { WrecksLayer } from "./layers/WrecksLayer";
 import { cutShards } from "./paint/damage";
 import { paintGlow, paintShip, SHIP_HEIGHT, SHIP_WIDTH } from "./paint/space";
 import { ParticleSystem } from "./ParticleSystem";
@@ -75,6 +76,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.frontLayers = new RenderPipeline([
       new HolesLayer(this.kit, "front"),
       new ThingsLayer(this.kit),
+      new WrecksLayer(this.kit),
       new AliensLayer(this.kit),
       new ProjectilesLayer(this.kit),
       this.effects,
@@ -224,6 +226,26 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
         camera.addTrauma(0.4);
       }),
       events.on("boss", ({ isFallen }) => camera.addTrauma(isFallen ? 0.9 : 0.4)),
+      events.on("salvaged", ({ x, y, loot }) => {
+        const colour = loot.items.length > 0 || loot.blueprints.length > 0 ? "#ffd76a" : "#8a92a8";
+        const glow = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
+
+        for (let index = 0; index < 18; index += 1) {
+          const spread = (index / 18) * Math.PI * 2;
+
+          particles.emit("glow", x, y, Math.cos(spread) * 0.7, Math.sin(spread) * 0.7, 0.6, 0.05, glow, { drag: 2.5 });
+        }
+      }),
+      events.on("fault", () => {
+        const state = this.lastState;
+        const body = state && this.lastWorld ? this.lastWorld.stores.body.get(state.ship) : undefined;
+
+        if (body) {
+          this.sparks(body.x, body.y, 14);
+        }
+
+        camera.addTrauma(0.2);
+      }),
       events.on("failing", ({ isGone }) => {
         const state = this.lastState;
         const body = state && this.lastWorld ? this.lastWorld.stores.body.get(state.ship) : undefined;

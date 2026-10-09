@@ -1,4 +1,4 @@
-import { formatMoney, isLedgerSnapshot, Ledger, toMinor, tradingAccount } from "@/packages/finance/ledger";
+import { formatMoney, isLedgerSnapshot, Ledger, Posting, toMinor, tradingAccount } from "@/packages/finance/ledger";
 
 const RC = { code: "RC", decimals: 0 };
 const VS = { code: "VS", decimals: 2 };
@@ -25,12 +25,11 @@ describe("finance/ledger", () => {
   test("refuses anything that does not balance, or names what it does not know", () => {
     const books = ledger();
 
-    expect(() => books.post({ id: "a", at: 1, memo: "", postings: [{ account: "wallet", currency: "RC", amount: 5 }, { account: "income:bounties", currency: "RC", amount: -4 }] }))
-      .toThrow(/does not balance/);
-    expect(() => books.post({ id: "b", at: 1, memo: "", postings: [{ account: "nowhere", currency: "RC", amount: 5 }, { account: "wallet", currency: "RC", amount: -5 }] }))
-      .toThrow(/unknown account/);
-    expect(() => books.post({ id: "c", at: 1, memo: "", postings: [{ account: "wallet", currency: "XX", amount: 5 }, { account: "wallet", currency: "XX", amount: -5 }] }))
-      .toThrow(/unknown currency/);
+    const post = (id: string, postings: Posting[]) => () => books.post({ id, at: 1, memo: "", postings });
+
+    expect(post("a", [{ account: "wallet", currency: "RC", amount: 5 }, { account: "income:bounties", currency: "RC", amount: -4 }])).toThrow(/does not balance/);
+    expect(post("b", [{ account: "nowhere", currency: "RC", amount: 5 }, { account: "wallet", currency: "RC", amount: -5 }])).toThrow(/unknown account/);
+    expect(post("c", [{ account: "wallet", currency: "XX", amount: 5 }, { account: "wallet", currency: "XX", amount: -5 }])).toThrow(/unknown currency/);
     expect(() => books.transfer("income:bounties", "wallet", "RC", 2.5, "half a coin")).toThrow(/whole number/);
     expect(books.history()).toHaveLength(0);
   });
@@ -61,5 +60,27 @@ describe("finance/ledger", () => {
     }
 
     expect(isLedgerSnapshot({ currencies: [], accounts: "none", journal: [] })).toBe(false);
+  });
+
+  test("records several currencies in one entry, and closes old entries into one opening balance without changing any", () => {
+    const books = ledger();
+
+    books.record("Boss down", [
+      { account: "wallet", currency: "RC", amount: 250 },
+      { account: "income:bounties", currency: "RC", amount: -250 },
+      { account: "wallet", currency: "VS", amount: 300 },
+      { account: "income:bounties", currency: "VS", amount: -300 },
+    ], 1);
+
+    for (let index = 0; index < 10; index += 1) {
+      books.transfer("income:bounties", "wallet", "RC", 5, "Rock shot down", 2 + index);
+    }
+
+    const closed = books.compacted(3);
+
+    expect(closed.history()).toHaveLength(4);
+    expect(closed.history()[0].memo).toBe("Opening balances");
+    expect([closed.balance("wallet", "RC"), closed.balance("wallet", "VS"), closed.balance("income:bounties", "RC")]).toEqual([300, 300, 300]);
+    expect(books.compacted(50).history()).toHaveLength(11);
   });
 });

@@ -15,3 +15,11 @@ export const toMonthIndex = (value: string): number => {
 
   return year * 12 + month;
 };
+
+// The same date as an ISO 8601 month ("2019-11"), or a year alone ("2025"), for machine readers such as structured data.
+export const toIsoMonth = (value: string): string => {
+  const index = toMonthIndex(value);
+  const year = String(Math.floor(index / 12));
+
+  return value.trim().split(/\s+/).length > 1 ? `${year}-${String((index % 12) + 1).padStart(2, "0")}` : year;
+};

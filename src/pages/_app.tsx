@@ -34,7 +34,7 @@ const GlobalStyles = () => (
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
-      <SEO url={process.env.HOST || "#"} />
+      <SEO />
 
       <GlobalStyles />
       <AppLoaderProvider>

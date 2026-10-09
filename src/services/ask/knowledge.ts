@@ -118,8 +118,13 @@ const SECTIONS: Record<AskSourceKey, { title: string; build: SectionBuilder }> =
 
 // The whole site as plain text, one block per source, each headed with the key an answer cites it by. A line the
 // site says twice (a fact repeated in the CV summary, a highlight echoing the about text) is kept once, since
-// every token here is sent with every question.
+// every token here is sent with every question. Without `citeKeys` the headings carry no key, for readers that
+// do not cite, such as /llms-full.txt.
 export class PortfolioKnowledgeMapper extends Mapper<PortfolioData, string> {
+  public constructor(private readonly options: { citeKeys: boolean } = { citeKeys: true }) {
+    super();
+  }
+
   public map(data: PortfolioData): string {
     const seen = new Set<string>();
     // Headings and stacks belong to their entry, so two entries may share one.
@@ -138,7 +143,7 @@ export class PortfolioKnowledgeMapper extends Mapper<PortfolioData, string> {
     };
 
     return ASK_SOURCES
-      .map((key) => [`# ${SECTIONS[key].title} [key: ${key}]`, ...SECTIONS[key].build(data).filter(once)].join("\n"))
+      .map((key) => [`# ${SECTIONS[key].title}${this.options.citeKeys ? ` [key: ${key}]` : ""}`, ...SECTIONS[key].build(data).filter(once)].join("\n"))
       .join("\n\n");
   }
 }

@@ -1,10 +1,11 @@
+import { NextSeo } from "next-seo";
 import { createGlobalStyle } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import Head from "next/head";
 
 import { SOCIAL_URLS } from "@/config/social";
 import { portfolioData } from "@/data/resume";
+import seoDetails from "@/data/seo";
 import { formatPeriod, splitTitle } from "@/packages/insights/career";
 import { fill } from "@/packages/text/format";
 import { createForgeStations } from "@/services/skills";
@@ -127,9 +128,7 @@ const withYears = (name: string) => {
 export default function Resume() {
   return (
     <>
-      <Head>
-        <title>{`${details.name}, CV`}</title>
-      </Head>
+      <NextSeo title={seoDetails.resume.title} titleTemplate="%s" description={seoDetails.resume.description} />
       <Paper />
       <Sheet>
         <header>

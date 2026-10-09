@@ -62,4 +62,14 @@ describe("Home", () => {
     expect(errors).not.toHaveBeenCalled();
     unmount();
   });
+
+  // Search engines and AI crawlers read the server HTML's text, so the decode effect draws its bits from an
+  // attribute; the text holds only the real words.
+  it("keeps the decode effect's bits out of the page's text", () => {
+    const { container, unmount } = renderPage();
+
+    expect(container.textContent?.match(/\b[01]{8,}\b/g) ?? []).toEqual([]);
+    expect(container.querySelectorAll("[data-bits]").length).toBeGreaterThan(0);
+    unmount();
+  });
 });

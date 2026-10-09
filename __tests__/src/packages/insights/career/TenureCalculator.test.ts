@@ -1,4 +1,4 @@
-import { TenureCalculator, toMonthIndex } from "@/packages/insights/career";
+import { TenureCalculator, toIsoMonth, toMonthIndex } from "@/packages/insights/career";
 
 describe("insights/career TenureCalculator", () => {
   const calculator = new TenureCalculator("Oct 2026");
@@ -7,6 +7,12 @@ describe("insights/career TenureCalculator", () => {
     expect(toMonthIndex("Nov 2019") - toMonthIndex("Feb 2019")).toBe(9);
     expect(toMonthIndex("2025")).toBe(toMonthIndex("Jan 2025"));
     expect(() => toMonthIndex("someday")).toThrow("Cannot read the date");
+  });
+
+  test("writes a date as an ISO 8601 month, or a year alone, for structured data", () => {
+    expect(toIsoMonth("Nov 2019")).toBe("2019-11");
+    expect(toIsoMonth("Apr 2015")).toBe("2015-04");
+    expect(toIsoMonth("2025")).toBe("2025");
   });
 
   test("an open tenure runs to the as of date", () => {

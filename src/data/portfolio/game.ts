@@ -28,7 +28,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
     },
     voyage: {
       title: "The journey continues",
-      intro: "Out past every planet to Pluto. What waits beyond it is not on any map.",
+      intro: "Out past every planet to Pluto. What waits beyond it is not on any map. The solar system is the warm up: rocks there " +
+        "knock your score back but cannot end the run. Past Pluto, they cost shields.",
       controls: "Steer with the mouse, a finger or the arrow keys. Catch the lights, keep clear of the rocks. P pauses, Escape leaves.",
       canvasLabel: "Your ship, flying out through space",
       start: "Fly",

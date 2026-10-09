@@ -6,6 +6,8 @@ export interface VoyageScoring {
   pickup: number;
   // For every universe reached, the first included.
   universe: number;
+  // Taken off for a rock hit on the way out, where hits cost no shields.
+  knock: number;
 }
 
 export interface VoyageConfig {
@@ -25,6 +27,9 @@ export interface VoyageConfig {
   shipSpeed: number;
   shields: number;
   invulnerableMs: number;
+  // The solar system is the warm up: rocks there knock the score back but cost no shields, so everyone reaches
+  // the black hole and what lies past it. Shields only count from the first universe on.
+  isSolarSafe: boolean;
   // Between hazards in open space, when a universe begins, and at the fastest the universes get.
   hazardEveryMs: number;
   universeHazardEveryMs: number;
@@ -75,6 +80,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
   shipSpeed: 1.15,
   shields: 3,
   invulnerableMs: 1400,
+  isSolarSafe: true,
   hazardEveryMs: 1900,
   universeHazardEveryMs: 900,
   minHazardEveryMs: 380,
@@ -88,7 +94,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
   captureMs: 1100,
   lostMs: 3200,
   jumpMs: 1500,
-  scoring: { perUnit: 10, pickup: 25, universe: 500 },
+  scoring: { perUnit: 10, pickup: 25, universe: 500, knock: 100 },
   universes: 5,
 };
 

@@ -24,7 +24,8 @@ const NO_INPUT: VoyageInput = { direction: { x: 0, y: 0 }, target: null };
 
 // The voyage as plain state that only moves through `step`, so every part of it can be tested frame by frame:
 // out from Earth past each planet to Pluto, into the black hole beyond it, then from universe to universe,
-// each crossed through another hole. Rocks cost shields, pickups score, and the run ends with the last shield.
+// each crossed through another hole. Rocks knock the score back on the way out and cost shields past the black
+// hole, pickups score, and the run ends with the last shield.
 export class VoyageSimulation {
   private readonly config: VoyageConfig;
   private readonly random: RandomSource;
@@ -348,7 +349,12 @@ export class VoyageSimulation {
       }
 
       if (ship.invulnerableMs <= 0) {
-        state.shields -= 1;
+        if (this.config.isSolarSafe && state.phase !== "universe") {
+          state.score = Math.max(0, state.score - this.config.scoring.knock);
+        } else {
+          state.shields -= 1;
+        }
+
         state.flash = 1;
         ship.invulnerableMs = this.config.invulnerableMs;
       }

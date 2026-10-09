@@ -131,9 +131,31 @@ describe("VoyageSimulation", () => {
     expect(simulation.state.universes).toBe(1);
   });
 
-  test("a hit costs a shield, the ship cannot be hit again while it recovers, and the run ends with the last shield", () => {
+  test("on the way out a rock knocks the score back but costs no shield, so everyone reaches the black hole", () => {
     const simulation = create({ hazardEveryMs: 60 });
+    let knocks = 0;
+    let flash = 0;
+
+    runUntil(simulation, ({ state }) => {
+      if (state.flash > flash) {
+        knocks += 1;
+      }
+
+      flash = state.flash;
+
+      return state.phase !== "solar";
+    }, DEFAULT_VOYAGE_CONFIG.solarMs + 1000);
+
+    expect(knocks).toBeGreaterThan(3);
+    expect(simulation.snapshot).toMatchObject({ phase: "singularity", shields: DEFAULT_VOYAGE_CONFIG.shields, status: "flying" });
+  });
+
+  test("past the black hole a hit costs a shield, the ship cannot be hit again while it recovers, and the run ends with the last one", () => {
+    const simulation = create({ universeHazardEveryMs: 60, minHazardEveryMs: 60, holeEveryMs: [NEVER, NEVER] });
     const losses: number[] = [];
+
+    reachUniverses(simulation);
+
     let shields = simulation.state.shields;
 
     runUntil(simulation, ({ state }) => {

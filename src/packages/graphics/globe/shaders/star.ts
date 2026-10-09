@@ -28,11 +28,13 @@ void main() {
     // The surface turns slowly; the cells boil faster than it turns.
     float turn = u_time * 0.004;
     vec3 body = vec3(n.x * cos(turn) - n.z * sin(turn), n.y, n.x * sin(turn) + n.z * cos(turn));
-    float cells = fbm(body * 64.0 + u_seed + vec3(0.0, u_time * 0.06, u_time * 0.04));
-    float grain = 1.0 + (cells - 0.5) * 0.32 * u_granulation;
-    float active = fbm(body * 3.2 + u_seed * 1.3 + vec3(u_time * 0.002));
-    float spots = smoothstep(0.71, 0.75, active) * u_spots;
-    float penumbra = smoothstep(0.67, 0.71, active) * u_spots;
+    float cells = fbm(body * 120.0 + u_seed + vec3(0.0, u_time * 0.08, u_time * 0.05));
+    float grain = 1.0 + (cells - 0.5) * 0.24 * u_granulation;
+    // Sunspots: small dark knots inside wider active regions, coming and going over time.
+    float region = fbm(body * 2.4 + u_seed * 1.3 + vec3(u_time * 0.002));
+    float knots = fbm(body * 14.0 + u_seed * 2.1);
+    float spots = smoothstep(0.62, 0.7, region) * smoothstep(0.66, 0.72, knots) * u_spots;
+    float penumbra = smoothstep(0.6, 0.68, region) * smoothstep(0.6, 0.66, knots) * u_spots;
     // Darker and redder towards the limb, where the light comes from cooler, higher layers.
     float limb = 0.45 + 0.75 * pow(mu, 0.45);
     vec3 tint = mix(vec3(1.0, 0.55, 0.25), vec3(1.0, 0.97, 0.88), pow(mu, 0.35));

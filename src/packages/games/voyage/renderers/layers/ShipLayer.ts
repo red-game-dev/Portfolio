@@ -233,7 +233,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
 
   // Molten metal shed as the plating gives way: bright drops that keep the ship's motion, cooling as they go.
   private emitDrips(x: number, y: number, vx: number, vy: number, radius: number, severity: number): void {
-    if (Math.random() > Math.min(0.9, 0.25 + severity)) {
+    if (Math.random() > Math.min(0.5, 0.12 + severity * 0.4)) {
       return;
     }
 
@@ -243,6 +243,6 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const kick = 0.15 + Math.random() * 0.3;
 
     particles.emit("glow", x + Math.cos(spread) * radius, y + Math.sin(spread) * radius, vx * 0.9 + Math.cos(spread) * kick, vy * 0.9 + Math.sin(spread) * kick,
-      0.5 + Math.random() * 0.6, radius * (0.25 + Math.random() * 0.3), drop, { drag: 0.4, grow: -radius * 0.2 });
+      0.4 + Math.random() * 0.5, radius * (0.12 + Math.random() * 0.16), drop, { drag: 0.4, grow: -radius * 0.15 });
   }
 }

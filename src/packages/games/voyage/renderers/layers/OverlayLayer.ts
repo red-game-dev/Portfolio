@@ -9,6 +9,9 @@ import { RenderKit } from "./kit";
 const TAU = Math.PI * 2;
 // The compass ring round a stop in sight, in CSS pixels; a stop drawn bigger than this needs no ring.
 const RING_RADIUS = 18;
+// Sunlight (W/m^2) where the glare begins, and how much more washes the view out: from inside Mercury's orbit.
+const GLARE_FROM = 20000;
+const GLARE_FULL = 400000;
 
 // Over everything: inside a giant the clouds close in as the air thickens, a planet's air hazes the view, heat and
 // a failing hull redden the edges, the fall into a black hole darkens to nothing, the tunnel between universes
@@ -53,6 +56,8 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
         this.vignette("rgba(255, 30, 40, 0.9)", (0.35 + Math.sin(frame.now * 0.008) * 0.25) * (1 - health.hull / health.maxHull / 0.3 * 0.5));
       }
 
+      this.drawGlare(frame);
+
       if (state.capture) {
         this.drawFall(frame);
       }
@@ -95,12 +100,30 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
     }
 
     const { front } = this.kit;
-    const thickness = body.isGiant ? Math.min(0.9, 0.12 + readings.density * 0.45) : Math.min(0.85, Math.sqrt(readings.density) * 0.3);
+    const thickness = body.isGiant ? Math.min(0.9, 0.12 + readings.density * 0.45) : Math.min(0.85, readings.density * 0.3);
 
     front.context.globalAlpha = thickness;
     front.context.fillStyle = tint;
     front.context.fillRect(0, 0, front.width, front.height);
     front.context.globalAlpha = 1;
+  }
+
+  // Close to the star its light is blinding: the whole view washes out, more the closer the ship flies.
+  private drawGlare({ state }: VoyageFrame): void {
+    const glare = Math.min(0.75, Math.max(0, (state.readings.sunlight - GLARE_FROM) / GLARE_FULL));
+
+    if (glare <= 0) {
+      return;
+    }
+
+    const { front } = this.kit;
+
+    front.context.globalCompositeOperation = "lighter";
+    front.context.globalAlpha = glare;
+    front.context.fillStyle = "#fff1d6";
+    front.context.fillRect(0, 0, front.width, front.height);
+    front.context.globalAlpha = 1;
+    front.context.globalCompositeOperation = "source-over";
   }
 
   private drawFall({ state, camera }: VoyageFrame): void {

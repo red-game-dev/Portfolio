@@ -39,7 +39,6 @@ export const BODY_LOOKS: Record<string, GlobeLook> = {
   jupiter: {
     surface: { kind: "gas", palette: ["#6b4a32", "#b08560", "#e6d2b0", "#f6eee0"], seed: 16, bands: 0.55, turbulence: 0.6, map: "jupiter", centreLongitude: 0 },
     atmosphere: { colour: "#f2d8b0", thickness: 0.03, density: 0.3 },
-    rings: { inner: 1.32, outer: 3.2, colour: "#8a7a68", opacity: 0.08, seed: 1 },
   },
   io: { surface: { kind: "volcanic", palette: ["#3a2a10", "#c8a23c", "#e8d27a", "#ff7a2a"], seed: 17 } },
   europa: { surface: { kind: "icy", palette: ["#7a4a2a", "#c9b9a0", "#e8e2d6", "#f6f4ee"], seed: 18 } },
@@ -57,12 +56,12 @@ export const BODY_LOOKS: Record<string, GlobeLook> = {
   uranus: {
     surface: { kind: "iceGiant", palette: ["#5fa8b8", "#86c8d4", "#a8dce4", "#d4f0f4"], seed: 23, bands: 0.2, turbulence: 0.15 },
     atmosphere: { colour: "#a8e8f0", thickness: 0.04, density: 0.5 },
-    rings: { inner: 1.65, outer: 2.02, colour: "#4a5058", opacity: 0.35, seed: 5 },
+    rings: { inner: 1.65, outer: 2.02, colour: "#9aa4ae", opacity: 0.3, seed: 5 },
   },
   neptune: {
     surface: { kind: "iceGiant", palette: ["#1b2f8a", "#2f56c8", "#4a7fe0", "#a9c4ff"], seed: 24, bands: 0.4, turbulence: 0.3 },
     atmosphere: { colour: "#7aa8ff", thickness: 0.04, density: 0.5 },
-    rings: { inner: 1.7, outer: 2.56, colour: "#5a6070", opacity: 0.12, seed: 7 },
+    rings: { inner: 1.7, outer: 2.56, colour: "#a8b0c0", opacity: 0.12, seed: 7 },
   },
   triton: { surface: { kind: "icy", palette: ["#8a6a6a", "#c9b0aa", "#e8dcd8", "#f8f0ee"], seed: 25 } },
   pluto: {

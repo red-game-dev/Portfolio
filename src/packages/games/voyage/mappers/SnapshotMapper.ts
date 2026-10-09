@@ -85,10 +85,8 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
     }
 
     const target = waypoint.id === system.star.id ? system.star : system.bodies.find((body) => body.id === waypoint.id);
-
-    if (target && across < target.radius * LOCAL_RADII) {
-      return Math.max(0, Math.round((across - target.radius) * target.kmPerUnit));
-    }
+    // Close to it, its own kilometres; the scales differ, so whichever reads further is the truer.
+    const local = target && across < target.radius * LOCAL_RADII ? Math.max(0, (across - target.radius) * target.kmPerUnit) : 0;
 
     const toReal = (px: number, py: number): Vec3 => {
       const out = Math.hypot(px - system.star.x, py - system.star.y);
@@ -100,6 +98,6 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
     const from = toReal(x, y);
     const to = target && "real" in target ? target.real : target ? { x: 0, y: 0, z: 0 } : toReal(waypoint.x, waypoint.y);
 
-    return Math.round(Math.hypot(to.x - from.x, to.y - from.y, to.z - from.z) * kmPerAu);
+    return Math.round(Math.max(local, Math.hypot(to.x - from.x, to.y - from.y, to.z - from.z) * kmPerAu));
   }
 }

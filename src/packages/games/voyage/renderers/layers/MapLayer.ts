@@ -60,7 +60,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     const cx = front.width / 2;
     const cy = front.height / 2;
 
-    context.fillStyle = "rgba(2, 4, 10, 0.88)";
+    context.fillStyle = "rgba(2, 4, 10, 0.96)";
     context.fillRect(0, 0, front.width, front.height);
 
     if (!ship) {

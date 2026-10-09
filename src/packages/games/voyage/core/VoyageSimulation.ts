@@ -146,7 +146,7 @@ export class VoyageSimulation {
         }
       } else {
         // Seconds until it should be level with the ship, and how long it takes to slide down to there.
-        const untilPass = (Math.sqrt((stop.au - 1) / (last - 1)) * solarMs - state.phaseMs) / 1000;
+        const untilPass = ((stop.atMs ?? Math.sqrt((stop.au - 1) / (last - 1)) * solarMs) - state.phaseMs) / 1000;
         const passY = state.height * PASS_LINE;
 
         if (untilPass > (passY + stop.radius + 0.05) / state.speed) {
@@ -235,7 +235,8 @@ export class VoyageSimulation {
 
     state.flown += scroll;
     state.score += this.config.scoring.perUnit * scroll;
-    state.departureY += scroll;
+    // Earth is big and far below, so it falls away slower than space streams past.
+    state.departureY += scroll * 0.45;
     state.bodies.forEach((body) => {
       body.y += scroll;
     });

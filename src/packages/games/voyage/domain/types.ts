@@ -27,6 +27,8 @@ export interface VoyageRouteStop {
   until?: number;
   // For a belt: the time between its rocks.
   every?: number;
+  // For a stop too close to Earth to come round on the distance curve (the Moon): when it passes, in ms.
+  atMs?: number;
   // Radius in world units, which side it passes on, and how far its centre sits in from that edge, as a share
   // of its radius (below 1 leaves part of it off screen).
   radius: number;

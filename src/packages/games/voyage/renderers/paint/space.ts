@@ -24,9 +24,11 @@ export const paintStars = (layer: 0 | 1 | 2, colour: string, pixelRatio: number)
 
     if (layer === 2) {
       context.globalAlpha = 0.08;
-      context.beginPath();
-      context.arc(x + size / 2, y + size / 2, size * 2.4, 0, TAU);
-      context.fill();
+      wrap(width, height, (dx, dy) => {
+        context.beginPath();
+        context.arc(x + size / 2 + dx, y + size / 2 + dy, size * 2.4, 0, TAU);
+        context.fill();
+      });
     }
   }
 
@@ -62,20 +64,36 @@ export const paintMilkyWay = (colour: string) => (context: Canvas2DContext, widt
   context.globalAlpha = 1;
 };
 
+// Draws something at every offset a repeating tile needs, so whatever crosses an edge comes back on the far side
+// and the tile has no seam.
+const wrap = (width: number, height: number, draw: (dx: number, dy: number) => void) => {
+  [-width, 0, width].forEach((dx) => [-height, 0, height].forEach((dy) => draw(dx, dy)));
+};
+
+// The shortest way from one point to another on a tile that wraps.
+const across = (from: number, to: number, size: number) => {
+  const direct = to - from;
+
+  return direct > size / 2 ? direct - size : direct < -size / 2 ? direct + size : direct;
+};
+
 const nebula = (context: Canvas2DContext, width: number, height: number, colour: string, seed: number) => {
   const random = createSeededRandom(seed);
 
   for (let index = 0; index < 4; index += 1) {
     const x = random() * width;
     const y = random() * height;
-    const r = Math.max(width, height) * (0.25 + random() * 0.3);
-    const cloud = context.createRadialGradient(x, y, 0, x, y, r);
+    const r = Math.min(width, height) * (0.25 + random() * 0.2);
 
-    cloud.addColorStop(0, colour);
-    cloud.addColorStop(1, "rgba(0, 0, 0, 0)");
     context.globalAlpha = 0.12 + random() * 0.08;
-    context.fillStyle = cloud;
-    context.fillRect(0, 0, width, height);
+    wrap(width, height, (dx, dy) => {
+      const cloud = context.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, r);
+
+      cloud.addColorStop(0, colour);
+      cloud.addColorStop(1, "rgba(0, 0, 0, 0)");
+      context.fillStyle = cloud;
+      context.fillRect(x + dx - r, y + dy - r, r * 2, r * 2);
+    });
   }
 
   context.globalAlpha = 1;
@@ -84,17 +102,23 @@ const nebula = (context: Canvas2DContext, width: number, height: number, colour:
 const matrixRain = (context: Canvas2DContext, width: number, height: number, accent: string, pixelRatio: number) => {
   const random = createSeededRandom(21);
   const size = 14 * pixelRatio;
+  // Columns spaced to divide the tile exactly, so the last never runs into the first.
+  const columns = Math.max(1, Math.floor(width / (size * 1.25)));
+  const spacing = width / columns;
 
   context.font = `${size}px monospace`;
   context.fillStyle = accent;
 
-  for (let x = 0; x < width; x += size * 1.25) {
+  for (let column = 0; column < columns; column += 1) {
     const length = 6 + Math.floor(random() * 22);
     const head = random() * height;
 
     for (let index = 0; index < length; index += 1) {
+      const glyph = random() > 0.5 ? "1" : "0";
+      const y = (head - index * size + height) % height;
+
       context.globalAlpha = (1 - index / length) * (index === 0 ? 0.9 : 0.4);
-      context.fillText(random() > 0.5 ? "1" : "0", x, (head - index * size + height) % height);
+      [-height, 0, height].forEach((dy) => context.fillText(glyph, column * spacing, y + dy));
     }
   }
 
@@ -103,64 +127,80 @@ const matrixRain = (context: Canvas2DContext, width: number, height: number, acc
 
 const neuralNet = (context: Canvas2DContext, width: number, height: number, accent: string, pixelRatio: number) => {
   const random = createSeededRandom(31);
-  const nodes = Array.from({ length: 34 }, () => ({ x: random() * width, y: random() * height }));
+  const nodes = Array.from({ length: 34 }, () => ({ x: random() * width, y: random() * height, size: pixelRatio * (1.5 + random() * 2.5) }));
   const reach = Math.min(width, height) * 0.28;
 
   context.strokeStyle = accent;
   context.lineWidth = pixelRatio;
   nodes.forEach((from, index) => {
     nodes.slice(index + 1).forEach((to) => {
-      const distance = Math.hypot(from.x - to.x, from.y - to.y);
+      const dx = across(from.x, to.x, width);
+      const dy = across(from.y, to.y, height);
+      const distance = Math.hypot(dx, dy);
 
       if (distance < reach) {
         context.globalAlpha = 0.22 * (1 - distance / reach);
-        context.beginPath();
-        context.moveTo(from.x, from.y);
-        context.lineTo(to.x, to.y);
-        context.stroke();
+        wrap(width, height, (ox, oy) => {
+          context.beginPath();
+          context.moveTo(from.x + ox, from.y + oy);
+          context.lineTo(from.x + dx + ox, from.y + dy + oy);
+          context.stroke();
+        });
       }
     });
   });
   context.fillStyle = accent;
-  nodes.forEach((node) => {
-    context.globalAlpha = 0.5;
+  context.globalAlpha = 0.5;
+  nodes.forEach((node) => wrap(width, height, (dx, dy) => {
     context.beginPath();
-    context.arc(node.x, node.y, pixelRatio * (1.5 + random() * 2.5), 0, TAU);
+    context.arc(node.x + dx, node.y + dy, node.size, 0, TAU);
     context.fill();
-  });
+  }));
   context.globalAlpha = 1;
+};
+
+const cubeOutline = (context: Canvas2DContext, x: number, y: number, size: number) => {
+  const h = size * 0.5;
+
+  context.beginPath();
+  context.moveTo(x, y - size);
+  context.lineTo(x + size, y - size + h);
+  context.lineTo(x + size, y + h);
+  context.lineTo(x, y + size);
+  context.lineTo(x - size, y + h);
+  context.lineTo(x - size, y - size + h);
+  context.closePath();
+  context.moveTo(x - size, y - size + h);
+  context.lineTo(x, y);
+  context.lineTo(x + size, y - size + h);
+  context.moveTo(x, y);
+  context.lineTo(x, y + size);
+  context.stroke();
 };
 
 const blockLattice = (context: Canvas2DContext, width: number, height: number, accent: string, pixelRatio: number) => {
   const random = createSeededRandom(41);
-  const size = 46 * pixelRatio;
+  // A lattice spaced to divide the tile exactly, with an even number of rows so the stagger lines up.
+  const columns = Math.max(1, Math.round(width / (92 * pixelRatio)));
+  const rows = Math.max(2, Math.round(height / (69 * pixelRatio) / 2) * 2);
+  const stepX = width / columns;
+  const stepY = height / rows;
+  const size = stepX / 2;
 
   context.strokeStyle = accent;
   context.lineWidth = pixelRatio;
+  context.globalAlpha = 0.25;
 
-  for (let y = 0; y < height + size; y += size * 1.5) {
-    for (let x = (y / (size * 1.5)) % 2 === 0 ? 0 : size; x < width + size; x += size * 2) {
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
       if (random() > 0.32) {
         continue;
       }
 
-      const h = size * 0.5;
+      const x = column * stepX + (row % 2 === 0 ? 0 : size);
+      const y = row * stepY;
 
-      context.globalAlpha = 0.25;
-      context.beginPath();
-      context.moveTo(x, y - size);
-      context.lineTo(x + size, y - size + h);
-      context.lineTo(x + size, y + h);
-      context.lineTo(x, y + size);
-      context.lineTo(x - size, y + h);
-      context.lineTo(x - size, y - size + h);
-      context.closePath();
-      context.moveTo(x - size, y - size + h);
-      context.lineTo(x, y);
-      context.lineTo(x + size, y - size + h);
-      context.moveTo(x, y);
-      context.lineTo(x, y + size);
-      context.stroke();
+      wrap(width, height, (dx, dy) => cubeOutline(context, x + dx, y + dy, size));
     }
   }
 
@@ -169,15 +209,17 @@ const blockLattice = (context: Canvas2DContext, width: number, height: number, a
 
 const suits = (context: Canvas2DContext, width: number, height: number, accent: string, pixelRatio: number) => {
   const random = createSeededRandom(51);
-  const marks = ["♠", "♥", "♦", "♣"];
+  const marks = ["\u2660", "\u2665", "\u2666", "\u2663"];
 
   for (let index = 0; index < 34; index += 1) {
     const size = (16 + random() * 28) * pixelRatio;
+    const x = random() * width;
+    const y = random() * height;
 
     context.font = `${size}px serif`;
     context.globalAlpha = 0.1 + random() * 0.16;
     context.fillStyle = random() > 0.5 ? accent : "#ffffff";
-    context.fillText(marks[index % marks.length], random() * width, random() * height);
+    wrap(width, height, (dx, dy) => context.fillText(marks[index % marks.length], x + dx, y + dy));
   }
 
   context.globalAlpha = 1;
@@ -205,7 +247,7 @@ const pixelSky = (context: Canvas2DContext, width: number, height: number, accen
         if (x * x + y * y <= radius * radius) {
           context.globalAlpha = y > radius * 0.2 ? 0.18 : 0.32;
           context.fillStyle = (x + y) / cell % 3 === 0 ? "#ffffff" : accent;
-          context.fillRect(cx + x, cy + y, cell, cell);
+          wrap(width, height, (dx, dy) => context.fillRect(cx + x + dx, cy + y + dy, cell, cell));
         }
       }
     }
@@ -214,7 +256,8 @@ const pixelSky = (context: Canvas2DContext, width: number, height: number, accen
   context.globalAlpha = 1;
 };
 
-// A universe's backdrop, a screen tall: a nebula in its colours under what it is made of.
+// A universe's backdrop, a square tile that repeats without a seam: a nebula in its colours under what the
+// universe is made of.
 export const paintUniverse = (style: VoyageStyle, accent: string, pixelRatio: number) => (context: Canvas2DContext, width: number, height: number) => {
   nebula(context, width, height, accent, style.length * 7);
 

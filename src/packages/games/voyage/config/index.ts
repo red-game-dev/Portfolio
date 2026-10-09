@@ -56,7 +56,7 @@ export type VoyageConfigOverrides = Partial<VoyageConfig>;
 
 // The way out, by distance from the Sun (semi-major axes, rounded). The Moon is passed almost at once.
 export const SOLAR_ROUTE: VoyageRouteStop[] = [
-  { id: "moon", au: 1.003, radius: 0.075, side: 1, inset: 1.9 },
+  { id: "moon", au: 1.003, atMs: 3200, radius: 0.075, side: 1, inset: 1.9 },
   { id: "mars", au: 1.52, radius: 0.1, side: -1, inset: 1.7 },
   { id: "belt", au: 2.2, until: 3.2, every: 300, radius: 0, side: 1, inset: 0 },
   { id: "jupiter", au: 5.2, radius: 0.48, side: 1, inset: 0.45 },
@@ -94,7 +94,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
   captureMs: 1100,
   lostMs: 3200,
   jumpMs: 1500,
-  scoring: { perUnit: 10, pickup: 25, universe: 500, knock: 100 },
+  scoring: { perUnit: 20, pickup: 25, universe: 500, knock: 30 },
   universes: 5,
 };
 

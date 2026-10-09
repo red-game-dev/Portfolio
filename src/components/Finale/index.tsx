@@ -24,6 +24,7 @@ import useInView from "@/hooks/useInView";
 import { scrollBehavior } from "@/packages/accessibility/motion";
 import type { LaunchSnapshot } from "@/packages/games/launch";
 import { fill, formatDuration, formatLocalTime } from "@/packages/text/format";
+import { noAnimationWhenReduced } from "@/styles/mixins";
 import { FinaleContent, FinaleLaunch, FinaleLaunchSite, FinaleRank } from "@/types/game";
 import { DocumentLink } from "@/types/portfolio";
 
@@ -51,9 +52,7 @@ const Board = styled.div(({ isAlarm }: { isAlarm: boolean }) => [
   isAlarm && css`
     animation: ${shake} 0.16s linear infinite;
 
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
+    ${noAnimationWhenReduced}
   `,
 ]);
 

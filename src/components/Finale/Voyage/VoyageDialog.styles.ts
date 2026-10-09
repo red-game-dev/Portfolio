@@ -1,5 +1,8 @@
+
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
+
+import { honourHidden, media } from "@/styles/mixins";
 
 // The whole screen, edge to edge, over a black backdrop.
 export const Dialog = styled.dialog(() => [
@@ -47,10 +50,8 @@ export const Hud = styled.header(() => [
   css`
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
 
-    /* Hidden in photo mode, which the flex display would otherwise override. */
-    &[hidden] {
-      display: none;
-    }
+    /* Hidden in photo mode. */
+    ${honourHidden}
   `,
 ]);
 
@@ -113,7 +114,7 @@ export const TelemetryPanel = styled.section(() => [
     background: rgba(5, 8, 18, 0.72);
     border: 1px solid rgba(196, 210, 255, 0.25);
 
-    @media (min-width: 768px) {
+    ${media.md} {
       min-width: 200px;
     }
   `,
@@ -227,7 +228,7 @@ export const Message = styled.p(() => [
     border: 1px solid rgba(196, 210, 255, 0.35);
     animation: ${fadeLine} 2.8s ease both;
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       animation-duration: 0.01s;
       animation-delay: 2.6s;
     }
@@ -280,7 +281,7 @@ export const Gain = styled.span(() => [
   css`
     animation: ${floatGain} 1.2s ease-out both;
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       animation-name: none;
       opacity: 1;
     }

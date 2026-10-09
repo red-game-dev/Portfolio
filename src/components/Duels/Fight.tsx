@@ -5,6 +5,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { PixelSprite } from "@/components/PixelSprite";
 import { AGENT_SPRITE, WARRIOR_SPRITE } from "@/config/sprites";
+import { media } from "@/styles/mixins";
 
 interface FightProps {
   played: number;
@@ -76,7 +77,7 @@ const stamp = keyframes`
 `;
 
 const reducedMotion = css`
-  @media (prefers-reduced-motion: reduce) {
+  ${media.reducedMotion} {
     animation: none !important;
   }
 `;

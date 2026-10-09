@@ -7,6 +7,7 @@ import { DecodedText } from "@/components/DecodedText";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageMixView } from "@/packages/insights/ai-usage";
+import { media } from "@/styles/mixins";
 
 const { rowDelayMs, bitDelayMs } = AI_USAGE_MOTION;
 
@@ -73,13 +74,13 @@ const Bits = styled.span(() => [
       opacity: 1;
     }
 
-    @media (min-width: 768px) {
+    ${media.md} {
       & > span {
         font-size: 9px;
       }
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       & > span,
       & > span::before {
         transition: none;
@@ -94,7 +95,7 @@ const Row = styled.li(() => [
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas: "label value" "bits bits";
 
-    @media (min-width: 1024px) {
+    ${media.lg} {
       grid-template-columns: 15rem minmax(0, 1fr) 4.5rem;
       grid-template-areas: "label bits value";
     }

@@ -6,10 +6,11 @@ import { BlueprintSection } from "@/components/Blueprint";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import { Anchor, Section } from "@/components/Section";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
-import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
+import { Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import useTabs from "@/hooks/useTabs";
+import { honourHidden } from "@/styles/mixins";
 import { BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
 import { ExpertiseContent } from "@/types/case-studies";
 import { SectionIntros } from "@/types/sections-intros";
@@ -25,7 +26,7 @@ const Groups = tw.div`mt-[25px] lg:mt-[35px] mb-[25px] flex flex-col gap-[14px]`
 
 const Tiles = styled.ul(() => [
   tw`list-none m-0 p-0 grid gap-[14px] md:grid-cols-2 xl:grid-cols-3`,
-  hiddenPanel,
+  honourHidden,
 ]);
 
 const Tile = tw.li`flex flex-col gap-[10px] p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;

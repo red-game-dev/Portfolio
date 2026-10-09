@@ -8,6 +8,7 @@ import { HISTORY_VIEW, VENTURE_COLOUR } from "@/components/History/config";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import useInView from "@/hooks/useInView";
 import { fill } from "@/packages/text/format";
+import { honourHidden, media, noTransitionWhenReduced } from "@/styles/mixins";
 import { HistoryLabels } from "@/types/history";
 import { Resume } from "@/types/resume";
 
@@ -46,9 +47,7 @@ const Node = styled.span(({ isVenture, isReached, isCurrent, hasVentureLane }: N
     left: ${isVenture && hasVentureLane ? "calc(var(--lane-venture) - 6px)" : "calc(var(--lane-main) - 6px)"};
     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 
-    @media (prefers-reduced-motion: reduce) {
-      transition: none;
-    }
+    ${noTransitionWhenReduced}
   `,
   isReached && css`
     background: ${isVenture ? VENTURE_COLOUR : "var(--accent)"};
@@ -65,7 +64,7 @@ const Node = styled.span(({ isVenture, isReached, isCurrent, hasVentureLane }: N
       animation: live-ring 1.8s ease-out infinite;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &::after {
         animation: none;
       }
@@ -122,14 +121,7 @@ const Bullet = styled.li(() => [
 ]);
 
 // display: flex would beat the hidden attribute, so hidden is restated here.
-const More = styled.div(() => [
-  tw`flex flex-col gap-[10px]`,
-  css`
-    &[hidden] {
-      display: none;
-    }
-  `,
-]);
+const More = styled.div(() => [tw`flex flex-col gap-[10px]`, honourHidden]);
 
 const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 

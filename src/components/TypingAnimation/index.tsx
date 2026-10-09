@@ -6,6 +6,7 @@ import { useTypewriter } from "@/components/TypingAnimation/hooks/useTypewriter"
 import useInView from "@/hooks/useInView";
 import { sumBy } from "@/packages/math/stats";
 import { caretBlink } from "@/styles/keyframes";
+import { hiddenWhenReduced } from "@/styles/mixins";
 
 interface TypingAnimationProps {
   // Phrases with the highlighted part in <strong>, as written in the content.
@@ -50,9 +51,7 @@ const Caret = styled.span(() => [
     vertical-align: -0.08em;
     animation: ${caretBlink} 0.9s steps(1) infinite;
 
-    @media (prefers-reduced-motion: reduce) {
-      display: none;
-    }
+    ${hiddenWhenReduced}
   `,
 ]);
 

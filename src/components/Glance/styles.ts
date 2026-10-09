@@ -1,6 +1,7 @@
 import tw, { css, styled } from "twin.macro";
 
 import { fadeIn } from "@/styles/keyframes";
+import { media } from "@/styles/mixins";
 
 export const Sheet = tw.div`flex flex-col gap-[26px] p-[22px] md:p-[32px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
@@ -114,7 +115,7 @@ export const Milestone = styled.li(() => [
       background: var(--accent);
     }
 
-    @media (min-width: 768px) {
+    ${media.md} {
       &::before {
         top: 0;
       }
@@ -148,7 +149,7 @@ export const Switched = styled.div(() => [
       animation: ${fadeIn} 0.3s ease-out both;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       & > * {
         animation: none;
       }

@@ -4,6 +4,7 @@ import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import { BLOCK_GRID, PIXEL_GRID, SWITCH_MS, SwitchEffect } from "@/components/SwitchStage/config";
+import { media } from "@/styles/mixins";
 
 const wipeIn = keyframes`
   0% { opacity: 0; clip-path: inset(0 var(--from-right) 0 var(--from-left)); filter: blur(6px) saturate(1.6); transform: scale(0.99); }
@@ -97,7 +98,7 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
     }
   `,
   css`
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       ${CONTENT} {
         animation: none !important;
       }

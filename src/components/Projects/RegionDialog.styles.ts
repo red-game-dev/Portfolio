@@ -3,6 +3,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { actionStyle } from "@/components/Controls";
 import { Image } from "@/components/Image";
+import { media } from "@/styles/mixins";
 
 const HEX = "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)";
 
@@ -29,7 +30,7 @@ export const Dialog = styled.dialog(() => [
       backdrop-filter: blur(3px);
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &[open] {
         animation: none;
       }
@@ -65,7 +66,7 @@ text-[#999] bg-transparent border-0 hover:text-white`;
 export const Body = styled.div(() => [
   tw`grid gap-[22px] p-[18px] md:p-[22px]`,
   css`
-    @media (min-width: 768px) {
+    ${media.md} {
       grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     }
   `,

@@ -7,6 +7,7 @@ import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
+import { media } from "@/styles/mixins";
 import { TalentsContent } from "@/types/forge";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -51,7 +52,7 @@ const Tree = styled.ul(({ isActive }: { isActive: boolean }) => [
       border-color: var(--accent-muted);
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       & > li,
       & > li::before {
         transition: none;

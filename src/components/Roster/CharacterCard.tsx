@@ -6,6 +6,7 @@ import { faEnvelope, faGamepad } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { HeroPortrait } from "@/components/Roster/HeroPortrait";
+import { hiddenWhenReduced, media, noTransitionWhenReduced } from "@/styles/mixins";
 import { Character, Roster } from "@/types/roster";
 
 interface CharacterCardProps extends Character {
@@ -41,7 +42,7 @@ const Inner = styled.div(({ isRevealed }: FlipProps) => [
     transform: perspective(1200px) rotateY(${isRevealed ? 0 : 180}deg);
     transition: transform 0.8s cubic-bezier(0.165, 0.85, 0.45, 1);
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       transform: none;
       transition: none;
     }
@@ -75,9 +76,7 @@ const Back = styled.div(() => [
     transform: rotateY(180deg);
     background-image: repeating-linear-gradient(45deg, rgba(var(--accent-rgb), 0.05) 0, rgba(var(--accent-rgb), 0.05) 2px, transparent 2px, transparent 10px);
 
-    @media (prefers-reduced-motion: reduce) {
-      display: none;
-    }
+    ${hiddenWhenReduced}
   `,
 ]);
 
@@ -121,9 +120,7 @@ const StatFill = styled.span(({ isRevealed }: FlipProps) => [
     transform-origin: left center;
     transition: transform 1s cubic-bezier(0.165, 0.85, 0.45, 1) 0.5s;
 
-    @media (prefers-reduced-motion: reduce) {
-      transition: none;
-    }
+    ${noTransitionWhenReduced}
   `,
   !isRevealed && css`transform: scaleX(0) !important;`,
 ]);

@@ -28,6 +28,7 @@ import {
   TerminalSession
 } from "@/packages/interaction/terminal";
 import { fill } from "@/packages/text/format";
+import { media, noAnimationWhenReduced } from "@/styles/mixins";
 import { SectionIntros } from "@/types/sections-intros";
 import { TerminalContent } from "@/types/terminal";
 
@@ -133,7 +134,7 @@ const Suggestion = styled.button(({ isFeatured }: { isFeatured: boolean }) => [
       animation: ${glow} 1.8s ease-out infinite;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &::after {
         animation: none;
         opacity: 0;
@@ -154,9 +155,7 @@ const Caret = styled.span(() => [
   css`
     animation: ${blink} 1s steps(1) infinite;
 
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
+    ${noAnimationWhenReduced}
   `,
 ]);
 

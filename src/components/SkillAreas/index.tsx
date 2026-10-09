@@ -5,10 +5,11 @@ import tw, { styled } from "twin.macro";
 import { Tag } from "@/components/Controls";
 import { Section } from "@/components/Section";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
-import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
+import { Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import useTabs from "@/hooks/useTabs";
+import { honourHidden } from "@/styles/mixins";
 import { SectionIntros } from "@/types/sections-intros";
 import { SkillArea } from "@/types/skills";
 
@@ -25,7 +26,7 @@ const Layout = tw.div`mt-[22px] flex flex-col lg:flex-row gap-[16px] lg:gap-[28p
 
 const Panels = styled(SwitchStage)(() => [tw`flex-1 min-w-0`]);
 
-const Panel = styled.section(() => [tw`min-w-0`, hiddenPanel]);
+const Panel = styled.section(() => [tw`min-w-0`, honourHidden]);
 
 const AreaTitle = tw.h3`m-[0 0 12px 0] text-base font-semibold text-white`;
 

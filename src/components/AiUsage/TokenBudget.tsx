@@ -6,6 +6,7 @@ import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageBudget } from "@/packages/insights/ai-usage";
 import { collapseWhitespace, fill } from "@/packages/text/format";
+import { media } from "@/styles/mixins";
 
 interface RevealProps {
   isRevealed: boolean;
@@ -34,7 +35,7 @@ const Segment = styled.span(({ isRevealed }: RevealProps) => [
     transform: scaleX(${isRevealed ? 1 : 0});
     transition: transform 0.9s cubic-bezier(0.165, 0.85, 0.45, 1);
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       transform: none;
       transition: none;
     }

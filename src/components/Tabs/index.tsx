@@ -1,5 +1,8 @@
 import tw, { css, styled } from "twin.macro";
 
+import { media } from "@/styles/mixins";
+
+
 // The look shared by every row of tabs on the page. Pair with useTabs for the behaviour.
 
 interface TabListProps {
@@ -16,7 +19,7 @@ export const TabList = styled.div(({ layout = "row" }: TabListProps) => [
   `,
   // Stacked in a narrow column, long names wrap instead of widening it.
   layout === "column" && css`
-    @media (min-width: 1024px) {
+    ${media.lg} {
       & > [role="tab"] {
         white-space: normal;
       }
@@ -41,10 +44,3 @@ export const Tab = styled.button(({ isOn }: { isOn: boolean }) => [
 
 // How many items a tab holds, beside its name.
 export const TabCount = styled.span(({ isOn }: { isOn: boolean }) => [tw`text-[11px] font-medium`, isOn ? tw`text-[#101010]` : tw`text-[#777]`]);
-
-// Closed panels keep `hidden`, which a display set by a class would otherwise override.
-export const hiddenPanel = css`
-  &[hidden] {
-    display: none;
-  }
-`;

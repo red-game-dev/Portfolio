@@ -7,6 +7,7 @@ import { PlayStateProps } from "@/components/AiUsage/styles";
 import { BinaryRain } from "@/components/BinaryRain";
 import useInView from "@/hooks/useInView";
 import { AiUsageScreen } from "@/packages/insights/ai-usage";
+import { hiddenWhenReduced } from "@/styles/mixins";
 
 // Scanlines and a vignette over the canvas, so the rain reads as a screen rather than a flat panel.
 const Screen = styled.figure(() => [
@@ -40,9 +41,7 @@ const ScanBeam = styled.div(({ isActive }: PlayStateProps) => [
     animation-play-state: ${isActive ? "running" : "paused"};
     will-change: transform;
 
-    @media (prefers-reduced-motion: reduce) {
-      display: none;
-    }
+    ${hiddenWhenReduced}
   `,
 ]);
 

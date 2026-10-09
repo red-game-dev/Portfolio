@@ -2,6 +2,7 @@ import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import { ZoneId } from "@/config/zones";
+import { media } from "@/styles/mixins";
 import { BlueprintNode } from "@/types/blueprints";
 
 // The drawing is always laid out side by side, as a diagram. Where there is less room than it needs (a
@@ -239,7 +240,7 @@ export const Wires = styled.svg(({ isMoving }: { isMoving: boolean }) => [
       animation: ${signal} 2.6s linear infinite;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       .signal {
         display: none;
       }

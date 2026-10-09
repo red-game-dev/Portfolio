@@ -9,6 +9,7 @@ import { PlayStateProps } from "@/components/AiUsage/styles";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageAgents } from "@/packages/insights/ai-usage";
+import { hiddenWhenReduced, media } from "@/styles/mixins";
 import { AiUsageIcon } from "@/types/ai-usage";
 
 const { signalLoopSeconds } = AI_USAGE_MOTION;
@@ -72,9 +73,7 @@ const Signal = styled.span((props: PlayStateProps) => [
       box-shadow: 0 0 10px 3px rgba(var(--accent-rgb), 0.8);
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      display: none;
-    }
+    ${hiddenWhenReduced}
   `,
   playState(props),
 ]);
@@ -118,7 +117,7 @@ const Node = styled.div((props: PlayStateProps) => [
       will-change: transform, opacity;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &::before,
       &::after {
         animation: none;

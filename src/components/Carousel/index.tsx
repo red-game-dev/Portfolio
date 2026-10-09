@@ -11,6 +11,7 @@ import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { firstFocusable, isFocusLost, isInside, isTypingTarget } from "@/packages/interaction/focus";
 import { HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
+import { honourHidden } from "@/styles/mixins";
 import { CarouselLabels } from "@/types/carousel";
 
 interface CarouselProps<T> {
@@ -40,14 +41,7 @@ const Slides = styled(SwitchStage)(({ perView }: { perView: number }) => [
   `,
 ]);
 
-const Slide = styled.div(() => [
-  tw`min-w-0`,
-  css`
-    &[hidden] {
-      display: none;
-    }
-  `,
-]);
+const Slide = styled.div(() => [tw`min-w-0`, honourHidden]);
 
 const Controls = tw.div`flex flex-row items-center justify-between gap-[12px]`;
 

@@ -10,6 +10,7 @@ import useAnimationProgress from "@/hooks/useAnimationProgress";
 import useInView from "@/hooks/useInView";
 import { activityStats, ActivityStats, DayRange } from "@/packages/insights/activity";
 import { fill } from "@/packages/text/format";
+import { hiddenWhenReduced, media } from "@/styles/mixins";
 import { CodeReviewContent, GithubActivity } from "@/types/code-review";
 
 interface ActivityProps {
@@ -57,7 +58,7 @@ const Row = styled.div(({ isShown, delay }: RunProps) => [
     clip-path: inset(0 ${isShown ? 0 : 100}% 0 0);
     transition: clip-path ${SWEEP_MS}ms cubic-bezier(0.45, 0, 0.25, 1) ${delay}ms;
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       clip-path: none;
       transition: none;
     }
@@ -72,9 +73,7 @@ const Head = styled.span(({ isShown, delay }: RunProps) => [
     box-shadow: 0 0 10px 2px rgba(var(--accent-rgb), 0.7);
     transition: left ${SWEEP_MS}ms cubic-bezier(0.45, 0, 0.25, 1) ${delay}ms, opacity 0.25s ease ${delay + SWEEP_MS}ms;
 
-    @media (prefers-reduced-motion: reduce) {
-      display: none;
-    }
+    ${hiddenWhenReduced}
   `,
 ]);
 
@@ -97,7 +96,7 @@ const Streak = styled.path(({ isShown, delay }: RunProps) => [
   isShown && css`
     animation: ${glow} 2.4s ease-in-out ${delay}ms infinite both;
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       animation: none;
       opacity: 1;
     }
@@ -144,7 +143,7 @@ const Badge = styled.li(({ isShown, delay }: RunProps) => [
     }
   `,
   css`
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       opacity: 1;
       animation: none;
 

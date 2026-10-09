@@ -7,6 +7,7 @@ import { BLEED } from "@/components/Blueprint/config";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { Tab, TabList } from "@/components/Tabs";
 import useTabs from "@/hooks/useTabs";
+import { media } from "@/styles/mixins";
 import { Blueprint as BlueprintContent, BlueprintLabels } from "@/types/blueprints";
 
 interface BlueprintTabsProps {
@@ -17,7 +18,7 @@ interface BlueprintTabsProps {
 const Showcase = styled.div(() => [
   tw`flex flex-col gap-[14px]`,
   css`
-    @media (min-width: 1024px) {
+    ${media.lg} {
       margin-left: ${BLEED};
       margin-right: ${BLEED};
     }

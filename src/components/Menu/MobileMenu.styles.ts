@@ -1,5 +1,8 @@
+
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
+
+import { media } from "@/styles/mixins";
 
 export const Toggle = styled.button(() => [
   tw`absolute top-[-8px] right-[-8px] z-[11] flex flex-col items-center justify-center gap-[5px] w-[44px] h-[44px] p-0 cursor-pointer
@@ -124,7 +127,7 @@ export const Stop = styled.li(({ order, isLast }: StopProps) => [
       animation: ${draw} 0.3s ease-out ${120 + order * 40}ms both;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       animation: none;
 
       &::before {
@@ -154,7 +157,7 @@ export const Node = styled.span(({ state }: { state: StopState }) => [
       animation: ${pulse} 1.6s ease-out infinite;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &::after {
         animation: none;
       }

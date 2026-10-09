@@ -3,6 +3,7 @@ import { FC, useEffect, useRef, useState } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
+import { media } from "@/styles/mixins";
 
 interface SquaresProps {
   count: number;
@@ -26,7 +27,7 @@ const Grid = styled.div(() => [
   css`
     clip-path: inset(0 0 calc((1 - var(--squares-progress, 0)) * 100%) 0);
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       clip-path: none;
     }
   `,

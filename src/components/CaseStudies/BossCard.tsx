@@ -11,6 +11,7 @@ import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { faTreasureChest } from "@/config/icons";
 import useScrollProgressVar from "@/hooks/useScrollProgressVar";
 import { fill } from "@/packages/text/format";
+import { honourHidden, media } from "@/styles/mixins";
 import { CaseStudy } from "@/types/case-studies";
 import { BossLabels } from "@/types/game";
 import { CaseLabels } from "@/types/lens";
@@ -59,7 +60,7 @@ const Card = styled.article(() => [
       transform: none;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       & .hp-fill,
       & .stamp,
       & .loot {
@@ -107,14 +108,7 @@ const Heading = tw.h4`m-0 text-xs font-semibold text-[#8a8a8a]`;
 
 const Toggle = tw.button`self-start p-0 cursor-pointer text-xs font-semibold text-[var(--accent)] bg-transparent border-0 hover:underline`;
 
-const Solution = styled.div(() => [
-  tw`flex flex-col gap-[8px]`,
-  css`
-    &[hidden] {
-      display: none;
-    }
-  `,
-]);
+const Solution = styled.div(() => [tw`flex flex-col gap-[8px]`, honourHidden]);
 
 const Loot = tw.div`flex flex-row items-start gap-[10px] p-[12px] text-sm text-[#ffd98c] bg-[#1a1408] border-[1px] border-solid border-[#5c4a26]`;
 

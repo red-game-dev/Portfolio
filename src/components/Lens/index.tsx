@@ -15,6 +15,7 @@ import { DEFAULT_LENS, Lens } from "@/config/lenses";
 import useModalDialog from "@/hooks/useModalDialog";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { rovingTarget } from "@/packages/accessibility/roving";
+import { noAnimationWhenReduced } from "@/styles/mixins";
 import { EntranceCandidate, LensContent } from "@/types/lens";
 
 interface LensGateProps {
@@ -72,11 +73,7 @@ const Shell = styled.div(({ lens, isLeaving }: LeavingProps) => [
   isLeaving && lens === "engineer" && css`
     animation: ${powerOff} ${EXIT};
   `,
-  css`
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
-  `,
+  noAnimationWhenReduced,
 ]);
 
 const Door = styled.div(({ side, lens, isLeaving }: LeavingProps & { side: "top" | "bottom" }) => [

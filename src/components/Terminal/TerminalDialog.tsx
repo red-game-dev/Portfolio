@@ -7,6 +7,7 @@ import { ActionButton, ActionLink } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import useModalDialog from "@/hooks/useModalDialog";
 import { TerminalDialog as TerminalDialogContent } from "@/packages/interaction/terminal";
+import { media } from "@/styles/mixins";
 
 interface TerminalDialogProps {
   dialog: TerminalDialogContent | null;
@@ -52,7 +53,7 @@ const Dialog = styled.dialog(() => [
       animation: ${sweep} 0.9s ease-out forwards;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &[open],
       &[open]::after {
         animation: none;

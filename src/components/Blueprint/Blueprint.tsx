@@ -9,6 +9,7 @@ import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { Lens } from "@/config/lenses";
 import useInView from "@/hooks/useInView";
+import { media } from "@/styles/mixins";
 import { Blueprint as BlueprintContent, BlueprintJourney, BlueprintLabels } from "@/types/blueprints";
 
 export interface BlueprintProps extends BlueprintContent {
@@ -26,7 +27,7 @@ const VIEW_ORDER: View[] = ["overview", "architecture", "flow"];
 const Figure = styled.figure(({ isBleed }: { isBleed: boolean }) => [
   tw`m-0 flex flex-col gap-[16px] p-[18px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
   isBleed && css`
-    @media (min-width: 1024px) {
+    ${media.lg} {
       margin-left: ${BLEED};
       margin-right: ${BLEED};
     }

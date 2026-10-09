@@ -1,6 +1,9 @@
+
 import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
+
+import { media } from "@/styles/mixins";
 
 interface BitStripProps {
   cells: number;
@@ -39,7 +42,7 @@ const Strip = styled.span(({ isActive }: StripProps) => [
       transition-delay: inherit;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       & > span::before {
         transition: none;
       }

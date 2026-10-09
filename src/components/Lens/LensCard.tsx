@@ -6,6 +6,7 @@ import tw, { css, styled } from "twin.macro";
 import { LENS_SPRITES } from "@/components/Lens/config";
 import { PixelSprite } from "@/components/PixelSprite";
 import { Lens, LENS_ACCENTS, LENS_STAT_MAX } from "@/config/lenses";
+import { media } from "@/styles/mixins";
 import { LensCard as LensCardContent } from "@/types/lens";
 
 interface LensCardProps extends LensCardContent {
@@ -42,7 +43,7 @@ const Card = styled.button(({ order }: { order: number }) => [
       outline: none;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       animation: none;
       transition: none;
 
@@ -88,7 +89,7 @@ const Sprite = styled.span(() => [
       animation: ${idle} 0.7s steps(2) infinite;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       button:hover &,
       button:focus-visible & {
         animation: none;

@@ -9,6 +9,7 @@ import { KIND_COLOURS, MAP_COLUMNS, NARROW_QUERY, TERRAIN_ICONS } from "@/compon
 import useInView from "@/hooks/useInView";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { createHexGrid, HEX_HEIGHT, HexCell, HexGrid, hexCentre, rowsFor, snakePath } from "@/packages/math/hex-grid";
+import { media, noAnimationWhenReduced, noTransitionWhenReduced } from "@/styles/mixins";
 import { ProjectDetail, ProjectKind } from "@/types/projects";
 
 interface WorldMapProps {
@@ -50,7 +51,7 @@ const Route = styled.svg(({ isDrawn }: { isDrawn: boolean }) => [
       transition: stroke-dashoffset 2.6s ease-in-out 0.3s;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       & .trail {
         stroke-dashoffset: 0;
         transition: none;
@@ -98,16 +99,12 @@ const Region = styled.button(({ isDim, isCurrent }: { isDim: boolean; isCurrent:
       background: color-mix(in srgb, var(--kind) 30%, #0d0d0d);
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      transition: none;
-    }
+    ${noTransitionWhenReduced}
   `,
   isCurrent && css`
     animation: ${pulse} 2.4s ease-in-out infinite;
 
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
+    ${noAnimationWhenReduced}
   `,
   isDim && tw`opacity-20`,
 ]);

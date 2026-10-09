@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { SECTION_IDS } from "@/config/sections";
 import { createRosterLevels } from "@/services/roster";
+import { media } from "@/styles/mixins";
 import { HudLabels } from "@/types/game";
 import { Roster } from "@/types/roster";
 
@@ -34,7 +35,7 @@ const Frame = styled.div(({ isVisible }: VisibleProps) => [
   css`
     bottom: max(12px, env(safe-area-inset-bottom));
 
-    @media (min-width: 1280px) {
+    ${media.xl} {
       bottom: 20px;
     }
 
@@ -43,7 +44,7 @@ const Frame = styled.div(({ isVisible }: VisibleProps) => [
     transform: translateY(12px);
     transition: opacity 0.4s ease, transform 0.4s ease, visibility 0s linear 0.4s;
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       transform: none;
       transition: none;
     }

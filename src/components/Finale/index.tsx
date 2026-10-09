@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC, FocusEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -74,6 +74,8 @@ const LaunchButton = styled.button(() => [
 const Hint = tw.p`m-0 text-xs text-[#999] max-w-[60ch]`;
 
 // In orbit: would the reader like to play? The first time, with a count before the journey goes on by itself.
+const Choice = tw.div``;
+
 const Ask = tw.div`flex flex-col gap-[4px] mt-[18px]`;
 
 const AskTitle = tw.h3`m-0 text-lg font-semibold text-white`;
@@ -228,6 +230,14 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   // runs while the ship can be seen.
   const isBoardShown = useInView(boardRef, { threshold: 0.6, once: false });
   const openVoyage = useCallback(() => setIsVoyaging(true), []);
+  // Focus on the choice in orbit holds the count, so a keyboard reader is never rushed while deciding. Whatever
+  // held focus before orbit (the launch button) is gone by then, so reaching or leaving orbit starts afresh.
+  const [isChoosing, setIsChoosing] = useState(false);
+  const onChoiceBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (!(event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))) {
+      setIsChoosing(false);
+    }
+  };
   const zoneCount = ZONE_BOUNDARIES.length;
 
   // Read the first time the end is reached and kept, so the number neither ticks while it is read nor
@@ -247,10 +257,14 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   ];
   const done = objectives.filter(Boolean).length;
   const isOrbit = snapshot.status === "orbit";
-  const invite = useInvite({ isOrbit, isInView: isBoardShown, isOpen: isVoyaging, open: openVoyage });
-  const isCounting = invite.count !== null;
   // In orbit, or blowing up there: the choices of what to do next stay on screen.
   const isAloft = isOrbit || snapshot.status === "destructing" || snapshot.status === "exploding";
+  const invite = useInvite({ isOrbit, isInView: isBoardShown, isOpen: isVoyaging, isChoosing, open: openVoyage });
+  const isCounting = invite.count !== null;
+
+  useEffect(() => {
+    setIsChoosing(false);
+  }, [isAloft]);
   const isOnPad = snapshot.status === "ready" || snapshot.status === "charging";
   // One star per stat, lit as each zone falls behind, the last one in orbit.
   const isLit = (index: number) => isOrbit || snapshot.passed > index;
@@ -272,51 +286,53 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
           <Canvas ref={canvasRef} aria-hidden="true" />
           <Status role="status">{statusOf(content.launch, snapshot, zoneLabels)}</Status>
         </Board>
-        {isAloft && (
-          <Ask>
-            <AskTitle>{content.launch.invite.question}</AskTitle>
-            {isCounting && <Hint role="status">{fill(content.launch.invite.starting, { seconds: INVITE_SECONDS })}</Hint>}
-          </Ask>
-        )}
-        <Controls>
-          {isAloft ? (
-            <>
-              <ActionButton type="button" isPrimary disabled={!isOrbit} onClick={invite.accept}>
-                <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
-                {isCounting ? fill(content.launch.invite.playIn, { seconds: invite.count ?? 0 }) : content.launch.invite.play}
-              </ActionButton>
-              {isCounting && (
-                <ActionButton type="button" isPrimary={false} onClick={invite.decline}>
-                  {content.launch.invite.decline}
-                </ActionButton>
-              )}
-              <RedButton type="button" disabled={!isOrbit} aria-describedby={hint} onClick={selfDestruct}>
-                <Plate aria-hidden="true">
-                  <Cap className="cap" />
-                </Plate>
-                {content.launch.doNotPress}
-              </RedButton>
-              <Hint id={hint}>{content.launch.orbitHint}</Hint>
-            </>
-          ) : (
-            <>
-              <LaunchButton
-                type="button"
-                disabled={!isReady || !isOnPad}
-                aria-describedby={hint}
-                onPointerDown={onPointerDown}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerCancel}
-                onContextMenu={(event) => event.preventDefault()}
-                onClick={onClick}
-              >
-                <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
-                {content.launch.hold}
-              </LaunchButton>
-              <Hint id={hint}>{content.launch.hint}</Hint>
-            </>
+        <Choice onFocus={() => setIsChoosing(isAloft)} onBlur={onChoiceBlur}>
+          {isAloft && (
+            <Ask>
+              <AskTitle>{content.launch.invite.question}</AskTitle>
+              {isCounting && <Hint role="status">{fill(content.launch.invite.starting, { seconds: INVITE_SECONDS })}</Hint>}
+            </Ask>
           )}
-        </Controls>
+          <Controls>
+            {isAloft ? (
+              <>
+                <ActionButton type="button" isPrimary disabled={!isOrbit} onClick={invite.accept}>
+                  <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
+                  {isCounting ? fill(content.launch.invite.playIn, { seconds: invite.count ?? 0 }) : content.launch.invite.play}
+                </ActionButton>
+                {isCounting && (
+                  <ActionButton type="button" isPrimary={false} onClick={invite.decline}>
+                    {content.launch.invite.decline}
+                  </ActionButton>
+                )}
+                <RedButton type="button" disabled={!isOrbit} aria-describedby={hint} onClick={selfDestruct}>
+                  <Plate aria-hidden="true">
+                    <Cap className="cap" />
+                  </Plate>
+                  {content.launch.doNotPress}
+                </RedButton>
+                <Hint id={hint}>{content.launch.orbitHint}</Hint>
+              </>
+            ) : (
+              <>
+                <LaunchButton
+                  type="button"
+                  disabled={!isReady || !isOnPad}
+                  aria-describedby={hint}
+                  onPointerDown={onPointerDown}
+                  onPointerUp={onPointerUp}
+                  onPointerCancel={onPointerCancel}
+                  onContextMenu={(event) => event.preventDefault()}
+                  onClick={onClick}
+                >
+                  <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
+                  {content.launch.hold}
+                </LaunchButton>
+                <Hint id={hint}>{content.launch.hint}</Hint>
+              </>
+            )}
+          </Controls>
+        </Choice>
         {isVoyaging && (
           <LazyVoyageDialog
             content={content.voyage}

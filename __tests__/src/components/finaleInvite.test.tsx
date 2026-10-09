@@ -49,9 +49,10 @@ describe("the finale's invite to play", () => {
 
   test("the first time in orbit, the journey goes on by itself once the count runs out, and only that once", () => {
     const open = jest.fn();
-    const { result, rerender } = renderHook((props: { isInView: boolean }) => useInvite({ isOrbit: true, isInView: props.isInView, isOpen: false, open }), {
-      initialProps: { isInView: true },
-    });
+    const { result, rerender } = renderHook(
+      (props: { isInView: boolean }) => useInvite({ isOrbit: true, isInView: props.isInView, isOpen: false, isChoosing: false, open }),
+      { initialProps: { isInView: true } },
+    );
 
     expect(result.current.count).toBe(INVITE_SECONDS);
 
@@ -69,14 +70,40 @@ describe("the finale's invite to play", () => {
     expect(result.current.count).toBeNull();
     expect(window.localStorage.getItem(INVITE_KEY)).toBe(JSON.stringify("taken"));
 
-    const again = renderHook(() => useInvite({ isOrbit: true, isInView: true, isOpen: false, open }));
+    const again = renderHook(() => useInvite({ isOrbit: true, isInView: true, isOpen: false, isChoosing: false, open }));
 
     expect(again.result.current.count).toBeNull();
   });
 
+  test("focus on the choice holds the count where it is, and a page in the background never counts", () => {
+    const open = jest.fn();
+    const { result, rerender } = renderHook(
+      (props: { isChoosing: boolean }) => useInvite({ isOrbit: true, isInView: true, isOpen: false, isChoosing: props.isChoosing, open }),
+      { initialProps: { isChoosing: false } },
+    );
+
+    wait(1);
+    rerender({ isChoosing: true });
+    wait(INVITE_SECONDS * 2);
+    expect(result.current.count).toBe(INVITE_SECONDS - 1);
+    expect(open).not.toHaveBeenCalled();
+
+    rerender({ isChoosing: false });
+    wait(INVITE_SECONDS);
+    expect(open).toHaveBeenCalledTimes(1);
+
+    window.localStorage.clear();
+
+    const hidden = jest.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    const background = renderHook(() => useInvite({ isOrbit: true, isInView: true, isOpen: false, isChoosing: false, open }));
+
+    expect(background.result.current.count).toBeNull();
+    hidden.mockRestore();
+  });
+
   test("no thanks stops the count and is remembered, and the reader can still choose to play", () => {
     const open = jest.fn();
-    const { result } = renderHook(() => useInvite({ isOrbit: true, isInView: true, isOpen: false, open }));
+    const { result } = renderHook(() => useInvite({ isOrbit: true, isInView: true, isOpen: false, isChoosing: false, open }));
 
     act(() => result.current.decline());
     wait(INVITE_SECONDS * 2);

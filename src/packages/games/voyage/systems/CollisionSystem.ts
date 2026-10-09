@@ -103,7 +103,8 @@ export class CollisionSystem implements System<VoyageContext> {
     });
   }
 
-  // Coins within reach fly in to the ship, so a pass close by collects them without having to touch each one.
+  // Coins within reach fly in to the ship, so a pass close by collects them without having to touch each one. The
+  // reach is wider than the contact search below: a coin drawn in is caught once it is close.
   private drawCoins({ world, config }: VoyageContext, ship: Body): void {
     const reach = config.pickups.magnet;
 

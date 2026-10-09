@@ -1,4 +1,4 @@
-import { carouselPage, describePage, realignStart, swipeStep, wrapPage } from "@/components/Carousel/paging";
+import { carouselPage, describePage, realignStart, wrapPage } from "@/components/Carousel/paging";
 
 describe("carousel paging", () => {
   test("pages hold perPage cards, and the last page holds what is left", () => {
@@ -15,13 +15,6 @@ describe("carousel paging", () => {
     expect(wrapPage(-1, 12)).toBe(11);
     expect(wrapPage(12, 12)).toBe(0);
     expect(wrapPage(-13, 12)).toBe(11);
-  });
-
-  test("a short swipe is ignored; right to left goes forward", () => {
-    expect(swipeStep(30, 40)).toBeNull();
-    expect(swipeStep(-40, 40)).toBeNull();
-    expect(swipeStep(-80, 40)).toBe(1);
-    expect(swipeStep(80, 40)).toBe(-1);
   });
 
   test("a new page size keeps the first card in view", () => {

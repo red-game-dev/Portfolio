@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Image } from "@/components/Image";
 import { scrollBehavior } from "@/packages/accessibility/motion";
+import { HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
 import { fill } from "@/packages/text/format";
 import { ProjectScreen } from "@/types/projects";
 
@@ -19,6 +20,10 @@ interface ScreenCarouselProps {
     position: string;
   };
 }
+
+// The dialog moves between regions with the arrow keys; inside the carousel they move between shots, and stop
+// there so the dialog does not travel as well.
+const SHOT_KEYS = new KeyMap(HORIZONTAL_ARROWS, { stopPropagation: true });
 
 const Carousel = tw.section`flex flex-col gap-[10px]`;
 
@@ -123,16 +128,7 @@ export const ScreenCarousel: FC<ScreenCarouselProps> = ({ screens, labels }: Scr
     }
   };
 
-  // The dialog moves between regions with the arrow keys; inside the carousel they move between shots.
-  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    const step = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
-
-    if (step) {
-      event.preventDefault();
-      event.stopPropagation();
-      go(index + step);
-    }
-  };
+  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => SHOT_KEYS.handle(event, (step) => go(index + step));
 
   const position = (at: number) => fill(labels.position, { index: at + 1, count: screens.length });
 

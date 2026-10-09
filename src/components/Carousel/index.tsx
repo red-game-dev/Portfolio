@@ -1,13 +1,16 @@
-import { KeyboardEvent, PointerEvent, ReactNode, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, ReactNode, useEffect, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
 import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { carouselPage, describePage, realignStart, swipeStep, wrapPage } from "@/components/Carousel/paging";
+import { useSwipe } from "@/components/Carousel/hooks/useSwipe";
+import { carouselPage, describePage, realignStart, wrapPage } from "@/components/Carousel/paging";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import useMediaQuery from "@/hooks/useMediaQuery";
+import { isTypingTarget } from "@/packages/interaction/focus";
+import { HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
 import { CarouselLabels } from "@/types/carousel";
 
 interface CarouselProps<T> {
@@ -22,6 +25,9 @@ interface CarouselProps<T> {
 
 // A swipe shorter than this is a tap or a scroll, not a page turn.
 const SWIPE_PX = 40;
+
+// Left and right turn the page, except while typing into a field among the cards.
+const PAGE_KEYS = new KeyMap(HORIZONTAL_ARROWS, { skip: (event) => isTypingTarget(event.target) });
 
 const Root = tw.section`flex flex-col gap-[14px]`;
 
@@ -96,7 +102,6 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
   const perPage = isWide ? perView : 1;
   const [start, setStart] = useState(0);
   const switcher = useSwitch();
-  const swipeFrom = useRef<number | null>(null);
   const { pages, page, first, last } = carouselPage(start, perPage, items.length);
 
   // A narrower or wider screen keeps the same first card in view.
@@ -113,38 +118,14 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
     }
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    const step = { ArrowLeft: -1, ArrowRight: 1 }[event.key] as -1 | 1 | undefined;
-
-    if (step && !(event.target instanceof HTMLInputElement)) {
-      event.preventDefault();
-      goTo(page + step, step);
-    }
-  };
-
-  const onPointerDown = (event: PointerEvent) => {
-    swipeFrom.current = event.pointerType === "mouse" ? null : event.clientX;
-  };
-
-  const onPointerUp = (event: PointerEvent) => {
-    if (swipeFrom.current === null) {
-      return;
-    }
-
-    const step = swipeStep(event.clientX - swipeFrom.current, SWIPE_PX);
-
-    swipeFrom.current = null;
-
-    if (step) {
-      goTo(page + step, step);
-    }
-  };
+  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => PAGE_KEYS.handle(event, (step) => goTo(page + step, step));
+  const swipe = useSwipe((step) => goTo(page + step, step), SWIPE_PX);
 
   const describe = (from: number, to: number) => describePage(from, to, items.length, labels);
 
   return (
     <Root aria-roledescription="carousel" aria-label={label} onKeyDown={onKeyDown}>
-      <Slides switcher={switcher} perView={perView} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+      <Slides switcher={switcher} perView={perView} onPointerDown={swipe.onPointerDown} onPointerUp={swipe.onPointerUp}>
         {items.map((item, index) => (
           <Slide
             key={getKey(item)}

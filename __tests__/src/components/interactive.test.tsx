@@ -13,6 +13,8 @@ import { portfolioData } from "@/data/resume";
 import useTabs from "@/hooks/useTabs";
 import { createForgeStations } from "@/services/skills";
 
+import { installPointerEvents } from "./fixtures/pointer";
+
 const Tabs = ({ onSelect }: { onSelect: (next: number, previous: number) => void }) => {
   const { active, listProps, tabProps, panelProps } = useTabs({ count: 3, onSelect });
 
@@ -94,6 +96,47 @@ describe("Carousel", () => {
     fireEvent.click(screen.getByRole("button", { name: portfolioData.carouselLabels.previous }));
     fireEvent.click(screen.getByRole("button", { name: portfolioData.carouselLabels.previous }));
     expect(visible()).toEqual(["Gamma"]);
+  });
+
+  it("turns pages with the arrow keys, but not from a field among the cards", () => {
+    render(
+      <LensProvider>
+        <Carousel items={items} getKey={(item) => item} renderItem={(item) => <input aria-label={item} />} label="Letters" labels={portfolioData.carouselLabels} />
+      </LensProvider>,
+    );
+
+    const shown = () => slides().filter((slide) => !slide.hidden)
+.map((slide) => slide.getAttribute("aria-label"));
+    const field = screen.getByLabelText("Alpha");
+
+    expect(fireEvent.keyDown(field, { key: "ArrowRight" })).toBe(true);
+    expect(shown()).toEqual(["1 / 3"]);
+
+    expect(fireEvent.keyDown(screen.getByRole("region", { name: "Letters" }), { key: "ArrowLeft" })).toBe(false);
+    expect(shown()).toEqual(["3 / 3"]);
+  });
+
+  it("turns a page on a swipe of a finger, not of a mouse", () => {
+    installPointerEvents();
+    renderCarousel();
+
+    const stage = slides()[0].parentElement as HTMLElement;
+
+    fireEvent.pointerDown(stage, { pointerType: "mouse", clientX: 300 });
+    fireEvent.pointerUp(stage, { pointerType: "mouse", clientX: 100 });
+    expect(visible()).toEqual(["Alpha"]);
+
+    fireEvent.pointerDown(stage, { pointerType: "touch", clientX: 300 });
+    fireEvent.pointerUp(stage, { pointerType: "touch", clientX: 270 });
+    expect(visible()).toEqual(["Alpha"]);
+
+    fireEvent.pointerDown(stage, { pointerType: "touch", clientX: 300 });
+    fireEvent.pointerUp(stage, { pointerType: "touch", clientX: 100 });
+    expect(visible()).toEqual(["Beta"]);
+
+    fireEvent.pointerDown(stage, { pointerType: "pen", clientX: 100 });
+    fireEvent.pointerUp(stage, { pointerType: "pen", clientX: 300 });
+    expect(visible()).toEqual(["Alpha"]);
   });
 });
 

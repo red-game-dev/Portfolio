@@ -26,6 +26,7 @@ export const SECTION_IDS = {
   recommendations: "section-recommendations",
   arena: "section-arena",
   finale: "section-finale",
+  timelapse: "section-timelapse",
 } as const;
 
 export type SectionKey = keyof typeof SECTION_IDS;

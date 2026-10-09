@@ -1,4 +1,4 @@
-import { milestoneAt, playbackPosition, TIMELAPSE_MS } from "@/components/AiUsage/timelapse";
+import { growthSince, milestoneAt, playbackPosition, TIMELAPSE_MS } from "@/components/Timelapse/timelapse";
 import { portfolioData } from "@/data/resume";
 import { repoGrowthView } from "@/services/repo-growth";
 
@@ -17,6 +17,20 @@ describe("the repo time-lapse", () => {
 
     expect(milestoneAt(timelapse.milestones, view, 0)).toBeNull();
     expect(milestoneAt(timelapse.milestones, view, view.frames.length - 1)).toEqual(timelapse.milestones[timelapse.milestones.length - 1]);
+  });
+
+  test("growth is a floor to one decimal, measured from the frame given, and never divides by an empty start", () => {
+    const frame = (total: number) => ({ date: "2026-10-05", heights: [], total });
+    const view = { ...repoGrowthView, frames: [frame(0), frame(300), frame(1000)] };
+
+    expect(growthSince(view, 1)).toBe("3.3");
+    expect(growthSince(view, 2)).toBe("1");
+    expect(growthSince(view, 0)).toBe("0");
+    expect(growthSince(view, 99)).toBe("1");
+  });
+
+  test("the growth stat starts on a real commit of the rebuild", () => {
+    expect(repoGrowthView.frames.some((frame) => frame.date >= timelapse.growthSince)).toBe(true);
   });
 
   test("the committed history passes its own rules, and every district in it has a label", () => {

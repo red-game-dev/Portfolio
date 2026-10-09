@@ -2,6 +2,7 @@ import { ForgeStation } from "@/services/skills";
 import { Detail } from "@/types/details";
 import { Headline } from "@/types/headline";
 import { LensContent } from "@/types/lens";
+import { DocumentLink } from "@/types/portfolio";
 import { Resume } from "@/types/resume";
 import { Roster } from "@/types/roster";
 
@@ -14,4 +15,5 @@ export interface GlanceProps {
   roster: Roster;
   stations: ForgeStation[];
   cvUrl: string;
+  fullResume: DocumentLink;
 }

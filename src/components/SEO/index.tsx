@@ -14,6 +14,7 @@ import { SECTION_IDS } from "@/config/sections";
 import { SOCIAL_URLS } from "@/config/social";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
+import { collapseWhitespace } from "@/packages/text/format";
 
 interface SeoProps {
   url: string;
@@ -178,7 +179,7 @@ export const SEO = ({ url }: SeoProps) => (
           key={`service-${index}`}
           type="service"
           productName={service.title}
-          description={service.description}
+          description={collapseWhitespace(service.description)}
           manufacturerName={portfolioData.details.name}
           manufacturerLogo={portfolioData.details.image}
         />

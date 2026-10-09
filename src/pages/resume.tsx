@@ -69,6 +69,13 @@ const ContactLink = tw.a`text-[#444] no-underline`;
 
 const Block = tw.section`mt-[12px]`;
 
+// A short block printed whole, so its heading never sits alone at the foot of a page.
+const KeptBlock = styled(Block)(() => [
+  css`
+    break-inside: avoid;
+  `,
+]);
+
 const Heading = tw.h2`m-0 mb-[5px] pb-[2px] text-[10.5pt] font-bold text-[#1f6b47] border-0 border-b-[1px] border-solid border-[#d8d8d8]`;
 
 const Paragraph = tw.p`m-0 mb-[4px]`;
@@ -92,14 +99,22 @@ const RoleDates = tw.span`text-[9pt] text-[#555] whitespace-nowrap`;
 
 const Muted = tw.p`m-0 text-[9.5pt] text-[#444]`;
 
-const PrintButton = styled.button(() => [
-  tw`fixed right-[20px] bottom-[20px] h-[42px] px-[18px] cursor-pointer text-sm font-semibold text-white bg-[#1f6b47] border-0 rounded-[3px]`,
+// On screen only: print this CV, or take the full résumé instead.
+const ScreenActions = styled.div(() => [
+  tw`fixed right-[20px] bottom-[20px] flex flex-row flex-wrap justify-end gap-[10px]`,
   css`
     @media print {
       display: none;
     }
   `,
 ]);
+
+const PrintButton = tw.button`h-[42px] px-[18px] cursor-pointer text-sm font-semibold text-white bg-[#1f6b47] border-0 rounded-[3px]`;
+
+const FullResumeLink = tw.a`
+  inline-flex items-center h-[42px] px-[18px] text-sm font-semibold text-[#1f6b47] bg-white
+  border-[1px] border-solid border-[#1f6b47] rounded-[3px] no-underline
+`;
 
 const withYears = (name: string) => {
   const years = yearsOf.get(name) ?? 0;
@@ -158,7 +173,7 @@ export default function Resume() {
           ))}
           <Muted>{cv.moreVentures}</Muted>
         </Block>
-        <Block>
+        <KeptBlock>
           <Heading>{cv.skillsLabel}</Heading>
           {cv.skills.map((line) => (
             <Paragraph key={line.label}>
@@ -166,17 +181,20 @@ export default function Resume() {
               {line.names.map(withYears).join(", ")}
             </Paragraph>
           ))}
-        </Block>
-        <Block>
+        </KeptBlock>
+        <KeptBlock>
           <Heading>{cv.educationLabel}</Heading>
           {cv.education.map((line) => <Paragraph key={line}>{line}</Paragraph>)}
           <Paragraph>
             <strong>{cv.languagesLabel}: </strong>
             {cv.languages}
           </Paragraph>
-        </Block>
+        </KeptBlock>
       </Sheet>
-      <PrintButton type="button" onClick={() => window.print()}>{cv.printLabel}</PrintButton>
+      <ScreenActions>
+        <PrintButton type="button" onClick={() => window.print()}>{cv.printLabel}</PrintButton>
+        <FullResumeLink href={portfolioData.fullResume.url} download>{portfolioData.fullResume.label}</FullResumeLink>
+      </ScreenActions>
     </>
   );
 }

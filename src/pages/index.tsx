@@ -20,6 +20,7 @@ import { SkillAreas } from "@/components/SkillAreas";
 import { SkillForge } from "@/components/SkillForge";
 import { Talents } from "@/components/Talents";
 import { Terminal } from "@/components/Terminal";
+import { Timelapse } from "@/components/Timelapse";
 import { Web3 } from "@/components/Web3";
 import { portfolioData } from "@/data/resume";
 import Layout from "@/layouts/Layout";
@@ -53,11 +54,13 @@ export default function Home() {
           roster={portfolioData.roster}
           stations={forgeStations}
           cvUrl={portfolioData.cv}
+          fullResume={portfolioData.fullResume}
         />
         <About
           {...portfolioData.details}
           linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
           cvUrl={portfolioData.cv}
+          fullResume={portfolioData.fullResume}
           github={portfolioData.github}
           stackoverflow={portfolioData.stackoverflow}
         />
@@ -82,7 +85,7 @@ export default function Home() {
           labels={portfolioData.historyLabels}
           industries={portfolioData.headline.industries}
         />
-        <AiUsage {...aiUsage} blueprintSection="ai" timelapse={portfolioData.timelapse} />
+        <AiUsage {...aiUsage} blueprintSection="ai" />
         <Web3
           intro={portfolioData.sections.web3}
           content={portfolioData.web3}
@@ -138,12 +141,14 @@ export default function Home() {
           content={portfolioData.finale}
           zoneLabels={portfolioData.journeyTrail.zones}
           contactTime={portfolioData.details.contactTime}
+          fullResume={portfolioData.fullResume}
           bossCount={portfolioData.caseStudies.length}
           duelCount={portfolioData.duels.rounds.length}
           email={portfolioData.details.email}
           linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
           cvUrl={portfolioData.cv}
         />
+        <Timelapse intro={portfolioData.sections.timelapse} content={portfolioData.timelapse} />
       </BlueprintLabelsProvider>
     </Layout>
   );

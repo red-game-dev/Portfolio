@@ -15,6 +15,6 @@ describe("journey trail", () => {
 
   test("the trail starts at the cover and ends at the finale", () => {
     expect(trail[0].id).toBe(SECTION_IDS.cover);
-    expect(trail[trail.length - 1].id).toBe(SECTION_IDS.finale);
+    expect(trail[trail.length - 1].id).toBe(SECTION_IDS.timelapse);
   });
 });

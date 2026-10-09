@@ -5,6 +5,8 @@ import { VoyageConfig } from "../config";
 import { Body, Ship } from "../domain/components";
 import { Telemetry } from "../domain/snapshot";
 import { VoyageState } from "../domain/state";
+import { missionTime } from "../systems/orbits";
+import { auForRadius } from "../utils/scale";
 
 export interface TelemetrySource {
   state: VoyageState;
@@ -12,45 +14,39 @@ export interface TelemetrySource {
   ship: Ship;
 }
 
-// The Sun's real pull at 1 AU, in m/s^2; it falls with the square of the distance. The game does not move the
-// ship by it, but outside a planet's sphere of influence it is what pulls hardest, so the telemetry says so.
-const SUN_GRAVITY_AT_1_AU = 0.00593;
-// A body's sphere of influence, in its own radii, for reading which pull dominates.
-const INFLUENCE_RADII = 18;
-
-// The hull temperature, in Celsius, at heat 0 and at heat 1 where it starts to fail.
-const COLD_C = 20;
-const FAILING_C = 1600;
+// Altitude is read while within this many radii of the body pulling hardest.
+const ALTITUDE_RADII = 40;
 
 const round = (value: number, places: number) => Math.round(value * 10 ** places) / 10 ** places;
 
-// Turns the ship's readings into real units: gravity in m/s^2 (each body set up so its surface reads true),
-// altitude in km over the body pulling hardest, speed in km/s, distance from the Sun in AU, air in bar, hull heat
-// in Celsius, and time dilation from Schwarzschild's formula against the nearest black hole's horizon.
+// Turns the ship's readings into real units: gravity in m/s^2 and what pulls hardest, altitude in km over it,
+// speed in km/s, distance from the Sun in AU, air in bar, the hull's temperature and the temperature outside in
+// Celsius, sunlight in W/m^2, radiation in microsieverts an hour, time dilation from Schwarzschild's formula
+// against the nearest black hole's horizon, and the mission clock as a real moment.
 export class TelemetryMapper extends Mapper<TelemetrySource, Telemetry> {
   constructor(private readonly config: VoyageConfig) {
     super();
   }
 
   public map({ state, body, ship }: TelemetrySource): Telemetry {
-    const { readings, route } = state;
-    const { layout, units } = this.config;
-    const dominant = route.bodies.find((candidate) => candidate.id === readings.dominant);
-    const isOutward = state.phase === "solar" || state.phase === "singularity";
-    const out = Math.hypot(body.x - route.origin.x, body.y - route.origin.y);
-    const au = 1 + (route.lastAu - 1) * (out / route.length) ** 2;
-    const isNearBody = dominant !== undefined && readings.dominantDistance < dominant.radius * INFLUENCE_RADII;
-    const isSunlit = isOutward && !isNearBody && readings.dominant !== "singularity";
+    const { readings, system } = state;
+    const inSystem = state.phase === "solar" || state.phase === "singularity";
+    const pulling = readings.dominant === system.star.id ? system.star : system.bodies.find((candidate) => candidate.id === readings.dominant);
+    const isNear = inSystem && pulling !== undefined && readings.dominantDistance < pulling.radius * ALTITUDE_RADII;
 
     return {
-      gravity: isSunlit ? round(SUN_GRAVITY_AT_1_AU / (au * au), 5) : round(readings.gravity / layout.gravityScale, 2),
-      dominant: isSunlit ? "sun" : readings.dominant,
-      altitudeKm: dominant && isNearBody ? Math.max(0, Math.round((readings.dominantDistance - dominant.radius) * dominant.kmPerUnit)) : null,
-      speedKmS: round(Math.hypot(body.vx, body.vy) * units.kmPerSecond, 1),
-      au: isOutward ? round(au, 2) : null,
-      pressureBar: readings.airOf ? readings.density : null,
-      hullTemperatureC: Math.round(COLD_C + ship.heat * (FAILING_C - COLD_C)),
+      gravity: round(readings.gravity, readings.gravity < 0.1 ? 5 : 2),
+      dominant: readings.dominant,
+      altitudeKm: isNear && pulling ? Math.max(0, Math.round((readings.dominantDistance - pulling.radius) * pulling.kmPerUnit)) : null,
+      speedKmS: round(Math.hypot(body.vx, body.vy) * this.config.units.kmPerSecond, 1),
+      au: inSystem ? round(auForRadius(system.scale, Math.hypot(body.x - system.star.x, body.y - system.star.y)), 2) : null,
+      pressureBar: readings.airOf ? round(readings.pressureBar, readings.pressureBar < 0.01 ? 6 : 2) : null,
+      hullTemperatureC: Math.round(ship.temperatureC),
+      outsideC: Math.round(readings.environmentC),
+      sunlight: inSystem ? Math.round(readings.sunlight) : null,
+      radiation: Math.round(readings.radiation),
       timeDilation: Number.isFinite(readings.holeRatio) ? round(timeDilation(readings.holeRatio, 1), 2) : 1,
+      missionTime: missionTime(state.clock, state.elapsedMs),
     };
   }
 }

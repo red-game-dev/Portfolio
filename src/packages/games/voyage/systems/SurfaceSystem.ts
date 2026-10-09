@@ -2,25 +2,26 @@ import type { System } from "@/packages/games/engine";
 
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
-import { shipOf } from "./queries";
+import { isInSystem, shipOf } from "./queries";
 
-// Solid ground: touching a rocky body slowly is a landing, the ship coming to rest upright on the surface;
-// touching it fast is a crash, damage growing with the square of the excess speed and the ship bouncing off.
-// Giants have no surface, only air that gets denser (see the atmosphere). Rocks that reach a surface are gone.
+// Solid ground: touching a rocky body slowly (against its own motion) is a landing, the ship coming to rest
+// upright on the surface and riding along with it; touching it fast is a crash, damage growing with the square
+// of the excess speed and the ship bouncing off. Giants have no surface, only air that gets denser (see the
+// atmosphere). Rocks that reach a surface are gone.
 export class SurfaceSystem implements System<VoyageContext> {
   public readonly name = "surface";
 
   public update(context: VoyageContext): void {
     const { state, world, config, events } = context;
 
-    if (state.phase !== "solar" && state.phase !== "singularity") {
+    if (!isInSystem(context)) {
       return;
     }
 
     world.stores.hazard.entities.forEach((entity) => {
       const rock = world.stores.body.get(entity);
 
-      if (rock && state.route.bodies.some((route) => Math.hypot(rock.x - route.x, rock.y - route.y) < route.radius * (route.isGiant ? 0.9 : 1))) {
+      if (rock && state.system.bodies.some((place) => Math.hypot(rock.x - place.x, rock.y - place.y) < place.radius * (place.isGiant ? 0.9 : 1))) {
         world.despawn(entity);
       }
     });
@@ -33,15 +34,15 @@ export class SurfaceSystem implements System<VoyageContext> {
 
     const { body, ship } = parts;
 
-    for (const route of state.route.bodies) {
-      if (route.isGiant) {
+    for (const place of state.system.bodies) {
+      if (place.isGiant) {
         continue;
       }
 
-      const dx = body.x - route.x;
-      const dy = body.y - route.y;
+      const dx = body.x - place.x;
+      const dy = body.y - place.y;
       const distance = Math.hypot(dx, dy);
-      const contact = route.radius + body.radius;
+      const contact = place.radius + body.radius;
 
       if (distance >= contact || distance === 0) {
         continue;
@@ -49,25 +50,27 @@ export class SurfaceSystem implements System<VoyageContext> {
 
       const nx = dx / distance;
       const ny = dy / distance;
-      const speed = Math.hypot(body.vx, body.vy);
-      const inward = body.vx * nx + body.vy * ny;
+      const vx = body.vx - place.vx;
+      const vy = body.vy - place.vy;
+      const speed = Math.hypot(vx, vy);
+      const inward = vx * nx + vy * ny;
 
-      body.x = route.x + nx * contact;
-      body.y = route.y + ny * contact;
+      body.x = place.x + nx * contact;
+      body.y = place.y + ny * contact;
 
-      if (speed <= config.flight.safeLanding && route.isLandable) {
-        body.vx = 0;
-        body.vy = 0;
+      if (speed <= config.flight.safeLanding && place.isLandable) {
+        body.vx = place.vx;
+        body.vy = place.vy;
         ship.angle = Math.atan2(ny, nx);
-        ship.landedOn = route.id;
-        ship.heat = Math.max(0, ship.heat - 0.2);
+        ship.landedOn = place.id;
+        ship.landedOffset = { x: nx * contact, y: ny * contact };
 
-        if (!state.landings.has(route.id)) {
-          state.landings.add(route.id);
+        if (!state.landings.has(place.id)) {
+          state.landings.add(place.id);
           state.score += config.scoring.landing;
         }
 
-        events.emit("landed", { body: route.id });
+        events.emit("landed", { body: place.id });
       } else {
         applyDamage(context, config.flight.crash * Math.max(0, speed - config.flight.safeLanding) ** 2, Math.atan2(-ny, -nx), "crash");
 

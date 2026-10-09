@@ -1,5 +1,6 @@
 import { Camera, EventBus, RenderPipeline } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { CanvasGlobeRenderer, GlobeRenderer } from "@/packages/graphics/globe";
 import type { LensSource } from "@/packages/graphics/webgl";
 
 import { VoyageTheme } from "../config";
@@ -8,13 +9,15 @@ import { VoyageEvents } from "../domain/events";
 import { VoyageState } from "../domain/state";
 import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { BackdropLayer } from "./layers/BackdropLayer";
-import { BodiesLayer } from "./layers/BodiesLayer";
 import { EffectsLayer } from "./layers/EffectsLayer";
+import { GlobesLayer } from "./layers/GlobesLayer";
 import { HolesLayer } from "./layers/HolesLayer";
 import { RenderKit } from "./layers/kit";
+import { MapLayer } from "./layers/MapLayer";
 import { OverlayLayer } from "./layers/OverlayLayer";
 import { ShipLayer } from "./layers/ShipLayer";
 import { ThingsLayer } from "./layers/ThingsLayer";
+import { WeatherLayer } from "./layers/WeatherLayer";
 import { cutShards } from "./paint/damage";
 import { paintGlow, paintShip, SHIP_HEIGHT, SHIP_WIDTH } from "./paint/space";
 import { ParticleSystem } from "./ParticleSystem";
@@ -28,15 +31,24 @@ export interface VoyageRenderer {
   lenses(frame: VoyageFrame): LensSource[];
   attach(events: EventBus<VoyageEvents>, camera: Camera): () => void;
   reset(): void;
+  setTexture(id: string, image: TexImageSource): void;
+  setMap(isOpen: boolean): void;
+  // How fine to draw, 0 the finest (see `QUALITY`).
+  setQuality(level: number): void;
+  dispose(): void;
 }
+
+// What each quality level keeps: the share of the particle budget, and the octaves of noise the GPU's globes sum.
+const QUALITY = { particles: [1, 0.7, 0.45, 0.3], octaves: [5, 4, 3, 3] };
 
 // The pixel ratio the 2D surfaces draw at, at most: past two the eye gains nothing and the GPU pays four times.
 const MAX_PIXEL_RATIO = 2;
 
 // Draws the voyage on two 2D surfaces, a lens between them on the GPU: the back holds what light bends round a
-// black hole (the sky, the planets, the far side of a disk), the front what is close enough not to (the near side
-// of a disk, rocks, pickups, the ship, effects, the overlay). Each part of the picture is its own layer. It hears
-// the game's events to set off sparks, the breakup of the ship, shield flashes and the camera's shake.
+// black hole (the sky, the Sun and the planets the GPU draws as globes, the star's storms, the far side of a
+// disk), the front what is close enough not to (the near side of a disk, rocks and comets, pickups, the ship,
+// effects, the overlay, the radar and the map). Each part of the picture is its own layer. It hears the game's
+// events to set off sparks, the breakup of the ship, shield flashes, a storm's static and the camera's shake.
 export class CanvasVoyageRenderer implements VoyageRenderer {
   private readonly kit: RenderKit;
   private readonly backLayers: RenderPipeline<VoyageFrame>;
@@ -45,17 +57,28 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   private readonly effects: EffectsLayer;
   private readonly light: EffectsLayer;
   private readonly overlay: OverlayLayer;
+  private readonly map: MapLayer;
   private lastState: Readonly<VoyageState> | null = null;
   private lastWorld: VoyageWorld | null = null;
+  private quality = 0;
 
-  constructor(back: Canvas2DContext, front: Canvas2DContext, theme: VoyageTheme) {
-    this.kit = new RenderKit(new Surface(back), new Surface(front), new SurfaceCache(), new ParticleSystem(), theme);
+  constructor(back: Canvas2DContext, front: Canvas2DContext, theme: VoyageTheme, globes: GlobeRenderer, labels: Record<string, string> = {}) {
+    this.kit = new RenderKit(new Surface(back), new Surface(front), new SurfaceCache(), new ParticleSystem(), theme, globes, labels);
     this.ship = new ShipLayer(this.kit);
     this.effects = new EffectsLayer(this.kit, "behind");
     this.light = new EffectsLayer(this.kit, "front");
     this.overlay = new OverlayLayer(this.kit);
-    this.backLayers = new RenderPipeline([new BackdropLayer(this.kit), new BodiesLayer(this.kit), new HolesLayer(this.kit, "back")]);
-    this.frontLayers = new RenderPipeline([new HolesLayer(this.kit, "front"), new ThingsLayer(this.kit), this.effects, this.ship, this.light, this.overlay]);
+    this.map = new MapLayer(this.kit);
+    this.backLayers = new RenderPipeline([new BackdropLayer(this.kit), new GlobesLayer(this.kit), new WeatherLayer(this.kit), new HolesLayer(this.kit, "back")]);
+    this.frontLayers = new RenderPipeline([
+      new HolesLayer(this.kit, "front"),
+      new ThingsLayer(this.kit),
+      this.effects,
+      this.ship,
+      this.light,
+      this.overlay,
+      this.map,
+    ]);
   }
 
   public resize(width: number, height: number, pixelRatio: number): void {
@@ -63,10 +86,39 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
     this.kit.back.resize(width, height, ratio);
     this.kit.front.resize(width, height, ratio);
+    this.kit.globes.resize(width, height, ratio);
+    this.kit.cache.clear();
+  }
+
+  public setTexture(id: string, image: TexImageSource): void {
+    this.kit.globes.setTexture(id, image);
+  }
+
+  public setMap(isOpen: boolean): void {
+    this.map.isOpen = isOpen;
+  }
+
+  public setQuality(level: number): void {
+    const index = Math.max(0, Math.min(QUALITY.particles.length - 1, level));
+
+    this.quality = index;
+    this.kit.particles.setBudget(QUALITY.particles[index]);
+    this.kit.globes.setDetail(QUALITY.octaves[index]);
+  }
+
+  public dispose(): void {
+    this.kit.globes.dispose();
     this.kit.cache.clear();
   }
 
   public draw(frame: VoyageFrame): void {
+    // A lost GPU context (a phone under memory pressure, a backgrounded tab) leaves the planets to the 2D
+    // fallback rather than undrawn.
+    if (this.kit.globes.isGpu && !this.kit.globes.available) {
+      this.kit.globes = new CanvasGlobeRenderer();
+      this.setQuality(this.quality);
+    }
+
     this.lastState = frame.state;
     this.lastWorld = frame.world;
     this.backLayers.draw(frame);
@@ -138,6 +190,21 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
         camera.addTrauma(0.7);
       }),
       events.on("captured", () => camera.addTrauma(0.3)),
+      events.on("storm", ({ strength }) => {
+        this.ship.flashShield(Math.random() * Math.PI * 2);
+        this.overlay.flashScreen("#ffb070", 0.25 + strength * 0.5);
+        camera.addTrauma(0.15 + strength * 0.3);
+      }),
+      events.on("failing", ({ isGone }) => {
+        const state = this.lastState;
+        const body = state && this.lastWorld ? this.lastWorld.stores.body.get(state.ship) : undefined;
+
+        if (body) {
+          this.sparks(body.x, body.y, isGone ? 24 : 12);
+        }
+
+        camera.addTrauma(isGone ? 0.35 : 0.15);
+      }),
     ];
 
     return () => offs.forEach((off) => off());
@@ -146,6 +213,19 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   public reset(): void {
     this.effects.clear();
     this.light.clear();
+  }
+
+  // A shower of sparks off the hull, as a system gives out.
+  private sparks(x: number, y: number, count: number): void {
+    const { particles, theme } = this.kit;
+    const spark = this.kit.cache.get(`glow:${theme.flameCore}`, 64, 64, paintGlow(theme.flameCore));
+
+    for (let index = 0; index < count; index += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.6 + Math.random() * 1.6;
+
+      particles.emit("glow", x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, 0.2 + Math.random() * 0.35, 0.012 + Math.random() * 0.02, spark, { drag: 2.5 });
+    }
   }
 
   // The hull gives out: a white flash, a fireball, the ship's own picture broken into burning pieces that tumble

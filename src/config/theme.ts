@@ -108,3 +108,17 @@ export const VOYAGE_THEME: Partial<VoyageTheme> = {
     return universe ? [{ style: universe.style, accent: ZONE_ACCENTS[zone], deep: universe.deep, hazard: universe.hazard ?? ZONE_ACCENTS[zone] }] : [];
   }),
 };
+
+// The real maps of the bodies the voyage draws, by the ids its looks name, fetched only once it opens and in
+// this order, Earth first. NASA and USGS imagery, public domain: Blue Marble, Black Marble and the cloud cover
+// for Earth, the LRO Moon, the Viking Mars, MESSENGER's Mercury, Cassini's Jupiter, New Horizons' Pluto.
+export const VOYAGE_TEXTURES: Record<string, string> = {
+  "earth-day": "/images/voyage/earth-day.webp",
+  "earth-clouds": "/images/voyage/earth-clouds.webp",
+  "earth-night": "/images/voyage/earth-night.webp",
+  "moon": "/images/voyage/moon.webp",
+  "mars": "/images/voyage/mars.webp",
+  "jupiter": "/images/voyage/jupiter.webp",
+  "mercury": "/images/voyage/mercury.webp",
+  "pluto": "/images/voyage/pluto.webp",
+};

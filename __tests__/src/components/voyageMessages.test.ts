@@ -1,7 +1,7 @@
 import { voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
-import { formatDistance, telemetryRows } from "@/components/Finale/Voyage/telemetry";
+import { formatClock, formatDistance, telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import { portfolioData } from "@/data/resume";
-import { SOLAR_SYSTEM, VoyageSnapshot } from "@/packages/games/voyage";
+import { MODULE_IDS, SOLAR_SYSTEM, VoyageSnapshot } from "@/packages/games/voyage";
 
 const { voyage } = portfolioData.finale;
 const universes = ["The Matrix", "AI", "Chain", "Casino", "Game world"];
@@ -19,16 +19,31 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   score: 0,
   passing: null,
   landedOn: null,
+  modules: { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 },
   waypoint: null,
-  telemetry: { gravity: 0.12, dominant: null, altitudeKm: null, speedKmS: 17.3, au, pressureBar: null, hullTemperatureC: 20, timeDilation: 1 },
+  telemetry: {
+    gravity: 0.12,
+    dominant: null,
+    altitudeKm: null,
+    speedKmS: 17.3,
+    au,
+    pressureBar: null,
+    hullTemperatureC: 20,
+    outsideC: 5,
+    sunlight: 1361,
+    radiation: 65,
+    timeDilation: 1,
+    missionTime: Date.parse("2026-10-09T12:00:00Z"),
+  },
   ...snapshot,
 });
 
 describe("the voyage's messages", () => {
-  test("every stop on the way out, and both kinds of black hole, has a name", () => {
-    const ids = [...SOLAR_SYSTEM.bodies.map((body) => body.id), ...SOLAR_SYSTEM.belts.map((belt) => belt.id), "singularity", "hole"];
+  test("every body, belt and place the compass can point to has a name, and so does every system", () => {
+    const ids = [SOLAR_SYSTEM.star.id, ...SOLAR_SYSTEM.bodies.map((body) => body.id), ...SOLAR_SYSTEM.belts.map((belt) => belt.id), "edge", "singularity", "hole"];
 
     expect(ids.filter((id) => !voyage.stops[id])).toEqual([]);
+    expect(MODULE_IDS.filter((id) => !voyage.systems.names[id])).toEqual([]);
   });
 
   test("each stop is said once as it comes up, and nothing is said while nothing changes", () => {
@@ -58,6 +73,15 @@ describe("the voyage's messages", () => {
     expect(voyageNotice(voyage, { kind: "destroyed" })).toBeNull();
   });
 
+  test("flares, storms, failing systems and a melting hull are said as they happen", () => {
+    expect(voyageNotice(voyage, { kind: "flare", flareClass: "X", isHeading: true })).toContain("class X");
+    expect(voyageNotice(voyage, { kind: "flare", flareClass: "C", isHeading: false })).toBe("Solar flare, class C");
+    expect(voyageNotice(voyage, { kind: "storm" })).toBe(voyage.storm);
+    expect(voyageNotice(voyage, { kind: "failing", module: "sensors", isGone: false })).toBe("Sensors failing");
+    expect(voyageNotice(voyage, { kind: "failing", module: "engines", isGone: true })).toBe("Engines lost");
+    expect(voyageNotice(voyage, { kind: "melting", temperatureC: 641.4 })).toContain("641");
+  });
+
   test("the top of the screen gives the distance on the way out, then the universe and how many so far", () => {
     expect(voyagePlace(voyage, at({}, 5.2), universes)).toBe("5.2 AU from the Sun");
     expect(voyagePlace(voyage, at({ phase: "universe", universe: 1, universes: 3 }), universes)).toBe("Universe 3: AI");
@@ -69,7 +93,7 @@ describe("the voyage's telemetry", () => {
   test("shows only what is worth reading now, in real units", () => {
     const deepSpace = telemetryRows(voyage, at()).map((row) => row.label);
     const nearJupiter = telemetryRows(voyage, at({
-      telemetry: { gravity: 24.79, dominant: "jupiter", altitudeKm: 3200, speedKmS: 21, au: 5.2, pressureBar: 0.4, hullTemperatureC: 640, timeDilation: 1 },
+      telemetry: { ...at().telemetry, gravity: 24.79, dominant: "jupiter", altitudeKm: 3200, speedKmS: 21, au: 5.2, pressureBar: 0.4, hullTemperatureC: 640 },
       waypoint: { id: "saturn", distanceKm: 652000000 },
     }));
 
@@ -84,6 +108,18 @@ describe("the voyage's telemetry", () => {
     const rows = telemetryRows(voyage, at({ telemetry: { ...at().telemetry, timeDilation: 2.4 } }));
 
     expect(rows.find((row) => row.label === voyage.telemetry.dilation)?.value).toBe("×2.40");
+  });
+
+  test("with the sensors gone, what they measure reads no signal; the clock and the hull's temperature still read", () => {
+    const rows = telemetryRows(voyage, at({ modules: { ...at().modules, sensors: 0.1 } }));
+
+    expect(rows.find((row) => row.label === voyage.telemetry.gravity)?.value).toBe(voyage.telemetry.noSignal);
+    expect(rows.find((row) => row.label === voyage.telemetry.temperature)?.value).toBe("20 °C");
+    expect(rows.find((row) => row.label === voyage.telemetry.clock)?.value).toBe("9 Oct 2026, 12:00 UTC");
+  });
+
+  test("the mission clock reads as a date and time in UTC", () => {
+    expect(formatClock(voyage, Date.parse("2026-12-24T23:05:00Z"))).toBe("24 Dec 2026, 23:05 UTC");
   });
 
   test("distances read in millions of km once they are that far", () => {

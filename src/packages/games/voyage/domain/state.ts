@@ -1,6 +1,6 @@
 import type { Entity } from "@/packages/games/engine";
 
-import { Route } from "./content";
+import { StarSystem } from "./content";
 import { VoyagePhase } from "./events";
 
 export type VoyageStatus = "ready" | "flying" | "over";
@@ -23,17 +23,42 @@ export interface Waypoint {
   radius: number;
 }
 
-// Readings taken while flying, in world units, for the telemetry the UI turns into real ones.
+// The mission clock: the real moment the run began, and how many hours pass for each second flown, so planets
+// move round their orbits and turn at their true rates, faster than life.
+export interface MissionClock {
+  epochMs: number;
+  hoursPerSecond: number;
+}
+
+// A storm thrown off by a flare: a shell of plasma racing out from the star across an arc of directions.
+export interface Storm {
+  angle: number;
+  width: number;
+  radius: number;
+  speed: number;
+  strength: number;
+  // Whether it has reached the ship yet, and Earth, so each feels it once.
+  hasHitShip: boolean;
+  hasHitEarth: boolean;
+}
+
+// Readings taken while flying, for the telemetry the UI turns into real units.
 export interface Readings {
+  // m/s^2 from everything pulling, and what pulls hardest: a body's id, the star's, "singularity" or "hole".
   gravity: number;
-  // The body pulling hardest: a route body's id, "singularity" or "hole", or null in empty space.
   dominant: string | null;
   dominantDistance: number;
   density: number;
-  // The body whose air the ship is in.
+  pressureBar: number;
+  // The body whose air the ship is in, and that air's temperature where the ship is (Celsius).
   airOf: string | null;
+  airC: number | null;
   // Distance to the nearest black hole's centre over its horizon, for time dilation.
   holeRatio: number;
+  // What the ship sits in: the temperature it is driven towards (Celsius), sunlight (W/m^2), radiation (uSv/h).
+  environmentC: number;
+  sunlight: number;
+  radiation: number;
 }
 
 // Everything about a run that is not an entity.
@@ -44,8 +69,9 @@ export interface VoyageState {
   phaseMs: number;
   // Time spent in the universes, which makes them harder.
   deepMs: number;
+  clock: MissionClock;
   ship: Entity;
-  route: Route;
+  system: StarSystem;
   universe: number;
   universes: number;
   visited: number[];
@@ -60,6 +86,15 @@ export interface VoyageState {
   capture: Capture | null;
   waypoint: Waypoint | null;
   readings: Readings;
+  storms: Storm[];
+  // How bright Earth's aurora burns, 0 to 1, lit by storms and fading after, and the extra radiation a storm
+  // leaves round the ship as it passes (uSv/h), fading too.
+  aurora: number;
+  stormDose: number;
+  // The last flare: when (ms on the run's clock) and where, for the renderer; and when the next one comes.
+  flare: { angle: number; strength: number; at: number } | null;
+  nextFlareAt: number | null;
+  nextCometAt: number | null;
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

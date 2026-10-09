@@ -3,7 +3,7 @@ import { randomBetween } from "@/packages/math/random";
 
 import { PickupKind } from "../domain/components";
 import { VoyageContext } from "./context";
-import { distanceFromOrigin, shipOf, viewRadius } from "./queries";
+import { distanceFromStar, isInSystem, shipOf, viewRadius } from "./queries";
 
 // How far past the view things appear, and how far out they are let go.
 const SPAWN_MARGIN = 0.4;
@@ -44,6 +44,41 @@ export class SpawnSystem implements System<VoyageContext> {
     for (let count = world.stores.pickup.size; count < context.config.spawn.pickups; count += 1) {
       this.spawnPickup(context, reach);
     }
+
+    this.comets(context, reach);
+  }
+
+  // Now and then, a comet falls through: a big icy rock coming in fast from out of sight, crossing near the ship.
+  private comets(context: VoyageContext, reach: number): void {
+    const { state, world, config, random } = context;
+    const parts = shipOf(context);
+    const [soonest, latest] = config.spawn.cometEvery;
+
+    if (!parts || !isInSystem(context)) {
+      return;
+    }
+
+    state.nextCometAt = state.nextCometAt ?? state.elapsedMs + randomBetween(random, soonest, latest) * 1000;
+
+    if (state.elapsedMs < state.nextCometAt) {
+      return;
+    }
+
+    state.nextCometAt = state.elapsedMs + randomBetween(random, soonest, latest) * 1000;
+
+    const from = random() * Math.PI * 2;
+    const distance = reach + 2.5;
+    const x = parts.body.x + Math.cos(from) * distance;
+    const y = parts.body.y + Math.sin(from) * distance;
+    // Towards the ship's neighbourhood, a little to one side, so it crosses the view.
+    const heading = from + Math.PI + (random() - 0.5) * 0.7;
+    const speed = randomBetween(random, 1, 1.8);
+    const comet = world.spawn();
+    const radius = randomBetween(random, 0.1, 0.16);
+
+    world.stores.body.set(comet, { x, y, vx: Math.cos(heading) * speed, vy: Math.sin(heading) * speed, prevX: x, prevY: y, radius, mass: radius * radius * 60 });
+    world.stores.spin.set(comet, { angle: random() * Math.PI * 2, rate: randomBetween(random, -0.6, 0.6) });
+    world.stores.hazard.set(comet, { shape: Math.floor(random() * 6), isIcy: true, isComet: true });
   }
 
   private density(context: VoyageContext): { rocks: number; isIcy: boolean } {
@@ -54,10 +89,13 @@ export class SpawnSystem implements System<VoyageContext> {
       return { rocks: Math.round(config.spawn.universe + config.spawn.universeGrowth * (state.deepMs / 60000)), isIcy: false };
     }
 
-    const out = parts ? distanceFromOrigin(context, parts.body) : 0;
-    const belt = state.route.belts.find((candidate) => out >= candidate.inner && out <= candidate.outer);
+    const out = parts ? distanceFromStar(context, parts.body) : 0;
+    const belt = state.system.belts.find((candidate) => out >= candidate.inner && out <= candidate.outer);
+    // Past Neptune, what drifts is ice.
+    const neptune = state.system.bodies.find((body) => body.id === "neptune");
+    const isFar = neptune ? out > Math.hypot(neptune.x - state.system.star.x, neptune.y - state.system.star.y) : false;
 
-    return belt ? { rocks: Math.round(config.spawn.belt * belt.density), isIcy: belt.isIcy } : { rocks: config.spawn.open, isIcy: out > state.route.length * 0.85 };
+    return belt ? { rocks: Math.round(config.spawn.belt * belt.density), isIcy: belt.isIcy } : { rocks: config.spawn.open, isIcy: isFar };
   }
 
   // Just out of sight, mostly ahead of where the ship is going.
@@ -82,7 +120,7 @@ export class SpawnSystem implements System<VoyageContext> {
 
     world.stores.body.set(rock, { x, y, vx: Math.cos(heading) * drift, vy: Math.sin(heading) * drift, prevX: x, prevY: y, radius, mass: radius * radius * 60 });
     world.stores.spin.set(rock, { angle: random() * Math.PI * 2, rate: randomBetween(random, -1.4, 1.4) });
-    world.stores.hazard.set(rock, { shape: Math.floor(random() * 6), isIcy });
+    world.stores.hazard.set(rock, { shape: Math.floor(random() * 6), isIcy, isComet: false });
   }
 
   private spawnPickup(context: VoyageContext, reach: number): void {

@@ -1,6 +1,7 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { clamp01 } from "@/packages/math/clamp";
 
+import { auForRadius } from "../../utils/scale";
 import { VoyageFrame } from "../frame";
 import { paintMilkyWay, paintStars, paintSun, paintUniverse } from "../paint/space";
 import { RenderKit } from "./kit";
@@ -13,11 +14,10 @@ const STARS = [
   { depth: 0.3, tile: 1100, shift: 530 },
 ];
 const BACKDROP_TILE = 720;
-// Where the Sun sits in the world: behind Earth, out past the bottom of the way out.
-const SUN = { x: 0, y: 60 };
 
 // The sky: the deep colour of the region, the Milky Way, three layers of stars moving at their own depths as the
-// camera crosses them, a universe's own backdrop, and the Sun's warmth from behind, fading with distance.
+// camera crosses them, a universe's own backdrop, and, while the Sun is out of sight, its glow from its direction,
+// fading with distance.
 export class BackdropLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "backdrop";
 
@@ -55,10 +55,16 @@ export class BackdropLayer implements RenderLayer<VoyageFrame> {
     }
 
     if (state.phase === "solar" || state.phase === "singularity") {
-      const { route } = state;
-      const out = Math.hypot(camera.x - route.origin.x, camera.y - route.origin.y);
-      const au = 1 + (route.lastAu - 1) * (out / route.length) ** 2;
-      const angle = Math.atan2(SUN.y - camera.y, SUN.x - camera.x);
+      const { star, scale } = state.system;
+      const out = Math.hypot(camera.x - star.x, camera.y - star.y);
+
+      // Close enough to see the star itself, it needs no glow from off screen.
+      if (out < star.radius * 3 + Math.hypot(back.width, back.height) / camera.scale) {
+        return;
+      }
+
+      const au = auForRadius(scale, out);
+      const angle = Math.atan2(star.y - camera.y, star.x - camera.x);
       const reach = Math.hypot(back.width, back.height) * 0.62;
       const radius = Math.max(back.width, back.height) * 0.9;
       const sun = this.kit.cache.get("sun", 256, 256, paintSun);

@@ -1,5 +1,9 @@
+import type { GlobeLook, StarLook } from "@/packages/graphics/globe";
+
+import { ModuleId } from "../domain/components";
 import { VoyageStyle } from "../domain/theme";
-import { RouteLayout } from "../mappers/RouteMapper";
+import { SystemLayout } from "../mappers/SystemMapper";
+import { BODY_LOOKS, SUN_LOOK } from "./looks";
 
 export interface ShipConfig {
   radius: number;
@@ -23,23 +27,53 @@ export interface ShipConfig {
 }
 
 export interface FlightConfig {
-  // Slower than this, touching a rocky surface is a landing; faster is a crash.
+  // Slower than this (against the ground), touching a rocky surface is a landing; faster is a crash.
   safeLanding: number;
   // Hull damage per (speed over safe)^2 on a crash.
   crash: number;
   drag: number;
-  heating: number;
-  cooling: number;
-  // Hull damage per second while heat is over 1.
-  overheat: number;
-  // Hull damage per second at full depth below a giant's one bar level, and the depth (as a share of its
-  // radius) where the hull gives out.
+  // Hull damage per second at twice the pressure the hull is built for.
   crush: number;
-  crushDepth: number;
   // Fuel scooped per second while skimming a giant's upper air.
   skim: number;
   // Hull damage per unit of rock radius per (relative speed)^2.
   impact: number;
+}
+
+export interface ThermalConfig {
+  // Seconds for the hull to close most of the gap to the temperature of its surroundings.
+  timeConstant: number;
+  // Kelvin per second of entry heating, per unit of air density times speed cubed.
+  entry: number;
+  // The temperature (Celsius) each system is built for; past it, it starts to fail.
+  ratings: Record<ModuleId, number>;
+  // Integrity a system loses per second at twice its rating.
+  wear: number;
+  // Hull lost per second as the plating melts, at twice its rating.
+  melt: number;
+  // Fuel boils off above this temperature (Celsius), this much a second for each 100 degrees past it.
+  boilOffC: number;
+  boilOff: number;
+  // The pressure (bar) the hull is built for.
+  pressureBar: number;
+}
+
+// The star's weather: how often it flares (seconds), how fast and wide its storms spread, how often one heads
+// for the ship, and what a storm of full strength does to the shields, the sensors and the radiation count.
+export interface WeatherConfig {
+  every: [number, number];
+  speed: [number, number];
+  width: [number, number];
+  heading: number;
+  drain: number;
+  sensors: number;
+  radiation: number;
+  auroraFade: number;
+}
+
+export interface ClockConfig {
+  // Mission hours that pass for each second flown.
+  hoursPerSecond: number;
 }
 
 export interface SpawnConfig {
@@ -52,6 +86,8 @@ export interface SpawnConfig {
   minRadius: number;
   maxRadius: number;
   pickups: number;
+  // Seconds between comets falling in from the dark, in the solar system.
+  cometEvery: [number, number];
 }
 
 export interface HoleConfig {
@@ -95,16 +131,20 @@ export interface VoyageConfig {
   framesPerSecond: number;
   stepMs: number;
   maxSteps: number;
-  layout: RouteLayout;
+  layout: SystemLayout;
+  clock: ClockConfig;
   ship: ShipConfig;
   flight: FlightConfig;
+  thermal: ThermalConfig;
+  weather: WeatherConfig;
   spawn: SpawnConfig;
   holes: HoleConfig;
   pickups: PickupConfig;
   scoring: ScoringConfig;
   units: UnitsConfig;
   universes: number;
-  // The solar system is the warm up: the hull cannot fail there, so every reader reaches the black hole.
+  // The solar system is the warm up: rocks, crashes, entry and crushing cannot finish the hull there, so every
+  // reader reaches the black hole. The Sun is the exception: fly into it and the ship melts.
   isSolarSafe: boolean;
 }
 
@@ -114,7 +154,8 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
   framesPerSecond: 120,
   stepMs: 1000 / 120,
   maxSteps: 10,
-  layout: { length: 120, earthRadius: 0.35, radiusExponent: 0.45, gravityScale: 0.09, spread: 6 },
+  layout: { unitsPerRootAu: 20, earthRadius: 0.35, radiusExponent: 0.45, gravityScale: 0.09, starSurfaceAcceleration: 1.1 },
+  clock: { hoursPerSecond: 0.5 },
   ship: {
     radius: 0.06,
     mass: 1,
@@ -130,8 +171,19 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     dampers: 0.22,
     maxSpeed: 3.2,
   },
-  flight: { safeLanding: 0.42, crash: 520, drag: 0.8, heating: 0.06, cooling: 0.35, overheat: 140, crush: 900, crushDepth: 0.86, skim: 12, impact: 70 },
-  spawn: { open: 5, belt: 28, universe: 13, universeGrowth: 4, minRadius: 0.04, maxRadius: 0.13, pickups: 5 },
+  flight: { safeLanding: 0.42, crash: 520, drag: 0.8, crush: 600, skim: 12, impact: 70 },
+  thermal: {
+    timeConstant: 3,
+    entry: 120,
+    ratings: { hull: 600, engines: 900, shields: 200, sensors: 125, fuel: 400, radiators: 350 },
+    wear: 0.45,
+    melt: 160,
+    boilOffC: 90,
+    boilOff: 3,
+    pressureBar: 50,
+  },
+  weather: { every: [55, 120], speed: [0.45, 1.2], width: [0.6, 1.5], heading: 0.45, drain: 280, sensors: 0.2, radiation: 60000, auroraFade: 0.05 },
+  spawn: { open: 5, belt: 28, universe: 13, universeGrowth: 4, minRadius: 0.04, maxRadius: 0.13, pickups: 5, cometEvery: [45, 100] },
   holes: {
     singularityMu: 4,
     singularityGrowth: 1.2,
@@ -161,6 +213,9 @@ export interface VoyageUniverseTheme {
 }
 
 export interface VoyageTheme {
+  // How each body and the Sun look (see looks.ts).
+  bodies: Record<string, GlobeLook>;
+  sun: StarLook;
   space: string;
   star: string;
   hull: string;
@@ -177,6 +232,8 @@ export interface VoyageTheme {
 }
 
 export const DEFAULT_VOYAGE_THEME: VoyageTheme = {
+  bodies: BODY_LOOKS,
+  sun: SUN_LOOK,
   space: "#03050c",
   star: "#ecf1ff",
   hull: "#eef1f8",

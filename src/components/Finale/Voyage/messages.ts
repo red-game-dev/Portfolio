@@ -46,17 +46,25 @@ export const voyagePlace = (content: FinaleVoyage, snapshot: VoyageSnapshot, uni
 };
 
 // What to say when something happens that the snapshot does not show: a landing, a lift off, an emergency burn,
-// the moment a black hole takes the ship. The end of a run has its own card.
+// the moment a black hole takes the ship, a solar flare and its storm, a system failing, the hull melting. The
+// end of a run has its own card.
 export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): string | null => {
-  if (notice.kind === "captured") {
-    return content.captured;
+  switch (notice.kind) {
+    case "captured":
+      return content.captured;
+    case "destroyed":
+      return null;
+    case "flare":
+      return fill(notice.isHeading ? content.flareHeading : content.flare, { class: notice.flareClass });
+    case "storm":
+      return content.storm;
+    case "failing":
+      return fill(notice.isGone ? content.gone : content.failing, { system: content.systems.names[notice.module] ?? notice.module });
+    case "melting":
+      return fill(content.melting, { temperature: Math.round(notice.temperatureC) });
+    default:
+      return fill(notice.kind === "landed" ? content.landed : notice.kind === "tookOff" ? content.tookOff : content.emergency, {
+        body: content.stops[notice.body] ?? notice.body,
+      });
   }
-
-  if (notice.kind === "destroyed") {
-    return null;
-  }
-
-  const template = notice.kind === "landed" ? content.landed : notice.kind === "tookOff" ? content.tookOff : content.emergency;
-
-  return fill(template, { body: content.stops[notice.body] ?? notice.body });
 };

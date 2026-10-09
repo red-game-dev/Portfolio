@@ -1,4 +1,5 @@
 import { DrawableSurface } from "@/packages/graphics/canvas";
+import type { GlobeRenderer } from "@/packages/graphics/globe";
 
 import { VoyageTheme } from "../../config";
 import { ParticleSystem } from "../ParticleSystem";
@@ -9,7 +10,8 @@ import { Paint, SurfaceCache } from "../SurfaceCache";
 // enough that it cannot be seen, and it keeps a close Jupiter from costing tens of megabytes.
 const MAX_SPRITE = 1600;
 
-// What every layer shares: the back and front surfaces, the sprite cache, the particles and the theme.
+// What every layer shares: the back and front surfaces, the sprite cache, the particles, the theme, the GPU's
+// globes and what each place is called.
 export class RenderKit {
   constructor(
     public readonly back: Surface,
@@ -17,6 +19,9 @@ export class RenderKit {
     public readonly cache: SurfaceCache,
     public readonly particles: ParticleSystem,
     public readonly theme: VoyageTheme,
+    // Swapped for the canvas fallback if the GPU's context is lost.
+    public globes: GlobeRenderer,
+    public readonly labels: Record<string, string>,
   ) {}
 
   // A sprite `width` by `height` CSS pixels at zoom 1, painted once at device resolution (capped).

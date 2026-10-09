@@ -1,4 +1,4 @@
-import { FrameLoop, FrameScheduler } from "@/packages/animation/frame-loop";
+import { FrameLoop, FrameScheduler, QualityGovernor } from "@/packages/animation/frame-loop";
 import { Camera } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { CanvasGlobeRenderer, GlobeRenderer, WebGLGlobeRenderer } from "@/packages/graphics/globe";
@@ -38,6 +38,8 @@ export interface VoyageOptions {
   labels?: Record<string, string>;
   onChange?: (snapshot: VoyageSnapshot) => void;
   onNotice?: (notice: VoyageNotice) => void;
+  // The quality level to start at (0 the finest); it steps down by itself if frames run slow.
+  quality?: number;
 }
 
 export interface VoyageCanvases {
@@ -65,8 +67,20 @@ const UNITS_ACROSS = 2.2;
 // How far the player can zoom out and in, against the camera's own choice.
 const ZOOM_RANGE: [number, number] = [0.3, 3];
 
-const isSameMoment = (a: VoyageSnapshot, b: VoyageSnapshot) => a.status === b.status && a.phase === b.phase && a.universe === b.universe &&
-  a.universes === b.universes && a.passing === b.passing && a.landedOn === b.landedOn && a.waypoint?.id === b.waypoint?.id;
+// The most pixels per CSS pixel the canvases draw at, by quality level: a phone that cannot keep up at its full
+// sharpness steps down until it can, which cuts the GPU's fill work by up to three quarters.
+const QUALITY_RATIOS: readonly number[] = [2, 1.5, 1.25, 1];
+
+// What changes the snapshot at once rather than on the next tick.
+interface Moment {
+  status: string;
+  phase: string;
+  universe: number;
+  universes: number;
+  passing: string | null;
+  landedOn: string | null;
+  waypoint: string | null;
+}
 
 // Hosts a voyage on the shared frame loop: steps the simulation in fixed steps, flies the camera after the ship,
 // turns pointer and keys into intent, draws through the renderer and the GPU lens, and tells the UI only what
@@ -90,6 +104,9 @@ export class VoyageGame extends FrameLoop {
   private lastFrameAt = 0;
   private overSince: number | null = null;
   private size = { width: 0, height: 0 };
+  private devicePixelRatio = 1;
+  private readonly governor: QualityGovernor;
+  private moment: Moment | null = null;
 
   constructor(simulation: VoyageSimulation, renderer: VoyageRenderer, presenter: LensingPresenter | null, backCanvas: TexImageSource | null, theme: VoyageTheme,
     options: VoyageOptions = {}) {
@@ -104,6 +121,13 @@ export class VoyageGame extends FrameLoop {
     this.now = options.now ?? (() => Date.now());
     this.lastSnapshot = simulation.snapshot;
     this.detach = this.listen(simulation.events);
+    this.governor = new QualityGovernor({ levels: QUALITY_RATIOS.length, start: options.quality ?? 0 });
+    this.renderer.setQuality(this.governor.level);
+  }
+
+  // How finely it is drawing now, 0 the finest.
+  public get quality(): number {
+    return this.governor.level;
   }
 
   public get snapshot(): VoyageSnapshot {
@@ -150,9 +174,9 @@ export class VoyageGame extends FrameLoop {
     }
 
     this.size = size;
+    this.devicePixelRatio = pixelRatio;
     this.camera.resize(size, Math.min(size.width, size.height) / UNITS_ACROSS);
-    this.renderer.resize(size.width, size.height, pixelRatio);
-    this.presenter?.resize(size.width, size.height, pixelRatio);
+    this.applySharpness();
     this.updateView();
     this.followShip(1, true);
     this.drawFrame(performance.now(), 0);
@@ -192,9 +216,12 @@ export class VoyageGame extends FrameLoop {
     }
   }
 
+  // Stops for good and gives back everything it holds on the GPU.
   public dispose(): void {
     this.stop();
     this.detach();
+    this.renderer.dispose();
+    this.presenter?.dispose();
   }
 
   protected update(deltaMs: number): void {
@@ -205,6 +232,12 @@ export class VoyageGame extends FrameLoop {
 
   protected render(now: number): void {
     const dt = this.lastFrameAt > 0 ? Math.min(0.1, (now - this.lastFrameAt) / 1000) : 0;
+    const level = this.lastFrameAt > 0 ? this.governor.sample(now - this.lastFrameAt, now) : null;
+
+    if (level !== null) {
+      this.renderer.setQuality(level);
+      this.applySharpness();
+    }
 
     this.lastFrameAt = now;
     this.camera.tick(dt);
@@ -344,14 +377,39 @@ export class VoyageGame extends FrameLoop {
     };
   }
 
+  // Sizes the canvases at the device's pixel ratio, as far as the quality level allows.
+  private applySharpness(): void {
+    const ratio = Math.min(this.devicePixelRatio, QUALITY_RATIOS[this.governor.level]);
+
+    this.renderer.resize(this.size.width, this.size.height, ratio);
+    this.presenter?.resize(this.size.width, this.size.height, ratio);
+  }
+
+  // The snapshot is built only when it will be sent: a change of state at once, the rest on the tick.
   private publish(force: boolean, now = 0): void {
-    const next = this.simulation.snapshot;
-    const isMoment = !isSameMoment(next, this.lastSnapshot);
+    const isMoment = this.hasMomentChanged();
 
     if (force || isMoment || now - this.lastTickAt >= TICK_MS) {
-      this.lastSnapshot = next;
+      this.lastSnapshot = this.simulation.snapshot;
       this.lastTickAt = now;
-      this.onChange(next);
+      this.onChange(this.lastSnapshot);
     }
+  }
+
+  // Whether something the UI says at once has changed since the last look, read straight from the state.
+  private hasMomentChanged(): boolean {
+    const { state, world } = this.simulation;
+    const last = this.moment;
+    const landedOn = world.stores.ship.get(state.ship)?.landedOn ?? null;
+    const waypoint = state.waypoint?.id ?? null;
+
+    if (last && last.status === state.status && last.phase === state.phase && last.universe === state.universe && last.universes === state.universes &&
+      last.passing === state.passing && last.landedOn === landedOn && last.waypoint === waypoint) {
+      return false;
+    }
+
+    this.moment = { status: state.status, phase: state.phase, universe: state.universe, universes: state.universes, passing: state.passing, landedOn, waypoint };
+
+    return true;
   }
 }

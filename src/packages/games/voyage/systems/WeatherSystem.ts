@@ -58,7 +58,10 @@ export class WeatherSystem implements System<VoyageContext> {
 
     const earth = bodyById(context, "earth");
 
-    state.storms = state.storms.filter((storm) => {
+    // Moved on in place: most steps there are none, and none should cost an array.
+    let kept = 0;
+
+    for (const storm of state.storms) {
       const before = storm.radius;
 
       storm.radius += storm.speed * dt;
@@ -79,8 +82,13 @@ export class WeatherSystem implements System<VoyageContext> {
         state.aurora = Math.min(1, state.aurora + 0.4 + storm.strength * 0.6);
       }
 
-      return storm.radius < state.system.edge;
-    });
+      if (storm.radius < state.system.edge) {
+        state.storms[kept] = storm;
+        kept += 1;
+      }
+    }
+
+    state.storms.length = kept;
   }
 
   // Radiation passes through the hull rather than breaking it: it drains what the shields can catch and the

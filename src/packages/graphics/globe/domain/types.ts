@@ -130,5 +130,7 @@ export interface GlobeRenderer {
   hasTexture(id: string): boolean;
   drawGlobe(target: Canvas2DContext, draw: GlobeDraw): void;
   drawStar(target: Canvas2DContext, draw: StarDraw): void;
+  // How much detail the noise has (octaves, 1 to 5): fewer on a device that cannot keep up.
+  setDetail(octaves: number): void;
   dispose(): void;
 }

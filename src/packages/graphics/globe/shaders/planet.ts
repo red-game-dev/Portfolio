@@ -166,6 +166,14 @@ void main() {
   vec2 q = viewPoint();
   float r2 = dot(q, q);
   float r = sqrt(r2);
+  // Past the air and the rings there is nothing to draw: the corners of the square are left clear.
+  float reach = max(1.0 + u_air.w, u_rings.z > 0.0 ? u_rings.y : 1.0) + 0.02;
+  if (r > reach) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+  // Only the disc and its antialiased rim show the surface; beyond it the costly recipes are skipped.
+  bool onDisc = r < 1.0 + 1.5 / max(u_radius * u_pixelRatio, 1.0);
   // Every pixel reads the surface (clamped to the rim outside the disc), so texture lookups and derivatives
   // run in uniform flow.
   vec2 qs = r > 1.0 ? q / r : q;
@@ -177,10 +185,12 @@ void main() {
   float nightTexel = sampleMap(u_night, lon, lat).r;
   float cloudTexel = sampleMap(u_clouds, lon + u_cloudShift, lat).r;
 
-  float glow;
-  vec3 procedural = surfaceColour(dir, lat, glow);
-  vec3 albedo = u_hasMap > 0.5 ? mapTexel.rgb : procedural;
-  float glow2 = u_hasMap > 0.5 ? 0.0 : glow;
+  // A real map wins; the noise recipe runs only where there is none, and only on the disc.
+  float glow2 = 0.0;
+  vec3 albedo = mapTexel.rgb;
+  if (u_hasMap < 0.5 && onDisc) {
+    albedo = surfaceColour(dir, lat, glow2);
+  }
 
   float diffuse = dot(n, u_light);
   float soft = 0.03 + 0.16 * u_airDensity;
@@ -188,14 +198,19 @@ void main() {
   float day = smoothstep(-soft, soft, diffuse);
 
   // Clouds: the cloud map where there is one, drifting noise where there is air but no map.
-  float drifting = smoothstep(0.55, 0.8, fbm(dir * 4.0 + vec3(u_cloudShift, 0.0, -u_cloudShift) + u_seed * 2.0));
-  float cloud = u_hasClouds > 0.5 ? cloudTexel * u_cloudCover : u_cloudCover * drifting;
+  float cloud = cloudTexel * u_cloudCover;
+  if (u_hasClouds < 0.5) {
+    cloud = 0.0;
+    if (u_cloudCover > 0.0 && onDisc) {
+      cloud = u_cloudCover * smoothstep(0.55, 0.8, fbm(dir * 4.0 + vec3(u_cloudShift, 0.0, -u_cloudShift) + u_seed * 2.0));
+    }
+  }
   albedo = mix(albedo, vec3(0.96, 0.97, 1.0), cloud);
 
   // Scars of impacts: dark floors, bright rims, still glowing while hot.
   float scarGlow = 0.0;
   for (int i = 0; i < ${MAX_CRATERS}; i++) {
-    if (i >= u_craterCount) { break; }
+    if (i >= u_craterCount || !onDisc) { break; }
     vec4 crater = u_craters[i];
     vec3 centre = vec3(cos(crater.y) * cos(crater.x), cos(crater.y) * sin(crater.x), sin(crater.y));
     float d = acos(clamp(dot(dir, centre), -1.0, 1.0)) / max(crater.z, 0.001);
@@ -216,10 +231,11 @@ void main() {
   vec3 colour = albedo * lit * u_brightness * ringShadow;
 
   // The Sun's glint on open water.
-  if (u_glint > 0.0) {
-    float mapWater = smoothstep(0.04, 0.18, mapTexel.b - max(mapTexel.r, mapTexel.g) * 0.9);
-    float noiseWater = step(fbm(dir * 2.6 + u_seed) + fbm(dir * 9.0 + u_seed * 1.7) * 0.18, u_shape.x);
-    float water = u_hasMap > 0.5 ? mapWater : noiseWater;
+  if (u_glint > 0.0 && onDisc) {
+    float water = smoothstep(0.04, 0.18, mapTexel.b - max(mapTexel.r, mapTexel.g) * 0.9);
+    if (u_hasMap < 0.5) {
+      water = step(fbm(dir * 2.6 + u_seed) + fbm(dir * 9.0 + u_seed * 1.7) * 0.18, u_shape.x);
+    }
     vec3 halfway = normalize(u_light + vec3(0.0, 0.0, 1.0));
     colour += vec3(1.0, 0.95, 0.85) * pow(max(dot(n, halfway), 0.0), 70.0) * water * (1.0 - cloud) * day * u_glint * u_brightness;
   }
@@ -229,8 +245,10 @@ void main() {
   // What glows by itself: lava, molten scars, aurora.
   colour += u_palette[3] * glow2 * (0.35 + 0.65 * (1.0 - day));
   colour += vec3(1.0, 0.45, 0.12) * scarGlow;
-  float oval = exp(-sq((abs(lat) - 1.16) / 0.06));
-  colour += vec3(0.25, 1.0, 0.55) * oval * (1.0 - day) * u_aurora * (0.55 + 0.45 * noise(dir * 9.0 + vec3(u_time * 0.7)));
+  if (u_aurora > 0.0 && onDisc) {
+    float oval = exp(-sq((abs(lat) - 1.16) / 0.06));
+    colour += vec3(0.25, 1.0, 0.55) * oval * (1.0 - day) * u_aurora * (0.55 + 0.45 * noise(dir * 9.0 + vec3(u_time * 0.7)));
+  }
 
   // Air seen edge on at the rim, lit where the light reaches, reddened along the terminator.
   float fresnel = pow(1.0 - n.z, 2.4);

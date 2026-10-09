@@ -1,7 +1,7 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { createProgram } from "@/packages/graphics/webgl";
 
-import { GlobeDraw, GlobeRenderer, StarDraw } from "../domain/types";
+import { GlobeDraw, GlobeLook, GlobeRenderer, StarDraw } from "../domain/types";
 import { MAX_CRATERS, VERTEX } from "../shaders/common";
 import { PLANET_FRAGMENT, SURFACE_IDS } from "../shaders/planet";
 import { STAR_FRAGMENT } from "../shaders/star";
@@ -29,6 +29,42 @@ const NONE: [number, number, number] = [0, 0, 0];
 
 const seedVector = (seed: number): [number, number, number] => [((seed * 12.9898) % 97) + 3.1, ((seed * 78.233) % 89) + 5.7, ((seed * 37.719) % 83) + 1.3];
 
+// What a look's colours and seed come to as the shader takes them, worked out once per look rather than every
+// frame.
+interface LookUniforms {
+  palette: Float32Array;
+  seed: [number, number, number];
+  air: [number, number, number];
+  sunset: [number, number, number];
+  ringColour: [number, number, number];
+}
+
+const lookUniforms = new WeakMap<GlobeLook, LookUniforms>();
+
+const uniformsOf = (look: GlobeLook): LookUniforms => {
+  const known = lookUniforms.get(look);
+
+  if (known) {
+    return known;
+  }
+
+  const palette = new Float32Array(12);
+
+  look.surface.palette.slice(0, 4).forEach((hex, index) => palette.set(rgb01(hex), index * 3));
+
+  const made: LookUniforms = {
+    palette,
+    seed: seedVector(look.surface.seed),
+    air: look.atmosphere ? rgb01(look.atmosphere.colour) : NONE,
+    sunset: look.atmosphere?.sunset ? rgb01(look.atmosphere.sunset) : NONE,
+    ringColour: look.rings ? rgb01(look.rings.colour) : NONE,
+  };
+
+  lookUniforms.set(look, made);
+
+  return made;
+};
+
 // Draws planets, moons and stars on the GPU, each fresh every frame so it turns, its clouds drift and its star
 // boils, into a canvas of its own that is then copied into the 2D target where the globe sits. Only the part of
 // a globe that is on screen is drawn, at the target's resolution, so a planet filling the view is as sharp and
@@ -41,9 +77,10 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
   private readonly star: Program;
   private readonly textures = new Map<string, WebGLTexture>();
   private readonly blank: WebGLTexture;
+  private readonly buffer: WebGLBuffer | null;
   private readonly craterData = new Float32Array(MAX_CRATERS * 4);
-  private readonly paletteData = new Float32Array(12);
   private size = { width: 0, height: 0, pixelRatio: 1 };
+  private octaves = 5;
   private isLost = false;
 
   private constructor(canvas: GlCanvas, gl: WebGLRenderingContext, planet: Program, star: Program, blank: WebGLTexture) {
@@ -55,6 +92,7 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
 
     const buffer = gl.createBuffer();
 
+    this.buffer = buffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     [planet, star].forEach(({ program }) => {
@@ -108,10 +146,20 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
 
   public resize(width: number, height: number, pixelRatio: number): void {
     const ratio = Math.min(pixelRatio, Math.sqrt(MAX_PIXELS / Math.max(1, width * height)));
+    const pixelWidth = Math.max(1, Math.ceil(width * ratio));
+    const pixelHeight = Math.max(1, Math.ceil(height * ratio));
 
     this.size = { width, height, pixelRatio: ratio };
-    this.canvas.width = Math.max(1, Math.ceil(width * ratio));
-    this.canvas.height = Math.max(1, Math.ceil(height * ratio));
+
+    // Setting a canvas's size reallocates it even when nothing changes.
+    if (this.canvas.width !== pixelWidth || this.canvas.height !== pixelHeight) {
+      this.canvas.width = pixelWidth;
+      this.canvas.height = pixelHeight;
+    }
+  }
+
+  public setDetail(octaves: number): void {
+    this.octaves = Math.max(1, Math.min(5, Math.round(octaves)));
   }
 
   // A map uploaded once, with mipmaps so it stays clean when the globe is small. Maps wrap round in longitude.
@@ -157,6 +205,7 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
     const clouds = surface.clouds ? this.textures.get(surface.clouds) : undefined;
     const air = look.atmosphere;
     const rings = look.rings;
+    const uniforms = uniformsOf(look);
 
     this.use(program, draw.x, draw.y, draw.radius, frame.angle, region);
     this.vec3(program, "u_pole", frame.pole);
@@ -176,16 +225,15 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
     this.float(program, "u_cloudCover", look.clouds ?? 0);
     this.float(program, "u_cloudShift", (look.cloudDrift ?? 0) * draw.time);
     this.float(program, "u_kind", SURFACE_IDS[surface.kind]);
-    surface.palette.forEach((hex, index) => this.paletteData.set(rgb01(hex), index * 3));
-    gl.uniform3fv(this.location(program, "u_palette"), this.paletteData);
-    this.vec3(program, "u_seed", seedVector(surface.seed));
+    gl.uniform3fv(this.location(program, "u_palette"), uniforms.palette);
+    this.vec3(program, "u_seed", uniforms.seed);
     gl.uniform4f(this.location(program, "u_shape"), surface.sea ?? 0.6, surface.bands ?? 0.5, surface.turbulence ?? 0.5, surface.caps ?? 0);
     this.float(program, "u_glint", surface.glint ? 0.8 : 0);
-    gl.uniform4f(this.location(program, "u_air"), ...(air ? rgb01(air.colour) : NONE), air ? air.thickness : 0);
+    gl.uniform4f(this.location(program, "u_air"), uniforms.air[0], uniforms.air[1], uniforms.air[2], air ? air.thickness : 0);
     this.float(program, "u_airDensity", air?.density ?? 0);
-    this.vec3(program, "u_sunset", air?.sunset ? rgb01(air.sunset) : NONE);
+    this.vec3(program, "u_sunset", uniforms.sunset);
     gl.uniform4f(this.location(program, "u_rings"), rings?.inner ?? 0, rings?.outer ?? 0, rings?.opacity ?? 0, rings?.seed ?? 0);
-    this.vec3(program, "u_ringColour", rings ? rgb01(rings.colour) : NONE);
+    this.vec3(program, "u_ringColour", uniforms.ringColour);
     this.float(program, "u_aurora", draw.aurora);
 
     const count = Math.min(MAX_CRATERS, draw.craters.length);
@@ -193,8 +241,12 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
     this.craterData.fill(0);
     for (let index = 0; index < count; index += 1) {
       const crater = draw.craters[index];
+      const at = index * 4;
 
-      this.craterData.set([crater.longitude * DEG, crater.latitude * DEG, crater.size * DEG, crater.heat], index * 4);
+      this.craterData[at] = crater.longitude * DEG;
+      this.craterData[at + 1] = crater.latitude * DEG;
+      this.craterData[at + 2] = crater.size * DEG;
+      this.craterData[at + 3] = crater.heat;
     }
 
     gl.uniform4fv(this.location(program, "u_craters"), this.craterData);
@@ -222,9 +274,23 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
     this.finish(target, region);
   }
 
+  // Gives the GPU back everything: the maps, the programs, the buffer, and the context itself, which browsers
+  // allow only a few of at once.
   public dispose(): void {
-    this.textures.forEach((texture) => this.gl.deleteTexture(texture));
+    const { gl } = this;
+
+    this.textures.forEach((texture) => gl.deleteTexture(texture));
     this.textures.clear();
+
+    if (!this.isLost) {
+      gl.deleteTexture(this.blank);
+      gl.deleteBuffer(this.buffer);
+      gl.deleteProgram(this.planet.program);
+      gl.deleteProgram(this.star.program);
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
+    }
+
+    this.isLost = true;
   }
 
   // The part of a globe on the target, and the device pixels to draw it with; null when none of it is on screen.
@@ -254,6 +320,7 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
     gl.uniform2f(this.location(program, "u_centre"), x, y);
     this.float(program, "u_radius", radius);
     this.float(program, "u_angle", angle);
+    this.float(program, "u_octaves", this.octaves);
   }
 
   private finish(target: Canvas2DContext, region: NonNullable<ReturnType<WebGLGlobeRenderer["begin"]>>): void {

@@ -35,8 +35,15 @@ export class ParticleSystem {
     kind: "glow", x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, size: 0, grow: 0, drag: 0, angle: 0, spin: 0, sprite: null, isBurning: false,
   }), LIMIT);
 
+  // How many may be alive at once: the full budget, or less on a device that cannot keep up.
+  private budget = LIMIT;
+
   public get count(): number {
     return this.live.length;
+  }
+
+  public setBudget(share: number): void {
+    this.budget = Math.max(60, Math.round(LIMIT * Math.max(0, Math.min(1, share))));
   }
 
   public emit(kind: ParticleKind, x: number, y: number, vx: number, vy: number, life: number, size: number, sprite: DrawableSurface | null, options: {
@@ -46,7 +53,7 @@ export class ParticleSystem {
     angle?: number;
     isBurning?: boolean;
   } = {}): Particle | null {
-    if (this.live.length >= LIMIT) {
+    if (this.live.length >= this.budget) {
       return null;
     }
 

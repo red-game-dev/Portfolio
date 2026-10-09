@@ -6,6 +6,23 @@ import { radiusForAu } from "../utils/scale";
 
 const MS_PER_HOUR = 3600000;
 
+// Each system's bodies by id, made once rather than every step.
+const bodiesById = new WeakMap<StarSystem, Map<string, SystemBody>>();
+
+const byIdOf = (system: StarSystem): Map<string, SystemBody> => {
+  const known = bodiesById.get(system);
+
+  if (known && known.size === system.bodies.length) {
+    return known;
+  }
+
+  const made = new Map(system.bodies.map((body) => [body.id, body]));
+
+  bodiesById.set(system, made);
+
+  return made;
+};
+
 // The real moment the mission clock reads after `elapsedMs` of flying.
 export const missionTime = (clock: MissionClock, elapsedMs: number): number => clock.epochMs + (elapsedMs / 1000) * clock.hoursPerSecond * MS_PER_HOUR;
 
@@ -19,7 +36,7 @@ export const placeBodies = (system: StarSystem, moment: number, dt = 0): void =>
   const centuries = centuriesSinceJ2000(jd);
   const days = daysSinceJ2000(jd);
   const hours = days * 24;
-  const byId = new Map<string, SystemBody>();
+  const byId = byIdOf(system);
 
   system.bodies.forEach((body) => {
     const lastX = body.x;
@@ -65,7 +82,5 @@ export const placeBodies = (system: StarSystem, moment: number, dt = 0): void =>
     } else {
       body.subsolarLatitude = subsolarLatitude(body.pole, body.real);
     }
-
-    byId.set(body.id, body);
   });
 };

@@ -1,4 +1,5 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { rgba } from "@/packages/graphics/colour";
 
 // Puffs alive at once at most: emitting past it reuses the oldest.
 const CAPACITY = 160;
@@ -82,8 +83,8 @@ export class Smoke {
       const blue = Math.round(shade * (1 - glow * 0.4));
       const puffGradient = context.createRadialGradient(x, y, 0, x, y, puff.size);
 
-      puffGradient.addColorStop(0, `rgba(${red}, ${green}, ${blue}, ${(0.5 * fade).toFixed(3)})`);
-      puffGradient.addColorStop(1, `rgba(${red}, ${green}, ${blue}, 0)`);
+      puffGradient.addColorStop(0, rgba([red, green, blue], 0.5 * fade));
+      puffGradient.addColorStop(1, rgba([red, green, blue], 0));
       context.fillStyle = puffGradient;
       context.fillRect(x - puff.size, y - puff.size, puff.size * 2, puff.size * 2);
     });

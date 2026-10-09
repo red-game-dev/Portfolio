@@ -1,4 +1,5 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { hexWithAlpha } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
 
 import { HeroClass, HeroLook } from "./classes";
@@ -34,8 +35,7 @@ export class HeroPainter {
   public paintAura(context: Canvas2DContext, hero: HeroClass, glow: number): void {
     const aura = context.createRadialGradient(CX, 130, 10, CX, 130, 110);
 
-    aura.addColorStop(0, `${hero.aura}${Math.round((0.28 + glow * 0.22) * 255).toString(16)
-.padStart(2, "0")}`);
+    aura.addColorStop(0, hexWithAlpha(hero.aura, 0.28 + glow * 0.22));
     aura.addColorStop(1, `${hero.aura}00`);
     context.fillStyle = aura;
     context.fillRect(0, 0, HERO_SIZE.width, HERO_SIZE.height);
@@ -469,8 +469,7 @@ export class HeroPainter {
     const light = context.createRadialGradient(x, y, 1, x, y, radius);
 
     light.addColorStop(0, `${colour}ee`);
-    light.addColorStop(0.4, `${colour}${Math.round((0.35 + glow * 0.4) * 255).toString(16)
-.padStart(2, "0")}`);
+    light.addColorStop(0.4, hexWithAlpha(colour, 0.35 + glow * 0.4));
     light.addColorStop(1, `${colour}00`);
     context.fillStyle = light;
     context.fillRect(x - radius, y - radius, radius * 2, radius * 2);

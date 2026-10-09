@@ -1,4 +1,4 @@
-import { hexToRgb, mixRgb, rgba, rgbChannels, rgbCss, scaleRgb, shadeHex } from "@/packages/graphics/colour";
+import { hexToRgb, hexWithAlpha, hslToHex, mixRgb, rgba, rgbChannels, rgbCss, rgbToHex, scaleRgb, shadeHex } from "@/packages/graphics/colour";
 
 describe("colour", () => {
   it("reads six and three digit hex", () => {
@@ -17,5 +17,15 @@ describe("colour", () => {
     expect(rgbCss([1, 2, 3])).toBe("rgb(1, 2, 3)");
     expect(shadeHex("#ffffff", 0.5)).toBe("rgb(128, 128, 128)");
     expect(shadeHex("#ffffff", 1, 0.5)).toBe("rgba(255, 255, 255, 0.500)");
+  });
+
+  it("writes hex, with channels rounded and held within a byte, and an alpha byte on the end", () => {
+    expect(rgbToHex([75, 255, 165])).toBe("#4bffa5");
+    expect(rgbToHex([-4, 255.4, 300])).toBe("#00ffff");
+    expect(hexWithAlpha("#4bffa5", 0.5)).toBe("#4bffa580");
+    expect(hexWithAlpha("#4bffa5", 0)).toBe("#4bffa500");
+    expect(hexWithAlpha("#4bffa5", 1)).toBe("#4bffa5ff");
+    expect(hslToHex(120, 1, 0.5)).toBe("#00ff00");
+    expect(hslToHex(-120, 1, 0.5)).toBe("#0000ff");
   });
 });

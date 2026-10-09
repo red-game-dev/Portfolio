@@ -219,9 +219,14 @@ export const Message = styled.p(() => [
 
 export const Overlay = tw.div`absolute inset-0 flex items-center justify-center p-[16px] pointer-events-none`;
 
+// Never taller than the screen: on a short phone it scrolls within itself rather than being cut off.
 export const Card = styled.section(() => [
   tw`flex flex-col gap-[12px] w-full max-w-[460px] p-[22px] md:p-[28px] pointer-events-auto`,
   css`
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     background: rgba(5, 8, 18, 0.86);
     border: 1px solid rgba(196, 210, 255, 0.4);
   `,

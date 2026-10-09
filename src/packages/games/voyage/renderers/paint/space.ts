@@ -236,9 +236,9 @@ const pixelSky = (context: Canvas2DContext, width: number, height: number, accen
     context.fillRect(Math.floor(random() * width / cell) * cell, Math.floor(random() * height / cell) * cell, cell / 2, cell / 2);
   }
 
-  // A few blocky planets.
-  for (let planet = 0; planet < 3; planet += 1) {
-    const radius = (4 + Math.floor(random() * 6)) * cell;
+  // Two blocky planets, small enough that the tile's repeat goes unnoticed.
+  for (let planet = 0; planet < 2; planet += 1) {
+    const radius = (3 + Math.floor(random() * 4)) * cell;
     const cx = Math.floor(random() * width / cell) * cell;
     const cy = Math.floor(random() * height / cell) * cell;
 

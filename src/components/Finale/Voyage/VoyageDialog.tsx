@@ -98,7 +98,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         <ControlsNote id={CONTROLS_ID}>{content.controls}</ControlsNote>
       </Stage>
       <Hud>
-        <Place>{snapshot ? voyagePlace(content, snapshot, universes) : content.title}</Place>
+        <Place>{snapshot ? voyagePlace(content, snapshot, universes) : ""}</Place>
         <Readout>
           <Reading>
             <ReadingName>{content.score}</ReadingName>

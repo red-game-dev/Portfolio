@@ -5,54 +5,60 @@ import { VoyageStyle } from "../../domain/types";
 
 const TAU = Math.PI * 2;
 
-// One layer of stars, a screen tall, scrolled and drawn twice to wrap. The far layer also carries the faint band
-// of the Milky Way.
+// One layer of stars in a square tile, repeated across the screen and scrolled: faint and many far away, fewer
+// and brighter close by, the nearest with a soft halo.
 export const paintStars = (layer: 0 | 1 | 2, colour: string, pixelRatio: number) => (context: Canvas2DContext, width: number, height: number) => {
   const random = createSeededRandom(11 + layer * 13);
   const area = width * height / (pixelRatio * pixelRatio);
-  const count = Math.round(area / [5200, 15000, 42000][layer]);
-
-  if (layer === 0) {
-    context.save();
-    context.translate(width / 2, height / 2);
-    context.rotate(-0.5);
-
-    const band = context.createLinearGradient(0, -height * 0.22, 0, height * 0.22);
-
-    band.addColorStop(0, "rgba(0, 0, 0, 0)");
-    band.addColorStop(0.5, "rgba(160, 175, 255, 0.07)");
-    band.addColorStop(1, "rgba(0, 0, 0, 0)");
-    context.fillStyle = band;
-    context.fillRect(-width, -height * 0.22, width * 2, height * 0.44);
-    context.fillStyle = colour;
-
-    for (let index = 0; index < count * 0.8; index += 1) {
-      context.globalAlpha = 0.15 + random() * 0.3;
-      context.fillRect((random() - 0.5) * width * 1.8, (random() - 0.5) * height * 0.3, pixelRatio * 0.7, pixelRatio * 0.7);
-    }
-
-    context.restore();
-  }
+  const count = Math.round(area / [4200, 16000, 60000][layer]);
 
   context.fillStyle = colour;
 
   for (let index = 0; index < count; index += 1) {
-    const size = pixelRatio * [0.6 + random() * 0.6, 1 + random() * 0.8, 1.4 + random() * 1.2][layer];
+    const size = pixelRatio * [0.6 + random() * 0.6, 1 + random() * 0.8, 1.3 + random() * 1.1][layer];
     const x = random() * width;
     const y = random() * height;
 
-    context.globalAlpha = [0.3 + random() * 0.4, 0.55 + random() * 0.35, 0.85][layer];
+    context.globalAlpha = [0.25 + random() * 0.4, 0.5 + random() * 0.35, 0.8][layer];
     context.fillRect(x, y, size, size);
 
     if (layer === 2) {
-      // A soft halo round the nearest stars.
-      context.globalAlpha = 0.18;
+      context.globalAlpha = 0.08;
       context.beginPath();
-      context.arc(x + size / 2, y + size / 2, size * 2.6, 0, TAU);
+      context.arc(x + size / 2, y + size / 2, size * 2.4, 0, TAU);
       context.fill();
     }
   }
 
+  context.globalAlpha = 1;
+};
+
+// The band of the Milky Way across the sky: one soft picture, low resolution and stretched over the screen.
+// Too far away to move.
+export const paintMilkyWay = (colour: string) => (context: Canvas2DContext, width: number, height: number) => {
+  const random = createSeededRandom(17);
+
+  context.save();
+  context.translate(width / 2, height / 2);
+  context.rotate(-0.55);
+
+  const band = context.createLinearGradient(0, -height * 0.2, 0, height * 0.2);
+
+  band.addColorStop(0, "rgba(0, 0, 0, 0)");
+  band.addColorStop(0.5, "rgba(150, 165, 255, 0.09)");
+  band.addColorStop(1, "rgba(0, 0, 0, 0)");
+  context.fillStyle = band;
+  context.fillRect(-width, -height * 0.2, width * 2, height * 0.4);
+  context.fillStyle = colour;
+
+  for (let index = 0; index < 900; index += 1) {
+    const spread = (random() + random() + random() - 1.5) / 1.5;
+
+    context.globalAlpha = 0.1 + random() * 0.25;
+    context.fillRect((random() - 0.5) * width * 1.8, spread * height * 0.18, 1, 1);
+  }
+
+  context.restore();
   context.globalAlpha = 1;
 };
 
@@ -369,7 +375,20 @@ export const paintFlame = (core: string, edge: string) => (context: Canvas2DCont
   context.fill();
 };
 
-// A soft round light: the Sun behind the ship, sparks and engine glow.
+// The Sun behind the ship: warm at the middle, falling off quickly, so it lights the start without washing the sky.
+export const paintSun = (context: Canvas2DContext, width: number) => {
+  const c = width / 2;
+  const glow = context.createRadialGradient(c, c, 0, c, c, c);
+
+  glow.addColorStop(0, "rgba(255, 226, 160, 0.7)");
+  glow.addColorStop(0.12, "rgba(255, 184, 90, 0.32)");
+  glow.addColorStop(0.45, "rgba(255, 140, 60, 0.07)");
+  glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+  context.fillStyle = glow;
+  context.fillRect(0, 0, width, width);
+};
+
+// A soft round light: sparks and engine glow.
 export const paintGlow = (colour: string) => (context: Canvas2DContext, width: number) => {
   const c = width / 2;
   const glow = context.createRadialGradient(c, c, 0, c, c, c);

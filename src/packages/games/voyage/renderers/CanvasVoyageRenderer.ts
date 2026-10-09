@@ -13,8 +13,10 @@ import {
   paintFlame,
   paintGlow,
   paintLens,
+  paintMilkyWay,
   paintShip,
   paintStars,
+  paintSun,
   paintUniverse,
   SHIP_HEIGHT,
   SHIP_WIDTH,
@@ -33,11 +35,15 @@ interface Spark {
 }
 
 const TAU = Math.PI * 2;
-// Backdrops repeat in squares this many CSS pixels across: small enough to keep memory low, big enough that
-// the repeat goes unnoticed in motion.
-const TILE = 640;
-// How fast each star layer streams past, against the world.
-const STAR_DEPTHS = [0.05, 0.18, 0.5];
+// Each star layer: how fast it streams past against the world, the square it repeats in (CSS pixels) and how far
+// across it starts. The squares differ in size and start, so no two layers repeat in step and the eye finds no
+// grid; small squares keep memory low.
+const STAR_LAYERS = [
+  { depth: 0.05, tile: 520, shift: 0 },
+  { depth: 0.18, tile: 760, shift: 290 },
+  { depth: 0.5, tile: 1100, shift: 530 },
+];
+const BACKDROP_TILE = 720;
 const MAX_SPARKS = 160;
 // Sprites are painted at most this many device pixels across and scaled up past it: planets are smooth enough
 // that nobody can tell, and it keeps a desktop's Jupiter from taking tens of megabytes.
@@ -202,20 +208,22 @@ export class CanvasVoyageRenderer extends CanvasRenderer<VoyageState> {
     this.context.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
 
-  // A tile repeated across the screen, shifted down by `offset` CSS pixels so it streams past.
-  private tile(drawable: DrawableSurface | null, offset: number, alpha: number): void {
+  // A square tile of `size` repeated across the screen, shifted down by `offset` and across by `shift` CSS
+  // pixels, so it streams past.
+  private tile(drawable: DrawableSurface | null, size: number, offset: number, shift: number, alpha: number): void {
     if (!drawable) {
       return;
     }
 
     const { width, height } = this.size;
-    const start = (offset % TILE) - TILE;
+    const top = (offset % size) - size;
+    const left = (shift % size) - size;
 
     this.context.globalAlpha = alpha;
 
-    for (let y = start; y < height; y += TILE) {
-      for (let x = 0; x < width; x += TILE) {
-        this.context.drawImage(drawable.surface, x, y, TILE, TILE);
+    for (let y = top; y < height; y += size) {
+      for (let x = left; x < width; x += size) {
+        this.context.drawImage(drawable.surface, x, y, size, size);
       }
     }
 
@@ -223,32 +231,38 @@ export class CanvasVoyageRenderer extends CanvasRenderer<VoyageState> {
   }
 
   private drawSky(state: VoyageState, universe: VoyageUniverseTheme | null): void {
+    const { width, height } = this.size;
     const flownPixels = state.flown * state.unit;
     const tileRatio = Math.min(1.5, this.pixelRatio);
-    const side = TILE * tileRatio;
+    const milkyWay = this.cache.get("milky-way", 512, 512, paintMilkyWay(this.theme.star));
 
-    STAR_DEPTHS.forEach((depth, layer) => {
-      const stars = this.cache.get(`stars:${layer}`, side, side, paintStars(layer === 0 ? 0 : layer === 1 ? 1 : 2, this.theme.star, tileRatio));
+    if (milkyWay) {
+      this.context.drawImage(milkyWay.surface, 0, 0, width, height);
+    }
 
-      this.tile(stars, flownPixels * depth, 1);
+    STAR_LAYERS.forEach(({ depth, tile, shift }, layer) => {
+      const stars = this.cache.get(`stars:${layer}`, tile * tileRatio, tile * tileRatio, paintStars(layer === 0 ? 0 : layer === 1 ? 1 : 2, this.theme.star, tileRatio));
+
+      this.tile(stars, tile, flownPixels * depth, shift, 1);
     });
 
     if (universe) {
+      const side = BACKDROP_TILE * tileRatio;
       const backdrop = this.cache.get(`universe:${universe.style}`, side, side, paintUniverse(universe.style, universe.accent, tileRatio));
 
       // The Matrix rains faster than the rest drift.
-      this.tile(backdrop, flownPixels * (universe.style === "matrix" ? 0.9 : 0.3), 0.9);
+      this.tile(backdrop, BACKDROP_TILE, flownPixels * (universe.style === "matrix" ? 0.9 : 0.3), 0, 0.9);
     }
   }
 
   // The Sun behind the ship, a warm glow from below that fades with distance.
   private drawSun(au: number): void {
     const { width, height } = this.size;
-    const glow = this.cache.get("sun", 256, 256, paintGlow(this.theme.sun));
-    const radius = Math.max(width, height) * 1.15;
+    const glow = this.cache.get("sun", 256, 256, paintSun);
+    const radius = Math.max(width, height) * 0.95;
 
-    this.context.globalAlpha = clamp01(1.5 / au) * 0.9;
-    this.blit(glow, width / 2, height * 1.18, radius * 2, radius * 2);
+    this.context.globalAlpha = clamp01(1.2 / au);
+    this.blit(glow, width / 2, height * 1.12, radius * 2, radius * 2);
     this.context.globalAlpha = 1;
   }
 

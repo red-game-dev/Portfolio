@@ -47,35 +47,39 @@ export class VoyageSimulation {
     return { status, phase, universe, universes, shields, score: Math.floor(score), au: Math.round(au * 10) / 10, passing };
   }
 
-  // Keeps everything where it was on screen, relative to the new size.
+  // Keeps everything where it was on screen, relative to the new size. The first real size lays the start out
+  // afresh: before it there is no screen to be relative to.
   public resize(size: VoyageSize): void {
     const state = this.current;
     const next = this.measure(size);
 
-    if (state.width > 0 && state.height > 0) {
-      const sx = next.width / state.width;
-      const sy = next.height / state.height;
-      const move = (point: { x: number; y: number }) => {
-        point.x *= sx;
-        point.y *= sy;
-      };
+    if (state.width === 0 || state.height === 0) {
+      this.current = this.fresh(size, state.status);
 
-      move(state.ship);
-      state.bodies.forEach(move);
-      state.hazards.forEach(move);
-      state.items.forEach(move);
-
-      if (state.hole) {
-        move(state.hole);
-      }
-
-      if (state.capture) {
-        move(state.capture.centre);
-      }
-
-      state.departureY *= sy;
+      return;
     }
 
+    const sx = next.width / state.width;
+    const sy = next.height / state.height;
+    const move = (point: { x: number; y: number }) => {
+      point.x *= sx;
+      point.y *= sy;
+    };
+
+    move(state.ship);
+    state.bodies.forEach(move);
+    state.hazards.forEach(move);
+    state.items.forEach(move);
+
+    if (state.hole) {
+      move(state.hole);
+    }
+
+    if (state.capture) {
+      move(state.capture.centre);
+    }
+
+    state.departureY *= sy;
     this.set(next);
   }
 

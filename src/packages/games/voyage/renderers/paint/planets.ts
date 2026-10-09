@@ -257,16 +257,33 @@ export const paintBody = (id: string) => (context: Canvas2DContext, width: numbe
 // Room above Earth's curve for its glow, as a share of its radius.
 export const EARTH_GLOW = 0.05;
 
+// A continent: a cluster of overlapping rounded blobs in one solid colour, so its coast is irregular rather than
+// an ellipse and the overlaps do not show.
+const landmass = (context: Canvas2DContext, x: number, y: number, size: number, random: RandomSource) => {
+  for (let index = 0; index < 9; index += 1) {
+    const angle = random() * TAU;
+    const reach = random() * size;
+
+    context.beginPath();
+    context.ellipse(x + Math.cos(angle) * reach, y + Math.sin(angle) * reach * 0.45, size * (0.3 + random() * 0.4), size * (0.12 + random() * 0.18),
+      random() * 0.6 - 0.3, 0, TAU);
+    context.fill();
+  }
+};
+
 // Earth's curve along the bottom of the screen at the start: `width` across, the top of a sphere of radius
-// `radius` starting `EARTH_GLOW` radii down, all in device pixels.
+// `radius` starting `EARTH_GLOW` radii down, all in device pixels. Deep ocean, green and tan land, thin cloud,
+// darker towards the far edge, and the bright skin of the atmosphere along the curve.
 export const paintEarthCap = (radius: number) => (context: Canvas2DContext, width: number, height: number) => {
   const cx = width / 2;
   const cy = radius * (1 + EARTH_GLOW);
+  const top = cy - radius;
   const random = createSeededRandom(3);
-  const ocean = context.createLinearGradient(0, 0, 0, height);
+  const ocean = context.createLinearGradient(0, top, 0, height);
 
-  ocean.addColorStop(0, "#2a66c4");
-  ocean.addColorStop(1, "#0c2557");
+  ocean.addColorStop(0, "#123b85");
+  ocean.addColorStop(0.5, "#0f3274");
+  ocean.addColorStop(1, "#0a2152");
 
   context.save();
   disc(context, cx, cy, radius);
@@ -274,39 +291,35 @@ export const paintEarthCap = (radius: number) => (context: Canvas2DContext, widt
   context.fillStyle = ocean;
   context.fillRect(0, 0, width, height);
 
-  context.fillStyle = "rgba(70, 120, 60, 0.9)";
+  for (let index = 0; index < 6; index += 1) {
+    context.fillStyle = index % 3 === 2 ? "#a88c5c" : "#346840";
+    landmass(context, random() * width, top + (0.25 + random() * 0.75) * (height - top), width * (0.05 + random() * 0.06), random);
+  }
 
-  for (let index = 0; index < 7; index += 1) {
+  context.fillStyle = "rgba(255, 255, 255, 0.28)";
+
+  for (let index = 0; index < 40; index += 1) {
     context.beginPath();
-    context.ellipse(random() * width, height * (0.15 + random() * 0.9), width * (0.06 + random() * 0.12), height * (0.08 + random() * 0.18),
-      random() * Math.PI, 0, TAU);
+    context.ellipse(random() * width, top + random() * (height - top), width * (0.015 + random() * 0.05), Math.max(1, height * (0.004 + random() * 0.01)),
+      random() * 0.3 - 0.15, 0, TAU);
     context.fill();
   }
 
-  context.fillStyle = "rgba(255, 255, 255, 0.55)";
+  // Seen at a slant towards the far edge, the surface darkens into the curve.
+  const far = context.createLinearGradient(0, top, 0, top + (height - top) * 0.45);
 
-  for (let index = 0; index < 12; index += 1) {
-    context.beginPath();
-    context.ellipse(random() * width, height * (0.08 + random() * 0.9), width * (0.04 + random() * 0.1), height * (0.015 + random() * 0.04),
-      random() * 0.4 - 0.2, 0, TAU);
-    context.fill();
-  }
-
-  // Night side towards the top of the curve, away from the Sun behind the ship.
-  const night = context.createLinearGradient(0, 0, 0, height);
-
-  night.addColorStop(0, "rgba(0, 0, 10, 0.45)");
-  night.addColorStop(1, "rgba(0, 0, 0, 0)");
-  context.fillStyle = night;
+  far.addColorStop(0, "rgba(2, 6, 20, 0.6)");
+  far.addColorStop(1, "rgba(0, 0, 0, 0)");
+  context.fillStyle = far;
   context.fillRect(0, 0, width, height);
   context.restore();
 
-  const glow = context.createRadialGradient(cx, cy, radius * 0.985, cx, cy, radius * 1.05);
+  const glow = context.createRadialGradient(cx, cy, radius * 0.99, cx, cy, radius * (1 + EARTH_GLOW));
 
-  glow.addColorStop(0, "rgba(120, 180, 255, 0.85)");
-  glow.addColorStop(0.4, "rgba(80, 140, 255, 0.35)");
+  glow.addColorStop(0, "rgba(140, 200, 255, 0.95)");
+  glow.addColorStop(0.25, "rgba(80, 150, 255, 0.45)");
   glow.addColorStop(1, "rgba(0, 0, 0, 0)");
   context.fillStyle = glow;
-  disc(context, cx, cy, radius * 1.05);
+  disc(context, cx, cy, radius * (1 + EARTH_GLOW));
   context.fill();
 };

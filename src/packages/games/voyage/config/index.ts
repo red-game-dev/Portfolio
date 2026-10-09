@@ -111,7 +111,6 @@ export interface VoyageUniverseTheme {
 export interface VoyageTheme {
   space: string;
   star: string;
-  sun: string;
   hull: string;
   hullShade: string;
   window: string;
@@ -128,7 +127,6 @@ export interface VoyageTheme {
 export const DEFAULT_VOYAGE_THEME: VoyageTheme = {
   space: "#03050c",
   star: "#ecf1ff",
-  sun: "rgba(255, 196, 92, 0.55)",
   hull: "#eef1f8",
   hullShade: "#9aa3bb",
   window: "#c4d2ff",

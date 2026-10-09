@@ -7,12 +7,15 @@ import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Section } from "@/components/Section";
+import { useWindowKeys } from "@/components/Terminal/hooks/useWindowKeys";
 import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
 import { SectionText } from "@/components/Text/SectionText";
 import { ASK_HISTORY_TURNS, type AskSourceKey } from "@/config/ask";
 import { SECTION_IDS } from "@/config/sections";
 import { prefersReducedMotion, scrollBehavior } from "@/packages/accessibility/motion";
 import type { AskDepth, AskErrorCode, AskTurn } from "@/packages/ai/ask";
+import { isTypingTarget } from "@/packages/interaction/focus";
+import { KeyMap } from "@/packages/interaction/keys";
 import { scrollToElement, settleAtTop } from "@/packages/interaction/scroll-frame";
 import {
   error,
@@ -189,13 +192,17 @@ const scrollToSection = (target: string) => {
   }
 };
 
-// Backtick like a game console, or slash like most search boxes. The physical key counts too, since on
-// many European layouts the backtick key types something else or waits for a second key.
-const isShortcut = (event: globalThis.KeyboardEvent) => !event.ctrlKey && !event.metaKey
-  && (event.key === "`" || event.key === "/" || event.code === "Backquote");
+// Backtick like a game console, or slash like most search boxes, from anywhere but a field being typed in. The
+// physical key counts too, since on many European layouts the backtick key types something else or waits for a
+// second key.
+const SHORTCUT = new KeyMap({ "`": "prompt", "/": "prompt" }, {
+  codes: { Backquote: "prompt" },
+  ignore: ["ctrl", "meta"],
+  skip: (event) => isTypingTarget(event.target),
+});
 
-const isTyping = (target: EventTarget | null) => target instanceof HTMLElement
-  && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+// Up and down walk through the commands typed before; Tab completes the one being typed.
+const PROMPT_KEYS = new KeyMap<"previous" | "next" | "complete">({ ArrowUp: "previous", ArrowDown: "next", Tab: "complete" });
 
 // A real command line over the portfolio. The session is plain state from the terminal package; this
 // component only renders it and carries out the effects a command asks for.
@@ -344,17 +351,22 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
     setValue("");
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-      event.preventDefault();
-      setValue(session.recall(event.key === "ArrowUp" ? "previous" : "next"));
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => PROMPT_KEYS.offer(event, (intent) => {
+    if (intent !== "complete") {
+      setValue(session.recall(intent));
+
+      return true;
     }
 
-    if (event.key === "Tab" && value.trim()) {
-      event.preventDefault();
-      setValue(session.complete(value));
+    // With nothing typed, Tab moves focus on as usual.
+    if (!value.trim()) {
+      return false;
     }
-  };
+
+    setValue(session.complete(value));
+
+    return true;
+  });
 
   useEffect(() => {
     const screen = screenRef.current;
@@ -365,21 +377,10 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
   });
 
   // Backtick from anywhere on the page brings you to the prompt, like a game console.
-  useEffect(() => {
-    const onWindowKey = (event: globalThis.KeyboardEvent) => {
-      if (!isShortcut(event) || isTyping(event.target)) {
-        return;
-      }
-
-      event.preventDefault();
-      sectionRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
-      inputRef.current?.focus({ preventScroll: true });
-    };
-
-    window.addEventListener("keydown", onWindowKey);
-
-    return () => window.removeEventListener("keydown", onWindowKey);
-  }, []);
+  useWindowKeys(SHORTCUT, () => {
+    sectionRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
+    inputRef.current?.focus({ preventScroll: true });
+  });
 
   return (
     <Section id={SECTION_IDS.terminal} ref={sectionRef}>

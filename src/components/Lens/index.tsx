@@ -14,6 +14,7 @@ import { loadEntrance } from "@/components/Lens/loaders";
 import { DEFAULT_LENS, Lens } from "@/config/lenses";
 import useModalDialog from "@/hooks/useModalDialog";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { rovingTarget } from "@/packages/accessibility/roving";
 import { EntranceCandidate, LensContent } from "@/types/lens";
 
 interface LensGateProps {
@@ -166,17 +167,17 @@ export const LensGate: FC<LensGateProps> = ({ content, counts, candidate }: Lens
     }
   }, [finishEntrance, status, switchLens]);
 
-  // Arrow keys move between the cards, as on a game's select screen.
+  // Arrow keys move between the cards and wrap, as on a game's select screen. Home and End stay the browser's.
   const moveFocus = useCallback((event: KeyboardEvent<HTMLButtonElement>) => {
-    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
     const cards = Array.from(dialogRef.current?.querySelectorAll<HTMLButtonElement>("[data-lens-card]") ?? []);
+    const next = rovingTarget(event.key, cards.indexOf(event.currentTarget), cards.length, { ends: false });
 
-    if (!step || cards.length === 0) {
+    if (next === null) {
       return;
     }
 
     event.preventDefault();
-    cards[(cards.indexOf(event.currentTarget) + step + cards.length) % cards.length].focus();
+    cards[next].focus();
   }, []);
 
   return (

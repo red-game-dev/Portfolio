@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { act, fireEvent, render, renderHook, waitFor } from "@testing-library/react";
 
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import useFocusLeave from "@/hooks/useFocusLeave";
 import useHashState, { useHashValue } from "@/hooks/useHashState";
 import useInView from "@/hooks/useInView";
 import useModalDialog from "@/hooks/useModalDialog";
@@ -224,5 +225,46 @@ describe("useInView", () => {
     expect(getByText("unseen")).toBeInTheDocument();
     rerender(<Later isShown />);
     expect(getByText("seen")).toBeInTheDocument();
+  });
+});
+
+const Group = ({ onLeave }: { onLeave: () => void }) => {
+  const onBlur = useFocusLeave(onLeave);
+
+  return (
+    <>
+      <div onBlur={onBlur}>
+        <button type="button">first</button>
+        <button type="button">second</button>
+      </div>
+      <button type="button">outside</button>
+    </>
+  );
+};
+
+describe("useFocusLeave", () => {
+  it("calls back when focus leaves the container or the page, not when it moves inside it", () => {
+    const onLeave = jest.fn();
+    const { getByText } = render(<Group onLeave={onLeave} />);
+
+    fireEvent.blur(getByText("first"), { relatedTarget: getByText("second") });
+    expect(onLeave).not.toHaveBeenCalled();
+
+    fireEvent.blur(getByText("second"), { relatedTarget: getByText("outside") });
+    expect(onLeave).toHaveBeenCalledTimes(1);
+
+    fireEvent.blur(getByText("first"), { relatedTarget: null });
+    expect(onLeave).toHaveBeenCalledTimes(2);
+  });
+
+  it("calls the latest callback", () => {
+    const first = jest.fn();
+    const second = jest.fn();
+    const { getByText, rerender } = render(<Group onLeave={first} />);
+
+    rerender(<Group onLeave={second} />);
+    fireEvent.blur(getByText("first"), { relatedTarget: getByText("outside") });
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledTimes(1);
   });
 });

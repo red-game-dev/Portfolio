@@ -208,6 +208,27 @@ describe("LensGate", () => {
     expect(JSON.parse(window.localStorage.getItem(LENS_STORAGE_KEY) ?? "null")).toBe("product");
   });
 
+  it("moves between the cards with the arrow keys, wrapping, and leaves Home and End to the browser", () => {
+    render(<Gate />);
+    pastIntro();
+
+    const cards = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-lens-card]"));
+
+    cards[0].focus();
+    expect(fireEvent.keyDown(cards[0], { key: "ArrowRight" })).toBe(false);
+    expect(cards[1]).toHaveFocus();
+
+    fireEvent.keyDown(cards[1], { key: "ArrowUp" });
+    fireEvent.keyDown(cards[0], { key: "ArrowLeft" });
+    expect(cards[cards.length - 1]).toHaveFocus();
+
+    fireEvent.keyDown(cards[cards.length - 1], { key: "ArrowDown" });
+    expect(cards[0]).toHaveFocus();
+
+    expect(fireEvent.keyDown(cards[0], { key: "End" })).toBe(true);
+    expect(cards[0]).toHaveFocus();
+  });
+
   it("opens the full page when the reader skips the choice with Escape", () => {
     render(<Gate />);
     pastIntro();

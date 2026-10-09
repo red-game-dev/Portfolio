@@ -1,5 +1,6 @@
 import type { ZoneId } from "@/config/zones";
 import type { LaunchLand, LaunchMilestone, LaunchVehicle } from "@/packages/games/launch";
+import type { SurfaceBiome } from "@/packages/games/voyage";
 
 export interface DuelRound {
   agent: string;
@@ -246,8 +247,18 @@ export interface VoyageCareerCopy {
   photo: { title: string; open: string; close: string; save: string; hint: string; file: string };
 }
 
+// The view from a world's surface: which world ("{body}"), the local time ("{time}"), what each kind of ground is
+// called, and how to leave.
+export interface FinaleSurface {
+  title: string;
+  time: string;
+  biomes: Record<SurfaceBiome, string>;
+  takeOff: string;
+}
+
 export interface FinaleVoyage {
   title: string;
+  surface: FinaleSurface;
   intro: string;
   controls: string;
   canvasLabel: string;

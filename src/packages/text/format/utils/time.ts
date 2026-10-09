@@ -9,6 +9,13 @@ export const formatDuration = (seconds: number, { withHours = false }: { withHou
   return withHours ? `${twoDigits(whole / 3600)}:${twoDigits(minutes % 60)}:${twoDigits(whole % 60)}` : `${minutes}:${twoDigits(whole % 60)}`;
 };
 
+// A time of day given in hours, "16:20" (wrapping past midnight).
+export const formatHours = (hours: number): string => {
+  const minutes = Math.floor((((hours % 24) + 24) % 24) * 60);
+
+  return `${twoDigits(minutes / 60)}:${twoDigits(minutes % 60)}`;
+};
+
 // The time of day somewhere, "23:24", on that place's own clock (an IANA zone such as "America/New_York"); empty
 // for a zone the browser does not know.
 export const formatLocalTime = (timeZone: string, at: Date | number = Date.now()): string => {

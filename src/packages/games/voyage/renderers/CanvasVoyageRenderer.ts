@@ -1,5 +1,6 @@
 import { Camera, EventBus, RenderPipeline } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { Rgb } from "@/packages/graphics/colour";
 import { CanvasGlobeRenderer, GlobeRenderer } from "@/packages/graphics/globe";
 import type { LensSource } from "@/packages/graphics/webgl";
 
@@ -8,6 +9,7 @@ import { VoyageWorld } from "../core/world";
 import { VoyageEvents } from "../domain/events";
 import { GhostRun } from "../domain/ghost";
 import { VoyageState } from "../domain/state";
+import { SurfaceInfo } from "../domain/surface";
 import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
@@ -21,6 +23,7 @@ import { OverlayLayer } from "./layers/OverlayLayer";
 import { PhenomenaLayer } from "./layers/PhenomenaLayer";
 import { ProjectilesLayer } from "./layers/ProjectilesLayer";
 import { ShipLayer } from "./layers/ShipLayer";
+import { SurfaceLayer } from "./layers/SurfaceLayer";
 import { ThingsLayer } from "./layers/ThingsLayer";
 import { WeatherLayer } from "./layers/WeatherLayer";
 import { WrecksLayer } from "./layers/WrecksLayer";
@@ -31,6 +34,8 @@ import { Surface } from "./Surface";
 import { SurfaceCache } from "./SurfaceCache";
 
 export interface VoyageRenderer {
+  // Where the ship stands on a world, while it does.
+  readonly surface: SurfaceInfo | null;
   resize(width: number, height: number, pixelRatio: number): void;
   draw(frame: VoyageFrame): void;
   // The black holes on screen, for the GPU lens.
@@ -47,6 +52,19 @@ export interface VoyageRenderer {
   setPhoto(isOn: boolean): void;
   dispose(): void;
 }
+
+// A map's own pixels, for reading the colour of the ground where the ship sets down.
+type MapImage = HTMLImageElement | HTMLCanvasElement | ImageBitmap | OffscreenCanvas;
+
+const isMapImage = (image: TexImageSource): image is MapImage =>
+  (typeof HTMLImageElement !== "undefined" && image instanceof HTMLImageElement) ||
+  (typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement) ||
+  (typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap) ||
+  (typeof OffscreenCanvas !== "undefined" && image instanceof OffscreenCanvas);
+
+const widthOf = (image: MapImage) => (image instanceof HTMLImageElement ? image.naturalWidth : image.width);
+
+const heightOf = (image: MapImage) => (image instanceof HTMLImageElement ? image.naturalHeight : image.height);
 
 // What each quality level keeps: the share of the particle budget, and the octaves of noise the GPU's globes sum.
 const QUALITY = { particles: [1, 0.7, 0.45, 0.3], octaves: [5, 4, 3, 3] };
@@ -69,6 +87,11 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   private readonly overlay: OverlayLayer;
   private readonly map: MapLayer;
   private readonly ghost: GhostLayer;
+  private readonly globesLayer: GlobesLayer;
+  private readonly surfaceLayer: SurfaceLayer;
+  private readonly maps = new Map<string, MapImage>();
+  private sampler: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null = null;
+  private isPhoto = false;
   private lastState: Readonly<VoyageState> | null = null;
   private lastWorld: VoyageWorld | null = null;
   private quality = 0;
@@ -81,10 +104,12 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.overlay = new OverlayLayer(this.kit);
     this.map = new MapLayer(this.kit);
     this.ghost = new GhostLayer(this.kit);
+    this.globesLayer = new GlobesLayer(this.kit);
+    this.surfaceLayer = new SurfaceLayer(this.kit, this.globesLayer, (texture, longitude, latitude, centre) => this.sampleMap(texture, longitude, latitude, centre));
     this.backLayers = new RenderPipeline([
       new BackdropLayer(this.kit),
       new PhenomenaLayer(this.kit),
-      new GlobesLayer(this.kit),
+      this.globesLayer,
       new WeatherLayer(this.kit),
       new HolesLayer(this.kit, "back"),
     ]);
@@ -98,9 +123,14 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       this.ghost,
       this.ship,
       this.light,
+      this.surfaceLayer,
       this.overlay,
       this.map,
     ]);
+  }
+
+  public get surface(): SurfaceInfo | null {
+    return this.surfaceLayer.info ? { ...this.surfaceLayer.info } : null;
   }
 
   public resize(width: number, height: number, pixelRatio: number): void {
@@ -114,6 +144,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
   public setTexture(id: string, image: TexImageSource): void {
     this.kit.globes.setTexture(id, image);
+
+    if (isMapImage(image)) {
+      this.maps.set(id, image);
+    }
   }
 
   public setMap(isOpen: boolean): void {
@@ -133,8 +167,8 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   }
 
   public setPhoto(isOn: boolean): void {
+    this.isPhoto = isOn;
     this.map.isHidden = isOn;
-    this.overlay.showsGuides = !isOn;
   }
 
   public dispose(): void {
@@ -152,6 +186,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
     this.lastState = frame.state;
     this.lastWorld = frame.world;
+    // On a world's surface its view covers space: the GPU's globes, the radar and the guides rest.
+    this.globesLayer.isHidden = this.surfaceLayer.isCovering;
+    this.map.hidesRadar = this.surfaceLayer.isShown;
+    this.overlay.showsGuides = !this.isPhoto && !this.surfaceLayer.isShown;
     this.backLayers.draw(frame);
     this.kit.front.clear();
     this.frontLayers.draw(frame);
@@ -312,6 +350,43 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   }
 
   // A fireball and a ring of shock, as something is destroyed or something strikes.
+  // The colour of a map at a spot (degrees), averaged over a few of its pixels, or null with no map yet: drawn
+  // into one pixel of a small canvas made once.
+  private sampleMap(texture: string, longitude: number, latitude: number, centreLongitude: number): Rgb | null {
+    const image = this.maps.get(texture);
+
+    if (!image) {
+      return null;
+    }
+
+    if (!this.sampler) {
+      this.sampler = typeof OffscreenCanvas !== "undefined"
+        ? new OffscreenCanvas(1, 1).getContext("2d", { willReadFrequently: true })
+        : document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+    }
+
+    const width = widthOf(image);
+    const height = heightOf(image);
+
+    if (!this.sampler || width <= 0 || height <= 0) {
+      return null;
+    }
+
+    const across = ((((longitude - (centreLongitude - 180)) / 360) % 1) + 1) % 1;
+    const down = Math.max(0, Math.min(1, 0.5 - latitude / 180));
+
+    try {
+      this.sampler.clearRect(0, 0, 1, 1);
+      this.sampler.drawImage(image, Math.max(0, across * width - 2), Math.max(0, down * height - 2), 4, 4, 0, 0, 1, 1);
+
+      const [red, green, blue] = this.sampler.getImageData(0, 0, 1, 1).data;
+
+      return [red, green, blue];
+    } catch {
+      return null;
+    }
+  }
+
   private blast(x: number, y: number, radius: number, camera: Camera, trauma: number): void {
     const { particles } = this.kit;
     const fire = this.kit.cache.get("fire", 64, 64, paintGlow("rgba(255, 120, 40, 1)"));

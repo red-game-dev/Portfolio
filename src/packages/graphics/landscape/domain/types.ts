@@ -78,4 +78,6 @@ export interface Frame {
   // How much the air thins with height, 1 on the ground, 0 in space.
   density: number;
   now: number;
+  // How opaque the whole view is drawn, for fading it in and out over another (1 unless given).
+  opacity?: number;
 }

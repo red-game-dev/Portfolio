@@ -21,7 +21,7 @@ import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage
 import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
-import { voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { placeName, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
 import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import {
   Badge,
@@ -68,6 +68,10 @@ import {
   Score,
   ShipLine,
   Stage,
+  SurfaceCard,
+  SurfaceHint,
+  SurfaceLine,
+  SurfaceTitle,
   SystemName,
   SystemRow,
   Systems,
@@ -86,7 +90,7 @@ import {
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import useModalDialog from "@/hooks/useModalDialog";
 import type { Frame, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
-import { fill, formatNumber } from "@/packages/text/format";
+import { fill, formatHours, formatLatLon, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 interface VoyageDialogProps {
@@ -420,6 +424,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </IconButton>
         </HudButtons>
       </Hud>
+      {snapshot?.surface && status === "flying" && !isHangarOpen && !isPhoto && (
+        <SurfaceCard aria-label={fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.landedOn) })}>
+          <SurfaceTitle>{fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.landedOn) })}</SurfaceTitle>
+          <SurfaceLine>{content.surface.biomes[snapshot.surface.biome]}</SurfaceLine>
+          <SurfaceLine>{formatLatLon(snapshot.surface.latitude, snapshot.surface.longitude)}</SurfaceLine>
+          <SurfaceLine>{fill(content.surface.time, { time: formatHours(snapshot.surface.hours) })}</SurfaceLine>
+          <SurfaceHint>{content.surface.takeOff}</SurfaceHint>
+        </SurfaceCard>
+      )}
       {snapshot && status === "flying" && !isHangarOpen && !isPhoto && (
         <TelemetryPanel aria-label={content.telemetry.title}>
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>

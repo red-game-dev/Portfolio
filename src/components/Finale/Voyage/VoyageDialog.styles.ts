@@ -88,6 +88,22 @@ export const BarFill = styled.div(({ colour }: { colour: string }) => [
   `,
 ]);
 
+// Where the ship stands on a world: in the corner the radar keeps in flight.
+export const SurfaceCard = styled.section(() => [
+  tw`absolute left-[10px] bottom-[10px] md:left-[18px] md:bottom-[18px] m-0 p-[8px] md:p-[12px] flex flex-col gap-[2px] pointer-events-none`,
+  css`
+    max-width: min(44vw, 300px);
+    background: rgba(5, 8, 18, 0.72);
+    border: 1px solid rgba(196, 210, 255, 0.25);
+  `,
+]);
+
+export const SurfaceTitle = tw.h3`m-0 text-xs md:text-sm font-semibold text-white`;
+
+export const SurfaceLine = tw.p`m-0 text-[11px] md:text-xs text-[#c4d2ff]`;
+
+export const SurfaceHint = tw.p`m-0 mt-[4px] text-[11px] md:text-xs text-[#9aa3bb]`;
+
 export const TelemetryPanel = styled.section(() => [
   tw`absolute right-[10px] bottom-[10px] md:right-[18px] md:bottom-[18px] p-[8px] md:p-[12px] pointer-events-none`,
   css`

@@ -79,7 +79,8 @@ export interface AirModel extends Atmosphere {
 // universe) on a circle round its star.
 export type SystemOrbit =
   | { kind: "sun"; elements: KeplerElements }
-  | { kind: "moon"; parent: string; distance: number; periodDays: number; longitudeAtEpoch: number }
+  // A moon keeps its real distance (km) too, for how large its planet stands in its sky.
+  | { kind: "moon"; parent: string; distance: number; distanceKm: number; periodDays: number; longitudeAtEpoch: number }
   | { kind: "circle"; distance: number; periodDays: number; longitudeAtEpoch: number };
 
 // A body in the game's world. Its place, velocity, real position round the Sun and the point under the Sun on it

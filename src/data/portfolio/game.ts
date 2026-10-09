@@ -68,6 +68,28 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
     },
     voyage: {
       title: "The journey continues",
+      surface: {
+        title: "On {body}",
+        time: "Local time {time}",
+        biomes: {
+          ocean: "Splashed down in the open ocean",
+          ice: "Ice sheet",
+          desert: "Desert",
+          forest: "Forest",
+          grassland: "Grassland",
+          rock: "Rocky highlands",
+          regolith: "Cratered regolith",
+          dust: "Red dust plains",
+          basalt: "Basalt plains under the clouds",
+          sulfur: "Sulphur plains",
+          iceCrust: "Cracked ice crust",
+          dunes: "Dune fields",
+          methaneSea: "On the shore of a methane sea",
+          nitrogenIce: "Nitrogen ice plains",
+          lava: "Cooling lava fields",
+        },
+        takeOff: "Burn to lift off",
+      },
       intro: "The real solar system, every planet and moon where it is today, turning as it really turns. Fly to Venus, to the Sun or " +
         "behind it, land on the Moon or Mars, skim the giants for fuel. Too near the Sun and the ship melts, one system at a time. Past " +
         "the Kuiper belt, something waits.",

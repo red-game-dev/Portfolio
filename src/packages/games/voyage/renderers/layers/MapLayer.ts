@@ -39,8 +39,9 @@ const MAP_TOP_ROOM = 150;
 export class MapLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "map";
   public isOpen = false;
-  // Off in photo mode, radar and map both.
+  // Off in photo mode, radar and map both; the radar alone while the ship stands on a world.
   public isHidden = false;
+  public hidesRadar = false;
 
   constructor(private readonly kit: RenderKit) {}
 
@@ -53,7 +54,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
 
     if (this.isOpen) {
       this.drawMap(frame);
-    } else if (state.status === "flying") {
+    } else if (state.status === "flying" && !this.hidesRadar) {
       this.drawRadar(frame);
     }
   }

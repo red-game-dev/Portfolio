@@ -1,4 +1,4 @@
-import { collapseWhitespace, fill, formatDateTime, formatDuration, formatLocalTime, formatNumber, twoDigits, utcDay } from "@/packages/text/format";
+import { collapseWhitespace, fill, formatDateTime, formatDuration, formatHours, formatLatLon, formatLocalTime, formatNumber, twoDigits, utcDay } from "@/packages/text/format";
 
 describe("fill", () => {
   it("fills every placeholder, numbers included, wherever and however often it appears", () => {
@@ -46,5 +46,12 @@ describe("numbers and time", () => {
     expect(formatLocalTime("Not/AZone", moment)).toBe("");
     expect(formatDateTime(moment)).toBe("9 Oct 2026, 03:24");
     expect(utcDay(moment)).toBe("2026-10-09");
+  });
+
+  it("writes a time of day from hours and a place from its latitude and longitude", () => {
+    expect(formatHours(16.34)).toBe("16:20");
+    expect(formatHours(25.5)).toBe("01:30");
+    expect(formatLatLon(28.6084, -80.6043)).toBe("28.6° N, 80.6° W");
+    expect(formatLatLon(-4.5, 137.4)).toBe("4.5° S, 137.4° E");
   });
 });

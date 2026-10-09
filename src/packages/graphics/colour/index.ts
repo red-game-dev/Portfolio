@@ -8,6 +8,10 @@ export const hexToRgb = (hex: string): Rgb => {
   return [0, 2, 4].map((start) => parseInt(full.slice(start, start + 2), 16)) as Rgb;
 };
 
+// [75, 255, 165] as "#4bffa5".
+export const rgbToHex = (colour: Rgb): string => `#${colour.map((channel) => Math.max(0, Math.min(255, Math.round(channel))).toString(16)
+  .padStart(2, "0")).join("")}`;
+
 // "75, 255, 165": the channels as CSS custom properties hold them, for rgba(var(--x-rgb), 0.5).
 export const rgbChannels = (hex: string) => hexToRgb(hex).join(", ");
 

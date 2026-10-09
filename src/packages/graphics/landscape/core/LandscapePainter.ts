@@ -51,6 +51,8 @@ export class LandscapePainter {
   public paint(frame: Frame, scene: Scene): SkyLight {
     const sky = skyLight(scene.air, scene.sun?.elevation ?? -90, frame.density);
 
+    frame.context.globalAlpha = frame.opacity ?? 1;
+
     this.paintSky(frame, sky, scene);
     this.paintStars(frame, sky);
     this.paintSun(frame, scene);
@@ -86,7 +88,7 @@ export class LandscapePainter {
     }
   }
 
-  public paintStars({ context, width, horizon, now }: Frame, sky: SkyLight): void {
+  public paintStars({ context, width, horizon, now, opacity = 1 }: Frame, sky: SkyLight): void {
     if (sky.stars < 0.03 || horizon <= 0) {
       return;
     }
@@ -97,10 +99,10 @@ export class LandscapePainter {
       // Low stars are dimmed by the air in front of them, and all of them twinkle a little.
       const twinkle = 0.75 + 0.25 * Math.sin(now * 0.002 + star.phase);
 
-      context.globalAlpha = sky.stars * twinkle * (0.35 + 0.65 * (1 - star.y));
+      context.globalAlpha = opacity * sky.stars * twinkle * (0.35 + 0.65 * (1 - star.y));
       context.fillRect(star.x * width, y, star.size, star.size);
     });
-    context.globalAlpha = 1;
+    context.globalAlpha = opacity;
   }
 
   public paintSun({ context, width, height, horizon, fieldOfView, density }: Frame, scene: Scene): void {
@@ -133,7 +135,7 @@ export class LandscapePainter {
     }
   }
 
-  public paintBodies({ context, width, height, horizon, fieldOfView, density }: Frame, scene: Scene): void {
+  public paintBodies({ context, width, height, horizon, fieldOfView, density, opacity = 1 }: Frame, scene: Scene): void {
     const perDegree = height / fieldOfView;
     const daylight = scene.air ? smoothstep(-4, 12, scene.sun?.elevation ?? -90) * scene.air.strength * density : 0;
 
@@ -147,7 +149,7 @@ export class LandscapePainter {
       }
 
       // By day a body is washed out by the sky in front of it.
-      context.globalAlpha = 1 - daylight * 0.55;
+      context.globalAlpha = opacity * (1 - daylight * 0.55);
 
       if (body.hasRings) {
         context.strokeStyle = rgba(hexToRgb(body.colour), 0.55);
@@ -167,7 +169,7 @@ export class LandscapePainter {
       context.beginPath();
       context.arc(x, y, radius, 0, TAU);
       context.fill();
-      context.globalAlpha = 1;
+      context.globalAlpha = opacity;
     });
   }
 

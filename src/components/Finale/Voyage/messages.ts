@@ -10,7 +10,8 @@ const formatKm = (km: number) => new Intl.NumberFormat("en-GB", { maximumFractio
 const universeName = (snapshot: VoyageSnapshot, universes: string[]) => snapshot.universeName ?? universes[snapshot.universe] ?? "";
 
 // A place's name: the content's for the solar system, its own made up one in a universe.
-const placeName = (content: FinaleVoyage, id: string) => content.stops[id] ?? id;
+// A place's name: ours from the content, a made one as the universe named it.
+export const placeName = (content: FinaleVoyage, id: string, madeName?: string | null) => content.stops[id] ?? madeName ?? id;
 
 // What the voyage says aloud as it changes: each stop passed, the black hole, being lost, and where the ship
 // comes out. Null when nothing new happened.

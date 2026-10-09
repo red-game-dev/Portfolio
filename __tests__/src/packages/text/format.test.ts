@@ -1,4 +1,6 @@
-import { collapseWhitespace, fill, formatDateTime, formatDuration, formatHours, formatLatLon, formatLocalTime, formatNumber, twoDigits, utcDay } from "@/packages/text/format";
+import {
+  collapseWhitespace, fill, formatDateTime, formatDuration, formatHours, formatLatLon, formatLocalTime, formatNumber, twoDigits, utcDay,
+} from "@/packages/text/format";
 
 describe("fill", () => {
   it("fills every placeholder, numbers included, wherever and however often it appears", () => {

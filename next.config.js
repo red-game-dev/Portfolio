@@ -27,15 +27,15 @@ module.exports = withBundleAnalyzer({
     },
   },
   env: {
-    HOST: process.env.HOST,
     DEBUG: process.env.DEBUG,
   },
   // The text files for language models are written from the content by API routes. Pages named like files would
   // need server rendering, which the single locale above turns into a build the Vercel adapter cannot finish.
   async rewrites() {
     return [
-      { source: '/llms.txt', destination: '/api/llms', locale: false },
-      { source: '/llms-full.txt', destination: '/api/llms-full', locale: false },
+      // trailingSlash makes every route end in a slash, API routes included.
+      { source: '/llms.txt', destination: '/api/llms/', locale: false },
+      { source: '/llms-full.txt', destination: '/api/llms-full/', locale: false },
     ]
   },
 })

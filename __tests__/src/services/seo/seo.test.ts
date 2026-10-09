@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
+import { SITE_URL } from "@/config/site";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
 import { createLlmsFullTxt, createLlmsTxt } from "@/services/seo/llms";
@@ -8,7 +9,7 @@ import { createStructuredData, serializeStructuredData } from "@/services/seo/st
 
 const ROOT = join(__dirname, "../../../..");
 const read = (path: string) => readFileSync(join(ROOT, path), "utf8");
-const HOST = /^HOST=(.+)$/m.exec(read(".env.production"))?.[1].trim() ?? "";
+const HOST = SITE_URL;
 
 type Node = Record<string, unknown>;
 
@@ -35,7 +36,8 @@ const references = (value: unknown): string[] => {
 };
 
 describe("SEO", () => {
-  test("the production host is set, so canonicals, the sitemap and the structured data agree", () => {
+  // The bare domain redirects to www, so www is the only address that may be canonical.
+  test("the canonical address is the www one the bare domain redirects to", () => {
     expect(HOST).toBe("https://www.redgame.dev");
   });
 

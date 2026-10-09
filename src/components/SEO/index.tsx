@@ -1,17 +1,17 @@
 import { useMemo } from "react";
 
-import { DefaultSeo } from "next-seo";
+import { DefaultSeo, NextSeo } from "next-seo";
 
 import Head from "next/head";
 import { useRouter } from "next/router";
 
+import { SITE_URL } from "@/config/site";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
 import { absoluteUrl, createStructuredData, SeoPage, serializeStructuredData, siteRoot } from "@/services/seo/structuredData";
 
-interface SeoProps {
-  url: string;
-}
+// Error pages are not pages to index, and have no canonical of their own.
+const ERROR_PAGES = new Set(["/_error", "/404", "/500"]);
 
 // The pages that carry structured data, by route.
 const STRUCTURED_PAGES: Partial<Record<string, SeoPage>> = { "/": "home", "/resume": "resume" };
@@ -22,10 +22,11 @@ const toCanonical = (root: string, pathname: string) => (pathname === "/" ? `${r
 
 const { details, socialMedia } = portfolioData;
 
-export const SEO = ({ url }: SeoProps) => {
+export const SEO = () => {
   const { pathname } = useRouter();
-  const root = siteRoot(url);
-  const canonical = toCanonical(root, pathname);
+  const root = siteRoot(SITE_URL);
+  const isError = ERROR_PAGES.has(pathname);
+  const canonical = isError ? undefined : toCanonical(root, pathname);
   const page = STRUCTURED_PAGES[pathname];
   const structuredData = useMemo(
     () => (page ? serializeStructuredData(createStructuredData(portfolioData, seoDetails, root, page)) : null),
@@ -71,6 +72,7 @@ export const SEO = ({ url }: SeoProps) => {
           { name: "author", content: details.name },
         ]}
       />
+      {isError && <NextSeo noindex nofollow />}
       {structuredData && (
         <Head>
           <script key="structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: structuredData }} />

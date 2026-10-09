@@ -1,6 +1,7 @@
 import { NextSeo } from "next-seo";
 import tw, { css, styled } from "twin.macro";
 
+import { SITE_URL } from "@/config/site";
 import { ZONE_ACCENTS, ZONE_BOUNDARIES } from "@/config/zones";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
@@ -12,7 +13,7 @@ const FIGURE_IDS = ["industry", "reach", "startups"];
 
 const figures = FIGURE_IDS.flatMap((id) => details.proof.filter((figure) => figure.id === id));
 
-const domain = (process.env.HOST ?? "").replace(/^https?:\/\/(www\.)?/, "").replace(/\/+$/, "");
+const domain = SITE_URL.replace(/^https?:\/\/(www\.)?/, "");
 
 const { width, height } = seoDetails.socialCard;
 

@@ -1,4 +1,4 @@
-import { KeyboardEvent, ReactNode, useEffect, useState } from "react";
+import { KeyboardEvent, ReactNode, useEffect, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -9,7 +9,7 @@ import { useSwipe } from "@/components/Carousel/hooks/useSwipe";
 import { carouselPage, describePage, realignStart, wrapPage } from "@/components/Carousel/paging";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import useMediaQuery from "@/hooks/useMediaQuery";
-import { isTypingTarget } from "@/packages/interaction/focus";
+import { firstFocusable, isFocusLost, isInside, isTypingTarget } from "@/packages/interaction/focus";
 import { HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
 import { CarouselLabels } from "@/types/carousel";
 
@@ -102,6 +102,9 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
   const perPage = isWide ? perView : 1;
   const [start, setStart] = useState(0);
   const switcher = useSwitch();
+  const rootRef = useRef<HTMLElement>(null);
+  // Whether focus was among the cards or controls when the page turned, so it can follow the turn.
+  const hadFocus = useRef(false);
   const { pages, page, first, last } = carouselPage(start, perPage, items.length);
 
   // A narrower or wider screen keeps the same first card in view.
@@ -113,10 +116,28 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
     const next = wrapPage(target, pages);
 
     if (next !== page) {
+      hadFocus.current = isInside(rootRef.current, document.activeElement);
       switcher.play(direction);
       setStart(next * perPage);
     }
   };
+
+  // A page turned from the keyboard hides the card that had focus, and the browser drops focus to the page, where
+  // the arrows no longer reach the carousel: focus moves to the first control on the page now shown, or to the
+  // carousel itself.
+  useEffect(() => {
+    const root = rootRef.current;
+
+    if (!hadFocus.current || !root) {
+      return;
+    }
+
+    hadFocus.current = false;
+
+    if (isFocusLost(document.activeElement)) {
+      (firstFocusable(root) ?? root).focus({ preventScroll: true });
+    }
+  }, [start]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => PAGE_KEYS.handle(event, (step) => goTo(page + step, step));
   const swipe = useSwipe((step) => goTo(page + step, step), SWIPE_PX);
@@ -124,7 +145,7 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
   const describe = (from: number, to: number) => describePage(from, to, items.length, labels);
 
   return (
-    <Root aria-roledescription="carousel" aria-label={label} onKeyDown={onKeyDown}>
+    <Root ref={rootRef} tabIndex={-1} aria-roledescription="carousel" aria-label={label} onKeyDown={onKeyDown}>
       <Slides switcher={switcher} perView={perView} onPointerDown={swipe.onPointerDown} onPointerUp={swipe.onPointerUp}>
         {items.map((item, index) => (
           <Slide

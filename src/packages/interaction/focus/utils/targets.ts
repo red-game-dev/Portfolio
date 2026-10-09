@@ -19,3 +19,14 @@ export const isTypingTarget = (target: EventTarget | null | undefined): boolean 
 
 // The nearest element from `target` outwards that matches `selector`, or null.
 export const closestTo = (target: EventTarget | null | undefined, selector: string): Element | null => (isElement(target) ? target.closest(selector) : null);
+
+// What a reader can move focus to.
+const FOCUSABLE = "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
+
+// The first control in `container` a reader could move to that is not hidden, or null when there is none.
+export const firstFocusable = (container: ParentNode): HTMLElement | null =>
+  Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE)).find((element) => element.closest("[hidden]") === null) ?? null;
+
+// Whether focus has dropped out of view: nothing holds it, or what holds it now sits inside something hidden (a
+// page of a carousel turned away, a panel closed), which a browser leaves on the page's body.
+export const isFocusLost = (active: Element | null): boolean => active === null || active === active.ownerDocument.body || active.closest("[hidden]") !== null;

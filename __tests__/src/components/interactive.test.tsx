@@ -116,6 +116,31 @@ describe("Carousel", () => {
     expect(shown()).toEqual(["3 / 3"]);
   });
 
+  it("keeps focus on screen when a page turned from the keyboard hides the card that had it", () => {
+    render(
+      <LensProvider>
+        <Carousel
+          items={items}
+          getKey={(item) => item}
+          renderItem={(item) => <button type="button">{item}</button>}
+          label="Letters"
+          labels={portfolioData.carouselLabels}
+        />
+      </LensProvider>,
+    );
+
+    const alpha = screen.getByRole("button", { name: "Alpha" });
+
+    alpha.focus();
+    fireEvent.keyDown(alpha, { key: "ArrowRight" });
+
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Beta" }));
+
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: "ArrowLeft" });
+
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Alpha" }));
+  });
+
   it("turns a page on a swipe of a finger, not of a mouse", () => {
     installPointerEvents();
     renderCarousel();

@@ -1,4 +1,4 @@
-import { closestTo, focusLeaves, isInside, isTypingTarget, listenOutside, PressRoot } from "@/packages/interaction/focus";
+import { closestTo, firstFocusable, focusLeaves, isFocusLost, isInside, isTypingTarget, listenOutside, PressRoot } from "@/packages/interaction/focus";
 
 const build = () => {
   const container = document.createElement("div");
@@ -117,5 +117,29 @@ describe("listenOutside", () => {
     listeners[0](press);
     expect(onOutside).toHaveBeenCalledTimes(1);
     done();
+  });
+});
+
+describe("firstFocusable and isFocusLost", () => {
+  test("finds the first control not hidden, and says when focus has dropped out of view", () => {
+    document.body.innerHTML = `
+      <section id="root">
+        <div hidden><button id="gone">Gone</button></div>
+        <div><span>Text</span><a id="link" href="#x">Link</a><button id="next">Next</button></div>
+      </section>`;
+
+    const root = document.getElementById("root");
+
+    expect(root && firstFocusable(root)?.id).toBe("link");
+    expect(isFocusLost(document.body)).toBe(true);
+    expect(isFocusLost(document.getElementById("gone"))).toBe(true);
+    expect(isFocusLost(document.getElementById("next"))).toBe(false);
+    expect(isFocusLost(null)).toBe(true);
+
+    document.body.innerHTML = "<div id=\"empty\"><span>Nothing to press</span></div>";
+
+    const empty = document.getElementById("empty");
+
+    expect(empty && firstFocusable(empty)).toBeNull();
   });
 });

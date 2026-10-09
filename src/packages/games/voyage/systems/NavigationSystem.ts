@@ -124,7 +124,9 @@ export class NavigationSystem implements System<VoyageContext> {
       const out = Math.hypot(x - system.star.x, y - system.star.y);
       // Past Saturn the way leads outward: worlds left behind closer in no longer turn the compass back.
       const isOutbound = auForRadius(system.scale, out) > OUTBOUND_AU;
-      const isAhead = (body: { x: number; y: number }) => !isOutbound || Math.hypot(body.x - system.star.x, body.y - system.star.y) > out * AHEAD_SHARE;
+      // Ahead means further out than the ship and on its side of the Sun, never across the system behind it.
+      const isAhead = (body: { x: number; y: number }) => !isOutbound || (Math.hypot(body.x - system.star.x, body.y - system.star.y) > out * AHEAD_SHARE &&
+        (body.x - system.star.x) * (x - system.star.x) + (body.y - system.star.y) * (y - system.star.y) > 0);
 
       system.bodies.forEach((body) => {
         if (body.kind !== "moon" && !state.passed.has(body.id) && isAhead(body)) {

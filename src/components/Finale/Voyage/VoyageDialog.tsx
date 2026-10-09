@@ -325,15 +325,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                     <FixButton
                       type="button"
                       isReady={parts !== null}
-                      aria-label={`${craft ? copy.faults.makeAndFix : copy.faults.fix}: ${copy.faults.names[kind]}, ${
-                        parts ? stacksText(copy, parts) : needsFor(options)
-                      }`}
+                      aria-label={`${craft ? copy.faults.makeAndFix : copy.faults.fix}: ${copy.faults.names[kind]}${parts ? `, ${stacksText(copy, parts)}` : ""}`}
+                      aria-describedby={parts ? undefined : `fault-needs-${fault}`}
                       // With nothing to fix it, a tap says what to look for rather than doing nothing.
                       onClick={() => (parts ? act({ kind: "repair", fault }) : say(needsFor(options)))}
                     >
                       {craft ? copy.faults.makeAndFix : copy.faults.fix}
                     </FixButton>
-                    {!parts && <FaultNeed>{needsFor(options)}</FaultNeed>}
+                    {!parts && <FaultNeed id={`fault-needs-${fault}`}>{needsFor(options)}</FaultNeed>}
                   </FaultRow>
                 ))}
               </FaultList>

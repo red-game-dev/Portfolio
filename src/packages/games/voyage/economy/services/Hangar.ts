@@ -428,12 +428,6 @@ export class Hangar {
         return { kind: "repair", fault: fixable.id, faultKind: fixable.kind };
       }
 
-      const craftable = faults.map((fault) => this.craftableFor(FAULT_FIXES[fault.kind][0])).find(Boolean);
-
-      if (craftable) {
-        return { kind: "craft", recipe: craftable, reason: "fault" };
-      }
-
       const use = this.consumableFor(status);
 
       if (use) {

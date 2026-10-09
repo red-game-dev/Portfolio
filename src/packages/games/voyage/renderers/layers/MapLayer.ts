@@ -28,6 +28,10 @@ const drawArrow = (surface: Surface, x: number, y: number, angle: number, size: 
   surface.reset();
 };
 
+// Room left at the top of the map for the HUD over it (CSS pixels), where the black hole's note stands while its
+// ring is beyond the top of the map.
+const MAP_TOP_ROOM = 150;
+
 // The way to find things: a small radar in the corner of what is near (and an arrow towards the star), and on
 // request a map of the whole system over the view, every orbit drawn through where each body really is now,
 // the belts, the edge where the black hole waits, the storms on their way out, and the ship with a line to the
@@ -106,14 +110,15 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
       const edgeNote = this.kit.labels.edgeNote;
 
       if (edgeNote && state.phase === "solar") {
-        const ring = system.edge * scale;
-        const isRingShown = ring < Math.min(front.width, front.height) / 2;
+        const ringTop = cy - system.edge * scale - 4;
+        const top = MAP_TOP_ROOM;
 
+        context.save();
         context.fillStyle = "rgba(255, 150, 120, 0.95)";
         context.textAlign = "center";
         context.textBaseline = "bottom";
-        context.fillText(edgeNote, cx, isRingShown ? cy - ring - 4 : cy - Math.min(front.width, front.height) * 0.46);
-        context.textBaseline = "top";
+        context.fillText(edgeNote, cx, ringTop > top ? ringTop : top);
+        context.restore();
       }
 
       system.bodies.forEach((body) => {

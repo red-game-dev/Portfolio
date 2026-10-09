@@ -1,14 +1,16 @@
 import { FC, useEffect, useRef, useState } from "react";
 
+import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
 import { faArrowRotateLeft, faEnvelope, faFileArrowDown, faRocket, faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { ActionLink, actionStyle } from "@/components/Controls";
+import { ActionButton, ActionLink, actionStyle } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import { useLaunch } from "@/components/Finale/hooks/useLaunch";
+import { LazyVoyageDialog } from "@/components/Finale/Voyage/LazyVoyageDialog";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
 import { Section } from "@/components/Section";
@@ -34,7 +36,23 @@ interface FinaleProps {
   cvUrl: string;
 }
 
-const Board = tw.div`relative h-[220px] md:h-[280px] overflow-hidden border-[1px] border-solid border-[var(--accent-muted)]`;
+const shake = keyframes`
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, -2px); }
+`;
+
+const Board = styled.div(({ isAlarm }: { isAlarm: boolean }) => [
+  tw`relative h-[220px] md:h-[280px] overflow-hidden border-[1px] border-solid border-[var(--accent-muted)]`,
+  isAlarm && css`
+    animation: ${shake} 0.16s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  `,
+]);
 
 const Canvas = tw.canvas`absolute inset-0 w-full h-full`;
 
@@ -52,6 +70,43 @@ const LaunchButton = styled.button(() => [
 ]);
 
 const Hint = tw.p`m-0 text-xs text-[#999] max-w-[60ch]`;
+
+// The big red button of every film: a domed cap on a striped hazard plate, pressed in when held.
+const RedButton = styled.button(() => [
+  tw`flex flex-row items-center gap-[12px] p-0 bg-transparent border-0 cursor-pointer text-sm font-semibold text-white`,
+  css`
+    &:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+
+    &:active:not(:disabled) .cap {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #5a0710;
+    }
+  `,
+]);
+
+const Plate = styled.span(() => [
+  tw`flex items-center justify-center w-[58px] h-[58px] rounded-[10px]`,
+  css`
+    background: repeating-linear-gradient(45deg, #ffcc33 0 6px, #1a1a1a 6px 12px);
+  `,
+]);
+
+const Cap = styled.span(() => [
+  tw`block w-[42px] h-[42px] rounded-full`,
+  css`
+    background: radial-gradient(circle at 35% 30%, #ff9a9a, #e01b2c 55%, #7d0a14 100%);
+    box-shadow: 0 4px 0 #5a0710;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  `,
+]);
 
 const Mission = styled.div(({ isLit }: { isLit: boolean }) => [
   tw`flex flex-col gap-[8px] mt-[26px] p-[18px] bg-[#0b0d16] border-[1px] border-solid border-[var(--accent-muted)]`,
@@ -123,9 +178,17 @@ const Restart = styled.button(() => actionStyle(false));
 const rankFor = (ranks: FinaleRank[], done: number) => [...ranks].sort((first, second) => second.min - first.min).find((rank) => done >= rank.min) ?? ranks[0];
 
 // What the board says, and what a screen reader hears, at each moment of the launch.
-const statusOf = (launch: FinaleLaunch, { status, passed }: LaunchSnapshot, zoneLabels: Record<ZoneId, string>) => {
+const statusOf = (launch: FinaleLaunch, { status, passed, countdown }: LaunchSnapshot, zoneLabels: Record<ZoneId, string>) => {
   if (status === "charging") {
     return launch.charging;
+  }
+
+  if (status === "destructing") {
+    return fill(launch.countdown, { seconds: countdown });
+  }
+
+  if (status === "exploding") {
+    return launch.boom;
   }
 
   if (status === "launching") {
@@ -148,9 +211,11 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   const sectionRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { snapshot, isReady, onPointerDown, onPointerUp, onPointerCancel, onClick } = useLaunch(boardRef, canvasRef);
+  const isBoardInView = useInView(boardRef, { threshold: 0.6, once: true });
+  const { snapshot, isReady, onPointerDown, onPointerUp, onPointerCancel, onClick, selfDestruct } = useLaunch(boardRef, canvasRef, isBoardInView);
   const isReached = useInView(sectionRef, { threshold: 0.2 });
-  const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore } = useGameStateHook();
+  const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
+  const [isVoyaging, setIsVoyaging] = useState(false);
   const [runMs, setRunMs] = useState<number | null>(null);
   const zoneCount = ZONE_BOUNDARIES.length;
 
@@ -171,6 +236,9 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   ];
   const done = objectives.filter(Boolean).length;
   const isOrbit = snapshot.status === "orbit";
+  // In orbit, or blowing up there: the choices of what to do next stay on screen.
+  const isAloft = isOrbit || snapshot.status === "destructing" || snapshot.status === "exploding";
+  const isOnPad = snapshot.status === "ready" || snapshot.status === "charging";
   // One star per stat, lit as each zone falls behind, the last one in orbit.
   const isLit = (index: number) => isOrbit || snapshot.passed > index;
   const hint = `${SECTION_IDS.finale}-hint`;
@@ -181,26 +249,53 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   return (
     <Section id={SECTION_IDS.finale} ref={sectionRef}>
       <Panel>
-        <Board ref={boardRef} role="img" aria-label={content.launch.boardLabel}>
+        <Board ref={boardRef} role="img" aria-label={content.launch.boardLabel} isAlarm={snapshot.status === "destructing"}>
           <Canvas ref={canvasRef} aria-hidden="true" />
           <Status role="status">{statusOf(content.launch, snapshot, zoneLabels)}</Status>
         </Board>
         <Controls>
-          <LaunchButton
-            type="button"
-            disabled={!isReady}
-            aria-describedby={hint}
-            onPointerDown={onPointerDown}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerCancel}
-            onContextMenu={(event) => event.preventDefault()}
-            onClick={onClick}
-          >
-            <FontAwesomeIcon icon={isOrbit ? faArrowRotateLeft : faRocket} aria-hidden="true" />
-            {isOrbit ? content.launch.again : content.launch.hold}
-          </LaunchButton>
-          <Hint id={hint}>{content.launch.hint}</Hint>
+          {isAloft ? (
+            <>
+              <ActionButton type="button" isPrimary disabled={!isOrbit} onClick={() => setIsVoyaging(true)}>
+                <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
+                {content.launch.continue}
+              </ActionButton>
+              <RedButton type="button" disabled={!isOrbit} aria-describedby={hint} onClick={selfDestruct}>
+                <Plate aria-hidden="true">
+                  <Cap className="cap" />
+                </Plate>
+                {content.launch.doNotPress}
+              </RedButton>
+              <Hint id={hint}>{content.launch.orbitHint}</Hint>
+            </>
+          ) : (
+            <>
+              <LaunchButton
+                type="button"
+                disabled={!isReady || !isOnPad}
+                aria-describedby={hint}
+                onPointerDown={onPointerDown}
+                onPointerUp={onPointerUp}
+                onPointerCancel={onPointerCancel}
+                onContextMenu={(event) => event.preventDefault()}
+                onClick={onClick}
+              >
+                <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
+                {content.launch.hold}
+              </LaunchButton>
+              <Hint id={hint}>{content.launch.hint}</Hint>
+            </>
+          )}
         </Controls>
+        {isVoyaging && (
+          <LazyVoyageDialog
+            content={content.voyage}
+            universes={CROSSED_ZONES.map((zone) => zoneLabels[zone])}
+            best={voyageBest}
+            onRecord={recordVoyage}
+            onClose={() => setIsVoyaging(false)}
+          />
+        )}
         <Heading>
           <Kicker>{content.kicker}</Kicker>
           <Title>

@@ -35,10 +35,79 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     this.drawGround(state.altitude);
 
     const shipY = lerp(height * 0.74, height * 0.46, easeInOut(state.altitude * 3));
+    // The ship shakes harder as the countdown runs down.
+    const shake = state.status === "destructing" ? Math.sin(now * 0.09) * (1.5 + state.destructMs / 600) : 0;
 
     this.drawMarkers(state, shipY);
-    this.drawShip(width / 2, shipY, state, now);
+
+    if (state.status === "exploding") {
+      this.drawExplosion(state, width / 2, shipY);
+    } else {
+      this.drawShip(width / 2 + shake, shipY, state, now);
+    }
+
+    if (state.status === "destructing") {
+      this.drawAlarm(state, now);
+    }
+
     this.context.globalAlpha = 1;
+  }
+
+  // The whole board pulsing red, and the seconds left, big.
+  private drawAlarm(state: LaunchState, now: number): void {
+    const { width, height } = this.size;
+    const context = this.context;
+
+    context.globalAlpha = 0.16 + 0.14 * (0.5 + 0.5 * Math.sin(now * 0.014));
+    context.fillStyle = this.theme.alarm;
+    context.fillRect(0, 0, width, height);
+    context.globalAlpha = 0.9;
+    context.fillStyle = this.theme.alarm;
+    context.font = `700 ${Math.round(height * 0.32)}px Roboto, sans-serif`;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(String(state.countdown), width * 0.78, height * 0.5);
+    context.textAlign = "start";
+    context.textBaseline = "alphabetic";
+  }
+
+  // A white flash, a fireball that swells and fades, the ship in pieces flying apart, and a ring of shock.
+  private drawExplosion(state: LaunchState, x: number, y: number): void {
+    const { width, height } = this.size;
+    const context = this.context;
+    const progress = state.explosion;
+    const reach = Math.min(width, height);
+
+    context.globalAlpha = Math.max(0, 1 - progress * 4);
+    context.fillStyle = this.theme.flameCore;
+    context.fillRect(0, 0, width, height);
+
+    const radius = reach * (0.08 + easeInOut(progress) * 0.35);
+    const fire = context.createRadialGradient(x, y, 0, x, y, radius);
+
+    fire.addColorStop(0, this.theme.flameCore);
+    fire.addColorStop(0.35, this.theme.flameEdge);
+    fire.addColorStop(1, "rgba(0, 0, 0, 0)");
+    context.globalAlpha = Math.max(0, 1 - progress);
+    context.fillStyle = fire;
+    context.beginPath();
+    context.arc(x, y, radius, 0, Math.PI * 2);
+    context.fill();
+
+    context.fillStyle = this.theme.hull;
+    state.debris.forEach((piece) => {
+      const distance = piece.speed * reach * 0.6 * easeInOut(progress * 1.2);
+
+      context.globalAlpha = Math.max(0, 1 - progress * 1.1);
+      context.fillRect(x + Math.cos(piece.angle) * distance, y + Math.sin(piece.angle) * distance, piece.size, piece.size * 0.6);
+    });
+
+    context.strokeStyle = this.theme.flameCore;
+    context.globalAlpha = Math.max(0, 1 - progress);
+    context.lineWidth = 2;
+    context.beginPath();
+    context.arc(x, y, reach * progress * 0.6, 0, Math.PI * 2);
+    context.stroke();
   }
 
   // The game world's warm glow at the bottom, fading as the ship leaves it.

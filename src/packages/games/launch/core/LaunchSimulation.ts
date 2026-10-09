@@ -14,10 +14,12 @@ interface LaunchSimulationOptions {
 // the ship climbs, passing one band per zone, and settles in orbit.
 export class LaunchSimulation {
   private readonly config: LaunchConfig;
+  private readonly random: RandomSource;
   private readonly current: LaunchState;
 
   constructor(size: LaunchSize, { config, random }: LaunchSimulationOptions) {
     this.config = config;
+    this.random = random;
     this.current = {
       size,
       status: "ready",
@@ -29,6 +31,10 @@ export class LaunchSimulation {
       markers: config.markers,
       passed: 0,
       elapsedMs: 0,
+      destructMs: 0,
+      countdown: 0,
+      explosion: 0,
+      debris: [],
       stars: Array.from({ length: config.stars }, () => ({ x: random(), y: random(), size: 0.6 + random() * 1.6, depth: 0.3 + random() * 0.7 })),
     };
   }
@@ -38,7 +44,9 @@ export class LaunchSimulation {
   }
 
   public get snapshot(): LaunchSnapshot {
-    return { status: this.current.status, passed: this.current.passed };
+    const { status, passed, countdown } = this.current;
+
+    return { status, passed, countdown };
   }
 
   public resize(size: LaunchSize): void {
@@ -70,7 +78,29 @@ export class LaunchSimulation {
   }
 
   public reset(): void {
-    this.set({ status: "ready", charge: 0, isHeld: false, isAutoCharging: false, ascent: 0, altitude: 0, passed: 0 });
+    this.set({
+      status: "ready", charge: 0, isHeld: false, isAutoCharging: false, ascent: 0, altitude: 0, passed: 0, destructMs: 0, countdown: 0, explosion: 0, debris: [],
+    });
+  }
+
+  // The button everyone was asked not to press: a countdown from orbit, the ship blows, and a new one is
+  // rolled out and launched straight away.
+  public selfDestruct(): void {
+    if (this.current.status !== "orbit") {
+      return;
+    }
+
+    this.set({
+      status: "destructing",
+      destructMs: 0,
+      countdown: Math.ceil(this.config.countdownMs / 1000),
+      explosion: 0,
+      debris: Array.from({ length: this.config.debris }, () => ({
+        angle: this.random() * Math.PI * 2,
+        speed: 0.25 + this.random() * 0.75,
+        size: 2 + this.random() * 5,
+      })),
+    });
   }
 
   public step(deltaMs: number): void {
@@ -82,6 +112,30 @@ export class LaunchSimulation {
       this.charge(deltaMs);
     } else if (state.status === "launching") {
       this.climb(deltaMs);
+    } else if (state.status === "destructing" || state.status === "exploding") {
+      this.destruct(deltaMs);
+    }
+  }
+
+  private destruct(deltaMs: number): void {
+    const state = this.current;
+    const { countdownMs, explodeMs } = this.config;
+
+    state.destructMs += deltaMs;
+
+    if (state.status === "destructing") {
+      state.countdown = Math.max(1, Math.ceil((countdownMs - state.destructMs) / 1000));
+
+      if (state.destructMs >= countdownMs) {
+        this.set({ status: "exploding", countdown: 0 });
+      }
+    } else {
+      state.explosion = Math.min(1, (state.destructMs - countdownMs) / explodeMs);
+
+      if (state.explosion >= 1) {
+        this.reset();
+        this.launch();
+      }
     }
   }
 

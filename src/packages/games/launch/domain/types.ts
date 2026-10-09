@@ -1,6 +1,14 @@
 // ready: on the pad. charging: the engines building up while held (or by themselves after a single press).
-// launching: climbing. orbit: arrived.
-export type LaunchStatus = "ready" | "charging" | "launching" | "orbit";
+// launching: climbing. orbit: arrived. destructing: someone pressed the button they were asked not to, and the
+// countdown runs. exploding: it reached zero; a new ship is on the pad straight after.
+export type LaunchStatus = "ready" | "charging" | "launching" | "orbit" | "destructing" | "exploding";
+
+// A piece of the ship after it blows: which way it flies, how fast as a share of the board, and how big.
+export interface LaunchDebris {
+  angle: number;
+  speed: number;
+  size: number;
+}
 
 export interface LaunchSize {
   width: number;
@@ -30,6 +38,12 @@ export interface LaunchState {
   markers: number;
   passed: number;
   elapsedMs: number;
+  // Time since the self destruct began, through the countdown and the explosion; the seconds left on the
+  // countdown (0 when none runs); and 0 to 1 through the explosion.
+  destructMs: number;
+  countdown: number;
+  explosion: number;
+  debris: LaunchDebris[];
   stars: LaunchStar[];
 }
 
@@ -37,6 +51,8 @@ export interface LaunchState {
 export interface LaunchSnapshot {
   status: LaunchStatus;
   passed: number;
+  // The seconds left on the self destruct, 0 when none is running.
+  countdown: number;
 }
 
 export interface LaunchRenderer {

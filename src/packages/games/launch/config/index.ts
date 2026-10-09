@@ -12,6 +12,10 @@ export interface LaunchConfig {
   // The bands passed on the way up, one per zone crossed.
   markers: number;
   stars: number;
+  // The self destruct: its countdown, the explosion, and the pieces it leaves.
+  countdownMs: number;
+  explodeMs: number;
+  debris: number;
 }
 
 export type LaunchConfigOverrides = Partial<LaunchConfig>;
@@ -25,6 +29,9 @@ export const DEFAULT_LAUNCH_CONFIG: LaunchConfig = {
   ascentMs: 4200,
   markers: 5,
   stars: 110,
+  countdownMs: 3000,
+  explodeMs: 1300,
+  debris: 26,
 };
 
 export const resolveLaunchConfig = (overrides: LaunchConfigOverrides = {}): LaunchConfig => ({ ...DEFAULT_LAUNCH_CONFIG, ...overrides });
@@ -40,6 +47,7 @@ export interface LaunchTheme {
   flameCore: string;
   flameEdge: string;
   planet: string;
+  alarm: string;
   // One colour per band, bottom first.
   markers: string[];
 }
@@ -55,5 +63,6 @@ export const DEFAULT_LAUNCH_THEME: LaunchTheme = {
   flameCore: "#fff6df",
   flameEdge: "#ffb03a",
   planet: "#1d2a4d",
+  alarm: "#ff4d5e",
   markers: ["#4bffa5", "#4fd8ff", "#b896ff", "#ff5fa2", "#ffc45c"],
 };

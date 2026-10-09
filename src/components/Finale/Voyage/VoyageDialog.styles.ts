@@ -95,7 +95,9 @@ export const TelemetryPanel = styled.section(() => [
 
 export const TelemetryTitle = tw.h2`m-0 mb-[6px] text-xs font-semibold text-[#c4d2ff]`;
 
-export const TelemetryList = tw.dl`m-0 grid grid-cols-2 gap-x-[12px] gap-y-[3px] text-xs tabular-nums`;
+export const TelemetryList = tw.dl`m-0 flex flex-col gap-[3px] text-xs tabular-nums`;
+
+export const TelemetryRow = tw.div`flex flex-row items-baseline justify-between gap-[14px]`;
 
 export const TelemetryName = tw.dt`text-[#9aa3bb]`;
 

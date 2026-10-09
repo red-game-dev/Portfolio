@@ -12,13 +12,16 @@ interface Shockwave {
   reach: number;
 }
 
-// Everything that flies apart: particles move and fade (smoke drawn normally, light drawn additively so it glows),
-// burning shards trail fire, and shockwaves ring outward from explosions.
+// Everything that flies apart, in two passes round the ship. Behind it: particles move and fade, and smoke and
+// the pieces of a wreck are drawn, so smoke left in the ship's wake never hides it. In front: light, drawn
+// additively so it glows, and shockwaves ringing outward from explosions.
 export class EffectsLayer implements RenderLayer<VoyageFrame> {
-  public readonly name = "effects";
+  public readonly name: string;
   private readonly waves: Shockwave[] = [];
 
-  constructor(private readonly kit: RenderKit) {}
+  constructor(private readonly kit: RenderKit, private readonly pass: "behind" | "front") {
+    this.name = `effects:${pass}`;
+  }
 
   public shockwave(x: number, y: number, reach: number, life = 1.1): void {
     this.waves.push({ x, y, age: 0, life, reach });
@@ -26,13 +29,19 @@ export class EffectsLayer implements RenderLayer<VoyageFrame> {
 
   public draw({ camera, dt }: VoyageFrame): void {
     const { front, particles, theme } = this.kit;
-    const fire = this.kit.cache.get("fire", 64, 64, paintGlow("rgba(255, 120, 40, 1)"));
 
-    particles.update(dt, (shard) => {
-      particles.emit("glow", shard.x, shard.y, shard.vx * 0.2, shard.vy * 0.2, 0.4, shard.size * 0.5, fire, { drag: 2 });
-    });
-    particles.draw(front, camera, ["smoke"], false);
-    particles.draw(front, camera, ["shard"], false);
+    if (this.pass === "behind") {
+      const fire = this.kit.cache.get("fire", 64, 64, paintGlow("rgba(255, 120, 40, 1)"));
+
+      particles.update(dt, (shard) => {
+        particles.emit("glow", shard.x, shard.y, shard.vx * 0.2, shard.vy * 0.2, 0.4, shard.size * 0.5, fire, { drag: 2 });
+      });
+      particles.draw(front, camera, ["smoke"], false);
+      particles.draw(front, camera, ["shard"], false);
+
+      return;
+    }
+
     particles.draw(front, camera, ["glow"], true);
 
     for (let index = this.waves.length - 1; index >= 0; index -= 1) {

@@ -33,7 +33,10 @@ export class BodiesLayer implements RenderLayer<VoyageFrame> {
         const size = sizeBucket(outer * 2 * base);
         const halo = this.kit.sprite(`halo:${body.id}:${size}`, size, size, paintHalo(AIR_TINT[body.id], body.radius / outer));
 
+        // Air glows: added to the light behind it, never laid over it like paint.
+        back.context.globalCompositeOperation = "lighter";
         back.blit(halo, x, y, outer * 2 * camera.scale, outer * 2 * camera.scale);
+        back.context.globalCompositeOperation = "source-over";
       }
 
       const extent = bodyExtent(body.id);

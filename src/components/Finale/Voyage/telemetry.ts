@@ -19,11 +19,10 @@ export const formatDistance = (content: FinaleVoyage, km: number): string => (km
 export const telemetryRows = (content: FinaleVoyage, snapshot: VoyageSnapshot): TelemetryRow[] => {
   const { telemetry, waypoint } = snapshot;
   const { telemetry: labels, units, stops } = content;
+  const gravity = fill(units.gravity, { value: formatNumber(telemetry.gravity, telemetry.gravity < 0.1 ? 4 : 2) });
+  const pulledBy = telemetry.dominant ? `, ${stops[telemetry.dominant] ?? telemetry.dominant}` : "";
   const rows: Array<TelemetryRow | null> = [
-    {
-      label: labels.gravity,
-      value: `${fill(units.gravity, { value: formatNumber(telemetry.gravity, 2) })}${telemetry.dominant ? `, ${stops[telemetry.dominant] ?? telemetry.dominant}` : ""}`,
-    },
+    { label: labels.gravity, value: `${gravity}${pulledBy}` },
     telemetry.altitudeKm !== null && telemetry.altitudeKm < 500000
       ? { label: labels.altitude, value: fill(units.altitude, { value: formatNumber(telemetry.altitudeKm) }) }
       : null,

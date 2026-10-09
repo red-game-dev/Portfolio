@@ -13,7 +13,7 @@ void main() {
 
 // For each pixel: where its light came from after passing every lens (the point lens equation), the scene
 // sampled there, the shadow inside each hole, and a soft photon ring at its edge. Light from off screen is
-// left dark rather than smeared from the edge.
+// mirrored back in, so a big lens near the edge shows sky, not a black hole in the picture.
 const FRAGMENT = `
 precision mediump float;
 uniform sampler2D u_scene;
@@ -36,9 +36,8 @@ void main() {
     float ring = (r - lens.z * 1.06) / (lens.z * 0.1);
     glow += exp(-ring * ring) * 0.6;
   }
-  vec2 uv = source / u_resolution;
-  float inside = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
-  vec3 color = texture2D(u_scene, clamp(uv, 0.0, 1.0)).rgb * inside;
+  vec2 uv = abs(mod(source / u_resolution - 1.0, 2.0) - 1.0);
+  vec3 color = texture2D(u_scene, uv).rgb;
   color += glow * vec3(1.0, 0.84, 0.58);
   gl_FragColor = vec4(color * (1.0 - shadow), 1.0);
 }
@@ -57,7 +56,8 @@ export class LensingPresenter {
   private readonly lensData = new Float32Array(MAX_LENSES * 4);
   private readonly locations: { resolution: WebGLUniformLocation | null; lenses: WebGLUniformLocation | null; count: WebGLUniformLocation | null };
   private isLost = false;
-  private isActive = false;
+  // Starts as shown so the first `setActive(false)` really hides the canvas, whatever styles it came with.
+  private isActive = true;
   private size = { width: 0, height: 0, pixelRatio: 1 };
 
   private constructor(canvas: GlCanvas, gl: WebGLRenderingContext, program: WebGLProgram, texture: WebGLTexture) {

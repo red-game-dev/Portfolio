@@ -83,6 +83,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         neptune: "Neptune",
         kuiper: "the Kuiper belt",
         pluto: "Pluto",
+        sun: "the Sun",
         singularity: "the black hole",
         hole: "a black hole",
       },

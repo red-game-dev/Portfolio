@@ -112,7 +112,7 @@ export class ParticleSystem {
       const fade = particle.life / particle.max;
       const size = particle.size * camera.scale;
 
-      context.globalAlpha = particle.kind === "smoke" ? fade * 0.55 : particle.kind === "shard" ? Math.min(1, fade * 2) : fade;
+      context.globalAlpha = particle.kind === "smoke" ? fade * 0.35 : particle.kind === "shard" ? Math.min(1, fade * 2) : fade;
       surface.blit(particle.sprite, camera.toScreenX(particle.x), camera.toScreenY(particle.y), size, size * (particle.kind === "shard" ? 1.31 : 1), particle.angle);
     }
 

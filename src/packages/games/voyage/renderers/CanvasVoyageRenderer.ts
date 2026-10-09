@@ -43,6 +43,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   private readonly frontLayers: RenderPipeline<VoyageFrame>;
   private readonly ship: ShipLayer;
   private readonly effects: EffectsLayer;
+  private readonly light: EffectsLayer;
   private readonly overlay: OverlayLayer;
   private lastState: Readonly<VoyageState> | null = null;
   private lastWorld: VoyageWorld | null = null;
@@ -50,10 +51,11 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   constructor(back: Canvas2DContext, front: Canvas2DContext, theme: VoyageTheme) {
     this.kit = new RenderKit(new Surface(back), new Surface(front), new SurfaceCache(), new ParticleSystem(), theme);
     this.ship = new ShipLayer(this.kit);
-    this.effects = new EffectsLayer(this.kit);
+    this.effects = new EffectsLayer(this.kit, "behind");
+    this.light = new EffectsLayer(this.kit, "front");
     this.overlay = new OverlayLayer(this.kit);
     this.backLayers = new RenderPipeline([new BackdropLayer(this.kit), new BodiesLayer(this.kit), new HolesLayer(this.kit, "back")]);
-    this.frontLayers = new RenderPipeline([new HolesLayer(this.kit, "front"), new ThingsLayer(this.kit), this.ship, this.effects, this.overlay]);
+    this.frontLayers = new RenderPipeline([new HolesLayer(this.kit, "front"), new ThingsLayer(this.kit), this.effects, this.ship, this.light, this.overlay]);
   }
 
   public resize(width: number, height: number, pixelRatio: number): void {
@@ -92,7 +94,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       const shadow = hole.horizon * camera.scale;
       const falling = state.capture?.hole === entity ? state.capture.progress : 0;
 
-      lenses.push({ x: camera.toScreenX(lerpX(body, alpha)), y: camera.toScreenY(lerpY(body, alpha)), shadow, einstein: shadow * (1.55 + falling * 1.8) });
+      lenses.push({ x: camera.toScreenX(lerpX(body, alpha)), y: camera.toScreenY(lerpY(body, alpha)), shadow, einstein: shadow * (1.35 + falling * 1.6) });
     });
 
     return lenses;
@@ -143,6 +145,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
   public reset(): void {
     this.effects.clear();
+    this.light.clear();
   }
 
   // The hull gives out: a white flash, a fireball, the ship's own picture broken into burning pieces that tumble
@@ -161,7 +164,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
     this.overlay.flashScreen("#fff3dc", 1);
     camera.addTrauma(1);
-    this.effects.shockwave(x, y, radius * 40, 1.2);
+    this.light.shockwave(x, y, radius * 40, 1.2);
     particles.emit("glow", x, y, vx, vy, 0.9, radius * 14, white, { grow: -radius * 10, drag: 1 });
 
     for (let index = 0; index < 40; index += 1) {

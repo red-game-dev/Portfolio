@@ -135,9 +135,9 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
   holes: {
     singularityMu: 4,
     singularityGrowth: 1.2,
-    singularityHorizon: 0.9,
+    singularityHorizon: 0.42,
     mu: 1.6,
-    horizon: 0.32,
+    horizon: 0.24,
     perUniverse: 2,
     spawnDistance: [6, 11],
     captureMs: 2400,

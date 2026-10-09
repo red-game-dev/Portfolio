@@ -196,8 +196,8 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
       const px = x + localX * Math.cos(turn) - localY * Math.sin(turn);
       const py = y + localX * Math.sin(turn) + localY * Math.cos(turn);
 
-      particles.emit("smoke", px, py, (Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2, 1 + Math.random(), radius * 0.6, smoke,
-        { grow: radius * 1.5, drag: 0.8 });
+      particles.emit("smoke", px, py, (Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2, 0.8 + Math.random() * 0.8, radius * 0.5, smoke,
+        { grow: radius * 0.8, drag: 0.8 });
 
       if (hull < 0.25) {
         particles.emit("glow", px, py, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4, 0.3 + Math.random() * 0.3, radius * 0.7, fire, { drag: 1.5 });

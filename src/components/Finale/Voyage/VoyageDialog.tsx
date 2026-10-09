@@ -36,6 +36,7 @@ import {
   TelemetryList,
   TelemetryName,
   TelemetryPanel,
+  TelemetryRow,
   TelemetryTitle,
   TelemetryValue,
   Text,
@@ -176,10 +177,10 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>
             {telemetryRows(content, snapshot).map((row) => (
-              <Reading key={row.label} as="div">
+              <TelemetryRow key={row.label}>
                 <TelemetryName>{row.label}</TelemetryName>
                 <TelemetryValue>{row.value}</TelemetryValue>
-              </Reading>
+              </TelemetryRow>
             ))}
           </TelemetryList>
         </TelemetryPanel>

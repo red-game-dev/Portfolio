@@ -6,8 +6,10 @@ import {
   KeplerElements,
   OBLIQUITY,
   poleVector,
+  solarElevation,
   solveKepler,
   subsolarLatitude,
+  sunSubsolarPoint,
   wrapDegrees,
 } from "@/packages/physics/kepler";
 
@@ -77,6 +79,28 @@ describe("physics/kepler", () => {
     expect(Math.abs(point.longitude)).toBeLessThan(1.5);
     // Six hours later it has moved a quarter of the way round, westward.
     expect(wrapDegrees(later.longitude - point.longitude)).toBeCloseTo(-90, 0);
+  });
+
+  test("the Sun's place from the almanac agrees with the one from Earth's orbit, and sets the Sun's height anywhere", () => {
+    ["2024-06-20T20:51:00Z", "2025-01-03T08:00:00Z", "2026-10-09T12:00:00Z"].forEach((moment) => {
+      const fromOrbit = earthSubsolarPoint(julianDay(Date.parse(moment)), heliocentricPosition(EARTH, at(moment)));
+      const fromAlmanac = sunSubsolarPoint(julianDay(Date.parse(moment)));
+
+      // Within the precession since 2000 (about 50 arcseconds a year), which the almanac counts and JPL's J2000
+      // elements do not.
+      expect(Math.abs(wrapDegrees(fromAlmanac.longitude - fromOrbit.longitude))).toBeLessThan(0.5);
+      expect(Math.abs(fromAlmanac.latitude - fromOrbit.latitude)).toBeLessThan(0.2);
+    });
+
+    const solstice = sunSubsolarPoint(julianDay(Date.parse("2024-06-20T20:51:00Z")));
+
+    // Overhead under the Sun, on the horizon a quarter of the world away, and the midnight sun on the Arctic circle.
+    expect(solarElevation(solstice, solstice.latitude, solstice.longitude)).toBeCloseTo(90, 5);
+    expect(solarElevation(solstice, 0, wrapDegrees(solstice.longitude + 90))).toBeCloseTo(0, 0);
+    expect(solarElevation(solstice, 66.6, wrapDegrees(solstice.longitude + 180))).toBeGreaterThan(-0.5);
+    // Florida's launch coast at local midnight in October is in the dark, and in daylight at noon.
+    expect(solarElevation(sunSubsolarPoint(julianDay(Date.parse("2026-10-09T04:00:00Z"))), 28.6, -80.6)).toBeLessThan(-30);
+    expect(solarElevation(sunSubsolarPoint(julianDay(Date.parse("2026-10-09T17:00:00Z"))), 28.6, -80.6)).toBeGreaterThan(45);
   });
 
   test("turns a pole into ecliptic coordinates and reads the season from it", () => {

@@ -1,5 +1,5 @@
 import type { HullTier, ItemStack, Purse, Suggestion, VoyageNotice } from "@/packages/games/voyage";
-import { fill } from "@/packages/text/format";
+import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage, VoyageEconomyCopy } from "@/types/game";
 
 const TIER_ORDER: readonly HullTier[] = ["rocket", "shuttle", "corvette", "starship", "intergalactic"];
@@ -42,7 +42,7 @@ export const blueprintName = (copy: VoyageEconomyCopy, id: string): string => {
 // Money with its symbols, leaving out a currency that is nothing: "+250 RC, +3 VS".
 export const formatPurse = (copy: VoyageEconomyCopy, purse: Purse, isSigned = false): string => {
   const parts = CURRENCIES.filter((code) => purse[code] !== 0)
-    .map((code) => `${isSigned && purse[code] > 0 ? "+" : ""}${purse[code].toLocaleString("en-GB")} ${copy.symbols[code]}`);
+    .map((code) => `${isSigned && purse[code] > 0 ? "+" : ""}${formatNumber(purse[code])} ${copy.symbols[code]}`);
 
   return parts.length > 0 ? parts.join(", ") : `0 ${copy.symbols.RED}`;
 };

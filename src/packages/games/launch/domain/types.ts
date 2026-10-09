@@ -23,6 +23,28 @@ export interface LaunchStar {
   depth: number;
 }
 
+// The kinds of rocket: a two stage booster that flies home, a heavy lifter with side boosters, and a stainless
+// super heavy that stages hot.
+export type LaunchVehicle = "booster" | "heavy" | "steel";
+
+// What lies round the pad: coastal scrub, salt flats by the sea, or dry coastal hills.
+export type LaunchLand = "scrub" | "flats" | "hills";
+
+// The moments a launch is called out by, in the order they can come.
+export type LaunchMilestone = "maxQ" | "boosterSeparation" | "meco" | "stageSeparation" | "hotStaging" | "boostback" | "fairing" | "seco";
+
+// Where the rocket stands: the pad's place on Earth, what flies from it and what lies round it, and which way it
+// flies (1 out to the right of the view, -1 to the left).
+export interface LaunchSite {
+  latitude: number;
+  longitude: number;
+  vehicle: LaunchVehicle;
+  land: LaunchLand;
+  downrange: number;
+  // Whether the sea lies behind the pad, on the horizon.
+  hasSea: boolean;
+}
+
 export interface LaunchState {
   size: LaunchSize;
   status: LaunchStatus;
@@ -34,6 +56,17 @@ export interface LaunchState {
   // 0 to 1 through the climb, and the eased height it gives.
   ascent: number;
   altitude: number;
+  // The flight as a launch broadcast reads it: height (km), speed (km/h) and time since lift off (s), and how far
+  // the rocket has pitched over from straight up (degrees).
+  altitudeKm: number;
+  speedKmh: number;
+  missionSeconds: number;
+  pitch: number;
+  site: LaunchSite;
+  // The Sun over the pad at this moment of the real day: its height (degrees, negative at night) and its side of
+  // the view (east to the right).
+  sunElevation: number;
+  sunSide: number;
   // The bands passed on the way up, out of `markers`.
   markers: number;
   passed: number;
@@ -51,6 +84,8 @@ export interface LaunchState {
 export interface LaunchSnapshot {
   status: LaunchStatus;
   passed: number;
+  // The last moment called out on the way up, null before the first.
+  milestone: LaunchMilestone | null;
   // The seconds left on the self destruct, 0 when none is running.
   countdown: number;
 }

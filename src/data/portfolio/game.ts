@@ -13,12 +13,46 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
     kicker: "Run complete",
     title: "Wow! You made it to the end.",
     launch: {
-      boardLabel: "The ship on its launch pad, at the edge of the game world",
+      boardLabel: "A rocket on a real launch pad, lifting off for orbit",
+      sites: [
+        {
+          name: "LC-39A, Florida", latitude: 28.6084, longitude: -80.6043, timeZone: "America/New_York",
+          vehicle: "booster", land: "scrub", downrange: 1, hasSea: true,
+        },
+        {
+          name: "LC-39B, Florida", latitude: 28.6272, longitude: -80.6209, timeZone: "America/New_York",
+          vehicle: "heavy", land: "scrub", downrange: 1, hasSea: true,
+        },
+        {
+          name: "SLC-40, Cape Canaveral", latitude: 28.5619, longitude: -80.5772, timeZone: "America/New_York",
+          vehicle: "booster", land: "scrub", downrange: 1, hasSea: true,
+        },
+        {
+          name: "Starbase, Texas", latitude: 25.9972, longitude: -97.1566, timeZone: "America/Chicago",
+          vehicle: "steel", land: "flats", downrange: 1, hasSea: true,
+        },
+        {
+          name: "SLC-4E, California", latitude: 34.6321, longitude: -120.6106, timeZone: "America/Los_Angeles",
+          vehicle: "booster", land: "hills", downrange: -1, hasSea: false,
+        },
+      ],
+      pad: "{site}, {time} local",
+      milestones: {
+        maxQ: "Max Q",
+        boosterSeparation: "Booster separation",
+        meco: "Main engine cut off",
+        stageSeparation: "Stage separation",
+        hotStaging: "Hot staging",
+        boostback: "Booster boostback",
+        fairing: "Fairing separation",
+        seco: "Second engine cut off",
+      },
+      readout: { altitude: "Altitude", speed: "Speed" },
       hold: "Hold to launch",
-      charging: "Engines charging",
+      charging: "Ignition",
       liftOff: "Lift off",
       orbit: "In orbit",
-      leaving: "Leaving {zone}",
+      leaving: "{milestone}. Leaving {zone}.",
       hint: "It launches by itself when you get here. To launch it yourself, hold the button, or press it once. Space and Enter work too.",
       invite: {
         question: "Want to play a game?",

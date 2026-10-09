@@ -5,30 +5,48 @@ import { CROSSED_ZONES } from "@/config/zones";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import type { LaunchSnapshot } from "@/packages/games/launch";
+import { FinaleLaunchSite } from "@/types/game";
 
 // A press shorter than this is a tap, which launches by itself; anything longer is a hold.
 const TAP_MS = 250;
 
-const READY: LaunchSnapshot = { status: "ready", passed: 0, countdown: 0 };
+const READY: LaunchSnapshot = { status: "ready", passed: 0, countdown: 0, milestone: null };
 
 // Binds the launch to a canvas inside its board: built (and its code fetched) as the board comes near, sized
-// to it. It lifts off by itself the first time the board is in view. Holding the button charges the engines; a
-// tap, Space, Enter or an assistive click launches with no holding at all; reduced motion goes straight to
-// orbit. In orbit, the button nobody should press blows the ship up and launches a new one.
-export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject<HTMLCanvasElement>, isInView: boolean) => {
+// to it, at a real pad picked at random each visit (after mount, so the server and the first render agree), with
+// the Sun over it where it really is now. It lifts off by itself the first time the board is in view. Holding the
+// button charges the engines; a tap, Space, Enter or an assistive click launches with no holding at all; reduced
+// motion goes straight to orbit. In orbit, the button nobody should press blows the rocket up and launches
+// another.
+export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject<HTMLCanvasElement>, isInView: boolean, sites: FinaleLaunchSite[],
+  labels: { altitude: string; speed: string }) => {
   const [snapshot, setSnapshot] = useState<LaunchSnapshot>(READY);
+  const [site, setSite] = useState<FinaleLaunchSite | null>(null);
   const pressedAt = useRef<number | null>(null);
   const hasLaunchedItself = useRef(false);
+
+  useEffect(() => {
+    setSite(sites[Math.floor(Math.random() * sites.length)] ?? null);
+  }, [sites]);
+
   const game = useCanvasEngine(canvasRef, {
     sizeRef: boardRef,
     contextOptions: { alpha: false },
+    isEnabled: site !== null,
     create: async (context) => {
       const { LaunchGame } = await import("@/packages/games/launch");
 
-      return LaunchGame.forCanvas(context, { theme: LAUNCH_THEME, config: { markers: CROSSED_ZONES.length }, onChange: setSnapshot });
+      return LaunchGame.forCanvas(context, {
+        theme: LAUNCH_THEME,
+        labels,
+        site: site ?? undefined,
+        epochMs: Date.now(),
+        config: { markers: CROSSED_ZONES.length },
+        onChange: setSnapshot,
+      });
     },
     resize: (launch, { width, height, pixelRatio }) => launch.resize({ width, height }, pixelRatio),
-  }, []);
+  }, [site]);
 
   const launchNow = useCallback(() => {
     if (prefersReducedMotion()) {
@@ -99,5 +117,5 @@ export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject
     }
   }, [launchNow]);
 
-  return { snapshot, isReady: game !== null, onPointerDown, onPointerUp, onPointerCancel, onClick, selfDestruct };
+  return { snapshot, site, isReady: game !== null, onPointerDown, onPointerUp, onPointerCancel, onClick, selfDestruct };
 };

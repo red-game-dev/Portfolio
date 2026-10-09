@@ -81,13 +81,9 @@ export const TRANSITION_THEME: {
   warp: { streak: rgbOf("beyond"), flash: [236, 241, 255] },
 };
 
-// The launch out of the game world: the warm horizon of the zone being left, the bands of the zones crossed
-// bottom first, and the starlight of Beyond.
+// The launch out of the game world: its broadcast readout written in Beyond's starlight.
 export const LAUNCH_THEME: Partial<LaunchTheme> = {
-  window: ZONE_ACCENTS.beyond,
-  fin: "#3e4a6b",
-  horizon: rgbaOf("mmo", 0.35),
-  markers: CROSSED_ZONES.map((zone) => ZONE_ACCENTS[zone]),
+  readout: ZONE_ACCENTS.beyond,
 };
 
 // What each zone becomes as a universe on the far side of the black hole, and the deep it is set in.

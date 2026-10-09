@@ -86,7 +86,7 @@ import {
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import useModalDialog from "@/hooks/useModalDialog";
 import type { Frame, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
-import { fill } from "@/packages/text/format";
+import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 interface VoyageDialogProps {
@@ -375,7 +375,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
               <Reading>
                 <ReadingName>{copy.symbols.RED}</ReadingName>
                 <Coin aria-label={`${economy.purse.RED} ${copy.currencies.RED}`}>
-                  {economy.purse.RED.toLocaleString("en-GB")}
+                  {formatNumber(economy.purse.RED)}
                   {redGain && <Gain key={redGain.id} aria-hidden="true">{`+${redGain.amount}`}</Gain>}
                 </Coin>
               </Reading>

@@ -1,8 +1,7 @@
 import type { CodexEntry, VoyageNotice } from "@/packages/games/voyage";
-import { fill } from "@/packages/text/format";
+import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
-const formatNumber = (value: number, digits = 0) => value.toLocaleString("en-GB", { maximumFractionDigits: digits });
 
 // A mission's name: one of the list by its id, or a contract read from its id ("contract:salvage:6").
 export const missionName = (content: FinaleVoyage, id: string): string => {

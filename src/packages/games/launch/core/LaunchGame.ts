@@ -2,8 +2,8 @@ import { FrameLoop, FrameScheduler } from "@/packages/animation/frame-loop";
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { RandomSource } from "@/packages/math/random";
 
-import { DEFAULT_LAUNCH_THEME, LaunchConfig, LaunchConfigOverrides, LaunchTheme, resolveLaunchConfig } from "../config";
-import { LaunchRenderer, LaunchSize, LaunchSnapshot } from "../domain/types";
+import { DEFAULT_LAUNCH_LABELS, DEFAULT_LAUNCH_THEME, LaunchConfig, LaunchConfigOverrides, LaunchLabels, LaunchTheme, resolveLaunchConfig } from "../config";
+import { LaunchRenderer, LaunchSite, LaunchSize, LaunchSnapshot } from "../domain/types";
 import { CanvasLaunchRenderer } from "../renderers/CanvasLaunchRenderer";
 import { LaunchSimulation } from "./LaunchSimulation";
 
@@ -11,13 +11,17 @@ export interface LaunchOptions {
   config?: LaunchConfigOverrides;
   random?: RandomSource;
   scheduler?: FrameScheduler;
-  // Called when the status or the bands passed change, never once per frame.
+  // The pad it flies from, and the real moment of the launch, which sets the Sun over it.
+  site?: LaunchSite;
+  epochMs?: number;
+  // Called when the status or the moments passed change, never once per frame.
   onChange?: (snapshot: LaunchSnapshot) => void;
 }
 
 export interface LaunchCanvasOptions extends LaunchOptions {
-  // Only the colours that differ from the default theme.
+  // Only the colours that differ from the default theme, and the readout's labels.
   theme?: Partial<LaunchTheme>;
+  labels?: LaunchLabels;
 }
 
 // Runs the launch on the shared frame loop and draws it. The loop runs only while something moves: it
@@ -35,7 +39,7 @@ export class LaunchGame extends FrameLoop {
     super({ framesPerSecond: config.framesPerSecond, maxStepMs: config.maxStepMs, scheduler: options.scheduler });
 
     this.renderer = renderer;
-    this.simulation = new LaunchSimulation({ width: 0, height: 0 }, { config, random: options.random ?? Math.random });
+    this.simulation = new LaunchSimulation({ width: 0, height: 0 }, { config, random: options.random ?? Math.random, site: options.site, epochMs: options.epochMs });
     this.onChange = options.onChange ?? (() => undefined);
     this.lastSnapshot = this.simulation.snapshot;
   }
@@ -45,7 +49,7 @@ export class LaunchGame extends FrameLoop {
   }
 
   public static forCanvas(context: Canvas2DContext, options: LaunchCanvasOptions = {}): LaunchGame {
-    return new LaunchGame(new CanvasLaunchRenderer(context, { ...DEFAULT_LAUNCH_THEME, ...options.theme }), options);
+    return new LaunchGame(new CanvasLaunchRenderer(context, { ...DEFAULT_LAUNCH_THEME, ...options.theme }, options.labels ?? DEFAULT_LAUNCH_LABELS), options);
   }
 
   public resize(size: LaunchSize, pixelRatio = 1): void {

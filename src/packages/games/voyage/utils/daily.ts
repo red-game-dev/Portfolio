@@ -1,11 +1,7 @@
-const pad = (value: number) => String(value).padStart(2, "0");
+import { utcDay } from "@/packages/text/format";
 
 // The day of the daily voyage at a moment: the UTC date, so everyone on Earth flies the same one.
-export const dayKey = (moment: number): string => {
-  const date = new Date(moment);
-
-  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
-};
+export const dayKey = (moment: number): string => utcDay(moment);
 
 // The day's seed: the same number for everyone that day, a different one each day (a polynomial hash of its
 // date, kept within the seeded random's range without bitwise operators).

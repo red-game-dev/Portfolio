@@ -15,6 +15,18 @@ export const mixRgb = (from: Rgb, to: Rgb, amount: number): Rgb => [0, 1, 2].map
 
 export const rgba = ([red, green, blue]: Rgb, alpha: number) => `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(3)})`;
 
+export const rgbCss = ([red, green, blue]: Rgb) => `rgb(${red}, ${green}, ${blue})`;
+
+// A colour under some light: 1 as it is, less towards black.
+export const scaleRgb = ([red, green, blue]: Rgb, light: number): Rgb => [Math.round(red * light), Math.round(green * light), Math.round(blue * light)];
+
+// A hex colour under some light, as CSS, for painters that light whatever they draw by the light where it is.
+export const shadeHex = (hex: string, light: number, alpha = 1): string => {
+  const shaded = scaleRgb(hexToRgb(hex), light);
+
+  return alpha >= 1 ? rgbCss(shaded) : rgba(shaded, alpha);
+};
+
 // A colour from hue (degrees), saturation and lightness (0 to 1), as "#rrggbb".
 export const hslToHex = (hue: number, saturation: number, lightness: number): string => {
   const h = ((hue % 360) + 360) % 360;

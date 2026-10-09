@@ -1,4 +1,5 @@
 import type { ZoneId } from "@/config/zones";
+import type { LaunchLand, LaunchMilestone, LaunchVehicle } from "@/packages/games/launch";
 
 export interface DuelRound {
   agent: string;
@@ -73,13 +74,34 @@ export interface FinaleInvite {
   decline: string;
 }
 
+// A real launch pad: its short name as the board writes it, where it is, its time zone (for the local time), what
+// flies from it, the land round it, which way its rockets fly (1 to the right of the view), and whether the sea
+// lies behind it.
+export interface FinaleLaunchSite {
+  name: string;
+  latitude: number;
+  longitude: number;
+  timeZone: string;
+  vehicle: LaunchVehicle;
+  land: LaunchLand;
+  downrange: number;
+  hasSea: boolean;
+}
+
 export interface FinaleLaunch {
   boardLabel: string;
+  // The pads a launch may fly from, one picked at random each visit; on the pad, the board names it and its local
+  // time ("{site}", "{time}").
+  sites: FinaleLaunchSite[];
+  pad: string;
+  // What each moment of the flight is called, and the readout's labels.
+  milestones: Record<LaunchMilestone, string>;
+  readout: { altitude: string; speed: string };
   hold: string;
   charging: string;
   liftOff: string;
   orbit: string;
-  // Read out as each zone falls behind; "{zone}" is replaced.
+  // Read out at each moment of the flight as each zone falls behind; "{milestone}" and "{zone}" are replaced.
   leaving: string;
   hint: string;
   // In orbit: carry on into space, or press the button nobody should press.

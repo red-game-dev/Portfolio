@@ -22,8 +22,8 @@ import { CROSSED_ZONES, ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
 import useInView from "@/hooks/useInView";
 import { scrollBehavior } from "@/packages/accessibility/motion";
 import type { LaunchSnapshot } from "@/packages/games/launch";
-import { fill } from "@/packages/text/format";
-import { FinaleContent, FinaleLaunch, FinaleRank } from "@/types/game";
+import { fill, formatDuration, formatLocalTime } from "@/packages/text/format";
+import { FinaleContent, FinaleLaunch, FinaleLaunchSite, FinaleRank } from "@/types/game";
 import { DocumentLink } from "@/types/portfolio";
 
 interface FinaleProps {
@@ -186,8 +186,13 @@ const Restart = styled.button(() => actionStyle(false));
 
 const rankFor = (ranks: FinaleRank[], done: number) => [...ranks].sort((first, second) => second.min - first.min).find((rank) => done >= rank.min) ?? ranks[0];
 
-// What the board says, and what a screen reader hears, at each moment of the launch.
-const statusOf = (launch: FinaleLaunch, { status, passed, countdown }: LaunchSnapshot, zoneLabels: Record<ZoneId, string>) => {
+// What the board says, and what a screen reader hears, at each moment of the launch: the pad and its local time
+// while it waits, ignition, then each moment of the flight as a zone falls behind, and orbit.
+const statusOf = (launch: FinaleLaunch, { status, passed, countdown, milestone }: LaunchSnapshot, zoneLabels: Record<ZoneId, string>, site: FinaleLaunchSite | null) => {
+  if (status === "ready") {
+    return site ? fill(launch.pad, { site: site.name, time: formatLocalTime(site.timeZone) }) : "";
+  }
+
   if (status === "charging") {
     return launch.charging;
   }
@@ -201,16 +206,10 @@ const statusOf = (launch: FinaleLaunch, { status, passed, countdown }: LaunchSna
   }
 
   if (status === "launching") {
-    return passed > 0 ? fill(launch.leaving, { zone: zoneLabels[CROSSED_ZONES[passed - 1]] }) : launch.liftOff;
+    return passed > 0 && milestone ? fill(launch.leaving, { milestone: launch.milestones[milestone], zone: zoneLabels[CROSSED_ZONES[passed - 1]] }) : launch.liftOff;
   }
 
   return status === "orbit" ? launch.orbit : "";
-};
-
-const formatTime = (ms: number) => {
-  const seconds = Math.floor(ms / 1000);
-
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 };
 
 // The end of the run, and the page lifting off: the visitor launches out of the game world past every zone
@@ -221,7 +220,8 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   const boardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isBoardInView = useInView(boardRef, { threshold: 0.6, once: true });
-  const { snapshot, isReady, onPointerDown, onPointerUp, onPointerCancel, onClick, selfDestruct } = useLaunch(boardRef, canvasRef, isBoardInView);
+  const { snapshot, site, isReady, onPointerDown, onPointerUp, onPointerCancel, onClick, selfDestruct } = useLaunch(boardRef, canvasRef, isBoardInView,
+    content.launch.sites, content.launch.readout);
   const isReached = useInView(sectionRef, { threshold: 0.2 });
   const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
   const [isVoyaging, setIsVoyaging] = useState(false);
@@ -284,7 +284,7 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
         </Heading>
         <Board ref={boardRef} role="img" aria-label={content.launch.boardLabel} isAlarm={snapshot.status === "destructing"}>
           <Canvas ref={canvasRef} aria-hidden="true" />
-          <Status role="status">{statusOf(content.launch, snapshot, zoneLabels)}</Status>
+          <Status role="status">{statusOf(content.launch, snapshot, zoneLabels, site)}</Status>
         </Board>
         <Choice onFocus={() => setIsChoosing(isAloft)} onBlur={onChoiceBlur}>
           {isAloft && (
@@ -396,7 +396,7 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
               </StarMark>
               {content.stats.time}
             </StatName>
-            <StatValue isDone={false}>{runMs === null ? "0:00" : formatTime(runMs)}</StatValue>
+            <StatValue isDone={false}>{formatDuration((runMs ?? 0) / 1000)}</StatValue>
           </Stat>
         </Stats>
         <Rank>

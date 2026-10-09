@@ -10,7 +10,7 @@ import { growthSince, milestoneAt, playbackPosition, TIMELAPSE_MS } from "@/comp
 import useInView from "@/hooks/useInView";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import type { RepoGrowthView } from "@/packages/insights/repo-growth";
-import { fill } from "@/packages/text/format";
+import { fill, formatNumber } from "@/packages/text/format";
 import { TimelapseContent } from "@/types/timelapse";
 
 type HeightAt = (view: RepoGrowthView, position: number, district: number) => number;
@@ -94,8 +94,6 @@ const Scrubber = styled.input(() => [
 ]);
 
 const Loading = tw.p`absolute inset-0 flex items-center justify-center m-0 text-xs text-[#999]`;
-
-const formatLines = (count: number) => Math.round(count).toLocaleString("en-US");
 
 // This site's codebase as a city that grows commit by commit, mounted once a reader opens it. The history and
 // the code that reads it load then; it plays once when first seen, pauses off screen, and can be scrubbed. Heights
@@ -203,7 +201,7 @@ export const RepoTimelapse: FC<TimelapseContent> = (content: TimelapseContent) =
   const lastFrame = view ? view.frames.length - 1 : 0;
   const milestone = view ? milestoneAt(content.milestones, view, frame) : null;
   const districts = view?.districts ?? Object.keys(content.districts);
-  const linesOf = (district: number) => formatLines((current?.heights[district] ?? 0) * (view?.peak ?? 0));
+  const linesOf = (district: number) => formatNumber((current?.heights[district] ?? 0) * (view?.peak ?? 0));
   const today = view?.frames[lastFrame];
 
   return (
@@ -212,7 +210,7 @@ export const RepoTimelapse: FC<TimelapseContent> = (content: TimelapseContent) =
         <Stats>
           <Stat>
             <StatName>{content.stats.commits}</StatName>
-            <StatValue>{formatLines(view.frames.length)}</StatValue>
+            <StatValue>{formatNumber(view.frames.length)}</StatValue>
           </Stat>
           <Stat>
             <StatName>{content.stats.first}</StatName>
@@ -220,7 +218,7 @@ export const RepoTimelapse: FC<TimelapseContent> = (content: TimelapseContent) =
           </Stat>
           <Stat>
             <StatName>{content.stats.lines}</StatName>
-            <StatValue>{formatLines(today.total)}</StatValue>
+            <StatValue>{formatNumber(today.total)}</StatValue>
           </Stat>
           <Stat>
             <StatName>{content.stats.growth}</StatName>
@@ -233,11 +231,11 @@ export const RepoTimelapse: FC<TimelapseContent> = (content: TimelapseContent) =
           <Ticker>
             <TickerDate>{current.date}</TickerDate>
             <TickerMeta>{fill(content.commit, { index: frame + 1, count: lastFrame + 1 })}</TickerMeta>
-            <TickerMeta>{fill(content.lines, { lines: formatLines(current.total) })}</TickerMeta>
+            <TickerMeta>{fill(content.lines, { lines: formatNumber(current.total) })}</TickerMeta>
           </Ticker>
         )}
         <Milestone aria-live="polite">{milestone?.label ?? ""}</Milestone>
-        <City ref={cityRef} role="img" aria-label={current ? fill(content.cityLabel, { date: current.date, lines: formatLines(current.total) }) : content.loading}>
+        <City ref={cityRef} role="img" aria-label={current ? fill(content.cityLabel, { date: current.date, lines: formatNumber(current.total) }) : content.loading}>
           {districts.map((district) => <Building key={district} aria-hidden="true" />)}
         </City>
         {!loaded && <Loading>{content.loading}</Loading>}
@@ -266,7 +264,7 @@ export const RepoTimelapse: FC<TimelapseContent> = (content: TimelapseContent) =
           value={frame}
           disabled={!loaded}
           aria-label={content.scrubLabel}
-          aria-valuetext={current ? `${current.date}, ${fill(content.lines, { lines: formatLines(current.total) })}` : undefined}
+          aria-valuetext={current ? `${current.date}, ${fill(content.lines, { lines: formatNumber(current.total) })}` : undefined}
           onChange={onScrub}
         />
       </Controls>

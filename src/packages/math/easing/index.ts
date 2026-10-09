@@ -15,3 +15,6 @@ export const easeIn = (value: number): number => {
 };
 
 export const lerp = (from: number, to: number, t: number): number => from + (to - from) * t;
+
+// 0 below `from`, 1 above `to`, easing smoothly between: for anything that fades in over a range.
+export const smoothstep = (from: number, to: number, value: number): number => easeInOut((value - from) / (to - from));

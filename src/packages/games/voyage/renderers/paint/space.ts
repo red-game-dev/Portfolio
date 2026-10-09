@@ -256,22 +256,132 @@ const pixelSky = (context: Canvas2DContext, width: number, height: number, accen
   context.globalAlpha = 1;
 };
 
-// A universe's backdrop, a square tile that repeats without a seam: a nebula in its colours under what the
-// universe is made of.
-export const paintUniverse = (style: VoyageStyle, accent: string, pixelRatio: number) => (context: Canvas2DContext, width: number, height: number) => {
-  nebula(context, width, height, accent, style.length * 7);
+// Far off galaxies in a void: a few faint smudges, tilted ovals of light, and almost nothing else.
+const farGalaxies = (context: Canvas2DContext, width: number, height: number, accent: string) => {
+  const random = createSeededRandom(53);
 
-  if (style === "matrix") {
-    matrixRain(context, width, height, accent, pixelRatio);
-  } else if (style === "neural") {
-    neuralNet(context, width, height, accent, pixelRatio);
-  } else if (style === "blocks") {
-    blockLattice(context, width, height, accent, pixelRatio);
-  } else if (style === "chips") {
-    suits(context, width, height, accent, pixelRatio);
-  } else {
-    pixelSky(context, width, height, accent, pixelRatio);
+  for (let index = 0; index < 7; index += 1) {
+    const x = random() * width;
+    const y = random() * height;
+    const size = Math.min(width, height) * (0.02 + random() * 0.05);
+    const tilt = random() * Math.PI;
+
+    wrap(width, height, (dx, dy) => {
+      const light = context.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, size);
+
+      light.addColorStop(0, index % 2 === 0 ? accent : "#ffe8c8");
+      light.addColorStop(1, "rgba(0, 0, 0, 0)");
+      context.globalAlpha = 0.25 + random() * 0.2;
+      context.fillStyle = light;
+      context.beginPath();
+      context.ellipse(x + dx, y + dy, size, size * 0.35, tilt, 0, TAU);
+      context.fill();
+    });
   }
+
+  context.globalAlpha = 1;
+};
+
+// Shards of crystal hanging in space, catching the light at their edges.
+const crystalField = (context: Canvas2DContext, width: number, height: number, accent: string, pixelRatio: number) => {
+  const random = createSeededRandom(59);
+
+  context.strokeStyle = accent;
+  context.lineWidth = pixelRatio;
+
+  for (let index = 0; index < 22; index += 1) {
+    const x = random() * width;
+    const y = random() * height;
+    const size = (8 + random() * 26) * pixelRatio;
+    const tilt = random() * Math.PI;
+
+    context.globalAlpha = 0.12 + random() * 0.25;
+    wrap(width, height, (dx, dy) => {
+      context.beginPath();
+      context.moveTo(x + dx + Math.cos(tilt) * size, y + dy + Math.sin(tilt) * size);
+      context.lineTo(x + dx + Math.cos(tilt + 2.4) * size * 0.4, y + dy + Math.sin(tilt + 2.4) * size * 0.4);
+      context.lineTo(x + dx - Math.cos(tilt) * size, y + dy - Math.sin(tilt) * size);
+      context.lineTo(x + dx + Math.cos(tilt - 2.4) * size * 0.4, y + dy + Math.sin(tilt - 2.4) * size * 0.4);
+      context.closePath();
+      context.stroke();
+    });
+  }
+
+  context.globalAlpha = 1;
+};
+
+// Embers drifting up out of somewhere burning.
+const embers = (context: Canvas2DContext, width: number, height: number, accent: string, pixelRatio: number) => {
+  const random = createSeededRandom(61);
+
+  context.fillStyle = accent;
+
+  for (let index = 0; index < 120; index += 1) {
+    const x = random() * width;
+    const y = random() * height;
+    const size = (0.6 + random() * 1.8) * pixelRatio;
+
+    context.globalAlpha = 0.2 + random() * 0.6;
+    wrap(width, height, (dx, dy) => context.fillRect(x + dx, y + dy, size, size * 2.5));
+  }
+
+  context.globalAlpha = 1;
+};
+
+// The abyss: deep water dark, faint ribbons of light moving through it.
+const abyss = (context: Canvas2DContext, width: number, height: number, accent: string, pixelRatio: number) => {
+  const random = createSeededRandom(67);
+
+  context.strokeStyle = accent;
+  context.lineWidth = 1.5 * pixelRatio;
+
+  for (let index = 0; index < 9; index += 1) {
+    const y = random() * height;
+    const wave = height * (0.02 + random() * 0.05);
+    const phase = random() * TAU;
+
+    context.globalAlpha = 0.06 + random() * 0.08;
+    [-height, 0, height].forEach((dy) => {
+      context.beginPath();
+
+      for (let x = 0; x <= width; x += width / 32) {
+        const at = y + dy + Math.sin((x / width) * TAU * 2 + phase) * wave;
+
+        if (x === 0) {
+          context.moveTo(x, at);
+        } else {
+          context.lineTo(x, at);
+        }
+      }
+
+      context.stroke();
+    });
+  }
+
+  context.globalAlpha = 1;
+};
+
+// A universe's backdrop, a square tile that repeats without a seam: a nebula in its colours under what the
+// universe is made of. A void has almost nothing: only galaxies far beyond it.
+export const paintUniverse = (style: VoyageStyle, accent: string, pixelRatio: number) => (context: Canvas2DContext, width: number, height: number) => {
+  if (style !== "void") {
+    nebula(context, width, height, accent, style.length * 7);
+  }
+
+  const painters: Record<VoyageStyle, () => void> = {
+    matrix: () => matrixRain(context, width, height, accent, pixelRatio),
+    neural: () => neuralNet(context, width, height, accent, pixelRatio),
+    blocks: () => blockLattice(context, width, height, accent, pixelRatio),
+    chips: () => suits(context, width, height, accent, pixelRatio),
+    pixels: () => pixelSky(context, width, height, accent, pixelRatio),
+    nebula: () => nebula(context, width, height, accent, 91),
+    void: () => farGalaxies(context, width, height, accent),
+    crystal: () => crystalField(context, width, height, accent, pixelRatio),
+    ember: () => embers(context, width, height, accent, pixelRatio),
+    abyss: () => abyss(context, width, height, accent, pixelRatio),
+  };
+
+  painters[style]();
 };
 
 // The light bent round a black hole: a dark well, the bright photon ring at its edge, and starlight smeared into

@@ -10,6 +10,7 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   phase: "solar",
   universe: -1,
   universes: 0,
+  universeName: null,
   hull: 1000,
   maxHull: 1000,
   shields: 400,
@@ -21,6 +22,10 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   landedOn: null,
   modules: { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 },
   waypoint: null,
+  target: null,
+  boss: null,
+  autoFire: true,
+  incoming: null,
   telemetry: {
     gravity: 0.12,
     dominant: null,
@@ -82,6 +87,22 @@ describe("the voyage's messages", () => {
     expect(voyageNotice(voyage, { kind: "melting", temperatureC: 641.4 })).toContain("641");
   });
 
+  test("rocks headed for worlds, what they do, the boss and the strange things are said as they happen", () => {
+    expect(voyageNotice(voyage, { kind: "impactAlert", target: "mars", diameterKm: 3.24, seconds: 21.6 }))
+      .toBe("Impact alert: a 3.2 km rock will hit Mars in 22 seconds");
+    expect(voyageNotice(voyage, { kind: "impact", target: "moon", outcome: "crater", craterKm: 48.3 })).toBe("the Moon was hit: a crater 48 km across");
+    expect(voyageNotice(voyage, { kind: "impact", target: "Veldara II", outcome: "shattered", craterKm: 0 })).toContain("Veldara II is gone");
+    expect(voyageNotice(voyage, { kind: "deflected", target: "earth" })).toBe("Pushed off course: it will miss Earth");
+    expect(voyageNotice(voyage, { kind: "boss", name: "Thalix Swarm", isFallen: true })).toBe("Thalix Swarm's leader falls");
+    expect(voyageNotice(voyage, { kind: "supernova", seconds: 14.6, isBlown: false })).toContain("15 seconds");
+    expect(voyageNotice(voyage, { kind: "burst", seconds: 0, isFired: true })).toBe(voyage.burst);
+    expect(voyageNotice(voyage, { kind: "heard" })).toBe(voyage.heard);
+  });
+
+  test("a universe past the zones is called by its own name", () => {
+    expect(voyagePlace(voyage, at({ phase: "universe", universe: 7, universes: 8, universeName: "Veldara Reach" }), universes)).toBe("Universe 8: Veldara Reach");
+  });
+
   test("the top of the screen gives the distance on the way out, then the universe and how many so far", () => {
     expect(voyagePlace(voyage, at({}, 5.2), universes)).toBe("5.2 AU from the Sun");
     expect(voyagePlace(voyage, at({ phase: "universe", universe: 1, universes: 3 }), universes)).toBe("Universe 3: AI");
@@ -94,7 +115,7 @@ describe("the voyage's telemetry", () => {
     const deepSpace = telemetryRows(voyage, at()).map((row) => row.label);
     const nearJupiter = telemetryRows(voyage, at({
       telemetry: { ...at().telemetry, gravity: 24.79, dominant: "jupiter", altitudeKm: 3200, speedKmS: 21, au: 5.2, pressureBar: 0.4, hullTemperatureC: 640 },
-      waypoint: { id: "saturn", distanceKm: 652000000 },
+      waypoint: { id: "saturn", name: null, distanceKm: 652000000 },
     }));
 
     expect(deepSpace).not.toContain(voyage.telemetry.altitude);

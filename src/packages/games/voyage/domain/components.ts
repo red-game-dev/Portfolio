@@ -75,6 +75,65 @@ export interface Pickup {
   kind: PickupKind;
 }
 
+// Someone who lives in a universe: which faction, what part they play, what they are doing, where home is, how
+// much they want the player dead (MMO threat, which damage raises and leashing clears), where they face, their
+// level, and a boss's phase.
+export type AlienRole = "fighter" | "boss" | "trader" | "whale";
+
+export type AlienMode = "idle" | "chase" | "flee" | "evade";
+
+export interface Alien {
+  faction: number;
+  role: AlienRole;
+  mode: AlienMode;
+  homeX: number;
+  homeY: number;
+  threat: number;
+  angle: number;
+  level: number;
+  phase: number;
+}
+
+// A gun: what it fires, how hard, how often (shots a second), how far, how fast its shots fly, how much heat each
+// shot adds to the hull, and how long until it can fire again (seconds).
+export interface Weapon {
+  kind: "cannon" | "laser" | "missile" | "spit" | "photoid";
+  damage: number;
+  rate: number;
+  range: number;
+  speed: number;
+  heat: number;
+  cooldown: number;
+}
+
+// A shot in flight: who fired it and for which side, what it does, how long it has left, and what a missile
+// homes on.
+export interface Projectile {
+  owner: number;
+  team: "ship" | "aliens";
+  kind: Weapon["kind"];
+  damage: number;
+  ttl: number;
+  target: number | null;
+}
+
+// A rock on its way to hit a world: which, how strong it still is, its real size (km), and whether it is a
+// piece of one already broken.
+export interface Impactor {
+  target: string;
+  hp: number;
+  maxHp: number;
+  diameterKm: number;
+  isFragment: boolean;
+  isOnCourse: boolean;
+}
+
+// Someone passing through: a rocket or starship of ours, or a freighter of a faction that lives here.
+export interface Traffic {
+  kind: "rocket" | "starship" | "freighter";
+  faction: number;
+}
+
 // A black hole: its gravitational parameter, its horizon, and whether it is the one past Pluto.
 export interface Hole {
   mu: number;

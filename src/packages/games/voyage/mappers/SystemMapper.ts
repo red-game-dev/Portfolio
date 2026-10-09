@@ -2,8 +2,9 @@ import { Mapper } from "@/packages/core/domain";
 import { poleVector } from "@/packages/physics/kepler";
 import { muForSurfaceGravity } from "@/packages/physics/newtonian";
 
-import { AirData, AirModel, BodyData, SolarSystemData, StarSystem, SystemBody, SystemScale } from "../domain/content";
+import { BodyData, SolarSystemData, StarSystem, SystemBody, SystemScale } from "../domain/content";
 import { radiusForAu } from "../utils/scale";
+import { airModel } from "./air";
 
 export interface SystemLayout {
   // World units per square root of an AU: Earth's orbit sits this far from the Sun.
@@ -20,12 +21,6 @@ export interface SystemLayout {
 
 const EARTH_RADIUS_KM = 6371;
 const KM_PER_AU = 149597870.7;
-
-// How high each kind of air reaches, as a share of the radius, and the pressure left at its top.
-const AIR_TOP: Record<AirData["kind"], number> = { thin: 0.14, thick: 0.3, giant: 0.4 };
-const TOP_PRESSURE_BAR = 0.02;
-
-const kelvin = (celsius: number) => celsius + 273.15;
 
 // Lays the real solar system out as a playable world: the Sun at the centre, every body where it really is on
 // the mission clock (placed each step by the orbit system), distances from the Sun compressed by `SystemScale`,
@@ -55,6 +50,7 @@ export class SystemMapper extends Mapper<SolarSystemData, StarSystem> {
         temperatureK: star.temperatureK,
         rotationDays: star.rotationDays,
         kmPerUnit: star.radiusKm / starRadius,
+        luminosity: 1,
       },
       bodies: bodies.map((body) => this.body(body, radii)),
       belts: belts.map((belt) => ({
@@ -91,7 +87,7 @@ export class SystemMapper extends Mapper<SolarSystemData, StarSystem> {
       mu: muForSurfaceGravity(data.surfaceGravity * this.layout.gravityScale, radius),
       isGiant: data.air?.kind === "giant",
       isLandable: data.air?.kind !== "giant",
-      air: data.air ? this.air(data.air, radius) : null,
+      air: data.air ? airModel(data.air, radius) : null,
       surfaceGravity: data.surfaceGravity,
       dayC: data.dayC,
       nightC: data.nightC,
@@ -110,21 +106,7 @@ export class SystemMapper extends Mapper<SolarSystemData, StarSystem> {
       rings: data.rings ? { inner: data.rings.innerKm / data.radiusKm, outer: data.rings.outerKm / data.radiusKm } : null,
       subsolarLongitude: 0,
       subsolarLatitude: 0,
-      spun: 0,
-    };
-  }
-
-  private air(data: AirData, radius: number): AirModel {
-    const top = AIR_TOP[data.kind] * radius;
-    const topPressure = Math.min(TOP_PRESSURE_BAR, data.pressureBar * 0.01);
-
-    return {
-      ...data,
-      top,
-      // Pressure falls from its ground value to almost nothing at the top.
-      scaleHeight: top / Math.log(data.pressureBar / topPressure),
-      // Density against Earth's at sea level, from pressure over temperature.
-      surfaceDensity: data.pressureBar * (288 / kelvin(data.temperatureC)),
+      isShattered: false,
     };
   }
 }

@@ -32,8 +32,9 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         "behind it, land on the Moon or Mars, skim the giants for fuel. Too near the Sun and the ship melts, one system at a time. Past " +
         "the Kuiper belt, something waits.",
       controls: "Point where to fly: the ship turns and burns towards it, harder the further you point. Arrow keys turn and burn, Down " +
-        "brakes. The wheel, a pinch or + and - zoom, M opens the map. Rocks and crashes cannot destroy the ship in the solar system, " +
-        "but the Sun can, and past the Kuiper belt anything can. P pauses, Escape leaves.",
+        "brakes. The wheel, a pinch or + and - zoom, M opens the map. The guns aim themselves at threats; click someone to lock on, F " +
+        "holds fire. Rocks and crashes cannot destroy the ship in the solar system, but the Sun can, and past the Kuiper belt anything " +
+        "can. P pauses, Escape leaves.",
       canvasLabel: "Your ship, flying out through space",
       start: "Fly",
       again: "Fly again",
@@ -100,6 +101,45 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       failing: "{system} failing",
       gone: "{system} lost",
       melting: "The hull is melting at {temperature} \u00b0C. Turn back.",
+      universeNames: {
+        starts: ["Vel", "Ka", "Or", "Thal", "Zir", "Ny", "Eld", "Mor", "Sel", "Vex", "Ar", "Qua", "Ish", "Dro", "Tem", "Lys"],
+        middles: ["da", "ri", "on", "ae", "ul", "ix", "en", "or", "esh", "ya", "ith", "um"],
+        places: ["Reach", "Expanse", "Drift", "Veil", "Deep", "Hollow", "Sprawl", "Cradle", "Shoal", "Verge", "Abyss", "Tide"],
+        factions: {
+          hostile: ["Swarm", "Horde", "Reavers", "Brood"],
+          territorial: ["Wardens", "Sentinels", "Keepers"],
+          neutral: ["Union", "Guild", "Concord"],
+          peaceful: ["Choir", "Drifters", "Pilgrims"],
+        },
+      },
+      combat: {
+        autoFire: "Guns firing at threats",
+        holdFire: "Guns holding fire",
+        level: "Level {level}",
+        boss: "Boss",
+        rock: "Incoming rock",
+        dispositions: { hostile: "Hostile", territorial: "Territorial", neutral: "Neutral", peaceful: "Peaceful" },
+        roles: { whale: "Void whales", trader: "Trader" },
+        incoming: "{diameter} km rock to {target}, {seconds} s",
+        willMiss: "will miss",
+      },
+      impactAlert: "Impact alert: a {diameter} km rock will hit {target} in {seconds} seconds",
+      impact: {
+        crater: "{target} was hit: a crater {crater} km across",
+        airburst: "It burst high over {target}",
+        catastrophe: "{target} was struck hard enough to melt half its face",
+        shattered: "{target} is gone, broken apart by the impact",
+      },
+      impactorBroken: "The rock headed for {target} is broken up",
+      deflected: "Pushed off course: it will miss {target}",
+      bossAppears: "{name}: their leader has found you",
+      bossFalls: "{name}'s leader falls",
+      heard: "Something out there has heard you. Go quiet.",
+      supernovaWarning: "A star is collapsing: supernova in {seconds} seconds. Get behind a world.",
+      supernova: "Supernova",
+      burstWarning: "Gamma ray burst lining up: get off the red line, {seconds} seconds",
+      burst: "Gamma ray burst",
+      wormhole: "Through a wormhole",
       distance: "{au} AU from the Sun",
       universe: "Universe {count}: {name}",
       stops: {

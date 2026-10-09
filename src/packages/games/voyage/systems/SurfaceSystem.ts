@@ -21,7 +21,7 @@ export class SurfaceSystem implements System<VoyageContext> {
     world.stores.hazard.entities.forEach((entity) => {
       const rock = world.stores.body.get(entity);
 
-      if (rock && state.system.bodies.some((place) => Math.hypot(rock.x - place.x, rock.y - place.y) < place.radius * (place.isGiant ? 0.9 : 1))) {
+      if (rock && state.system.bodies.some((place) => !place.isShattered && Math.hypot(rock.x - place.x, rock.y - place.y) < place.radius * (place.isGiant ? 0.9 : 1))) {
         world.despawn(entity);
       }
     });
@@ -35,7 +35,7 @@ export class SurfaceSystem implements System<VoyageContext> {
     const { body, ship } = parts;
 
     for (const place of state.system.bodies) {
-      if (place.isGiant) {
+      if (place.isGiant || place.isShattered) {
         continue;
       }
 

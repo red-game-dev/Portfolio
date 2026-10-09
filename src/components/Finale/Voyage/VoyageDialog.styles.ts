@@ -139,6 +139,43 @@ export const SystemTrack = tw.dd`relative m-0 h-[4px] overflow-hidden bg-[rgba(2
 
 export const Credits = tw.p`m-0 text-[11px] text-[#7d859c] leading-snug`;
 
+// MMO frames: the target under the vitals; the boss and any rock headed for a world centred under the HUD on
+// narrow screens and along the bottom where there is room.
+export const TargetFrame = styled.section(() => [
+  tw`mt-[6px] flex flex-col gap-[3px] w-[150px] md:w-[210px] p-[6px] bg-[rgba(5,8,18,0.7)]`,
+  css`
+    border: 1px solid rgba(255, 77, 94, 0.45);
+  `,
+]);
+
+export const FrameName = tw.p`m-0 flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white truncate`;
+
+export const FrameMeta = tw.span`text-[10px] md:text-[11px] font-normal text-[#9aa3bb] whitespace-nowrap`;
+
+export const FrameTrack = tw.div`relative h-[5px] overflow-hidden bg-[rgba(255,255,255,0.12)]`;
+
+export const Frames = styled.div(() => [
+  tw`absolute left-1/2 top-[150px] md:top-auto md:bottom-[18px] flex flex-col gap-[6px] pointer-events-none`,
+  css`
+    width: min(88vw, 420px);
+    transform: translateX(-50%);
+  `,
+]);
+
+export const BossFrame = styled.section(() => [
+  tw`flex flex-col gap-[4px] p-[8px] bg-[rgba(5,8,18,0.78)]`,
+  css`
+    border: 1px solid rgba(255, 77, 94, 0.7);
+  `,
+]);
+
+export const Incoming = styled.section(() => [
+  tw`flex flex-col gap-[4px] p-[6px] text-[11px] md:text-xs font-semibold text-[#ffd0d4] bg-[rgba(40,6,10,0.75)]`,
+  css`
+    border: 1px solid rgba(255, 77, 94, 0.6);
+  `,
+]);
+
 export const IconButton = styled.button(() => [
   tw`flex items-center justify-center w-[38px] h-[38px] p-0 cursor-pointer text-white bg-[rgba(10,14,30,0.75)] border-[1px] border-solid border-[#2a3350] rounded-full`,
   css`

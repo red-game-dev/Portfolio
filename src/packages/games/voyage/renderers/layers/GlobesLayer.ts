@@ -13,6 +13,12 @@ const VIEW_ELEVATION = 20;
 // How long a flare burns on the star's limb (ms).
 const FLARE_MS = 4000;
 
+// How lit a world is: dimmer the further out and the fainter its star, a rogue with no star at all lit only by
+// starlight from the sky.
+const lightOn = (au: number, luminosity: number): number => (luminosity <= 0
+  ? 0.07
+  : Math.max(0.3, Math.min(1.15, 1.1 - 0.12 * Math.log(Math.max(au, 0.05) / Math.sqrt(luminosity)))));
+
 // The Sun and every body, drawn by the GPU each frame: lit from where the Sun really is, turned to where they
 // really are on the mission clock, a moon that keeps one face to its planet keeping it, Earth's aurora as bright
 // as the storms have left it, dimmer the further out, and each north kept as near the top of the screen as its
@@ -26,7 +32,7 @@ export class GlobesLayer implements RenderLayer<VoyageFrame> {
   public draw(frame: VoyageFrame): void {
     const { state } = frame;
 
-    if (state.phase !== "solar" && state.phase !== "singularity") {
+    if (state.phase === "lost") {
       return;
     }
 
@@ -37,8 +43,9 @@ export class GlobesLayer implements RenderLayer<VoyageFrame> {
   private drawStar({ state, camera, now, theme }: VoyageFrame): void {
     const { star } = state.system;
     const { back, globes } = this.kit;
+    const look = state.cosmos ? state.cosmos.starLook : theme.sun;
 
-    if (!camera.sees(star.x, star.y, star.radius * 3)) {
+    if (!look || star.luminosity <= 0 || !camera.sees(star.x, star.y, star.radius * 3)) {
       return;
     }
 
@@ -58,17 +65,17 @@ export class GlobesLayer implements RenderLayer<VoyageFrame> {
       x,
       y,
       radius,
-      look: theme.sun,
+      look,
       time: now / 1000,
       flare: flare ? { angle: flare.angle, strength: flare.strength * (1 - (state.elapsedMs - flare.at) / FLARE_MS) } : null,
     });
   }
 
   private drawBody({ state, camera, now, theme }: VoyageFrame, body: SystemBody): void {
-    const look = theme.bodies[body.id];
+    const look = theme.bodies[body.id] ?? state.cosmos?.looks[body.id];
     const reach = body.radius * Math.max(1.2, look?.rings?.outer ?? 0, 1 + (look?.atmosphere?.thickness ?? 0));
 
-    if (!look || !camera.sees(body.x, body.y, reach)) {
+    if (!look || body.isShattered || !camera.sees(body.x, body.y, reach)) {
       return;
     }
 
@@ -106,9 +113,9 @@ export class GlobesLayer implements RenderLayer<VoyageFrame> {
         facing: parent ? Math.atan2(parent.y - body.y, parent.x - body.x) : undefined,
       },
       time: now / 1000,
-      light: Math.max(0.5, Math.min(1.1, 1.1 - 0.12 * Math.log(Math.max(body.au, 0.1)))),
+      light: lightOn(body.au, star.luminosity),
       aurora: body.id === "earth" ? state.aurora : 0,
-      craters: [],
+      craters: state.craters[body.id] ?? [],
     });
   }
 }

@@ -52,7 +52,8 @@ export class GravitySystem implements System<VoyageContext> {
 
     field.setSources(sources);
 
-    world.stores.hazard.entities.forEach((entity) => {
+    // Drifting rocks, and rocks headed for worlds, fall as everything does.
+    [world.stores.hazard, world.stores.impactor].forEach((store) => store.entities.forEach((entity) => {
       const body = world.stores.body.get(entity);
 
       if (body) {
@@ -60,7 +61,7 @@ export class GravitySystem implements System<VoyageContext> {
         body.vx += sample.ax * dt;
         body.vy += sample.ay * dt;
       }
-    });
+    }));
 
     const parts = shipOf(context);
 

@@ -1,5 +1,6 @@
 import type { RenderLayer } from "@/packages/games/engine";
 
+import { DEEP_STYLES } from "../../domain/theme";
 import { auForRadius } from "../../utils/scale";
 import { lerpX, lerpY, sizeBucket, VoyageFrame } from "../frame";
 import { paintHazard, paintPickup, paintRock } from "../paint/hazards";
@@ -61,8 +62,9 @@ export class ThingsLayer implements RenderLayer<VoyageFrame> {
       const x = camera.toScreenX(lerpX(body, alpha));
       const y = camera.toScreenY(lerpY(body, alpha));
 
-      if (!universe) {
-        if (hazard.isComet) {
+      // Past the zones, what drifts is rock, as it is at home.
+      if (!universe || DEEP_STYLES.includes(universe.style)) {
+        if (hazard.isComet && !universe) {
           this.drawTails(frame, body, x, y);
         }
 

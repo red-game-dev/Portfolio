@@ -56,7 +56,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     const ship = world.stores.body.get(state.ship);
     const shipState = world.stores.ship.get(state.ship);
     const context = front.context;
-    const inSystem = state.phase === "solar" || state.phase === "singularity";
+    const inSystem = state.phase !== "lost";
     const cx = front.width / 2;
     const cy = front.height / 2;
 
@@ -117,10 +117,12 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
         context.stroke();
       });
 
-      context.fillStyle = "#ffd27a";
-      context.beginPath();
-      context.arc(cx, cy, Math.max(4, system.star.radius * scale), 0, TAU);
-      context.fill();
+      if (system.star.luminosity > 0) {
+        context.fillStyle = "#ffd27a";
+        context.beginPath();
+        context.arc(cx, cy, Math.max(4, system.star.radius * scale), 0, TAU);
+        context.fill();
+      }
 
       system.bodies.forEach((body) => {
         if (body.kind === "moon" && scale < 6) {
@@ -131,14 +133,18 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
         const y = toY(body.y);
         const radius = Math.max(body.kind === "moon" ? 1.5 : 2.5, body.radius * scale);
 
-        context.fillStyle = theme.bodies[body.id]?.surface.palette[2] ?? INK;
+        if (body.isShattered) {
+          return;
+        }
+
+        context.fillStyle = (theme.bodies[body.id] ?? state.cosmos?.looks[body.id])?.surface.palette[2] ?? INK;
         context.beginPath();
         context.arc(x, y, radius, 0, TAU);
         context.fill();
 
         if (body.kind !== "moon") {
           context.fillStyle = state.passed.has(body.id) ? INK : "rgba(196, 210, 255, 0.6)";
-          context.fillText(labels[body.id] ?? body.id, x, y + radius + 3);
+          context.fillText(labels[body.id] ?? state.cosmos?.names[body.id] ?? body.id, x, y + radius + 3);
         }
       });
     }
@@ -187,7 +193,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     const scale = radius / RADAR_RANGE;
     const shipX = ship.prevX + (ship.x - ship.prevX) * alpha;
     const shipY = ship.prevY + (ship.y - ship.prevY) * alpha;
-    const inSystem = state.phase === "solar" || state.phase === "singularity";
+    const inSystem = state.phase !== "lost";
     const plot = (x: number, y: number, size: number, colour: string) => {
       const dx = (x - shipX) * scale;
       const dy = (y - shipY) * scale;
@@ -229,7 +235,11 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     });
 
     if (inSystem) {
-      state.system.bodies.forEach((body) => plot(body.x, body.y, Math.max(2, body.radius * scale), theme.bodies[body.id]?.surface.palette[2] ?? INK));
+      state.system.bodies.forEach((body) => {
+        if (!body.isShattered) {
+          plot(body.x, body.y, Math.max(2, body.radius * scale), (theme.bodies[body.id] ?? state.cosmos?.looks[body.id])?.surface.palette[2] ?? INK);
+        }
+      });
     }
 
     world.stores.hole.entities.forEach((entity) => {
@@ -242,7 +252,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
 
     context.restore();
 
-    if (inSystem) {
+    if (inSystem && state.system.star.luminosity > 0) {
       const { star } = state.system;
       const angle = Math.atan2(star.y - shipY, star.x - shipX);
 

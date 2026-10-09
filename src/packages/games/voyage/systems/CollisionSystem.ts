@@ -3,10 +3,11 @@ import type { System } from "@/packages/games/engine";
 import { MODULE_IDS } from "../domain/components";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
-import { shipOf } from "./queries";
+import { placeBody, shipOf } from "./queries";
 
-// The rock size the impact damage is measured against.
+// The rock size the impact damage is measured against, and how far round the ship the grid is searched.
 const REFERENCE_RADIUS = 0.08;
+const REACH = 0.6;
 // How much of a system one repair kit restores.
 const REPAIR_SHARE = 0.35;
 
@@ -34,15 +35,15 @@ export class CollisionSystem implements System<VoyageContext> {
         grid.insert(entity, rock.x, rock.y, rock.radius);
       }
     });
-    world.stores.pickup.entities.forEach((entity) => {
-      const item = world.stores.body.get(entity);
+    [world.stores.pickup, world.stores.traffic, world.stores.impactor].forEach((store) => store.entities.forEach((entity) => {
+      const other = world.stores.body.get(entity);
 
-      if (item) {
-        grid.insert(entity, item.x, item.y, item.radius);
+      if (other) {
+        grid.insert(entity, other.x, other.y, other.radius);
       }
-    });
+    }));
 
-    grid.near(body.x, body.y, body.radius + config.spawn.maxRadius, (entity) => {
+    grid.near(body.x, body.y, body.radius + REACH, (entity) => {
       const other = world.stores.body.get(entity);
 
       if (!other || !world.isAlive(entity) || Math.hypot(other.x - body.x, other.y - body.y) > body.radius + other.radius) {
@@ -62,11 +63,22 @@ export class CollisionSystem implements System<VoyageContext> {
       const dy = other.y - body.y;
       const closing = Math.hypot(other.vx - body.vx, other.vy - body.vy);
       const share = other.mass / (other.mass + body.mass);
+      // Ships and rocks headed for worlds are too big to break on the hull: the ship bounces off them instead.
+      const isBig = world.stores.traffic.has(entity) || world.stores.impactor.has(entity);
 
-      applyDamage(context, config.flight.impact * (other.radius / REFERENCE_RADIUS) * Math.max(0.35, closing) ** 2, Math.atan2(dy, dx), "impact");
+      applyDamage(context, config.flight.impact * (Math.min(other.radius, 0.2) / REFERENCE_RADIUS) * Math.max(0.35, closing) ** 2, Math.atan2(dy, dx), "impact");
       body.vx += (other.vx - body.vx) * share;
       body.vy += (other.vy - body.vy) * share;
-      world.despawn(entity);
+
+      if (isBig) {
+        const distance = Math.hypot(dx, dy) || 1;
+
+        const apart = (body.radius + other.radius) * 1.02;
+
+        placeBody(body, other.x - (dx / distance) * apart, other.y - (dy / distance) * apart, body.vx, body.vy);
+      } else {
+        world.despawn(entity);
+      }
     });
 
     world.stores.hole.entities.forEach((entity, index) => {

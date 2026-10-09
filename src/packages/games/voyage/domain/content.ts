@@ -75,9 +75,12 @@ export interface AirModel extends Atmosphere {
   topTemperatureC: number;
 }
 
+// How a body moves in the game: round the Sun on its real elements, round its planet, or (in a generated
+// universe) on a circle round its star.
 export type SystemOrbit =
   | { kind: "sun"; elements: KeplerElements }
-  | { kind: "moon"; parent: string; distance: number; periodDays: number; longitudeAtEpoch: number };
+  | { kind: "moon"; parent: string; distance: number; periodDays: number; longitudeAtEpoch: number }
+  | { kind: "circle"; distance: number; periodDays: number; longitudeAtEpoch: number };
 
 // A body in the game's world. Its place, velocity, real position round the Sun and the point under the Sun on it
 // change as the mission clock runs; everything else is fixed when the system is laid out.
@@ -109,8 +112,8 @@ export interface SystemBody {
   rings: { inner: number; outer: number } | null;
   subsolarLongitude: number;
   subsolarLatitude: number;
-  // How far it has turned since the run began, in degrees, so a ship resting on it turns with it.
-  spun: number;
+  // Broken apart by an impact: no longer a world, only the rubble left where it was.
+  isShattered: boolean;
 }
 
 export interface SystemStar {
@@ -123,6 +126,8 @@ export interface SystemStar {
   temperatureK: number;
   rotationDays: number;
   kmPerUnit: number;
+  // Against the Sun's: 0 where there is no star at all, as in a void between galaxies.
+  luminosity: number;
 }
 
 // A band of rocks round the star, as distances from it in world units.

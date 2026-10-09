@@ -11,7 +11,7 @@ export class WeatherLayer implements RenderLayer<VoyageFrame> {
   constructor(private readonly kit: RenderKit) {}
 
   public draw({ state, camera }: VoyageFrame): void {
-    if ((state.phase !== "solar" && state.phase !== "singularity") || state.storms.length === 0) {
+    if (state.phase === "lost" || state.storms.length === 0) {
       return;
     }
 

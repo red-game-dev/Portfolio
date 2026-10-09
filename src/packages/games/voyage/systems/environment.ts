@@ -51,10 +51,14 @@ export const environmentAt = (context: VoyageContext, body: Body, ship: Ship): E
 
     return along > 0 && along < distance && Math.abs(px * toStarY - py * toStarX) / distance < place.radius * 0.95;
   });
-  const sunlight = shadowed ? 0 : SOLAR_CONSTANT / (au * au);
-  const radiant = inside ? star.temperatureK + ABSOLUTE_ZERO : shadowed ? DEEP_SPACE_C : EQUILIBRIUM_1AU / Math.sqrt(au) + ABSOLUTE_ZERO;
+  const { luminosity } = star;
+  const isDark = shadowed || luminosity <= 0;
+  const sunlight = isDark ? 0 : (SOLAR_CONSTANT * luminosity) / (au * au);
+  // A dark body's equilibrium temperature goes as the fourth root of the light reaching it.
+  const lit = (EQUILIBRIUM_1AU * luminosity ** 0.25) / Math.sqrt(au) + ABSOLUTE_ZERO;
+  const radiant = inside && luminosity > 0 ? star.temperatureK + ABSOLUTE_ZERO : isDark ? DEEP_SPACE_C : lit;
   let temperatureC = radiant;
-  let radiation = COSMIC + SOLAR / (au * au) + state.stormDose;
+  let radiation = COSMIC + (SOLAR * luminosity) / (au * au) + state.stormDose;
 
   bodies.forEach((place) => {
     const away = Math.hypot(body.x - place.x, body.y - place.y);

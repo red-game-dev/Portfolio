@@ -1,6 +1,10 @@
-import { ModuleId, PickupKind } from "./components";
+import { AlienRole, ModuleId, PickupKind, Weapon } from "./components";
 
-export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation";
+export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "tidal";
+
+// What became of a world an impact struck: a crater, a burst high in its air, a scar that melted half a
+// hemisphere, or the world broken apart.
+export type ImpactOutcome = "crater" | "airburst" | "catastrophe" | "shattered";
 
 export type VoyagePhase = "solar" | "singularity" | "lost" | "universe";
 
@@ -28,4 +32,24 @@ export interface VoyageEvents {
   failing: { module: ModuleId; isGone: boolean };
   // The hull has passed the temperature it was built for.
   melting: { temperatureC: number };
+  fired: { x: number; y: number; angle: number; kind: Weapon["kind"]; team: "ship" | "aliens" };
+  // Someone who lives here was struck, or destroyed; the boss shows itself, or falls.
+  struck: { x: number; y: number; toShields: number };
+  downed: { x: number; y: number; role: AlienRole; faction: number };
+  boss: { name: string; isFallen: boolean };
+  // A drifting rock shot to pieces.
+  shattered: { x: number; y: number; radius: number };
+  // A rock is on its way to a world: which, how big (km), how long until it hits (seconds).
+  impactAlert: { target: string; diameterKm: number; seconds: number };
+  // It hit: where, how hard against what holds the world together, and what came of it.
+  impact: { target: string; x: number; y: number; ratio: number; craterKm: number; outcome: ImpactOutcome };
+  // It was broken up, or pushed off course so it will miss.
+  impactorBroken: { x: number; y: number; target: string };
+  deflected: { target: string };
+  // The strange things: a dark forest hears the ship and strikes, a star collapses and blows, a gamma ray burst
+  // lines up and fires, a wormhole throws the ship across the universe, tides stretch it.
+  heard: { seconds: number };
+  supernova: { seconds: number; isBlown: boolean };
+  burst: { seconds: number; isFired: boolean };
+  wormhole: { x: number; y: number };
 }

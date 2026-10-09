@@ -34,7 +34,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `server/kv` | `KeyValueStore` with `MemoryStore`, `UpstashStore` (pipelined, through the official client) and `ResilientStore` (memory for a cooldown when the shared store fails) |
 | `server/quota` | `SlidingWindowLimiter` and `DailyQuota` over a shared counter |
 | `accessibility/motion` | The reduced motion preference, safe to call during server rendering |
-| `accessibility/roving` | `rovingTarget`, where arrows, Home and End move focus in a row of tabs or cards |
+| `accessibility/roving` | `rovingTarget`, where arrows, Home and End move focus in a row of tabs or cards (Home and End can be left to the browser) |
 | `browser/storage` | `readStored` and `writeStored`: guarded localStorage that validates what it reads and survives private windows and full quotas |
 | `browser/images` | `decodeImage`: each image fetched and decoded once a visit however many things ask for it, retried after a failure |
 | `browser/store` | Storage adapters chosen by need (`createStore`: IndexedDB for large or lasting data, localStorage for small, memory when neither works) and a versioned, validated `Repository` that migrates old data and never throws |
@@ -64,6 +64,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `insights/career` | `TenureCalculator`: years in a role from date ranges, overlaps merged; `formatPeriod` and `splitTitle` for how a role is written |
 | `insights/repo-growth` | A repository's lines per district after each commit, guarded, validated and mapped to heights against the tallest district (`RepoGrowthService`), with `frameIndexAt` and `heightBetween` for playback |
 | `insights/skills` | Years of real use per skill from roles and projects, with a rarity policy |
+| `interaction/focus` | Where an event lands relative to part of the page: `isInside`, `focusLeaves` for a blur that leaves a container, `isTypingTarget` for a key typed into a field, `closestTo`, and `listenOutside`, which hears presses outside a part of the page until stopped |
 | `interaction/gestures` | Pointer gestures as small state machines with no DOM of their own: `PressTimer` (a tap or a hold), `SwipeTracker` (a finger or pen swiping a step back or forward), `DragTracker` (how far a drag moved since the last reading) and `PinchTracker` (how much two fingers spread), plus `localPoint` and `isPointerlessClick` for a keyboard's or assistive technology's click |
 | `interaction/keys` | `KeyMap`: key presses turned into named intents, letters in either case, physical keys where a layout needs them, modifiers left to the browser where asked, presses it should not take (typing) skipped, and the event handled (default prevented, propagation stopped) as configured; `HeldKeys` for keys held down, read as intents and axes without allocating; `ARROW_STEPS` and `HORIZONTAL_ARROWS` |
 | `interaction/scroll-frame` | `ScrollFrame`: one scroll and resize listener for a whole page, reading layout for every subscriber before any of them writes, at most once a frame, and listening only while it has subscribers |

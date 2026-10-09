@@ -48,10 +48,12 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `games/bug-raid` | A playable arcade game on `frame-loop` and `graphics/canvas`, with pointer, touch and keyboard input |
 | `games/heroes` | MMO hero classes as data (sovereign, archmage, strategist, paladin, artificer, rune knight, captain, ranger, warsmith, battlemage) on one player, painted by `HeroPainter` and run as a rig model |
 | `games/launch` | A launch out of the game world: a tested `LaunchSimulation` (hold to charge or tap to launch, a climb past one band per zone, orbit, and a self destruct that counts down, explodes and launches a new ship), a `LaunchGame` on `frame-loop` that runs only while the ship moves, and a canvas renderer |
-| `games/voyage` | The voyage past orbit: a tested `VoyageSimulation` (Earth out past every planet to Pluto by real distance, the singularity beyond it, then universe to universe through black holes that pull, with hazards, pickups, shields and a score), a `VoyageGame` that steers by keys or a pointer and reports changes a few times a second, and a renderer that paints planets, rocks, the black hole and the ship once into sprites and only blits them after |
+| `games/voyage` | The voyage past orbit on `games/engine`: the real solar system as content (`SolarSystemSource`, guarded, validated and mapped to game units by `RouteService`), a tested `VoyageSimulation` of one system per file (gravity, air and landings, fuel and skimming, hull, shields and damage, black hole capture, universes), a `VoyageGame` that flies the camera and steers by a pointer or keys, telemetry in real units, and a renderer over three canvases that paints every body once into sprites and lenses black holes through `graphics/webgl` |
+| `games/engine` | A small entity component engine: sparse set `ComponentStore`s, a `World` with deferred despawn, a typed `EventBus`, a fixed step `SystemPipeline` with interpolation, a spring `Camera` with look ahead, zoom and shake, a `SpatialHash`, a `Pool` and a layered `RenderPipeline` |
 | `games/live-table` | A live dealer round (place your bets, final bets, no more bets, results) with other players throwing face down, as a tested `LiveTableSimulation`, a `LiveTableGame` on `frame-loop` and a canvas felt renderer; and the dealer as a rig model (`createDealerModel`): body and head layers, outfits as data |
 | `graphics/colour` | `hexToRgb`, `rgbChannels` for CSS custom properties, `mixRgb` and `rgba` |
 | `graphics/canvas` | `CanvasRenderer` base for DPR aware surfaces, `GlyphAtlas` for GPU friendly text drawing, and `SpriteCache`: detailed artwork painted once per frame key at device resolution and blitted after |
+| `graphics/webgl` | `LensingPresenter`: a WebGL pass that bends a canvas round point lenses (deflection, shadow, photon ring, mirrored edges), hidden while there is nothing to bend and absent where WebGL is |
 | `graphics/pixel-art` | Pixel maps to one SVG path per colour, for crisp sprites at any size |
 | `insights/ai-usage` | Domain model, guard, validators, mapper and service for an AI usage breakdown, independent of any icon library or content store |
 | `insights/career` | `TenureCalculator`: years in a role from date ranges, overlaps merged; `formatPeriod` and `splitTitle` for how a role is written |
@@ -59,6 +61,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `insights/skills` | Years of real use per skill from roles and projects, with a rarity policy |
 | `interaction/scroll-frame` | `ScrollFrame`: one scroll and resize listener for a whole page, reading layout for every subscriber before any of them writes, at most once a frame, and listening only while it has subscribers |
 | `interaction/terminal` | A command registry, input parser and session for a text terminal, with no rendering of its own |
+| `physics/newtonian` | Newtonian physics as pure functions: a `GravityField` floored at each surface, symplectic integration and exponential damping, orbital speeds and surface gravity, tidal pull, time dilation, and an exponential atmosphere with drag and entry heating |
 | `math/clamp` | `clamp` and `clamp01` |
 | `math/easing` | `easeInOut`, `easeIn` and `lerp`, shared by the backdrop and the games |
 | `math/hex-grid` | Pointy topped hex grid geometry and a snaking route through it, for map layouts |

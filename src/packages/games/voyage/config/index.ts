@@ -1,108 +1,160 @@
-import { VoyageRouteStop, VoyageStyle } from "../domain/types";
+import { VoyageStyle } from "../domain/theme";
+import { RouteLayout } from "../mappers/RouteMapper";
 
-export interface VoyageScoring {
-  // Per world unit flown.
+export interface ShipConfig {
+  radius: number;
+  mass: number;
+  hull: number;
+  shields: number;
+  // Shield points back per second, after `shieldDelayMs` without a hit.
+  shieldRegen: number;
+  shieldDelayMs: number;
+  fuel: number;
+  // Fuel per second at full thrust.
+  burn: number;
+  // World units per second squared at full thrust, and when braking against the velocity.
+  thrust: number;
+  brake: number;
+  // Radians per second the ship can turn.
+  turnRate: number;
+  // Inertial dampers: velocity bled per second, so the ship stays flyable. Space itself has no drag.
+  dampers: number;
+  maxSpeed: number;
+}
+
+export interface FlightConfig {
+  // Slower than this, touching a rocky surface is a landing; faster is a crash.
+  safeLanding: number;
+  // Hull damage per (speed over safe)^2 on a crash.
+  crash: number;
+  drag: number;
+  heating: number;
+  cooling: number;
+  // Hull damage per second while heat is over 1.
+  overheat: number;
+  // Hull damage per second at full depth below a giant's one bar level, and the depth (as a share of its
+  // radius) where the hull gives out.
+  crush: number;
+  crushDepth: number;
+  // Fuel scooped per second while skimming a giant's upper air.
+  skim: number;
+  // Hull damage per unit of rock radius per (relative speed)^2.
+  impact: number;
+}
+
+export interface SpawnConfig {
+  // Rocks kept round the ship in open space, in a belt (scaled by its density) and in the universes.
+  open: number;
+  belt: number;
+  universe: number;
+  // Extra rocks in the universes per minute spent in them.
+  universeGrowth: number;
+  minRadius: number;
+  maxRadius: number;
+  pickups: number;
+}
+
+export interface HoleConfig {
+  singularityMu: number;
+  // How fast the singularity's pull grows once Pluto is behind, as a share of itself per second.
+  singularityGrowth: number;
+  singularityHorizon: number;
+  mu: number;
+  horizon: number;
+  // Black holes kept round the ship in each universe, and how far away they appear.
+  perUniverse: number;
+  spawnDistance: [number, number];
+  captureMs: number;
+  lostMs: number;
+  jumpMs: number;
+}
+
+export interface PickupConfig {
+  score: number;
+  repair: number;
+  shield: number;
+  fuel: number;
+}
+
+export interface ScoringConfig {
   perUnit: number;
   pickup: number;
-  // For every universe reached, the first included.
   universe: number;
-  // Taken off for a rock hit on the way out, where hits cost no shields.
-  knock: number;
+  landing: number;
+  discovery: number;
+}
+
+export interface UnitsConfig {
+  // Real km/s per world unit per second, so cruise reads like a real deep space probe.
+  kmPerSecond: number;
+  // Real km between bodies come from their distance from the Sun.
+  kmPerAu: number;
 }
 
 export interface VoyageConfig {
   framesPerSecond: number;
-  maxStepMs: number;
-  // Earth to Pluto. Distance grows with the square of time, so the inner planets are not crowded together
-  // and the outer ones still come round before the run drags.
-  solarMs: number;
-  route: VoyageRouteStop[];
-  // How fast space streams past, in world units a second: through the solar system, then in the universes,
-  // where it speeds up by `speedGrowth` a minute to `maxSpeed`.
-  solarSpeed: number;
-  universeSpeed: number;
-  speedGrowth: number;
-  maxSpeed: number;
-  shipRadius: number;
-  shipSpeed: number;
-  shields: number;
-  invulnerableMs: number;
-  // The solar system is the warm up: rocks there knock the score back but cost no shields, so everyone reaches
-  // the black hole and what lies past it. Shields only count from the first universe on.
-  isSolarSafe: boolean;
-  // Between hazards in open space, when a universe begins, and at the fastest the universes get.
-  hazardEveryMs: number;
-  universeHazardEveryMs: number;
-  minHazardEveryMs: number;
-  pickupEveryMs: number;
-  shieldEveryMs: number;
-  // A black hole in the universes comes round every so often, somewhere in this range.
-  holeEveryMs: [number, number];
-  holeRadius: number;
-  holePull: number;
-  // Past Pluto: the singularity's size, how long until it takes the ship whatever it does, and how long the
-  // ship is lost inside it. Later black holes are crossed faster.
-  singularityRadius: number;
-  singularityMs: number;
-  captureMs: number;
-  lostMs: number;
-  jumpMs: number;
-  scoring: VoyageScoring;
-  // How many universes there are on the other side.
+  stepMs: number;
+  maxSteps: number;
+  layout: RouteLayout;
+  ship: ShipConfig;
+  flight: FlightConfig;
+  spawn: SpawnConfig;
+  holes: HoleConfig;
+  pickups: PickupConfig;
+  scoring: ScoringConfig;
+  units: UnitsConfig;
   universes: number;
+  // The solar system is the warm up: the hull cannot fail there, so every reader reaches the black hole.
+  isSolarSafe: boolean;
 }
 
 export type VoyageConfigOverrides = Partial<VoyageConfig>;
 
-// The way out, by distance from the Sun (semi-major axes, rounded). The Moon is passed almost at once.
-export const SOLAR_ROUTE: VoyageRouteStop[] = [
-  { id: "moon", au: 1.003, atMs: 3200, radius: 0.075, side: 1, inset: 1.9 },
-  { id: "mars", au: 1.52, radius: 0.1, side: -1, inset: 1.7 },
-  { id: "belt", au: 2.2, until: 3.2, every: 300, radius: 0, side: 1, inset: 0 },
-  { id: "jupiter", au: 5.2, radius: 0.48, side: 1, inset: 0.45 },
-  { id: "saturn", au: 9.54, radius: 0.3, side: -1, inset: 0.75 },
-  { id: "uranus", au: 19.19, radius: 0.17, side: 1, inset: 1.15 },
-  { id: "neptune", au: 30.07, radius: 0.17, side: -1, inset: 1.15 },
-  { id: "kuiper", au: 30.5, until: 38.6, every: 650, radius: 0, side: 1, inset: 0 },
-  { id: "pluto", au: 39.48, radius: 0.06, side: 1, inset: 2.2 },
-];
-
 export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
-  framesPerSecond: 60,
-  maxStepMs: 50,
-  solarMs: 62000,
-  route: SOLAR_ROUTE,
-  solarSpeed: 0.36,
-  universeSpeed: 0.46,
-  speedGrowth: 0.09,
-  maxSpeed: 0.95,
-  shipRadius: 0.036,
-  shipSpeed: 1.15,
-  shields: 3,
-  invulnerableMs: 1400,
-  isSolarSafe: true,
-  hazardEveryMs: 1900,
-  universeHazardEveryMs: 1150,
-  minHazardEveryMs: 380,
-  pickupEveryMs: 1700,
-  shieldEveryMs: 21000,
-  holeEveryMs: [7000, 13000],
-  holeRadius: 0.055,
-  holePull: 0.011,
-  singularityRadius: 0.13,
-  singularityMs: 7000,
-  captureMs: 1100,
-  lostMs: 3200,
-  jumpMs: 1500,
-  scoring: { perUnit: 20, pickup: 25, universe: 500, knock: 30 },
+  framesPerSecond: 120,
+  stepMs: 1000 / 120,
+  maxSteps: 10,
+  layout: { length: 120, earthRadius: 0.35, radiusExponent: 0.45, gravityScale: 0.09, spread: 6 },
+  ship: {
+    radius: 0.06,
+    mass: 1,
+    hull: 1000,
+    shields: 400,
+    shieldRegen: 80,
+    shieldDelayMs: 2500,
+    fuel: 100,
+    burn: 1.1,
+    thrust: 1.5,
+    brake: 1.2,
+    turnRate: 5.5,
+    dampers: 0.22,
+    maxSpeed: 3.2,
+  },
+  flight: { safeLanding: 0.42, crash: 520, drag: 0.8, heating: 0.06, cooling: 0.35, overheat: 140, crush: 900, crushDepth: 0.86, skim: 12, impact: 70 },
+  spawn: { open: 5, belt: 28, universe: 13, universeGrowth: 4, minRadius: 0.04, maxRadius: 0.13, pickups: 5 },
+  holes: {
+    singularityMu: 4,
+    singularityGrowth: 1.2,
+    singularityHorizon: 0.42,
+    mu: 1.6,
+    horizon: 0.24,
+    perUniverse: 2,
+    spawnDistance: [6, 11],
+    captureMs: 2400,
+    lostMs: 3200,
+    jumpMs: 1600,
+  },
+  pickups: { score: 25, repair: 150, shield: 200, fuel: 35 },
+  scoring: { perUnit: 6, pickup: 25, universe: 500, landing: 150, discovery: 100 },
+  units: { kmPerSecond: 7, kmPerAu: 149597870.7 },
   universes: 5,
+  isSolarSafe: true,
 };
 
 export const resolveVoyageConfig = (overrides: VoyageConfigOverrides = {}): VoyageConfig => ({ ...DEFAULT_VOYAGE_CONFIG, ...overrides });
 
 export interface VoyageUniverseTheme {
   style: VoyageStyle;
-  // The universe's own colour, the deep it is set in, and what drifts through it.
   accent: string;
   deep: string;
   hazard: string;

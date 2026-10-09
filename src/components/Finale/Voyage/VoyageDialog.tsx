@@ -1,13 +1,20 @@
 import { FC, useEffect, useRef, useState } from "react";
 
-import { faPause, faPlay, faRocket, faShieldHalved, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faPause, faPlay, faRocket, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton } from "@/components/Controls";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
-import { voyageMessage, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import {
   Badge,
+  BarFill,
+  BarLabel,
+  BarRow,
+  Bars,
+  BarTrack,
+  BarValue,
   Buttons,
   Canvas,
   Card,
@@ -16,6 +23,7 @@ import {
   Hud,
   HudButtons,
   IconButton,
+  LensCanvas,
   Message,
   Overlay,
   Place,
@@ -24,10 +32,16 @@ import {
   ReadingValue,
   Readout,
   Score,
-  Shields,
   Stage,
+  TelemetryList,
+  TelemetryName,
+  TelemetryPanel,
+  TelemetryRow,
+  TelemetryTitle,
+  TelemetryValue,
   Text,
   Title,
+  Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import useModalDialog from "@/hooks/useModalDialog";
 import type { VoyageSnapshot } from "@/packages/games/voyage";
@@ -45,29 +59,37 @@ interface VoyageDialogProps {
 
 const CONTROLS_ID = "voyage-controls";
 
-// The voyage, full screen: the game on its canvas, what it shows in plain text over it (where the ship is, the
-// score, the shields, each moment said once), and a card to start, to pause and to end on. Opens itself on mount.
+// Hull green turning red as it fails, shields blue, fuel gold.
+const BAR_COLOUR = { hull: "#6ee7a8", hullLow: "#ff4d5e", shields: "#4fd8ff", fuel: "#ffd76a" };
+
+// The voyage, full screen: the game on its canvases (a 2D back, the GPU lens, a 2D front), and over it in plain
+// text everything it shows: where the ship is, its hull, shields and fuel as MMO bars, the score, the live
+// telemetry, and each moment said once. A card starts, pauses and ends a run. Opens itself on mount.
 export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, onRecord, onClose }: VoyageDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const backRef = useRef<HTMLCanvasElement>(null);
+  const frontRef = useRef<HTMLCanvasElement>(null);
+  const lensRef = useRef<HTMLCanvasElement>(null);
   const onBackdropClick = useModalDialog(dialogRef, true);
-  const { snapshot, isReady, isPaused, play, pause, resume, onKeyDown, onKeyUp, onPointerDown, onPointerMove, onPointerEnd } = useVoyage(stageRef, canvasRef);
+  const voyage = useVoyage({ stage: stageRef, back: backRef, front: frontRef, lens: lensRef });
+  const { snapshot, notice, isReady, isPaused, play, pause, resume } = voyage;
   const [message, setMessage] = useState<{ id: number; text: string } | null>(null);
   const previous = useRef<VoyageSnapshot | null>(null);
   const bestBefore = useRef(best);
   const status = snapshot?.status ?? "ready";
+  const say = (text: string | null) => {
+    if (text) {
+      setMessage((current) => ({ id: (current?.id ?? 0) + 1, text }));
+    }
+  };
 
   useEffect(() => {
     if (!snapshot) {
       return;
     }
 
-    const text = voyageMessage(content, snapshot, previous.current, universes);
-
-    if (text) {
-      setMessage((current) => ({ id: (current?.id ?? 0) + 1, text }));
-    }
+    say(voyageMessage(content, snapshot, previous.current, universes));
 
     if (snapshot.status === "flying" && previous.current?.status !== "flying") {
       bestBefore.current = best;
@@ -80,25 +102,55 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     previous.current = snapshot;
   }, [best, content, onRecord, snapshot, universes]);
 
+  useEffect(() => {
+    if (notice) {
+      say(voyageNotice(content, notice));
+    }
+  }, [content, notice]);
+
+  const hullShare = snapshot && snapshot.maxHull > 0 ? snapshot.hull / snapshot.maxHull : 1;
+  const bars = snapshot ? [
+    { label: content.hull, value: snapshot.hull, max: snapshot.maxHull, colour: hullShare < 0.3 ? BAR_COLOUR.hullLow : BAR_COLOUR.hull },
+    { label: content.shields, value: snapshot.shields, max: snapshot.maxShields, colour: BAR_COLOUR.shields },
+    { label: content.fuel, value: snapshot.fuel, max: snapshot.maxFuel, colour: BAR_COLOUR.fuel },
+  ] : [];
+
   return (
-    <Dialog ref={dialogRef} onClose={onClose} onClick={onBackdropClick} onKeyDown={onKeyDown} onKeyUp={onKeyUp} aria-label={content.title}>
+    <Dialog ref={dialogRef} onClose={onClose} onClick={onBackdropClick} onKeyDown={voyage.onKeyDown} onKeyUp={voyage.onKeyUp} aria-label={content.title}>
       <Stage
         ref={stageRef}
         tabIndex={-1}
         role="application"
         aria-label={content.canvasLabel}
         aria-describedby={CONTROLS_ID}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerEnd}
-        onPointerCancel={onPointerEnd}
-        onPointerLeave={onPointerEnd}
+        onPointerDown={voyage.onPointerDown}
+        onPointerMove={voyage.onPointerMove}
+        onPointerUp={voyage.onPointerEnd}
+        onPointerCancel={voyage.onPointerEnd}
+        onPointerLeave={voyage.onPointerEnd}
       >
-        <Canvas ref={canvasRef} aria-hidden="true" />
+        <Canvas ref={backRef} aria-hidden="true" />
+        <LensCanvas ref={lensRef} aria-hidden="true" />
+        <Canvas ref={frontRef} aria-hidden="true" />
         <ControlsNote id={CONTROLS_ID}>{content.controls}</ControlsNote>
       </Stage>
       <Hud>
-        <Place>{snapshot ? voyagePlace(content, snapshot, universes) : ""}</Place>
+        <Vitals>
+          <Place>{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
+          {status !== "ready" && (
+            <Bars>
+              {bars.map((bar) => (
+                <BarRow key={bar.label}>
+                  <BarLabel>{bar.label}</BarLabel>
+                  <BarValue>{`${bar.value} / ${bar.max}`}</BarValue>
+                  <BarTrack role="meter" aria-label={bar.label} aria-valuemin={0} aria-valuemax={bar.max} aria-valuenow={bar.value}>
+                    <BarFill colour={bar.colour} style={{ transform: `scaleX(${bar.max > 0 ? bar.value / bar.max : 0})` }} />
+                  </BarTrack>
+                </BarRow>
+              ))}
+            </Bars>
+          )}
+        </Vitals>
         <Readout>
           <Reading>
             <ReadingName>{content.score}</ReadingName>
@@ -107,14 +159,6 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           <Reading>
             <ReadingName>{content.best}</ReadingName>
             <ReadingValue>{Math.max(best, status === "over" ? snapshot?.score ?? 0 : 0)}</ReadingValue>
-          </Reading>
-          <Reading>
-            <ReadingName>{content.shields}</ReadingName>
-            <ReadingValue>
-              <Shields aria-label={String(snapshot?.shields ?? 0)}>
-                {Array.from({ length: snapshot?.shields ?? 0 }, (_, index) => <FontAwesomeIcon key={index} icon={faShieldHalved} aria-hidden="true" />)}
-              </Shields>
-            </ReadingValue>
           </Reading>
         </Readout>
         <HudButtons>
@@ -128,6 +172,19 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </IconButton>
         </HudButtons>
       </Hud>
+      {snapshot && status === "flying" && (
+        <TelemetryPanel aria-label={content.telemetry.title}>
+          <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
+          <TelemetryList>
+            {telemetryRows(content, snapshot).map((row) => (
+              <TelemetryRow key={row.label}>
+                <TelemetryName>{row.label}</TelemetryName>
+                <TelemetryValue>{row.value}</TelemetryValue>
+              </TelemetryRow>
+            ))}
+          </TelemetryList>
+        </TelemetryPanel>
+      )}
       {message && status === "flying" && <Message key={message.id} role="status">{message.text}</Message>}
       {(status !== "flying" || isPaused) && (
         <Overlay>

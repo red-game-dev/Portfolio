@@ -1,4 +1,4 @@
-import type { VoyageSnapshot } from "@/packages/games/voyage";
+import type { VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
 import { fill } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
@@ -42,5 +42,21 @@ export const voyagePlace = (content: FinaleVoyage, snapshot: VoyageSnapshot, uni
     return fill(content.universe, { count: snapshot.universes, name: universes[snapshot.universe] ?? "" });
   }
 
-  return fill(content.distance, { au: snapshot.au.toFixed(1) });
+  return fill(content.distance, { au: (snapshot.telemetry.au ?? 1).toFixed(1) });
+};
+
+// What to say when something happens that the snapshot does not show: a landing, a lift off, an emergency burn,
+// the moment a black hole takes the ship. The end of a run has its own card.
+export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): string | null => {
+  if (notice.kind === "captured") {
+    return content.captured;
+  }
+
+  if (notice.kind === "destroyed") {
+    return null;
+  }
+
+  const template = notice.kind === "landed" ? content.landed : notice.kind === "tookOff" ? content.tookOff : content.emergency;
+
+  return fill(template, { body: content.stops[notice.body] ?? notice.body });
 };

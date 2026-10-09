@@ -1,275 +1,350 @@
-import { ManualScheduler } from "@/packages/animation/frame-loop";
+import { InMemoryContentSource } from "@/packages/core/content";
 import {
   DEFAULT_VOYAGE_CONFIG,
+  NO_INPUT,
   resolveVoyageConfig,
-  SOLAR_ROUTE,
-  VoyageConfigOverrides,
-  VoyageGame,
+  RouteService,
+  SOLAR_SYSTEM,
+  SolarSystemSource,
+  VoyageConfig,
   VoyageInput,
-  VoyageRenderer,
   VoyageSimulation,
-  VoyageSnapshot,
 } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
 
-const PHONE = { width: 390, height: 760 };
-const NEVER = 1e12;
-// Nothing to hit or catch, so a test can watch one thing at a time.
-const CALM: VoyageConfigOverrides = {
-  route: SOLAR_ROUTE.map((stop) => (stop.every ? { ...stop, every: NEVER } : stop)),
-  hazardEveryMs: NEVER,
-  universeHazardEveryMs: NEVER,
-  minHazardEveryMs: NEVER,
-  pickupEveryMs: NEVER,
-  shieldEveryMs: NEVER,
+const defaults = DEFAULT_VOYAGE_CONFIG;
+const route = new RouteService(new SolarSystemSource(), defaults.layout).getView();
+const bodyOf = (id: string) => {
+  const found = route.bodies.find((body) => body.id === id);
+
+  if (!found) {
+    throw new Error(`no ${id} on the route`);
+  }
+
+  return found;
 };
 
-const create = (overrides: VoyageConfigOverrides = {}, seed = 7) => {
-  const simulation = new VoyageSimulation(PHONE, { config: resolveVoyageConfig({ ...CALM, ...overrides }), random: createSeededRandom(seed) });
+// Nothing spawns round the ship, so a test sees only what it sets up.
+const CALM: Partial<VoyageConfig> = { spawn: { ...defaults.spawn, open: 0, belt: 0, universe: 0, universeGrowth: 0, pickups: 0 } };
 
+const create = (overrides: Partial<VoyageConfig> = {}, seed = 7) => {
+  const simulation = new VoyageSimulation(route, { config: resolveVoyageConfig({ ...CALM, ...overrides }), random: createSeededRandom(seed) });
+
+  simulation.setView(2, 1.4);
   simulation.start();
 
   return simulation;
 };
 
-const still: VoyageInput = { direction: { x: 0, y: 0 }, target: null };
+const partsOf = (simulation: VoyageSimulation) => {
+  const { stores } = simulation.world;
+  const body = stores.body.get(simulation.state.ship);
+  const ship = stores.ship.get(simulation.state.ship);
+  const health = stores.health.get(simulation.state.ship);
 
-const run = (simulation: VoyageSimulation, ms: number, input: (simulation: VoyageSimulation) => VoyageInput = () => still, stepMs = 16) => {
-  for (let elapsed = 0; elapsed < ms; elapsed += stepMs) {
-    simulation.step(stepMs, input(simulation));
+  if (!body || !ship || !health) {
+    throw new Error("the ship is gone");
   }
+
+  return { body, ship, health };
 };
 
-const runUntil = (simulation: VoyageSimulation, done: (simulation: VoyageSimulation) => boolean, limitMs: number,
-  input: (simulation: VoyageSimulation) => VoyageInput = () => still) => {
-  for (let elapsed = 0; elapsed < limitMs && !done(simulation); elapsed += 16) {
-    simulation.step(16, input(simulation));
-  }
+const place = (simulation: VoyageSimulation, x: number, y: number, vx = 0, vy = 0) => {
+  Object.assign(partsOf(simulation).body, { x, y, prevX: x, prevY: y, vx, vy });
 };
 
-// Out past Pluto and through the singularity into the first universe.
-const reachUniverses = (simulation: VoyageSimulation) => {
-  runUntil(simulation, ({ state }) => state.phase === "universe", DEFAULT_VOYAGE_CONFIG.solarMs + 20000);
-};
+const burn = (thrust: number, aim: { x: number; y: number } | null = null): VoyageInput => ({ ...NO_INPUT, thrust, aim });
 
-describe("VoyageSimulation", () => {
-  test("passes the Moon, Mars, the belt and every planet out to Pluto in order, at their distances from the Sun", () => {
+describe("the solar system route", () => {
+  test("is laid out outward in the order of real distance from the Sun, winding to either side", () => {
+    const distances = route.bodies.map((body) => Math.hypot(body.x, body.y));
+
+    expect(distances).toEqual([...distances].sort((first, second) => first - second));
+    expect(route.bodies.map((body) => body.id)).toEqual(SOLAR_SYSTEM.bodies.map((body) => body.id));
+    expect(new Set(route.bodies.slice(2).map((body) => Math.sign(body.x))).size).toBe(2);
+    expect(Math.hypot(route.singularity.x, route.singularity.y)).toBeGreaterThan(route.length);
+  });
+
+  test("refuses data whose rules the layout depends on", () => {
+    const backwards = { ...SOLAR_SYSTEM, bodies: [...SOLAR_SYSTEM.bodies].reverse() };
+
+    expect(() => new RouteService(new InMemoryContentSource(backwards), defaults.layout).getView()).toThrow();
+    expect(() => new RouteService(new InMemoryContentSource({ bodies: "none" }), defaults.layout).getView()).toThrow();
+  });
+
+  test.each([["earth", 9.81], ["mars", 3.72], ["jupiter", 24.79], ["pluto", 0.62]])("%s's surface gravity reads true in telemetry", (id, gravity) => {
     const simulation = create();
-    const passed: string[] = [];
+    const body = bodyOf(String(id));
 
-    runUntil(simulation, ({ state }) => {
-      if (state.passing && passed[passed.length - 1] !== state.passing) {
-        passed.push(state.passing);
-      }
+    place(simulation, body.x + body.radius * 1.001, body.y);
+    simulation.step(defaults.stepMs);
 
-      return state.phase !== "solar";
-    }, DEFAULT_VOYAGE_CONFIG.solarMs + 1000);
-
-    expect(passed).toEqual(SOLAR_ROUTE.map((stop) => stop.id));
-    expect(simulation.state.phase).toBe("singularity");
-    expect(simulation.snapshot.au).toBe(39.5);
-  });
-
-  test("the distance grows slowly at first, so the inner planets are not crowded together", () => {
-    const simulation = create();
-
-    run(simulation, DEFAULT_VOYAGE_CONFIG.solarMs / 4);
-    expect(simulation.state.au).toBeLessThan(4);
-
-    run(simulation, DEFAULT_VOYAGE_CONFIG.solarMs / 4);
-    expect(simulation.state.au).toBeGreaterThan(9);
-  });
-
-  test("the singularity past Pluto takes the ship whatever it does, and the ship comes out in the first universe", () => {
-    const simulation = create();
-    const fleeing = (): VoyageInput => ({ direction: { x: 0, y: 1 }, target: null });
-
-    runUntil(simulation, ({ state }) => state.phase === "singularity", DEFAULT_VOYAGE_CONFIG.solarMs + 1000);
-    const scoreBefore = simulation.state.score;
-
-    runUntil(simulation, ({ state }) => state.phase === "lost", DEFAULT_VOYAGE_CONFIG.singularityMs + DEFAULT_VOYAGE_CONFIG.captureMs + 500, fleeing);
-    expect(simulation.state.phase).toBe("lost");
-
-    runUntil(simulation, ({ state }) => state.phase === "universe", DEFAULT_VOYAGE_CONFIG.lostMs + 100);
-    expect(simulation.snapshot).toMatchObject({ phase: "universe", universe: 0, universes: 1, status: "flying" });
-    expect(simulation.state.score - scoreBefore).toBeGreaterThanOrEqual(DEFAULT_VOYAGE_CONFIG.scoring.universe);
-  });
-
-  test("a black hole in the universes throws the ship somewhere it has not been, never where it just was", () => {
-    const simulation = create({ holeEveryMs: [400, 600] });
-    const towardsTheHole = ({ state }: VoyageSimulation): VoyageInput => ({
-      direction: { x: 0, y: 0 },
-      target: state.hole ? { x: state.hole.x, y: state.hole.y } : null,
-    });
-    const universes: number[] = [];
-
-    reachUniverses(simulation);
-    universes.push(simulation.state.universe);
-
-    while (universes.length < 6) {
-      const before = simulation.state.universes;
-
-      runUntil(simulation, ({ state }) => state.universes > before, 20000, towardsTheHole);
-      expect(simulation.state.universes).toBe(before + 1);
-      universes.push(simulation.state.universe);
-    }
-
-    universes.slice(1).forEach((universe, index) => expect(universe).not.toBe(universes[index]));
-    expect(new Set(universes.slice(0, DEFAULT_VOYAGE_CONFIG.universes)).size).toBe(DEFAULT_VOYAGE_CONFIG.universes);
-  });
-
-  test("an ordinary black hole can be escaped at full thrust", () => {
-    const simulation = create({ holeEveryMs: [400, 600] });
-    const away = ({ state }: VoyageSimulation): VoyageInput => ({
-      direction: { x: state.hole && state.hole.x > state.ship.x ? -1 : 1, y: 1 },
-      target: null,
-    });
-
-    reachUniverses(simulation);
-    run(simulation, 6000, away);
-
-    expect(simulation.state.universes).toBe(1);
-  });
-
-  test("on the way out a rock knocks the score back but costs no shield, so everyone reaches the black hole", () => {
-    const simulation = create({ hazardEveryMs: 60 });
-    let knocks = 0;
-    let flash = 0;
-
-    runUntil(simulation, ({ state }) => {
-      if (state.flash > flash) {
-        knocks += 1;
-      }
-
-      flash = state.flash;
-
-      return state.phase !== "solar";
-    }, DEFAULT_VOYAGE_CONFIG.solarMs + 1000);
-
-    expect(knocks).toBeGreaterThan(3);
-    expect(simulation.snapshot).toMatchObject({ phase: "singularity", shields: DEFAULT_VOYAGE_CONFIG.shields, status: "flying" });
-  });
-
-  test("past the black hole a hit costs a shield, the ship cannot be hit again while it recovers, and the run ends with the last one", () => {
-    const simulation = create({ universeHazardEveryMs: 60, minHazardEveryMs: 60, holeEveryMs: [NEVER, NEVER] });
-    const losses: number[] = [];
-
-    reachUniverses(simulation);
-
-    let shields = simulation.state.shields;
-
-    runUntil(simulation, ({ state }) => {
-      if (state.shields < shields) {
-        losses.push(state.elapsedMs);
-        shields = state.shields;
-      }
-
-      return state.status === "over";
-    }, 60000);
-
-    expect(simulation.snapshot).toMatchObject({ status: "over", shields: 0 });
-    expect(losses).toHaveLength(DEFAULT_VOYAGE_CONFIG.shields);
-    losses.slice(1).forEach((at, index) => expect(at - losses[index]).toBeGreaterThanOrEqual(DEFAULT_VOYAGE_CONFIG.invulnerableMs));
-
-    const score = simulation.state.score;
-
-    run(simulation, 1000);
-    expect(simulation.state.score).toBe(score);
-  });
-
-  test("the score is the distance flown, every pickup and every universe reached", () => {
-    const simulation = create({ pickupEveryMs: 200 });
-    const { perUnit, pickup } = DEFAULT_VOYAGE_CONFIG.scoring;
-    const towardsAPickup = ({ state }: VoyageSimulation): VoyageInput => ({
-      direction: { x: 0, y: 0 },
-      target: state.items[0] ? { x: state.items[0].x, y: state.items[0].y } : null,
-    });
-
-    run(simulation, 12000, towardsAPickup);
-
-    expect(simulation.state.pickups).toBeGreaterThan(0);
-    expect(simulation.state.score).toBeCloseTo(simulation.state.flown * perUnit + simulation.state.pickups * pickup, 6);
-  });
-
-  test("the ship stays on screen however hard it is steered, and keeps its place through a resize", () => {
-    const simulation = create();
-    const radius = DEFAULT_VOYAGE_CONFIG.shipRadius;
-
-    run(simulation, 2000, () => ({ direction: { x: -1, y: 1 }, target: null }));
-    expect(simulation.state.ship.x).toBeCloseTo(radius, 6);
-    expect(simulation.state.ship.y).toBeCloseTo(simulation.state.height - radius * 1.6, 6);
-
-    simulation.resize({ width: 1440, height: 900 });
-    expect(simulation.state.ship.x).toBeGreaterThanOrEqual(0);
-    expect(simulation.state.ship.x).toBeLessThanOrEqual(simulation.state.width);
-    expect(simulation.state.ship.y).toBeLessThanOrEqual(simulation.state.height);
-  });
-
-  test("the same seed flies the same voyage", () => {
-    const first = create({ hazardEveryMs: 300 }, 42);
-    const second = create({ hazardEveryMs: 300 }, 42);
-
-    run(first, 20000);
-    run(second, 20000);
-
-    expect(second.snapshot).toEqual(first.snapshot);
-    expect(second.state.hazards).toEqual(first.state.hazards);
+    expect(simulation.snapshot.telemetry.gravity).toBeCloseTo(Number(gravity), 0);
+    expect(simulation.snapshot.telemetry.dominant).toBe(id);
   });
 });
 
-describe("VoyageGame", () => {
-  const renderer = (): VoyageRenderer & { frames: number } => {
-    const drawn = { frames: 0, resize: () => undefined, draw: () => undefined };
+describe("flight", () => {
+  test("a burn pushes along the nose and costs fuel; an empty tank pushes nothing", () => {
+    const simulation = create();
 
-    drawn.draw = () => {
-      drawn.frames += 1;
-    };
+    place(simulation, 5, 5);
+    partsOf(simulation).ship.angle = 0;
+    simulation.step(1000, burn(1));
+    expect(partsOf(simulation).body.vx).toBeGreaterThan(1);
+    expect(partsOf(simulation).ship.fuel).toBeLessThan(defaults.ship.fuel);
 
-    return drawn;
-  };
-
-  test("tells the UI what changed a few times a second at most, never once a frame", () => {
-    const scheduler = new ManualScheduler();
-    const changes: VoyageSnapshot[] = [];
-    const draw = renderer();
-    const game = new VoyageGame(draw, { scheduler, random: createSeededRandom(3), config: CALM, onChange: (snapshot) => changes.push(snapshot) });
-
-    game.resize(PHONE);
-    game.play();
-
-    // Twelve seconds: past Mars and into the asteroid belt.
-    for (let time = 0; time < 12000; time += 16) {
-      scheduler.tick(time);
-    }
-
-    expect(draw.frames).toBeGreaterThan(600);
-    expect(changes.length).toBeLessThan(60);
-    expect(changes[0]).toMatchObject({ status: "flying", phase: "solar", shields: DEFAULT_VOYAGE_CONFIG.shields });
-    expect(changes[changes.length - 1].passing).toBe("belt");
+    partsOf(simulation).ship.fuel = 0;
+    place(simulation, 5, 5);
+    simulation.step(500, burn(1));
+    expect(Math.abs(partsOf(simulation).body.vx)).toBeLessThan(0.01);
   });
 
-  test("steering by pointer flies the ship towards it, given in pixels on the canvas", () => {
-    const scheduler = new ManualScheduler();
-    const drawn: Array<{ x: number; y: number }> = [];
-    const game = new VoyageGame({
-      resize: () => undefined,
-      draw: (state) => void drawn.push({ x: state.ship.x * state.unit, y: state.ship.y * state.unit }),
-    }, { scheduler, random: createSeededRandom(3), config: CALM });
+  test("the ship turns towards the aim at its turn rate, and the brake slows it", () => {
+    const simulation = create();
 
-    game.resize(PHONE);
-    game.play();
-    game.pointTo(60, 420);
+    place(simulation, 5, 5, 2, 0);
+    partsOf(simulation).ship.angle = 0;
+    simulation.step(100, { ...NO_INPUT, aim: { x: 5, y: 10 } });
+    expect(partsOf(simulation).ship.angle).toBeCloseTo(defaults.ship.turnRate * 0.1, 1);
 
-    for (let time = 0; time < 2000; time += 16) {
-      scheduler.tick(time);
+    simulation.step(1000, { ...NO_INPUT, brake: true });
+    expect(Math.hypot(partsOf(simulation).body.vx, partsOf(simulation).body.vy)).toBeLessThan(1);
+  });
+
+  test("left alone near Jupiter, the ship falls towards it", () => {
+    const simulation = create();
+    const jupiter = bodyOf("jupiter");
+
+    place(simulation, jupiter.x + jupiter.radius * 3, jupiter.y);
+    simulation.step(1500);
+
+    expect(partsOf(simulation).body.x).toBeLessThan(jupiter.x + jupiter.radius * 3);
+  });
+});
+
+describe("surfaces and air", () => {
+  test("touching Mars slowly is a landing and scores once; a burn lifts off", () => {
+    const simulation = create();
+    const mars = bodyOf("mars");
+    const scoreBefore = simulation.state.score;
+
+    place(simulation, mars.x, mars.y - mars.radius - defaults.ship.radius - 0.001, 0, 0.1);
+    simulation.step(200);
+
+    expect(partsOf(simulation).ship.landedOn).toBe("mars");
+    expect(simulation.state.score - scoreBefore).toBeGreaterThanOrEqual(defaults.scoring.landing);
+
+    partsOf(simulation).ship.angle = -Math.PI / 2;
+    simulation.step(300, burn(1));
+    expect(partsOf(simulation).ship.landedOn).toBeNull();
+  });
+
+  test("hitting a rocky surface fast is a crash: damage, and a bounce", () => {
+    const simulation = create();
+    const moon = bodyOf("moon");
+
+    place(simulation, moon.x, moon.y - moon.radius - defaults.ship.radius - 0.01, 0, 2.5);
+    simulation.step(100);
+
+    const { body, health } = partsOf(simulation);
+
+    expect(health.shields + health.hull).toBeLessThan(defaults.ship.shields + defaults.ship.hull);
+    expect(body.vy).toBeLessThan(0);
+    expect(partsOf(simulation).ship.landedOn).toBeNull();
+  });
+
+  test("Earth's air drags and heats a fast ship; Jupiter's upper air refills the tank", () => {
+    const simulation = create();
+    const earth = bodyOf("earth");
+    const jupiter = bodyOf("jupiter");
+
+    place(simulation, earth.x, earth.y - earth.radius - 0.02, 3, 0);
+    simulation.step(200);
+    expect(Math.hypot(partsOf(simulation).body.vx, partsOf(simulation).body.vy)).toBeLessThan(3);
+    expect(partsOf(simulation).ship.heat).toBeGreaterThan(0);
+
+    partsOf(simulation).ship.fuel = 10;
+    place(simulation, jupiter.x - jupiter.radius - 0.05, jupiter.y);
+    simulation.step(100);
+    expect(partsOf(simulation).ship.fuel).toBeGreaterThan(10);
+  });
+
+  test("too deep in a giant the warm up throws the ship clear; outside the warm up the pressure crushes the hull", () => {
+    const safe = create();
+    const strict = create({ isSolarSafe: false });
+    const jupiter = bodyOf("jupiter");
+    const emergencies: string[] = [];
+
+    safe.events.on("emergency", ({ body }) => emergencies.push(body));
+    place(safe, jupiter.x - jupiter.radius * 0.8, jupiter.y);
+    safe.step(defaults.stepMs * 2);
+    expect(emergencies).toEqual(["jupiter"]);
+    expect(Math.hypot(partsOf(safe).body.x - jupiter.x, partsOf(safe).body.y - jupiter.y)).toBeGreaterThan(jupiter.radius);
+
+    place(strict, jupiter.x - jupiter.radius * 0.9, jupiter.y);
+    strict.step(400);
+    expect(partsOf(strict).health.hull).toBeLessThan(defaults.ship.hull);
+  });
+});
+
+describe("damage", () => {
+  test("shields take hits first, the hull is marked where it was hit, and shields come back after a pause", () => {
+    const simulation = create({ isSolarSafe: false });
+    const { body, ship, health } = partsOf(simulation);
+    const hits: number[] = [];
+
+    simulation.events.on("hit", ({ toHull }) => hits.push(toHull));
+    place(simulation, 20, 20);
+    ship.angle = 0;
+    health.shields = 50;
+
+    const rock = simulation.world.spawn();
+
+    simulation.world.stores.body.set(rock, { x: body.x + 0.1, y: body.y, vx: -3, vy: 0, prevX: body.x + 0.1, prevY: body.y, radius: 0.1, mass: 1 });
+    simulation.world.stores.hazard.set(rock, { shape: 0, isIcy: false });
+    simulation.step(defaults.stepMs);
+
+    expect(health.shields).toBe(0);
+    expect(hits[0]).toBeGreaterThan(0);
+    expect(health.decals).toHaveLength(1);
+    expect(Math.abs(health.decals[0].angle)).toBeLessThan(0.5);
+
+    simulation.step(defaults.ship.shieldDelayMs + 1000);
+    expect(health.shields).toBeGreaterThan(0);
+  });
+
+  test("in the warm up the hull holds; past it, the ship is destroyed once when the hull is gone", () => {
+    const warm = create();
+    const strict = create({ isSolarSafe: false });
+    const destroyed: number[] = [];
+
+    partsOf(warm).ship.heat = 40;
+    warm.step(3000);
+    expect(warm.state.status).toBe("flying");
+    expect(partsOf(warm).health.hull).toBeGreaterThan(0);
+
+    strict.events.on("destroyed", () => destroyed.push(1));
+    partsOf(strict).health.shields = 0;
+    partsOf(strict).ship.heat = 40;
+    strict.step(4000);
+    expect(strict.state.status).toBe("over");
+    expect(destroyed).toEqual([1]);
+  });
+});
+
+describe("the way out and beyond", () => {
+  test("passes every stop in order, then the singularity wakes, takes the ship, and it wakes in the first universe", () => {
+    const simulation = create();
+    const passed: string[] = [];
+    const phases: string[] = [];
+
+    simulation.events.on("passing", ({ stop }) => passed.push(stop));
+    simulation.events.on("phase", ({ phase }) => phases.push(phase));
+
+    route.bodies.slice(1).forEach((body) => {
+      place(simulation, body.x + body.radius * 4, body.y);
+      simulation.step(defaults.stepMs);
+    });
+
+    expect(passed.filter((id) => route.bodies.some((body) => body.id === id))).toEqual(route.bodies.slice(1).map((body) => body.id));
+    expect(passed).toEqual(expect.arrayContaining(route.belts.map((belt) => belt.id)));
+    expect(simulation.state.phase).toBe("singularity");
+
+    const { x, y } = route.singularity;
+
+    place(simulation, x, y + defaults.holes.singularityHorizon * 0.9);
+    simulation.step(defaults.holes.captureMs + 100);
+    expect(simulation.state.phase).toBe("lost");
+
+    simulation.step(defaults.holes.lostMs + 100);
+    expect(simulation.snapshot).toMatchObject({ phase: "universe", universe: 0, universes: 1, status: "flying" });
+    expect(phases).toEqual(expect.arrayContaining(["singularity", "lost", "universe"]));
+  });
+
+  test("in the universes black holes are kept round the ship, and each one leads somewhere new", () => {
+    const simulation = create();
+    const universes: number[] = [];
+
+    simulation.events.on("phase", ({ phase, universe }) => {
+      if (phase === "universe") {
+        universes.push(universe);
+      }
+    });
+
+    const { x, y } = route.singularity;
+
+    route.bodies.slice(1).forEach((body) => {
+      place(simulation, body.x + body.radius * 4, body.y);
+      simulation.step(defaults.stepMs);
+    });
+    place(simulation, x, y);
+    simulation.step(defaults.holes.captureMs + defaults.holes.lostMs + 300);
+
+    while (universes.length < 6) {
+      expect(simulation.world.stores.hole.size).toBe(defaults.holes.perUniverse);
+
+      const hole = simulation.world.stores.hole.entities[0];
+      const at = simulation.world.stores.body.get(hole);
+
+      if (at) {
+        place(simulation, at.x, at.y);
+      }
+
+      simulation.step(defaults.holes.captureMs + defaults.holes.jumpMs + 300);
     }
 
-    const last = drawn[drawn.length - 1];
+    universes.slice(1).forEach((universe, index) => expect(universe).not.toBe(universes[index]));
+    expect(new Set(universes.slice(0, defaults.universes)).size).toBe(defaults.universes);
+  });
 
-    expect(last.x).toBeCloseTo(60, 0);
-    expect(last.y).toBeCloseTo(420, 0);
+  test("time runs slow by a black hole, and the telemetry says so", () => {
+    const simulation = create();
 
-    game.pause();
-    expect(game.isRunning).toBe(false);
+    route.bodies.slice(1).forEach((body) => {
+      place(simulation, body.x + body.radius * 4, body.y);
+      simulation.step(defaults.stepMs);
+    });
+    place(simulation, route.singularity.x, route.singularity.y + defaults.holes.singularityHorizon * 1.5);
+    simulation.step(defaults.stepMs);
+
+    expect(simulation.snapshot.telemetry.timeDilation).toBeGreaterThan(1.5);
+  });
+});
+
+describe("space round the ship", () => {
+  test("rocks are kept at the density of the region, and what is left far behind is let go", () => {
+    const simulation = create({ spawn: { ...defaults.spawn, pickups: 0 } });
+    const belt = route.belts[0];
+
+    simulation.step(500);
+    expect(simulation.world.stores.hazard.size).toBe(defaults.spawn.open);
+
+    place(simulation, 0, -(belt.inner + belt.outer) / 2);
+    simulation.step(defaults.stepMs * 2);
+    expect(simulation.world.stores.hazard.size).toBe(Math.round(defaults.spawn.belt * belt.density));
+  });
+
+  test("the same seed and input fly the same voyage", () => {
+    const first = create({ spawn: defaults.spawn }, 42);
+    const second = create({ spawn: defaults.spawn }, 42);
+
+    first.step(8000, burn(0.6, { x: 3, y: -40 }));
+    second.step(8000, burn(0.6, { x: 3, y: -40 }));
+
+    expect(second.snapshot).toEqual(first.snapshot);
+  });
+
+  test("speed reads in km/s, and distance from the Sun in AU grows on the way out", () => {
+    const simulation = create();
+
+    place(simulation, 0, -route.length / 2, 0, -2);
+    simulation.step(defaults.stepMs);
+
+    const { telemetry } = simulation.snapshot;
+
+    expect(telemetry.speedKmS).toBeCloseTo(2 * defaults.units.kmPerSecond, 0);
+    expect(telemetry.au).toBeGreaterThan(9);
+    expect(telemetry.au).toBeLessThan(11);
   });
 });

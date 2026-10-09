@@ -68,7 +68,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const squeeze = 1 - fall * 0.7;
 
     this.sputter = hull < 0.25 && Math.random() < 0.08 ? 0.12 : Math.max(0, this.sputter - dt);
-    this.emitExhaust(worldX, worldY, angle, body.radius, ship.thrust, hull);
+    this.emitExhaust(worldX, worldY, angle, body.radius, ship.thrust, hull, ION_TIERS.includes(tierOf(state.level)));
     this.emitDamage(worldX, worldY, angle, body.radius, health.decals, hull);
 
     if (ship.temperatureC > config.thermal.ratings.hull) {
@@ -194,13 +194,14 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     front.context.globalCompositeOperation = "source-over";
   }
 
-  private emitExhaust(x: number, y: number, angle: number, radius: number, thrust: number, hull: number): void {
+  private emitExhaust(x: number, y: number, angle: number, radius: number, thrust: number, hull: number, isIon: boolean): void {
     if (thrust < 0.05 || this.sputter > 0) {
       return;
     }
 
     const { particles, theme } = this.kit;
-    const glow = this.kit.cache.get(`glow:${theme.flameEdge}`, 64, 64, paintGlow(theme.flameEdge));
+    const colour = isIon ? ION.edge : theme.flameEdge;
+    const glow = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
     const backX = x - Math.cos(angle) * radius * 1.7;
     const backY = y - Math.sin(angle) * radius * 1.7;
 

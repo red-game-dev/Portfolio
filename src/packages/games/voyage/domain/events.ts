@@ -46,8 +46,8 @@ export interface VoyageEvents {
   // It hit: where, how hard against what holds the world together, and what came of it.
   impact: { target: string; x: number; y: number; ratio: number; craterKm: number; outcome: ImpactOutcome };
   // It was broken up, or pushed off course so it will miss.
-  impactorBroken: { x: number; y: number; target: string };
-  deflected: { target: string };
+  impactorBroken: { x: number; y: number; target: string; isFragment: boolean };
+  deflected: { target: string; isFragment: boolean };
   // The strange things: a dark forest hears the ship and strikes, a star collapses and blows, a gamma ray burst
   // lines up and fires, a wormhole throws the ship across the universe, tides stretch it.
   heard: { seconds: number };

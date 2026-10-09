@@ -213,6 +213,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         needs: "Needs",
         have: "{have} of {need}",
         blueprint: "{ship} blueprint",
+        hullPlan: "{ship} hull",
         upgrade: "Upgrade to {ship}",
         hold: "{used} of {capacity} space used",
         emptyHold: "The hold is empty. To salvage a wreck, come alongside it, match its speed and hold still until it is stripped.",

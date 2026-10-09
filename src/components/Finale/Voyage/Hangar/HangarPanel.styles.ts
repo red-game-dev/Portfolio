@@ -16,7 +16,7 @@ export const Panel = styled.section(() => [
   tw`absolute top-0 right-0 bottom-0 flex flex-col w-full md:w-[440px] text-white`,
   css`
     --accent: #c4d2ff;
-    background: rgba(5, 8, 18, 0.94);
+    background: #05081a;
     border-left: 1px solid rgba(196, 210, 255, 0.3);
     z-index: 2;
   `,

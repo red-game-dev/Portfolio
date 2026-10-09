@@ -113,6 +113,8 @@ export interface VoyageEconomyCopy {
   // "{have}" and "{need}" are replaced.
   have: string;
   blueprint: string;
+  // A hull's plans as found, "{ship}" replaced.
+  hullPlan: string;
   upgrade: string;
   // "{used}" and "{capacity}" are replaced.
   hold: string;

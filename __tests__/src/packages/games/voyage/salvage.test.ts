@@ -99,15 +99,25 @@ describe("voyage salvage and breakdowns", () => {
     expect(found).toHaveLength(1);
   });
 
-  test("a wreck drifting past too fast, or a ship burning hard, cannot be salvaged", () => {
-    const simulation = create();
-    const found: Loot[] = [];
+  test("coming in slowly, the tractor beam matches speeds; a wreck flashing past, or a ship burning hard, cannot be salvaged", () => {
+    const outcome = (drift: number, thrust: number) => {
+      const simulation = create();
+      const found: Loot[] = [];
 
-    simulation.events.on("salvaged", ({ loot }) => found.push(loot));
-    park(simulation);
-    wreckBeside(simulation, CARGO, "rocket", 0.6);
-    simulation.step(1500);
-    expect(found).toHaveLength(0);
+      simulation.events.on("salvaged", ({ loot }) => found.push(loot));
+      park(simulation);
+      wreckBeside(simulation, CARGO, "rocket", drift);
+
+      for (let index = 0; index < 150; index += 1) {
+        simulation.step(defaults.stepMs * 2, { ...NO_INPUT, thrust });
+      }
+
+      return found.length;
+    };
+
+    expect(outcome(0.4, 0)).toBe(1);
+    expect(outcome(1.2, 0)).toBe(0);
+    expect(outcome(0, 1)).toBe(0);
   });
 
   test("derelicts drift into view by themselves, and every one holds something from the catalogue or nothing", () => {

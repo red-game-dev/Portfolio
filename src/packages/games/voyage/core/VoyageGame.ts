@@ -628,8 +628,17 @@ export class VoyageGame extends FrameLoop {
           pay({ kind: "boss", name });
         }
       }),
-      events.on("impactorBroken", ({ target }) => pay({ kind: "rescue", target, isDeflected: false })),
-      events.on("deflected", ({ target }) => pay({ kind: "rescue", target, isDeflected: true })),
+      // A world is saved once per rock: breaking or turning the pieces of one already broken pays nothing more.
+      events.on("impactorBroken", ({ target, isFragment }) => {
+        if (!isFragment) {
+          pay({ kind: "rescue", target: this.nameOf(target), isDeflected: false });
+        }
+      }),
+      events.on("deflected", ({ target, isFragment }) => {
+        if (!isFragment) {
+          pay({ kind: "rescue", target: this.nameOf(target), isDeflected: true });
+        }
+      }),
       events.on("phase", ({ phase, universe }) => {
         if (phase === "universe") {
           pay({ kind: "universe", index: universe });

@@ -308,7 +308,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </IconButton>
         </HudButtons>
       </Hud>
-      {snapshot && status === "flying" && (
+      {snapshot && status === "flying" && !isHangarOpen && (
         <TelemetryPanel aria-label={content.telemetry.title}>
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>

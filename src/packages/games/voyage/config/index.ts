@@ -103,12 +103,15 @@ export interface ImpactConfig {
 }
 
 // Wrecks: how often a derelict drifts by (seconds) and how many at once; how near the ship must hold (world
-// units between hulls) and how closely it must match a wreck's speed to salvage it; how long each kind takes
+// units between hulls), how slowly it must close for the tractor beam to take hold and how fast the beam then
+// matches their speeds (a share a second), and how closely they must match to salvage; how long each kind takes
 // (seconds); and how often a rock or a comet shot apart leaves something worth taking.
 export interface SalvageConfig {
   every: [number, number];
   max: number;
   reach: number;
+  engage: number;
+  beam: number;
   match: number;
   seconds: Record<"probe" | "rocket" | "starship" | "alien" | "ore" | "ice", number>;
   debris: number;
@@ -255,7 +258,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
   life: { packs: 2, packsPerDanger: 1, spawnDistance: [9, 16], bossAfter: 45 },
   impacts: { every: [70, 150], speed: [0.7, 1.2], solarKm: [0.5, 15], universeKm: [200, 3500], planetoid: 0.3 },
   traffic: [25, 60],
-  salvage: { every: [35, 80], max: 3, reach: 0.4, match: 0.22, seconds: { probe: 1.6, rocket: 2.2, starship: 3.2, alien: 2, ore: 0.5, ice: 0.6 }, debris: 0.3 },
+  salvage: { every: [35, 80], max: 3, reach: 0.4, engage: 0.7, beam: 3, match: 0.22, seconds: { probe: 1.6, rocket: 2.2, starship: 3.2, alien: 2, ore: 0.5, ice: 0.6 }, debris: 0.3 },
   faults: { rate: 1 / 900, wearFactor: 5, heatFactor: 4, universeFactor: 1.6, max: 3, misfire: 0.45, leak: 1.2, coolant: 30, aim: 0.22, emitter: 0.85, breach: 4 },
   spawn: { open: 5, belt: 28, universe: 13, universeGrowth: 4, minRadius: 0.04, maxRadius: 0.13, pickups: 5, cometEvery: [45, 100] },
   holes: {

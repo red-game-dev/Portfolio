@@ -33,7 +33,7 @@ export const blueprintName = (copy: VoyageEconomyCopy, id: string): string => {
   const [kind, subject = ""] = id.split(":");
 
   if (kind === "hull" && isTier(subject)) {
-    return fill(copy.blueprint, { ship: copy.tiers[subject] });
+    return fill(copy.hullPlan, { ship: copy.tiers[subject] });
   }
 
   return itemName(copy, subject);

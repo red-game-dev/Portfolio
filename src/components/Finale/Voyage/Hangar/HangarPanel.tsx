@@ -127,7 +127,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, isFlying, 
           {next ? (
             <Block aria-labelledby="hangar-next">
               <Subheading id="hangar-next">{fill(copy.next, { ship: shipName(copy, next.tier, next.mark) })}</Subheading>
-              <Note>{copy.tierNotes[next.tier]}</Note>
+              {next.tier !== economy.tier && <Note>{copy.tierNotes[next.tier]}</Note>}
               <Needs aria-label={copy.needs}>
                 <Need isMet={next.shortfall.coin.RED === 0}>
                   <span>{copy.currencies.RED}</span>
@@ -147,7 +147,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, isFlying, 
                 ))}
                 {next.cost.blueprint && (
                   <Need isMet={next.shortfall.blueprint === null}>
-                    <span>{blueprintName(copy, next.cost.blueprint)}</span>
+                    <span>{fill(copy.blueprint, { ship: copy.tiers[next.tier] })}</span>
                     <span>{fill(copy.have, { have: next.shortfall.blueprint === null ? 1 : 0, need: 1 })}</span>
                   </Need>
                 )}

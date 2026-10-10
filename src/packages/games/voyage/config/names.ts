@@ -11,4 +11,5 @@ export const DEFAULT_UNIVERSE_NAMES: UniverseNames = {
     neutral: ["Union", "Guild", "Concord"],
     peaceful: ["Choir", "Drifters", "Pilgrims"],
   },
+  belt: "the {star} belt",
 };

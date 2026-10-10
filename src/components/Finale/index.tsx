@@ -17,6 +17,7 @@ import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
 import { Section } from "@/components/Section";
 import { SECTION_IDS } from "@/config/sections";
+import { SITE_URL } from "@/config/site";
 import { SOCIAL_URLS } from "@/config/social";
 import { CROSSED_ZONES, ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
 import useFocusLeave from "@/hooks/useFocusLeave";
@@ -27,6 +28,7 @@ import { fill, formatDuration, formatLocalTime } from "@/packages/text/format";
 import { focusRing, noAnimationWhenReduced } from "@/styles/mixins";
 import { FinaleContent, FinaleLaunch, FinaleLaunchSite, FinaleRank } from "@/types/game";
 import { DocumentLink } from "@/types/portfolio";
+import { PreferencesContent } from "@/types/preferences";
 
 interface FinaleProps {
   content: FinaleContent;
@@ -38,6 +40,8 @@ interface FinaleProps {
   email: string;
   linkedInUsername: string;
   cvUrl: string;
+  // The reader's settings, offered in the voyage's hangar.
+  settings: PreferencesContent;
 }
 
 const shake = keyframes`
@@ -179,6 +183,11 @@ const Note = tw.p`m-0 text-sm text-[#bbb] max-w-[70ch]`;
 
 const Actions = tw.div`flex flex-row flex-wrap gap-[10px]`;
 
+// The quiet ask for a reader who is not hiring, under the ways to get in touch.
+const Referral = tw.p`m-0 flex flex-row flex-wrap items-center gap-x-[14px] gap-y-[6px] text-xs text-[#9aa3bb] max-w-[70ch]`;
+
+const ReferralLink = tw.a`text-[#c4d2ff] underline hover:text-white`;
+
 const Restart = styled.button(() => actionStyle(false));
 
 const rankFor = (ranks: FinaleRank[], done: number) => [...ranks].sort((first, second) => second.min - first.min).find((rank) => done >= rank.min) ?? ranks[0];
@@ -212,7 +221,9 @@ const statusOf = (launch: FinaleLaunch, { status, passed, countdown, milestone }
 // The end of the run, and the page lifting off: the visitor launches out of the game world past every zone
 // they crossed, their run lights up as stars on the way, and the journey closes on where I want to go next,
 // with one last quest: get in touch.
-export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, bossCount, duelCount, email, linkedInUsername, cvUrl, fullResume }: FinaleProps) => {
+export const Finale: FC<FinaleProps> = ({
+  content, zoneLabels, contactTime, bossCount, duelCount, email, linkedInUsername, cvUrl, fullResume, settings,
+}: FinaleProps) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -330,7 +341,8 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
             content={content.voyage}
             universes={CROSSED_ZONES.map((zone) => zoneLabels[zone])}
             best={voyageBest}
-            homePad={site?.name ?? null}
+            home={site ? { name: site.name, latitude: site.latitude, longitude: site.longitude, ground: site.land } : null}
+            settings={settings}
             onRecord={recordVoyage}
             onClose={() => setIsVoyaging(false)}
           />
@@ -428,6 +440,15 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
               {content.restartLabel}
             </Restart>
           </Actions>
+          <Referral>
+            {content.referral.note}
+            <ReferralLink href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(SITE_URL)}`} target="_blank" rel="noopener noreferrer">
+              {content.referral.share}
+            </ReferralLink>
+            <ReferralLink href={SOCIAL_URLS.linkedIn(linkedInUsername)} target="_blank" rel="noopener noreferrer">
+              {content.referral.recommend}
+            </ReferralLink>
+          </Referral>
         </Quest>
       </Panel>
     </Section>

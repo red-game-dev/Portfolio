@@ -28,6 +28,8 @@ export const codexName = (content: FinaleVoyage, { category, subject }: Pick<Cod
       return copy.kinds[subject]?.name ?? subject;
     case "universes":
       return copy.universes[subject]?.name ?? subject;
+    case "galaxies":
+      return copy.galaxies[subject]?.name ?? subject;
     case "stars":
       return copy.stars[subject]?.name ?? subject;
     case "phenomena":
@@ -70,6 +72,8 @@ export const codexNotes = (content: FinaleVoyage, entry: CodexEntry): string[] =
       return [copy.kinds[entry.subject]?.note ?? ""];
     case "universes":
       return [copy.universes[entry.subject]?.note ?? ""];
+    case "galaxies":
+      return [copy.galaxies[entry.subject]?.note ?? ""];
     case "stars":
       return [copy.stars[entry.subject]?.note ?? ""];
     case "phenomena":
@@ -105,6 +109,6 @@ export const careerNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
   }
 };
 
-const CATEGORIES: ReadonlyArray<CodexEntry["category"]> = ["worlds", "kinds", "universes", "stars", "phenomena", "life", "wrecks", "things"];
+const CATEGORIES: ReadonlyArray<CodexEntry["category"]> = ["worlds", "kinds", "universes", "galaxies", "stars", "phenomena", "life", "wrecks", "things"];
 
 const isCategory = (value: string): value is CodexEntry["category"] => CATEGORIES.some((category) => category === value);

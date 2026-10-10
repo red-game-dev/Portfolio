@@ -17,11 +17,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton } from "@/components/Controls";
 import { rankName } from "@/components/Finale/Voyage/career";
+import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
 import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
-import { placeName, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
+import { placeName, strandedLine, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import {
   Badge,
@@ -71,6 +74,7 @@ import {
   SurfaceCard,
   SurfaceHint,
   SurfaceLine,
+  SurfacePhase,
   SurfaceTitle,
   SystemName,
   SystemRow,
@@ -84,14 +88,19 @@ import {
   TelemetryRow,
   TelemetryTitle,
   TelemetryValue,
+  Setup,
+  SetupTitle,
   Text,
   Title,
   Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
+import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
 import useModalDialog from "@/hooks/useModalDialog";
-import type { Frame, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
-import { fill, formatHours, formatLatLon, formatNumber } from "@/packages/text/format";
+import { readStored, writeStored } from "@/packages/browser/storage";
+import type { Frame, HomePad, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
+import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
+import { PreferencesContent } from "@/types/preferences";
 
 interface VoyageDialogProps {
   content: FinaleVoyage;
@@ -99,12 +108,16 @@ interface VoyageDialogProps {
   universes: string[];
   best: number;
   // The pad the finale's launch flew from, where a new rocket waits when the crew comes home.
-  homePad: string | null;
+  home: HomePad | null;
+  settings: PreferencesContent;
   onRecord: (score: number) => void;
   onClose: () => void;
 }
 
 const CONTROLS_ID = "voyage-controls";
+// Whether the pilot has been asked how they like to fly, kept so it is asked only the first time.
+const SETUP_KEY = "redgame.voyageSetup";
+const isTrue = (value: unknown): value is true => value === true;
 // How long each line the voyage says stays (ms, its animation's length), and how many may wait.
 const MESSAGE_MS = 2800;
 const MESSAGE_QUEUE = 4;
@@ -120,20 +133,38 @@ const SOUND = 0.995;
 // text everything it shows: where the ship is, its hull, shields and fuel as MMO bars, any system that is hurt,
 // the score, the live telemetry, and each moment said once. A card starts, pauses and ends a run; a button opens
 // the map. Opens itself on mount.
-export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, homePad, onRecord, onClose }: VoyageDialogProps) => {
+export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, home, settings, onRecord, onClose }: VoyageDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLCanvasElement>(null);
   const frontRef = useRef<HTMLCanvasElement>(null);
   const lensRef = useRef<HTMLCanvasElement>(null);
   const onBackdropClick = useModalDialog(dialogRef, true);
+  const voyageSettings = useVoyageSettings();
+  // Asked once: read after mount, so the server and the first render agree (asked, until known otherwise).
+  const [isSetUp, setIsSetUp] = useState(true);
+
+  useEffect(() => setIsSetUp(readStored(SETUP_KEY, isTrue) === true), []);
   // What the canvas writes: the places on the map, and the ghost's name.
-  const labels = useMemo(() => ({ ...content.stops, ghost: content.career.ghost, edgeNote: content.career.edgeNote }), [content]);
+  const labels = useMemo(() => ({
+    ...content.stops,
+    ghost: content.career.ghost,
+    edgeNote: content.career.edgeNote,
+    gateWayOn: content.gate.markWayOn,
+    gateVisited: content.gate.markVisited,
+    mapMission: content.mapMarks.mission,
+    mapHoleMass: content.mapMarks.holeMass,
+    mapKeyMission: content.mapMarks.keyMission,
+    mapKeyPull: content.mapMarks.keyPull,
+    mapKeyHostile: content.mapMarks.keyHostile,
+    mapKeyRock: content.mapMarks.keyRock,
+    mapKeyHazard: content.mapMarks.keyHazard,
+  }), [content]);
   const canvases = { stage: stageRef, back: backRef, front: frontRef, lens: lensRef };
-  const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames });
+  const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames, home });
   const { snapshot, notices, takeNotices, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;
   const { economy, isHangarOpen, setHangar, act, follow } = voyage;
-  const { career, isPhoto, togglePhoto, savePhoto } = voyage;
+  const { career, isPhoto, togglePhoto, savePhoto, landing } = voyage;
   const [pay, setPay] = useState<number | null>(null);
   const [daily, setDaily] = useState<{ score: number; isBest: boolean } | null>(null);
   // Today, as the daily voyage counts days: the UTC date.
@@ -152,6 +183,13 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const previous = useRef<VoyageSnapshot | null>(null);
   const bestBefore = useRef(best);
   const status = snapshot?.status ?? "ready";
+  // Stranded adrift, the countdown shows over the view; down on a world, the surface card says it.
+  const adrift = snapshot && !snapshot.landedOn ? strandedLine(content, snapshot) : null;
+  const surfaceTitle = snapshot?.surface ? surfaceHeading(content, snapshot) : "";
+  // The world a landing is coming down on: by the surface once it is seen, else by the name the snapshot gives.
+  const comingDownOn = snapshot?.surface
+    ? placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn)
+    : placeName(content, snapshot?.landedOn ?? "");
   const say = (text: string | null) => {
     if (text) {
       messageId.current += 1;
@@ -217,6 +255,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   }, [content, notices, takeNotices]);
 
   const start = (mode: "free" | "daily" = "free") => {
+    if (!isSetUp) {
+      writeStored(SETUP_KEY, true);
+      setIsSetUp(true);
+    }
+
     setPay(null);
     setDaily(null);
     setHangar(false);
@@ -426,14 +469,21 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </IconButton>
         </HudButtons>
       </Hud>
-      {snapshot?.surface && status === "flying" && !isHangarOpen && !isPhoto && (
-        <SurfaceCard aria-label={fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn) })}>
-          <SurfaceTitle>{fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn) })}</SurfaceTitle>
-          <SurfaceLine>{content.surface.biomes[snapshot.surface.biome]}</SurfaceLine>
-          <SurfaceLine>{formatLatLon(snapshot.surface.latitude, snapshot.surface.longitude)}</SurfaceLine>
-          <SurfaceLine>{fill(content.surface.time, { time: formatHours(snapshot.surface.hours) })}</SurfaceLine>
-          {snapshot.surface.isHome && <SurfaceLine>{homePad ? fill(content.surface.readyAt, { pad: homePad }) : content.surface.ready}</SurfaceLine>}
-          <SurfaceHint>{snapshot.surface.isHome ? content.surface.launch : content.surface.takeOff}</SurfaceHint>
+      {snapshot?.descent && status === "flying" && !isHangarOpen && !isPhoto && (
+        <SurfaceCard aria-label={fill(content.descent.title, { body: comingDownOn })}>
+          <SurfaceTitle>{fill(content.descent.title, { body: comingDownOn })}</SurfaceTitle>
+          <SurfaceLine>{descentMethod(content, snapshot.descent, snapshot.surface?.isHome ?? false)}</SurfaceLine>
+          <SurfacePhase>{content.descent.phases[snapshot.descent.phase]}</SurfacePhase>
+          {descentRows(content, snapshot.descent).map((row) => <SurfaceLine key={row}>{row}</SurfaceLine>)}
+          {snapshot.people && <SurfaceLine>{fill(content.surface.people, { faction: snapshot.people.name })}</SurfaceLine>}
+          {descentHint(content, snapshot.descent, landing.control === "manual").map((line) => <SurfaceHint key={line}>{line}</SurfaceHint>)}
+        </SurfaceCard>
+      )}
+      {!snapshot?.descent && snapshot?.surface && status === "flying" && !isHangarOpen && !isPhoto && (
+        <SurfaceCard aria-label={surfaceTitle}>
+          <SurfaceTitle>{surfaceTitle}</SurfaceTitle>
+          {surfaceLines(content, snapshot, home?.name ?? null).map((line) => <SurfaceLine key={line}>{line}</SurfaceLine>)}
+          <SurfaceHint>{surfaceHint(content, snapshot, home?.name ?? null)}</SurfaceHint>
         </SurfaceCard>
       )}
       {snapshot && status === "flying" && !isHangarOpen && !isPhoto && (
@@ -449,8 +499,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </TelemetryList>
         </TelemetryPanel>
       )}
-      {status === "flying" && snapshot && (snapshot.boss || snapshot.incoming || snapshot.salvage || economy?.suggestion) && !isHangarOpen && !isPhoto && (
+      {status === "flying" && snapshot && (snapshot.boss || snapshot.incoming || snapshot.salvage || adrift || economy?.suggestion) && !isHangarOpen && !isPhoto && (
         <Frames>
+          {adrift && <Incoming role="status">{adrift}</Incoming>}
           {economy?.suggestion && (
             <ReadyButton type="button" onClick={() => economy.suggestion && follow(economy.suggestion)}>
               <FontAwesomeIcon icon={faCircleUp} aria-hidden="true" />
@@ -500,7 +551,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       {message && status === "flying" && !isPhoto && <Message key={message.id} role="status">{message.text}</Message>}
       {economy && isHangarOpen && (
-        <HangarPanel content={content} economy={economy} career={career} isFlying={status === "flying"} onAct={act} onClose={() => setHangar(false)} />
+        <HangarPanel
+          content={content}
+          settings={settings}
+          economy={economy}
+          career={career}
+          isFlying={status === "flying"}
+          onAct={act}
+          onClose={() => setHangar(false)}
+        />
       )}
       {(status !== "flying" || isPaused) && !isHangarOpen && !isPhoto && (
         <Overlay>
@@ -510,6 +569,13 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 <Title>{content.title}</Title>
                 <Text>{content.intro}</Text>
                 <Text>{content.controls}</Text>
+                {!isSetUp && (
+                  <Setup aria-labelledby="voyage-setup-title">
+                    <SetupTitle id="voyage-setup-title">{content.setup.title}</SetupTitle>
+                    <Text>{content.setup.note}</Text>
+                    <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
+                  </Setup>
+                )}
                 <Buttons>
                   <ActionButton type="button" isPrimary disabled={!isReady} onClick={() => start()}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />

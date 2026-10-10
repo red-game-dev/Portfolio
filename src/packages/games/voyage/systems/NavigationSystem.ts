@@ -2,7 +2,9 @@ import type { System } from "@/packages/games/engine";
 
 import { Waypoint } from "../domain/state";
 import { auForRadius } from "../utils/scale";
+import { massOfPull } from "../utils/stars";
 import { VoyageContext } from "./context";
+import { nextHop } from "./gates";
 import { distanceFromStar, isInSystem, isSolar, shipOf } from "./queries";
 
 // How close to a body counts as visiting it, in its own radii, plus a margin.
@@ -70,7 +72,9 @@ export class NavigationSystem implements System<VoyageContext> {
         const hole = world.spawn();
 
         world.stores.body.set(hole, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius: config.holes.singularityHorizon, mass: 0 });
-        world.stores.hole.set(hole, { mu: config.holes.singularityMu, horizon: config.holes.singularityHorizon, isSingularity: true });
+        world.stores.hole.set(hole, {
+          mass: massOfPull(config.layout, config.holes.singularityMu), mu: config.holes.singularityMu, horizon: config.holes.singularityHorizon, isSingularity: true,
+        });
         state.singularitySince = state.elapsedMs;
         state.phase = "singularity";
         state.phaseMs = 0;
@@ -110,11 +114,23 @@ export class NavigationSystem implements System<VoyageContext> {
       }
     });
 
-    // In a universe, its worlds not yet seen are as much a way to go as its black holes.
+    // In a universe, its worlds not yet seen are as much a way to go as its black holes; in a maze, so is the gate
+    // that leads, through what is known of it, towards somewhere new or the system with the way on.
     if (state.phase === "universe") {
       state.system.bodies.forEach((body) => {
         if (!body.isShattered && !state.passed.has(body.id)) {
           candidates.push({ id: body.id, x: body.x, y: body.y, radius: body.radius });
+        }
+      });
+
+      const hop = state.network && state.node !== state.network.exit ? nextHop(state.network, state.explored, state.node) : null;
+
+      world.stores.gate.entities.forEach((entity, index) => {
+        const gate = world.stores.body.get(entity);
+        const { to } = world.stores.gate.values[index];
+
+        if (gate && to === hop) {
+          candidates.push({ id: `gate-${to}`, x: gate.x, y: gate.y, radius: gate.radius });
         }
       });
     }

@@ -12,7 +12,7 @@ const industryYears = details.proof.find((figure) => figure.id === "industry")?.
 const seoDetails: SeoDetails = {
   defaultTitle: `${name}, ${cvDocument.headline}`,
   titleTemplate: `%s | ${name}`,
-  description: `${cvDocument.headline}: ${industryYears} years in the industry, machine learning in production since 2019. ${headline.availability}`,
+  description: `${details.hook} ${industryYears} years in the industry. ${headline.availability}`,
   resume: {
     title: `${name}, CV`,
     description: `The short CV of ${name}, ${cvDocument.headline}: every role with its dates, figures and skill years. ${headline.availability}`,

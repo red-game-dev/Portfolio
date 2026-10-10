@@ -2,7 +2,7 @@
 import { execFileSync } from "child_process";
 
 import { readEvent, warn } from "./hook.mjs";
-import { findViolations, isContentFile, readDenylist } from "./rules.mjs";
+import { findSecrets, findViolations, isContentFile, isEnvFile, readDenylist } from "./rules.mjs";
 
 const root = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
 const run = (command, args) => {
@@ -17,14 +17,19 @@ const event = await readEvent();
 const command = event.tool_input?.command ?? "";
 const denylist = readDenylist(root);
 
-// The lines a commit adds to content files, and the message it is written with.
+// The lines a commit adds (to content files for the copy rules, to any file for secrets), any new env file it
+// stages, and the message it is written with.
 const commitWarnings = () => {
-  const added = run("git", ["diff", "--cached", "--unified=0", "--", "."])
-    .split(/^diff --git /m)
-    .filter((section) => isContentFile(section.split(" b/")[1]?.split("\n")[0] ?? "", root))
+  const sections = run("git", ["diff", "--cached", "--unified=0", "--", "."]).split(/^diff --git /m);
+  const addedIn = (keep) => sections
+    .filter((section) => keep(section.split(" b/")[1]?.split("\n")[0] ?? ""))
     .flatMap((section) => section.split("\n").filter((line) => line.startsWith("+") && !line.startsWith("+++")).map((line) => line.slice(1)));
+  const added = addedIn((path) => isContentFile(path, root));
+  const envFiles = run("git", ["diff", "--cached", "--name-only", "--diff-filter=A"]).split("\n").filter((path) => path && isEnvFile(path));
 
   return [
+    ...envFiles.map((path) => `${path} is staged: keys belong in Vercel's environment, never in this public repo`),
+    ...(findSecrets(addedIn(() => true).join("\n")).length > 0 ? ["the staged changes hold something shaped like a secret key"] : []),
     ...findViolations(added.join("\n"), denylist).map((issue) => `staged content, ${issue.replace(/^line \d+: /, "")}`),
     ...(command.includes("\u2014") ? ["the commit message has an em dash"] : []),
     ...(/Co-Authored-By:/i.test(command) ? ["the commit message has a Co-Authored-By trailer, which this repo leaves out"] : []),

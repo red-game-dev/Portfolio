@@ -10,3 +10,18 @@ export interface VoyageInput {
 }
 
 export const NO_INPUT: VoyageInput = { aim: null, thrust: 0, turn: 0, brake: false };
+
+// How the pilot likes their landings: the way down sped up the same for every world (never longer than the config
+// allows) or as long as the real thing, and flown by the guidance or, where there is an engine to fly, by hand
+// from the low gate.
+export interface LandingOptions {
+  time: "compressed" | "real";
+  control: "auto" | "manual";
+}
+
+export const DEFAULT_LANDING: LandingOptions = { time: "compressed", control: "auto" };
+
+// How much the space round the ship slows it: felt, each place in the real order (voids emptiest, then open space,
+// belts, nebulae and rings) and scaled up so it shows, or real, where space is too empty to slow a ship at all and
+// how fast it goes is the engines' alone.
+export type SpaceDrag = "felt" | "real";

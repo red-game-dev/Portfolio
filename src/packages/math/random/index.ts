@@ -19,6 +19,18 @@ export const createSeededRandom = (seed: number): RandomSource => {
   };
 };
 
+// A seeded generator with its first `draws` thrown away: a Park-Miller generator's first draws follow its seed
+// closely, so nearby seeds would otherwise start out alike.
+export const createWarmedRandom = (seed: number, draws = 3): RandomSource => {
+  const random = createSeededRandom(seed);
+
+  for (let draw = 0; draw < draws; draw += 1) {
+    random();
+  }
+
+  return random;
+};
+
 export const randomBetween = (random: RandomSource, min: number, max: number) => min + random() * (max - min);
 
 // One of `items`, each as likely as the others, for one draw of `random` (undefined when there are none). The

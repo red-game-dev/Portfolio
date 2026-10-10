@@ -1,5 +1,8 @@
 export { DEFAULT_VOYAGE_CONFIG, DEFAULT_VOYAGE_THEME, resolveVoyageConfig } from "./config";
 export { BODY_LOOKS, SUN_LOOK, TEXTURE_IDS } from "./config/looks";
+export { GALAXIES, GALAXY_KINDS } from "./config/galaxies";
+export { STAR_CLASSES } from "./config/stars";
+export { WORLD_CLASS_IDS, WORLD_CLASSES } from "./config/worlds";
 export { VoyageGame } from "./core/VoyageGame";
 export { VoyageSimulation } from "./core/VoyageSimulation";
 export { DEFAULT_UNIVERSE_NAMES } from "./config/names";
@@ -7,7 +10,8 @@ export { UniverseGenerator } from "./generators/UniverseGenerator";
 export { arrivalSpeed, bindingEnergy, craterKm, impactEnergy, impactOutcome, isOnCourseNow, predictApproach } from "./systems/impacts";
 export { leadDirection } from "./systems/combat";
 export { MODULE_IDS } from "./domain/components";
-export { NO_INPUT } from "./domain/input";
+export { DEFAULT_LANDING, NO_INPUT } from "./domain/input";
+export { LANDING, planLanding, rehearse } from "./landing";
 export { isSolarSystemData } from "./guards/isSolarSystemData";
 export { SnapshotMapper } from "./mappers/SnapshotMapper";
 export { SystemMapper } from "./mappers/SystemMapper";
@@ -16,6 +20,10 @@ export { SystemService } from "./services/SystemService";
 export { SOLAR_SYSTEM, SolarSystemSource } from "./sources/SolarSystemSource";
 export { missionTime, placeBodies } from "./systems/orbits";
 export { auForRadius, radiusForAu } from "./utils/scale";
+export { landingWorldOf } from "./utils/landing";
+export { missionMarks, NO_MISSION_MARKS } from "./utils/missions";
+export type { MissionMarks } from "./utils/missions";
+export { lightAt, massOfPull, pullOfMass } from "./utils/stars";
 export { SolarSystemValidator } from "./validators/SolarSystemValidator";
 export { CanvasVoyageRenderer } from "./renderers/CanvasVoyageRenderer";
 export { FAULT_KINDS, FAULT_MODULE } from "./domain/faults";
@@ -44,6 +52,7 @@ export { StepRandom } from "./utils/stepRandom";
 export { PilotLink } from "./services/PilotLink";
 export type {
   ClockConfig,
+  DescentConfig,
   FlightConfig,
   HoleConfig,
   ShipConfig,
@@ -56,6 +65,8 @@ export type {
   WeatherConfig,
 } from "./config";
 export type { VoyageCanvases, VoyageCanvasOptions, VoyageOptions } from "./core/VoyageGame";
+export type { LandingOptions } from "./domain/input";
+export type { LandingMethod, LandingPhase } from "./landing";
 export type { VoyageAction, VoyageNotice } from "./domain/notices";
 export type { VoyageStores, VoyageWorld } from "./core/world";
 export type { VoyageRenderer } from "./renderers/CanvasVoyageRenderer";
@@ -118,11 +129,13 @@ export type {
 } from "./domain/content";
 export type { DamageKind, FlareClass, VoyageEvents, VoyagePhase } from "./domain/events";
 export type { VoyageInput } from "./domain/input";
-export type { Frame, IncomingRock, Telemetry, VoyageSnapshot } from "./domain/snapshot";
-export type { SurfaceBiome, SurfaceInfo } from "./domain/surface";
+export type { DescentView, Frame, IncomingRock, Telemetry, VoyageSnapshot } from "./domain/snapshot";
+export type { HomePad, SurfaceBiome, SurfaceInfo } from "./domain/surface";
 export { airFor, earthGround, groundAt, phaseOf, skyPlace, solarHours } from "./utils/surface";
-export type { Capture, MissionClock, Readings, Storm, VoyageState, VoyageStatus, Waypoint } from "./domain/state";
+export type { Capture, Descent, Homecoming, MissionClock, Readings, Storm, VoyageState, VoyageStatus, Waypoint } from "./domain/state";
 export type { VoyageStyle } from "./domain/theme";
-export type { Disposition, FactionSpec, HullShape, PhenomenonKind, PhenomenonSpec, StarKind, UniverseNames, UniverseSpec, WeaponKind } from "./domain/universe";
+export type {
+  Disposition, FactionSpec, GalaxyKind, GalaxySpec, HullShape, PhenomenonKind, PhenomenonSpec, StarKind, UniverseNames, UniverseSpec, WeaponKind, WorldClass,
+} from "./domain/universe";
 export type { SystemLayout } from "./mappers/SystemMapper";
 export type { UniverseTheme } from "./generators/UniverseGenerator";

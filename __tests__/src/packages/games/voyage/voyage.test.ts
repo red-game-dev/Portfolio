@@ -217,7 +217,7 @@ describe("flight", () => {
 });
 
 describe("surfaces and air", () => {
-  test("touching Mars slowly is a landing that rides along with it and scores once; a burn lifts off", () => {
+  test("touching Mars slowly is a landing that rides along with it and scores once it is down; a burn lifts off", () => {
     const simulation = create();
     const mars = bodyOf(simulation, "mars");
     const scoreBefore = simulation.state.score;
@@ -226,6 +226,11 @@ describe("surfaces and air", () => {
     simulation.step(200);
 
     expect(partsOf(simulation).ship.landedOn).toBe("mars");
+
+    for (let waited = 0; simulation.state.descent?.downAt === null && waited < 30000; waited += 250) {
+      simulation.step(250);
+    }
+
     expect(simulation.state.score - scoreBefore).toBeGreaterThanOrEqual(defaults.scoring.landing);
 
     simulation.step(3000);
@@ -292,16 +297,21 @@ describe("surfaces and air", () => {
     const venus = bodyOf(simulation, "venus");
     const failing: string[] = [];
 
+    // Held just above the ground as Venus moves, never touching it (a touch would begin a landing's way down).
+    const low = () => venus.y - venus.radius - defaults.ship.radius - 0.0005;
+
     simulation.events.on("failing", ({ module }) => failing.push(module));
     partsOf(simulation).ship.landedOn = null;
-    place(simulation, venus.x, venus.y - venus.radius - 0.002, venus.vx, venus.vy);
+    place(simulation, venus.x, low(), venus.vx, venus.vy);
     simulation.step(defaults.stepMs);
     expect(simulation.snapshot.telemetry.pressureBar).toBeGreaterThan(80);
 
-    for (let second = 0; second < 6; second += 1) {
-      place(simulation, venus.x, venus.y - venus.radius - 0.002, venus.vx, venus.vy);
-      simulation.step(1000);
+    for (let elapsed = 0; elapsed < 6000; elapsed += defaults.stepMs) {
+      place(simulation, venus.x, low(), venus.vx, venus.vy);
+      simulation.step(defaults.stepMs);
     }
+
+    expect(partsOf(simulation).ship.landedOn).toBeNull();
 
     expect(simulation.snapshot.telemetry.hullTemperatureC).toBeGreaterThan(400);
     expect(failing).toEqual(expect.arrayContaining(["sensors", "shields"]));
@@ -438,7 +448,7 @@ describe("the way out and beyond", () => {
     place(simulation, first.x, first.y);
     simulation.step(defaults.holes.captureMs + defaults.holes.lostMs + 300);
 
-    while (universes.length < 6) {
+    for (let attempt = 0; universes.length < 6 && attempt < 12; attempt += 1) {
       expect(simulation.world.stores.hole.size).toBe(defaults.holes.perUniverse);
 
       const hole = simulation.world.stores.hole.entities[0];
@@ -451,8 +461,33 @@ describe("the way out and beyond", () => {
       simulation.step(defaults.holes.captureMs + defaults.holes.jumpMs + 300);
     }
 
+    expect(universes).toHaveLength(6);
     universes.slice(1).forEach((universe, index) => expect(universe).not.toBe(universes[index]));
     expect(new Set(universes.slice(0, defaults.universes)).size).toBe(defaults.universes);
+  });
+
+  test("space slows the ship as it really thickens, felt: in the asteroid belt it eases down; set to real, only the engines limit it", () => {
+    const felt = create();
+    const real = create();
+    const belt = felt.state.system.belts.find((ring) => ring.id === "belt");
+
+    if (!belt) {
+      throw new Error("expected the asteroid belt");
+    }
+
+    real.setSpaceDrag("real");
+    [felt, real].forEach((run) => {
+      const out = (belt.inner + belt.outer) / 2;
+      const { star } = run.state.system;
+
+      place(run, star.x + out, star.y, 0, defaults.ship.maxSpeed);
+      run.step(4000, { ...NO_INPUT, thrust: 1 });
+    });
+
+    expect(felt.state.readings.medium).toBe("belt");
+    expect(felt.snapshot.telemetry.medium).toBe("belt");
+    expect(felt.state.speedLimit).toBeCloseTo(defaults.ship.maxSpeed * defaults.medium.speeds.belt, 1);
+    expect(real.state.speedLimit).toBeCloseTo(defaults.ship.maxSpeed, 6);
   });
 
   test("time runs slow by a black hole, and the telemetry says so", () => {

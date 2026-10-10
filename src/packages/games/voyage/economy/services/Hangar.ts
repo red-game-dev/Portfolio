@@ -454,6 +454,8 @@ export class Hangar {
         return { ...REWARDS.discovery };
       case "landing":
         return { ...REWARDS.landing };
+      case "hosted":
+        return { ...REWARDS.hosted };
       case "bounty":
         return { ...emptyPurse(), RED: REWARDS.bountyPerLevel * Math.max(1, deed.level) };
       case "rescue":
@@ -536,6 +538,7 @@ const detailOf = (deed: Deed): string => {
   switch (deed.kind) {
     case "discovery":
     case "landing":
+    case "hosted":
       return deed.place;
     case "bounty":
       return String(deed.level);

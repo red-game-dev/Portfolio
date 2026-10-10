@@ -3,8 +3,11 @@ import { FieldSample, GravitySource } from "../domain/types";
 export const createFieldSample = (): FieldSample => ({ ax: 0, ay: 0, magnitude: 0, dominant: -1, dominantPull: 0, dominantDistance: Infinity });
 
 // Newtonian gravity from any number of point masses: each pulls with mu / r^2 towards itself. Inside a body the
-// distance is floored at its surface, so nothing passing close is flung to infinity. Sampling writes into a
-// reused object and allocates nothing, so it can run for every body at a fixed step.
+// distance is floored at its surface, so nothing passing close is flung to infinity. A black hole pulls with
+// mu / (r - rs)^2, the Paczynski-Wiita law: the same as Newton's far off, ever harder near the horizon, and with
+// general relativity's innermost stable orbit at three Schwarzschild radii, inside which nothing can circle and
+// everything falls in. Sampling writes into a reused object and allocates nothing, so it can run for every body
+// at a fixed step.
 export class GravityField {
   private sources: readonly GravitySource[] = [];
 
@@ -33,7 +36,7 @@ export class GravityField {
         continue;
       }
 
-      const floored = Math.max(distance, source.radius);
+      const floored = source.horizon === undefined ? Math.max(distance, source.radius) : Math.max(distance - source.horizon, source.radius);
       const pull = source.mu / (floored * floored);
 
       out.ax += (dx / distance) * pull;

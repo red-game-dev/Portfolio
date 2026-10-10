@@ -1,4 +1,4 @@
-import { createSeededRandom } from "@/packages/math/random";
+import { createWarmedRandom } from "@/packages/math/random";
 
 import { Relief } from "../domain/types";
 
@@ -28,14 +28,9 @@ const blend = (from: number, to: number, t: number) => from + (to - from) * (1 -
 // summed over three octaves from the seed, folded into sharp crests where the land is ridged. The same seed and
 // layer always give the same line.
 export const ridgeline = (relief: Relief, seed: number, layer: number, count: number): Float32Array => {
-  const random = createSeededRandom(seed * 7919 + layer * 104729 + 13);
+  const random = createWarmedRandom(seed * 7919 + layer * 104729 + 13, 4);
   const heights = new Float32Array(count);
   const total = OCTAVES.reduce((sum, { weight }) => sum + weight, 0);
-
-  // The first draws follow the seed closely, so a few are thrown away.
-  for (let skip = 0; skip < 4; skip += 1) {
-    random();
-  }
 
   OCTAVES.forEach(({ points, weight }) => {
     const knots = Array.from({ length: points + 1 }, () => random());

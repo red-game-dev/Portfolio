@@ -24,6 +24,12 @@ float craterField(vec3 dir, float scale) {
   return shade;
 }
 
+// How squarely the light falls here (1 under it, 0 at the terminator, below 0 on the night side), set before the
+// recipes run, for worlds whose look follows their star: one locked with a face to it, one boiled by it. And how
+// far above its sea the land a recipe painted stands, where cities can be.
+float g_facing;
+float g_land;
+
 vec3 surfaceColour(vec3 dir, float latitude, out float glow) {
   glow = 0.0;
   float h = fbm(dir * 2.6 + u_seed);
@@ -47,6 +53,7 @@ vec3 surfaceColour(vec3 dir, float latitude, out float glow) {
   if (u_kind < 4.5) {
     float land = h + detail * 0.18;
     float sea = u_shape.x;
+    g_land = land - sea;
     vec3 colour = land < sea ? mix(u_palette[0], u_palette[1], land / max(sea, 0.01)) : paletteAt(0.4 + (land - sea) / max(1.0 - sea, 0.01) * 0.6);
     float ice = smoothstep(1.0 - u_shape.w, 1.05 - u_shape.w, abs(latitude) / 1.5707963 + detail * 0.08);
     return mix(colour, vec3(0.93, 0.95, 1.0), ice);
@@ -80,7 +87,25 @@ vec3 surfaceColour(vec3 dir, float latitude, out float glow) {
     float swirl = fbm(dir * 4.0 + vec3(fbm(dir * 2.0 + u_seed) * 3.0));
     return paletteAt(swirl);
   }
-  return paletteAt(h * 0.5 + detail * 0.2);
+  if (u_kind < 11.5) {
+    return paletteAt(h * 0.5 + detail * 0.2);
+  }
+  if (u_kind < 12.5) {
+    // An eyeball world, one face always to its red dwarf: open sea under the star, its shore ragged, ice beyond.
+    // Anyone living there lives along the shore, on the ice's edge, where the twilight is mild.
+    float shore = (fbm(dir * 5.0 + u_seed) - 0.5) * 0.3;
+    float open = smoothstep(0.42, 0.58, g_facing + shore);
+    g_land = 0.1 - abs(g_facing + shore - 0.36);
+    vec3 sea = mix(u_palette[1], u_palette[0], smoothstep(0.58, 0.95, g_facing + shore * 0.5));
+    vec3 ice = mix(u_palette[2], u_palette[3], clamp(detail * 1.2, 0.0, 1.0));
+    return mix(ice, sea, open);
+  }
+  // A hot Jupiter: dark bands, hottest under its star, its night side glowing with its own heat.
+  float hotBands = 4.0 + u_shape.y * 10.0;
+  float hotWobble = fbm(dir * vec3(2.0, 2.0, 6.0) + u_seed) * (0.5 + u_shape.z);
+  float hotBand = sin(latitude * hotBands + hotWobble * 3.0) * 0.5 + 0.5;
+  glow = 0.35 + 0.5 * smoothstep(0.2, 1.0, g_facing) + 0.2 * hotBand;
+  return paletteAt(hotBand * 0.6 + fbm(dir * 6.0 + u_seed) * 0.3);
 }
 `;
 
@@ -126,6 +151,7 @@ uniform float u_hasNight;
 uniform float u_hasClouds;
 uniform float u_mapLeft;
 uniform float u_cloudCover;
+uniform float u_cities;
 uniform float u_cloudShift;
 uniform float u_kind;
 uniform vec3 u_palette[4];
@@ -188,7 +214,9 @@ void main() {
   // A real map wins; the noise recipe runs only where there is none, and only on the disc.
   float glow2 = 0.0;
   vec3 albedo = mapTexel.rgb;
+  g_land = -1.0;
   if (u_hasMap < 0.5 && onDisc) {
+    g_facing = dot(n, u_light);
     albedo = surfaceColour(dir, lat, glow2);
   }
 
@@ -240,8 +268,13 @@ void main() {
     colour += vec3(1.0, 0.95, 0.85) * pow(max(dot(n, halfway), 0.0), 70.0) * water * (1.0 - cloud) * day * u_glint * u_brightness;
   }
 
-  // City lights on the night side, dimmed by cloud.
+  // City lights on the night side, dimmed by cloud: from the night map, or where someone lives, clustered over the
+  // land a recipe painted, thickest near the coasts.
   colour += vec3(1.0, 0.76, 0.42) * nightTexel * u_hasNight * (1.0 - day) * (1.0 - cloud * 0.75) * 1.3;
+  if (u_cities > 0.0 && g_land > 0.0 && onDisc) {
+    float towns = smoothstep(0.6, 0.78, fbm(dir * 16.0 + u_seed * 3.1)) * smoothstep(0.0, 0.02, g_land) * (1.0 - smoothstep(0.05, 0.3, g_land) * 0.6);
+    colour += vec3(1.0, 0.78, 0.45) * towns * u_cities * (1.0 - day) * (1.0 - cloud * 0.75) * 1.4;
+  }
   // What glows by itself: lava, molten scars, aurora.
   colour += u_palette[3] * glow2 * (0.35 + 0.65 * (1.0 - day));
   colour += vec3(1.0, 0.45, 0.12) * scarGlow;
@@ -304,4 +337,6 @@ export const SURFACE_IDS = {
   haze: 9,
   toxic: 10,
   rogue: 11,
+  eyeball: 12,
+  hotJupiter: 13,
 } as const;

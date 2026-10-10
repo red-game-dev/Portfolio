@@ -6,8 +6,9 @@ import type { Vec3 } from "@/packages/physics/kepler";
 import { VoyageConfig } from "../config";
 import { VoyageWorld } from "../core/world";
 import { MODULE_IDS, Modules } from "../domain/components";
-import { Frame, IncomingRock, VoyageSnapshot } from "../domain/snapshot";
+import { DescentView, Frame, IncomingRock, VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState } from "../domain/state";
+import { safeSpeedOf } from "../landing";
 import { auForRadius } from "../utils/scale";
 import { TelemetryMapper } from "./TelemetryMapper";
 
@@ -49,13 +50,28 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       maxFuel: ship?.maxFuel ?? 0,
       score: Math.floor(state.score),
       universeName: state.phase === "universe" && state.cosmos ? state.cosmos.name : null,
+      cosmos: state.phase === "universe" && state.cosmos
+        ? { galaxy: state.cosmos.galaxy.kind, star: state.cosmos.starKind, companions: state.cosmos.companionKinds }
+        : null,
       passing: state.passing ? state.cosmos?.names[state.passing] ?? state.passing : null,
       landedOn: ship?.landedOn ? state.cosmos?.names[ship.landedOn] ?? ship.landedOn : null,
       // The view from the surface is the renderer's; the game adds it.
       surface: null,
+      descent: this.descent(state),
+      homecoming: state.homecoming ? { stage: state.homecoming.stage, days: state.homecoming.days, isSea: state.homecoming.isSea } : null,
+      stranded: state.stranded
+        ? {
+          secondsLeft: Math.max(0, Math.ceil(this.config.descent.strandedSeconds - (state.elapsedMs - state.stranded.since) / 1000)),
+          isRescue: state.phase === "solar" && this.config.isSolarSafe,
+        }
+        : null,
+      people: this.people(state, ship?.landedOn ?? null),
+      maze: state.network && state.phase === "universe"
+        ? { system: state.network.nodes[state.node].name, systems: state.network.nodes.length, explored: state.explored.size, isExit: state.node === state.network.exit }
+        : null,
       modules: MODULE_IDS.reduce<Modules>((all, id) => ({ ...all, [id]: roundTo(modules[id], 2) }), { ...SOUND }),
       waypoint: state.waypoint && body
-        ? { id: state.waypoint.id, name: state.cosmos?.names[state.waypoint.id] ?? null, distanceKm: this.distanceKm(state, body.x, body.y) }
+        ? { id: state.waypoint.id, name: this.waypointName(state, state.waypoint.id), distanceKm: this.distanceKm(state, body.x, body.y) }
         : null,
       target: state.lockedTarget !== null ? this.frame(state, world, state.lockedTarget) : null,
       boss: state.boss !== null ? this.frame(state, world, state.boss) : null,
@@ -78,6 +94,8 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
         radiation: 0,
         timeDilation: 1,
         missionTime: state.clock.epochMs,
+        medium: "open",
+        tides: 0,
       },
     };
   }
@@ -87,6 +105,47 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
     const wreck = state.salvage ? world.stores.wreck.get(state.salvage.wreck) : undefined;
 
     return state.salvage && wreck && state.salvage.progress > 0 ? { kind: wreck.kind, progress: Math.floor(state.salvage.progress * 10) / 10 } : null;
+  }
+
+  // Who lives on a world, if anyone.
+  private people(state: VoyageState, body: string | null): VoyageSnapshot["people"] {
+    const id = body ? state.cosmos?.inhabitants[body] : undefined;
+    const faction = id === undefined ? undefined : state.cosmos?.factions.find((spec) => spec.id === id);
+
+    return faction ? { name: faction.name, disposition: faction.disposition } : null;
+  }
+
+  // What the compass's target is called: a world a universe named, or the system a maze's gate leads to.
+  private waypointName(state: VoyageState, id: string): string | null {
+    const gate = /^gate-(\d+)$/.exec(id);
+
+    return gate && state.network ? state.network.nodes[Number(gate[1])]?.name ?? null : state.cosmos?.names[id] ?? null;
+  }
+
+  // The way down while it is coming down, in real units rounded for reading.
+  private descent({ descent }: VoyageState): DescentView | null {
+    if (!descent || descent.downAt !== null) {
+      return null;
+    }
+
+    const { craft, plan, world } = descent;
+
+    return {
+      method: plan.method,
+      phase: craft.phase,
+      altitude: Math.round(craft.altitude),
+      speed: roundTo(Math.hypot(craft.across, craft.up), 1),
+      fall: roundTo(Math.max(0, -craft.up), 1),
+      load: roundTo(craft.load, 1),
+      heating: roundTo(craft.heating, 2),
+      throttle: roundTo(craft.throttle, 2),
+      canFly: plan.handover !== null,
+      isPilot: craft.isPilot,
+      isUnderFire: descent.isFiredOn,
+      reserve: Math.ceil(craft.reserve),
+      safeSpeed: safeSpeedOf(plan, world),
+      pace: Math.round(descent.pace),
+    };
   }
 
   // Someone the guns are on, or the boss, for an MMO frame.

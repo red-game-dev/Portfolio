@@ -152,8 +152,15 @@ export interface Wreck {
   faction: number;
 }
 
-// A black hole: its gravitational parameter, its horizon, and whether it is the one past Pluto.
+// A gate between the star systems of a maze universe: the system (by its place in the network) it leads to.
+export interface Gate {
+  to: number;
+}
+
+// A black hole: its mass in Suns, its pull, its event horizon (world units), which grows in step with its mass as a
+// real one's does, and whether it is the one past Pluto.
 export interface Hole {
+  mass: number;
   mu: number;
   horizon: number;
   isSingularity: boolean;

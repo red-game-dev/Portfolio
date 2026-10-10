@@ -15,6 +15,7 @@ export const WALLET = "assets:wallet";
 export const INCOME: Readonly<Record<EarningReason, string>> = {
   discovery: "income:discoveries",
   landing: "income:landings",
+  hosted: "income:hosts",
   bounty: "income:bounties",
   rescue: "income:rescues",
   boss: "income:bosses",

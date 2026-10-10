@@ -50,7 +50,8 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const ship = world.stores.ship.get(state.ship);
     const health = world.stores.health.get(state.ship);
 
-    if (!body || !ship || !health || state.phase === "lost" || state.status === "over") {
+    // Gone once destroyed; a run that ended stranded leaves the ship where it is.
+    if (!body || !ship || !health || state.phase === "lost" || (state.status === "over" && health.hull <= 0)) {
       return;
     }
 

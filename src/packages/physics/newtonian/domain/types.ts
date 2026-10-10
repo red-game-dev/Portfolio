@@ -13,12 +13,15 @@ export interface Kinematic {
 }
 
 // A source of gravity: `mu` is its gravitational parameter (G times its mass), so the field needs no G of its
-// own, and `radius` is its surface, inside which the pull stops growing.
+// own, and `radius` is its surface, inside which the pull stops growing. A black hole also has a `horizon`, its
+// Schwarzschild radius, and pulls by the Paczynski-Wiita law instead (see `GravityField`), with `radius` then the
+// least distance outside the horizon the pull is told at.
 export interface GravitySource {
   x: number;
   y: number;
   mu: number;
   radius: number;
+  horizon?: number;
 }
 
 // The field at a point, written into a reused object so a hot loop allocates nothing: the total acceleration,

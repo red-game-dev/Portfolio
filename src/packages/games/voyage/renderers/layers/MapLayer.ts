@@ -2,7 +2,9 @@ import type { RenderLayer } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
 
+import { MissionMarks, NO_MISSION_MARKS } from "../../utils/missions";
 import { lerpX, lerpY, VoyageFrame } from "../frame";
+import { MapSeen, MapView, paintHoles, paintHostiles, paintKey, paintMissions, paintPeoples, paintPhenomena, paintRocks } from "../paint/mapMarks";
 import { Surface } from "../Surface";
 import { RenderKit } from "./kit";
 
@@ -36,13 +38,16 @@ const MAP_TOP_ROOM = 150;
 // The way to find things: a small radar in the corner of what is near (and an arrow towards the star), and on
 // request a map of the whole system over the view, every orbit drawn through where each body really is now,
 // the belts, the edge where the black hole waits, the storms on their way out, and the ship with a line to the
-// next stop.
+// next stop. The map also shows what could kill the ship (each black hole with the ring inside which it outpulls
+// the engines, the strange things of a universe, rocks headed for worlds, hostile ships while the sensors work,
+// peoples who fire from the ground) and where the missions send it, with a key to what is shown.
 export class MapLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "map";
   public isOpen = false;
   // Off in photo mode, radar and map both; the radar alone while the ship stands on a world.
   public isHidden = false;
   public hidesRadar = false;
+  public missions: MissionMarks = NO_MISSION_MARKS;
 
   constructor(private readonly kit: RenderKit) {}
 
@@ -60,7 +65,8 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     }
   }
 
-  private drawMap({ state, world, alpha, theme }: VoyageFrame): void {
+  private drawMap(frame: VoyageFrame): void {
+    const { state, world, alpha, theme } = frame;
     const { front, labels } = this.kit;
     const ship = world.stores.body.get(state.ship);
     const shipState = world.stores.ship.get(state.ship);
@@ -79,8 +85,10 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     const shipX = lerpX(ship, alpha);
     const shipY = lerpY(ship, alpha);
     const { system } = state;
-    const centreX = inSystem ? system.star.x : shipX;
-    const centreY = inSystem ? system.star.y : shipY;
+    // A system is drawn round its centre (the Sun, or the middle of a pair of stars), the ship's surroundings when
+    // it is between universes.
+    const centreX = inSystem ? 0 : shipX;
+    const centreY = inSystem ? 0 : shipY;
     const reach = inSystem ? clamp(Math.hypot(shipX - centreX, shipY - centreY) * 1.25, 32, system.edge * 1.06) : 16;
     const scale = (Math.min(front.width, front.height) / 2) * 0.88 / reach;
     const toX = (x: number) => cx + (x - centreX) * scale;
@@ -128,9 +136,14 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
           return;
         }
 
+        // Round the star it circles: the Sun, one star of a pair, or the middle of a close pair.
+        const hostId = body.orbit.kind === "circle" ? body.orbit.host : undefined;
+        const host = hostId ? [system.star, ...system.companions].find((star) => star.id === hostId) : undefined;
+        const around = body.orbit.kind === "sun" ? system.star : host ?? { x: 0, y: 0 };
+
         context.strokeStyle = state.passed.has(body.id) ? "rgba(196, 210, 255, 0.28)" : "rgba(196, 210, 255, 0.12)";
         context.beginPath();
-        context.arc(cx, cy, Math.hypot(body.x - system.star.x, body.y - system.star.y) * scale, 0, TAU);
+        context.arc(toX(around.x), toY(around.y), Math.hypot(body.x - around.x, body.y - around.y) * scale, 0, TAU);
         context.stroke();
       });
 
@@ -142,12 +155,14 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
         context.stroke();
       });
 
-      if (system.star.luminosity > 0) {
-        context.fillStyle = "#ffd27a";
-        context.beginPath();
-        context.arc(cx, cy, Math.max(4, system.star.radius * scale), 0, TAU);
-        context.fill();
-      }
+      [system.star, ...system.companions].forEach((star) => {
+        if (star.luminosity > 0) {
+          context.fillStyle = "#ffd27a";
+          context.beginPath();
+          context.arc(toX(star.x), toY(star.y), Math.max(star === system.star ? 4 : 3, star.radius * scale), 0, TAU);
+          context.fill();
+        }
+      });
 
       system.bodies.forEach((body) => {
         if (body.kind === "moon" && scale < 6) {
@@ -174,19 +189,19 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
       });
     }
 
-    world.stores.hole.entities.forEach((entity) => {
-      const hole = world.stores.body.get(entity);
+    const view: MapView = { context, toX, toY, scale, labels };
+    const isSensing = (world.stores.modules.get(state.ship)?.sensors ?? 1) > 0;
+    const seen: MapSeen = { mission: false, pull: false, hostile: false, rock: false, hazard: false };
 
-      if (hole) {
-        context.fillStyle = "#000000";
-        context.strokeStyle = theme.disk;
-        context.lineWidth = 2;
-        context.beginPath();
-        context.arc(toX(hole.x), toY(hole.y), 5, 0, TAU);
-        context.fill();
-        context.stroke();
-      }
-    });
+    if (inSystem) {
+      paintPeoples(view, frame);
+      seen.hazard = paintPhenomena(view, frame);
+      seen.rock = isSensing && paintRocks(view, frame);
+    }
+
+    seen.pull = paintHoles(view, frame, this.missions.wayOn);
+    seen.hostile = isSensing && paintHostiles(view, frame, this.missions.hostiles);
+    seen.mission = paintMissions(view, frame, this.missions);
 
     if (state.waypoint) {
       context.setLineDash([3, 5]);
@@ -200,6 +215,70 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     }
 
     drawArrow(front, toX(shipX), toY(shipY), shipState?.angle ?? 0, 8, theme.shield);
+    world.stores.gate.entities.forEach((entity) => {
+      const gate = world.stores.body.get(entity);
+
+      if (gate) {
+        context.strokeStyle = theme.shield;
+        context.lineWidth = 2;
+        context.beginPath();
+        context.arc(toX(gate.x), toY(gate.y), 6, 0, TAU);
+        context.stroke();
+      }
+    });
+    this.drawNetwork(frame);
+    // Above the maze's web where it is drawn in the same corner.
+    paintKey(view, front.height - 16 - (state.network && state.phase === "universe" ? this.networkHeight() + 12 : 0), seen);
+  }
+
+  // A maze universe's web as far as it is known, in a corner of the map: every system been to and those its gates
+  // lead to, the gates between them, where the ship is, and the system with the way on once it has been reached.
+  private drawNetwork({ state, theme }: VoyageFrame): void {
+    const { network, explored } = state;
+
+    if (!network || state.phase !== "universe") {
+      return;
+    }
+
+    const { front } = this.kit;
+    const context = front.context;
+    const width = Math.min(220, front.width * 0.5);
+    const height = this.networkHeight();
+    const left = 12;
+    const top = front.height - height - 12;
+    const known = new Set<number>(explored);
+
+    explored.forEach((node) => network.nodes[node].links.forEach((next) => known.add(next)));
+
+    const at = (node: number) => ({ x: left + 14 + network.nodes[node].x * (width - 28), y: top + network.nodes[node].y * height });
+
+    context.fillStyle = "rgba(8, 12, 24, 0.85)";
+    context.fillRect(left, top, width, height);
+    context.strokeStyle = "rgba(196, 210, 255, 0.35)";
+    context.lineWidth = 1;
+    explored.forEach((node) => network.nodes[node].links.forEach((next) => {
+      const from = at(node);
+      const to = at(next);
+
+      context.beginPath();
+      context.moveTo(from.x, from.y);
+      context.lineTo(to.x, to.y);
+      context.stroke();
+    }));
+    known.forEach((node) => {
+      const { x, y } = at(node);
+      const isHere = node === state.node;
+
+      context.fillStyle = isHere ? theme.shield : explored.has(node) ? (node === network.exit ? theme.danger : "#c4d2ff") : "rgba(196, 210, 255, 0.35)";
+      context.beginPath();
+      context.arc(x, y, isHere ? 5 : 3.5, 0, TAU);
+      context.fill();
+    });
+  }
+
+  // How tall the maze's web is drawn: a little over half as tall as it is wide.
+  private networkHeight(): number {
+    return Math.min(220, this.kit.front.width * 0.5) * 0.55;
   }
 
   private drawRadar({ state, world, alpha, theme }: VoyageFrame): void {

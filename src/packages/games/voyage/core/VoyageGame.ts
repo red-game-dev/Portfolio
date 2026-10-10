@@ -12,9 +12,10 @@ import { StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
 import { ShipEffect } from "../domain/faults";
 import { GhostRun } from "../domain/ghost";
-import { VoyageInput } from "../domain/input";
+import { LandingOptions, SpaceDrag, VoyageInput } from "../domain/input";
 import { VoyageAction, VoyageNotice } from "../domain/notices";
 import { VoyageSnapshot } from "../domain/snapshot";
+import { HomePad } from "../domain/surface";
 import { UniverseNames } from "../domain/universe";
 import { markOf, tierOf } from "../economy/config/tiers";
 import { CatalogLootTable } from "../economy/core/CatalogLootTable";
@@ -26,6 +27,7 @@ import { PilotLink } from "../services/PilotLink";
 import { SystemService } from "../services/SystemService";
 import { SolarSystemSource } from "../sources/SolarSystemSource";
 import { dailyEpoch, dailySeed, dayKey } from "../utils/daily";
+import { missionMarks } from "../utils/missions";
 import { GhostRecorder, placeCode } from "./GhostRecorder";
 import { VoyageSimulation } from "./VoyageSimulation";
 
@@ -41,6 +43,8 @@ export interface VoyageOptions {
   // What to call each place on the system map, by id; what the first universes are called (the site's zones,
   // in the order of the theme's), and the syllables the rest are named from.
   labels?: Record<string, string>;
+  // The pad at home where a new rocket waits once a crew is back.
+  home?: HomePad | null;
   universeNames?: string[];
   syllables?: UniverseNames;
   onChange?: (snapshot: VoyageSnapshot) => void;
@@ -77,6 +81,9 @@ export interface VoyageCanvasOptions extends VoyageOptions {
 const TICK_MS = 250;
 // After the ship is lost the loop runs this long more for the wreck to finish, then stops on its last frame.
 const WRECK_MS = 3200;
+// Tilting aims the ship at a point this far ahead of it the way the device leans (world units).
+const TILT_REACH = 3;
+
 // A pointer this close to the ship (in CSS pixels) asks for no thrust; this far or more, full thrust.
 const DEADZONE = 26;
 const FULL_THRUST_SHARE = 0.32;
@@ -111,6 +118,8 @@ interface Moment {
   faults: number;
   isSalvaging: boolean;
   isOnSurface: boolean;
+  // The phase of a way down, and whether a pilot flies it.
+  descent: string | null;
 }
 
 // Hosts a voyage on the shared frame loop: steps the simulation in fixed steps, flies the camera after the ship,
@@ -128,8 +137,12 @@ export class VoyageGame extends FrameLoop {
   private readonly detach: () => void;
   private readonly now: () => number;
   private pointer: { x: number; y: number } | null = null;
+  private isPressing = false;
   private zoomBias = 1;
   private keys = { turn: 0, thrust: 0, brake: false };
+  // A phone or tablet tilted to steer: the way to fly on screen (x right, y down) and how hard, 0 to 1; null when
+  // tilting does not steer.
+  private tilt: { x: number; y: number } | null = null;
   private lastSnapshot: VoyageSnapshot;
   private lastTickAt = 0;
   private lastFrameAt = 0;
@@ -158,6 +171,7 @@ export class VoyageGame extends FrameLoop {
     super({ framesPerSecond: simulation.config.framesPerSecond, maxStepMs: 100, scheduler: options.scheduler });
     this.simulation = simulation;
     this.renderer = renderer;
+    renderer.setHome(options.home ?? null);
     this.presenter = presenter;
     this.backCanvas = backCanvas;
     this.theme = theme;
@@ -310,6 +324,17 @@ export class VoyageGame extends FrameLoop {
   // Pointer at x, y on the canvas (CSS pixels), or null when it leaves or the finger lifts.
   public point(position: { x: number; y: number } | null): void {
     this.pointer = position;
+  }
+
+  // A mouse button or a finger held down: while coming down, the burn (the pilot's on the landing engine, or one
+  // that aborts the landing under fire).
+  public press(isDown: boolean): void {
+    this.isPressing = isDown;
+  }
+
+  // How the device is tilted, as the hook reads it, or null when tilting does not steer.
+  public setTilt(tilt: { x: number; y: number } | null): void {
+    this.tilt = tilt;
   }
 
   public setKeys(keys: { turn: number; thrust: number; brake: boolean }): void {
@@ -488,9 +513,19 @@ export class VoyageGame extends FrameLoop {
     this.publish(true);
   }
 
+  // How the pilot likes their landings, and how much space slows the ship, from their preferences.
+  public setLanding(options: LandingOptions): void {
+    this.simulation.setLanding(options);
+  }
+
+  public setSpaceDrag(drag: SpaceDrag): void {
+    this.simulation.setSpaceDrag(drag);
+  }
+
 
   protected update(deltaMs: number): void {
     this.simulation.advance(deltaMs, this.input());
+    this.readGround();
     this.recordGhost();
     this.followShip(deltaMs / 1000, false);
     this.publish(false, performance.now());
@@ -591,7 +626,31 @@ export class VoyageGame extends FrameLoop {
   }
 
   private input(): VoyageInput {
+    const descent = this.simulation.state.descent;
+
+    // Coming down, a burn (the pilot's on the landing engine, or one that aborts the landing under fire) is the burn
+    // key or a held press, never where a mouse happens to rest or a phone happens to lean; so is the burn that
+    // launches the new rocket from the pad after a homecoming, which also stays pointed straight up.
+    if (descent?.downAt === null || this.simulation.state.homecoming) {
+      return { aim: null, thrust: Math.max(this.keys.thrust, this.isPressing ? 1 : 0), turn: 0, brake: false };
+    }
+
     const parts = this.shipScreen();
+    const isKeyed = this.keys.turn !== 0 || this.keys.thrust !== 0 || this.keys.brake;
+
+    // Tilted to steer: towards the way it leans, as hard as it leans, unless keys are flying it. A finger on the
+    // screen still locks the guns but no longer steers.
+    if (this.tilt && !isKeyed) {
+      const strength = Math.min(1, Math.hypot(this.tilt.x, this.tilt.y));
+      const body = this.simulation.world.stores.body.get(this.simulation.state.ship);
+
+      return {
+        aim: body && strength > 0 ? { x: body.x + (this.tilt.x / strength) * TILT_REACH, y: body.y + (this.tilt.y / strength) * TILT_REACH } : null,
+        thrust: strength,
+        turn: 0,
+        brake: false,
+      };
+    }
 
     if (this.pointer && parts) {
       const distance = Math.hypot(this.pointer.x - parts.x, this.pointer.y - parts.y);
@@ -697,9 +756,13 @@ export class VoyageGame extends FrameLoop {
       this.onNotice(notice(payload));
     });
     const offs = [
-      tell("landed", ({ body }) => ({ kind: "landed", body })),
-      tell("tookOff", ({ body }) => ({ kind: "tookOff", body })),
-      tell("recovered", ({ body }) => ({ kind: "recovered", body })),
+      tell("landed", ({ body, speed }) => ({ kind: "landed", body: this.nameOf(body), speed })),
+      tell("descending", ({ body, phase }) => ({ kind: "descent", body: this.nameOf(body), phase })),
+      tell("hardLanding", ({ body, speed, safe }) => ({ kind: "hardLanding", body: this.nameOf(body), speed, safe })),
+      tell("tookOff", ({ body }) => ({ kind: "tookOff", body: this.nameOf(body) })),
+      tell("recovered", ({ body, days }) => ({ kind: "recovered", body, days })),
+      tell("stranded", ({ body, seconds, isRescue, isOver }) => ({ kind: "stranded", body: body ? this.nameOf(body) : null, seconds, isRescue, isOver })),
+      tell("rescued", ({ from, days }) => ({ kind: "rescued", from: from ? this.nameOf(from) : null, days })),
       tell("emergency", ({ body }) => ({ kind: "emergency", body })),
       tell("captured", ({ isSingularity }) => ({ kind: "captured", isSingularity })),
       tell("destroyed", () => ({ kind: "destroyed" })),
@@ -714,6 +777,9 @@ export class VoyageGame extends FrameLoop {
       tell("boss", ({ name, isFallen }) => ({ kind: "boss", name, isFallen })),
       tell("heard", () => ({ kind: "heard" })),
       tell("wormhole", () => ({ kind: "wormhole" })),
+      tell("gate", ({ name, isNew, isExit, isDeadEnd }) => ({ kind: "gate", system: name, isNew, isExit, isDeadEnd })),
+      tell("hosted", ({ body, faction }) => ({ kind: "hosted", body: this.nameOf(body), faction })),
+      tell("groundFire", ({ body, faction }) => ({ kind: "groundFire", body: this.nameOf(body), faction })),
       tell("supernova", ({ seconds, isBlown }) => ({ kind: "supernova", seconds, isBlown })),
       tell("burst", ({ seconds, isFired }) => ({ kind: "burst", seconds, isFired })),
       tell("fault", ({ kind }) => ({ kind: "fault", fault: kind })),
@@ -727,7 +793,13 @@ export class VoyageGame extends FrameLoop {
     const { career } = this;
 
     if (career) {
-      offs.push(career.subscribe(() => this.onCareer(career.view())));
+      this.renderer.setMissions(missionMarks(career.view().missions));
+      offs.push(career.subscribe(() => {
+        const view = career.view();
+
+        this.renderer.setMissions(missionMarks(view.missions));
+        this.onCareer(view);
+      }));
     }
 
     return () => {
@@ -773,6 +845,16 @@ export class VoyageGame extends FrameLoop {
     }
   }
 
+  // The surface the renderer reads at the spot tells the way down what it is coming down on: a capsule over the sea
+  // at home splashes down.
+  private readGround(): void {
+    const { surface } = this.renderer;
+
+    if (surface && this.simulation.state.descent?.downAt === null) {
+      this.simulation.setGround(surface.body, surface.isHome && surface.biome === "ocean");
+    }
+  }
+
   // Where the ship is, a few times a second, on a daily voyage, to fly beside the next time.
   private recordGhost(): void {
     const { state, world } = this.simulation;
@@ -809,8 +891,11 @@ export class VoyageGame extends FrameLoop {
 
     const isSalvaging = state.salvage !== null;
     const isOnSurface = this.renderer.surface !== null;
+    const craft = state.descent && state.descent.downAt === null ? state.descent.craft : null;
+    const descent = craft ? `${craft.phase}:${craft.isPilot}` : null;
 
-    if (last && last.isOnSurface === isOnSurface && last.status === state.status && last.phase === state.phase && last.universe === state.universe &&
+    if (last && last.descent === descent && last.isOnSurface === isOnSurface && last.status === state.status && last.phase === state.phase &&
+      last.universe === state.universe &&
       last.universes === state.universes &&
       last.passing === state.passing && last.landedOn === landedOn && last.waypoint === waypoint && last.level === state.level &&
       last.faults === state.faults.length && last.isSalvaging === isSalvaging) {
@@ -829,6 +914,7 @@ export class VoyageGame extends FrameLoop {
       faults: state.faults.length,
       isSalvaging,
       isOnSurface,
+      descent,
     };
 
     return true;

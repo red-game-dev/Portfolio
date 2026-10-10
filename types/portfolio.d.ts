@@ -13,6 +13,7 @@ import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
 import { LensContent } from "@/types/lens";
 import { MenuContent } from "@/types/menu";
+import { PreferencesContent } from "@/types/preferences";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
 import { Recommendation } from "@/types/recommendations";
 import { Resume } from "@/types/resume";
@@ -70,6 +71,7 @@ export interface PortfolioData {
   // Every startup I founded or co-founded, listed in History or not.
   foundedTotal: number;
   menu: MenuContent;
+  preferences: PreferencesContent;
   expertise: ExpertiseContent;
   codeReview: CodeReviewContent;
   web3: Web3Content;

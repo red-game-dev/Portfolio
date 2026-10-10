@@ -1,9 +1,11 @@
+import type { LandingMethod, LandingPhase } from "../landing";
 import { AlienRole, Modules, WreckKind } from "./components";
 import { VoyagePhase } from "./events";
 import { FaultKind } from "./faults";
+import type { Medium } from "./state";
 import { VoyageStatus } from "./state";
 import { SurfaceInfo } from "./surface";
-import { Disposition } from "./universe";
+import { Disposition, GalaxyKind, StarKind } from "./universe";
 
 // Someone shown in an MMO frame: what they are called, their level, how they stand towards the ship, and how
 // much hull and shield they have left.
@@ -49,6 +51,31 @@ export interface Telemetry {
   timeDilation: number;
   // The mission clock, as a real moment (ms since 1970).
   missionTime: number;
+  // The kind of space the ship is in, and how hard tides pull it apart as a multiple of what the hull takes.
+  medium: Medium;
+  tides: number;
+}
+
+// A landing on its way down, in real units: how it comes down and what it is doing now, how high (m), how fast (m/s,
+// and how fast falling), the load the crew feels (Earth g), how hard the air heats it (about 1 at a capsule's peak),
+// the throttle, whether a pilot could fly the burn and whether one is, whether the ground is firing on it, their
+// seconds of burn left, the speed the craft takes at touchdown, and how many times faster than life it is playing.
+export interface DescentView {
+  method: LandingMethod;
+  phase: LandingPhase;
+  altitude: number;
+  speed: number;
+  fall: number;
+  load: number;
+  heating: number;
+  throttle: number;
+  canFly: boolean;
+  isPilot: boolean;
+  // Fired on from the ground, when a burn aborts the landing.
+  isUnderFire: boolean;
+  reserve: number;
+  safeSpeed: number;
+  pace: number;
 }
 
 // What a UI shows between frames. Changes a few times a second at most.
@@ -57,8 +84,9 @@ export interface VoyageSnapshot {
   phase: VoyagePhase;
   universe: number;
   universes: number;
-  // The universe's own name, once there.
+  // The universe's own name, once there, and the galaxy and star it holds.
   universeName: string | null;
+  cosmos: { galaxy: GalaxyKind; star: StarKind | null; companions: StarKind[] } | null;
   hull: number;
   maxHull: number;
   shields: number;
@@ -68,8 +96,18 @@ export interface VoyageSnapshot {
   score: number;
   passing: string | null;
   landedOn: string | null;
-  // Where the ship stands on that world, once its surface is in view.
+  // Where the ship stands on that world, once its surface is in view, and the way down while it is coming down.
   surface: SurfaceInfo | null;
+  descent: DescentView | null;
+  // A crew coming home: being picked up, or at the pad days later.
+  homecoming: { stage: "recovery" | "pad"; days: number; isSea: boolean } | null;
+  // With no fuel to leave: the whole seconds before a rescue (in our solar system) or the end of the run.
+  stranded: { secondsLeft: number; isRescue: boolean } | null;
+  // Who lives on the world the ship is coming down to or stands on, and how they meet visitors.
+  people: { name: string; disposition: Disposition } | null;
+  // A maze universe: the system the ship is in, how many there are and have been reached, and whether this one holds
+  // the way on.
+  maze: { system: string; systems: number; explored: number; isExit: boolean } | null;
   // Each system's integrity, in hundredths.
   modules: Modules;
   // The compass's target, its name where it was made up, and its real distance in km.

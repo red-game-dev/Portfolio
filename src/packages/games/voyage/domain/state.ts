@@ -1,9 +1,10 @@
 import type { Entity } from "@/packages/games/engine";
 
+import type { DescentState, LandingPlan, LandingWorld } from "../landing";
 import { StarSystem } from "./content";
 import { VoyagePhase } from "./events";
 import { Fault } from "./faults";
-import { UniverseSpec } from "./universe";
+import { UniverseNetwork, UniverseSpec } from "./universe";
 
 export type VoyageStatus = "ready" | "flying" | "over";
 
@@ -14,6 +15,35 @@ export interface Capture {
   from: number;
   progress: number;
   hole: Entity;
+}
+
+// A landing on its way down: the world (by id) as the landing reads it, the way down its air and gravity call for,
+// the craft as it comes down, how many times faster than life the way down plays and how fast it is playing now
+// (life's pace once a pilot flies it), once down, when (ms on the run's clock) and whether in one piece, and whether
+// the world's people have opened fire on it.
+export interface Descent {
+  body: string;
+  world: LandingWorld;
+  plan: LandingPlan;
+  craft: DescentState;
+  speedUp: number;
+  pace: number;
+  downAt: number | null;
+  isSoft: boolean;
+  // Whether those who live there have opened fire yet.
+  isFiredOn: boolean;
+}
+
+// A crew home: picked up where the capsule came down (by the recovery ship at sea, the recovery crews on land),
+// then some days later at the pad, where a new rocket stands ready. When each began (ms on the run's clock).
+export interface Homecoming {
+  stage: "recovery" | "pad";
+  since: number;
+  days: number;
+  isSea: boolean;
+  // Whether the burn has been let go of since the crew reached the pad, so a held one does not fire the new rocket
+  // off before the pad is seen.
+  isArmed: boolean;
 }
 
 // Where the compass points, and what it is.
@@ -88,7 +118,13 @@ export interface Readings {
   // nebula (0 to 1).
   tidal: number;
   nebula: number;
+  // The kind of space the ship is in, which sets how fast it can go.
+  medium: Medium;
 }
+
+// What the space round the ship is, from the emptiest to the densest: the void between universes or of a void
+// universe, open space, the haze filling a nebula universe, an asteroid belt, inside a nebula, and a giant's rings.
+export type Medium = "void" | "open" | "haze" | "belt" | "nebula" | "ring";
 
 // Everything about a run that is not an entity.
 export interface VoyageState {
@@ -115,6 +151,8 @@ export interface VoyageState {
   capture: Capture | null;
   waypoint: Waypoint | null;
   readings: Readings;
+  // How fast the ship may go now (world units a second), easing towards what the space round it allows.
+  speedLimit: number;
   storms: Storm[];
   // How bright Earth's aurora burns, 0 to 1, lit by storms and fading after, and the extra radiation a storm
   // leaves round the ship as it passes (uSv/h), fading too.
@@ -126,6 +164,12 @@ export interface VoyageState {
   nextCometAt: number | null;
   // The universe the ship is in, all of it from its seed, and the seed universes are made from on this run.
   cosmos: UniverseSpec | null;
+  // A maze universe's network, the system the ship is in, those it has been to, and each system as it was
+  // left, so going back finds it as it was.
+  network: UniverseNetwork | null;
+  node: number;
+  explored: Set<number>;
+  nodes: Map<number, UniverseSpec>;
   runSeed: number;
   // What the guns are locked on (chosen by the player), and whether they fire by themselves at what threatens.
   lockedTarget: Entity | null;
@@ -150,6 +194,11 @@ export interface VoyageState {
   nextFaultId: number;
   salvage: { wreck: Entity; progress: number } | null;
   nextWreckAt: number | null;
+  // The landing under way, or the last one while the ship still stands where it came down; and a crew coming home.
+  descent: Descent | null;
+  homecoming: Homecoming | null;
+  // Since when (ms on the run's clock) the ship has had no fuel to leave where it is, if it has none.
+  stranded: { since: number } | null;
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

@@ -6,6 +6,7 @@ import {
   entryHeating,
   escapeSpeed,
   GravityField,
+  innermostStableOrbit,
   integrate,
   muForSurfaceGravity,
   surfaceGravity,
@@ -68,6 +69,34 @@ describe("physics/newtonian", () => {
     expect(timeDilation(1000, 1)).toBeCloseTo(1, 2);
     expect(timeDilation(2, 1)).toBeCloseTo(Math.SQRT2, 10);
     expect(timeDilation(1, 1)).toBe(Infinity);
+  });
+
+  test("a black hole pulls as Newton's mass does far off and ever harder near its horizon; nothing circles inside three of its radii", () => {
+    const field = new GravityField();
+    const sample = createFieldSample();
+    const hole = { x: 0, y: 0, mu: 1, radius: 0.001, horizon: 1 };
+
+    field.setSources([hole]);
+    expect(field.sample(1000, 0, sample).magnitude).toBeCloseTo(1 / 1000 ** 2, 8);
+    expect(field.sample(2, 0, sample).magnitude).toBeCloseTo(1, 10);
+    expect(innermostStableOrbit(1)).toBe(3);
+
+    // A circular orbit nudged a hundredth inward: outside the innermost stable orbit it holds; inside, it falls in.
+    const orbit = (start: number) => {
+      const body = { x: start * 0.99, y: 0, vx: 0, vy: Math.sqrt((hole.mu * start) / (start - hole.horizon) ** 2), prevX: 0, prevY: 0 };
+      let nearest = Infinity;
+
+      for (let step = 0; step < 200000 && Math.hypot(body.x, body.y) > hole.horizon; step += 1) {
+        field.sample(body.x, body.y, sample);
+        integrate(body, sample.ax, sample.ay, 0.002);
+        nearest = Math.min(nearest, Math.hypot(body.x, body.y));
+      }
+
+      return nearest;
+    };
+
+    expect(orbit(4)).toBeGreaterThan(3.5);
+    expect(orbit(2.6)).toBeLessThanOrEqual(1);
   });
 
   test("an atmosphere thins with height and ends at its top; drag and heating rise with speed", () => {

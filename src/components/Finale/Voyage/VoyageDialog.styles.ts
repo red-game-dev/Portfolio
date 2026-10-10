@@ -103,6 +103,9 @@ export const SurfaceTitle = tw.h3`m-0 text-xs md:text-sm font-semibold text-whit
 
 export const SurfaceLine = tw.p`m-0 text-[11px] md:text-xs text-[#c4d2ff]`;
 
+// What the way down is doing now, the line a reader looks for first.
+export const SurfacePhase = tw.p`m-0 my-[2px] text-xs md:text-sm font-semibold text-[#ffd27a]`;
+
 export const SurfaceHint = tw.p`m-0 mt-[4px] text-[11px] md:text-xs text-[#9aa3bb]`;
 
 export const TelemetryPanel = styled.section(() => [
@@ -244,6 +247,11 @@ export const Card = styled.section(() => [
 export const Title = tw.h2`m-0 text-2xl md:text-3xl font-semibold text-white`;
 
 export const Text = tw.p`m-0 text-sm md:text-base text-[#c9cfdf] leading-relaxed`;
+
+// The first time the voyage opens: how the pilot likes to fly, set before the first flight.
+export const Setup = tw.section`flex flex-col gap-[10px] p-[12px] border-[1px] border-solid border-[rgba(196,210,255,0.25)] text-left`;
+
+export const SetupTitle = tw.h3`m-0 text-base font-semibold text-white`;
 
 export const Score = tw.p`m-0 text-3xl font-bold text-[#c4d2ff] tabular-nums`;
 

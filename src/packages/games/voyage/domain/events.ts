@@ -1,3 +1,4 @@
+import type { LandingPhase } from "../landing";
 import { AlienRole, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
 import { FaultKind } from "./faults";
 import { Loot } from "./loot";
@@ -18,9 +19,19 @@ export interface VoyageEvents {
   hit: { x: number; y: number; angle: number; amount: number; toShields: number; toHull: number; kind: DamageKind };
   destroyed: { x: number; y: number; vx: number; vy: number; angle: number };
   collected: { kind: PickupKind; x: number; y: number };
-  landed: { body: string };
-  // Home safely: recovered, and a new rocket ready.
-  recovered: { body: string };
+  // Down in one piece, and how fast it met the ground (m/s).
+  landed: { body: string; speed: number };
+  // On the way down a new phase begins: through entry, under a parachute, on the engine, the pilot's to fly.
+  descending: { body: string; phase: LandingPhase };
+  // Down too hard: how fast it hit (m/s) and what the craft could take.
+  hardLanding: { body: string; speed: number; safe: number };
+  // Home safely: the crew picked up, and days later a new rocket ready on the pad.
+  recovered: { body: string; days: number };
+  // No fuel to leave where it is (on a world, or null adrift): the countdown begun, with how long it has, whether a
+  // rescue ends it or the run does, and when it has run out in the universes, the run over.
+  stranded: { body: string | null; seconds: number; isRescue: boolean; isOver: boolean };
+  // Stranded in our solar system, the crew brought home from there (null adrift) after so many days.
+  rescued: { from: string | null; days: number };
   tookOff: { body: string };
   passing: { stop: string };
   phase: { phase: VoyagePhase; universe: number };
@@ -65,4 +76,11 @@ export interface VoyageEvents {
   // supernova's shock or a gamma ray burst (whether it lives through it is known a moment later).
   skimmed: { body: string };
   weathered: { peril: "supernova" | "burst" };
+  // Down on a world others live on: welcomed and seen to by its people (a faction's name), or fired on from the
+  // ground by a people who want no visitors.
+  hosted: { body: string; faction: string };
+  groundFire: { body: string; faction: string };
+  // Through a gate of a maze universe to another of its systems: which, its name, whether it is new, whether the way
+  // on waits there, and whether it leads nowhere else.
+  gate: { to: number; name: string; isNew: boolean; isExit: boolean; isDeadEnd: boolean };
 }

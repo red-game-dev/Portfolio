@@ -1,21 +1,30 @@
 import {
   arrivalSpeed,
+  auForRadius,
+  lightAt,
+  placeBodies,
   bindingEnergy,
   craterKm,
   DEFAULT_UNIVERSE_NAMES,
   DEFAULT_VOYAGE_CONFIG,
   impactEnergy,
   impactOutcome,
+  landingWorldOf,
   leadDirection,
+  massOfPull,
   NO_INPUT,
   PhenomenonSpec,
+  pullOfMass,
   resolveVoyageConfig,
   SolarSystemSource,
   SystemService,
   UniverseGenerator,
   VoyageConfig,
   VoyageSimulation,
+  VoyageState,
+  WORLD_CLASSES,
 } from "@/packages/games/voyage";
+import { flyAhead, isSoftTouchdown, planLanding } from "@/packages/games/voyage/landing";
 import { createSeededRandom } from "@/packages/math/random";
 
 const defaults = DEFAULT_VOYAGE_CONFIG;
@@ -109,13 +118,269 @@ describe("universes", () => {
     expect(spec).toMatchObject({ name: "The Matrix", style: "matrix", accent: "#4bffa5" });
   });
 
-  test("a world's kind follows the light that reaches it: hot near a bright star, cold far out", () => {
-    const specs = Array.from({ length: 40 }, (_, index) => generator.generate(5, 500 + index, null)).filter((spec) => spec.starKind && spec.starKind !== "neutron");
-    const inner = specs.map((spec) => spec.looks[spec.system.bodies[0].id].surface.kind);
-    const hot = ["lava", "volcanic", "desert", "toxic", "haze", "terran"];
+  test("a world's kind follows the light that reaches it: each is a real kind for the warmth its star gives it there", () => {
+    const specs = Array.from({ length: 120 }, (_, index) => generator.generate(5, 500 + index * 13, null)).filter((spec) => spec.starKind);
+    let checked = 0;
 
-    expect(inner.filter((kind) => hot.includes(kind)).length).toBeGreaterThan(inner.length * 0.4);
-    specs.forEach((spec) => spec.system.bodies.filter((body) => body.isGiant).forEach((body) => expect(body.air?.kind).toBe("giant")));
+    specs.forEach((spec) => {
+      // A close pair's worlds circle both stars and take the light of both.
+      const isPair = spec.multiplicity === "close" || spec.multiplicity === "triple";
+      const luminosity = spec.system.star.luminosity + (isPair ? spec.system.companions[0].luminosity : 0);
+
+      spec.system.bodies.filter((body) => body.kind === "planet" && body.orbit.kind === "circle").forEach((body) => {
+        const au = body.orbit.kind === "circle" ? auForRadius(spec.system.scale, body.orbit.distance) : 1;
+        const temperatureC = (278.6 * luminosity ** 0.25) / Math.sqrt(au) - 273.15;
+        const kind = WORLD_CLASSES[spec.classes[body.id]];
+
+        if (temperatureC < 2900) {
+          expect(temperatureC).toBeGreaterThanOrEqual(kind.coldest - 0.5);
+          expect(temperatureC).toBeLessThanOrEqual(kind.warmest + 0.5);
+          checked += 1;
+        }
+
+        expect(spec.looks[body.id].surface.kind).toBe(kind.surface);
+      });
+      spec.system.bodies.filter((body) => body.isGiant).forEach((body) => expect(body.air?.kind).toBe("giant"));
+    });
+    expect(checked).toBeGreaterThan(200);
+  });
+
+  test("galaxies shape their stars: an elliptical's are old, never young blue ones; big stars make vast systems, dwarfs tight ones", () => {
+    const specs = Array.from({ length: 600 }, (_, index) => generator.generate(6, 7000 + index * 31, null));
+    const young = ["blue", "blueSupergiant", "wolfRayet", "hypergiant"];
+    const kinds = new Set(specs.map((spec) => spec.galaxy.kind));
+    // How far out a kind of star's worlds reach (a distant partner star aside).
+    const edgeOf = (kind: string) => Math.max(0, ...specs.filter((spec) => spec.starKind === kind)
+      .flatMap((spec) => spec.system.bodies.map((body) => (body.orbit.kind === "circle" ? body.orbit.distance : 0))));
+
+    expect(kinds.size).toBe(6);
+    specs.filter((spec) => spec.galaxy.kind === "elliptical").forEach((spec) => expect(young).not.toContain(spec.starKind));
+    expect(specs.some((spec) => spec.starKind === "redSupergiant" || spec.starKind === "blueSupergiant" || spec.starKind === "hypergiant")).toBe(true);
+    expect(Math.max(edgeOf("redSupergiant"), edgeOf("blueSupergiant"), edgeOf("hypergiant"))).toBeGreaterThan(edgeOf("red") * 2.5);
+    specs.forEach((spec) => expect(spec.system.edge).toBeLessThan(500));
+  });
+
+  test("worlds are lettered from b and moons numbered; giants keep moons, each further out on a longer Kepler period", () => {
+    const specs = Array.from({ length: 80 }, (_, index) => generator.generate(6, 3100 + index * 7, null)).filter((spec) => spec.starKind);
+    const giants = specs.flatMap((spec) => spec.system.bodies
+      .filter((body) => body.kind === "planet" && spec.classes[body.id] === "gas")
+      .map((body) => ({ spec, body })));
+
+    // Round one star "Name b"; round a close pair "Name AB b"; round one of a wide pair "Name A b".
+    specs.forEach((spec) => {
+      const root = spec.names.star.replace(/ A$/, "");
+      const pair = spec.multiplicity === "close" || spec.multiplicity === "triple" ? " AB" : spec.multiplicity === "wide" ? " A" : "";
+
+      expect(spec.names[spec.system.bodies[0].id]).toBe(`${root}${pair} b`);
+    });
+    expect(giants.length).toBeGreaterThan(5);
+    giants.forEach(({ spec, body }) => {
+      const moons = spec.system.bodies.filter((moon) => moon.parent === body.id);
+
+      expect(moons.length).toBeGreaterThanOrEqual(2);
+      expect(spec.names[moons[0].id]).toBe(`${spec.names[body.id]} I`);
+      moons.slice(1).forEach((moon, order) => {
+        const inner = moons[order].orbit;
+
+        if (moon.orbit.kind === "moon" && inner.kind === "moon") {
+          expect(moon.orbit.periodDays).toBeGreaterThan(inner.periodDays);
+          expect(moon.dayHours).toBeNull();
+        }
+      });
+    });
+  });
+
+  test("many stars share their systems: close pairs their worlds circle together, wide pairs, and triples, the massive stars most often", () => {
+    const specs = Array.from({ length: 900 }, (_, index) => generator.generate(6, 21000 + index * 17, null)).filter((spec) => spec.starKind);
+    const share = (kinds: string[]) => {
+      const of = specs.filter((spec) => spec.starKind && kinds.includes(spec.starKind));
+
+      return of.filter((spec) => spec.multiplicity !== "single").length / Math.max(1, of.length);
+    };
+
+    ["close", "wide", "triple"].forEach((kind) => expect(specs.some((spec) => spec.multiplicity === kind)).toBe(true));
+    expect(share(["blue", "blueSupergiant", "wolfRayet"])).toBeGreaterThan(share(["red", "brownDwarf"]));
+    specs.forEach((spec) => {
+      expect(spec.system.companions).toHaveLength(spec.multiplicity === "single" ? 0 : spec.multiplicity === "triple" ? 2 : 1);
+      spec.system.companions.forEach((other) => expect(other.luminosity).toBeLessThanOrEqual(Math.max(spec.system.star.luminosity, 0.05)));
+    });
+  });
+
+  test("each system's belt of rocks is its own, named for its star, so passing one never counts as passing another", () => {
+    const specs = Array.from({ length: 60 }, (_, index) => generator.generate(5 + (index % 5), 8100 + index * 7, null)).filter((spec) => spec.system.belts.length > 0);
+
+    expect(specs.length).toBeGreaterThan(10);
+    specs.forEach((spec) => {
+      const [belt] = spec.system.belts;
+
+      expect(belt.id).toBe(spec.node > 0 ? `u${spec.index}.${spec.node}-belt` : `u${spec.index}-belt`);
+      expect(spec.names[belt.id]).toMatch(/^the [A-Z][a-z]+ belt$/);
+    });
+  });
+
+  test("no two worlds share an orbit: each lies at least 1.2 times further out than the last, round every kind of star and pair", () => {
+    const specs = Array.from({ length: 1500 }, (_, index) => generator.generate(5 + (index % 5), 50000 + index * 11, null));
+    const kinds = new Set<string>();
+
+    specs.forEach((spec) => {
+      const orbits = spec.system.bodies.filter((body) => body.kind === "planet").map((body) => body.au)
+.sort((first, second) => first - second);
+
+      kinds.add(`${spec.starKind}/${spec.multiplicity}`);
+      expect(orbits.length).toBeGreaterThan(0);
+      orbits.slice(1).forEach((au, order) => expect(au / orbits[order]).toBeGreaterThan(1.2));
+    });
+    // The hardest arrangements were among them: red dwarfs in close pairs, giants with wide partners, and triples.
+    ["red/close", "giant/wide", "red/triple"].forEach((kind) => expect(kinds).toContain(kind));
+    // The vastest stars are drawn alone: a partner far enough out to leave their worlds room could not be reached.
+    specs.filter((spec) => spec.starKind === "redSupergiant" || spec.starKind === "hypergiant").forEach((spec) => expect(spec.multiplicity).toBe("single"));
+  });
+
+  test("the guidance lands in one piece on every world a universe makes that can be landed on", () => {
+    const missed: string[] = [];
+
+    Array.from({ length: 36 }, (_, index) => generator.generate(5 + (index % 5), 61000 + index * 19, null)).forEach((spec) => {
+      spec.system.bodies.filter((body) => body.isLandable).forEach((body) => {
+        const world = landingWorldOf(body, false);
+        const plan = planLanding(world);
+        const state = flyAhead(world, plan);
+
+        if (!isSoftTouchdown(state, plan, world)) {
+          missed.push(`${spec.classes[body.id]} by ${plan.method} at ${state.impactSpeed.toFixed(1)} m/s`);
+        }
+      });
+    });
+
+    expect(missed).toEqual([]);
+  }, 20000);
+
+  test("a close pair circles the centre in days on opposite sides, its worlds well clear of it; a wide pair's worlds keep to one star", () => {
+    const specs = Array.from({ length: 900 }, (_, index) => generator.generate(6, 33000 + index * 13, null));
+    const close = specs.find((spec) => spec.multiplicity === "close");
+    const wide = specs.find((spec) => spec.multiplicity === "wide");
+    const triple = specs.find((spec) => spec.multiplicity === "triple");
+
+    if (!close || !wide || !triple) {
+      throw new Error("expected every kind of multiple star");
+    }
+
+    const { star, companions, bodies } = close.system;
+    const where = () => ({ ax: star.x, ay: star.y, bx: companions[0].x, by: companions[0].y });
+
+    placeBodies(close.system, EPOCH);
+    const before = where();
+    const apart = Math.hypot(before.ax - before.bx, before.ay - before.by);
+
+    // On opposite sides of the centre, the heavier nearer to it.
+    expect(before.ax * before.bx + before.ay * before.by).toBeLessThan(0);
+    expect(Math.hypot(before.ax, before.ay)).toBeLessThanOrEqual(Math.hypot(before.bx, before.by) + 1e-9);
+    bodies.filter((body) => body.orbit.kind === "circle").forEach((body) => {
+      expect(body.orbit.kind === "circle" && body.orbit.host).toBeFalsy();
+      expect(body.orbit.kind === "circle" ? body.orbit.distance : 0).toBeGreaterThanOrEqual(apart * 2.9);
+    });
+
+    placeBodies(close.system, EPOCH + 2 * 86400000);
+    const after = where();
+
+    expect(Math.hypot(after.ax - before.ax, after.ay - before.ay)).toBeGreaterThan(0);
+    expect(Math.hypot(after.ax - after.bx, after.ay - after.by)).toBeCloseTo(apart, 6);
+
+    const wideApart = (wide.system.star.orbit?.distance ?? 0) + (wide.system.companions[0].orbit?.distance ?? 0);
+
+    wide.system.bodies.filter((body) => body.orbit.kind === "circle").forEach((body) => {
+      expect(body.orbit.kind === "circle" ? body.orbit.host : null).toBe("star");
+      expect(body.orbit.kind === "circle" ? body.orbit.distance : Infinity).toBeLessThanOrEqual(wideApart / 3.5 + 1e-6);
+    });
+
+    const third = triple.system.companions[1];
+
+    triple.system.bodies.filter((body) => body.orbit.kind === "circle").forEach((body) => {
+      expect(body.orbit.kind === "circle" ? body.orbit.distance : Infinity).toBeLessThan(third.orbit?.distance ?? 0);
+    });
+  });
+
+  test("every star's light adds up where it falls, and the heat comes from the brightest", () => {
+    const spec = Array.from({ length: 900 }, (_, index) => generator.generate(6, 33000 + index * 13, null)).find((candidate) => candidate.multiplicity === "close");
+
+    if (!spec) {
+      throw new Error("expected a close pair");
+    }
+
+    placeBodies(spec.system, EPOCH);
+
+    const point = { x: spec.system.star.x + 40, y: spec.system.star.y };
+    const both = lightAt(spec.system, point.x, point.y).flux;
+    const alone = lightAt({ ...spec.system, companions: [] }, point.x, point.y).flux;
+
+    expect(both).toBeGreaterThan(alone);
+    expect(lightAt(spec.system, spec.system.star.x + 0.01, spec.system.star.y).brightest).toBe(spec.system.star);
+  });
+
+  test("some universes are mazes: systems joined by gates in a web with dead ends, the way on furthest from the way in", () => {
+    const mazes = Array.from({ length: 120 }, (_, index) => generator.generate(6, 41000 + index * 23, null)).filter((spec) => spec.network);
+
+    expect(mazes.length).toBeGreaterThan(20);
+    expect(Array.from({ length: 60 }, (_, index) => generator.generate(2, 41000 + index * 23, null)).some((spec) => spec.network)).toBe(false);
+    mazes.forEach((spec) => {
+      const network = spec.network;
+
+      if (!network) {
+        return;
+      }
+
+      const { nodes, exit } = network;
+      const reached = new Set([0]);
+      const queue = [0];
+
+      expect(nodes.length).toBeGreaterThanOrEqual(3);
+      expect(nodes.length).toBeLessThanOrEqual(8);
+      nodes.forEach((node, index) => node.links.forEach((next) => expect(nodes[next].links).toContain(index)));
+
+      while (queue.length > 0) {
+        nodes[queue.shift() ?? 0].links.forEach((next) => {
+          if (!reached.has(next)) {
+            reached.add(next);
+            queue.push(next);
+          }
+        });
+      }
+
+      expect(reached.size).toBe(nodes.length);
+      expect(exit).not.toBe(0);
+      expect(new Set(nodes.map((node) => node.name)).size).toBe(nodes.length);
+    });
+    expect(mazes.some((spec) => spec.network?.nodes.some((node, index) => index > 0 && node.links.length === 1))).toBe(true);
+  });
+
+  test("each system of a maze is made the same whenever it is reached, with worlds of its own and the name the maze gives it", () => {
+    const seed = Array.from({ length: 200 }, (_, index) => 51000 + index * 29).find((candidate) => generator.generate(6, candidate, null).network);
+
+    if (seed === undefined) {
+      throw new Error("expected a maze");
+    }
+
+    const start = generator.generate(6, seed, null);
+    const second = generator.generate(6, seed, null, 1);
+    const again = generator.generate(6, seed, null, 1);
+
+    expect(second.name).toBe(start.name);
+    expect(second.galaxy).toEqual(start.galaxy);
+    expect(second.names.star.startsWith(start.network?.nodes[1].name ?? "?")).toBe(true);
+    expect(again.system.bodies.map((body) => body.id)).toEqual(second.system.bodies.map((body) => body.id));
+    second.system.bodies.forEach((body) => expect(start.system.bodies.map((other) => other.id)).not.toContain(body.id));
+  });
+
+  test("some systems are crowded with worlds, and Earth-like worlds turn up, some with an ocean or locked as eyeballs to red dwarfs", () => {
+    const specs = Array.from({ length: 300 }, (_, index) => generator.generate(6, 12000 + index * 11, null));
+    const classes = specs.flatMap((spec) => Object.values(spec.classes));
+
+    expect(Math.max(...specs.map((spec) => spec.system.bodies.filter((body) => body.kind === "planet").length))).toBeGreaterThanOrEqual(8);
+    expect(classes.filter((kind) => kind === "terran").length).toBeGreaterThan(10);
+    expect(classes).toEqual(expect.arrayContaining(["ocean", "eyeball", "superEarth", "hotJupiter", "miniNeptune", "lava"]));
+    specs.forEach((spec) => spec.system.bodies.filter((body) => spec.classes[body.id] === "eyeball").forEach((body) => {
+      expect(["red", "orange", "brownDwarf"]).toContain(spec.starKind);
+      expect(body.dayHours).toBeNull();
+    }));
   });
 
   test("a void has no star, only dark rogue worlds; a dark forest hides everyone who lives there", () => {
@@ -146,6 +411,79 @@ describe("universes", () => {
 });
 
 describe("combat", () => {
+  test("in a maze, a gate carries the ship to its system, the compass leads on to somewhere new, and only the furthest holds the way on", () => {
+    const simulation = create();
+    const seed = Array.from({ length: 300 }, (_, index) => 61000 + index * 31).find((candidate) => {
+      const network = generator.generate(5, candidate, null).network;
+
+      return network && network.nodes[0].links.length >= 1 && network.exit !== network.nodes[0].links[0];
+    });
+
+    if (seed === undefined) {
+      throw new Error("expected a maze");
+    }
+
+    const state = simulation.state as VoyageState;
+    const gates: Array<{ name: string; isNew: boolean }> = [];
+
+    simulation.events.on("gate", ({ name, isNew }) => gates.push({ name, isNew }));
+    state.runSeed = seed - 6 * 7919;
+    state.universes = 5;
+    state.phase = "lost";
+    state.phaseMs = 1e9;
+    simulation.step(defaults.stepMs * 2);
+
+    const network = state.network;
+
+    if (!network) {
+      throw new Error("expected to arrive in a maze");
+    }
+
+    expect(state.node).toBe(0);
+    expect(simulation.world.stores.gate.size).toBe(network.nodes[0].links.length);
+    expect(simulation.world.stores.hole.size).toBe(0);
+    simulation.step(500);
+    expect(simulation.snapshot.maze).toEqual(expect.objectContaining({ systems: network.nodes.length, explored: 1, isExit: false }));
+
+    const to = network.nodes[0].links[0];
+    const gate = simulation.world.stores.gate.entities.find((entity) => simulation.world.stores.gate.get(entity)?.to === to);
+    const at = gate !== undefined ? simulation.world.stores.body.get(gate) : undefined;
+
+    if (!at) {
+      throw new Error("expected a gate");
+    }
+
+    // A scar on a world of the system left stays there for when the ship comes back.
+    const scarred = state.system.bodies[0].id;
+
+    state.craters[scarred] = [{ longitude: 0.4, latitude: 0.1, size: 0.05, heat: 0 }];
+    place(simulation, at.x, at.y);
+    simulation.step(defaults.stepMs * 2);
+
+    expect(state.node).toBe(to);
+    expect(state.craters[scarred]).toHaveLength(1);
+    expect(state.explored.has(to)).toBe(true);
+    expect(gates).toEqual([{ name: network.nodes[to].name, isNew: true }]);
+    expect(state.cosmos?.node).toBe(to);
+    expect(state.system.bodies.every((body) => body.id.startsWith(`u5.${to}-`))).toBe(true);
+  });
+
+  test("stranded with no fuel out in the universes, nobody is coming: the run ends", () => {
+    const simulation = create();
+    const stranded: Array<{ isOver: boolean; isRescue: boolean }> = [];
+
+    simulation.events.on("stranded", ({ isOver, isRescue }) => stranded.push({ isOver, isRescue }));
+    intoUniverse(simulation);
+    partsOf(simulation).health.hull = partsOf(simulation).health.maxHull;
+    Object.assign(simulation.world.stores.ship.get(simulation.state.ship) ?? {}, { fuel: 0 });
+    simulation.step(1000);
+    expect(simulation.state.status).toBe("flying");
+    simulation.step(defaults.descent.strandedSeconds * 1000);
+
+    expect(stranded).toEqual([{ isOver: false, isRescue: false }, { isOver: true, isRescue: false }]);
+    expect(simulation.state.status).toBe("over");
+  });
+
   test("a shot led at a moving target meets it", () => {
     const from = { x: 0, y: 0, vx: 0, vy: 0, prevX: 0, prevY: 0, radius: 0.1, mass: 1 };
     const to = { x: 5, y: 0, vx: 0, vy: 1, prevX: 5, prevY: 0, radius: 0.1, mass: 1 };
@@ -324,6 +662,80 @@ describe("rocks headed for worlds", () => {
   });
 });
 
+describe("black holes", () => {
+  // The universe's first hole, made a given mass, with the ship set a given distance outside its horizon, at rest.
+  const nearHole = (mass: number, outside: number) => {
+    const simulation = create();
+
+    intoUniverse(simulation);
+
+    const { stores } = simulation.world;
+    const [entity] = stores.hole.entities;
+    const hole = stores.hole.get(entity);
+    const at = stores.body.get(entity);
+
+    if (!hole || !at) {
+      throw new Error("expected a black hole");
+    }
+
+    Object.assign(hole, { mass, mu: pullOfMass(defaults.layout, mass), horizon: defaults.holes.horizonPerSun * mass });
+    // Only this hole: the other is sent far off.
+    stores.hole.entities.slice(1).forEach((other) => Object.assign(stores.body.get(other) ?? {}, { x: 1e5, y: 1e5, prevX: 1e5, prevY: 1e5 }));
+    place(simulation, at.x + hole.horizon + outside, at.y);
+    partsOf(simulation).health.hull = partsOf(simulation).health.maxHull;
+
+    return { simulation, hole, at };
+  };
+
+  test("a universe's black holes weigh as stellar black holes do, pull as stars of their mass, and their horizons grow with them", () => {
+    const simulation = create();
+
+    intoUniverse(simulation);
+    simulation.world.stores.hole.values.forEach((hole) => {
+      expect(hole.mass).toBeGreaterThanOrEqual(defaults.holes.masses[0]);
+      expect(hole.mass).toBeLessThanOrEqual(defaults.holes.masses[1]);
+      expect(hole.mu).toBeCloseTo(pullOfMass(defaults.layout, hole.mass), 10);
+      expect(hole.horizon).toBeCloseTo(defaults.holes.horizonPerSun * hole.mass, 10);
+    });
+    // Ten Suns pull as hard as ten Suns, softened as a star's pull is.
+    expect(massOfPull(defaults.layout, pullOfMass(defaults.layout, 10))).toBeCloseTo(10, 8);
+  });
+
+  test("felt from far off: within a few units of a heavy black hole its pull beats the engines, and a full burn away does not get out", () => {
+    const { simulation, at } = nearHole(30, 4);
+    const ship = simulation.world.stores.ship.get(simulation.state.ship);
+
+    if (!ship) {
+      throw new Error("expected a ship");
+    }
+
+    ship.angle = 0;
+
+    for (let waited = 0; !simulation.state.capture && simulation.state.status === "flying" && waited < 20000; waited += 100) {
+      simulation.step(100, { ...NO_INPUT, thrust: 1 });
+      ship.angle = Math.atan2(partsOf(simulation).body.y - at.y, partsOf(simulation).body.x - at.x);
+    }
+
+    expect(simulation.state.capture ?? simulation.state.status === "over").toBeTruthy();
+  });
+
+  test("tides tear at a ship close in, far harder by a light black hole than a heavy one at the same few horizons out", () => {
+    // Five horizons out from each: the heavy one's tides are within what the hull takes, the light one's tear.
+    const light = nearHole(5, 5 * defaults.holes.horizonPerSun * 5);
+    const heavy = nearHole(30, 30 * defaults.holes.horizonPerSun * 5);
+
+    light.simulation.step(50);
+    heavy.simulation.step(50);
+
+    const lost = (run: typeof light) => partsOf(run.simulation).health.maxHull + partsOf(run.simulation).health.maxShields -
+      partsOf(run.simulation).health.hull - partsOf(run.simulation).health.shields;
+
+    expect(light.simulation.state.readings.tidal).toBeGreaterThan(heavy.simulation.state.readings.tidal * 10);
+    expect(lost(light)).toBeGreaterThan(0);
+    expect(lost(heavy)).toBe(0);
+  });
+});
+
 describe("strange things", () => {
   test("a pulsar's beam drains the shields of a ship it crosses", () => {
     const simulation = create();
@@ -350,12 +762,17 @@ describe("strange things", () => {
     withPhenomenon(simulation, { kind: "darkForest" });
     simulation.events.on("heard", ({ seconds }) => heard.push(seconds));
     simulation.events.on("fired", ({ kind }) => strikes.push(kind));
-    // Engines at full burn are loud; long enough, and they are heard.
+    // Engines at full burn are loud; long enough, and they are heard. Then quiet, it strikes once its warning is up.
     simulation.setAutoFire(false);
-    simulation.step(9000, { ...NO_INPUT, thrust: 1 });
-    simulation.step(1800, NO_INPUT);
 
-    expect(heard.length).toBe(1);
+    for (let waited = 0; heard.length === 0 && waited < 20000; waited += 100) {
+      simulation.step(100, { ...NO_INPUT, thrust: 1 });
+    }
+
+    expect(heard).toHaveLength(1);
+    simulation.step(heard[0] * 1000 + 300, NO_INPUT);
+
+    expect(heard).toHaveLength(1);
     expect(strikes).toContain("photoid");
   });
 
@@ -431,5 +848,104 @@ describe("void universes", () => {
 
     expect(worlds.length).toBeGreaterThan(20);
     expect(worlds.every((world) => !world.isGiant && world.isLandable)).toBe(true);
+  });
+});
+
+describe("living worlds", () => {
+  test("only worlds life could arise on are lived on, by the universe's own factions, their cities lit; a dark forest hides them all", () => {
+    const specs = Array.from({ length: 300 }, (_, index) => generator.generate(6, 71000 + index * 19, null));
+    const lived = specs.flatMap((spec) => Object.entries(spec.inhabitants).map(([id, faction]) => ({ spec, id, faction })));
+
+    expect(lived.length).toBeGreaterThan(10);
+    lived.forEach(({ spec, id, faction }) => {
+      expect(WORLD_CLASSES[spec.classes[id]].isHabitable).toBe(true);
+      expect(spec.factions.map((living) => living.id)).toContain(faction);
+      expect(spec.looks[id].cities).toBeGreaterThan(0);
+    });
+    specs.filter((spec) => spec.phenomena.some((phenomenon) => phenomenon.kind === "darkForest"))
+      .forEach((spec) => expect(spec.inhabitants).toEqual({}));
+  });
+
+  // Into a universe, then give its first solid world a people of the given manner, and touch down on it (stepping
+  // until it is down, unless told to stop as soon as the ground opens fire). A pilot flying by hand comes down on
+  // the first world with an engine to fly, and stepping stops where they take over.
+  const landAmong = (disposition: "peaceful" | "hostile", untilFired = false, isManual = false) => {
+    const simulation = create();
+    const events: string[] = [];
+
+    intoUniverse(simulation);
+    simulation.setLanding({ time: "compressed", control: isManual ? "manual" : "auto" });
+
+    const cosmos = simulation.state.cosmos;
+    const world = simulation.state.system.bodies.find((body) => body.isLandable && (!isManual || planLanding(landingWorldOf(body, false)).handover !== null));
+
+    if (!cosmos || !world) {
+      throw new Error("expected a universe with a solid world");
+    }
+
+    cosmos.factions = [{ ...(cosmos.factions[0] ?? generator.generate(6, 71000, null).factions[0]), id: 0, name: "Kesh Concord", disposition }];
+    cosmos.inhabitants = { [world.id]: 0 };
+    simulation.events.on("hosted", ({ faction }) => events.push(`hosted ${faction}`));
+    simulation.events.on("groundFire", ({ faction }) => events.push(`fire ${faction}`));
+
+    const contact = world.radius + defaults.ship.radius * 0.9;
+
+    place(simulation, world.x + contact, world.y, world.vx, world.vy);
+    partsOf(simulation).health.hull = partsOf(simulation).health.maxHull * 0.5;
+    simulation.step(defaults.stepMs * 2);
+
+    const isWaiting = () => simulation.state.descent?.downAt === null && !(untilFired && simulation.state.descent.isFiredOn) &&
+      !(isManual && simulation.state.descent.craft.isPilot);
+
+    for (let waited = 0; isWaiting() && waited < 30000; waited += 100) {
+      simulation.step(100);
+    }
+
+    return { simulation, events };
+  };
+
+  test("a peaceful people welcome the ship down among them: mended, refuelled and given a gift", () => {
+    const { simulation, events } = landAmong("peaceful");
+
+    expect(events).toEqual(["hosted Kesh Concord"]);
+    expect(partsOf(simulation).health.hull).toBe(partsOf(simulation).health.maxHull);
+    expect(simulation.snapshot.people).toEqual({ name: "Kesh Concord", disposition: "peaceful" });
+  });
+
+  test("fired on as it comes down, a burn aborts the landing and lifts the ship away", () => {
+    const { simulation, events } = landAmong("hostile", true);
+
+    expect(events).toEqual(["fire Kesh Concord"]);
+    expect(simulation.state.descent?.downAt).toBeNull();
+    simulation.step(300, { ...NO_INPUT, thrust: 1 });
+    expect(simulation.world.stores.ship.get(simulation.state.ship)?.landedOn).toBeNull();
+    expect(simulation.state.descent).toBeNull();
+  });
+
+  test("fired on with the pilot's hand on the landing burn, a burn lands the ship rather than aborting", () => {
+    const { simulation, events } = landAmong("hostile", false, true);
+
+    expect(events).toEqual(["fire Kesh Concord"]);
+    expect(simulation.state.descent?.craft.isPilot).toBe(true);
+    partsOf(simulation).health.hull = partsOf(simulation).health.maxHull;
+
+    for (let waited = 0; simulation.state.descent?.downAt === null && waited < 120000; waited += 50) {
+      const craft = simulation.state.descent.craft;
+
+      simulation.step(50, { ...NO_INPUT, thrust: -craft.up > 2 ? 1 : 0 });
+      expect(simulation.world.stores.ship.get(simulation.state.ship)?.landedOn).not.toBeNull();
+    }
+
+    expect(simulation.state.descent?.isSoft).toBe(true);
+  });
+
+  test("a hostile people fire on the ship from the ground on its way down and for as long as it stays", () => {
+    const { simulation, events } = landAmong("hostile");
+    const hull = partsOf(simulation).health.hull + partsOf(simulation).health.shields;
+
+    expect(events).toEqual(["fire Kesh Concord"]);
+    expect(hull).toBeLessThan(partsOf(simulation).health.maxHull * 0.5 + partsOf(simulation).health.maxShields);
+    simulation.step(1000);
+    expect(partsOf(simulation).health.hull + partsOf(simulation).health.shields).toBeLessThan(hull);
   });
 });

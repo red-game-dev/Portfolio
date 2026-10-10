@@ -1,4 +1,5 @@
 import { HullTier, Purse, Deed } from "../economy/domain/economy";
+import type { LandingPhase } from "../landing";
 import { ModuleId, WreckKind } from "./components";
 import { FlareClass, ImpactOutcome } from "./events";
 import { FaultKind } from "./faults";
@@ -6,7 +7,15 @@ import { ItemStack } from "./loot";
 
 // Something the UI may want to say, as it happens, beyond what the snapshot shows.
 export type VoyageNotice =
-  | { kind: "landed" | "tookOff" | "emergency" | "recovered"; body: string }
+  | { kind: "tookOff" | "emergency"; body: string }
+  | { kind: "recovered"; body: string; days: number }
+  // No fuel to leave (a world's name, or null adrift): the countdown begun, or over and the run with it; and rescued.
+  | { kind: "stranded"; body: string | null; seconds: number; isRescue: boolean; isOver: boolean }
+  | { kind: "rescued"; from: string | null; days: number }
+  // Down in one piece at a speed (m/s), a phase of the way down beginning, or a touchdown too hard for the craft.
+  | { kind: "landed"; body: string; speed: number | null }
+  | { kind: "descent"; body: string; phase: LandingPhase }
+  | { kind: "hardLanding"; body: string; speed: number; safe: number }
   | { kind: "captured"; isSingularity: boolean }
   | { kind: "destroyed" }
   | { kind: "flare"; flareClass: FlareClass; isHeading: boolean }
@@ -18,6 +27,8 @@ export type VoyageNotice =
   | { kind: "impactorBroken" | "deflected"; target: string }
   | { kind: "boss"; name: string; isFallen: boolean }
   | { kind: "heard" | "wormhole" }
+  | { kind: "gate"; system: string; isNew: boolean; isExit: boolean; isDeadEnd: boolean }
+  | { kind: "hosted" | "groundFire"; body: string; faction: string }
   | { kind: "supernova"; seconds: number; isBlown: boolean }
   | { kind: "burst"; seconds: number; isFired: boolean }
   | { kind: "salvaged"; wreck: WreckKind; kept: ItemStack[]; lost: ItemStack[]; blueprints: string[] }

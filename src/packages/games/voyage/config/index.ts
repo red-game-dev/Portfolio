@@ -1,6 +1,7 @@
 import type { GlobeLook, StarLook } from "@/packages/graphics/globe";
 
 import { ModuleId } from "../domain/components";
+import type { Medium } from "../domain/state";
 import { VoyageStyle } from "../domain/theme";
 import { SystemLayout } from "../mappers/SystemMapper";
 import { BODY_LOOKS, SUN_LOOK } from "./looks";
@@ -38,6 +39,27 @@ export interface FlightConfig {
   skim: number;
   // Hull damage per unit of rock radius per (relative speed)^2.
   impact: number;
+}
+
+// How a landing's way down is played: this many times faster than life, the same for every world so how long each
+// takes against the others stays true, but never longer than `longest` seconds (Huygens took two and a half hours).
+// Down, the ship settles on its legs for `settleSeconds`, so a burn held through touchdown does not lift it straight
+// off again. Home, the crew is picked up over `recoverySeconds`, and the new rocket stands on the pad `recoveryDays`
+// later. With no fuel to leave where it is for `strandedSeconds`, a ship in our solar system is rescued (the crew home
+// in the days a transfer orbit takes, never fewer than `rescueFewestDays`) and one in the universes is lost. On a
+// world whose people want no visitors, their defences open fire below `fireAltitude` (m) and keep firing while the
+// ship stays, `groundFire` of damage a second: enough that staying is fatal, not so much that a pilot who takes the
+// last 150 m by hand cannot land a sound ship.
+export interface DescentConfig {
+  speedUp: number;
+  longest: number;
+  settleSeconds: number;
+  recoverySeconds: number;
+  recoveryDays: number;
+  strandedSeconds: number;
+  rescueFewestDays: number;
+  fireAltitude: number;
+  groundFire: number;
 }
 
 export interface ThermalConfig {
@@ -156,14 +178,26 @@ export interface SpawnConfig {
   cometEvery: [number, number];
 }
 
+// How fast the ship can go in each kind of space, as a share of its top speed, when space is felt: faster in a
+// void, slower in belts, nebulae and rings. Entering denser space it eases down to the new limit over about
+// 1 / `easing` seconds rather than stopping dead.
+export interface MediumConfig {
+  speeds: Record<Medium, number>;
+  easing: number;
+}
+
 export interface HoleConfig {
   singularityMu: number;
   // How fast the singularity's pull grows once Pluto is behind, as a share of itself per second.
   singularityGrowth: number;
   singularityHorizon: number;
-  mu: number;
-  horizon: number;
-  // Black holes kept round the ship in each universe, and how far away they appear.
+  // A universe's black holes weigh as the stellar black holes found so far do, from five to thirty Suns (Cygnus X-1
+  // is 21), more of them light than heavy; each pulls as a star of its mass, and its horizon is this many world
+  // units for each Sun, in proportion as a real horizon is.
+  masses: [number, number];
+  horizonPerSun: number;
+  // Black holes kept round the ship in each universe, and how far away they appear: beyond where a heavy one's pull
+  // is past the engines.
   perUniverse: number;
   spawnDistance: [number, number];
   captureMs: number;
@@ -202,6 +236,7 @@ export interface VoyageConfig {
   clock: ClockConfig;
   ship: ShipConfig;
   flight: FlightConfig;
+  descent: DescentConfig;
   thermal: ThermalConfig;
   weather: WeatherConfig;
   arms: ArmsConfig;
@@ -213,6 +248,7 @@ export interface VoyageConfig {
   faults: FaultConfig;
   spawn: SpawnConfig;
   holes: HoleConfig;
+  medium: MediumConfig;
   pickups: PickupConfig;
   scoring: ScoringConfig;
   units: UnitsConfig;
@@ -246,6 +282,9 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     maxSpeed: 3.2,
   },
   flight: { safeLanding: 0.42, crash: 520, drag: 0.8, crush: 600, skim: 12, impact: 70 },
+  descent: {
+    speedUp: 40, longest: 15, settleSeconds: 1.2, recoverySeconds: 6, recoveryDays: 3, strandedSeconds: 15, rescueFewestDays: 3, fireAltitude: 8000, groundFire: 15,
+  },
   thermal: {
     timeConstant: 3,
     entry: 120,
@@ -290,14 +329,15 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     singularityMu: 4,
     singularityGrowth: 1.2,
     singularityHorizon: 0.42,
-    mu: 1.6,
-    horizon: 0.24,
+    masses: [5, 30],
+    horizonPerSun: 0.024,
     perUniverse: 2,
-    spawnDistance: [6, 11],
+    spawnDistance: [16, 26],
     captureMs: 2400,
     lostMs: 3200,
     jumpMs: 1600,
   },
+  medium: { speeds: { void: 1.4, open: 1, haze: 0.85, belt: 0.75, nebula: 0.65, ring: 0.6 }, easing: 1.5 },
   pickups: { magnet: 1.1, repair: 150, shield: 200, fuel: 35 },
   scoring: { perUnit: 6, pickup: 25, universe: 500, landing: 150, discovery: 100 },
   units: { kmPerSecond: 7, kmPerAu: 149597870.7 },

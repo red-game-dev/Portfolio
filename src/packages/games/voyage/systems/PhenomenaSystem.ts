@@ -7,7 +7,7 @@ import { SHOCK_FADES } from "../domain/state";
 import { PhenomenonSpec } from "../domain/universe";
 import { fire, leadDirection } from "./combat";
 import { VoyageContext } from "./context";
-import { applyDamage } from "./damage";
+import { applyDamage, tear } from "./damage";
 import { placeBody, shipOf } from "./queries";
 
 // A pulsar's beams: how fast they sweep (radians a second), how narrow, and how far they reach.
@@ -28,8 +28,6 @@ const NOISE_FADE = 0.12;
 const ENGINE_NOISE = 0.28;
 const STRIKE_WARNING = 1500;
 const STRIKE_DISTANCE = 22;
-// Tides past this (world units per second squared across the ship) start to tear it.
-const TIDAL_LIMIT = 0.5;
 // A wormhole's mouth (world units), and how long before the same ship can go through again (ms).
 const MOUTH = 0.45;
 const JUMP_COOLDOWN = 2500;
@@ -49,7 +47,6 @@ export class PhenomenaSystem implements System<VoyageContext> {
     const { state } = context;
     const parts = shipOf(context);
 
-    state.readings.tidal = 0;
     state.readings.nebula = 0;
     state.signature = Math.max(0, state.signature - NOISE_FADE * dt);
 
@@ -257,11 +254,8 @@ export class PhenomenaSystem implements System<VoyageContext> {
     const away = Math.max(star.radius, Math.hypot(parts.body.x - star.x, parts.body.y - star.y));
     const tidal = (2 * star.mu * parts.body.radius * 2) / away ** 3;
 
-    state.readings.tidal = tidal;
-
-    if (tidal > TIDAL_LIMIT) {
-      applyDamage(context, 160 * (tidal / TIDAL_LIMIT - 1) * dt, Math.atan2(star.y - parts.body.y, star.x - parts.body.x), "tidal");
-    }
+    state.readings.tidal = Math.max(state.readings.tidal, tidal);
+    tear(context, tidal, Math.atan2(star.y - parts.body.y, star.x - parts.body.x), dt);
   }
 
   // Whether a world stands between the ship and a point, casting its shadow over it.

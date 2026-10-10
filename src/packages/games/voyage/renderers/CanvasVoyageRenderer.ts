@@ -11,11 +11,13 @@ import { VoyageWorld } from "../core/world";
 import { VoyageEvents } from "../domain/events";
 import { GhostRun } from "../domain/ghost";
 import { VoyageState } from "../domain/state";
-import { SurfaceInfo } from "../domain/surface";
+import { HomePad, SurfaceInfo } from "../domain/surface";
+import { MissionMarks } from "../utils/missions";
 import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
 import { EffectsLayer } from "./layers/EffectsLayer";
+import { GatesLayer } from "./layers/GatesLayer";
 import { GhostLayer } from "./layers/GhostLayer";
 import { GlobesLayer } from "./layers/GlobesLayer";
 import { HolesLayer } from "./layers/HolesLayer";
@@ -52,6 +54,10 @@ export interface VoyageRenderer {
   setGhost(run: GhostRun | null): void;
   // Photo mode: no radar, map, compass or arrows.
   setPhoto(isOn: boolean): void;
+  // The pad at home a new rocket stands on once a crew is back.
+  setHome(pad: HomePad | null): void;
+  // Where the missions on the board send the pilot, marked on the map.
+  setMissions(marks: MissionMarks): void;
   dispose(): void;
 }
 
@@ -117,6 +123,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     ]);
     this.frontLayers = new RenderPipeline([
       new HolesLayer(this.kit, "front"),
+      new GatesLayer(this.kit),
       new ThingsLayer(this.kit),
       new WrecksLayer(this.kit),
       new AliensLayer(this.kit),
@@ -133,6 +140,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
   public get surface(): SurfaceInfo | null {
     return this.surfaceLayer.info ? { ...this.surfaceLayer.info } : null;
+  }
+
+  public setHome(pad: HomePad | null): void {
+    this.surfaceLayer.setHome(pad);
   }
 
   public resize(width: number, height: number, pixelRatio: number): void {
@@ -154,6 +165,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
   public setMap(isOpen: boolean): void {
     this.map.isOpen = isOpen;
+  }
+
+  public setMissions(marks: MissionMarks): void {
+    this.map.missions = marks;
   }
 
   public setQuality(level: number): void {

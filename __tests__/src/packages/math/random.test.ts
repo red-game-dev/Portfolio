@@ -1,4 +1,4 @@
-import { createSeededRandom, pick, pickWeighted, randomBetween, randomInt } from "@/packages/math/random";
+import { createSeededRandom, createWarmedRandom, pick, pickWeighted, randomBetween, randomInt } from "@/packages/math/random";
 
 describe("math/random", () => {
   test("the same seed replays the same sequence", () => {
@@ -19,6 +19,15 @@ describe("math/random", () => {
 
       expect(values.every((value) => value >= 0 && value < 1)).toBe(true);
     });
+  });
+
+  test("a warmed generator is the seeded one with its first draws thrown away, three unless told otherwise", () => {
+    const seeded = createSeededRandom(77);
+    const thrown = [seeded(), seeded(), seeded()];
+    const warmed = createWarmedRandom(77);
+
+    expect([warmed(), warmed()]).toEqual([seeded(), seeded()]);
+    expect(createWarmedRandom(77, 1)()).toBe(thrown[1]);
   });
 
   test("randomBetween scales into the range", () => {

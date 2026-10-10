@@ -8,6 +8,9 @@ export interface TimelapseMilestone {
 export interface TimelapseContent {
   show: string;
   hide: string;
+  // A way to support the site, the same page as the repo's Sponsor button, shown only while it has a link (and not in
+  // the recruiter's view).
+  support: { note: string; label: string; url: string };
   // The facts shown above the city, for readers who want the numbers.
   stats: {
     commits: string;

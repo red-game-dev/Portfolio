@@ -2,6 +2,7 @@ import type { System } from "@/packages/games/engine";
 import { damp } from "@/packages/physics/newtonian";
 
 import { VoyageContext } from "./context";
+import { mediumAt } from "./medium";
 import { bodyById, shipOf } from "./queries";
 
 // Moves everything by its velocity, one fixed step at a time, keeping the previous position for drawing between
@@ -33,16 +34,24 @@ export class MotionSystem implements System<VoyageContext> {
       if (!state.capture) {
         damp(body, config.ship.dampers, dt);
 
+        // How fast it can go is the engines' top speed, and with space felt, as the space round it allows. The limit
+        // eases from one kind of space to the next, so entering denser space slows the ship rather than stopping it
+        // dead, and leaving it lets it speed up again.
+        const medium = mediumAt(context, body.x, body.y);
+        const top = config.ship.maxSpeed * (context.spaceDrag === "felt" ? config.medium.speeds[medium] : 1);
         const speed = Math.hypot(body.vx, body.vy);
 
-        if (speed > config.ship.maxSpeed) {
-          body.vx *= config.ship.maxSpeed / speed;
-          body.vy *= config.ship.maxSpeed / speed;
+        state.readings.medium = medium;
+        state.speedLimit += (top - state.speedLimit) * (1 - Math.exp(-config.medium.easing * dt));
+
+        if (speed > state.speedLimit) {
+          body.vx *= state.speedLimit / speed;
+          body.vy *= state.speedLimit / speed;
         }
 
         if (state.status === "flying") {
-          state.flown += Math.min(speed, config.ship.maxSpeed) * dt;
-          state.score += config.scoring.perUnit * Math.min(speed, config.ship.maxSpeed) * dt;
+          state.flown += Math.min(speed, top) * dt;
+          state.score += config.scoring.perUnit * Math.min(speed, top) * dt;
         }
       }
     }

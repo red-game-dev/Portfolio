@@ -2,8 +2,9 @@ import type { System } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
 
+import { massOfPull, pullOfMass } from "../utils/stars";
 import { VoyageContext } from "./context";
-import { missionTime, placeBodies } from "./orbits";
+import { enterSystem } from "./gates";
 import { placeBody, shipOf } from "./queries";
 
 // Time and the story: the singularity's pull grows once the ship is past the edge until nothing escapes it;
@@ -29,6 +30,7 @@ export class PhaseSystem implements System<VoyageContext> {
       world.stores.hole.values.forEach((hole) => {
         if (hole.isSingularity) {
           hole.mu = config.holes.singularityMu * (1 + seconds * config.holes.singularityGrowth);
+          hole.mass = massOfPull(config.layout, hole.mu);
         }
       });
     }
@@ -43,39 +45,25 @@ export class PhaseSystem implements System<VoyageContext> {
     }
   }
 
-  // Out the other side: a universe made from the run's seed and how many have come before, its worlds set on
-  // their orbits, its strange things wound up, and the ship somewhere among them.
+  // Out the other side: a universe made from the run's seed and how many have come before (in a maze, its first
+  // system), its worlds set on their orbits, its strange things wound up, and the ship somewhere among them.
   private arrive(context: VoyageContext): void {
     const { state, config, events, random, universes, themes } = context;
     const parts = shipOf(context);
     const index = state.universes;
     const cosmos = universes.generate(index, state.runSeed + (index + 1) * 7919, themes[index] ?? null);
-    const supernova = cosmos.phenomena.some((phenomenon) => phenomenon.kind === "supernova");
 
-    placeBodies(cosmos.system, missionTime(state.clock, state.elapsedMs));
-    state.cosmos = cosmos;
-    state.system = cosmos.system;
+    state.network = cosmos.network;
+    state.nodes = new Map();
+    state.explored = new Set([cosmos.node]);
+    enterSystem(context, cosmos);
     state.universe = index;
     state.universes += 1;
     state.visited = [...state.visited, index];
     state.score += config.scoring.universe;
     state.phase = "universe";
     state.phaseMs = 0;
-    state.passing = null;
-    state.storms = [];
-    state.craters = {};
-    state.boss = null;
     state.bossFallen = false;
-    state.lockedTarget = null;
-    state.signature = 0;
-    state.phenomena = {
-      supernova: supernova ? { blowsAt: state.elapsedMs + randomBetween(random, 35, 70) * 1000, shock: 0, hasHit: false, isWarned: false } : null,
-      burst: null,
-      nextBurstAt: null,
-      pulsarAngle: random() * TAU,
-      strikeAt: null,
-      jumpedAt: -1e9,
-    };
 
     if (parts) {
       const angle = random() * TAU;
@@ -92,11 +80,12 @@ export class PhaseSystem implements System<VoyageContext> {
     events.emit("phase", { phase: "universe", universe: index });
   }
 
+  // The ways onward: black holes kept round the ship, in a maze only in the system that holds the way on.
   private keepHoles(context: VoyageContext): void {
-    const { world, config, random } = context;
+    const { world, config, random, state } = context;
     const parts = shipOf(context);
 
-    if (!parts) {
+    if (!parts || (state.network && state.node !== state.network.exit)) {
       return;
     }
 
@@ -105,10 +94,13 @@ export class PhaseSystem implements System<VoyageContext> {
       const distance = randomBetween(random, config.holes.spawnDistance[0], config.holes.spawnDistance[1]);
       const x = parts.body.x + Math.cos(angle) * distance;
       const y = parts.body.y + Math.sin(angle) * distance;
+      // Lighter ones are commoner: drawn evenly in the logarithm of mass.
+      const mass = Math.exp(randomBetween(random, Math.log(config.holes.masses[0]), Math.log(config.holes.masses[1])));
+      const horizon = config.holes.horizonPerSun * mass;
       const hole = world.spawn();
 
-      world.stores.body.set(hole, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius: config.holes.horizon, mass: 0 });
-      world.stores.hole.set(hole, { mu: config.holes.mu, horizon: config.holes.horizon, isSingularity: false });
+      world.stores.body.set(hole, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius: horizon, mass: 0 });
+      world.stores.hole.set(hole, { mass, mu: pullOfMass(config.layout, mass), horizon, isSingularity: false });
     }
   }
 }

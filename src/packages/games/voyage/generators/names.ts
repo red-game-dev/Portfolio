@@ -1,5 +1,5 @@
 import { pick, RandomSource } from "@/packages/math/random";
-import { capitalise } from "@/packages/text/format";
+import { capitalise, fill } from "@/packages/text/format";
 
 import { Disposition, UniverseNames } from "../domain/universe";
 
@@ -21,3 +21,6 @@ export const universeName = (random: RandomSource, names: UniverseNames): string
 export const factionName = (random: RandomSource, names: UniverseNames, disposition: Disposition): string => (
   `${nameWord(random, names)} ${pick(random, names.factions[disposition])}`
 );
+
+// A system's belt of rocks, named for its star: "the Veldara belt".
+export const beltName = (names: UniverseNames, star: string): string => fill(names.belt, { star });

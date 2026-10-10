@@ -1,3 +1,5 @@
+import { GALAXY_KINDS } from "../../config/galaxies";
+import { WORLD_CLASS_IDS } from "../../config/worlds";
 import { WreckKind } from "../../domain/components";
 import { DEEP_STYLES, VoyageStyle } from "../../domain/theme";
 import { HullShape, PhenomenonKind, StarKind } from "../../domain/universe";
@@ -7,10 +9,11 @@ import { CodexCategory, CodexEntry, CodexFacts } from "../domain/career";
 
 const entry = (category: CodexCategory, subject: string, facts: CodexFacts | null = null): CodexEntry => ({ id: `${category}:${subject}`, category, subject, facts });
 
-// The kinds of world a universe's noise recipes paint.
-const KINDS: readonly string[] = ["rocky", "cratered", "icy", "volcanic", "terran", "desert", "lava", "gas", "iceGiant", "haze", "toxic", "rogue"];
 const ZONE_STYLES: readonly VoyageStyle[] = ["matrix", "neural", "blocks", "chips", "pixels"];
-const STARS: ReadonlyArray<StarKind | "none"> = ["red", "orange", "yellow", "white", "blue", "giant", "whiteDwarf", "neutron", "none"];
+const STARS: ReadonlyArray<StarKind | "none" | "binary" | "triple"> = [
+  "brownDwarf", "red", "orange", "yellow", "white", "blue", "giant", "blueSupergiant", "redSupergiant", "hypergiant", "wolfRayet", "whiteDwarf", "neutron", "none",
+  "binary", "triple",
+];
 const PHENOMENA: ReadonlyArray<PhenomenonKind | "blackHole"> = [
   "blackHole",
   "nebula",
@@ -40,8 +43,9 @@ export const CODEX: readonly CodexEntry[] = [
     nightC: body.nightC,
   })),
   ...SOLAR_SYSTEM.belts.map((belt) => entry("worlds", belt.id)),
-  ...KINDS.map((kind) => entry("kinds", kind)),
+  ...WORLD_CLASS_IDS.map((kind) => entry("kinds", kind)),
   ...[...ZONE_STYLES, ...DEEP_STYLES].map((style) => entry("universes", style)),
+  ...GALAXY_KINDS.map((kind) => entry("galaxies", kind)),
   ...STARS.map((star) => entry("stars", star)),
   ...PHENOMENA.map((kind) => entry("phenomena", kind)),
   ...LIFE.map((shape) => entry("life", shape)),

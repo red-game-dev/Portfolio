@@ -10,12 +10,14 @@ export type AtmosphereKind = "none" | "thin" | "thick" | "giant";
 export type BodyKind = "planet" | "dwarf" | "moon";
 
 // A body's air, as the source gives it: pressure and temperature at the ground (or a giant's one bar level) and
-// at the top of the air.
+// at the top of the air, and the mean molar mass of its gas (kg/mol), which with them gives how dense the air is
+// and how fast it thins with height.
 export interface AirData {
   kind: Exclude<AtmosphereKind, "none">;
   pressureBar: number;
   temperatureC: number;
   topTemperatureC: number;
+  molarMass: number;
 }
 
 // How a body moves: round the Sun on JPL's elements, or round its planet on a circle (a negative period goes
@@ -76,6 +78,7 @@ export interface AirModel extends Atmosphere {
   pressureBar: number;
   temperatureC: number;
   topTemperatureC: number;
+  molarMass: number;
 }
 
 // How a body moves in the game: round the Sun on its real elements, round its planet, or (in a generated
@@ -84,7 +87,16 @@ export type SystemOrbit =
   | { kind: "sun"; elements: KeplerElements }
   // A moon keeps its real distance (km) too, for how large its planet stands in its sky.
   | { kind: "moon"; parent: string; distance: number; distanceKm: number; periodDays: number; longitudeAtEpoch: number }
-  | { kind: "circle"; distance: number; periodDays: number; longitudeAtEpoch: number };
+  // Round its star in a universe: the system's centre (both stars of a close pair), or one star of it by id.
+  | { kind: "circle"; distance: number; periodDays: number; longitudeAtEpoch: number; host?: string };
+
+// How a star moves: round the system's centre on a circle, a pair's two stars always on opposite sides of it, each
+// as far out as its partner's share of their mass puts it. A star alone stays at the centre.
+export interface StarOrbit {
+  distance: number;
+  periodDays: number;
+  longitudeAtEpoch: number;
+}
 
 // A body in the game's world. Its place, velocity, real position round the Sun and the point under the Sun on it
 // change as the mission clock runs; everything else is fixed when the system is laid out.
@@ -132,6 +144,7 @@ export interface SystemStar {
   kmPerUnit: number;
   // Against the Sun's: 0 where there is no star at all, as in a void between galaxies.
   luminosity: number;
+  orbit: StarOrbit | null;
 }
 
 // A band of rocks round the star, as distances from it in world units.
@@ -154,7 +167,9 @@ export interface SystemScale {
 }
 
 export interface StarSystem {
+  // The brightest star, and any it shares the system with (a binary's partner, a triple's third).
   star: SystemStar;
+  companions: SystemStar[];
   bodies: SystemBody[];
   belts: SystemBelt[];
   // Distance from the star past which the black hole waits.

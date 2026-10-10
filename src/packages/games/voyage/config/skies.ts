@@ -1,7 +1,7 @@
 import type { SurfaceKind } from "@/packages/graphics/globe";
 import type { Air, Relief } from "@/packages/graphics/landscape";
 
-import { SurfaceBiome } from "../domain/surface";
+import { HomePad, SurfaceBiome } from "../domain/surface";
 
 // The ground of a kind of world where no map says otherwise: its biome, its shape, its colour near by and far
 // off, and whether boulders lie about.
@@ -23,6 +23,14 @@ export const SKIES: Readonly<Record<string, Air>> = {
   titan: { zenith: "#9c6a2a", horizon: "#cf9a52", dusk: "#6e4318", night: "#0d0703", strength: 0.9, haze: 0.9 },
   triton: { zenith: "#0a1020", horizon: "#3b5b8c", dusk: "#5a78b0", night: "#020308", strength: 0.18, haze: 0.04 },
   pluto: { zenith: "#0a1020", horizon: "#3a5c92", dusk: "#5c7cb4", night: "#020308", strength: 0.18, haze: 0.04 },
+};
+
+// The land round a pad at home: Florida's scrub and marsh, the sand flats of a Gulf coast, California's coastal
+// hills.
+export const PAD_GROUNDS: Readonly<Record<HomePad["ground"], GroundPreset>> = {
+  scrub: { biome: "grassland", relief: "flat", colour: "#6b7046", far: "#4c5a3c", hasRocks: false },
+  flats: { biome: "desert", relief: "flat", colour: "#b8a882", far: "#8c8a6e", hasRocks: false },
+  hills: { biome: "grassland", relief: "hills", colour: "#7a7650", far: "#56604a", hasRocks: true },
 };
 
 // The ground of each world of ours that can be stood on. Earth's is read from its map where the ship sets down.
@@ -56,4 +64,6 @@ export const GROUND_BY_KIND: Readonly<Record<SurfaceKind, Pick<GroundPreset, "bi
   haze: { biome: "dunes", relief: "dunes", hasRocks: false },
   toxic: { biome: "basalt", relief: "flat", hasRocks: true },
   rogue: { biome: "ice", relief: "ice", hasRocks: false },
+  eyeball: { biome: "iceCrust", relief: "ice", hasRocks: false },
+  hotJupiter: { biome: "rock", relief: "flat", hasRocks: false },
 };

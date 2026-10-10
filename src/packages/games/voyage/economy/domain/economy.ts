@@ -38,7 +38,7 @@ export interface Recipe {
 }
 
 // Why money moved, which names the account it moved through.
-export type EarningReason = "discovery" | "landing" | "bounty" | "rescue" | "boss" | "universe" | "mission" | "coin" | "salvage" | "flight" | "recycling";
+export type EarningReason = "discovery" | "landing" | "hosted" | "bounty" | "rescue" | "boss" | "universe" | "mission" | "coin" | "salvage" | "flight" | "recycling";
 
 export type SpendingReason = "upgrade" | "crafting" | "repair" | "exchange";
 
@@ -54,6 +54,8 @@ export type Suggestion =
 export type Deed =
   | { kind: "discovery"; place: string }
   | { kind: "landing"; place: string }
+  // Welcomed by those who live on a world: their gift.
+  | { kind: "hosted"; place: string }
   | { kind: "bounty"; level: number }
   | { kind: "rescue"; target: string; isDeflected: boolean }
   | { kind: "boss"; name: string }

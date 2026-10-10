@@ -11,7 +11,7 @@ import { Deed } from "../economy/domain/economy";
 import { Hangar } from "../economy/services/Hangar";
 
 // Deeds big enough to announce what they paid.
-const ANNOUNCED: ReadonlyArray<Deed["kind"]> = ["boss", "universe", "rescue"];
+const ANNOUNCED: ReadonlyArray<Deed["kind"]> = ["boss", "universe", "rescue", "hosted"];
 // Coins picked up are paid together at most this often (ms of the run), so a run's ledger keeps room for deeds.
 const COIN_BATCH_MS = 1000;
 // The Sun's closest approach is only worth telling a mission inside this distance (AU).
@@ -44,6 +44,8 @@ export class PilotLink {
   private readonly refresh: () => void;
   private readonly baseConfig;
   private landed = new Set<string>();
+  // The worlds whose people have given a gift this run: they mend the ship every time, but give only once.
+  private hosts = new Set<string>();
   private savedRocks = new Set<number>();
   private peril: Peril | null = null;
   private isRunSettled = false;
@@ -61,9 +63,10 @@ export class PilotLink {
     simulation.refit(configForLevel(this.baseConfig, hangar.level), hangar.level);
   }
 
-  // A new run: nothing landed on, stopped or lived through yet.
+  // A new run: nothing landed on, given, stopped or lived through yet.
   public startRun(): void {
     this.landed = new Set();
+    this.hosts = new Set();
     this.savedRocks = new Set();
     this.peril = null;
     this.isRunSettled = false;
@@ -93,6 +96,12 @@ export class PilotLink {
         this.discoverPlace(body);
       }),
       events.on("skimmed", ({ body }) => this.count({ kind: "skimmed", body })),
+      events.on("hosted", ({ body }) => {
+        if (!this.hosts.has(body)) {
+          this.hosts.add(body);
+          this.pay({ kind: "hosted", place: this.nameOf(body) });
+        }
+      }),
       // Red Coins picked up in flight are gathered, and paid into the wallet together (see `tick`).
       events.on("collected", ({ kind }) => {
         if (kind === "coin") {
@@ -119,6 +128,12 @@ export class PilotLink {
         if (phase === "universe") {
           this.pay({ kind: "universe", index: universe });
           this.count({ kind: "universe", count: simulation.state.universes });
+          this.discoverUniverse();
+        }
+      }),
+      // Each system of a maze is a place of its own, with its own stars and strange things.
+      events.on("gate", ({ isNew }) => {
+        if (isNew) {
           this.discoverUniverse();
         }
       }),
@@ -274,12 +289,13 @@ export class PilotLink {
   // A place passed: one of our own worlds, or a kind of world in a universe.
   private discoverPlace(stop: string): void {
     const { state } = this.simulation;
-    const kind = state.cosmos?.looks[stop]?.surface.kind;
+    const kind = state.cosmos?.classes[stop];
 
     this.discover(state.phase === "universe" && kind ? codexId("kinds", kind) : codexId("worlds", stop));
   }
 
-  // A universe reached: its kind, its star, and every strange thing it holds.
+  // A universe reached, or a new system of a maze: its kind, the galaxy it sits in, its stars (and that they are a
+  // pair or a triple), and every strange thing it holds.
   private discoverUniverse(): void {
     const cosmos = this.simulation.state.cosmos;
 
@@ -288,7 +304,13 @@ export class PilotLink {
     }
 
     this.discover(codexId("universes", cosmos.style));
+    this.discover(codexId("galaxies", cosmos.galaxy.kind));
     this.discover(codexId("stars", cosmos.starKind ?? "none"));
+    cosmos.companionKinds.forEach((kind) => this.discover(codexId("stars", kind)));
+
+    if (cosmos.multiplicity !== "single") {
+      this.discover(codexId("stars", cosmos.multiplicity === "triple" ? "triple" : "binary"));
+    }
     cosmos.phenomena.forEach((phenomenon) => this.discover(codexId("phenomena", phenomenon.kind)));
   }
 

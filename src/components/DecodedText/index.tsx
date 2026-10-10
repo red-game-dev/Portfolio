@@ -26,17 +26,21 @@ export const Bits = styled.span(() => [
   `,
 ]);
 
-// Assistive tech and crawlers get the real text straight away; the bits are decoration. Once decoded, the
-// visible copy is plain text again, so it can be selected.
+// Assistive tech and crawlers get the real text straight away; the bits are decoration. Once decoded, the text is
+// there once, plain, for everyone: a hidden copy beside it would be copied too, so a reader pasting a line got it twice.
 export const DecodedText: FC<DecodedTextProps> = ({ text, isActive, delay = 0, duration, variant = "heading" }: DecodedTextProps) => {
   const { settings } = useLensStateHook();
   const isInstant = settings.decode === "off" || (settings.decode === "headings" && variant === "body");
   const visibleText = useDecodedText(text, isActive, delay, duration, isInstant);
 
+  if (visibleText === text) {
+    return <span>{text}</span>;
+  }
+
   return (
     <>
       <ReadableText>{text}</ReadableText>
-      {visibleText === text ? <span aria-hidden="true">{text}</span> : <Bits aria-hidden="true" data-bits={visibleText} />}
+      <Bits aria-hidden="true" data-bits={visibleText} />
     </>
   );
 };

@@ -27,7 +27,7 @@ module.exports = withBundleAnalyzer({
     },
   },
   env: {
-    DEBUG: process.env.DEBUG,
+    DEBUG: process.env.DEBUG ?? 'false',
   },
   // The text files for language models are written from the content by API routes, which answer with plain
   // text rather than a page.

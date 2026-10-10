@@ -8,7 +8,7 @@ import { MODULE_IDS } from "../domain/components";
 import { HOME_WORLD, StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
 import { ShipEffect } from "../domain/faults";
-import { NO_INPUT, VoyageInput } from "../domain/input";
+import { DEFAULT_LANDING, LandingOptions, NO_INPUT, SpaceDrag, VoyageInput } from "../domain/input";
 import { Loot, LootTable, NO_LOOT_TABLE } from "../domain/loot";
 import { VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState, VoyageStatus } from "../domain/state";
@@ -21,6 +21,8 @@ import { CaptureSystem } from "../systems/CaptureSystem";
 import { CollisionSystem } from "../systems/CollisionSystem";
 import { VoyageContext } from "../systems/context";
 import { ControlSystem } from "../systems/ControlSystem";
+import { DescentSystem } from "../systems/DescentSystem";
+import { GateSystem } from "../systems/GateSystem";
 import { GravitySystem } from "../systems/GravitySystem";
 import { HealthSystem } from "../systems/HealthSystem";
 import { ImpactSystem } from "../systems/ImpactSystem";
@@ -35,6 +37,7 @@ import { ProjectileSystem } from "../systems/ProjectileSystem";
 import { shipOf } from "../systems/queries";
 import { SalvageSystem } from "../systems/SalvageSystem";
 import { SpawnSystem } from "../systems/SpawnSystem";
+import { StrandedSystem } from "../systems/StrandedSystem";
 import { SurfaceSystem } from "../systems/SurfaceSystem";
 import { ThermalSystem } from "../systems/ThermalSystem";
 import { TrafficSystem } from "../systems/TrafficSystem";
@@ -108,6 +111,8 @@ export class VoyageSimulation {
       universes: new UniverseGenerator(config.layout, names),
       themes,
       loot,
+      landing: DEFAULT_LANDING,
+      spaceDrag: "felt",
     };
     this.pipeline = new SystemPipeline<VoyageContext>([
       new OrbitSystem(),
@@ -122,6 +127,9 @@ export class VoyageSimulation {
       new WeaponSystem(),
       new MotionSystem(),
       new SurfaceSystem(),
+      new DescentSystem(),
+      new GateSystem(),
+      new StrandedSystem(),
       new CollisionSystem(),
       new SalvageSystem(),
       new ProjectileSystem(),
@@ -165,6 +173,25 @@ export class VoyageSimulation {
 
   public setAutoFire(isOn: boolean): void {
     this.context.state.autoFire = isOn;
+  }
+
+  // How the pilot likes their landings, from their preferences; a landing on its way down follows a change at once.
+  public setLanding(options: LandingOptions): void {
+    this.context.landing = options;
+  }
+
+  public setSpaceDrag(drag: SpaceDrag): void {
+    this.context.spaceDrag = drag;
+  }
+
+  // What the ground is where the ship is coming down, once the surface has been seen: open water, where a capsule
+  // splashes down rather than firing its landing rockets.
+  public setGround(body: string, isWater: boolean): void {
+    const { descent } = this.context.state;
+
+    if (descent?.body === body && descent.downAt === null) {
+      descent.world.isWater = isWater;
+    }
   }
 
   // Refits the ship to a new level mid flight or between runs: the new config's strength, size and guns, with
@@ -414,6 +441,7 @@ export class VoyageSimulation {
         radiation: 0,
         tidal: 0,
         nebula: 0,
+        medium: "open",
       },
       storms: [],
       aurora: AURORA_BASE,
@@ -422,6 +450,10 @@ export class VoyageSimulation {
       nextFlareAt: null,
       nextCometAt: null,
       cosmos: null,
+      network: null,
+      node: 0,
+      explored: new Set(),
+      nodes: new Map(),
       runSeed: Math.floor(random() * 2 ** 31),
       lockedTarget: null,
       autoFire: true,
@@ -440,6 +472,10 @@ export class VoyageSimulation {
       nextFaultId: 1,
       salvage: null,
       nextWreckAt: null,
+      descent: null,
+      homecoming: null,
+      speedLimit: config.ship.maxSpeed,
+      stranded: null,
       view: this.context?.state.view ?? { halfWidth: 2, halfHeight: 2 },
     };
   }

@@ -118,7 +118,7 @@ export const economyNotice = (content: FinaleVoyage, notice: VoyageNotice): stri
     case "upgraded":
       return fill(copy.upgraded, { ship: shipName(copy, notice.tier, notice.mark) });
     case "earned":
-      return notice.deed === "boss" || notice.deed === "universe" || notice.deed === "rescue"
+      return notice.deed === "boss" || notice.deed === "universe" || notice.deed === "rescue" || notice.deed === "hosted"
         ? fill(copy.earned[notice.deed], { red: notice.amounts.RED, void: notice.amounts.VOID })
         : null;
     default:

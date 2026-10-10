@@ -50,7 +50,10 @@ export interface Sun {
 
 export interface Scene {
   air: Air | null;
+  // The sun that lights the day, and any others in the sky (a binary's partner, a triple's third), drawn but
+  // leaving the day to the first.
   sun: Sun | null;
+  suns?: Sun[];
   bodies: SkyBody[];
   ground: Ground;
 }
@@ -83,4 +86,7 @@ export interface Frame {
   // The whole sky from the horizon to the zenith at the top of the view, as a tall phone screen shows it, so the
   // sun and anything else above the horizon is always in view (sizes still by `fieldOfView`).
   isWholeSky?: boolean;
+  // How close the eye is to the land, 1 standing on it (unless given) down to 0 from high above: the hills flatten
+  // into the distance and the ground at the viewer's feet fades away.
+  nearness?: number;
 }

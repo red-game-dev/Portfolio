@@ -1,6 +1,6 @@
 import type { ZoneId } from "@/config/zones";
 import type { LaunchLand, LaunchMilestone, LaunchVehicle } from "@/packages/games/launch";
-import type { SurfaceBiome } from "@/packages/games/voyage";
+import type { LandingMethod, LandingPhase, SurfaceBiome } from "@/packages/games/voyage";
 
 export interface DuelRound {
   agent: string;
@@ -188,7 +188,7 @@ export interface VoyageEconomyCopy {
   // "{action}" is replaced with what the one click does.
   suggestion: { title: string; hint: string; upgrade: string; repair: string; craftFault: string; craftUpgrade: string; use: Record<"hull" | "fuel" | "shields" | "heat", string> };
   // "{red}" and "{void}" are replaced.
-  earned: Record<"boss" | "universe" | "rescue", string>;
+  earned: Record<"boss" | "universe" | "rescue" | "hosted", string>;
   upgraded: string;
   records: { title: string; runs: string; best: string; universes: string; bosses: string; rescues: string; salvaged: string };
   reset: { button: string; confirm: string; yes: string; no: string };
@@ -228,11 +228,12 @@ export interface VoyageCareerCopy {
   codexTitle: string;
   // "{found}" and "{total}" are replaced.
   codexFound: string;
-  categories: Record<"worlds" | "kinds" | "universes" | "stars" | "phenomena" | "life" | "wrecks" | "things", string>;
+  categories: Record<"worlds" | "kinds" | "universes" | "galaxies" | "stars" | "phenomena" | "life" | "wrecks" | "things", string>;
   // "{count}" is replaced with how many in a category are still to find.
   unknown: string;
   kinds: Record<string, NamedNote>;
   universes: Record<string, NamedNote>;
+  galaxies: Record<string, NamedNote>;
   stars: Record<string, NamedNote>;
   phenomena: Record<string, NamedNote>;
   life: Record<string, NamedNote>;
@@ -258,13 +259,54 @@ export interface FinaleSurface {
   ready: string;
   readyAt: string;
   launch: string;
+  // Who lives here ("{faction}"), and how they meet the ship: welcomed, or fired on.
+  people: string;
+  welcome: string;
+  hostile: string;
+  // Home, the crew picked up at sea or on land while a new rocket is readied (at "{pad}"); then the pad ("{pad}"),
+  // "{days}" days later.
+  recoverySea: string;
+  recoveryLand: string;
+  readying: string;
+  readyingAt: string;
+  atPad: string;
+  daysLater: string;
+}
+
+// The way down on a world, as the card reads it: what it is coming down on ("{body}"), the way each kind of world is
+// landed on (home has a crew capsule's own), each phase, the readings ("{value}"), how fast it plays ("{pace}"),
+// and what the pilot can do: nothing to fly, the guidance flying (and how to take over), or their hand on the burn
+// ("{safe}" m/s to touch down under, "{seconds}" of burn left). Then the touchdown, gentle or too hard.
+export interface FinaleDescent {
+  title: string;
+  methods: Record<LandingMethod, string>;
+  home: string;
+  phases: Record<LandingPhase, string>;
+  altitude: string;
+  speed: string;
+  fall: string;
+  load: string;
+  pace: string;
+  realTime: string;
+  flown: string;
+  takeOver: string;
+  unflown: string;
+  pilot: string;
+  reserve: string;
+  // Fired on from the ground on the way down, and how to get away.
+  underFire: string;
+  landedAt: string;
+  hard: string;
 }
 
 export interface FinaleVoyage {
   title: string;
   surface: FinaleSurface;
+  descent: FinaleDescent;
   intro: string;
   controls: string;
+  // The first time the voyage opens, before the first flight: how the pilot likes to fly.
+  setup: { title: string; note: string };
   canvasLabel: string;
   start: string;
   again: string;
@@ -300,6 +342,10 @@ export interface FinaleVoyage {
     next: string;
     // How much further out the black hole waits, until it wakes.
     blackHole: string;
+    // The kind of space the ship is in, by id, and how hard tides stretch it.
+    space: string;
+    media: Record<"void" | "open" | "haze" | "belt" | "nebula" | "ring", string>;
+    tides: string;
     noSignal: string;
   };
   units: {
@@ -314,8 +360,13 @@ export interface FinaleVoyage {
     dilation: string;
     km: string;
     millionKm: string;
+    // Metres and metres a second, for a landing's last stretch.
+    metres: string;
+    metresPerSecond: string;
     // "{value}" is replaced with AU still to go.
     further: string;
+    // "{value}" is replaced with how many times what the hull takes the tides pull.
+    tides: string;
     // "{date}" is replaced with the mission clock's date and time.
     clock: string;
   };
@@ -327,8 +378,23 @@ export interface FinaleVoyage {
   // "{body}" is replaced.
   landed: string;
   tookOff: string;
+  // The map's marks ("{mass}" is a black hole's in Suns) and its key.
+  mapMarks: { mission: string; holeMass: string; keyMission: string; keyPull: string; keyHostile: string; keyRock: string; keyHazard: string };
   // Home safely, met and given a new rocket.
   recovered: string;
+  // No fuel to leave ("{body}", "{seconds}", "{days}"): a rescue on its way in our solar system or the run ending in
+  // the universes, each on a world or adrift; the run over; rescued; and the countdown while it runs.
+  stranded: {
+    rescueBegun: string;
+    rescueBegunAdrift: string;
+    lostBegun: string;
+    lostBegunAdrift: string;
+    over: string;
+    rescued: string;
+    rescuedAdrift: string;
+    rescueIn: string;
+    lostIn: string;
+  };
   // After a run ends: what is kept for the next one.
   kept: string;
   emergency: string;
@@ -348,6 +414,8 @@ export interface FinaleVoyage {
     middles: string[];
     places: string[];
     factions: Record<"hostile" | "territorial" | "neutral" | "peaceful", string[]>;
+    // A system's belt of rocks, named for its star: "{star}" is replaced.
+    belt: string;
   };
   // The guns and the MMO frames for what they are on.
   combat: {
@@ -391,8 +459,21 @@ export interface FinaleVoyage {
   singularity: string;
   lost: string;
   // "{universe}" is replaced: the first universe, then each one after.
+  // "{universe}", "{galaxy}" and "{star}" are filled from the phrases below.
   arrived: string;
   jumped: string;
+  galaxyPhrases: Record<string, string>;
+  starPhrases: Record<string, string>;
+  starPair: string;
+  starTrio: string;
+  // A maze universe: where the ship is in it ("{count}", "{name}", "{system}", "{explored}", "{systems}"), and what
+  // is said through a gate ("{system}"): a new system, one with the way on, a dead end, one been to before.
+  universeMaze: string;
+  // Down on a world someone lives on ("{faction}", "{body}"): welcomed, or fired on.
+  hosted: string;
+  groundFire: string;
+  // A gate's name over it ("{name}") once its system has been reached: the one with the way on, or any other.
+  gate: { through: string; wayOn: string; deadEnd: string; again: string; markWayOn: string; markVisited: string };
   over: string;
   // "{score}" is replaced.
   finalScore: string;
@@ -435,6 +516,8 @@ export interface FinaleContent {
   linkedInLabel: string;
   cvLabel: string;
   restartLabel: string;
+  // For a reader who is not hiring: pass my name on, share the site, or recommend me if we have worked together.
+  referral: { note: string; share: string; recommend: string };
 }
 
 export interface HudLabels {

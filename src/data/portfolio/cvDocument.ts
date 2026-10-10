@@ -6,7 +6,7 @@ import { PortfolioData } from "@/types/portfolio";
 // says; the figures and skill years come from the rest of the content.
 export const cvDocumentContent: Pick<PortfolioData, "cvDocument"> = {
   cvDocument: {
-    headline: "Software Architect and Applied AI Engineer",
+    headline: "Software Architect, Founder and Applied AI Engineer",
     summary: [
       `Software architect with 15+ years in the industry and 20+ writing software, since I was 7. I lead architecture for a 90+
       person delivery organisation at Conrad, took Chiliz's fan app for 1.5M+ users in 167 countries from critically unstable to

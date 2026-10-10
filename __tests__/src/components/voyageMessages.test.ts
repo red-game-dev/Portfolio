@@ -1,7 +1,11 @@
-import { voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
+import { strandedLine, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { formatClock, formatDistance, telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import { portfolioData } from "@/data/resume";
-import { MODULE_IDS, SOLAR_SYSTEM, VoyageSnapshot } from "@/packages/games/voyage";
+import {
+  DescentView, GALAXY_KINDS, MODULE_IDS, SOLAR_SYSTEM, STAR_CLASSES, SurfaceInfo, VoyageSnapshot, WORLD_CLASS_IDS,
+} from "@/packages/games/voyage";
 
 const { voyage } = portfolioData.finale;
 const universes = ["The Matrix", "AI", "Chain", "Casino", "Game world"];
@@ -11,6 +15,7 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   universe: -1,
   universes: 0,
   universeName: null,
+  cosmos: null,
   hull: 1000,
   maxHull: 1000,
   shields: 400,
@@ -21,6 +26,11 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   passing: null,
   landedOn: null,
   surface: null,
+  descent: null,
+  homecoming: null,
+  stranded: null,
+  people: null,
+  maze: null,
   modules: { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 },
   waypoint: null,
   target: null,
@@ -44,6 +54,8 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
     radiation: 65,
     timeDilation: 1,
     missionTime: Date.parse("2026-10-09T12:00:00Z"),
+    medium: "open",
+    tides: 0,
   },
   ...snapshot,
 });
@@ -71,16 +83,36 @@ describe("the voyage's messages", () => {
 
     expect(voyageMessage(voyage, singularity, pluto, universes)).toBe(voyage.singularity);
     expect(voyageMessage(voyage, lost, singularity, universes)).toBe(voyage.lost);
-    expect(voyageMessage(voyage, at({ phase: "universe", universe: 0, universes: 1 }), lost, universes)).toBe("You wake up in The Matrix");
+    const arrival = at({ phase: "universe", universe: 0, universes: 1, cosmos: { galaxy: "barred", star: "redSupergiant", companions: ["blue"] } });
+
+    expect(voyageMessage(voyage, arrival, lost, universes))
+      .toBe("You wake up in The Matrix, in a barred spiral galaxy, round a red supergiant and a blue star");
     expect(voyageMessage(voyage, at({ phase: "universe", universe: 3, universes: 2 }), at({ phase: "lost", universe: 0, universes: 1 }), universes))
-      .toBe("Thrown into Casino");
+      .toBe("Thrown into Casino, in a spiral galaxy, round no star at all");
   });
 
   test("landings, lift offs, emergency burns and the moment a black hole takes the ship are said with the body's name", () => {
-    expect(voyageNotice(voyage, { kind: "landed", body: "mars" })).toBe("Landed on Mars");
+    expect(voyageNotice(voyage, { kind: "landed", body: "mars", speed: null })).toBe("Landed on Mars");
+    expect(voyageNotice(voyage, { kind: "landed", body: "mars", speed: 0.78 })).toBe("Landed on Mars at 0.8 m/s");
+    expect(voyageNotice(voyage, { kind: "descent", body: "mars", phase: "supersonic" })).toBe("Supersonic parachute open");
+    expect(voyageNotice(voyage, { kind: "descent", body: "mars", phase: "down" })).toBeNull();
+    expect(voyageNotice(voyage, { kind: "hardLanding", body: "moon", speed: 9.42, safe: 3 }))
+      .toBe("Down on the Moon at 9.4 m/s, more than the 3 m/s it can take: the legs gave way");
     expect(voyageNotice(voyage, { kind: "emergency", body: "jupiter" })).toContain("Jupiter");
     expect(voyageNotice(voyage, { kind: "captured", isSingularity: true })).toBe(voyage.captured);
     expect(voyageNotice(voyage, { kind: "destroyed" })).toBeNull();
+  });
+
+  test("stranded with no fuel: a rescue coming home, or the run's end out in the universes, then rescued days later", () => {
+    expect(voyageNotice(voyage, { kind: "stranded", body: "venus", seconds: 15, isRescue: true, isOver: false }))
+      .toBe("No fuel to lift off Venus: a rescue is on its way");
+    expect(voyageNotice(voyage, { kind: "stranded", body: null, seconds: 15, isRescue: false, isOver: false }))
+      .toBe("Adrift with no fuel: load a fuel cell within 15 s, or the run ends here");
+    expect(voyageNotice(voyage, { kind: "stranded", body: null, seconds: 0, isRescue: false, isOver: true }))
+      .toBe("Stranded with no fuel, and nobody comes this far out");
+    expect(voyageNotice(voyage, { kind: "rescued", from: "venus", days: 146 })).toBe("Rescued from Venus: 146 days later, a new rocket stands on the pad");
+    expect(strandedLine(voyage, at({ stranded: { secondsLeft: 9, isRescue: true } }))).toBe("No fuel to lift off: rescue in 9 s");
+    expect(strandedLine(voyage, at())).toBeNull();
   });
 
   test("flares, storms, failing systems and a melting hull are said as they happen", () => {
@@ -151,5 +183,82 @@ describe("the voyage's telemetry", () => {
   test("distances read in millions of km once they are that far", () => {
     expect(formatDistance(voyage, 1500000)).toBe("1.5 million km");
     expect(formatDistance(voyage, 42000)).toBe("42,000 km");
+  });
+});
+
+describe("the voyage's words for what the universes hold", () => {
+  test("every kind of galaxy, star and world has a name, a note and a phrase", () => {
+    const career = voyage.career;
+
+    GALAXY_KINDS.forEach((kind) => {
+      expect(career.galaxies[kind]?.name).toBeTruthy();
+      expect(voyage.galaxyPhrases[kind]).toBeTruthy();
+    });
+    Object.keys(STAR_CLASSES).forEach((kind) => {
+      expect(career.stars[kind]?.note).toBeTruthy();
+      expect(voyage.starPhrases[kind]).toBeTruthy();
+    });
+    WORLD_CLASS_IDS.forEach((kind) => expect(career.kinds[kind]?.note).toBeTruthy());
+  });
+});
+
+describe("the voyage's cards", () => {
+  const DESCENT: DescentView = {
+    method: "powered", phase: "powered", altitude: 12400, speed: 1180, fall: 22, load: 0.3, heating: 0, throttle: 0.8, canFly: true, isPilot: false, isUnderFire: false,
+    reserve: 90, safeSpeed: 3, pace: 47,
+  };
+  const HOME: SurfaceInfo = { body: "earth", pad: null, name: null, isHome: true, latitude: 27.1, longitude: -72.4, hours: 9.5, biome: "ocean" };
+
+  test("the way down reads its height, speeds, load and pace, and what the pilot can do", () => {
+    expect(descentRows(voyage, DESCENT)).toEqual(["Altitude 12 km", "Speed 1,180 m/s", "Falling 22 m/s", "Load 0.3 g", "Playing 47 times faster than life"]);
+    expect(descentRows(voyage, { ...DESCENT, altitude: 140, speed: 4.6, fall: 4.6, load: 0, pace: 1 }))
+      .toEqual(["Altitude 140 m", "Speed 4.6 m/s", "Falling 4.6 m/s", "In real time"]);
+    expect(descentHint(voyage, DESCENT, false)).toEqual(["Flown by the guidance"]);
+    expect(descentHint(voyage, { ...DESCENT, isUnderFire: true }, true)).toEqual(["Under fire from the ground: hold Up or W, or press and hold, to abort the landing"]);
+    // With the pilot's hand on the burn, the burn lands the ship, so the card says how to land rather than how to abort.
+    expect(descentHint(voyage, { ...DESCENT, isUnderFire: true, isPilot: true, reserve: 41 }, true)[0]).toMatch(/^Hold Up or W/);
+    expect(descentHint(voyage, DESCENT, true)).toEqual(["You take the burn at the low gate, 150 m up"]);
+    expect(descentHint(voyage, { ...DESCENT, method: "probe", canFly: false }, true)).toEqual(["Nothing to fly by hand here: it comes down by itself"]);
+    expect(descentHint(voyage, { ...DESCENT, isPilot: true, reserve: 41 }, true)).toEqual([
+      "Hold Up or W, or press and hold, to burn. Touch down under 3 m/s.",
+      "Burn left: 41 s",
+    ]);
+    expect(descentMethod(voyage, { ...DESCENT, method: "parachutes" }, true)).toBe(voyage.descent.home);
+    expect(descentMethod(voyage, { ...DESCENT, method: "probe" }, false)).toBe("Parachutes all the way down, as Huygens fell to Titan");
+  });
+
+  test("home, the card says the crew is being picked up, then names the pad days later with the new rocket ready", () => {
+    const recovery = at({ surface: HOME, homecoming: { stage: "recovery", days: 3, isSea: true } });
+    const pad = at({
+      surface: { ...HOME, pad: "Starbase, Texas", latitude: 25.99, longitude: -97.15, biome: "desert" },
+      homecoming: { stage: "pad", days: 3, isSea: true },
+    });
+
+    expect(surfaceHeading(voyage, recovery)).toBe("On Earth");
+    expect(surfaceLines(voyage, recovery, "Starbase, Texas")).toContain("The recovery ship is alongside, lifting the capsule aboard");
+    expect(surfaceHint(voyage, recovery, "Starbase, Texas")).toBe("A new rocket is being readied at Starbase, Texas");
+    expect(surfaceHeading(voyage, pad)).toBe("At Starbase, Texas");
+    expect(surfaceLines(voyage, pad, "Starbase, Texas")).toEqual(expect.arrayContaining(["3 days later", "A new rocket stands fuelled and ready."]));
+    expect(surfaceHint(voyage, pad, "Starbase, Texas")).toBe("Burn to launch it");
+    expect(voyageNotice(voyage, { kind: "recovered", body: "earth", days: 3 })).toBe("3 days later, a new rocket stands on the pad");
+  });
+
+  test("down among a people, the card names them and how they meet the ship, and the notices say it", () => {
+    const welcomed = at({ surface: { ...HOME, body: "u6-2", isHome: false, biome: "grassland" }, people: { name: "Kesh Concord", disposition: "neutral" } });
+    const fired = at({ surface: { ...HOME, body: "u6-2", isHome: false, biome: "grassland" }, people: { name: "Kesh Concord", disposition: "hostile" } });
+
+    expect(surfaceLines(voyage, welcomed, null)).toEqual(expect.arrayContaining(["Home of the Kesh Concord", voyage.surface.welcome]));
+    expect(surfaceLines(voyage, fired, null)).toContain(voyage.surface.hostile);
+    expect(voyageNotice(voyage, { kind: "hosted", body: "Veldara c", faction: "Kesh Concord" }))
+      .toBe("The Kesh Concord of Veldara c welcome you: they mend your ship and give you a gift");
+    expect(voyageNotice(voyage, { kind: "groundFire", body: "Veldara c", faction: "Kesh Concord" })).toBe("The Kesh Concord of Veldara c open fire from the ground");
+  });
+
+  test("elsewhere the card names the world, its ground, the spot and the local time", () => {
+    const moon = at({ surface: { ...HOME, body: "moon", isHome: false, biome: "regolith" } });
+
+    expect(surfaceHeading(voyage, moon)).toBe("On the Moon");
+    expect(surfaceLines(voyage, moon, null)[0]).toBe("Cratered regolith");
+    expect(surfaceHint(voyage, moon, null)).toBe("Burn to lift off");
   });
 });

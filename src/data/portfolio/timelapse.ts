@@ -6,6 +6,13 @@ export const timelapseContent: Pick<PortfolioData, "timelapse"> = {
   timelapse: {
     show: "Watch it being built",
     hide: "Hide the time-lapse",
+    // GitHub Sponsors, the same page as the repo's Sponsor button (.github/FUNDING.yml). Hidden while empty: set it
+    // to https://github.com/sponsors/red-game-dev once GitHub approves the profile.
+    support: {
+      note: "Enjoyed it? Sponsoring me keeps the next feature coming.",
+      label: "Sponsor me on GitHub",
+      url: "",
+    },
     stats: {
       commits: "Commits",
       first: "First commit",

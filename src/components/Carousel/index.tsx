@@ -10,7 +10,7 @@ import { carouselPage, describePage, realignStart, wrapPage } from "@/components
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { firstFocusable, isFocusLost, isInside, isTypingTarget } from "@/packages/interaction/focus";
-import { HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
+import { BROWSER_SHORTCUTS, HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
 import { focusRing, honourHidden } from "@/styles/mixins";
 import { CarouselLabels } from "@/types/carousel";
 
@@ -27,8 +27,9 @@ interface CarouselProps<T> {
 // A swipe shorter than this is a tap or a scroll, not a page turn.
 const SWIPE_PX = 40;
 
-// Left and right turn the page, except while typing into a field among the cards.
-const PAGE_KEYS = new KeyMap(HORIZONTAL_ARROWS, { skip: (event) => isTypingTarget(event.target) });
+// Left and right turn the page, except while typing into a field among the cards, and never with the browser's
+// own shortcuts (Alt+Left goes back, Cmd+Left to the line's start).
+const PAGE_KEYS = new KeyMap(HORIZONTAL_ARROWS, { ignore: BROWSER_SHORTCUTS, skip: (event) => isTypingTarget(event.target) });
 
 const Root = tw.section`flex flex-col gap-[14px]`;
 

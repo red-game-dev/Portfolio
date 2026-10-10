@@ -191,7 +191,6 @@ const SHORTCUT = new KeyMap({ "`": "prompt", "/": "prompt" }, {
   skip: (event) => isTypingTarget(event.target),
 });
 
-// Up and down walk through the commands typed before; Tab completes the one being typed.
 // Up and down walk the history and Tab completes; with Shift held each keeps its usual job (Shift+Tab moves focus
 // back, Shift+arrows select text), so a keyboard is never kept in the prompt.
 const PROMPT_KEYS = new KeyMap<"previous" | "next" | "complete">({ ArrowUp: "previous", ArrowDown: "next", Tab: "complete" }, { ignore: ["shift"] });

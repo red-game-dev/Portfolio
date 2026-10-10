@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Image } from "@/components/Image";
 import { scrollBehavior } from "@/packages/accessibility/motion";
-import { HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
+import { BROWSER_SHORTCUTS, HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
 import { fill } from "@/packages/text/format";
 import { focusRing } from "@/styles/mixins";
 import { ProjectScreen } from "@/types/projects";
@@ -24,7 +24,7 @@ interface ScreenCarouselProps {
 
 // The dialog moves between regions with the arrow keys; inside the carousel they move between shots, and stop
 // there so the dialog does not travel as well.
-const SHOT_KEYS = new KeyMap(HORIZONTAL_ARROWS, { stopPropagation: true });
+const SHOT_KEYS = new KeyMap(HORIZONTAL_ARROWS, { ignore: BROWSER_SHORTCUTS, stopPropagation: true });
 
 const Carousel = tw.section`flex flex-col gap-[10px]`;
 

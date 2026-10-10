@@ -116,6 +116,16 @@ describe("Carousel", () => {
     expect(shown()).toEqual(["3 / 3"]);
   });
 
+  it("leaves the browser's own shortcuts alone: Alt+Left goes back rather than turning the page", () => {
+    renderCarousel();
+
+    const region = screen.getByRole("region", { name: "Letters" });
+
+    expect(fireEvent.keyDown(region, { key: "ArrowLeft", altKey: true })).toBe(true);
+    expect(fireEvent.keyDown(region, { key: "ArrowRight", metaKey: true })).toBe(true);
+    expect(visible()).toEqual(["Alpha"]);
+  });
+
   it("keeps focus on screen when a page turned from the keyboard hides the card that had it", () => {
     render(
       <LensProvider>

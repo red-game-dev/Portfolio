@@ -4,6 +4,7 @@ import { blackbody, globeFrame, surfacePoint } from "@/packages/graphics/globe";
 import { LandscapePainter, Scene, SkyBody } from "@/packages/graphics/landscape";
 import { angleBetween, RAD, TAU } from "@/packages/math/angles";
 import { clamp01, wrap } from "@/packages/math/clamp";
+import { smoothstep } from "@/packages/math/easing";
 
 import { HOME_WORLD, SystemBody } from "../../domain/content";
 import { SurfaceInfo } from "../../domain/surface";
@@ -25,8 +26,10 @@ const FADE_SECONDS = 0.7;
 const HORIZON_SHARE = 0.62;
 const FIELD_OF_VIEW = 70;
 const SHIP_SHARE = 0.15;
-// How long the dust of a touchdown hangs (ms).
+// How long the dust of a touchdown hangs, how long the descent to it takes, and how long a splash's spray hangs (ms).
 const DUST_MS = 1400;
+const DESCENT_MS = 2800;
+const SPLASH_MS = 1100;
 
 // Reads the colour of a world's map at a spot (degrees), or null when there is no map yet.
 export type MapSampler = (texture: string, longitude: number, latitude: number, centreLongitude: number) => Rgb | null;
@@ -164,20 +167,55 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     }
   }
 
-  // A crew capsule down on Earth: a blunt cone, its heat shield charred from the way in and its sides streaked,
-  // two windows and the hatch on top. At sea it rides the swell in its orange flotation collar, the water over its
-  // lower edge; on land its parachutes lie spread beside it, their lines running back to it.
-  private drawCapsule(x: number, groundY: number, tall: number, light: number, now: number, isSea: boolean): void {
+  // A crew capsule coming home to Earth: a blunt cone, its heat shield charred from the way in and its sides
+  // streaked, two windows and the hatch on top. On the way down it swings under its three main parachutes; on land
+  // its soft landing rockets flash just before touchdown and the canopies settle beside it, their lines running
+  // back to it; at sea it splashes down and rides the swell in its orange flotation collar. `altitude` is how far
+  // above the ground it still is (pixels) and `touchdownMs` how long since it came down (negative before).
+  private drawCapsule(x: number, groundY: number, tall: number, light: number, now: number, isSea: boolean, altitude = 0, touchdownMs = DUST_MS): void {
     const context = this.kit.front.context;
     const base = tall * 0.78;
     const top = base * 0.42;
     const high = tall * 0.6;
-    const bob = isSea ? Math.sin(now * 0.0025) * tall * 0.025 : 0;
-    const tilt = isSea ? Math.sin(now * 0.0017) * 0.06 : 0;
+    const isDown = altitude <= 0.5;
+    const baseY = groundY - altitude;
+    const swing = isDown ? 0 : Math.sin(now * 0.0021) * 0.05;
+    const bob = isSea && isDown ? Math.sin(now * 0.0025) * tall * 0.025 : 0;
+    const tilt = isSea && isDown ? Math.sin(now * 0.0017) * 0.06 : swing;
     // Never darker than a quarter lit, so the capsule still reads at night.
     const ambient = 0.25 + 0.75 * light;
 
-    if (!isSea) {
+    if (!isDown) {
+      // Three main parachutes open overhead, swaying, in orange and white gores.
+      [-1, 0, 1].forEach((offset, index) => {
+        const cx = x + offset * base * 0.8 + Math.sin(now * 0.0019 + index) * base * 0.06;
+        const cy = baseY - high - tall * (1.35 + Math.abs(offset) * 0.12);
+        const rx = base * 0.62;
+        const ry = tall * 0.34;
+
+        context.strokeStyle = shadeHex("#e6e6e6", ambient, 0.55);
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(cx - rx, cy);
+        context.lineTo(x, baseY - high);
+        context.moveTo(cx + rx, cy);
+        context.lineTo(x, baseY - high);
+        context.stroke();
+
+        for (let gore = 0; gore < 8; gore += 1) {
+          const from = Math.PI + (gore / 8) * Math.PI;
+
+          context.fillStyle = shadeHex((gore + index) % 2 === 0 ? "#f07028" : "#f2f0ea", ambient);
+          context.beginPath();
+          context.moveTo(cx, cy);
+          context.ellipse(cx, cy, rx, ry, 0, from, from + Math.PI / 8);
+          context.closePath();
+          context.fill();
+        }
+      });
+    }
+
+    if (!isSea && isDown) {
       // The parachutes, spread on the ground off to one side, striped orange and white.
       [-1, 0.2, 1].forEach((offset, index) => {
         const cx = x + base * (1.35 + index * 0.55) * (offset < 0 ? -1 : 1);
@@ -204,7 +242,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     }
 
     context.save();
-    context.translate(x, groundY + bob);
+    context.translate(x, baseY + bob);
     context.rotate(tilt);
 
     // Curved sides lit from the sun's side, dark on the other, as a cone of metal is under one light.
@@ -248,7 +286,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       context.fill();
     });
 
-    if (isSea) {
+    if (isSea && isDown) {
       // The flotation collar and the sea washing over the capsule's lower edge.
       context.fillStyle = shadeHex("#f0781e", ambient);
       context.beginPath();
@@ -274,6 +312,32 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     }
 
     context.restore();
+
+    // On land the soft landing rockets fire a moment before touchdown, kicking up the ground.
+    if (!isSea && !isDown && altitude < tall * 0.5) {
+      const flash = context.createRadialGradient(x, groundY, 0, x, groundY, base * 1.1);
+
+      flash.addColorStop(0, "rgba(255, 236, 190, 0.95)");
+      flash.addColorStop(0.4, "rgba(255, 150, 60, 0.6)");
+      flash.addColorStop(1, "rgba(255, 120, 40, 0)");
+      context.fillStyle = flash;
+      context.fillRect(x - base * 1.1, baseY - base * 0.4, base * 2.2, groundY - baseY + base * 0.6);
+    }
+
+    // At sea the splash: spray thrown up round it, falling back.
+    if (isSea && touchdownMs >= 0 && touchdownMs < SPLASH_MS) {
+      const spray = touchdownMs / SPLASH_MS;
+
+      context.fillStyle = `rgba(240, 248, 255, ${(0.75 * (1 - spray)).toFixed(3)})`;
+      [-1, -0.45, 0.45, 1].forEach((side, index) => {
+        const reach = base * (0.5 + spray * (0.8 + index * 0.1));
+        const rise = Math.sin(spray * Math.PI) * tall * (0.35 + (index % 2) * 0.15);
+
+        context.beginPath();
+        context.ellipse(x + side * reach, groundY - rise, base * 0.16 * (1 - spray * 0.4), tall * 0.07, 0, 0, TAU);
+        context.fill();
+      });
+    }
   }
 
   private starColour(kelvin: number): string {
@@ -292,8 +356,13 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const wide = tall * (SHIP_WIDTH / SHIP_HEIGHT);
     const groundY = horizon + height * 0.07;
     const lift = isLeaving ? (1 - this.shown) ** 2 * height * 0.8 : 0;
+    // The descent: coming down from high in the view, fast at first and slowing to touchdown.
+    const since = state.elapsedMs - this.landedAt;
+    const descent = isLeaving ? 1 : clamp01(since / DESCENT_MS);
+    const altitude = (1 - descent) ** 2 * height * 0.6;
+    const touchdownMs = since - DESCENT_MS;
     const x = width / 2;
-    const y = groundY - lift;
+    const y = groundY - lift - altitude;
     const sunSide = this.scene?.sun ? Math.sign(this.scene.sun.side) || 1 : 1;
     const tier = tierOf(state.level);
     const mark = markOf(state.level);
@@ -308,10 +377,13 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const sprite = this.kit.sprite(`ship:${tier}:${mark}:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, this.hull.paint);
     const alpha = this.shown;
 
-    context.globalAlpha = alpha * (isLeaving ? Math.max(0, 1 - lift / (height * 0.3)) : 1) * 0.45;
+    // Its shadow, sharper and darker as it comes down to meet it.
+    const nearness = 1 - Math.min(1, (lift + altitude) / (height * 0.4));
+
+    context.globalAlpha = alpha * nearness * 0.45;
     context.fillStyle = "#000000";
     context.beginPath();
-    context.ellipse(x - sunSide * wide * 0.4, groundY + 2, wide * 0.8, wide * 0.16, 0, 0, TAU);
+    context.ellipse(x - sunSide * wide * 0.4, groundY + 2, wide * (0.5 + 0.3 * nearness), wide * 0.16, 0, 0, TAU);
     context.fill();
 
     // Lights on the ground in front of it once it is dark.
@@ -329,27 +401,35 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
 
     // Home: the capsule that brought the crew down, not the ship; a new rocket lifts off in its place.
     if (this.info?.isHome && !isLeaving) {
-      this.drawCapsule(x, groundY, tall, light, now, this.scene?.ground.relief === "sea");
+      this.drawCapsule(x, groundY, tall, light, now, this.scene?.ground.relief === "sea", altitude, touchdownMs);
       context.globalAlpha = 1;
 
       return;
     }
 
-    if (isLeaving) {
+    const isBurning = isLeaving || descent < 1;
+
+    if (isBurning) {
+      // Lifting off, or the landing burn: throttled up hardest just before touchdown.
       const flame = this.kit.sprite(`flame:${theme.flameCore}:${size}`, size * 1.1, size * 2.8, paintFlame(theme.flameCore, theme.flameEdge));
+      const thrust = isLeaving ? 1 : 0.55 + 0.45 * descent;
 
       if (flame) {
-        context.drawImage(flame.surface, x - wide * 0.22, y - tall * 0.05, wide * 0.44, tall * (0.8 + Math.sin(now * 0.05) * 0.1));
+        context.drawImage(flame.surface, x - wide * 0.22, y - tall * 0.05, wide * 0.44, tall * thrust * (0.8 + Math.sin(now * 0.05) * 0.1));
       }
-    } else {
-      // Landing legs braced out to the ground.
+    }
+
+    if (!isLeaving) {
+      // Landing legs, swinging out from the hull as the ground comes up, braced on it at touchdown.
+      const out = smoothstep(0.35, 0.8, descent);
+
       context.strokeStyle = "#3a3f4a";
       context.lineWidth = Math.max(1.5, wide * 0.05);
       context.beginPath();
-      context.moveTo(x - wide * 0.22, y - tall * 0.25);
-      context.lineTo(x - wide * 0.48, y);
-      context.moveTo(x + wide * 0.22, y - tall * 0.25);
-      context.lineTo(x + wide * 0.48, y);
+      [-1, 1].forEach((side) => {
+        context.moveTo(x + side * wide * 0.22, y - tall * 0.25);
+        context.lineTo(x + side * wide * (0.26 + 0.22 * out), y - tall * 0.12 * (1 - out));
+      });
       context.stroke();
     }
 
@@ -357,13 +437,14 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       context.drawImage(sprite.surface, x - wide / 2, y - tall * 0.98, wide, tall);
     }
 
-    // The touchdown's dust, settling.
-    const since = state.elapsedMs - this.landedAt;
+    // The dust: kicked up by the landing burn as the ground comes near, then settling after touchdown.
+    const blast = isLeaving ? 0 : clamp01((descent - 0.7) / 0.3);
+    const settling = touchdownMs > 0 ? touchdownMs / DUST_MS : 0;
 
-    if (!isLeaving && since < DUST_MS && this.scene) {
-      const progress = since / DUST_MS;
+    if (!isLeaving && blast > 0 && settling < 1 && this.scene) {
+      const progress = touchdownMs > 0 ? settling : (blast - 1) * 0.3;
 
-      context.globalAlpha = alpha * (1 - progress) * 0.5;
+      context.globalAlpha = alpha * blast * (1 - Math.max(0, progress)) * 0.5;
       context.fillStyle = this.scene.ground.colour;
       [-1, 1].forEach((side) => {
         context.beginPath();

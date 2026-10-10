@@ -20,6 +20,7 @@ export { SystemService } from "./services/SystemService";
 export { SOLAR_SYSTEM, SolarSystemSource } from "./sources/SolarSystemSource";
 export { missionTime, placeBodies } from "./systems/orbits";
 export { auForRadius, radiusForAu } from "./utils/scale";
+export { landingWorldOf } from "./utils/landing";
 export { lightAt } from "./utils/stars";
 export { SolarSystemValidator } from "./validators/SolarSystemValidator";
 export { CanvasVoyageRenderer } from "./renderers/CanvasVoyageRenderer";

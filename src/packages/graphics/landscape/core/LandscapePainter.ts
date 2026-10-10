@@ -2,7 +2,7 @@ import { hexToRgb, mixRgb, Rgb, rgba, rgbCss, scaleRgb } from "@/packages/graphi
 import { TAU } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
 import { smoothstep } from "@/packages/math/easing";
-import { createSeededRandom } from "@/packages/math/random";
+import { createWarmedRandom } from "@/packages/math/random";
 
 import { Frame, Ground, Scene, SkyLight, Sun } from "../domain/types";
 import { skyLight, sunColour } from "../utils/sky";
@@ -46,10 +46,8 @@ export class LandscapePainter {
   private readonly scattered = new Map<string, Scattered[]>();
 
   constructor(seed = 1) {
-    const random = createSeededRandom(seed * 31 + 7);
+    const random = createWarmedRandom(seed * 31 + 7, 2);
 
-    random();
-    random();
     this.stars = Array.from({ length: STARS }, () => ({ x: random(), y: random(), size: 0.4 + random() * 1.3, phase: random() * TAU }));
   }
 
@@ -283,9 +281,8 @@ export class LandscapePainter {
     let things = this.scattered.get(key);
 
     if (!things) {
-      const random = createSeededRandom(ground.seed * 613 + 5);
+      const random = createWarmedRandom(ground.seed * 613 + 5, 1);
 
-      random();
       things = Array.from({ length: SCATTER }, () => ({ x: random(), depth: random() ** 1.6, size: 0.4 + random() * 0.6, shape: random() }));
       things.sort((first, second) => first.depth - second.depth);
       this.scattered.set(key, things);

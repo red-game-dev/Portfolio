@@ -319,7 +319,8 @@ export class VoyageGame extends FrameLoop {
     this.pointer = position;
   }
 
-  // A mouse button or a finger held down, which is the landing burn while a pilot flies it.
+  // A mouse button or a finger held down: while coming down, the burn (the pilot's on the landing engine, or one
+  // that aborts the landing under fire).
   public press(isDown: boolean): void {
     this.isPressing = isDown;
   }
@@ -611,8 +612,9 @@ export class VoyageGame extends FrameLoop {
   private input(): VoyageInput {
     const descent = this.simulation.state.descent;
 
-    // Flying the landing burn by hand: the burn key or a held press, never where a mouse happens to rest.
-    if (descent?.downAt === null && descent.craft.isPilot) {
+    // Coming down, a burn (the pilot's on the landing engine, or one that aborts the landing under fire) is the burn
+    // key or a held press, never where a mouse happens to rest.
+    if (descent?.downAt === null) {
       return { aim: null, thrust: Math.max(this.keys.thrust, this.isPressing ? 1 : 0), turn: 0, brake: false };
     }
 

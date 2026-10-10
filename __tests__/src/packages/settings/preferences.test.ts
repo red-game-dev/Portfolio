@@ -25,13 +25,27 @@ describe("settings/preferences", () => {
   });
 
   test("starts at the defaults, and reads back only what still fits each setting once loaded", () => {
-    const store = new PreferenceStore(SCHEMA, memory({ "landing-time": "real", "landing-control": "sideways", "sound": "on", "stale": "x" }));
+    const storage = memory({ "landing-time": "real", "landing-control": "sideways", "sound": "on", "stale": "x" });
+    const store = new PreferenceStore(SCHEMA, storage);
 
     expect(store.values).toEqual({ "landing-time": "compressed", "landing-control": "auto", "sound": false });
 
     store.load();
 
     expect(store.values).toEqual({ "landing-time": "real", "landing-control": "auto", "sound": true });
+    // What no longer fitted is mended in storage.
+    expect(storage.written).toEqual([{ "landing-time": "real", "landing-control": "auto", "sound": true }]);
+  });
+
+  test("loading writes nothing back when nothing needs mending, so a visitor who changed nothing leaves nothing behind", () => {
+    const untouched = memory();
+    const kept = memory({ "landing-time": "real", "landing-control": "auto", "sound": false });
+
+    new PreferenceStore(SCHEMA, untouched).load();
+    new PreferenceStore(SCHEMA, kept).load();
+
+    expect(untouched.written).toEqual([]);
+    expect(kept.written).toEqual([]);
   });
 
   test("sets, writes and tells listeners; a value that is not one of the setting's is refused and changes nothing", () => {

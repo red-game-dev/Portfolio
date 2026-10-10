@@ -4,6 +4,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { usePreferencesStateHook } from "@/components/Preferences/hooks/usePreferencesStateHook";
 import { PreferenceName, SITE_PREFERENCES } from "@/config/preferences";
+import type { Setting } from "@/packages/settings/preferences";
 import { PreferencesContent } from "@/types/preferences";
 
 interface SettingsPanelProps {
@@ -39,8 +40,13 @@ const Note = tw.p`m-0 text-xs text-[#9aa3bb]`;
 
 const List = tw.div`flex flex-col gap-[18px]`;
 
-// The reader's settings as a form: each preference a group of options (or a switch), changed as soon as one is
-// picked and kept in this browser. The same store the terminal's `set` changes, so either shows the other's change.
+// A setting's options, each with the key its words are under: a choice's own, or a switch's on and off.
+const optionsOf = (setting: Setting): Array<{ key: string; value: string | boolean }> =>
+  (setting.kind === "choice" ? setting.options.map((option) => ({ key: option, value: option })) : [{ key: "on", value: true }, { key: "off", value: false }]);
+
+// The reader's settings as a form: each preference a group of options (a switch's being on and off), changed as
+// soon as one is picked and kept in this browser. The same store the terminal's `set` changes, so either shows
+// the other's change.
 export const SettingsPanel: FC<SettingsPanelProps> = ({ copy }: SettingsPanelProps) => {
   const { values, set } = usePreferencesStateHook();
   const names = Object.keys(SITE_PREFERENCES).filter((key): key is PreferenceName => key in copy.items);
@@ -57,10 +63,10 @@ export const SettingsPanel: FC<SettingsPanelProps> = ({ copy }: SettingsPanelPro
             <Name>{item.name}</Name>
             <Description id={describedBy}>{item.description}</Description>
             <Options>
-              {setting.options.map((option) => (
-                <Option key={option} isChosen={values[name] === option}>
-                  <input type="radio" name={`setting-${name}`} value={option} checked={values[name] === option} onChange={() => set(name, option)} />
-                  {item.options[option] ?? option}
+              {optionsOf(setting).map(({ key, value }) => (
+                <Option key={key} isChosen={values[name] === value}>
+                  <input type="radio" name={`setting-${name}`} value={key} checked={values[name] === value} onChange={() => set(name, value)} />
+                  {item.options[key] ?? key}
                 </Option>
               ))}
             </Options>

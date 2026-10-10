@@ -103,7 +103,6 @@ interface VoyageDialogProps {
   universes: string[];
   best: number;
   // The pad the finale's launch flew from, where a new rocket waits when the crew comes home.
-  // The pad at home a new rocket waits on once a crew is back.
   home: HomePad | null;
   settings: PreferencesContent;
   onRecord: (score: number) => void;
@@ -134,7 +133,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const lensRef = useRef<HTMLCanvasElement>(null);
   const onBackdropClick = useModalDialog(dialogRef, true);
   // What the canvas writes: the places on the map, and the ghost's name.
-  const labels = useMemo(() => ({ ...content.stops, ghost: content.career.ghost, edgeNote: content.career.edgeNote }), [content]);
+  const labels = useMemo(() => ({
+    ...content.stops, ghost: content.career.ghost, edgeNote: content.career.edgeNote, gateWayOn: content.gate.markWayOn, gateVisited: content.gate.markVisited,
+  }), [content]);
   const canvases = { stage: stageRef, back: backRef, front: frontRef, lens: lensRef };
   const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames, home });
   const { snapshot, notices, takeNotices, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;

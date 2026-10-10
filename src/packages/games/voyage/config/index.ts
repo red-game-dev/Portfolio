@@ -42,12 +42,16 @@ export interface FlightConfig {
 
 // How a landing's way down is played: this many times faster than life, the same for every world so how long each
 // takes against the others stays true, but never longer than `longest` seconds (Huygens took two and a half hours).
-// Home, the crew is picked up over `recoverySeconds`, and the new rocket stands on the pad `recoveryDays` later. On a
+// Down, the ship settles on its legs for `settleSeconds`, so a burn held through touchdown does not lift it straight
+// off again. Home, the crew is picked up over `recoverySeconds`, and the new rocket stands on the pad `recoveryDays`
+// later. On a
 // world whose people want no visitors, their defences open fire below `fireAltitude` (m) and keep firing while the
-// ship stays, `groundFire` of damage a second.
+// ship stays, `groundFire` of damage a second: enough that staying is fatal, not so much that a pilot who takes the
+// last 150 m by hand cannot land a sound ship.
 export interface DescentConfig {
   speedUp: number;
   longest: number;
+  settleSeconds: number;
   recoverySeconds: number;
   recoveryDays: number;
   fireAltitude: number;
@@ -261,7 +265,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     maxSpeed: 3.2,
   },
   flight: { safeLanding: 0.42, crash: 520, drag: 0.8, crush: 600, skim: 12, impact: 70 },
-  descent: { speedUp: 40, longest: 15, recoverySeconds: 6, recoveryDays: 3, fireAltitude: 8000, groundFire: 30 },
+  descent: { speedUp: 40, longest: 15, settleSeconds: 1.2, recoverySeconds: 6, recoveryDays: 3, fireAltitude: 8000, groundFire: 15 },
   thermal: {
     timeConstant: 3,
     entry: 120,

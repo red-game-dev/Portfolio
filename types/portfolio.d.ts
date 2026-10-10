@@ -13,6 +13,7 @@ import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
 import { LensContent } from "@/types/lens";
 import { MenuContent } from "@/types/menu";
+import { PreferencesContent } from "@/types/preferences";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
 import { Recommendation } from "@/types/recommendations";
 import { Resume } from "@/types/resume";
@@ -22,7 +23,6 @@ import { ServiceActions, ServiceGroup } from "@/types/services";
 import { SkillArea, SkillLists } from "@/types/skills";
 import { TerminalContent } from "@/types/terminal";
 import { TimelapseContent } from "@/types/timelapse";
-import { PreferencesContent } from "@/types/preferences";
 
 // A document the site offers, and what its link says.
 export interface DocumentLink {

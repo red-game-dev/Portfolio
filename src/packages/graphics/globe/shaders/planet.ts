@@ -92,8 +92,10 @@ vec3 surfaceColour(vec3 dir, float latitude, out float glow) {
   }
   if (u_kind < 12.5) {
     // An eyeball world, one face always to its red dwarf: open sea under the star, its shore ragged, ice beyond.
+    // Anyone living there lives along the shore, on the ice's edge, where the twilight is mild.
     float shore = (fbm(dir * 5.0 + u_seed) - 0.5) * 0.3;
     float open = smoothstep(0.42, 0.58, g_facing + shore);
+    g_land = 0.1 - abs(g_facing + shore - 0.36);
     vec3 sea = mix(u_palette[1], u_palette[0], smoothstep(0.58, 0.95, g_facing + shore * 0.5));
     vec3 ice = mix(u_palette[2], u_palette[3], clamp(detail * 1.2, 0.0, 1.0));
     return mix(ice, sea, open);

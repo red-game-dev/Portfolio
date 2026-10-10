@@ -46,11 +46,13 @@ export const LANDING = {
     limit: 12,
   },
   // Curiosity and Perseverance at Mars: a ballistic coefficient of about 145 kg/m^2 and a lift to drag ratio of
-  // about 0.24, flown to stay high and slow down where the air is thin, the supersonic parachute at
-  // Mach 1.9, then dropped at 2.1 km for a powered descent on an engine of about three Mars g down to 0.75 m/s.
+  // about 0.24, flown to stay high and slow down where the air is thin, the supersonic parachute at Mach 1.9, then
+  // dropped at 2.1 km (or higher, where the fall under it is faster) for a powered descent on an engine of about
+  // three Mars g down to 0.75 m/s. A thinner world gets a broader shield, down to an inflatable's 40 kg/m^2.
   chuteAndBurn: {
     angle: 12,
     entry: 145,
+    lightestEntry: 40,
     lift: 0.24,
     referenceScaleHeight: 11100,
     chuteMach: 1.9,
@@ -58,6 +60,18 @@ export const LANDING = {
     poweredAltitude: 2100,
     thrust: 2.9,
     body: 400,
+    touchdown: 0.75,
+    safe: 3,
+  },
+  // A reusable booster coming home, where no parachute could open in time: through the air on its own drag at about
+  // 400 kg/m^2 with a little lift, then the engine at about three g, lit no lower than 600 m and high enough to stop
+  // the fall, down to 0.75 m/s. Its legs take 3.
+  retroBurn: {
+    angle: 12,
+    entry: 400,
+    lift: 0.1,
+    thrust: 3,
+    lowestBurn: 600,
     touchdown: 0.75,
     safe: 3,
   },
@@ -75,9 +89,10 @@ export const LANDING = {
     limit: 5.5,
   },
   // Venera at Venus: in at a ballistic coefficient of about 300 kg/m^2, a parachute at about four scale heights
-  // (62 km) below Mach 0.8 that slows it to tens of metres a second, let go at three (48 km) to fall faster through the heat on a drag plate alone, which
-  // brought the lander down at 7 to 8 m/s on air 65 times as thick as Earth's. A world takes this way down where a
-  // plate no more than `plate` kg/m^2 brings it to the ground at no more than `limit`.
+  // (62 km) below Mach 0.8 that slows it to tens of metres a second, let go at three (48 km) to fall faster through
+  // the heat on a drag plate alone, which brought the lander down at 7 to 8 m/s on air 65 times as thick as Earth's.
+  // A world takes this way down where a plate no more than `plate` kg/m^2 brings it to the ground at no more than
+  // `limit`.
   dragPlate: {
     angle: 12,
     entry: 300,

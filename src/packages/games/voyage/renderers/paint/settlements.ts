@@ -1,7 +1,7 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { hexWithAlpha, shadeHex } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
-import { createSeededRandom } from "@/packages/math/random";
+import { createWarmedRandom, randomInt } from "@/packages/math/random";
 
 // One building of a city on the horizon: where along the view it stands and how wide and tall (shares of the
 // view), and its shape: a dome, a spire, or a block of towers.
@@ -18,13 +18,11 @@ export type CityColours = readonly [string, string, string];
 // A city along the horizon, the same each time for a spot: clusters to either side of where the ship comes down,
 // the tallest near the middle of each, so the landing ground in front stays open.
 export const planCity = (seed: number): Building[] => {
-  const random = createSeededRandom(seed * 7 + 3);
+  const random = createWarmedRandom(seed * 7 + 3, 2);
   const buildings: Building[] = [];
 
-  random();
-  random();
   [0.18, 0.78].forEach((centre) => {
-    const count = 5 + Math.floor(random() * 6);
+    const count = randomInt(random, 5, 10);
 
     for (let index = 0; index < count; index += 1) {
       const spread = (random() - 0.5) * 0.3;

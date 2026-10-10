@@ -177,4 +177,6 @@ export interface UniverseNames {
   middles: string[];
   places: string[];
   factions: Record<Disposition, string[]>;
+  // A system's belt of rocks, named for its star: "{star}" is replaced.
+  belt: string;
 }

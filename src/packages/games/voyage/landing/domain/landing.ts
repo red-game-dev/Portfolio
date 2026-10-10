@@ -1,8 +1,9 @@
 // How a craft comes down on a world, as the real ones do: under parachutes to a soft landing burn or a splash
 // (Soyuz, Dragon), a supersonic parachute then a powered descent (Mars), parachutes all the way (Huygens on Titan),
-// a parachute high up then a drag plate through air as thick as an ocean (Venera on Venus), or a powered descent
-// from orbit where there is no air to help (Apollo on the Moon).
-export type LandingMethod = "parachutes" | "chuteAndBurn" | "probe" | "dragPlate" | "powered";
+// a parachute high up then a drag plate through air as thick as an ocean (Venera on Venus), the heat shield then
+// the engine where no parachute could open in time (a reusable booster coming home), or a powered descent from
+// orbit where there is no air to help (Apollo on the Moon).
+export type LandingMethod = "parachutes" | "chuteAndBurn" | "probe" | "dragPlate" | "retroBurn" | "powered";
 
 // The phases of a way down, in the order a method runs them: through the heat of entry, under a drogue (or a
 // supersonic) parachute, under the main one, falling on a drag plate, on the engine, flown by the pilot, the last

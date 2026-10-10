@@ -1,3 +1,6 @@
+import { DEG } from "@/packages/math/angles";
+import { clamp, clamp01 } from "@/packages/math/clamp";
+
 import { LANDING } from "../config";
 import { DescentState, LandingPlan, LandingStage, LandingWorld } from "../domain/landing";
 import { densityAt } from "../utils/air";
@@ -26,7 +29,7 @@ export const AUTOPILOT: PilotControl = { isManual: false, throttle: 0 };
 // The craft at the top of its way down: at the entry interface (or the start of the powered descent), moving at
 // orbital speed, at the plan's angle below level.
 export const startDescent = (plan: LandingPlan): DescentState => {
-  const angle = (plan.startAngle * Math.PI) / 180;
+  const angle = plan.startAngle * DEG;
 
   return {
     time: 0,
@@ -62,6 +65,13 @@ const isDue = (stage: LandingStage, state: DescentState, world: LandingWorld, pl
   return state.altitude <= (stage.belowAltitude ?? Infinity) && speed <= (stage.belowSpeed ?? Infinity);
 };
 
+// Drag on the craft (m/s^2) in that stage, held to the reefed load under a parachute.
+const dragOn = (stage: LandingStage, density: number, speed: number): number => {
+  const isChute = stage.phase === "drogue" || stage.phase === "main" || stage.phase === "supersonic" || stage.phase === "softLanding";
+
+  return Math.min((density * speed * speed) / (2 * stage.ballistic), isChute ? LANDING.reefedLoad * G0 : Infinity);
+};
+
 // The engine's push this step, written here so a step makes nothing.
 const push = { across: 0, up: 0 };
 
@@ -89,7 +99,7 @@ const wantedFall = (state: DescentState, plan: LandingPlan, full: number, effect
 // the speed sideways. The engine lights the first time either asks for anything, the late start that costs least.
 const guide = (state: DescentState, plan: LandingPlan, full: number, effectiveGravity: number): void => {
   const { braking, response } = LANDING.guidance;
-  const vertical = Math.min(full, Math.max(0, effectiveGravity + (wantedFall(state, plan, full, effectiveGravity) - state.up) / response));
+  const vertical = clamp(effectiveGravity + (wantedFall(state, plan, full, effectiveGravity) - state.up) / response, 0, full);
   const room = Math.sqrt(Math.max(0, full * full - vertical * vertical));
   const sideways = Math.min(braking * full, Math.abs(state.across) / response, room);
 
@@ -101,7 +111,7 @@ const guide = (state: DescentState, plan: LandingPlan, full: number, effectiveGr
 
 // How much of a lifting capsule's lift points up: all of it while it falls, banked away as it levels, so it slows
 // high in thin air without skipping back out.
-const liftUp = (state: DescentState) => Math.min(1, Math.max(0, -state.up / LIFT_FALL));
+const liftUp = (state: DescentState) => clamp01(-state.up / LIFT_FALL);
 
 // One step of `dt` seconds: gravity weakening with height and eased by speed across (the curve of the world falling
 // away under a craft in orbit), drag from the air at this height on the craft as it is now (held to the reefed
@@ -124,24 +134,28 @@ export const stepDescent = (state: DescentState, world: LandingWorld, plan: Land
   const effectiveGravity = gravity - (state.across * state.across) / distance;
   const speed = Math.hypot(state.across, state.up);
   const density = densityAt(world.air, state.altitude);
-  const isChute = stage.phase === "drogue" || stage.phase === "main" || stage.phase === "supersonic" || stage.phase === "softLanding";
-  const drag = Math.min((density * speed * speed) / (2 * stage.ballistic), isChute ? LANDING.reefedLoad * G0 : Infinity);
+  const drag = dragOn(stage, density, speed);
   const full = (stage.thrust ?? 0) * world.gravity;
 
   push.across = 0;
   push.up = 0;
 
   if (state.isPilot) {
-    state.throttle = state.reserve > 0 ? Math.min(1, Math.max(0, control.throttle)) : 0;
+    state.throttle = state.reserve > 0 ? clamp01(control.throttle) : 0;
     state.reserve = Math.max(0, state.reserve - state.throttle * dt);
 
     const thrust = state.throttle * full;
 
-    push.across = Math.max(-thrust * 0.5, Math.min(thrust * 0.5, -state.across / DRIFT_SECONDS));
+    push.across = clamp(-state.across / DRIFT_SECONDS, -thrust * 0.5, thrust * 0.5);
     push.up = Math.sqrt(Math.max(0, thrust * thrust - push.across * push.across));
   } else if (stage.phase === "softLanding") {
-    state.throttle = -state.up > plan.touchdownSpeed ? 1 : 0;
-    push.up = state.throttle * full;
+    // Throttled each step to the steady braking that reaches the touchdown speed just at the ground, so the burn
+    // eases off as it gets there rather than kicking the capsule back up.
+    const fall = -state.up;
+    const braking = (fall * Math.abs(fall) - plan.touchdownSpeed ** 2) / (2 * Math.max(0.01, state.altitude));
+
+    push.up = clamp(effectiveGravity + braking, 0, full);
+    state.throttle = full > 0 ? push.up / full : 0;
   } else if (full > 0) {
     guide(state, plan, full, effectiveGravity);
   } else {
@@ -201,11 +215,11 @@ export const isSoftTouchdown = (state: DescentState, plan: LandingPlan, world: L
 export const stepSize = (state: DescentState, world: LandingWorld, plan: LandingPlan): number => {
   const speed = Math.max(0.1, Math.hypot(state.across, state.up));
   const density = densityAt(world.air, state.altitude);
-  const drag = (density * speed * speed) / (2 * plan.stages[state.stage].ballistic);
+  const drag = dragOn(plan.stages[state.stage], density, speed);
   const byHeight = (HEIGHT_SHARE * Math.max(2, state.altitude)) / speed;
   const byDrag = drag > 0 ? (DRAG_SHARE * speed) / drag : LONGEST_STEP;
 
-  return Math.max(SHORTEST_STEP, Math.min(LONGEST_STEP, byHeight, byDrag));
+  return clamp(Math.min(byHeight, byDrag), SHORTEST_STEP, LONGEST_STEP);
 };
 
 // `seconds` of the way down, in as many steps as the motion needs.
@@ -220,17 +234,32 @@ export const advanceDescent = (state: DescentState, world: LandingWorld, plan: L
   }
 };
 
-// The whole way down flown ahead by the guidance, for how long it takes (seconds): to the ground, or to the low gate
-// where a pilot flying by hand would take over. A host plays the descent faster by how long this is.
-export const rehearse = (world: LandingWorld, plan: LandingPlan, isManual = false): number => {
-  const state = startDescent(plan);
-  const control: PilotControl = { isManual, throttle: 0 };
-  // Nothing lands in more than a day; this only guards against a plan that never reaches the ground.
-  const longest = 86400;
+// The whole way down flown ahead by the guidance, to the ground or, for a pilot flying by hand, to the low gate
+// where they take over. Nothing takes longer than two days to land; this only stops a plan that never would. The
+// guidance's own flight is remembered by plan, so a plan flown ahead to choose it is not flown again to time it.
+const LONGEST_WAY_DOWN = 172800;
+const flown = new WeakMap<LandingPlan, DescentState>();
 
-  while (!state.isDown && !state.isPilot && state.time < longest) {
-    advanceDescent(state, world, plan, 60, control);
+export const flyAhead = (world: LandingWorld, plan: LandingPlan, isManual = false): DescentState => {
+  const known = isManual ? undefined : flown.get(plan);
+
+  if (known) {
+    return known;
   }
 
-  return state.time;
+  const state = startDescent(plan);
+  const control: PilotControl = { isManual, throttle: 0 };
+
+  while (!state.isDown && !state.isPilot && state.time < LONGEST_WAY_DOWN) {
+    stepDescent(state, world, plan, stepSize(state, world, plan), control);
+  }
+
+  if (!isManual) {
+    flown.set(plan, state);
+  }
+
+  return state;
 };
+
+// How long the way down takes (seconds). A host plays the descent faster by how long this is.
+export const rehearse = (world: LandingWorld, plan: LandingPlan, isManual = false): number => flyAhead(world, plan, isManual).time;

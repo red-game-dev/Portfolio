@@ -1,7 +1,8 @@
 import { hslToHex } from "@/packages/graphics/colour";
 import type { GlobeLook } from "@/packages/graphics/globe";
 import { TAU } from "@/packages/math/angles";
-import { createSeededRandom, pick, pickWeighted, RandomSource, randomBetween } from "@/packages/math/random";
+import { clamp } from "@/packages/math/clamp";
+import { createWarmedRandom, pick, pickWeighted, RandomSource, randomBetween, randomInt } from "@/packages/math/random";
 import { poleVector } from "@/packages/physics/kepler";
 import { muForSurfaceGravity } from "@/packages/physics/newtonian";
 
@@ -31,8 +32,8 @@ import { airModel } from "../mappers/air";
 import { SystemLayout } from "../mappers/SystemMapper";
 import { auForRadius, radiusForAu } from "../utils/scale";
 import { lookFor } from "./looks";
-import { factionName, nameWord, universeName } from "./names";
-import { airFor, classFor, equilibriumC, gravityFor, moonClassFor, radiusFor } from "./worlds";
+import { beltName, factionName, nameWord, universeName } from "./names";
+import { airFor, classFor, equilibriumC, gravityFor, moonClassFor, radiusFor, spreadOrbits } from "./worlds";
 
 const SHAPE_WEAPONS: Record<HullShape, WeaponKind> = { saucer: "cannon", insect: "spit", crystal: "laser", organic: "spit", monolith: "laser", swarm: "cannon" };
 const SHAPES: readonly HullShape[] = ["saucer", "insect", "crystal", "organic", "monolith", "swarm"];
@@ -50,7 +51,6 @@ const PHENOMENA: Array<{ kind: PhenomenonKind; weight: number; from: number }> =
   { kind: "darkForest", weight: 2, from: 3 },
 ];
 
-const WARM_UP = 3;
 // Planets are lettered from b out, as astronomers letter them round other stars; moons numbered.
 const LETTERS = ["b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
 const NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
@@ -73,17 +73,18 @@ const MOON_RADII = 5;
 const MOON_SPREAD = 1.55;
 // No world circles further out than this (world units), so even a supergiant's system can be crossed.
 const FURTHEST = 420;
-// Round one star of a wide pair, worlds stay within this fraction of the pair's separation; further, the partner
-// would pull them away.
+// Round one star of a wide pair, worlds stay within the pair's separation divided by this; further, the partner
+// would pull them away. The pair is never so close that this leaves less than `WIDE_ROOM` times the nearest orbit.
 const S_TYPE_LIMIT = 3.5;
+const WIDE_ROOM = 3;
 // No world circles nearer its star than this many of the star's drawn radii.
 const HUGGING = 1.6;
+// The share of worlds life could arise on that a faction lives on.
+const INHABITED = 0.5;
 
 // From the fifth universe on, this share are mazes; each system of one is made from the universe's seed and this
 // much more for each place along the network.
 const MAZE_FROM = 5;
-// The share of worlds life could arise on that a faction lives on.
-const INHABITED = 0.5;
 const MAZE_CHANCE = 0.4;
 const NODE_SEED = 7919;
 
@@ -186,18 +187,6 @@ export interface UniverseTheme {
   hazard: string;
 }
 
-// A seeded generator with its first draws thrown away: a Park-Miller generator's first values follow its seed
-// closely, so near seeds would make near universes.
-const warmed = (seed: number): RandomSource => {
-  const random = createSeededRandom(seed);
-
-  for (let draw = 0; draw < WARM_UP; draw += 1) {
-    random();
-  }
-
-  return random;
-};
-
 // How many links each node is from `from`, in a web of links.
 const hops = (links: number[][], from: number): number[] => {
   const depth = links.map(() => Infinity);
@@ -234,7 +223,7 @@ export class UniverseGenerator {
   // the factions living there and the maze itself) comes from its seed, and each system from a seed of its own, so
   // every system of a maze is made the same whenever it is reached.
   public generate(index: number, seed: number, theme: UniverseTheme | null, node = 0): UniverseSpec {
-    const random = warmed(seed);
+    const random = createWarmedRandom(seed);
     const danger = 1 + index * 0.35;
     const style: VoyageStyle = theme?.style ?? pick(random, DEEP_STYLES);
     const hue = random() * 360;
@@ -244,10 +233,11 @@ export class UniverseGenerator {
     const network = this.network(random, index, isVoid);
     const universe = theme?.name ?? universeName(random, this.names);
     const disposition = (): Disposition => weighted(random, [["hostile", 3 + index * 0.6], ["territorial", 2.5], ["neutral", 2], ["peaceful", 2]]);
-    const living = Array.from({ length: isVoid ? 1 : 1 + Math.floor(random() * 3) }, (_, id) => this.faction(random, id, disposition(), danger, hue));
+    const living = Array.from({ length: isVoid ? 1 : randomInt(random, 1, 3) }, (_, id) => this.faction(random, id, disposition(), danger, hue));
     const place = network?.nodes[node] ?? null;
+    const shared = { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place };
 
-    return this.system(warmed(seed + (node + 1) * NODE_SEED), { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place });
+    return this.system(createWarmedRandom(seed + (node + 1) * NODE_SEED), shared);
   }
 
   // One star system of a universe: its stars, worlds and strange things.
@@ -270,8 +260,9 @@ export class UniverseGenerator {
     const names: Record<string, string> = { star: isMultiple ? `${word} A` : word };
     const base = pair ? `${word} AB` : isMultiple ? `${word} A` : word;
     const host = multiplicity === "wide" ? "star" : undefined;
-    // A wide pair's two stars far apart, its worlds within a third of that of the brighter.
-    const apart = multiplicity === "wide" ? FURTHEST * randomBetween(random, 0.6, 1) : separation;
+    // A wide pair's two stars far apart, its worlds near the brighter, within the separation over `S_TYPE_LIMIT`.
+    const apart = multiplicity === "wide" ? Math.max(FURTHEST * randomBetween(random, 0.6, 1), S_TYPE_LIMIT * WIDE_ROOM * (star?.radius ?? 0) * HUGGING)
+      : separation;
     const furthest = multiplicity === "wide" ? apart / S_TYPE_LIMIT : FURTHEST;
     const plan = { index, node, starKind, star, scale, metals, isVoid, luminosity, mass, host, clearance: separation * 3, furthest };
     const bodies = this.worlds(random, plan, { looks, classes, names, base });
@@ -303,10 +294,15 @@ export class UniverseGenerator {
       },
       companions: companions.others,
       bodies,
-      belts: random() < 0.5 ? [this.belt(random, bodies, scale)] : [],
+      belts: random() < 0.5 ? [this.belt(random, bodies, scale, node > 0 ? `u${index}.${node}-belt` : `u${index}-belt`)] : [],
       edge,
       scale,
     };
+
+    system.belts.forEach((belt) => {
+      names[belt.id] = beltName(this.names, word);
+    });
+
     const phenomena = this.phenomena(random, index, edge);
     const isDark = phenomena.some((phenomenon) => phenomenon.kind === "darkForest");
     // In a dark forest every civilisation hides: no ship is ever seen until one strikes.
@@ -360,7 +356,7 @@ export class UniverseGenerator {
 
     bodies.forEach((body) => {
       if (WORLD_CLASSES[classes[body.id]].isHabitable && random() < INHABITED) {
-        const faction = factions[Math.floor(random() * factions.length)];
+        const faction = pick(random, factions);
 
         lived[body.id] = faction.id;
         looks[body.id] = { ...looks[body.id], cities: randomBetween(random, 0.4, 0.9) };
@@ -378,7 +374,7 @@ export class UniverseGenerator {
       return null;
     }
 
-    const count = 3 + Math.floor(random() * Math.min(6, 2 + index - MAZE_FROM));
+    const count = randomInt(random, 3, 2 + Math.min(6, 2 + index - MAZE_FROM));
     const links: number[][] = Array.from({ length: count }, () => []);
     const join = (first: number, second: number) => {
       if (first !== second && !links[first].includes(second)) {
@@ -388,11 +384,11 @@ export class UniverseGenerator {
     };
 
     for (let node = 1; node < count; node += 1) {
-      join(node, node - 1 - Math.floor(random() * Math.min(node, 3)));
+      join(node, node - randomInt(random, 1, Math.min(node, 3)));
     }
 
     for (let loop = Math.floor(random() * 2.5); loop > 0; loop -= 1) {
-      join(Math.floor(random() * count), Math.floor(random() * count));
+      join(randomInt(random, 0, count - 1), randomInt(random, 0, count - 1));
     }
 
     const depth = hops(links, 0);
@@ -427,7 +423,7 @@ export class UniverseGenerator {
     const [fewest, most] = spec.armCount;
 
     return {
-      kind, core: spec.core, arms: spec.arms, tilt: random() * TAU, armCount: fewest + Math.floor(random() * (most - fewest + 1)), seed: Math.floor(random() * 1e6),
+      kind, core: spec.core, arms: spec.arms, tilt: random() * TAU, armCount: randomInt(random, fewest, most), seed: Math.floor(random() * 1e6),
     };
   }
 
@@ -549,18 +545,21 @@ export class UniverseGenerator {
   // void's worlds are rogues lit by nothing.
   private worlds(random: RandomSource, system: SystemPlan, made: Made): SystemBody[] {
     const { index, node, starKind, star, scale, metals, isVoid, luminosity, mass, host, clearance, furthest } = system;
-    const count = isVoid ? 1 + Math.floor(random() * 3) : Math.max(1, Math.min(MOST_WORLDS, Math.round(randomBetween(random, 1.5, 8.5) * (0.55 + 0.45 * metals))));
+    const wanted = isVoid ? randomInt(random, 1, 3) : clamp(Math.round(randomBetween(random, 1.5, 8.5) * (0.55 + 0.45 * metals)), 1, MOST_WORLDS);
     const isCompact = starKind === "red" || starKind === "brownDwarf";
     const bodies: SystemBody[] = [];
     // The innermost often lies well inside the inner zone, but never nearer the star's surface than `HUGGING` of its
     // radius; the outermost tens or hundreds of times further.
-    const nearest = Math.max(this.nearestAu(scale), clearance > 0 ? auForRadius(scale, clearance) : 0);
-    const first = Math.log(Math.max(nearest, scale.innerAu * 10 ** randomBetween(random, -1.3, 0.2)));
-    const last = Math.log(Math.min(auForRadius(scale, furthest), scale.innerAu * (isCompact ? randomBetween(random, 2, 12) : randomBetween(random, 40, 180))));
-    const step = count > 1 ? Math.max(0, last - first) / (count - 1) : 0;
+    const nearest = Math.log(Math.max(this.nearestAu(scale), clearance > 0 ? auForRadius(scale, clearance) : 0));
+    const orbits = spreadOrbits(random, {
+      wanted,
+      nearest,
+      outermost: Math.log(auForRadius(scale, furthest)),
+      first: Math.max(nearest, Math.log(scale.innerAu * 10 ** randomBetween(random, -1.3, 0.2))),
+      last: Math.log(scale.innerAu * (isCompact ? randomBetween(random, 2, 12) : randomBetween(random, 40, 180))),
+    });
 
-    for (let order = 0; order < count; order += 1) {
-      const au = Math.exp(first + step * (order + (order > 0 && order < count - 1 ? randomBetween(random, -0.3, 0.3) : 0)));
+    orbits.forEach((au, order) => {
       // Every system of a maze has worlds of its own, so their ids carry the system's place.
       const id = node > 0 ? `u${index}.${node}-${order}` : `u${index}-${order}`;
       const temperatureC = equilibriumC(luminosity, au);
@@ -572,7 +571,7 @@ export class UniverseGenerator {
 
       made.names[id] = `${made.base} ${LETTERS[order] ?? order + 2}`;
       bodies.push(planet.body, ...this.moons(random, planet, { starKind, metals, temperatureC, au, index }, made));
-    }
+    });
 
     return bodies;
   }
@@ -633,7 +632,7 @@ export class UniverseGenerator {
   private moons(random: RandomSource, planet: MadeWorld, around: { starKind: StarKind | null; metals: number; temperatureC: number; au: number; index: number },
     made: Made): SystemBody[] {
     const [fewest, most] = WORLD_CLASSES[planet.kind].moons;
-    const count = fewest + Math.floor(random() * (most - fewest + 1));
+    const count = randomInt(random, fewest, most);
     const { body } = planet;
     // GM from the surface pull and radius (m^3/s^2).
     const pull = planet.gravity * (planet.radiusKm * 1000) ** 2;
@@ -661,12 +660,12 @@ export class UniverseGenerator {
     });
   }
 
-  private belt(random: RandomSource, bodies: SystemBody[], scale: SystemScale) {
+  private belt(random: RandomSource, bodies: SystemBody[], scale: SystemScale, id: string) {
     const distances = bodies.map((body) => (body.orbit.kind === "circle" ? body.orbit.distance : 0)).sort((first, second) => first - second);
     const after = pick(random, distances) ?? 10;
     const inner = after + 2.5;
 
-    return { id: "belt", inner, outer: inner + randomBetween(random, 2.5, 5), density: randomBetween(random, 0.5, 1.2), isIcy: auForRadius(scale, inner) > 4 };
+    return { id, inner, outer: inner + randomBetween(random, 2.5, 5), density: randomBetween(random, 0.5, 1.2), isIcy: auForRadius(scale, inner) > 4 };
   }
 
   private faction(random: RandomSource, id: number, disposition: Disposition, danger: number, hue: number): FactionSpec {

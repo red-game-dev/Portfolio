@@ -1,3 +1,4 @@
+import { clamp } from "@/packages/math/clamp";
 import { pickWeighted, RandomSource, randomBetween } from "@/packages/math/random";
 
 import { AirRecipe, GAS, MOON_CLASSES, WORLD_CLASS_IDS, WORLD_CLASSES } from "../config/worlds";
@@ -12,6 +13,36 @@ const ROGUE_C = -230;
 // No moon is larger than this many Earth radii, unless it is a world life could arise on, circling a giant.
 const MOON_RADIUS = 0.6;
 const LIVING_MOON_RADIUS = 1;
+// Neighbouring worlds lie at least this many times further out than the last, and each strays from its even place
+// by no more than this share of the step, so no two ever share an orbit (the closest real neighbours, packed in
+// resonance, lie about 1.2 times further out; most systems spread wider).
+const ORBIT_SPACING = Math.log(1.4);
+const ORBIT_JITTER = 0.2;
+
+// Where a system's worlds may circle, as natural logarithms of AU: as many as are wanted, the nearest and furthest
+// any can go, and where the first and last were drawn.
+export interface OrbitRoom {
+  wanted: number;
+  nearest: number;
+  outermost: number;
+  first: number;
+  last: number;
+}
+
+// The distances (AU) of a system's worlds, evenly in the logarithm from the first to the last, each a little off its
+// place. The span stretches to keep `ORBIT_SPACING` between neighbours, within the room the star (and a partner's
+// pull) leaves; where even that is too little, fewer worlds form. With no room at all, one circles at the nearest.
+export const spreadOrbits = (random: RandomSource, room: OrbitRoom): number[] => {
+  const { wanted, nearest, outermost } = room;
+  const count = clamp(1 + Math.floor(Math.max(0, outermost - nearest) / ORBIT_SPACING), 1, wanted);
+  const need = (count - 1) * ORBIT_SPACING;
+  const last = clamp(Math.max(room.last, room.first + need), nearest + need, Math.max(outermost, nearest + need));
+  const first = Math.max(nearest, Math.min(room.first, last - need));
+  const step = count > 1 ? (last - first) / (count - 1) : 0;
+
+  return Array.from({ length: count }, (_, order) =>
+    Math.exp(first + step * (order + (order > 0 && order < count - 1 ? randomBetween(random, -ORBIT_JITTER, ORBIT_JITTER) : 0))));
+};
 
 // The temperature (Celsius) a dark body comes to at a distance (AU) from a star of a brightness against the Sun's.
 export const equilibriumC = (luminosity: number, au: number): number =>

@@ -60,11 +60,12 @@ export const enterSystem = (context: VoyageContext, spec: UniverseSpec): void =>
 
   placeBodies(spec.system, missionTime(state.clock, state.elapsedMs));
   clearSpace(context);
+  // A maze's worlds keep their scars while the ship travels its gates; a new universe starts unscarred.
+  state.craters = state.cosmos?.index === spec.index ? state.craters : {};
   state.cosmos = spec;
   state.system = spec.system;
   state.node = spec.node;
   state.passing = null;
-  state.craters = {};
   state.boss = null;
   state.signature = 0;
   state.phenomena = {

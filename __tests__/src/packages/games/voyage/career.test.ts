@@ -7,6 +7,7 @@ import {
   dailyEpoch,
   dailySeed,
   dayKey,
+  DEFAULT_UNIVERSE_NAMES,
   DEFAULT_VOYAGE_CONFIG,
   ghostAt,
   GhostRecorder,
@@ -27,9 +28,11 @@ import {
   SolarSystemSource,
   StepRandom,
   SystemService,
+  UniverseGenerator,
   VoyageConfig,
   VoyageNotice,
   VoyageSimulation,
+  VoyageState,
 } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
 
@@ -191,6 +194,27 @@ describe("voyage career", () => {
     expect(career.hasFound(codexId("worlds", "mars"))).toBe(true);
     expect(hangar.purse.RED).toBeGreaterThanOrEqual(25 + 15 + MISSIONS[0].coin);
     expect(hangar.view().history.some((row) => row.memo === "mission:landMoon")).toBe(true);
+  });
+
+  test("a new system reached through a maze's gate fills the codex with its own stars and strange things", () => {
+    const simulation = create();
+    const career = new Career();
+    const link = new PilotLink({ simulation, hangar: new Hangar(newProfile()), career, nameOf: (id) => id, notify: () => undefined, refresh: () => undefined });
+    const generator = new UniverseGenerator(defaults.layout, DEFAULT_UNIVERSE_NAMES);
+    const spec = Array.from({ length: 400 }, (_, index) => generator.generate(6, 90000 + index * 7, null)).find((candidate) => candidate.multiplicity === "close");
+
+    if (!spec) {
+      throw new Error("expected a close pair");
+    }
+
+    link.attach();
+    simulation.start(EPOCH);
+    link.startRun();
+    (simulation.state as VoyageState).cosmos = spec;
+    simulation.events.emit("gate", { to: 1, name: "Veldara", isNew: true, isExit: false, isDeadEnd: false });
+
+    expect(career.hasFound(codexId("stars", "binary"))).toBe(true);
+    spec.companionKinds.forEach((kind) => expect(career.hasFound(codexId("stars", kind))).toBe(true));
   });
 
   test("a daily run's draws start over at every step, so what one pilot does differently does not change the rest", () => {

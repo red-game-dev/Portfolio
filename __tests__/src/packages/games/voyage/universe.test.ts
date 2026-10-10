@@ -9,6 +9,7 @@ import {
   DEFAULT_VOYAGE_CONFIG,
   impactEnergy,
   impactOutcome,
+  landingWorldOf,
   leadDirection,
   NO_INPUT,
   PhenomenonSpec,
@@ -21,6 +22,7 @@ import {
   VoyageState,
   WORLD_CLASSES,
 } from "@/packages/games/voyage";
+import { flyAhead, isSoftTouchdown, planLanding } from "@/packages/games/voyage/landing";
 import { createSeededRandom } from "@/packages/math/random";
 
 const defaults = DEFAULT_VOYAGE_CONFIG;
@@ -201,6 +203,54 @@ describe("universes", () => {
       spec.system.companions.forEach((other) => expect(other.luminosity).toBeLessThanOrEqual(Math.max(spec.system.star.luminosity, 0.05)));
     });
   });
+
+  test("each system's belt of rocks is its own, named for its star, so passing one never counts as passing another", () => {
+    const specs = Array.from({ length: 60 }, (_, index) => generator.generate(5 + (index % 5), 8100 + index * 7, null)).filter((spec) => spec.system.belts.length > 0);
+
+    expect(specs.length).toBeGreaterThan(10);
+    specs.forEach((spec) => {
+      const [belt] = spec.system.belts;
+
+      expect(belt.id).toBe(spec.node > 0 ? `u${spec.index}.${spec.node}-belt` : `u${spec.index}-belt`);
+      expect(spec.names[belt.id]).toMatch(/^the [A-Z][a-z]+ belt$/);
+    });
+  });
+
+  test("no two worlds share an orbit: each lies at least 1.2 times further out than the last, round every kind of star and pair", () => {
+    const specs = Array.from({ length: 1500 }, (_, index) => generator.generate(5 + (index % 5), 50000 + index * 11, null));
+    const kinds = new Set<string>();
+
+    specs.forEach((spec) => {
+      const orbits = spec.system.bodies.filter((body) => body.kind === "planet").map((body) => body.au)
+.sort((first, second) => first - second);
+
+      kinds.add(`${spec.starKind}/${spec.multiplicity}`);
+      expect(orbits.length).toBeGreaterThan(0);
+      orbits.slice(1).forEach((au, order) => expect(au / orbits[order]).toBeGreaterThan(1.2));
+    });
+    // The hardest arrangements were among them: red dwarfs in close pairs, giants with wide partners, and triples.
+    ["red/close", "giant/wide", "red/triple"].forEach((kind) => expect(kinds).toContain(kind));
+    // The vastest stars are drawn alone: a partner far enough out to leave their worlds room could not be reached.
+    specs.filter((spec) => spec.starKind === "redSupergiant" || spec.starKind === "hypergiant").forEach((spec) => expect(spec.multiplicity).toBe("single"));
+  });
+
+  test("the guidance lands in one piece on every world a universe makes that can be landed on", () => {
+    const missed: string[] = [];
+
+    Array.from({ length: 36 }, (_, index) => generator.generate(5 + (index % 5), 61000 + index * 19, null)).forEach((spec) => {
+      spec.system.bodies.filter((body) => body.isLandable).forEach((body) => {
+        const world = landingWorldOf(body, false);
+        const plan = planLanding(world);
+        const state = flyAhead(world, plan);
+
+        if (!isSoftTouchdown(state, plan, world)) {
+          missed.push(`${spec.classes[body.id]} by ${plan.method} at ${state.impactSpeed.toFixed(1)} m/s`);
+        }
+      });
+    });
+
+    expect(missed).toEqual([]);
+  }, 20000);
 
   test("a close pair circles the centre in days on opposite sides, its worlds well clear of it; a wide pair's worlds keep to one star", () => {
     const specs = Array.from({ length: 900 }, (_, index) => generator.generate(6, 33000 + index * 13, null));
@@ -401,10 +451,15 @@ describe("combat", () => {
       throw new Error("expected a gate");
     }
 
+    // A scar on a world of the system left stays there for when the ship comes back.
+    const scarred = state.system.bodies[0].id;
+
+    state.craters[scarred] = [{ longitude: 0.4, latitude: 0.1, size: 0.05, heat: 0 }];
     place(simulation, at.x, at.y);
     simulation.step(defaults.stepMs * 2);
 
     expect(state.node).toBe(to);
+    expect(state.craters[scarred]).toHaveLength(1);
     expect(state.explored.has(to)).toBe(true);
     expect(gates).toEqual([{ name: network.nodes[to].name, isNew: true }]);
     expect(state.cosmos?.node).toBe(to);
@@ -715,15 +770,17 @@ describe("living worlds", () => {
   });
 
   // Into a universe, then give its first solid world a people of the given manner, and touch down on it (stepping
-  // until it is down, unless told to stop as soon as the ground opens fire).
-  const landAmong = (disposition: "peaceful" | "hostile", untilFired = false) => {
+  // until it is down, unless told to stop as soon as the ground opens fire). A pilot flying by hand comes down on
+  // the first world with an engine to fly, and stepping stops where they take over.
+  const landAmong = (disposition: "peaceful" | "hostile", untilFired = false, isManual = false) => {
     const simulation = create();
     const events: string[] = [];
 
     intoUniverse(simulation);
+    simulation.setLanding({ time: "compressed", control: isManual ? "manual" : "auto" });
 
     const cosmos = simulation.state.cosmos;
-    const world = simulation.state.system.bodies.find((body) => body.isLandable);
+    const world = simulation.state.system.bodies.find((body) => body.isLandable && (!isManual || planLanding(landingWorldOf(body, false)).handover !== null));
 
     if (!cosmos || !world) {
       throw new Error("expected a universe with a solid world");
@@ -740,7 +797,10 @@ describe("living worlds", () => {
     partsOf(simulation).health.hull = partsOf(simulation).health.maxHull * 0.5;
     simulation.step(defaults.stepMs * 2);
 
-    for (let waited = 0; simulation.state.descent?.downAt === null && !(untilFired && simulation.state.descent.isFiredOn) && waited < 30000; waited += 100) {
+    const isWaiting = () => simulation.state.descent?.downAt === null && !(untilFired && simulation.state.descent.isFiredOn) &&
+      !(isManual && simulation.state.descent.craft.isPilot);
+
+    for (let waited = 0; isWaiting() && waited < 30000; waited += 100) {
       simulation.step(100);
     }
 
@@ -763,6 +823,23 @@ describe("living worlds", () => {
     simulation.step(300, { ...NO_INPUT, thrust: 1 });
     expect(simulation.world.stores.ship.get(simulation.state.ship)?.landedOn).toBeNull();
     expect(simulation.state.descent).toBeNull();
+  });
+
+  test("fired on with the pilot's hand on the landing burn, a burn lands the ship rather than aborting", () => {
+    const { simulation, events } = landAmong("hostile", false, true);
+
+    expect(events).toEqual(["fire Kesh Concord"]);
+    expect(simulation.state.descent?.craft.isPilot).toBe(true);
+    partsOf(simulation).health.hull = partsOf(simulation).health.maxHull;
+
+    for (let waited = 0; simulation.state.descent?.downAt === null && waited < 120000; waited += 50) {
+      const craft = simulation.state.descent.craft;
+
+      simulation.step(50, { ...NO_INPUT, thrust: -craft.up > 2 ? 1 : 0 });
+      expect(simulation.world.stores.ship.get(simulation.state.ship)?.landedOn).not.toBeNull();
+    }
+
+    expect(simulation.state.descent?.isSoft).toBe(true);
   });
 
   test("a hostile people fire on the ship from the ground on its way down and for as long as it stays", () => {

@@ -5,7 +5,7 @@ import { Rgb, rgbToHex, shadeHex } from "@/packages/graphics/colour";
 import { blackbody, globeFrame, surfacePoint } from "@/packages/graphics/globe";
 import { LandscapePainter, Scene, SkyBody } from "@/packages/graphics/landscape";
 import { angleBetween, DEG, RAD, TAU, wrapDegrees } from "@/packages/math/angles";
-import { clamp01, wrap } from "@/packages/math/clamp";
+import { clamp, clamp01, wrap } from "@/packages/math/clamp";
 import { smoothstep } from "@/packages/math/easing";
 import { solarElevation } from "@/packages/physics/kepler";
 
@@ -600,7 +600,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       const flame = this.kit.sprite(`flame:${theme.flameCore}:${size}`, size * 1.1, size * 2.8, paintFlame(theme.flameCore, theme.flameEdge));
       const nozzle = y - tall * 0.2;
       const reach = tall * (0.3 + 0.8 * throttle) * (0.9 + Math.sin(now * 0.05) * 0.1);
-      const length = Math.min(reach, Math.max(0, groundY - nozzle));
+      const length = clamp(groundY - nozzle, 0, reach);
 
       if (flame) {
         context.drawImage(flame.surface, x - wide * 0.22, nozzle, wide * 0.44, length);

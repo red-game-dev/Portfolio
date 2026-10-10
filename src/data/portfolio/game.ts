@@ -109,6 +109,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           chuteAndBurn: "A supersonic parachute, then the engine, as Perseverance landed on Mars",
           probe: "Parachutes all the way down, as Huygens fell to Titan",
           dragPlate: "A parachute high up, then a drag plate through the thick air, as Venera landed on Venus",
+          retroBurn: "Through the air on the heat shield, then the engine the rest of the way, as a reusable booster comes home",
           powered: "On the engine all the way from orbit, as Apollo landed on the Moon",
         },
         home: "Home as crews come home: parachutes, then landing rockets on land or a splash at sea",
@@ -134,7 +135,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         unflown: "Nothing to fly by hand here: it comes down by itself",
         pilot: "Hold Up or W, or press and hold, to burn. Touch down under {safe} m/s.",
         reserve: "Burn left: {seconds} s",
-        underFire: "Under fire from the ground: burn to abort the landing",
+        underFire: "Under fire from the ground: hold Up or W, or press and hold, to abort the landing",
         landedAt: "Landed on {body} at {speed} m/s",
         hard: "Down on {body} at {speed} m/s, more than the {safe} m/s it can take: the legs gave way",
       },
@@ -229,6 +230,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           neutral: ["Union", "Guild", "Concord"],
           peaceful: ["Choir", "Drifters", "Pilgrims"],
         },
+        belt: "the {star} belt",
       },
       combat: {
         autoFire: "Guns firing at threats",
@@ -322,6 +324,9 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         wayOn: "Through the gate to {system}, and the way on waits here",
         deadEnd: "Through the gate to {system}, a dead end",
         again: "Back through the gate to {system}",
+        // A gate's name over it once its system has been reached: the one with the way on, or any other.
+        markWayOn: "{name} \u2192",
+        markVisited: "{name} \u2713",
       },
       // Two or three suns named together.
       starPair: "{first} and {second}",

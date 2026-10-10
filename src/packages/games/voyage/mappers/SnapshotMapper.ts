@@ -99,7 +99,6 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
     return state.salvage && wreck && state.salvage.progress > 0 ? { kind: wreck.kind, progress: Math.floor(state.salvage.progress * 10) / 10 } : null;
   }
 
-  // Someone the guns are on, or the boss, for an MMO frame.
   // Who lives on a world, if anyone.
   private people(state: VoyageState, body: string | null): VoyageSnapshot["people"] {
     const id = body ? state.cosmos?.inhabitants[body] : undefined;
@@ -141,6 +140,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
     };
   }
 
+  // Someone the guns are on, or the boss, for an MMO frame.
   private frame(state: VoyageState, world: VoyageWorld, entity: Entity): Frame | null {
     const alien = world.stores.alien.get(entity);
     const health = world.stores.health.get(entity);

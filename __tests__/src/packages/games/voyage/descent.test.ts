@@ -46,7 +46,11 @@ describe("voyage descents", () => {
     expect(simulation.state.score - score).toBeLessThan(defaults.scoring.landing + 5);
     expect(simulation.snapshot.descent).toBeNull();
 
+    // A burn held through touchdown waits for the ship to settle on its legs; after that, it lifts off.
     partsOf(simulation).ship.angle = Math.atan2(partsOf(simulation).ship.landedOffset?.y ?? -1, partsOf(simulation).ship.landedOffset?.x ?? 0);
+    simulation.step(300, BURN);
+    expect(partsOf(simulation).ship.landedOn).toBe("mars");
+    simulation.step(defaults.descent.settleSeconds * 1000);
     simulation.step(300, BURN);
     expect(partsOf(simulation).ship.landedOn).toBeNull();
     expect(simulation.state.descent).toBeNull();
@@ -90,6 +94,32 @@ describe("voyage descents", () => {
     expect(hard[0].speed).toBeGreaterThan(hard[0].safe);
     expect(partsOf(simulation).health.hull + partsOf(simulation).health.shields).toBeLessThan(before);
     expect(simulation.state.landings.has("moon")).toBe(false);
+  });
+
+  test("coming down through Venus's air, the hull feels the pressure at the craft's height: none high up, crushing only near the ground", () => {
+    const simulation = createFlying();
+    const rating = defaults.thermal.pressureBar;
+    const sound = () => partsOf(simulation).health.hull + partsOf(simulation).health.shields;
+
+    touchDown(simulation, "venus");
+
+    const before = sound();
+    let deepest = 0;
+
+    // High in the air the pressure is a sliver of the ground's, and nothing presses on the hull.
+    simulation.step(500);
+    expect(simulation.state.descent?.craft.altitude).toBeGreaterThan(30000);
+    expect(simulation.state.readings.pressureBar).toBeLessThan(1);
+    expect(sound()).toBe(before);
+
+    while (simulation.state.descent?.downAt === null) {
+      simulation.step(100);
+      deepest = Math.max(deepest, simulation.state.readings.pressureBar);
+    }
+
+    // At the ground it is 92 bar, past what the hull is built for, and the hull pays for the last of the way.
+    expect(deepest).toBeGreaterThan(rating);
+    expect(sound()).toBeLessThan(before);
   });
 
   test("a pilot holding the fall to a crawl touches down in one piece", () => {

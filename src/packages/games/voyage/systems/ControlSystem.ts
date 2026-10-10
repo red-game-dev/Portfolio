@@ -12,8 +12,8 @@ const efficiency = (hull: number, maxHull: number, engines: number) => (0.55 + 0
 // Turns the player's intent into the ship's motion: turn towards the aim (or with keys) at the ship's turn rate,
 // burn along the nose (unless a misfire cuts the engines out), brake against the velocity, and pay for both in
 // fuel. Landed, a burn lifts off with the ground's own motion, once the way down is over (until then a burn is the
-// pilot's hand on the landing engine, if anyone's, unless the ground is firing on it, when a burn aborts the landing)
-// and, home, once the new rocket is on the pad.
+// pilot's hand on the landing engine, if anyone's; with the ground firing on it, a burn aborts the landing, up to
+// the low gate where a pilot takes over) and, home, once the new rocket is on the pad.
 export class ControlSystem implements System<VoyageContext> {
   public readonly name = "control";
 
@@ -43,10 +43,12 @@ export class ControlSystem implements System<VoyageContext> {
 
     if (ship.landedOn) {
       const ground = bodyById(context, ship.landedOn);
-      // Still coming down (unless fired on, when a burn aborts the landing), or a crew home still being picked up:
-      // there is nothing yet to lift off in.
-      const isComingDown = state.descent !== null && state.descent.downAt === null && !state.descent.isFiredOn;
-      const isHeld = isComingDown || state.homecoming?.stage === "recovery";
+      // Still coming down (unless fired on before the pilot has the burn, when a burn aborts the landing), just down
+      // and settling, or a crew home still being picked up: there is nothing yet to lift off in.
+      const descent = state.descent;
+      const isComingDown = descent !== null && descent.downAt === null && (!descent.isFiredOn || descent.craft.isPilot);
+      const isSettling = descent !== null && descent.downAt !== null && state.elapsedMs - descent.downAt < config.descent.settleSeconds * 1000;
+      const isHeld = isComingDown || isSettling || state.homecoming?.stage === "recovery";
 
       if (power > 0.15 && !isHeld) {
         events.emit("tookOff", { body: ship.landedOn });

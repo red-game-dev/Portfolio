@@ -52,7 +52,9 @@ export class PreferenceStore<S extends Schema> {
       }
     });
 
-    this.replace(next);
+    // Written back only when what was kept needs mending: a value no longer allowed, or a setting no longer offered.
+    // A visitor who never changed anything leaves nothing behind.
+    this.replace(next, Object.entries(kept).some(([key, value]) => !(key in this.schema) || next[key] !== value));
   }
 
   public get<K extends keyof S & string>(key: K): Values<S>[K] {
@@ -101,11 +103,15 @@ export class PreferenceStore<S extends Schema> {
     return typeof value === "object" && value !== null && "kind" in value;
   }
 
-  private replace(next: Record<string, string | boolean>): void {
+  private replace(next: Record<string, string | boolean>, isWritten = true): void {
     const values = this.checked(next);
 
     this.current = values;
-    this.storage.write(next);
+
+    if (isWritten) {
+      this.storage.write(next);
+    }
+
     this.listeners.forEach((listener) => listener(values));
   }
 

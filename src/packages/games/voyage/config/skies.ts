@@ -25,7 +25,6 @@ export const SKIES: Readonly<Record<string, Air>> = {
   pluto: { zenith: "#0a1020", horizon: "#3a5c92", dusk: "#5c7cb4", night: "#020308", strength: 0.18, haze: 0.04 },
 };
 
-// The ground of each world of ours that can be stood on. Earth's is read from its map where the ship sets down.
 // The land round a pad at home: Florida's scrub and marsh, the sand flats of a Gulf coast, California's coastal
 // hills.
 export const PAD_GROUNDS: Readonly<Record<HomePad["ground"], GroundPreset>> = {
@@ -34,6 +33,7 @@ export const PAD_GROUNDS: Readonly<Record<HomePad["ground"], GroundPreset>> = {
   hills: { biome: "grassland", relief: "hills", colour: "#7a7650", far: "#56604a", hasRocks: true },
 };
 
+// The ground of each world of ours that can be stood on. Earth's is read from its map where the ship sets down.
 export const GROUNDS: Readonly<Record<string, GroundPreset>> = {
   mercury: { biome: "regolith", relief: "craters", colour: "#8a7f74", far: "#5c544c", hasRocks: true },
   venus: { biome: "basalt", relief: "flat", colour: "#7a5634", far: "#4d3520", hasRocks: true },

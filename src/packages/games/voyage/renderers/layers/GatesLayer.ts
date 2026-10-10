@@ -1,6 +1,7 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { hexWithAlpha } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
+import { fill } from "@/packages/text/format";
 
 import { VoyageFrame } from "../frame";
 import { RenderKit } from "./kit";
@@ -65,7 +66,8 @@ export class GatesLayer implements RenderLayer<VoyageFrame> {
 
       const place = network.nodes[to];
       const isReached = state.explored.has(to);
-      const label = isReached && to === network.exit ? `${place.name} →` : isReached ? `${place.name} ✓` : place.name;
+      const mark = isReached ? this.kit.labels[to === network.exit ? "gateWayOn" : "gateVisited"] : undefined;
+      const label = mark ? fill(mark, { name: place.name }) : place.name;
 
       context.font = "bold 11px Roboto, Arial, sans-serif";
       context.textAlign = "center";

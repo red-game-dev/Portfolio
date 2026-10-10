@@ -199,7 +199,9 @@ describe("the voyage's cards", () => {
     expect(descentRows(voyage, { ...DESCENT, altitude: 140, speed: 4.6, fall: 4.6, load: 0, pace: 1 }))
       .toEqual(["Altitude 140 m", "Speed 4.6 m/s", "Falling 4.6 m/s", "In real time"]);
     expect(descentHint(voyage, DESCENT, false)).toEqual(["Flown by the guidance"]);
-    expect(descentHint(voyage, { ...DESCENT, isUnderFire: true }, true)).toEqual(["Under fire from the ground: burn to abort the landing"]);
+    expect(descentHint(voyage, { ...DESCENT, isUnderFire: true }, true)).toEqual(["Under fire from the ground: hold Up or W, or press and hold, to abort the landing"]);
+    // With the pilot's hand on the burn, the burn lands the ship, so the card says how to land rather than how to abort.
+    expect(descentHint(voyage, { ...DESCENT, isUnderFire: true, isPilot: true, reserve: 41 }, true)[0]).toMatch(/^Hold Up or W/);
     expect(descentHint(voyage, DESCENT, true)).toEqual(["You take the burn at the low gate, 150 m up"]);
     expect(descentHint(voyage, { ...DESCENT, method: "probe", canFly: false }, true)).toEqual(["Nothing to fly by hand here: it comes down by itself"]);
     expect(descentHint(voyage, { ...DESCENT, isPilot: true, reserve: 41 }, true)).toEqual([

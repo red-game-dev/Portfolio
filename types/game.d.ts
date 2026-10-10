@@ -391,6 +391,8 @@ export interface FinaleVoyage {
     middles: string[];
     places: string[];
     factions: Record<"hostile" | "territorial" | "neutral" | "peaceful", string[]>;
+    // A system's belt of rocks, named for its star: "{star}" is replaced.
+    belt: string;
   };
   // The guns and the MMO frames for what they are on.
   combat: {
@@ -447,7 +449,8 @@ export interface FinaleVoyage {
   // Down on a world someone lives on ("{faction}", "{body}"): welcomed, or fired on.
   hosted: string;
   groundFire: string;
-  gate: { through: string; wayOn: string; deadEnd: string; again: string };
+  // A gate's name over it ("{name}") once its system has been reached: the one with the way on, or any other.
+  gate: { through: string; wayOn: string; deadEnd: string; again: string; markWayOn: string; markVisited: string };
   over: string;
   // "{score}" is replaced.
   finalScore: string;

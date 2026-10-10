@@ -1,7 +1,7 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { hexWithAlpha } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
-import { createSeededRandom, RandomSource } from "@/packages/math/random";
+import { createWarmedRandom, RandomSource } from "@/packages/math/random";
 
 import { GalaxySpec } from "../../domain/universe";
 
@@ -29,9 +29,10 @@ const paintDisc = (context: Canvas2DContext, random: RandomSource, x: number, y:
   for (let arm = 0; arm < arms; arm += 1) {
     for (let step = 0; step < 220; step += 1) {
       const t = step / 220;
-      // A logarithmic spiral, as real spiral arms are.
+      // A logarithmic spiral, as real spiral arms are: the radius grows by the same factor for every turn, from
+      // about an eighth of the disc out to its edge.
       const angle = arm * (TAU / arms) + t * 3.6;
-      const radius = size * (0.12 + t * 0.88);
+      const radius = size * 0.12 ** (1 - t);
       const scatter = size * 0.06 * (random() - 0.5);
 
       context.globalAlpha = (1 - t) * 0.5 * random() * brightness;
@@ -49,10 +50,7 @@ const paintDisc = (context: Canvas2DContext, random: RandomSource, x: number, y:
 // band at all; inside an irregular, clouds of young stars scattered about; and from a dwarf, its great neighbour
 // hanging huge in the sky. Far galaxies smudge the dark beyond.
 export const paintGalaxySky = (galaxy: GalaxySpec, starColour: string) => (context: Canvas2DContext, width: number, height: number) => {
-  const random = createSeededRandom(galaxy.seed + 7);
-
-  random();
-  random();
+  const random = createWarmedRandom(galaxy.seed + 7, 2);
 
   if (galaxy.kind === "elliptical") {
     const glow = context.createRadialGradient(width * 0.5, height * 0.5, 0, width * 0.5, height * 0.5, Math.max(width, height) * 0.75);

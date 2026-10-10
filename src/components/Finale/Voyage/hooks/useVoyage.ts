@@ -399,8 +399,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       return;
     }
 
-    // A click or a tap on someone locks the guns on them; on nothing, lets go. Held, it is the landing burn when
-    // the pilot flies one.
+    // A click or a tap on someone locks the guns on them; on nothing, lets go. Held while coming down, it is the
+    // burn: the pilot's on the landing engine, or one that aborts the landing under fire.
     game?.lockAt(localPoint(event, event.currentTarget));
     game?.press(true);
 

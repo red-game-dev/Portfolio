@@ -293,6 +293,8 @@ export interface FinaleDescent {
   unflown: string;
   pilot: string;
   reserve: string;
+  // Fired on from the ground on the way down, and how to get away.
+  underFire: string;
   landedAt: string;
   hard: string;
 }

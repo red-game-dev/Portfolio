@@ -189,7 +189,7 @@ describe("the voyage's words for what the universes hold", () => {
 
 describe("the voyage's cards", () => {
   const DESCENT: DescentView = {
-    method: "powered", phase: "powered", altitude: 12400, speed: 1180, fall: 22, load: 0.3, heating: 0, throttle: 0.8, canFly: true, isPilot: false,
+    method: "powered", phase: "powered", altitude: 12400, speed: 1180, fall: 22, load: 0.3, heating: 0, throttle: 0.8, canFly: true, isPilot: false, isUnderFire: false,
     reserve: 90, safeSpeed: 3, pace: 47,
   };
   const HOME: SurfaceInfo = { body: "earth", pad: null, name: null, isHome: true, latitude: 27.1, longitude: -72.4, hours: 9.5, biome: "ocean" };
@@ -199,6 +199,7 @@ describe("the voyage's cards", () => {
     expect(descentRows(voyage, { ...DESCENT, altitude: 140, speed: 4.6, fall: 4.6, load: 0, pace: 1 }))
       .toEqual(["Altitude 140 m", "Speed 4.6 m/s", "Falling 4.6 m/s", "In real time"]);
     expect(descentHint(voyage, DESCENT, false)).toEqual(["Flown by the guidance"]);
+    expect(descentHint(voyage, { ...DESCENT, isUnderFire: true }, true)).toEqual(["Under fire from the ground: burn to abort the landing"]);
     expect(descentHint(voyage, DESCENT, true)).toEqual(["You take the burn at the low gate, 150 m up"]);
     expect(descentHint(voyage, { ...DESCENT, method: "probe", canFly: false }, true)).toEqual(["Nothing to fly by hand here: it comes down by itself"]);
     expect(descentHint(voyage, { ...DESCENT, isPilot: true, reserve: 41 }, true)).toEqual([

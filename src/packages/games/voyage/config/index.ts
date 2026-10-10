@@ -261,7 +261,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     maxSpeed: 3.2,
   },
   flight: { safeLanding: 0.42, crash: 520, drag: 0.8, crush: 600, skim: 12, impact: 70 },
-  descent: { speedUp: 40, longest: 15, recoverySeconds: 6, recoveryDays: 3, fireAltitude: 20000, groundFire: 45 },
+  descent: { speedUp: 40, longest: 15, recoverySeconds: 6, recoveryDays: 3, fireAltitude: 8000, groundFire: 30 },
   thermal: {
     timeConstant: 3,
     entry: 120,

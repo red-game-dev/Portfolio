@@ -134,6 +134,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         unflown: "Nothing to fly by hand here: it comes down by itself",
         pilot: "Hold Up or W, or press and hold, to burn. Touch down under {safe} m/s.",
         reserve: "Burn left: {seconds} s",
+        underFire: "Under fire from the ground: burn to abort the landing",
         landedAt: "Landed on {body} at {speed} m/s",
         hard: "Down on {body} at {speed} m/s, more than the {safe} m/s it can take: the legs gave way",
       },

@@ -722,10 +722,10 @@ export class VoyageGame extends FrameLoop {
       this.onNotice(notice(payload));
     });
     const offs = [
-      tell("landed", ({ body, speed }) => ({ kind: "landed", body, speed })),
-      tell("descending", ({ body, phase }) => ({ kind: "descent", body, phase })),
-      tell("hardLanding", ({ body, speed, safe }) => ({ kind: "hardLanding", body, speed, safe })),
-      tell("tookOff", ({ body }) => ({ kind: "tookOff", body })),
+      tell("landed", ({ body, speed }) => ({ kind: "landed", body: this.nameOf(body), speed })),
+      tell("descending", ({ body, phase }) => ({ kind: "descent", body: this.nameOf(body), phase })),
+      tell("hardLanding", ({ body, speed, safe }) => ({ kind: "hardLanding", body: this.nameOf(body), speed, safe })),
+      tell("tookOff", ({ body }) => ({ kind: "tookOff", body: this.nameOf(body) })),
       tell("recovered", ({ body, days }) => ({ kind: "recovered", body, days })),
       tell("emergency", ({ body }) => ({ kind: "emergency", body })),
       tell("captured", ({ isSingularity }) => ({ kind: "captured", isSingularity })),

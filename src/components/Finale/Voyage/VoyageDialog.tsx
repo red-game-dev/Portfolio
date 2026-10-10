@@ -443,6 +443,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           <SurfaceLine>{descentMethod(content, snapshot.descent, snapshot.surface?.isHome ?? false)}</SurfaceLine>
           <SurfacePhase>{content.descent.phases[snapshot.descent.phase]}</SurfacePhase>
           {descentRows(content, snapshot.descent).map((row) => <SurfaceLine key={row}>{row}</SurfaceLine>)}
+          {snapshot.people && <SurfaceLine>{fill(content.surface.people, { faction: snapshot.people.name })}</SurfaceLine>}
           {descentHint(content, snapshot.descent, landing.control === "manual").map((line) => <SurfaceHint key={line}>{line}</SurfaceHint>)}
         </SurfaceCard>
       )}

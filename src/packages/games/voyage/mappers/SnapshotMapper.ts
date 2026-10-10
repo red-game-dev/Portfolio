@@ -134,6 +134,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       throttle: roundTo(craft.throttle, 2),
       canFly: plan.handover !== null,
       isPilot: craft.isPilot,
+      isUnderFire: descent.isFiredOn,
       reserve: Math.ceil(craft.reserve),
       safeSpeed: safeSpeedOf(plan, world),
       pace: Math.round(descent.pace),

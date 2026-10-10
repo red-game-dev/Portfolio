@@ -80,8 +80,10 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     const shipX = lerpX(ship, alpha);
     const shipY = lerpY(ship, alpha);
     const { system } = state;
-    const centreX = inSystem ? system.star.x : shipX;
-    const centreY = inSystem ? system.star.y : shipY;
+    // A system is drawn round its centre (the Sun, or the middle of a pair of stars), the ship's surroundings when
+    // it is between universes.
+    const centreX = inSystem ? 0 : shipX;
+    const centreY = inSystem ? 0 : shipY;
     const reach = inSystem ? clamp(Math.hypot(shipX - centreX, shipY - centreY) * 1.25, 32, system.edge * 1.06) : 16;
     const scale = (Math.min(front.width, front.height) / 2) * 0.88 / reach;
     const toX = (x: number) => cx + (x - centreX) * scale;
@@ -129,9 +131,14 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
           return;
         }
 
+        // Round the star it circles: the Sun, one star of a pair, or the middle of a close pair.
+        const hostId = body.orbit.kind === "circle" ? body.orbit.host : undefined;
+        const host = hostId ? [system.star, ...system.companions].find((star) => star.id === hostId) : undefined;
+        const around = body.orbit.kind === "sun" ? system.star : host ?? { x: 0, y: 0 };
+
         context.strokeStyle = state.passed.has(body.id) ? "rgba(196, 210, 255, 0.28)" : "rgba(196, 210, 255, 0.12)";
         context.beginPath();
-        context.arc(cx, cy, Math.hypot(body.x - system.star.x, body.y - system.star.y) * scale, 0, TAU);
+        context.arc(toX(around.x), toY(around.y), Math.hypot(body.x - around.x, body.y - around.y) * scale, 0, TAU);
         context.stroke();
       });
 
@@ -143,12 +150,14 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
         context.stroke();
       });
 
-      if (system.star.luminosity > 0) {
-        context.fillStyle = "#ffd27a";
-        context.beginPath();
-        context.arc(cx, cy, Math.max(4, system.star.radius * scale), 0, TAU);
-        context.fill();
-      }
+      [system.star, ...system.companions].forEach((star) => {
+        if (star.luminosity > 0) {
+          context.fillStyle = "#ffd27a";
+          context.beginPath();
+          context.arc(toX(star.x), toY(star.y), Math.max(star === system.star ? 4 : 3, star.radius * scale), 0, TAU);
+          context.fill();
+        }
+      });
 
       system.bodies.forEach((body) => {
         if (body.kind === "moon" && scale < 6) {

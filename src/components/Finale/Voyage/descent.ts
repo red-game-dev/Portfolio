@@ -28,10 +28,15 @@ export const descentRows = (content: FinaleVoyage, view: DescentView): string[] 
   return rows;
 };
 
-// What the pilot can do on this way down: their hand on the burn (and how much is left), the guidance flying with
-// the pilot to take over at the low gate, the guidance flying, or nothing to fly where there is no engine.
+// What the pilot can do on this way down: get away when the ground is firing, their hand on the burn (and how much
+// is left), the guidance flying with the pilot to take over at the low gate, the guidance flying, or nothing to fly
+// where there is no engine.
 export const descentHint = (content: FinaleVoyage, view: DescentView, isManual: boolean): string[] => {
   const { descent } = content;
+
+  if (view.isUnderFire) {
+    return [descent.underFire];
+  }
 
   if (view.isPilot) {
     return [fill(descent.pilot, { safe: formatNumber(view.safeSpeed) }), fill(descent.reserve, { seconds: view.reserve })];

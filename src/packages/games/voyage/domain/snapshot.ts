@@ -54,8 +54,8 @@ export interface Telemetry {
 
 // A landing on its way down, in real units: how it comes down and what it is doing now, how high (m), how fast (m/s,
 // and how fast falling), the load the crew feels (Earth g), how hard the air heats it (about 1 at a capsule's peak),
-// the throttle, whether a pilot could fly the burn and whether one is, their seconds of burn left, the speed the
-// craft takes at touchdown, and how many times faster than life it is playing.
+// the throttle, whether a pilot could fly the burn and whether one is, whether the ground is firing on it, their
+// seconds of burn left, the speed the craft takes at touchdown, and how many times faster than life it is playing.
 export interface DescentView {
   method: LandingMethod;
   phase: LandingPhase;
@@ -67,6 +67,8 @@ export interface DescentView {
   throttle: number;
   canFly: boolean;
   isPilot: boolean;
+  // Fired on from the ground, when a burn aborts the landing.
+  isUnderFire: boolean;
   reserve: number;
   safeSpeed: number;
   pace: number;

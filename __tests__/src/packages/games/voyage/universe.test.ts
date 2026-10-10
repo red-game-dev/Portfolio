@@ -714,8 +714,9 @@ describe("living worlds", () => {
       .forEach((spec) => expect(spec.inhabitants).toEqual({}));
   });
 
-  // Into a universe, then give its first solid world a people of the given manner, and touch down on it.
-  const landAmong = (disposition: "peaceful" | "hostile") => {
+  // Into a universe, then give its first solid world a people of the given manner, and touch down on it (stepping
+  // until it is down, unless told to stop as soon as the ground opens fire).
+  const landAmong = (disposition: "peaceful" | "hostile", untilFired = false) => {
     const simulation = create();
     const events: string[] = [];
 
@@ -739,8 +740,8 @@ describe("living worlds", () => {
     partsOf(simulation).health.hull = partsOf(simulation).health.maxHull * 0.5;
     simulation.step(defaults.stepMs * 2);
 
-    for (let waited = 0; simulation.state.descent?.downAt === null && waited < 30000; waited += 250) {
-      simulation.step(250);
+    for (let waited = 0; simulation.state.descent?.downAt === null && !(untilFired && simulation.state.descent.isFiredOn) && waited < 30000; waited += 100) {
+      simulation.step(100);
     }
 
     return { simulation, events };
@@ -752,6 +753,16 @@ describe("living worlds", () => {
     expect(events).toEqual(["hosted Kesh Concord"]);
     expect(partsOf(simulation).health.hull).toBe(partsOf(simulation).health.maxHull);
     expect(simulation.snapshot.people).toEqual({ name: "Kesh Concord", disposition: "peaceful" });
+  });
+
+  test("fired on as it comes down, a burn aborts the landing and lifts the ship away", () => {
+    const { simulation, events } = landAmong("hostile", true);
+
+    expect(events).toEqual(["fire Kesh Concord"]);
+    expect(simulation.state.descent?.downAt).toBeNull();
+    simulation.step(300, { ...NO_INPUT, thrust: 1 });
+    expect(simulation.world.stores.ship.get(simulation.state.ship)?.landedOn).toBeNull();
+    expect(simulation.state.descent).toBeNull();
   });
 
   test("a hostile people fire on the ship from the ground on its way down and for as long as it stays", () => {

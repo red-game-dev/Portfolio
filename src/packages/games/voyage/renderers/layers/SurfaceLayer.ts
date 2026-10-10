@@ -66,6 +66,8 @@ const LEGS_HIGH = 250;
 const LEGS_LOW = 60;
 const DUST_METRES = 30;
 const HARD_TILT = 0.18;
+// Afloat, the ship sits this share of its height below the waterline.
+const AFLOAT = 0.14;
 // Where the air thins to nearly nothing it shows edge on as a bright band along the horizon, this tall.
 const AIR_BAND = 0.03;
 // The days to the next launch pass in this long a moment of black (ms), and at the pad the Sun's place across the
@@ -616,24 +618,48 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
 
     const isHard = descent !== null && descent.downAt !== null && !descent.isSoft;
     const legs = isLeaving || !craft || craft.isDown || craft.isPilot ? 1 : smoothstep(LEGS_HIGH, LEGS_LOW, altitude);
+    // Down on open water the ship floats, sitting low and rocking on the swell, its legs under the surface.
+    const isAfloat = !isLeaving && (!craft || craft.isDown) && this.scene?.ground.relief === "sea";
+    const sink = isAfloat ? tall * AFLOAT + Math.sin(now * 0.0025) * tall * 0.02 : 0;
 
     context.save();
-    context.translate(x, y);
-    context.rotate(isHard ? HARD_TILT : 0);
-    context.strokeStyle = "#3a3f4a";
-    context.lineWidth = Math.max(1.5, wide * 0.05);
-    context.beginPath();
-    [-1, 1].forEach((side) => {
-      context.moveTo(side * wide * 0.22, -tall * 0.25);
-      context.lineTo(side * wide * (0.26 + 0.22 * legs), -tall * 0.12 * (1 - legs));
-    });
-    context.stroke();
+    context.translate(x, y + sink);
+    context.rotate(isHard ? HARD_TILT : isAfloat ? Math.sin(now * 0.0017) * 0.05 : 0);
+
+    if (!isAfloat) {
+      context.strokeStyle = "#3a3f4a";
+      context.lineWidth = Math.max(1.5, wide * 0.05);
+      context.beginPath();
+      [-1, 1].forEach((side) => {
+        context.moveTo(side * wide * 0.22, -tall * 0.25);
+        context.lineTo(side * wide * (0.26 + 0.22 * legs), -tall * 0.12 * (1 - legs));
+      });
+      context.stroke();
+    }
 
     if (sprite) {
       context.drawImage(sprite.surface, -wide / 2, -tall * 0.98, wide, tall);
     }
 
     context.restore();
+
+    if (isAfloat && this.scene) {
+      // The sea round its hull, in the colour of the water near by, with a pale ripple at the waterline.
+      context.fillStyle = this.scene.ground.far;
+      context.globalAlpha *= 0.8;
+      context.beginPath();
+      context.ellipse(x, groundY + tall * 0.01, wide * 0.9, tall * 0.06, 0, 0, TAU);
+      context.fill();
+      context.globalAlpha = this.shown;
+      context.strokeStyle = "rgba(235, 245, 255, 0.55)";
+      context.lineWidth = Math.max(1, tall * 0.012);
+      context.beginPath();
+      context.ellipse(x, groundY - tall * 0.01, wide * (0.75 + Math.sin(now * 0.004) * 0.04), tall * 0.04, 0, Math.PI, TAU);
+      context.stroke();
+      paintSplash(context, x, groundY, wide, tall, sinceDown / SPLASH_MS);
+
+      return;
+    }
 
     if (craft?.phase === "dragPlate") {
       paintPlate(context, x, y - tall * 0.45, wide, tall, ambient);

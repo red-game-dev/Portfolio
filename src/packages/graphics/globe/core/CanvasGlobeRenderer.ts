@@ -1,4 +1,5 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { Rgb, rgba, scaleRgb } from "@/packages/graphics/colour";
 import { TAU } from "@/packages/math/angles";
 import { wrap } from "@/packages/math/clamp";
 
@@ -8,7 +9,8 @@ import { globeFrame } from "../utils/frame";
 
 const isDrawable = (image: TexImageSource): image is Exclude<TexImageSource, ImageData> => typeof ImageData === "undefined" || !(image instanceof ImageData);
 
-const css = ([r, g, b]: [number, number, number], alpha = 1) => `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${alpha})`;
+// Channels from 0 to 1, as the shaders take them, as a CSS colour.
+const css = (colour: Rgb, alpha = 1) => rgba(scaleRgb(colour, 255), alpha);
 
 // Globes without WebGL: the map's facing half drawn into the disc and scrolled as the body turns, shaded from
 // its light, with a rim of air. Flatter than the GPU's, but every body still turns, has day and night, and

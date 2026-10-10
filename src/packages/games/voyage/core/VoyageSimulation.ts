@@ -8,7 +8,7 @@ import { MODULE_IDS } from "../domain/components";
 import { HOME_WORLD, StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
 import { ShipEffect } from "../domain/faults";
-import { NO_INPUT, VoyageInput } from "../domain/input";
+import { DEFAULT_LANDING, LandingOptions, NO_INPUT, VoyageInput } from "../domain/input";
 import { Loot, LootTable, NO_LOOT_TABLE } from "../domain/loot";
 import { VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState, VoyageStatus } from "../domain/state";
@@ -21,6 +21,7 @@ import { CaptureSystem } from "../systems/CaptureSystem";
 import { CollisionSystem } from "../systems/CollisionSystem";
 import { VoyageContext } from "../systems/context";
 import { ControlSystem } from "../systems/ControlSystem";
+import { DescentSystem } from "../systems/DescentSystem";
 import { GravitySystem } from "../systems/GravitySystem";
 import { HealthSystem } from "../systems/HealthSystem";
 import { ImpactSystem } from "../systems/ImpactSystem";
@@ -108,6 +109,7 @@ export class VoyageSimulation {
       universes: new UniverseGenerator(config.layout, names),
       themes,
       loot,
+      landing: DEFAULT_LANDING,
     };
     this.pipeline = new SystemPipeline<VoyageContext>([
       new OrbitSystem(),
@@ -122,6 +124,7 @@ export class VoyageSimulation {
       new WeaponSystem(),
       new MotionSystem(),
       new SurfaceSystem(),
+      new DescentSystem(),
       new CollisionSystem(),
       new SalvageSystem(),
       new ProjectileSystem(),
@@ -165,6 +168,21 @@ export class VoyageSimulation {
 
   public setAutoFire(isOn: boolean): void {
     this.context.state.autoFire = isOn;
+  }
+
+  // How the pilot likes their landings, from their preferences; a landing on its way down follows a change at once.
+  public setLanding(options: LandingOptions): void {
+    this.context.landing = options;
+  }
+
+  // What the ground is where the ship is coming down, once the surface has been seen: open water, where a capsule
+  // splashes down rather than firing its landing rockets.
+  public setGround(body: string, isWater: boolean): void {
+    const { descent } = this.context.state;
+
+    if (descent?.body === body && descent.downAt === null) {
+      descent.world.isWater = isWater;
+    }
   }
 
   // Refits the ship to a new level mid flight or between runs: the new config's strength, size and guns, with
@@ -440,6 +458,7 @@ export class VoyageSimulation {
       nextFaultId: 1,
       salvage: null,
       nextWreckAt: null,
+      descent: null,
       view: this.context?.state.view ?? { halfWidth: 2, halfHeight: 2 },
     };
   }

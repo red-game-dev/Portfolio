@@ -56,7 +56,8 @@ export const voyagePlace = (content: FinaleVoyage, snapshot: VoyageSnapshot, uni
   return fill(content.distance, { au: formatNumber(snapshot.telemetry.au ?? 1, 1, true) });
 };
 
-// What to say when something happens that the snapshot does not show: a landing, a lift off, an emergency burn,
+// What to say when something happens that the snapshot does not show: each phase of a way down and how the
+// touchdown went, a lift off, an emergency burn,
 // the moment a black hole takes the ship, a solar flare and its storm, a system failing, the hull melting, and
 // the economy's moments (a wreck salvaged, a fault, an upgrade, a big payout). The end of a run has its own card.
 export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): string | null => {
@@ -94,11 +95,17 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
     case "recovered":
       return content.recovered;
     case "landed":
+      return notice.speed === null
+        ? fill(content.landed, { body: placeName(content, notice.body) })
+        : fill(content.descent.landedAt, { body: placeName(content, notice.body), speed: formatNumber(notice.speed, 1, true) });
+    // The touchdown has its own word, landed or too hard, so only the phases before it are said.
+    case "descent":
+      return notice.phase === "down" ? null : content.descent.phases[notice.phase];
+    case "hardLanding":
+      return fill(content.descent.hard, { body: placeName(content, notice.body), speed: formatNumber(notice.speed, 1, true), safe: formatNumber(notice.safe) });
     case "tookOff":
     case "emergency":
-      return fill(notice.kind === "landed" ? content.landed : notice.kind === "tookOff" ? content.tookOff : content.emergency, {
-        body: placeName(content, notice.body),
-      });
+      return fill(notice.kind === "tookOff" ? content.tookOff : content.emergency, { body: placeName(content, notice.body) });
     default:
       return economyNotice(content, notice) ?? careerNotice(content, notice);
   }

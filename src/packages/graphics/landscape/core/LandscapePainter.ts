@@ -16,6 +16,10 @@ const SCATTER = 38;
 const SPREAD = 0.42;
 // How much of the air's colour each layer of land takes on with distance: far, middle, near.
 const AERIAL: [number, number, number] = [0.6, 0.32, 0.08];
+// Seen from high above, the hills keep this share of their height, and the ground at the feet shows only nearer
+// than this.
+const FLATTEST = 0.08;
+const NEAR_DETAIL = 0.35;
 
 interface Star {
   x: number;
@@ -185,7 +189,7 @@ export class LandscapePainter {
   }
 
   public paintLand(frame: Frame, sky: SkyLight, scene: Scene): void {
-    const { context, width, height, horizon, drop, density } = frame;
+    const { context, width, height, horizon, drop, density, nearness = 1, opacity = 1 } = frame;
     const { ground, air } = scene;
     const base = horizon + drop;
 
@@ -213,7 +217,7 @@ export class LandscapePainter {
 
     [0, 1, 2].forEach((layer) => {
       const line = this.line(ground, layer);
-      const lift = relief.heights[layer] * height;
+      const lift = relief.heights[layer] * height * (FLATTEST + (1 - FLATTEST) * nearness);
       const top = base + layer * height * 0.012;
       const colour = tone(mixRgb(far, near, layer / 2), layer);
 
@@ -243,7 +247,12 @@ export class LandscapePainter {
     context.fillStyle = shadow;
     context.fillRect(0, groundTop, width, height - groundTop);
 
-    this.paintNear(frame, scene, groundTop, tone(near, 2), light);
+    // From high up the ground at the feet is too far to make out.
+    if (nearness > NEAR_DETAIL) {
+      context.globalAlpha = opacity * Math.min(1, (nearness - NEAR_DETAIL) / (1 - NEAR_DETAIL));
+      this.paintNear(frame, scene, groundTop, tone(near, 2), light);
+      context.globalAlpha = opacity;
+    }
   }
 
   // Each line of land once per seed, kind and layer.

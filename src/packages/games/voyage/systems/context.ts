@@ -5,7 +5,7 @@ import type { FieldSample, GravityField, GravitySource } from "@/packages/physic
 import { VoyageConfig } from "../config";
 import { VoyageWorld } from "../core/world";
 import { VoyageEvents } from "../domain/events";
-import { VoyageInput } from "../domain/input";
+import { LandingOptions, VoyageInput } from "../domain/input";
 import { LootTable } from "../domain/loot";
 import { VoyageState } from "../domain/state";
 import { UniverseGenerator, UniverseTheme } from "../generators/UniverseGenerator";
@@ -29,4 +29,6 @@ export interface VoyageContext {
   themes: UniverseTheme[];
   // What wrecks, rocks and the fallen hold.
   loot: LootTable;
+  // How the pilot likes their landings.
+  landing: LandingOptions;
 }

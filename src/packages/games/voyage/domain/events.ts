@@ -1,3 +1,4 @@
+import type { LandingPhase } from "../landing";
 import { AlienRole, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
 import { FaultKind } from "./faults";
 import { Loot } from "./loot";
@@ -18,7 +19,12 @@ export interface VoyageEvents {
   hit: { x: number; y: number; angle: number; amount: number; toShields: number; toHull: number; kind: DamageKind };
   destroyed: { x: number; y: number; vx: number; vy: number; angle: number };
   collected: { kind: PickupKind; x: number; y: number };
-  landed: { body: string };
+  // Down in one piece, and how fast it met the ground (m/s).
+  landed: { body: string; speed: number };
+  // On the way down a new phase begins: through entry, under a parachute, on the engine, the pilot's to fly.
+  descending: { body: string; phase: LandingPhase };
+  // Down too hard: how fast it hit (m/s) and what the craft could take.
+  hardLanding: { body: string; speed: number; safe: number };
   // Home safely: recovered, and a new rocket ready.
   recovered: { body: string };
   tookOff: { body: string };

@@ -21,6 +21,7 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   passing: null,
   landedOn: null,
   surface: null,
+  descent: null,
   modules: { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 },
   waypoint: null,
   target: null,
@@ -77,7 +78,12 @@ describe("the voyage's messages", () => {
   });
 
   test("landings, lift offs, emergency burns and the moment a black hole takes the ship are said with the body's name", () => {
-    expect(voyageNotice(voyage, { kind: "landed", body: "mars" })).toBe("Landed on Mars");
+    expect(voyageNotice(voyage, { kind: "landed", body: "mars", speed: null })).toBe("Landed on Mars");
+    expect(voyageNotice(voyage, { kind: "landed", body: "mars", speed: 0.78 })).toBe("Landed on Mars at 0.8 m/s");
+    expect(voyageNotice(voyage, { kind: "descent", body: "mars", phase: "supersonic" })).toBe("Supersonic parachute open");
+    expect(voyageNotice(voyage, { kind: "descent", body: "mars", phase: "down" })).toBeNull();
+    expect(voyageNotice(voyage, { kind: "hardLanding", body: "moon", speed: 9.42, safe: 3 }))
+      .toBe("Down on the Moon at 9.4 m/s, more than the 3 m/s it can take: the legs gave way");
     expect(voyageNotice(voyage, { kind: "emergency", body: "jupiter" })).toContain("Jupiter");
     expect(voyageNotice(voyage, { kind: "captured", isSingularity: true })).toBe(voyage.captured);
     expect(voyageNotice(voyage, { kind: "destroyed" })).toBeNull();

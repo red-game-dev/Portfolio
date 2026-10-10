@@ -17,6 +17,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton } from "@/components/Controls";
 import { rankName } from "@/components/Finale/Voyage/career";
+import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
 import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
@@ -71,6 +72,7 @@ import {
   SurfaceCard,
   SurfaceHint,
   SurfaceLine,
+  SurfacePhase,
   SurfaceTitle,
   SystemName,
   SystemRow,
@@ -135,7 +137,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames });
   const { snapshot, notices, takeNotices, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;
   const { economy, isHangarOpen, setHangar, act, follow } = voyage;
-  const { career, isPhoto, togglePhoto, savePhoto } = voyage;
+  const { career, isPhoto, togglePhoto, savePhoto, landing } = voyage;
   const [pay, setPay] = useState<number | null>(null);
   const [daily, setDaily] = useState<{ score: number; isBest: boolean } | null>(null);
   // Today, as the daily voyage counts days: the UTC date.
@@ -154,6 +156,10 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const previous = useRef<VoyageSnapshot | null>(null);
   const bestBefore = useRef(best);
   const status = snapshot?.status ?? "ready";
+  // The world a landing is coming down on: by the surface once it is seen, else by the name the snapshot gives.
+  const comingDownOn = snapshot?.surface
+    ? placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn)
+    : placeName(content, snapshot?.landedOn ?? "");
   const say = (text: string | null) => {
     if (text) {
       messageId.current += 1;
@@ -428,7 +434,16 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </IconButton>
         </HudButtons>
       </Hud>
-      {snapshot?.surface && status === "flying" && !isHangarOpen && !isPhoto && (
+      {snapshot?.descent && status === "flying" && !isHangarOpen && !isPhoto && (
+        <SurfaceCard aria-label={fill(content.descent.title, { body: comingDownOn })}>
+          <SurfaceTitle>{fill(content.descent.title, { body: comingDownOn })}</SurfaceTitle>
+          <SurfaceLine>{descentMethod(content, snapshot.descent, snapshot.surface?.isHome ?? false)}</SurfaceLine>
+          <SurfacePhase>{content.descent.phases[snapshot.descent.phase]}</SurfacePhase>
+          {descentRows(content, snapshot.descent).map((row) => <SurfaceLine key={row}>{row}</SurfaceLine>)}
+          {descentHint(content, snapshot.descent, landing.control === "manual").map((line) => <SurfaceHint key={line}>{line}</SurfaceHint>)}
+        </SurfaceCard>
+      )}
+      {!snapshot?.descent && snapshot?.surface && status === "flying" && !isHangarOpen && !isPhoto && (
         <SurfaceCard aria-label={fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn) })}>
           <SurfaceTitle>{fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn) })}</SurfaceTitle>
           <SurfaceLine>{content.surface.biomes[snapshot.surface.biome]}</SurfaceLine>

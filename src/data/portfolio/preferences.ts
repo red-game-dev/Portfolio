@@ -8,13 +8,14 @@ export const preferencesContent: Pick<PortfolioData, "preferences"> = {
     items: {
       "landing-time": {
         name: "Landing time",
-        description: "Real descents take minutes, and Huygens took over two hours to fall to Titan. Sped up keeps how long each world takes against " +
-          "the others; real time runs the clock as it is.",
+        description: "Real descents take minutes, and Huygens took over two hours to fall to Titan. Sped up plays every world forty times " +
+          "faster, never longer than fifteen seconds; real time runs the clock as it is. The last 150 m flown by hand always run in real time.",
         options: { compressed: "Sped up", real: "Real time" },
       },
       "landing-control": {
         name: "Landing control",
-        description: "Flown for you, as a real guided landing is, or fly the landing burn yourself and touch down slowly enough not to crash.",
+        description: "Flown for you, as real guided landings are, or take the burn for the last 150 m, as Apollo's commanders did, and touch " +
+          "down gently enough not to break the legs. Only a landing made on an engine can be flown by hand; parachutes come down by themselves.",
         options: { auto: "Flown for you", manual: "Fly it yourself" },
       },
     },

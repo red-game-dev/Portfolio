@@ -1,12 +1,15 @@
-import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useRef, useState, WheelEvent } from "react";
+import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState, WheelEvent } from "react";
 
 import { PHOTO_PAN, VOYAGE_KEYS, VOYAGE_ZOOM, voyageKeyAction } from "@/components/Finale/Voyage/controls";
 import { usePilotSync } from "@/components/Finale/Voyage/hooks/usePilotSync";
+import { usePreferencesStateHook } from "@/components/Preferences/hooks/usePreferencesStateHook";
 import { VOYAGE_TEXTURES, VOYAGE_THEME } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { PauseHolds } from "@/packages/animation/frame-loop";
 import { decodeImage } from "@/packages/browser/images";
-import type { CareerView, EconomyView, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
+import type {
+  CareerView, EconomyView, LandingOptions, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot,
+} from "@/packages/games/voyage";
 import { DragTracker, localPoint } from "@/packages/interaction/gestures";
 import { HeldKeys } from "@/packages/interaction/keys";
 import { ZoomInput } from "@/packages/interaction/zoom";
@@ -119,6 +122,13 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     resize: (voyage, { width, height, pixelRatio }) => voyage.resize({ width, height }, pixelRatio),
   }, []);
   const isFlying = snapshot?.status === "flying";
+  // How the reader likes their landings, from their settings; a landing on its way down follows a change at once.
+  const { values: preferences } = usePreferencesStateHook();
+  const landing = useMemo<LandingOptions>(() => ({ time: preferences["landing-time"], control: preferences["landing-control"] }), [preferences]);
+
+  useEffect(() => {
+    game?.setLanding(landing);
+  }, [game, landing]);
 
   const play = useCallback((mode: "free" | "daily" = "free") => {
     held.clear();
@@ -386,8 +396,10 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       return;
     }
 
-    // A click or a tap on someone locks the guns on them; on nothing, lets go.
+    // A click or a tap on someone locks the guns on them; on nothing, lets go. Held, it is the landing burn when
+    // the pilot flies one.
     game?.lockAt(localPoint(event, event.currentTarget));
+    game?.press(true);
 
     if (event.pointerType !== "mouse") {
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -420,6 +432,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const onPointerEnd = useCallback((event: PointerEvent<HTMLElement>) => {
     zoom.release(event.pointerId);
     drag.end();
+    game?.press(false);
 
     if (event.type !== "pointerup" || event.pointerType !== "mouse") {
       game?.point(null);
@@ -428,6 +441,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
   return {
     snapshot,
+    landing,
     notices,
     takeNotices,
     economy,

@@ -1,6 +1,6 @@
 import type { ZoneId } from "@/config/zones";
 import type { LaunchLand, LaunchMilestone, LaunchVehicle } from "@/packages/games/launch";
-import type { SurfaceBiome } from "@/packages/games/voyage";
+import type { LandingMethod, LandingPhase, SurfaceBiome } from "@/packages/games/voyage";
 
 export interface DuelRound {
   agent: string;
@@ -260,9 +260,34 @@ export interface FinaleSurface {
   launch: string;
 }
 
+// The way down on a world, as the card reads it: what it is coming down on ("{body}"), the way each kind of world is
+// landed on (home has a crew capsule's own), each phase, the readings ("{value}"), how fast it plays ("{pace}"),
+// and what the pilot can do: nothing to fly, the guidance flying (and how to take over), or their hand on the burn
+// ("{safe}" m/s to touch down under, "{seconds}" of burn left). Then the touchdown, gentle or too hard.
+export interface FinaleDescent {
+  title: string;
+  methods: Record<LandingMethod, string>;
+  home: string;
+  phases: Record<LandingPhase, string>;
+  altitude: string;
+  speed: string;
+  fall: string;
+  load: string;
+  pace: string;
+  realTime: string;
+  flown: string;
+  takeOver: string;
+  unflown: string;
+  pilot: string;
+  reserve: string;
+  landedAt: string;
+  hard: string;
+}
+
 export interface FinaleVoyage {
   title: string;
   surface: FinaleSurface;
+  descent: FinaleDescent;
   intro: string;
   controls: string;
   canvasLabel: string;
@@ -314,6 +339,9 @@ export interface FinaleVoyage {
     dilation: string;
     km: string;
     millionKm: string;
+    // Metres and metres a second, for a landing's last stretch.
+    metres: string;
+    metresPerSecond: string;
     // "{value}" is replaced with AU still to go.
     further: string;
     // "{date}" is replaced with the mission clock's date and time.

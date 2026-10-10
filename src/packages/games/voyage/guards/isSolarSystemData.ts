@@ -17,7 +17,8 @@ const isOrbit: Guard<OrbitData> = (value): value is OrbitData => isRecord(value)
 );
 
 const isAir: Guard<AirData> = (value): value is AirData => isRecord(value) && AIR_KINDS.some((kind) => kind === value.kind) &&
-  isFiniteNumber(value.pressureBar) && isFiniteNumber(value.temperatureC) && isFiniteNumber(value.topTemperatureC);
+  isFiniteNumber(value.pressureBar) && isFiniteNumber(value.temperatureC) && isFiniteNumber(value.topTemperatureC) &&
+  isFiniteNumber(value.molarMass);
 
 const isPole: Guard<Pole> = (value): value is Pole => isRecord(value) && isFiniteNumber(value.ra) && isFiniteNumber(value.dec);
 

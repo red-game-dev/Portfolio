@@ -37,6 +37,10 @@ export class SolarSystemValidator extends Validator<SolarSystemData> {
         errors.push(`${body.id} has air with no pressure`);
       }
 
+      if (body.air && body.air.molarMass <= 0) {
+        errors.push(`${body.id} has air with no weight to its gas`);
+      }
+
       if (body.rings && (body.rings.innerKm <= body.radiusKm || body.rings.outerKm <= body.rings.innerKm)) {
         errors.push(`${body.id} has rings that do not sit outside it`);
       }

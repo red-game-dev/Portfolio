@@ -10,12 +10,14 @@ export type AtmosphereKind = "none" | "thin" | "thick" | "giant";
 export type BodyKind = "planet" | "dwarf" | "moon";
 
 // A body's air, as the source gives it: pressure and temperature at the ground (or a giant's one bar level) and
-// at the top of the air.
+// at the top of the air, and the mean molar mass of its gas (kg/mol), which with them gives how dense the air is
+// and how fast it thins with height.
 export interface AirData {
   kind: Exclude<AtmosphereKind, "none">;
   pressureBar: number;
   temperatureC: number;
   topTemperatureC: number;
+  molarMass: number;
 }
 
 // How a body moves: round the Sun on JPL's elements, or round its planet on a circle (a negative period goes
@@ -76,6 +78,7 @@ export interface AirModel extends Atmosphere {
   pressureBar: number;
   temperatureC: number;
   topTemperatureC: number;
+  molarMass: number;
 }
 
 // How a body moves in the game: round the Sun on its real elements, round its planet, or (in a generated

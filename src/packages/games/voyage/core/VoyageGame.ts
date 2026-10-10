@@ -12,7 +12,7 @@ import { StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
 import { ShipEffect } from "../domain/faults";
 import { GhostRun } from "../domain/ghost";
-import { VoyageInput } from "../domain/input";
+import { LandingOptions, VoyageInput } from "../domain/input";
 import { VoyageAction, VoyageNotice } from "../domain/notices";
 import { VoyageSnapshot } from "../domain/snapshot";
 import { UniverseNames } from "../domain/universe";
@@ -111,6 +111,8 @@ interface Moment {
   faults: number;
   isSalvaging: boolean;
   isOnSurface: boolean;
+  // The phase of a way down, and whether a pilot flies it.
+  descent: string | null;
 }
 
 // Hosts a voyage on the shared frame loop: steps the simulation in fixed steps, flies the camera after the ship,
@@ -128,6 +130,7 @@ export class VoyageGame extends FrameLoop {
   private readonly detach: () => void;
   private readonly now: () => number;
   private pointer: { x: number; y: number } | null = null;
+  private isPressing = false;
   private zoomBias = 1;
   private keys = { turn: 0, thrust: 0, brake: false };
   private lastSnapshot: VoyageSnapshot;
@@ -312,6 +315,11 @@ export class VoyageGame extends FrameLoop {
     this.pointer = position;
   }
 
+  // A mouse button or a finger held down, which is the landing burn while a pilot flies it.
+  public press(isDown: boolean): void {
+    this.isPressing = isDown;
+  }
+
   public setKeys(keys: { turn: number; thrust: number; brake: boolean }): void {
     this.keys = keys;
 
@@ -488,9 +496,15 @@ export class VoyageGame extends FrameLoop {
     this.publish(true);
   }
 
+  // How the pilot likes their landings, from their preferences.
+  public setLanding(options: LandingOptions): void {
+    this.simulation.setLanding(options);
+  }
+
 
   protected update(deltaMs: number): void {
     this.simulation.advance(deltaMs, this.input());
+    this.readGround();
     this.recordGhost();
     this.followShip(deltaMs / 1000, false);
     this.publish(false, performance.now());
@@ -591,6 +605,13 @@ export class VoyageGame extends FrameLoop {
   }
 
   private input(): VoyageInput {
+    const descent = this.simulation.state.descent;
+
+    // Flying the landing burn by hand: the burn key or a held press, never where a mouse happens to rest.
+    if (descent?.downAt === null && descent.craft.isPilot) {
+      return { aim: null, thrust: Math.max(this.keys.thrust, this.isPressing ? 1 : 0), turn: 0, brake: false };
+    }
+
     const parts = this.shipScreen();
 
     if (this.pointer && parts) {
@@ -697,7 +718,9 @@ export class VoyageGame extends FrameLoop {
       this.onNotice(notice(payload));
     });
     const offs = [
-      tell("landed", ({ body }) => ({ kind: "landed", body })),
+      tell("landed", ({ body, speed }) => ({ kind: "landed", body, speed })),
+      tell("descending", ({ body, phase }) => ({ kind: "descent", body, phase })),
+      tell("hardLanding", ({ body, speed, safe }) => ({ kind: "hardLanding", body, speed, safe })),
       tell("tookOff", ({ body }) => ({ kind: "tookOff", body })),
       tell("recovered", ({ body }) => ({ kind: "recovered", body })),
       tell("emergency", ({ body }) => ({ kind: "emergency", body })),
@@ -773,6 +796,16 @@ export class VoyageGame extends FrameLoop {
     }
   }
 
+  // The surface the renderer reads at the spot tells the way down what it is coming down on: a capsule over the sea
+  // at home splashes down.
+  private readGround(): void {
+    const { surface } = this.renderer;
+
+    if (surface && this.simulation.state.descent?.downAt === null) {
+      this.simulation.setGround(surface.body, surface.isHome && surface.biome === "ocean");
+    }
+  }
+
   // Where the ship is, a few times a second, on a daily voyage, to fly beside the next time.
   private recordGhost(): void {
     const { state, world } = this.simulation;
@@ -809,8 +842,11 @@ export class VoyageGame extends FrameLoop {
 
     const isSalvaging = state.salvage !== null;
     const isOnSurface = this.renderer.surface !== null;
+    const craft = state.descent && state.descent.downAt === null ? state.descent.craft : null;
+    const descent = craft ? `${craft.phase}:${craft.isPilot}` : null;
 
-    if (last && last.isOnSurface === isOnSurface && last.status === state.status && last.phase === state.phase && last.universe === state.universe &&
+    if (last && last.descent === descent && last.isOnSurface === isOnSurface && last.status === state.status && last.phase === state.phase &&
+      last.universe === state.universe &&
       last.universes === state.universes &&
       last.passing === state.passing && last.landedOn === landedOn && last.waypoint === waypoint && last.level === state.level &&
       last.faults === state.faults.length && last.isSalvaging === isSalvaging) {
@@ -829,6 +865,7 @@ export class VoyageGame extends FrameLoop {
       faults: state.faults.length,
       isSalvaging,
       isOnSurface,
+      descent,
     };
 
     return true;

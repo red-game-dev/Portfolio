@@ -103,6 +103,9 @@ export const SurfaceTitle = tw.h3`m-0 text-xs md:text-sm font-semibold text-whit
 
 export const SurfaceLine = tw.p`m-0 text-[11px] md:text-xs text-[#c4d2ff]`;
 
+// What the way down is doing now, the line a reader looks for first.
+export const SurfacePhase = tw.p`m-0 my-[2px] text-xs md:text-sm font-semibold text-[#ffd27a]`;
+
 export const SurfaceHint = tw.p`m-0 mt-[4px] text-[11px] md:text-xs text-[#9aa3bb]`;
 
 export const TelemetryPanel = styled.section(() => [

@@ -217,7 +217,7 @@ describe("flight", () => {
 });
 
 describe("surfaces and air", () => {
-  test("touching Mars slowly is a landing that rides along with it and scores once; a burn lifts off", () => {
+  test("touching Mars slowly is a landing that rides along with it and scores once it is down; a burn lifts off", () => {
     const simulation = create();
     const mars = bodyOf(simulation, "mars");
     const scoreBefore = simulation.state.score;
@@ -226,6 +226,11 @@ describe("surfaces and air", () => {
     simulation.step(200);
 
     expect(partsOf(simulation).ship.landedOn).toBe("mars");
+
+    for (let waited = 0; simulation.state.descent?.downAt === null && waited < 30000; waited += 250) {
+      simulation.step(250);
+    }
+
     expect(simulation.state.score - scoreBefore).toBeGreaterThanOrEqual(defaults.scoring.landing);
 
     simulation.step(3000);

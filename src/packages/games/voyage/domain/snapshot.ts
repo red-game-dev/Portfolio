@@ -1,3 +1,4 @@
+import type { LandingMethod, LandingPhase } from "../landing";
 import { AlienRole, Modules, WreckKind } from "./components";
 import { VoyagePhase } from "./events";
 import { FaultKind } from "./faults";
@@ -51,6 +52,26 @@ export interface Telemetry {
   missionTime: number;
 }
 
+// A landing on its way down, in real units: how it comes down and what it is doing now, how high (m), how fast (m/s,
+// and how fast falling), the load the crew feels (Earth g), how hard the air heats it (about 1 at a capsule's peak),
+// the throttle, whether a pilot could fly the burn and whether one is, their seconds of burn left, the speed the
+// craft takes at touchdown, and how many times faster than life it is playing.
+export interface DescentView {
+  method: LandingMethod;
+  phase: LandingPhase;
+  altitude: number;
+  speed: number;
+  fall: number;
+  load: number;
+  heating: number;
+  throttle: number;
+  canFly: boolean;
+  isPilot: boolean;
+  reserve: number;
+  safeSpeed: number;
+  pace: number;
+}
+
 // What a UI shows between frames. Changes a few times a second at most.
 export interface VoyageSnapshot {
   status: VoyageStatus;
@@ -68,8 +89,9 @@ export interface VoyageSnapshot {
   score: number;
   passing: string | null;
   landedOn: string | null;
-  // Where the ship stands on that world, once its surface is in view.
+  // Where the ship stands on that world, once its surface is in view, and the way down while it is coming down.
   surface: SurfaceInfo | null;
+  descent: DescentView | null;
   // Each system's integrity, in hundredths.
   modules: Modules;
   // The compass's target, its name where it was made up, and its real distance in km.

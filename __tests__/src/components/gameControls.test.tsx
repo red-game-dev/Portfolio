@@ -2,6 +2,7 @@ import { useRef } from "react";
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { PreferencesProvider } from "@/components/Preferences/context/PreferencesContext";
 import { portfolioData } from "@/data/resume";
 import type { BugRaidGame as BugRaidGameClass } from "@/packages/games/bug-raid";
 import type { LaunchGame as LaunchGameClass, LaunchSnapshot } from "@/packages/games/launch";
@@ -206,7 +207,7 @@ describe("the launch button", () => {
 
 const VOYAGE_METHODS = [
   "stop", "dispose", "resize", "setTexture", "setKeys", "play", "pause", "resume", "zoomBy", "point", "lockAt", "panBy", "setPhotoMode", "setMap",
-  "setAutoFire", "act", "follow", "photo",
+  "setAutoFire", "act", "follow", "photo", "setLanding", "press",
 ] as const;
 
 const Voyage = () => {
@@ -255,7 +256,7 @@ describe("the voyage's controls", () => {
 
     openPilot.mockResolvedValue(pilot as unknown as Pilot);
     VoyageGame.forCanvas.mockReturnValue(game as unknown as VoyageGameClass);
-    render(<Voyage />);
+    render(<PreferencesProvider><Voyage /></PreferencesProvider>);
     await waitFor(() => expect(VoyageGame.forCanvas).toHaveBeenCalled());
     await act(async () => undefined);
 

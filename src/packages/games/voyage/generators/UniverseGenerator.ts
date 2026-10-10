@@ -59,6 +59,8 @@ const PHENOMENA: Array<{ kind: PhenomenonKind; weight: number; from: number }> =
 ];
 
 const ABSOLUTE_ZERO = -273.15;
+// The molar mass (kg/mol) of the gases a made world's air is mostly of.
+const GAS = { nitrogen: 0.028, carbonDioxide: 0.044, sulphurDioxide: 0.064, hydrogen: 0.0023 };
 const WARM_UP = 3;
 const NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
 
@@ -225,31 +227,38 @@ export class UniverseGenerator {
     return random() < 0.6 ? "icy" : "cratered";
   }
 
+  // Air that suits the world: a terran world's nitrogen and oxygen, a toxic or hazy one's carbon dioxide as thick as
+  // Venus's, a desert's thin carbon dioxide as on Mars, a lava world's sulphur dioxide as on Io, a giant's hydrogen and
+  // helium. Each gas's molar mass follows from what it is, so nothing more is drawn for it.
   private air(random: RandomSource, kind: SurfaceKind, equilibriumC: number): AirData | null {
     switch (kind) {
       case "terran":
         return {
           kind: "thick", pressureBar: randomBetween(random, 0.5, 3), temperatureC: equilibriumC + randomBetween(random, 5, 30), topTemperatureC: equilibriumC - 70,
+          molarMass: GAS.nitrogen,
         };
       case "toxic":
       case "haze":
         return {
           kind: "thick", pressureBar: randomBetween(random, 8, 120), temperatureC: equilibriumC + randomBetween(random, 150, 400), topTemperatureC: equilibriumC - 50,
+          molarMass: GAS.carbonDioxide,
         };
       case "desert":
-        return random() < 0.5 ? { kind: "thin", pressureBar: randomBetween(random, 0.005, 0.2), temperatureC: equilibriumC, topTemperatureC: equilibriumC - 60 } : null;
+        return random() < 0.5 ? {
+          kind: "thin", pressureBar: randomBetween(random, 0.005, 0.2), temperatureC: equilibriumC, topTemperatureC: equilibriumC - 60, molarMass: GAS.carbonDioxide,
+        } : null;
       case "gas":
       case "iceGiant":
-        return { kind: "giant", pressureBar: 1, temperatureC: equilibriumC - 20, topTemperatureC: equilibriumC - 60 };
+        return { kind: "giant", pressureBar: 1, temperatureC: equilibriumC - 20, topTemperatureC: equilibriumC - 60, molarMass: GAS.hydrogen };
       case "lava":
-        return { kind: "thin", pressureBar: randomBetween(random, 0.01, 0.1), temperatureC: equilibriumC + 300, topTemperatureC: equilibriumC };
+        return {
+          kind: "thin", pressureBar: randomBetween(random, 0.01, 0.1), temperatureC: equilibriumC + 300, topTemperatureC: equilibriumC, molarMass: GAS.sulphurDioxide,
+        };
       default:
         return null;
     }
   }
 
-  // A world's colours, from a hue of its own but true to its kind: seas and land, sand, ice, cloud bands, lava
-  // under crust, a rogue's near black.
   private look(random: RandomSource, kind: SurfaceKind, air: AirData | null, rings: SystemBody["rings"], seed: number): GlobeLook {
     const hue = random() * 360;
     const tone = (shift: number, saturation: number, lightness: number) => hslToHex(hue + shift, saturation, lightness);

@@ -107,6 +107,11 @@ describe("voyage salvage and breakdowns", () => {
       Object.assign(parts.body, { x: place.x + contact, y: place.y, prevX: place.x + contact, prevY: place.y, vx: place.vx, vy: place.vy });
       simulation.step(defaults.stepMs * 2);
 
+      // The way down plays out before the landing counts.
+      for (let waited = 0; simulation.state.descent?.downAt === null && waited < 30000; waited += 250) {
+        simulation.step(250);
+      }
+
       return { landedOn: world.stores.ship.get(state.ship)?.landedOn, parts: partsOf(simulation), faults: state.faults.length, recovered };
     };
 

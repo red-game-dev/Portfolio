@@ -7,7 +7,8 @@ export { UniverseGenerator } from "./generators/UniverseGenerator";
 export { arrivalSpeed, bindingEnergy, craterKm, impactEnergy, impactOutcome, isOnCourseNow, predictApproach } from "./systems/impacts";
 export { leadDirection } from "./systems/combat";
 export { MODULE_IDS } from "./domain/components";
-export { NO_INPUT } from "./domain/input";
+export { DEFAULT_LANDING, NO_INPUT } from "./domain/input";
+export { LANDING, planLanding, rehearse } from "./landing";
 export { isSolarSystemData } from "./guards/isSolarSystemData";
 export { SnapshotMapper } from "./mappers/SnapshotMapper";
 export { SystemMapper } from "./mappers/SystemMapper";
@@ -44,6 +45,7 @@ export { StepRandom } from "./utils/stepRandom";
 export { PilotLink } from "./services/PilotLink";
 export type {
   ClockConfig,
+  DescentConfig,
   FlightConfig,
   HoleConfig,
   ShipConfig,
@@ -56,6 +58,8 @@ export type {
   WeatherConfig,
 } from "./config";
 export type { VoyageCanvases, VoyageCanvasOptions, VoyageOptions } from "./core/VoyageGame";
+export type { LandingOptions } from "./domain/input";
+export type { LandingMethod, LandingPhase } from "./landing";
 export type { VoyageAction, VoyageNotice } from "./domain/notices";
 export type { VoyageStores, VoyageWorld } from "./core/world";
 export type { VoyageRenderer } from "./renderers/CanvasVoyageRenderer";
@@ -118,10 +122,10 @@ export type {
 } from "./domain/content";
 export type { DamageKind, FlareClass, VoyageEvents, VoyagePhase } from "./domain/events";
 export type { VoyageInput } from "./domain/input";
-export type { Frame, IncomingRock, Telemetry, VoyageSnapshot } from "./domain/snapshot";
+export type { DescentView, Frame, IncomingRock, Telemetry, VoyageSnapshot } from "./domain/snapshot";
 export type { SurfaceBiome, SurfaceInfo } from "./domain/surface";
 export { airFor, earthGround, groundAt, phaseOf, skyPlace, solarHours } from "./utils/surface";
-export type { Capture, MissionClock, Readings, Storm, VoyageState, VoyageStatus, Waypoint } from "./domain/state";
+export type { Capture, Descent, MissionClock, Readings, Storm, VoyageState, VoyageStatus, Waypoint } from "./domain/state";
 export type { VoyageStyle } from "./domain/theme";
 export type { Disposition, FactionSpec, HullShape, PhenomenonKind, PhenomenonSpec, StarKind, UniverseNames, UniverseSpec, WeaponKind } from "./domain/universe";
 export type { SystemLayout } from "./mappers/SystemMapper";

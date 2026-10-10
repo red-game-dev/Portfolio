@@ -11,8 +11,8 @@ const efficiency = (hull: number, maxHull: number, engines: number) => (0.55 + 0
 
 // Turns the player's intent into the ship's motion: turn towards the aim (or with keys) at the ship's turn rate,
 // burn along the nose (unless a misfire cuts the engines out), brake against the velocity, and pay for both in
-// fuel. Landed, a burn lifts off with the
-// ground's own motion.
+// fuel. Landed, a burn lifts off with the ground's own motion, once the way down is over (until then a burn is the
+// pilot's hand on the landing engine, if anyone's).
 export class ControlSystem implements System<VoyageContext> {
   public readonly name = "control";
 
@@ -42,8 +42,9 @@ export class ControlSystem implements System<VoyageContext> {
 
     if (ship.landedOn) {
       const ground = bodyById(context, ship.landedOn);
+      const isComingDown = state.descent !== null && state.descent.downAt === null;
 
-      if (power > 0.15) {
+      if (power > 0.15 && !isComingDown) {
         events.emit("tookOff", { body: ship.landedOn });
         ship.landedOn = null;
         ship.landedOffset = null;

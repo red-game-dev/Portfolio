@@ -6,8 +6,9 @@ import type { Vec3 } from "@/packages/physics/kepler";
 import { VoyageConfig } from "../config";
 import { VoyageWorld } from "../core/world";
 import { MODULE_IDS, Modules } from "../domain/components";
-import { Frame, IncomingRock, VoyageSnapshot } from "../domain/snapshot";
+import { DescentView, Frame, IncomingRock, VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState } from "../domain/state";
+import { safeSpeedOf } from "../landing";
 import { auForRadius } from "../utils/scale";
 import { TelemetryMapper } from "./TelemetryMapper";
 
@@ -53,6 +54,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       landedOn: ship?.landedOn ? state.cosmos?.names[ship.landedOn] ?? ship.landedOn : null,
       // The view from the surface is the renderer's; the game adds it.
       surface: null,
+      descent: this.descent(state),
       modules: MODULE_IDS.reduce<Modules>((all, id) => ({ ...all, [id]: roundTo(modules[id], 2) }), { ...SOUND }),
       waypoint: state.waypoint && body
         ? { id: state.waypoint.id, name: state.cosmos?.names[state.waypoint.id] ?? null, distanceKm: this.distanceKm(state, body.x, body.y) }
@@ -90,6 +92,31 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
   }
 
   // Someone the guns are on, or the boss, for an MMO frame.
+  // The way down while it is coming down, in real units rounded for reading.
+  private descent({ descent }: VoyageState): DescentView | null {
+    if (!descent || descent.downAt !== null) {
+      return null;
+    }
+
+    const { craft, plan, world } = descent;
+
+    return {
+      method: plan.method,
+      phase: craft.phase,
+      altitude: Math.round(craft.altitude),
+      speed: roundTo(Math.hypot(craft.across, craft.up), 1),
+      fall: roundTo(Math.max(0, -craft.up), 1),
+      load: roundTo(craft.load, 1),
+      heating: roundTo(craft.heating, 2),
+      throttle: roundTo(craft.throttle, 2),
+      canFly: plan.handover !== null,
+      isPilot: craft.isPilot,
+      reserve: Math.ceil(craft.reserve),
+      safeSpeed: safeSpeedOf(plan, world),
+      pace: Math.round(descent.pace),
+    };
+  }
+
   private frame(state: VoyageState, world: VoyageWorld, entity: Entity): Frame | null {
     const alien = world.stores.alien.get(entity);
     const health = world.stores.health.get(entity);

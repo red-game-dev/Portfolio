@@ -33,8 +33,9 @@ const NEPTUNE = elements([30.06992276, 0.00859048, 1.77004347, -55.12002969, 44.
 const PLUTO = elements([39.48211675, 0.2488273, 17.14001206, 238.92903833, 224.06891629, 110.30393684],
   [-0.00031596, 0.0000517, 0.00004818, 145.20780515, -0.04062942, -0.01183482]);
 
-// The real solar system: the Sun; every planet and Pluto with their orbits, sizes, gravity, air and ground
-// temperatures, the length of their day and where their poles point (IAU); the major moons on circles round
+// The real solar system: the Sun; every planet and Pluto with their orbits, sizes, gravity, air (with the mean
+// molecular weight of its gas from NASA's planetary fact sheets) and ground temperatures, the length of their day
+// and where their poles point (IAU); the major moons on circles round
 // their planets (mean longitudes from Meeus where known, approximate elsewhere); and the two belts of rocks.
 export const SOLAR_SYSTEM: SolarSystemData = {
   star: { id: "sun", radiusKm: 695700, surfaceGravity: 274, temperatureK: 5772, rotationDays: 25.38 },
@@ -45,12 +46,14 @@ export const SOLAR_SYSTEM: SolarSystemData = {
     },
     {
       id: "venus", kind: "planet", orbit: { kind: "sun", elements: VENUS }, radiusKm: 6051.8, surfaceGravity: 8.87,
-      air: { kind: "thick", pressureBar: 92, temperatureC: 464, topTemperatureC: -43 }, dayC: 464, nightC: 464, dayHours: -2802, pole: { ra: 272.76, dec: 67.16 },
+      air: { kind: "thick", pressureBar: 92, temperatureC: 464, topTemperatureC: -43, molarMass: 0.04345 },
+      dayC: 464, nightC: 464, dayHours: -2802, pole: { ra: 272.76, dec: 67.16 },
       rings: null,
     },
     {
       id: "earth", kind: "planet", orbit: { kind: "sun", elements: EARTH }, radiusKm: 6371, surfaceGravity: 9.81,
-      air: { kind: "thick", pressureBar: 1, temperatureC: 15, topTemperatureC: -60 }, dayC: 15, nightC: 15, dayHours: 24, pole: { ra: 0, dec: 90 }, rings: null,
+      air: { kind: "thick", pressureBar: 1, temperatureC: 15, topTemperatureC: -60, molarMass: 0.02897 },
+      dayC: 15, nightC: 15, dayHours: 24, pole: { ra: 0, dec: 90 }, rings: null,
     },
     {
       id: "moon", kind: "moon", orbit: { kind: "moon", parent: "earth", distanceKm: 384400, periodDays: 27.321661, longitudeAtEpoch: 218.316 },
@@ -58,12 +61,12 @@ export const SOLAR_SYSTEM: SolarSystemData = {
     },
     {
       id: "mars", kind: "planet", orbit: { kind: "sun", elements: MARS }, radiusKm: 3389.5, surfaceGravity: 3.72,
-      air: { kind: "thin", pressureBar: 0.006, temperatureC: -63, topTemperatureC: -120 }, dayC: -20, nightC: -90, dayHours: 24.6597,
+      air: { kind: "thin", pressureBar: 0.006, temperatureC: -63, topTemperatureC: -120, molarMass: 0.04334 }, dayC: -20, nightC: -90, dayHours: 24.6597,
       pole: { ra: 317.269202, dec: 54.432516 }, rings: null,
     },
     {
       id: "jupiter", kind: "planet", orbit: { kind: "sun", elements: JUPITER }, radiusKm: 69911, surfaceGravity: 24.79,
-      air: { kind: "giant", pressureBar: 1, temperatureC: -108, topTemperatureC: -160 }, dayC: -108, nightC: -108, dayHours: 9.925,
+      air: { kind: "giant", pressureBar: 1, temperatureC: -108, topTemperatureC: -160, molarMass: 0.00222 }, dayC: -108, nightC: -108, dayHours: 9.925,
       pole: { ra: 268.056595, dec: 64.495303 }, rings: { innerKm: 92000, outerKm: 226000 },
     },
     {
@@ -84,32 +87,34 @@ export const SOLAR_SYSTEM: SolarSystemData = {
     },
     {
       id: "saturn", kind: "planet", orbit: { kind: "sun", elements: SATURN }, radiusKm: 58232, surfaceGravity: 10.44,
-      air: { kind: "giant", pressureBar: 1, temperatureC: -139, topTemperatureC: -180 }, dayC: -139, nightC: -139, dayHours: 10.656,
+      air: { kind: "giant", pressureBar: 1, temperatureC: -139, topTemperatureC: -180, molarMass: 0.00207 }, dayC: -139, nightC: -139, dayHours: 10.656,
       pole: { ra: 40.589, dec: 83.537 }, rings: { innerKm: 74658, outerKm: 136775 },
     },
     {
       id: "titan", kind: "moon", orbit: { kind: "moon", parent: "saturn", distanceKm: 1221870, periodDays: 15.945, longitudeAtEpoch: 15 },
-      radiusKm: 2574.7, surfaceGravity: 1.352, air: { kind: "thick", pressureBar: 1.45, temperatureC: -179, topTemperatureC: -200 }, dayC: -179, nightC: -179,
+      radiusKm: 2574.7, surfaceGravity: 1.352, air: { kind: "thick", pressureBar: 1.45, temperatureC: -179, topTemperatureC: -200, molarMass: 0.0276 },
+      dayC: -179, nightC: -179,
       dayHours: null, pole: { ra: 39.48, dec: 83.43 }, rings: null,
     },
     {
       id: "uranus", kind: "planet", orbit: { kind: "sun", elements: URANUS }, radiusKm: 25362, surfaceGravity: 8.69,
-      air: { kind: "giant", pressureBar: 1, temperatureC: -197, topTemperatureC: -220 }, dayC: -197, nightC: -197, dayHours: -17.24,
+      air: { kind: "giant", pressureBar: 1, temperatureC: -197, topTemperatureC: -220, molarMass: 0.00264 }, dayC: -197, nightC: -197, dayHours: -17.24,
       pole: { ra: 257.311, dec: -15.175 }, rings: { innerKm: 41837, outerKm: 51149 },
     },
     {
       id: "neptune", kind: "planet", orbit: { kind: "sun", elements: NEPTUNE }, radiusKm: 24622, surfaceGravity: 11.15,
-      air: { kind: "giant", pressureBar: 1, temperatureC: -201, topTemperatureC: -220 }, dayC: -201, nightC: -201, dayHours: 16.11,
+      air: { kind: "giant", pressureBar: 1, temperatureC: -201, topTemperatureC: -220, molarMass: 0.00261 }, dayC: -201, nightC: -201, dayHours: 16.11,
       pole: { ra: 299.36, dec: 43.46 }, rings: { innerKm: 41900, outerKm: 62930 },
     },
     {
       id: "triton", kind: "moon", orbit: { kind: "moon", parent: "neptune", distanceKm: 354759, periodDays: -5.876854, longitudeAtEpoch: 200 },
-      radiusKm: 1353.4, surfaceGravity: 0.779, air: { kind: "thin", pressureBar: 0.000014, temperatureC: -235, topTemperatureC: -235 }, dayC: -235, nightC: -235,
+      radiusKm: 1353.4, surfaceGravity: 0.779, air: { kind: "thin", pressureBar: 0.000014, temperatureC: -235, topTemperatureC: -235, molarMass: 0.028 },
+      dayC: -235, nightC: -235,
       dayHours: null, pole: { ra: 299.36, dec: 41.17 }, rings: null,
     },
     {
       id: "pluto", kind: "dwarf", orbit: { kind: "sun", elements: PLUTO }, radiusKm: 1188.3, surfaceGravity: 0.62,
-      air: { kind: "thin", pressureBar: 0.00001, temperatureC: -229, topTemperatureC: -229 }, dayC: -229, nightC: -229, dayHours: 153.29,
+      air: { kind: "thin", pressureBar: 0.00001, temperatureC: -229, topTemperatureC: -229, molarMass: 0.028 }, dayC: -229, nightC: -229, dayHours: 153.29,
       pole: { ra: 132.993, dec: -6.163 }, rings: null,
     },
     {

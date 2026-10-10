@@ -184,7 +184,7 @@ describe("voyage career", () => {
     link.attach();
     simulation.start(EPOCH);
     link.startRun();
-    simulation.events.emit("landed", { body: "moon" });
+    simulation.events.emit("landed", { body: "moon", speed: 1 });
     simulation.events.emit("passing", { stop: "mars" });
 
     expect(notices.some((notice) => notice.kind === "missionDone" && notice.mission === "landMoon")).toBe(true);

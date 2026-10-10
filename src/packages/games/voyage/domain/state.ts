@@ -1,5 +1,6 @@
 import type { Entity } from "@/packages/games/engine";
 
+import type { DescentState, LandingPlan, LandingWorld } from "../landing";
 import { StarSystem } from "./content";
 import { VoyagePhase } from "./events";
 import { Fault } from "./faults";
@@ -14,6 +15,20 @@ export interface Capture {
   from: number;
   progress: number;
   hole: Entity;
+}
+
+// A landing on its way down: the world (by id) as the landing reads it, the way down its air and gravity call for,
+// the craft as it comes down, how many times faster than life the way down plays and how fast it is playing now
+// (life's pace once a pilot flies it), and once down, when (ms on the run's clock) and whether in one piece.
+export interface Descent {
+  body: string;
+  world: LandingWorld;
+  plan: LandingPlan;
+  craft: DescentState;
+  speedUp: number;
+  pace: number;
+  downAt: number | null;
+  isSoft: boolean;
 }
 
 // Where the compass points, and what it is.
@@ -150,6 +165,8 @@ export interface VoyageState {
   nextFaultId: number;
   salvage: { wreck: Entity; progress: number } | null;
   nextWreckAt: number | null;
+  // The landing under way, or the last one while the ship still stands where it came down.
+  descent: Descent | null;
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

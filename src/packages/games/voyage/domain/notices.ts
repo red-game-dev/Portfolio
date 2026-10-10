@@ -1,4 +1,5 @@
 import { HullTier, Purse, Deed } from "../economy/domain/economy";
+import type { LandingPhase } from "../landing";
 import { ModuleId, WreckKind } from "./components";
 import { FlareClass, ImpactOutcome } from "./events";
 import { FaultKind } from "./faults";
@@ -6,7 +7,11 @@ import { ItemStack } from "./loot";
 
 // Something the UI may want to say, as it happens, beyond what the snapshot shows.
 export type VoyageNotice =
-  | { kind: "landed" | "tookOff" | "emergency" | "recovered"; body: string }
+  | { kind: "tookOff" | "emergency" | "recovered"; body: string }
+  // Down in one piece at a speed (m/s), a phase of the way down beginning, or a touchdown too hard for the craft.
+  | { kind: "landed"; body: string; speed: number | null }
+  | { kind: "descent"; body: string; phase: LandingPhase }
+  | { kind: "hardLanding"; body: string; speed: number; safe: number }
   | { kind: "captured"; isSingularity: boolean }
   | { kind: "destroyed" }
   | { kind: "flare"; flareClass: FlareClass; isHeading: boolean }

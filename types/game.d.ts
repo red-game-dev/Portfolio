@@ -330,6 +330,8 @@ export interface FinaleVoyage {
   descent: FinaleDescent;
   intro: string;
   controls: string;
+  // The same for a touch screen, where there are no keys.
+  controlsTouch: string;
   // The first time the voyage opens, before the first flight: how the pilot likes to fly.
   setup: { title: string; note: string };
   canvasLabel: string;

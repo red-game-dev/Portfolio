@@ -342,8 +342,9 @@ export const paintMissions = ({ context, toX, toY, scale, labels }: MapView, { s
   return isShown;
 };
 
-// The key, in the bottom right corner: only what the map shows now.
-export const paintKey = ({ context, labels }: MapView, width: number, height: number, seen: MapSeen): void => {
+// The key, in the bottom left corner (the telemetry stands in the right one), `bottom` pixels up: only what the map
+// shows now.
+export const paintKey = ({ context, labels }: MapView, bottom: number, seen: MapSeen): void => {
   const rows: Array<[string, string | undefined]> = [
     [MISSION, seen.mission ? labels.mapKeyMission : undefined],
     [PULL, seen.pull ? labels.mapKeyPull : undefined],
@@ -354,15 +355,15 @@ export const paintKey = ({ context, labels }: MapView, width: number, height: nu
   const shown = rows.filter((row): row is [string, string] => Boolean(row[1]));
 
   context.save();
-  context.textAlign = "right";
+  context.textAlign = "left";
   context.textBaseline = "middle";
   shown.forEach(([colour, text], index) => {
-    const y = height - 16 - (shown.length - 1 - index) * 16;
+    const y = bottom - (shown.length - 1 - index) * 16;
 
     context.fillStyle = colour;
-    context.fillRect(width - 18, y - 4, 8, 8);
+    context.fillRect(12, y - 4, 8, 8);
     context.fillStyle = "rgba(196, 210, 255, 0.85)";
-    context.fillText(text, width - 24, y);
+    context.fillText(text, 26, y);
   });
   context.restore();
 };

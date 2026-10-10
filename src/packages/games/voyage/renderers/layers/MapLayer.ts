@@ -227,7 +227,8 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
       }
     });
     this.drawNetwork(frame);
-    paintKey(view, front.width, front.height, seen);
+    // Above the maze's web where it is drawn in the same corner.
+    paintKey(view, front.height - 16 - (state.network && state.phase === "universe" ? this.networkHeight() + 12 : 0), seen);
   }
 
   // A maze universe's web as far as it is known, in a corner of the map: every system been to and those its gates
@@ -242,7 +243,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     const { front } = this.kit;
     const context = front.context;
     const width = Math.min(220, front.width * 0.5);
-    const height = width * 0.55;
+    const height = this.networkHeight();
     const left = 12;
     const top = front.height - height - 12;
     const known = new Set<number>(explored);
@@ -273,6 +274,11 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
       context.arc(x, y, isHere ? 5 : 3.5, 0, TAU);
       context.fill();
     });
+  }
+
+  // How tall the maze's web is drawn: a little over half as tall as it is wide.
+  private networkHeight(): number {
+    return Math.min(220, this.kit.front.width * 0.5) * 0.55;
   }
 
   private drawRadar({ state, world, alpha, theme }: VoyageFrame): void {

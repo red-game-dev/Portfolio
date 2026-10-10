@@ -698,3 +698,69 @@ describe("void universes", () => {
     expect(worlds.every((world) => !world.isGiant && world.isLandable)).toBe(true);
   });
 });
+
+describe("living worlds", () => {
+  test("only worlds life could arise on are lived on, by the universe's own factions, their cities lit; a dark forest hides them all", () => {
+    const specs = Array.from({ length: 300 }, (_, index) => generator.generate(6, 71000 + index * 19, null));
+    const lived = specs.flatMap((spec) => Object.entries(spec.inhabitants).map(([id, faction]) => ({ spec, id, faction })));
+
+    expect(lived.length).toBeGreaterThan(10);
+    lived.forEach(({ spec, id, faction }) => {
+      expect(WORLD_CLASSES[spec.classes[id]].isHabitable).toBe(true);
+      expect(spec.factions.map((living) => living.id)).toContain(faction);
+      expect(spec.looks[id].cities).toBeGreaterThan(0);
+    });
+    specs.filter((spec) => spec.phenomena.some((phenomenon) => phenomenon.kind === "darkForest"))
+      .forEach((spec) => expect(spec.inhabitants).toEqual({}));
+  });
+
+  // Into a universe, then give its first solid world a people of the given manner, and touch down on it.
+  const landAmong = (disposition: "peaceful" | "hostile") => {
+    const simulation = create();
+    const events: string[] = [];
+
+    intoUniverse(simulation);
+
+    const cosmos = simulation.state.cosmos;
+    const world = simulation.state.system.bodies.find((body) => body.isLandable);
+
+    if (!cosmos || !world) {
+      throw new Error("expected a universe with a solid world");
+    }
+
+    cosmos.factions = [{ ...(cosmos.factions[0] ?? generator.generate(6, 71000, null).factions[0]), id: 0, name: "Kesh Concord", disposition }];
+    cosmos.inhabitants = { [world.id]: 0 };
+    simulation.events.on("hosted", ({ faction }) => events.push(`hosted ${faction}`));
+    simulation.events.on("groundFire", ({ faction }) => events.push(`fire ${faction}`));
+
+    const contact = world.radius + defaults.ship.radius * 0.9;
+
+    place(simulation, world.x + contact, world.y, world.vx, world.vy);
+    partsOf(simulation).health.hull = partsOf(simulation).health.maxHull * 0.5;
+    simulation.step(defaults.stepMs * 2);
+
+    for (let waited = 0; simulation.state.descent?.downAt === null && waited < 30000; waited += 250) {
+      simulation.step(250);
+    }
+
+    return { simulation, events };
+  };
+
+  test("a peaceful people welcome the ship down among them: mended, refuelled and given a gift", () => {
+    const { simulation, events } = landAmong("peaceful");
+
+    expect(events).toEqual(["hosted Kesh Concord"]);
+    expect(partsOf(simulation).health.hull).toBe(partsOf(simulation).health.maxHull);
+    expect(simulation.snapshot.people).toEqual({ name: "Kesh Concord", disposition: "peaceful" });
+  });
+
+  test("a hostile people fire on the ship from the ground on its way down and for as long as it stays", () => {
+    const { simulation, events } = landAmong("hostile");
+    const hull = partsOf(simulation).health.hull + partsOf(simulation).health.shields;
+
+    expect(events).toEqual(["fire Kesh Concord"]);
+    expect(hull).toBeLessThan(partsOf(simulation).health.maxHull * 0.5 + partsOf(simulation).health.maxShields);
+    simulation.step(1000);
+    expect(partsOf(simulation).health.hull + partsOf(simulation).health.shields).toBeLessThan(hull);
+  });
+});

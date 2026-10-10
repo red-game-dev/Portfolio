@@ -742,6 +742,8 @@ export class VoyageGame extends FrameLoop {
       tell("heard", () => ({ kind: "heard" })),
       tell("wormhole", () => ({ kind: "wormhole" })),
       tell("gate", ({ name, isNew, isExit, isDeadEnd }) => ({ kind: "gate", system: name, isNew, isExit, isDeadEnd })),
+      tell("hosted", ({ body, faction }) => ({ kind: "hosted", body: this.nameOf(body), faction })),
+      tell("groundFire", ({ body, faction }) => ({ kind: "groundFire", body: this.nameOf(body), faction })),
       tell("supernova", ({ seconds, isBlown }) => ({ kind: "supernova", seconds, isBlown })),
       tell("burst", ({ seconds, isFired }) => ({ kind: "burst", seconds, isFired })),
       tell("fault", ({ kind }) => ({ kind: "fault", fault: kind })),

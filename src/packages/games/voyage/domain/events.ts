@@ -71,6 +71,10 @@ export interface VoyageEvents {
   // supernova's shock or a gamma ray burst (whether it lives through it is known a moment later).
   skimmed: { body: string };
   weathered: { peril: "supernova" | "burst" };
+  // Down on a world others live on: welcomed and seen to by its people (a faction's name), or fired on from the
+  // ground by a people who want no visitors.
+  hosted: { body: string; faction: string };
+  groundFire: { body: string; faction: string };
   // Through a gate of a maze universe to another of its systems: which, its name, whether it is new, whether the way
   // on waits there, and whether it leads nowhere else.
   gate: { to: number; name: string; isNew: boolean; isExit: boolean; isDeadEnd: boolean };

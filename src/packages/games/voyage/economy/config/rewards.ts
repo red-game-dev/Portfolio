@@ -5,6 +5,7 @@ const purse = (RED: number, VOID = 0): Purse => ({ RED, VOID });
 export interface Rewards {
   discovery: Purse;
   landing: Purse;
+  hosted: Purse;
   rescue: Purse;
   deflection: Purse;
   boss: Purse;
@@ -15,13 +16,15 @@ export interface Rewards {
   knownBlueprint: Purse;
 }
 
-// What each deed pays: a new place reached, a first landing, a world saved by breaking or turning a rock, a boss
+// What each deed pays: a new place reached, a first landing, a welcome from those who live on a world (and a Void
+// Shard as their gift), a world saved by breaking or turning a rock, a boss
 // brought down, a universe reached through a black hole (and a Void Shard torn from it), a Red Coin picked up in
 // flight; a bounty per level of the hostile downed; Red Coin for every so many points at the end of a run, which
 // counts every rock and pickup; and for a plan found that was already known.
 export const REWARDS: Rewards = {
   discovery: purse(15),
   landing: purse(25),
+  hosted: purse(60, 1),
   rescue: purse(60),
   deflection: purse(80),
   boss: purse(250, 3),

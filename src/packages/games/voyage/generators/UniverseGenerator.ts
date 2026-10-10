@@ -82,6 +82,8 @@ const HUGGING = 1.6;
 // From the fifth universe on, this share are mazes; each system of one is made from the universe's seed and this
 // much more for each place along the network.
 const MAZE_FROM = 5;
+// The share of worlds life could arise on that a faction lives on.
+const INHABITED = 0.5;
 const MAZE_CHANCE = 0.4;
 const NODE_SEED = 7919;
 
@@ -309,6 +311,7 @@ export class UniverseGenerator {
     const isDark = phenomena.some((phenomenon) => phenomenon.kind === "darkForest");
     // In a dark forest every civilisation hides: no ship is ever seen until one strikes.
     const factions = isDark ? [] : living;
+    const inhabitants = this.inhabit(random, bodies, classes, factions, looks);
 
     return {
       index,
@@ -339,9 +342,32 @@ export class UniverseGenerator {
       factions,
       phenomena,
       danger,
+      inhabitants,
       network,
       node,
     };
+  }
+
+  // Who lives where: about half the worlds life could arise on belong to one of the factions of the universe, their
+  // cities lighting the night side.
+  private inhabit(random: RandomSource, bodies: SystemBody[], classes: Record<string, WorldClass>, factions: FactionSpec[], looks: Record<string, GlobeLook>):
+    Record<string, number> {
+    const lived: Record<string, number> = {};
+
+    if (factions.length === 0) {
+      return lived;
+    }
+
+    bodies.forEach((body) => {
+      if (WORLD_CLASSES[classes[body.id]].isHabitable && random() < INHABITED) {
+        const faction = factions[Math.floor(random() * factions.length)];
+
+        lived[body.id] = faction.id;
+        looks[body.id] = { ...looks[body.id], cities: randomBetween(random, 0.4, 0.9) };
+      }
+    });
+
+    return lived;
   }
 
   // Whether a universe is a maze, and if so its web of systems: each joined to one made before it (mostly the last

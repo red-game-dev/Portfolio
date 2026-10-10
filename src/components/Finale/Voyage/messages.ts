@@ -105,6 +105,9 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
       return content.heard;
     case "wormhole":
       return content.wormhole;
+    case "hosted":
+    case "groundFire":
+      return fill(notice.kind === "hosted" ? content.hosted : content.groundFire, { faction: notice.faction, body: notice.body });
     case "gate":
       return fill(notice.isExit ? content.gate.wayOn : !notice.isNew ? content.gate.again : notice.isDeadEnd ? content.gate.deadEnd : content.gate.through, {
         system: notice.system,

@@ -59,6 +59,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       surface: null,
       descent: this.descent(state),
       homecoming: state.homecoming ? { stage: state.homecoming.stage, days: state.homecoming.days, isSea: state.homecoming.isSea } : null,
+      people: this.people(state, ship?.landedOn ?? null),
       maze: state.network && state.phase === "universe"
         ? { system: state.network.nodes[state.node].name, systems: state.network.nodes.length, explored: state.explored.size, isExit: state.node === state.network.exit }
         : null,
@@ -99,6 +100,14 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
   }
 
   // Someone the guns are on, or the boss, for an MMO frame.
+  // Who lives on a world, if anyone.
+  private people(state: VoyageState, body: string | null): VoyageSnapshot["people"] {
+    const id = body ? state.cosmos?.inhabitants[body] : undefined;
+    const faction = id === undefined ? undefined : state.cosmos?.factions.find((spec) => spec.id === id);
+
+    return faction ? { name: faction.name, disposition: faction.disposition } : null;
+  }
+
   // What the compass's target is called: a world a universe named, or the system a maze's gate leads to.
   private waypointName(state: VoyageState, id: string): string | null {
     const gate = /^gate-(\d+)$/.exec(id);

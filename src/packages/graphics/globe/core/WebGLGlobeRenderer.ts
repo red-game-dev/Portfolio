@@ -223,6 +223,7 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
     this.float(program, "u_hasClouds", clouds ? 1 : 0);
     this.float(program, "u_mapLeft", ((surface.centreLongitude ?? 0) - 180) * DEG);
     this.float(program, "u_cloudCover", look.clouds ?? 0);
+    this.float(program, "u_cities", look.cities ?? 0);
     this.float(program, "u_cloudShift", (look.cloudDrift ?? 0) * draw.time);
     this.float(program, "u_kind", SURFACE_IDS[surface.kind]);
     gl.uniform3fv(this.location(program, "u_palette"), uniforms.palette);

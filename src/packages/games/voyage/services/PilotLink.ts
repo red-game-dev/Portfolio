@@ -11,7 +11,7 @@ import { Deed } from "../economy/domain/economy";
 import { Hangar } from "../economy/services/Hangar";
 
 // Deeds big enough to announce what they paid.
-const ANNOUNCED: ReadonlyArray<Deed["kind"]> = ["boss", "universe", "rescue"];
+const ANNOUNCED: ReadonlyArray<Deed["kind"]> = ["boss", "universe", "rescue", "hosted"];
 // Coins picked up are paid together at most this often (ms of the run), so a run's ledger keeps room for deeds.
 const COIN_BATCH_MS = 1000;
 // The Sun's closest approach is only worth telling a mission inside this distance (AU).
@@ -93,6 +93,7 @@ export class PilotLink {
         this.discoverPlace(body);
       }),
       events.on("skimmed", ({ body }) => this.count({ kind: "skimmed", body })),
+      events.on("hosted", ({ body }) => this.pay({ kind: "hosted", place: this.nameOf(body) })),
       // Red Coins picked up in flight are gathered, and paid into the wallet together (see `tick`).
       events.on("collected", ({ kind }) => {
         if (kind === "coin") {

@@ -63,6 +63,9 @@ export interface GlobeLook {
   // Cloud cover over the map (0 to 1), and how fast it drifts against the ground (radians per second).
   clouds?: number;
   cloudDrift?: number;
+  // How thickly cities light the land on the night side of a world someone lives on (0 to 1), where there is no
+  // night map.
+  cities?: number;
 }
 
 // A scar from an impact, on the body: where (degrees), how wide (degrees of arc), and how hot it still is.

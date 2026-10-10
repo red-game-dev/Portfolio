@@ -25,6 +25,7 @@ export type VoyageNotice =
   | { kind: "boss"; name: string; isFallen: boolean }
   | { kind: "heard" | "wormhole" }
   | { kind: "gate"; system: string; isNew: boolean; isExit: boolean; isDeadEnd: boolean }
+  | { kind: "hosted" | "groundFire"; body: string; faction: string }
   | { kind: "supernova"; seconds: number; isBlown: boolean }
   | { kind: "burst"; seconds: number; isFired: boolean }
   | { kind: "salvaged"; wreck: WreckKind; kept: ItemStack[]; lost: ItemStack[]; blueprints: string[] }

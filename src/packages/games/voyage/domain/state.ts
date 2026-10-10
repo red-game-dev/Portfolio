@@ -19,7 +19,8 @@ export interface Capture {
 
 // A landing on its way down: the world (by id) as the landing reads it, the way down its air and gravity call for,
 // the craft as it comes down, how many times faster than life the way down plays and how fast it is playing now
-// (life's pace once a pilot flies it), and once down, when (ms on the run's clock) and whether in one piece.
+// (life's pace once a pilot flies it), once down, when (ms on the run's clock) and whether in one piece, and whether
+// the world's people have opened fire on it.
 export interface Descent {
   body: string;
   world: LandingWorld;
@@ -29,6 +30,8 @@ export interface Descent {
   pace: number;
   downAt: number | null;
   isSoft: boolean;
+  // Whether those who live there have opened fire yet.
+  isFiredOn: boolean;
 }
 
 // A crew home: picked up where the capsule came down (by the recovery ship at sea, the recovery crews on land),

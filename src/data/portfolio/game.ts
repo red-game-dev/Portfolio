@@ -92,6 +92,9 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         ready: "A new rocket stands fuelled and ready.",
         readyAt: "Recovered. A new rocket stands fuelled and ready at {pad}.",
         launch: "Burn to launch it",
+        people: "Home of the {faction}",
+        welcome: "They welcome you: your ship mended, refuelled and given a gift",
+        hostile: "Their defences are firing on you: lift off",
         recoverySea: "The recovery ship is alongside, lifting the capsule aboard",
         recoveryLand: "The recovery helicopter is setting down beside the capsule",
         readying: "A new rocket is being readied for you",
@@ -311,6 +314,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         none: "no star at all",
       },
       universeMaze: "Universe {count}: {name}, at {system}, {explored} of {systems} systems found",
+      hosted: "The {faction} of {body} welcome you: they mend your ship and give you a gift",
+      groundFire: "The {faction} of {body} open fire from the ground",
       gate: {
         through: "Through the gate to {system}",
         wayOn: "Through the gate to {system}, and the way on waits here",
@@ -408,6 +413,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           memos: {
             discovery: "Reached {detail}",
             landing: "Landed on {detail}",
+            hosted: "Welcomed on {detail}",
             bounty: "Bounty, level {detail}",
             rescue: "Saved {detail}",
             boss: "Brought down {detail}",
@@ -472,6 +478,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           boss: "+{red} Red Coin and {void} Void Shards for the boss",
           universe: "+{red} Red Coin and {void} Void Shard for a new universe",
           rescue: "+{red} Red Coin for saving a world",
+          hosted: "+{red} Red Coin and {void} Void Shard, a gift from your hosts",
         },
         upgraded: "Upgraded to {ship}",
         records: {

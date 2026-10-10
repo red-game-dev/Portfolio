@@ -28,6 +28,7 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   surface: null,
   descent: null,
   homecoming: null,
+  people: null,
   maze: null,
   modules: { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 },
   waypoint: null,
@@ -222,6 +223,17 @@ describe("the voyage's cards", () => {
     expect(surfaceLines(voyage, pad, "Starbase, Texas")).toEqual(expect.arrayContaining(["3 days later", "A new rocket stands fuelled and ready."]));
     expect(surfaceHint(voyage, pad, "Starbase, Texas")).toBe("Burn to launch it");
     expect(voyageNotice(voyage, { kind: "recovered", body: "earth", days: 3 })).toBe("3 days later, a new rocket stands on the pad");
+  });
+
+  test("down among a people, the card names them and how they meet the ship, and the notices say it", () => {
+    const welcomed = at({ surface: { ...HOME, body: "u6-2", isHome: false, biome: "grassland" }, people: { name: "Kesh Concord", disposition: "neutral" } });
+    const fired = at({ surface: { ...HOME, body: "u6-2", isHome: false, biome: "grassland" }, people: { name: "Kesh Concord", disposition: "hostile" } });
+
+    expect(surfaceLines(voyage, welcomed, null)).toEqual(expect.arrayContaining(["Home of the Kesh Concord", voyage.surface.welcome]));
+    expect(surfaceLines(voyage, fired, null)).toContain(voyage.surface.hostile);
+    expect(voyageNotice(voyage, { kind: "hosted", body: "Veldara c", faction: "Kesh Concord" }))
+      .toBe("The Kesh Concord of Veldara c welcome you: they mend your ship and give you a gift");
+    expect(voyageNotice(voyage, { kind: "groundFire", body: "Veldara c", faction: "Kesh Concord" })).toBe("The Kesh Concord of Veldara c open fire from the ground");
   });
 
   test("elsewhere the card names the world, its ground, the spot and the local time", () => {

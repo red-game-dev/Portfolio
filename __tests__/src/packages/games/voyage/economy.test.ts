@@ -149,6 +149,14 @@ describe("voyage economy", () => {
     expect(hangar.view().history[0].memo).toBe("flight:4000");
   });
 
+  test("a welcome from those who live on a world pays their gift, a Void Shard with it, from its own account", () => {
+    const hangar = hangarWith();
+
+    hangar.reward({ kind: "hosted", place: "Veldara c" });
+    expect(hangar.purse).toEqual({ RED: 60, VOID: 1 });
+    expect(hangar.view().history[0].memo).toBe("hosted:Veldara c");
+  });
+
   test("a find fills the hold as far as it has room, learns new plans and is paid for copies of known ones", () => {
     const hangar = hangarWith({ titanium: 6 });
     const stowed = hangar.stow({ items: [{ id: "titanium", count: 3 }, { id: "scrap", count: 2 }], blueprints: ["recipe:nozzle", "recipe:repairKit"] });

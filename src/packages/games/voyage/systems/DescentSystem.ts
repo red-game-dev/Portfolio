@@ -3,6 +3,7 @@ import type { System } from "@/packages/games/engine";
 import { MODULE_IDS } from "../domain/components";
 import { HOME_WORLD, SystemBody } from "../domain/content";
 import { Descent } from "../domain/state";
+import { FactionSpec } from "../domain/universe";
 import { advanceDescent, isSoftTouchdown, LandingPlan, LandingWorld, planLanding, rehearse, safeSpeedOf, startDescent } from "../landing";
 import { landingWorldOf } from "../utils/landing";
 import { VoyageContext } from "./context";
@@ -22,8 +23,10 @@ const DAY_MS = 86400000;
 // (see the landing package), stepped through the real physics and played as many times faster than life as the
 // config and the pilot's choice allow, or at life's pace once a pilot flies the burn. Until it is down the ship
 // cannot lift off. Down in one piece, the landing counts and is scored; down too hard, the legs give way and the
-// hull pays for it. Home, nobody flies the capsule again: the crew is picked up where it came down, and some days
-// later (the mission clock moving on with them) a new rocket stands fuelled and sound on the pad.
+// hull pays for it. A world someone lives on welcomes the ship (mended, refuelled and given a gift) or, if its people
+// want no visitors, fires on it from the ground as it comes down and for as long as it stays. Home, nobody flies the
+// capsule again: the crew is picked up where it came down, and some days later (the mission clock moving on with
+// them) a new rocket stands fuelled and sound on the pad.
 export class DescentSystem implements System<VoyageContext> {
   public readonly name = "descent";
   // How long each world's way down takes, flown ahead once per world each run (and once more for a pilot, whose
@@ -52,6 +55,10 @@ export class DescentSystem implements System<VoyageContext> {
 
     const descent = state.descent;
 
+    if (descent) {
+      this.defend(context, descent, dt);
+    }
+
     if (!descent || descent.downAt !== null) {
       return;
     }
@@ -77,7 +84,7 @@ export class DescentSystem implements System<VoyageContext> {
     const plan = planLanding(world);
     const craft = startDescent(plan);
 
-    context.state.descent = { body: place.id, world, plan, craft, speedUp: 1, pace: 1, downAt: null, isSoft: false };
+    context.state.descent = { body: place.id, world, plan, craft, speedUp: 1, pace: 1, downAt: null, isSoft: false, isFiredOn: false };
     context.events.emit("descending", { body: place.id, phase: craft.phase });
   }
 
@@ -113,6 +120,13 @@ export class DescentSystem implements System<VoyageContext> {
 
       events.emit("landed", { body, speed });
 
+      const people = this.peopleOf(context, body);
+
+      if (people && (people.disposition === "peaceful" || people.disposition === "neutral")) {
+        this.restore(context, parts);
+        events.emit("hosted", { body, faction: people.name });
+      }
+
       if (world.isHome) {
         state.homecoming = { stage: "recovery", since: state.elapsedMs, days: config.descent.recoveryDays, isSea: world.isWater };
       }
@@ -128,6 +142,44 @@ export class DescentSystem implements System<VoyageContext> {
 
     applyDamage(context, parts.health.shields + share * parts.health.maxHull, ground, "crash");
     events.emit("hardLanding", { body, speed, safe });
+  }
+
+  // The faction that lives on a world, if any.
+  private peopleOf({ state }: VoyageContext, body: string): FactionSpec | null {
+    const faction = state.cosmos?.inhabitants[body];
+
+    return faction === undefined ? null : state.cosmos?.factions.find((spec) => spec.id === faction) ?? null;
+  }
+
+  // A people who want no visitors fire from the ground at a craft coming down to them, from the moment it is low
+  // enough, and go on while it stays.
+  private defend(context: VoyageContext, descent: Descent, dt: number): void {
+    const { config, events } = context;
+    const people = this.peopleOf(context, descent.body);
+
+    if (!people || (people.disposition !== "hostile" && people.disposition !== "territorial") || descent.craft.altitude > config.descent.fireAltitude) {
+      return;
+    }
+
+    if (!descent.isFiredOn) {
+      descent.isFiredOn = true;
+      events.emit("groundFire", { body: descent.body, faction: people.name });
+    }
+
+    const offset = shipOf(context)?.ship.landedOffset;
+
+    applyDamage(context, config.descent.groundFire * dt, offset ? Math.atan2(-offset.y, -offset.x) : 0, "weapon");
+  }
+
+  // Seen to as guests are: every system mended, the tanks full, the hull and shields whole.
+  private restore(context: VoyageContext, { ship, health, modules }: ShipParts): void {
+    ship.fuel = ship.maxFuel;
+    health.hull = health.maxHull;
+    health.shields = health.maxShields;
+    MODULE_IDS.forEach((id) => {
+      modules[id] = 1;
+    });
+    context.state.faults = [];
   }
 
   // Once the crew has been picked up, the days pass to the next launch and the new rocket is on the pad.
@@ -148,15 +200,9 @@ export class DescentSystem implements System<VoyageContext> {
 
   // Home: a new rocket rolled out, full of fuel, its hull, shields and every system sound, no fault left and no
   // scar on it.
-  private recover(context: VoyageContext, { ship, health, modules }: ShipParts, days: number): void {
-    ship.fuel = ship.maxFuel;
-    health.hull = health.maxHull;
-    health.shields = health.maxShields;
-    health.decals = [];
-    MODULE_IDS.forEach((id) => {
-      modules[id] = 1;
-    });
-    context.state.faults = [];
+  private recover(context: VoyageContext, parts: ShipParts, days: number): void {
+    this.restore(context, parts);
+    parts.health.decals = [];
     context.events.emit("recovered", { body: HOME_WORLD, days });
   }
 }

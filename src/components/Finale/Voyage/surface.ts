@@ -34,6 +34,12 @@ export const surfaceLines = (content: FinaleVoyage, snapshot: VoyageSnapshot, pa
 
   const lines = [copy.biomes[surface.biome], formatLatLon(surface.latitude, surface.longitude), time];
 
+  if (snapshot.people) {
+    const isFriendly = snapshot.people.disposition === "peaceful" || snapshot.people.disposition === "neutral";
+
+    lines.push(fill(copy.people, { faction: snapshot.people.name }), isFriendly ? copy.welcome : copy.hostile);
+  }
+
   if (surface.isHome && homecoming?.stage === "recovery") {
     lines.push(homecoming.isSea ? copy.recoverySea : copy.recoveryLand);
   } else if (surface.isHome) {

@@ -188,7 +188,7 @@ export interface VoyageEconomyCopy {
   // "{action}" is replaced with what the one click does.
   suggestion: { title: string; hint: string; upgrade: string; repair: string; craftFault: string; craftUpgrade: string; use: Record<"hull" | "fuel" | "shields" | "heat", string> };
   // "{red}" and "{void}" are replaced.
-  earned: Record<"boss" | "universe" | "rescue", string>;
+  earned: Record<"boss" | "universe" | "rescue" | "hosted", string>;
   upgraded: string;
   records: { title: string; runs: string; best: string; universes: string; bosses: string; rescues: string; salvaged: string };
   reset: { button: string; confirm: string; yes: string; no: string };
@@ -259,6 +259,10 @@ export interface FinaleSurface {
   ready: string;
   readyAt: string;
   launch: string;
+  // Who lives here ("{faction}"), and how they meet the ship: welcomed, or fired on.
+  people: string;
+  welcome: string;
+  hostile: string;
   // Home, the crew picked up at sea or on land while a new rocket is readied (at "{pad}"); then the pad ("{pad}"),
   // "{days}" days later.
   recoverySea: string;
@@ -438,6 +442,9 @@ export interface FinaleVoyage {
   // A maze universe: where the ship is in it ("{count}", "{name}", "{system}", "{explored}", "{systems}"), and what
   // is said through a gate ("{system}"): a new system, one with the way on, a dead end, one been to before.
   universeMaze: string;
+  // Down on a world someone lives on ("{faction}", "{body}"): welcomed, or fired on.
+  hosted: string;
+  groundFire: string;
   gate: { through: string; wayOn: string; deadEnd: string; again: string };
   over: string;
   // "{score}" is replaced.

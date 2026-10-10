@@ -163,6 +163,8 @@ export interface UniverseSpec {
   factions: FactionSpec[];
   phenomena: PhenomenonSpec[];
   danger: number;
+  // Which of its worlds are lived on, and by which faction (by id): only worlds life could arise on.
+  inhabitants: Record<string, number>;
   // The maze it is part of, and which of its systems this is; null and 0 for a universe of one system.
   network: UniverseNetwork | null;
   node: number;

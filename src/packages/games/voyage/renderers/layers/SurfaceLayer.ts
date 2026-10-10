@@ -1,3 +1,4 @@
+import { hashText } from "@/packages/encoding/hash";
 import type { RenderLayer } from "@/packages/games/engine";
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { Rgb, rgbToHex, shadeHex } from "@/packages/graphics/colour";
@@ -32,6 +33,7 @@ import {
   paintSplash,
   ShellColours,
 } from "../paint/landers";
+import { Building, CityColours, paintCity, paintGroundFire, planCity } from "../paint/settlements";
 import { paintHull } from "../paint/ships";
 import { paintFlame, SHIP_HEIGHT, SHIP_WIDTH } from "../paint/space";
 import { GlobesLayer } from "./GlobesLayer";
@@ -114,6 +116,11 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
   private home: HomePad | null = null;
   private padSince: number | null = null;
   private hull: { key: string; paint: ReturnType<typeof paintHull> } | null = null;
+  // Who lives where the ship comes down (their colours, and whether they want no visitors), their city, and where
+  // the craft was last drawn, for their guns to aim at.
+  private people: { colours: CityColours; isHostile: boolean } | null = null;
+  private city: Building[] = [];
+  private readonly craftAt = { x: 0, y: 0 };
 
   constructor(private readonly kit: RenderKit, private readonly globes: GlobesLayer, private readonly sample: MapSampler) {}
 
@@ -163,6 +170,8 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       this.info = null;
       this.scene = null;
       this.padSince = null;
+      this.people = null;
+      this.city = [];
 
       return;
     }
@@ -193,7 +202,19 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       this.drawAirBand(horizon, width, height, scene.air.horizon, 1 - density);
     }
 
+    // The city of those who live here, made out only as the ground comes near.
+    if (this.people) {
+      front.context.globalAlpha = this.shown * smoothstep(0.15, 0.6, nearness);
+      paintCity(front.context, this.city, horizon, width, height, this.people.colours, sky.light);
+      front.context.globalAlpha = this.shown;
+    }
+
     this.drawCraft(frame, horizon + height * 0.07, sky.light, !ground);
+
+    // A people who want no visitors fire on the craft for as long as it is coming down to them or stays.
+    if (ground && this.people?.isHostile && state.descent?.body === place.id && state.descent.isFiredOn) {
+      paintGroundFire(front.context, this.city, horizon, width, height, this.craftAt.x, this.craftAt.y, this.people.colours[2], now);
+    }
 
     // Arriving at the pad: the days between pass in a moment of black.
     if (this.padSince !== null && now - this.padSince < PAD_FADE_MS) {
@@ -303,6 +324,11 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       ground: toGround(preset, latitude, longitude),
     };
     this.padSince = null;
+
+    const people = state.cosmos?.factions.find((faction) => faction.id === state.cosmos?.inhabitants[place.id]);
+
+    this.people = people ? { colours: people.colours, isHostile: people.disposition === "hostile" || people.disposition === "territorial" } : null;
+    this.city = people ? planCity(hashText(`${place.id}:${Math.round(latitude)}:${Math.round(longitude)}`)) : [];
     this.info = {
       body: place.id, name: state.cosmos?.names[place.id] ?? null, isHome: isHome && place.id === HOME_WORLD, latitude, longitude, hours: 12, biome: preset.biome,
       pad: null,
@@ -382,6 +408,9 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const x = width / 2;
     const y = groundY - lift;
     const sunSide = this.scene?.sun ? Math.sign(this.scene.sun.side) || 1 : 1;
+
+    this.craftAt.x = x;
+    this.craftAt.y = y - tall * 0.5;
     const sinceDown = descent?.downAt !== null && descent?.downAt !== undefined ? state.elapsedMs - descent.downAt : Infinity;
     const isHome = descent ? descent.world.isHome : this.info?.isHome ?? false;
     const ambient = 0.25 + 0.75 * light;

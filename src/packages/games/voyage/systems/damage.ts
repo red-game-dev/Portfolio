@@ -1,4 +1,4 @@
-import { angleBetween } from "@/packages/physics/newtonian";
+import { angleBetween } from "@/packages/math/angles";
 
 import { Decal, ModuleId } from "../domain/components";
 import { DamageKind } from "../domain/events";

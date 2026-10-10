@@ -7,6 +7,7 @@ import { ActionButton, ActionLink } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import useModalDialog from "@/hooks/useModalDialog";
 import { TerminalDialog as TerminalDialogContent } from "@/packages/interaction/terminal";
+import { media, squareBullet } from "@/styles/mixins";
 
 interface TerminalDialogProps {
   dialog: TerminalDialogContent | null;
@@ -18,11 +19,6 @@ interface TerminalDialogProps {
 const materialise = keyframes`
   from { opacity: 0; transform: translateY(12px) scale(0.97); }
   to { opacity: 1; transform: none; }
-`;
-
-const sweep = keyframes`
-  from { transform: translateY(-100%); }
-  to { transform: translateY(100%); }
 `;
 
 // A native dialog: modal focus, Escape and the backdrop come from the browser. It keeps the browser's own
@@ -49,10 +45,10 @@ const Dialog = styled.dialog(() => [
       inset: 0;
       pointer-events: none;
       background: linear-gradient(to bottom, transparent 0%, rgba(var(--accent-rgb), 0.12) 50%, transparent 100%);
-      animation: ${sweep} 0.9s ease-out forwards;
+      animation: scan-beam 0.9s ease-out forwards;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &[open],
       &[open]::after {
         animation: none;
@@ -79,17 +75,7 @@ const Items = tw.ul`list-none m-0 p-0 flex flex-col gap-[6px] text-sm`;
 
 const Item = styled.li(() => [
   tw`relative pl-[16px] break-words`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.6em;
-      width: 6px;
-      height: 6px;
-      background: var(--accent);
-    }
-  `,
+  squareBullet(),
 ]);
 
 const Actions = tw.div`flex flex-row flex-wrap gap-[10px] pt-[6px]`;

@@ -1,6 +1,6 @@
 import type { System } from "@/packages/games/engine";
 
-import { MODULE_IDS } from "../domain/components";
+import { Body, MODULE_IDS, PickupKind } from "../domain/components";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
 import { placeBody, shipOf } from "./queries";
@@ -10,10 +10,14 @@ const REFERENCE_RADIUS = 0.08;
 const REACH = 0.6;
 // How much of a system one repair kit restores.
 const REPAIR_SHARE = 0.35;
+// How fast a coin in reach is drawn in to the ship (world units a second): faster the nearer it is.
+const MAGNET_SPEED = 3;
+const MAGNET_MIN = 0.8;
 
 // Contact between the ship and everything else, found through a spatial hash so the cost grows with what is near
 // the ship, not with what is in the world. A rock hits as hard as its size times the square of the closing speed,
-// shatters, and knocks the ship by momentum; a pickup is collected; a black hole's horizon starts the capture.
+// shatters, and knocks the ship by momentum; a pickup is collected, and coins close by are drawn in to it first;
+// a black hole's horizon starts the capture.
 export class CollisionSystem implements System<VoyageContext> {
   public readonly name = "collision";
 
@@ -27,6 +31,7 @@ export class CollisionSystem implements System<VoyageContext> {
 
     const { body } = parts;
 
+    this.drawCoins(context, body);
     grid.clear();
     world.stores.hazard.entities.forEach((entity) => {
       const rock = world.stores.body.get(entity);
@@ -98,7 +103,34 @@ export class CollisionSystem implements System<VoyageContext> {
     });
   }
 
-  private collect(context: VoyageContext, kind: "score" | "shield" | "fuel" | "repair", x: number, y: number): void {
+  // Coins within reach fly in to the ship, so a pass close by collects them without having to touch each one. The
+  // reach is wider than the contact search below: a coin drawn in is caught once it is close.
+  private drawCoins({ world, config }: VoyageContext, ship: Body): void {
+    const reach = config.pickups.magnet;
+
+    world.stores.pickup.entities.forEach((entity, index) => {
+      const coin = world.stores.body.get(entity);
+
+      if (!coin || world.stores.pickup.values[index].kind !== "coin") {
+        return;
+      }
+
+      const dx = ship.x - coin.x;
+      const dy = ship.y - coin.y;
+      const distance = Math.hypot(dx, dy);
+
+      if (distance > reach || distance === 0) {
+        return;
+      }
+
+      const pull = MAGNET_MIN + MAGNET_SPEED * (1 - distance / reach);
+
+      coin.vx = ship.vx + (dx / distance) * pull;
+      coin.vy = ship.vy + (dy / distance) * pull;
+    });
+  }
+
+  private collect(context: VoyageContext, kind: PickupKind, x: number, y: number): void {
     const { state, config, events } = context;
     const parts = shipOf(context);
 
@@ -108,7 +140,7 @@ export class CollisionSystem implements System<VoyageContext> {
 
     const { ship, health, modules } = parts;
 
-    if (kind === "score") {
+    if (kind === "coin") {
       state.score += config.scoring.pickup;
     } else if (kind === "fuel") {
       ship.fuel = Math.min(ship.maxFuel, ship.fuel + config.pickups.fuel);

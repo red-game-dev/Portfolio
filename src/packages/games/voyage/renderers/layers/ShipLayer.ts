@@ -1,5 +1,7 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { lerpAngle, TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
 import { VoyageTheme } from "../../config";
 import { Decal } from "../../domain/components";
@@ -22,8 +24,6 @@ const ION = { core: "#eef8ff", edge: "#5fb8ff" };
 const HULL = { across: 0.4, along: 1.22 };
 // The hull starts to glow above this temperature (Celsius).
 const HEAT_GLOW_C = 350;
-
-const lerpAngle = (from: number, to: number, alpha: number) => from + Math.atan2(Math.sin(to - from), Math.cos(to - from)) * alpha;
 
 // The ship: its flame from every engine its hull has (fire for rockets, ion light for the great ships; sputtering
 // when the hull is failing), its body as its hull and mark, the marks of every hit where it landed,
@@ -119,7 +119,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     health.decals.forEach((decal) => this.drawDecal(decal, r, now));
 
     // Hot metal glows: dull red, then orange, then white as it nears the point where the plating melts.
-    const glow = Math.min(1.2, Math.max(0, (ship.temperatureC - HEAT_GLOW_C) / (config.thermal.ratings.hull - HEAT_GLOW_C)));
+    const glow = clamp((ship.temperatureC - HEAT_GLOW_C) / (config.thermal.ratings.hull - HEAT_GLOW_C), 0, 1.2);
 
     if (glow > 0) {
       const colour = glow < 0.5 ? "rgba(255, 70, 20, 1)" : glow < 0.9 ? "rgba(255, 150, 50, 1)" : "rgba(255, 235, 200, 1)";
@@ -266,7 +266,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
 
     const { particles } = this.kit;
     const drop = this.kit.cache.get("glow:rgba(255, 200, 120, 1)", 64, 64, paintGlow("rgba(255, 200, 120, 1)"));
-    const spread = Math.random() * Math.PI * 2;
+    const spread = Math.random() * TAU;
     const kick = 0.15 + Math.random() * 0.3;
 
     particles.emit("glow", x + Math.cos(spread) * radius, y + Math.sin(spread) * radius, vx * 0.9 + Math.cos(spread) * kick, vy * 0.9 + Math.sin(spread) * kick,

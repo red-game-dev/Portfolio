@@ -10,10 +10,13 @@ import { RenderKit } from "./kit";
 // How far a comet's tails can reach (world units), so it is drawn while they are in view.
 const TAIL_REACH = 7;
 
-// The colour of each kind of pickup; score takes a universe's own colour there.
-const PICKUP_COLOUR = { score: "#ffd76a", shield: "#4fd8ff", fuel: "#62ffc8", repair: "#ff8fa3" };
+// The colour of each kind of pickup: coins are gold everywhere, so they read as coin in every universe.
+const PICKUP_COLOUR = { coin: "#ffd76a", shield: "#4fd8ff", fuel: "#62ffc8", repair: "#ff8fa3" };
+// How fast a coin turns over as it drifts (radians a millisecond), and the narrowest it gets edge on.
+const COIN_SPIN = 0.004;
+const COIN_EDGE = 0.22;
 
-// What drifts through space: pickups pulsing softly, rocks tumbling (icy out past Neptune), and in the universes
+// What drifts through space: pickups pulsing softly (coins turning over as they go), rocks tumbling (icy out past Neptune), and in the universes
 // each one's own hazards. Only what the camera can see is drawn, each from a sprite painted once per size.
 export class ThingsLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "things";
@@ -39,12 +42,13 @@ export class ThingsLayer implements RenderLayer<VoyageFrame> {
       }
 
       const { kind } = world.stores.pickup.values[index];
-      const colour = kind === "score" && universe ? universe.accent : PICKUP_COLOUR[kind];
+      const colour = PICKUP_COLOUR[kind];
       const size = sizeBucket(body.radius * 3 * base);
       const sprite = this.kit.sprite(`pickup:${kind}:${colour}:${size}`, size, size, paintPickup(kind, colour));
       const drawn = body.radius * 3 * camera.scale * pulse;
+      const turn = kind === "coin" ? Math.max(COIN_EDGE, Math.abs(Math.cos(now * COIN_SPIN + entity))) : 1;
 
-      front.blit(sprite, camera.toScreenX(lerpX(body, alpha)), camera.toScreenY(lerpY(body, alpha)), drawn, drawn);
+      front.blit(sprite, camera.toScreenX(lerpX(body, alpha)), camera.toScreenY(lerpY(body, alpha)), drawn * turn, drawn);
     });
 
     world.stores.hazard.entities.forEach((entity, index) => {

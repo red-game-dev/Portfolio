@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { media } from "@/styles/mixins";
 import { StackGroup } from "@/types/domains";
 
 interface StackProps {
@@ -34,7 +35,7 @@ const Token = styled.li(() => [
       transform: translateY(-2px);
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       transition: none;
 
       &:hover {

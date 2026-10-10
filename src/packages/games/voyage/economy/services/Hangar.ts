@@ -1,9 +1,11 @@
+import { sumBy } from "@/packages/math/stats";
+
 import { DEFAULT_VOYAGE_CONFIG, VoyageConfig } from "../../config";
 import { FaultKind, ShipEffect } from "../../domain/faults";
 import { ITEMS } from "../config/catalog";
 import { FAULT_FIXES, recipeBlueprint, recipeById, RECIPES, UNIVERSAL_FIX } from "../config/recipes";
 import { REWARDS, VOID_PRICE } from "../config/rewards";
-import { cargoFor, configForLevel, markOf, MAX_LEVEL, tierOf } from "../config/tiers";
+import { cargoFor, clampLevel, configForLevel, markOf, tierOf } from "../config/tiers";
 import { upgradeCost } from "../config/upgrades";
 import { Backpack } from "../core/Backpack";
 import { emptyPurse, Wallet } from "../core/Wallet";
@@ -84,7 +86,7 @@ export class Hangar {
     this.catalog = catalog;
     this.now = now;
     this.base = base;
-    this.shipLevel = Math.max(0, Math.min(MAX_LEVEL, Math.floor(profile.level)));
+    this.shipLevel = clampLevel(profile.level);
     this.backpack = new Backpack(cargoFor(this.shipLevel), profile.cargo, catalog);
     this.wallet = Wallet.from(profile.ledger);
     this.known = new Set(profile.blueprints);
@@ -106,7 +108,7 @@ export class Hangar {
 
   // Takes on a profile written elsewhere (another tab's newer save), dropping what this one held.
   public replace(profile: EconomyProfile): void {
-    this.shipLevel = Math.max(0, Math.min(MAX_LEVEL, Math.floor(profile.level)));
+    this.shipLevel = clampLevel(profile.level);
     this.backpack = new Backpack(cargoFor(this.shipLevel), profile.cargo, this.catalog);
     this.wallet = Wallet.from(profile.ledger);
     this.known = new Set(profile.blueprints);
@@ -238,7 +240,7 @@ export class Hangar {
     }
 
     const made = this.catalog[recipe.makes.id];
-    const room = this.backpack.free + recipe.needs.reduce((sum, need) => sum + (this.catalog[need.id]?.volume ?? 0) * need.count, 0);
+    const room = this.backpack.free + sumBy(recipe.needs, (need) => (this.catalog[need.id]?.volume ?? 0) * need.count);
 
     if (!made || made.volume * recipe.makes.count > room || !this.wallet.spend("crafting", { RED: recipe.coin }, memo("craft", id), this.now())) {
       return false;
@@ -462,6 +464,8 @@ export class Hangar {
         return { ...REWARDS.universe };
       case "mission":
         return { RED: Math.max(0, Math.round(deed.coin)), VOID: 0 };
+      case "coin":
+        return { RED: REWARDS.coin.RED * Math.max(0, deed.count), VOID: REWARDS.coin.VOID * Math.max(0, deed.count) };
       default:
         return emptyPurse();
     }
@@ -543,6 +547,8 @@ const detailOf = (deed: Deed): string => {
       return String(deed.index);
     case "mission":
       return deed.id;
+    case "coin":
+      return String(deed.count);
     default:
       return "";
   }

@@ -1,4 +1,6 @@
 import { Canvas2DContext, CanvasRenderer } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
+import { lerp } from "@/packages/math/easing";
 
 import { LiveTableConfig, LiveTableTheme } from "../config";
 import { LiveTableRenderer, LiveTableScene, LiveTableSize } from "../domain/types";
@@ -13,7 +15,7 @@ const CHIP_RADIUS = 7;
 
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
 
-const lerp = (from: Point, to: Point, t: number): Point => ({ x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t });
+const lerpPoint = (from: Point, to: Point, t: number): Point => ({ x: lerp(from.x, to.x, t), y: lerp(from.y, to.y, t) });
 
 // The felt under the cards: the table's curve with its rim, the other players around it holding their cards
 // face down, the cards they throw flying to their spots, and chips stacking up on every spot that has a bet.
@@ -62,9 +64,9 @@ export class CanvasLiveTableRenderer extends CanvasRenderer<LiveTableScene> impl
       }
 
       const seat = this.seatAt(thrown.seat);
-      const position = lerp(seat, this.spotFor(seat), easeOut(t));
+      const position = lerpPoint(seat, this.spotFor(seat), easeOut(t));
 
-      this.drawCardBack({ x: position.x, y: position.y - Math.sin(t * Math.PI) * 30 }, t * Math.PI * 2);
+      this.drawCardBack({ x: position.x, y: position.y - Math.sin(t * Math.PI) * 30 }, t * TAU);
     });
 
     const you = this.yourSpot();
@@ -89,7 +91,7 @@ export class CanvasLiveTableRenderer extends CanvasRenderer<LiveTableScene> impl
     gradient.addColorStop(1, this.theme.feltEdge);
     context.save();
     context.beginPath();
-    context.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    context.ellipse(cx, cy, rx, ry, 0, 0, TAU);
     context.fillStyle = gradient;
     context.fill();
     context.lineWidth = 3;
@@ -122,7 +124,7 @@ export class CanvasLiveTableRenderer extends CanvasRenderer<LiveTableScene> impl
   private spotFor(seat: Point): Point {
     const { cx } = this.table();
 
-    return lerp(seat, { x: cx, y: this.size.height * 0.45 }, 0.22);
+    return lerpPoint(seat, { x: cx, y: this.size.height * 0.45 }, 0.22);
   }
 
   private yourSpot(): Point {
@@ -133,7 +135,7 @@ export class CanvasLiveTableRenderer extends CanvasRenderer<LiveTableScene> impl
     const { context } = this;
 
     context.beginPath();
-    context.arc(x, y, 18, 0, Math.PI * 2);
+    context.arc(x, y, 18, 0, TAU);
     context.lineWidth = 1.5;
     context.strokeStyle = this.theme.spot;
     context.stroke();
@@ -147,7 +149,7 @@ export class CanvasLiveTableRenderer extends CanvasRenderer<LiveTableScene> impl
       const chipY = y + 6 - index * 3;
 
       context.beginPath();
-      context.ellipse(x + 14, chipY, CHIP_RADIUS, CHIP_RADIUS * 0.45, 0, 0, Math.PI * 2);
+      context.ellipse(x + 14, chipY, CHIP_RADIUS, CHIP_RADIUS * 0.45, 0, 0, TAU);
       context.fillStyle = this.theme.chips[index % this.theme.chips.length];
       context.fill();
       context.lineWidth = 1;

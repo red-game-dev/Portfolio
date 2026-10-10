@@ -1,3 +1,5 @@
+import { clamp } from "@/packages/math/clamp";
+
 import { RepoGrowthView } from "../domain/types";
 
 // The first frame on or after `date`, so a milestone lands on the commit that made it; the last frame if the
@@ -10,7 +12,7 @@ export const frameIndexAt = ({ frames }: RepoGrowthView, date: string): number =
 
 // A district's height part of the way between two frames, so playback can glide rather than step.
 export const heightBetween = ({ frames }: RepoGrowthView, position: number, district: number): number => {
-  const from = Math.max(0, Math.min(frames.length - 1, Math.floor(position)));
+  const from = clamp(Math.floor(position), 0, frames.length - 1);
   const to = Math.min(frames.length - 1, from + 1);
   const t = position - from;
 

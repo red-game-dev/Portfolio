@@ -19,8 +19,9 @@ import { ActionButton } from "@/components/Controls";
 import { rankName } from "@/components/Finale/Voyage/career";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
 import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
+import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
-import { voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { placeName, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
 import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import {
   Badge,
@@ -46,6 +47,7 @@ import {
   FrameName,
   Frames,
   FrameTrack,
+  Gain,
   Hud,
   HudButtons,
   IconButton,
@@ -66,6 +68,10 @@ import {
   Score,
   ShipLine,
   Stage,
+  SurfaceCard,
+  SurfaceHint,
+  SurfaceLine,
+  SurfaceTitle,
   SystemName,
   SystemRow,
   Systems,
@@ -84,7 +90,7 @@ import {
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import useModalDialog from "@/hooks/useModalDialog";
 import type { Frame, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
-import { fill } from "@/packages/text/format";
+import { fill, formatHours, formatLatLon, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 interface VoyageDialogProps {
@@ -92,6 +98,8 @@ interface VoyageDialogProps {
   // One name per universe, in the game's order.
   universes: string[];
   best: number;
+  // The pad the finale's launch flew from, where a new rocket waits when the crew comes home.
+  homePad: string | null;
   onRecord: (score: number) => void;
   onClose: () => void;
 }
@@ -112,7 +120,7 @@ const SOUND = 0.995;
 // text everything it shows: where the ship is, its hull, shields and fuel as MMO bars, any system that is hurt,
 // the score, the live telemetry, and each moment said once. A card starts, pauses and ends a run; a button opens
 // the map. Opens itself on mount.
-export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, onRecord, onClose }: VoyageDialogProps) => {
+export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, homePad, onRecord, onClose }: VoyageDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLCanvasElement>(null);
@@ -134,6 +142,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const todayBest = career?.daily?.day === today ? career.daily.best : 0;
   const dailyNote = todayBest > 0 ? `${content.career.daily.note} ${fill(content.career.daily.best, { score: todayBest })}` : content.career.daily.note;
   const ship = economy ? shipName(content.economy, economy.tier, economy.mark) : "";
+  // Coin and shards as they come in, each shown rising off its count.
+  const redGain = useGains(economy ? economy.purse.RED : null);
+  const voidGain = useGains(economy ? economy.purse.VOID : null);
   // What the voyage says, one line at a time: a burst waits its turn.
   const [messages, setMessages] = useState<Array<{ id: number; text: string }>>([]);
   const messageId = useRef(0);
@@ -369,11 +380,17 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             <>
               <Reading>
                 <ReadingName>{copy.symbols.RED}</ReadingName>
-                <Coin aria-label={`${economy.purse.RED} ${copy.currencies.RED}`}>{economy.purse.RED.toLocaleString("en-GB")}</Coin>
+                <Coin aria-label={`${economy.purse.RED} ${copy.currencies.RED}`}>
+                  {formatNumber(economy.purse.RED)}
+                  {redGain && <Gain key={redGain.id} aria-hidden="true">{`+${redGain.amount}`}</Gain>}
+                </Coin>
               </Reading>
               <Reading>
                 <ReadingName>{copy.symbols.VOID}</ReadingName>
-                <Coin isShards aria-label={`${economy.purse.VOID} ${copy.currencies.VOID}`}>{economy.purse.VOID}</Coin>
+                <Coin isShards aria-label={`${economy.purse.VOID} ${copy.currencies.VOID}`}>
+                  {economy.purse.VOID}
+                  {voidGain && <Gain key={voidGain.id} aria-hidden="true">{`+${voidGain.amount}`}</Gain>}
+                </Coin>
               </Reading>
             </>
           )}
@@ -400,7 +417,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </IconButton>
           )}
           {status === "flying" && (
-            <IconButton type="button" onClick={isPaused ? resume : pause} aria-label={isPaused ? content.resume : content.pause}>
+            <IconButton type="button" disabled={isMapOpen} onClick={isPaused ? resume : pause} aria-label={isPaused ? content.resume : content.pause}>
               <FontAwesomeIcon icon={isPaused ? faPlay : faPause} aria-hidden="true" />
             </IconButton>
           )}
@@ -409,6 +426,16 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </IconButton>
         </HudButtons>
       </Hud>
+      {snapshot?.surface && status === "flying" && !isHangarOpen && !isPhoto && (
+        <SurfaceCard aria-label={fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn) })}>
+          <SurfaceTitle>{fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn) })}</SurfaceTitle>
+          <SurfaceLine>{content.surface.biomes[snapshot.surface.biome]}</SurfaceLine>
+          <SurfaceLine>{formatLatLon(snapshot.surface.latitude, snapshot.surface.longitude)}</SurfaceLine>
+          <SurfaceLine>{fill(content.surface.time, { time: formatHours(snapshot.surface.hours) })}</SurfaceLine>
+          {snapshot.surface.isHome && <SurfaceLine>{homePad ? fill(content.surface.readyAt, { pad: homePad }) : content.surface.ready}</SurfaceLine>}
+          <SurfaceHint>{snapshot.surface.isHome ? content.surface.launch : content.surface.takeOff}</SurfaceHint>
+        </SurfaceCard>
+      )}
       {snapshot && status === "flying" && !isHangarOpen && !isPhoto && (
         <TelemetryPanel aria-label={content.telemetry.title}>
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
@@ -526,6 +553,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 {daily && <Text>{fill(content.career.daily.result, { score: daily.score })}</Text>}
                 {daily?.isBest && <Badge>{content.career.daily.newBest}</Badge>}
                 <Text>{voyagePlace(content, snapshot, universes)}</Text>
+                <Text>{content.kept}</Text>
                 <Buttons>
                   <ActionButton type="button" isPrimary onClick={() => start()}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />

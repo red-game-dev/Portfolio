@@ -1,13 +1,17 @@
-import { KeyboardEvent, PointerEvent, ReactNode, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, ReactNode, useEffect, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
 import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { carouselPage, describePage, realignStart, swipeStep, wrapPage } from "@/components/Carousel/paging";
+import { useSwipe } from "@/components/Carousel/hooks/useSwipe";
+import { carouselPage, describePage, realignStart, wrapPage } from "@/components/Carousel/paging";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import useMediaQuery from "@/hooks/useMediaQuery";
+import { firstFocusable, isFocusLost, isInside, isTypingTarget } from "@/packages/interaction/focus";
+import { BROWSER_SHORTCUTS, HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
+import { focusRing, honourHidden } from "@/styles/mixins";
 import { CarouselLabels } from "@/types/carousel";
 
 interface CarouselProps<T> {
@@ -23,6 +27,10 @@ interface CarouselProps<T> {
 // A swipe shorter than this is a tap or a scroll, not a page turn.
 const SWIPE_PX = 40;
 
+// Left and right turn the page, except while typing into a field among the cards, and never with the browser's
+// own shortcuts (Alt+Left goes back, Cmd+Left to the line's start).
+const PAGE_KEYS = new KeyMap(HORIZONTAL_ARROWS, { ignore: BROWSER_SHORTCUTS, skip: (event) => isTypingTarget(event.target) });
+
 const Root = tw.section`flex flex-col gap-[14px]`;
 
 const Slides = styled(SwitchStage)(({ perView }: { perView: number }) => [
@@ -34,14 +42,7 @@ const Slides = styled(SwitchStage)(({ perView }: { perView: number }) => [
   `,
 ]);
 
-const Slide = styled.div(() => [
-  tw`min-w-0`,
-  css`
-    &[hidden] {
-      display: none;
-    }
-  `,
-]);
+const Slide = styled.div(() => [tw`min-w-0`, honourHidden]);
 
 const Controls = tw.div`flex flex-row items-center justify-between gap-[12px]`;
 
@@ -82,9 +83,7 @@ const Segment = styled.button(({ isOn }: { isOn: boolean }) => [
       transition: background 0.2s ease;
     }
 
-    &:focus-visible {
-      outline: 2px solid var(--accent);
-    }
+    ${focusRing("var(--accent)")}
   `,
 ]);
 
@@ -96,7 +95,9 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
   const perPage = isWide ? perView : 1;
   const [start, setStart] = useState(0);
   const switcher = useSwitch();
-  const swipeFrom = useRef<number | null>(null);
+  const rootRef = useRef<HTMLElement>(null);
+  // Whether focus was among the cards or controls when the page turned, so it can follow the turn.
+  const hadFocus = useRef(false);
   const { pages, page, first, last } = carouselPage(start, perPage, items.length);
 
   // A narrower or wider screen keeps the same first card in view.
@@ -108,43 +109,37 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
     const next = wrapPage(target, pages);
 
     if (next !== page) {
+      hadFocus.current = isInside(rootRef.current, document.activeElement);
       switcher.play(direction);
       setStart(next * perPage);
     }
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    const step = { ArrowLeft: -1, ArrowRight: 1 }[event.key] as -1 | 1 | undefined;
+  // A page turned from the keyboard hides the card that had focus, and the browser drops focus to the page, where
+  // the arrows no longer reach the carousel: focus moves to the first control on the page now shown, or to the
+  // carousel itself.
+  useEffect(() => {
+    const root = rootRef.current;
 
-    if (step && !(event.target instanceof HTMLInputElement)) {
-      event.preventDefault();
-      goTo(page + step, step);
-    }
-  };
-
-  const onPointerDown = (event: PointerEvent) => {
-    swipeFrom.current = event.pointerType === "mouse" ? null : event.clientX;
-  };
-
-  const onPointerUp = (event: PointerEvent) => {
-    if (swipeFrom.current === null) {
+    if (!hadFocus.current || !root) {
       return;
     }
 
-    const step = swipeStep(event.clientX - swipeFrom.current, SWIPE_PX);
+    hadFocus.current = false;
 
-    swipeFrom.current = null;
-
-    if (step) {
-      goTo(page + step, step);
+    if (isFocusLost(document.activeElement)) {
+      (firstFocusable(root) ?? root).focus({ preventScroll: true });
     }
-  };
+  }, [start]);
+
+  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => PAGE_KEYS.handle(event, (step) => goTo(page + step, step));
+  const swipe = useSwipe((step) => goTo(page + step, step), SWIPE_PX);
 
   const describe = (from: number, to: number) => describePage(from, to, items.length, labels);
 
   return (
-    <Root aria-roledescription="carousel" aria-label={label} onKeyDown={onKeyDown}>
-      <Slides switcher={switcher} perView={perView} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+    <Root ref={rootRef} tabIndex={-1} aria-roledescription="carousel" aria-label={label} onKeyDown={onKeyDown}>
+      <Slides switcher={switcher} perView={perView} onPointerDown={swipe.onPointerDown} onPointerUp={swipe.onPointerUp}>
         {items.map((item, index) => (
           <Slide
             key={getKey(item)}

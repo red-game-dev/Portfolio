@@ -1,6 +1,9 @@
 import type { KeplerElements, Pole, Vec3 } from "@/packages/physics/kepler";
 import type { Atmosphere } from "@/packages/physics/newtonian";
 
+// The world every run sets out from and comes home to.
+export const HOME_WORLD = "earth";
+
 // What kind of air a body has: none, thin, thick enough to fly through, or a giant's, with no ground under it.
 export type AtmosphereKind = "none" | "thin" | "thick" | "giant";
 
@@ -79,7 +82,8 @@ export interface AirModel extends Atmosphere {
 // universe) on a circle round its star.
 export type SystemOrbit =
   | { kind: "sun"; elements: KeplerElements }
-  | { kind: "moon"; parent: string; distance: number; periodDays: number; longitudeAtEpoch: number }
+  // A moon keeps its real distance (km) too, for how large its planet stands in its sky.
+  | { kind: "moon"; parent: string; distance: number; distanceKm: number; periodDays: number; longitudeAtEpoch: number }
   | { kind: "circle"; distance: number; periodDays: number; longitudeAtEpoch: number };
 
 // A body in the game's world. Its place, velocity, real position round the Sun and the point under the Sun on it

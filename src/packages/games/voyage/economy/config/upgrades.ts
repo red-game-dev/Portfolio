@@ -1,8 +1,6 @@
 import { Cost, HullTier } from "../domain/economy";
-import { ItemStack } from "../domain/items";
+import { ItemStack, stack } from "../domain/items";
 import { markOf, MAX_LEVEL, TIERS, tierOf } from "./tiers";
-
-const stack = (id: string, count: number): ItemStack => ({ id, count });
 
 // What each hull is built from: salvage for the rocket, then each of the site's universes in turn, and the deep
 // past them for the greatest, so a pilot has to go and find them.

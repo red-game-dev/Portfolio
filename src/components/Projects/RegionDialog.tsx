@@ -42,6 +42,8 @@ import {
 } from "@/components/Projects/RegionDialog.styles";
 import { ScreenCarousel } from "@/components/Projects/ScreenCarousel";
 import useModalDialog from "@/hooks/useModalDialog";
+import { closestTo } from "@/packages/interaction/focus";
+import { ANY_MODIFIER, HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
 import { collapseWhitespace } from "@/packages/text/format";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
 
@@ -56,6 +58,14 @@ interface RegionDialogProps {
   onNext: () => void;
 }
 
+// Arrow keys travel between regions, like moving across a map, unless they are moving something sideways inside
+// the dialog (anything marked data-scroll-x: a strip of screens, a row of tabs) or carry a modifier. A key that
+// travels is the dialog's alone, so the page under it does not scroll as well.
+const TRAVEL_KEYS = new KeyMap(HORIZONTAL_ARROWS, {
+  ignore: ANY_MODIFIER,
+  skip: (event) => closestTo(event.target, "[data-scroll-x]") !== null,
+});
+
 export const RegionDialog: FC<RegionDialogProps> = ({
   project, previous, next, content, period, onClose, onPrevious, onNext,
 }: RegionDialogProps) => {
@@ -64,19 +74,13 @@ export const RegionDialog: FC<RegionDialogProps> = ({
 
   const onClick = useModalDialog(dialogRef, project !== null);
 
-  // Arrow keys travel between regions, like moving across a map, unless they are moving something sideways
-  // inside the dialog (anything marked data-scroll-x: a strip of screens, a row of tabs) or carry a modifier.
-  const onKeyDown = (event: KeyboardEvent<HTMLDialogElement>) => {
-    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || (event.target as HTMLElement).closest("[data-scroll-x]")) {
-      return;
-    }
-
-    if (event.key === "ArrowLeft" && previous) {
+  const onKeyDown = (event: KeyboardEvent<HTMLDialogElement>) => TRAVEL_KEYS.handle(event, (step) => {
+    if (step < 0 && previous) {
       onPrevious();
-    } else if (event.key === "ArrowRight" && next) {
+    } else if (step > 0 && next) {
       onNext();
     }
-  };
+  });
 
   const style = { "--kind": project ? KIND_COLOURS[project.kind] : "var(--accent)" } as CSSProperties;
 

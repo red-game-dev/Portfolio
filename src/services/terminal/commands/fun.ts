@@ -1,4 +1,5 @@
 import { Command, output, system } from "@/packages/interaction/terminal";
+import { pick } from "@/packages/math/random";
 import { collapseWhitespace } from "@/packages/text/format";
 import { CommandContext, GROUPS } from "@/services/terminal/commands/shared";
 
@@ -75,10 +76,10 @@ export const createFunCommands = (context: CommandContext): Command[] => {
       aliases: ["quote"],
       summary: "Something someone I worked with said",
       run: () => {
-        const pick = data.recommendations[Math.floor(Math.random() * data.recommendations.length)];
+        const fortune = pick(Math.random, data.recommendations);
 
-        return pick
-          ? { lines: [output(`"${collapseWhitespace(pick.quote)}"`), system(`${pick.role}, ${pick.company}, ${pick.date}`)] }
+        return fortune
+          ? { lines: [output(`"${collapseWhitespace(fortune.quote)}"`), system(`${fortune.role}, ${fortune.company}, ${fortune.date}`)] }
           : { lines: [output("No fortunes today.")] };
       },
     },

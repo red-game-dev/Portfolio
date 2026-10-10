@@ -1,13 +1,17 @@
 import { Camera, EventBus, RenderPipeline } from "@/packages/games/engine";
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { Rgb } from "@/packages/graphics/colour";
 import { CanvasGlobeRenderer, GlobeRenderer } from "@/packages/graphics/globe";
 import type { LensSource } from "@/packages/graphics/webgl";
+import { TAU } from "@/packages/math/angles";
+import { clamp, clamp01, wrap } from "@/packages/math/clamp";
 
 import { VoyageTheme } from "../config";
 import { VoyageWorld } from "../core/world";
 import { VoyageEvents } from "../domain/events";
 import { GhostRun } from "../domain/ghost";
 import { VoyageState } from "../domain/state";
+import { SurfaceInfo } from "../domain/surface";
 import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
@@ -21,6 +25,7 @@ import { OverlayLayer } from "./layers/OverlayLayer";
 import { PhenomenaLayer } from "./layers/PhenomenaLayer";
 import { ProjectilesLayer } from "./layers/ProjectilesLayer";
 import { ShipLayer } from "./layers/ShipLayer";
+import { SurfaceLayer } from "./layers/SurfaceLayer";
 import { ThingsLayer } from "./layers/ThingsLayer";
 import { WeatherLayer } from "./layers/WeatherLayer";
 import { WrecksLayer } from "./layers/WrecksLayer";
@@ -31,6 +36,8 @@ import { Surface } from "./Surface";
 import { SurfaceCache } from "./SurfaceCache";
 
 export interface VoyageRenderer {
+  // Where the ship stands on a world, while it does.
+  readonly surface: SurfaceInfo | null;
   resize(width: number, height: number, pixelRatio: number): void;
   draw(frame: VoyageFrame): void;
   // The black holes on screen, for the GPU lens.
@@ -47,6 +54,19 @@ export interface VoyageRenderer {
   setPhoto(isOn: boolean): void;
   dispose(): void;
 }
+
+// A map's own pixels, for reading the colour of the ground where the ship sets down.
+type MapImage = HTMLImageElement | HTMLCanvasElement | ImageBitmap | OffscreenCanvas;
+
+const isMapImage = (image: TexImageSource): image is MapImage =>
+  (typeof HTMLImageElement !== "undefined" && image instanceof HTMLImageElement) ||
+  (typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement) ||
+  (typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap) ||
+  (typeof OffscreenCanvas !== "undefined" && image instanceof OffscreenCanvas);
+
+const widthOf = (image: MapImage) => (image instanceof HTMLImageElement ? image.naturalWidth : image.width);
+
+const heightOf = (image: MapImage) => (image instanceof HTMLImageElement ? image.naturalHeight : image.height);
 
 // What each quality level keeps: the share of the particle budget, and the octaves of noise the GPU's globes sum.
 const QUALITY = { particles: [1, 0.7, 0.45, 0.3], octaves: [5, 4, 3, 3] };
@@ -69,6 +89,11 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   private readonly overlay: OverlayLayer;
   private readonly map: MapLayer;
   private readonly ghost: GhostLayer;
+  private readonly globesLayer: GlobesLayer;
+  private readonly surfaceLayer: SurfaceLayer;
+  private readonly maps = new Map<string, MapImage>();
+  private sampler: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null = null;
+  private isPhoto = false;
   private lastState: Readonly<VoyageState> | null = null;
   private lastWorld: VoyageWorld | null = null;
   private quality = 0;
@@ -81,10 +106,12 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.overlay = new OverlayLayer(this.kit);
     this.map = new MapLayer(this.kit);
     this.ghost = new GhostLayer(this.kit);
+    this.globesLayer = new GlobesLayer(this.kit);
+    this.surfaceLayer = new SurfaceLayer(this.kit, this.globesLayer, (texture, longitude, latitude, centre) => this.sampleMap(texture, longitude, latitude, centre));
     this.backLayers = new RenderPipeline([
       new BackdropLayer(this.kit),
       new PhenomenaLayer(this.kit),
-      new GlobesLayer(this.kit),
+      this.globesLayer,
       new WeatherLayer(this.kit),
       new HolesLayer(this.kit, "back"),
     ]);
@@ -98,9 +125,14 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       this.ghost,
       this.ship,
       this.light,
+      this.surfaceLayer,
       this.overlay,
       this.map,
     ]);
+  }
+
+  public get surface(): SurfaceInfo | null {
+    return this.surfaceLayer.info ? { ...this.surfaceLayer.info } : null;
   }
 
   public resize(width: number, height: number, pixelRatio: number): void {
@@ -114,6 +146,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
   public setTexture(id: string, image: TexImageSource): void {
     this.kit.globes.setTexture(id, image);
+
+    if (isMapImage(image)) {
+      this.maps.set(id, image);
+    }
   }
 
   public setMap(isOpen: boolean): void {
@@ -121,7 +157,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   }
 
   public setQuality(level: number): void {
-    const index = Math.max(0, Math.min(QUALITY.particles.length - 1, level));
+    const index = clamp(level, 0, QUALITY.particles.length - 1);
 
     this.quality = index;
     this.kit.particles.setBudget(QUALITY.particles[index]);
@@ -133,8 +169,8 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   }
 
   public setPhoto(isOn: boolean): void {
+    this.isPhoto = isOn;
     this.map.isHidden = isOn;
-    this.overlay.showsGuides = !isOn;
   }
 
   public dispose(): void {
@@ -152,6 +188,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
     this.lastState = frame.state;
     this.lastWorld = frame.world;
+    // On a world's surface its view covers space: the GPU's globes, the radar and the guides rest.
+    this.globesLayer.isHidden = this.surfaceLayer.isCovering;
+    this.map.hidesRadar = this.surfaceLayer.isShown;
+    this.overlay.showsGuides = !this.isPhoto && !this.surfaceLayer.isShown;
     this.backLayers.draw(frame);
     this.kit.front.clear();
     this.frontLayers.draw(frame);
@@ -210,7 +250,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
         const glow = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
 
         for (let index = 0; index < 14; index += 1) {
-          const spread = (index / 14) * Math.PI * 2;
+          const spread = (index / 14) * TAU;
 
           particles.emit("glow", x, y, Math.cos(spread) * 0.9, Math.sin(spread) * 0.9, 0.45, 0.05, glow, { drag: 3 });
         }
@@ -222,7 +262,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       }),
       events.on("captured", () => camera.addTrauma(0.3)),
       events.on("storm", ({ strength }) => {
-        this.ship.flashShield(Math.random() * Math.PI * 2);
+        this.ship.flashShield(Math.random() * TAU);
         this.overlay.flashScreen("#ffb070", 0.25 + strength * 0.5);
         camera.addTrauma(0.15 + strength * 0.3);
       }),
@@ -276,7 +316,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
         const glow = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
 
         for (let index = 0; index < 18; index += 1) {
-          const spread = (index / 18) * Math.PI * 2;
+          const spread = (index / 18) * TAU;
 
           particles.emit("glow", x, y, Math.cos(spread) * 0.7, Math.sin(spread) * 0.7, 0.6, 0.05, glow, { drag: 2.5 });
         }
@@ -311,6 +351,43 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.light.clear();
   }
 
+  // The colour of a map at a spot (degrees), averaged over a few of its pixels, or null with no map yet: drawn
+  // into one pixel of a small canvas made once.
+  private sampleMap(texture: string, longitude: number, latitude: number, centreLongitude: number): Rgb | null {
+    const image = this.maps.get(texture);
+
+    if (!image) {
+      return null;
+    }
+
+    if (!this.sampler) {
+      this.sampler = typeof OffscreenCanvas !== "undefined"
+        ? new OffscreenCanvas(1, 1).getContext("2d", { willReadFrequently: true })
+        : document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+    }
+
+    const width = widthOf(image);
+    const height = heightOf(image);
+
+    if (!this.sampler || width <= 0 || height <= 0) {
+      return null;
+    }
+
+    const across = wrap((longitude - (centreLongitude - 180)) / 360, 1);
+    const down = clamp01(0.5 - latitude / 180);
+
+    try {
+      this.sampler.clearRect(0, 0, 1, 1);
+      this.sampler.drawImage(image, Math.max(0, across * width - 2), Math.max(0, down * height - 2), 4, 4, 0, 0, 1, 1);
+
+      const [red, green, blue] = this.sampler.getImageData(0, 0, 1, 1).data;
+
+      return [red, green, blue];
+    } catch {
+      return null;
+    }
+  }
+
   // A fireball and a ring of shock, as something is destroyed or something strikes.
   private blast(x: number, y: number, radius: number, camera: Camera, trauma: number): void {
     const { particles } = this.kit;
@@ -322,7 +399,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     particles.emit("glow", x, y, 0, 0, 0.5, radius * 5, white, { grow: -radius * 4, drag: 1 });
 
     for (let index = 0; index < 18; index += 1) {
-      const angle = Math.random() * Math.PI * 2;
+      const angle = Math.random() * TAU;
       const speed = 0.3 + Math.random() * 1.6;
 
       const vx = Math.cos(angle) * speed;
@@ -341,7 +418,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     const dust = this.kit.cache.get("glow:rgba(190, 170, 150, 1)", 64, 64, paintGlow("rgba(190, 170, 150, 1)"));
 
     for (let index = 0; index < count; index += 1) {
-      const angle = Math.random() * Math.PI * 2;
+      const angle = Math.random() * TAU;
       const speed = 0.2 + Math.random() * 1.1;
 
       const size = radius * (0.3 + Math.random() * 0.5);
@@ -356,7 +433,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     const spark = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
 
     for (let index = 0; index < count; index += 1) {
-      const angle = Math.random() * Math.PI * 2;
+      const angle = Math.random() * TAU;
       const speed = 0.6 + Math.random() * 1.6;
 
       particles.emit("glow", x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, 0.2 + Math.random() * 0.35, 0.012 + Math.random() * 0.02, spark, { drag: 2.5 });
@@ -383,7 +460,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     particles.emit("glow", x, y, vx, vy, 0.9, radius * 14, white, { grow: -radius * 10, drag: 1 });
 
     for (let index = 0; index < 40; index += 1) {
-      const spread = Math.random() * Math.PI * 2;
+      const spread = Math.random() * TAU;
       const speed = 0.4 + Math.random() * 2.4;
 
       particles.emit("glow", x, y, vx + Math.cos(spread) * speed, vy + Math.sin(spread) * speed, 0.5 + Math.random() * 0.8, radius * (2 + Math.random() * 3), fire,

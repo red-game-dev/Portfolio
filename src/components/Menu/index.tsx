@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { progressOf } from "@/components/Menu/config";
 import { JOURNEY_STOPS } from "@/config/journey";
+import { progressText } from "@/styles/mixins";
 import { MenuContent } from "@/types/menu";
 
 interface MenuProps {
@@ -38,18 +39,7 @@ const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
 
 // The label fills with the zone's colour as the reader moves through the item's sections, so the menu reads
 // as the same progress bar as the trail on the left.
-const Label = styled.span(() => [
-  css`
-    background-image: linear-gradient(
-      to right,
-      var(--accent) calc(var(--nav-progress, 0) * 100%),
-      #ffffff calc(var(--nav-progress, 0) * 100%)
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  `,
-]);
+const Label = styled.span(() => [progressText("right", "--nav-progress", "#ffffff")]);
 
 export const Menu = ({ selected, content }: MenuProps) => (
     <MenuContainer>

@@ -1,18 +1,12 @@
 import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
+import { hexHash } from "@/packages/encoding/hash";
 import { activityStats } from "@/packages/insights/activity";
 import { startYear } from "@/packages/insights/career";
 import { Command, error, heading, output, system } from "@/packages/interaction/terminal";
+import { clamp } from "@/packages/math/clamp";
 import { collapseWhitespace, fill } from "@/packages/text/format";
 import { CommandContext, GROUPS } from "@/services/terminal/commands/shared";
 import { Audience } from "@/types/case-studies";
-
-// A short, stable commit hash for a role, so git log reads like the real thing.
-const HASH_SPACE = 16 ** 7;
-
-const shortHash = (text: string) => Array.from(text)
-  .reduce((hash, character) => (hash * 31 + character.charCodeAt(0)) % HASH_SPACE, 7)
-  .toString(16)
-  .padStart(7, "0");
 
 // See the work.
 export const createWorkCommands = (context: CommandContext): Command[] => {
@@ -98,7 +92,7 @@ export const createWorkCommands = (context: CommandContext): Command[] => {
       usage: "stack [count]",
       summary: "The skills I have used longest, from the work itself",
       run: ([count]) => {
-        const shown = rankedSkills().slice(0, Math.min(40, Math.max(1, Number(count) || 12)));
+        const shown = rankedSkills().slice(0, clamp(Number(count) || 12, 1, 40));
 
         return {
           lines: [
@@ -145,7 +139,7 @@ export const createWorkCommands = (context: CommandContext): Command[] => {
         if (subcommand === "log") {
           return {
             lines: experience.slice(0, Math.max(1, Number(args[0]) || experience.length)).map((entry) => output(
-              `* ${shortHash(entry.title)} ${String(startYear(entry.from)).padEnd(5)}${entry.isVenture ? `(${historyLabels.foundedBranch}) ` : ""}${entry.title}`,
+              `* ${hexHash(entry.title, 7)} ${String(startYear(entry.from)).padEnd(5)}${entry.isVenture ? `(${historyLabels.foundedBranch}) ` : ""}${entry.title}`,
             )),
           };
         }

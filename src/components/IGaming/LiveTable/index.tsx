@@ -11,6 +11,7 @@ import { Corner, CornerBottom, PlayingCard, suitOf } from "@/components/IGaming/
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { DEFAULT_LIVE_TABLE_CONFIG } from "@/packages/games/live-table";
 import { fill } from "@/packages/text/format";
+import { media } from "@/styles/mixins";
 import { DomainCapability, LiveTableContent } from "@/types/domains";
 
 interface LiveTableProps {
@@ -48,7 +49,7 @@ const Hand = styled.ul(() => [
   css`
     scrollbar-width: thin;
 
-    @media (min-width: 768px) {
+    ${media.md} {
       & > li + li {
         margin-left: -46px;
       }
@@ -64,7 +65,7 @@ const Hand = styled.ul(() => [
 const HandSlot = styled.li(({ tilt }: { tilt: number }) => [
   tw`flex-shrink-0 mr-[8px] md:mr-0`,
   css`
-    @media (min-width: 768px) {
+    ${media.md} {
       transform: rotate(${tilt}deg) translateY(${Math.abs(tilt) * 1.6}px);
     }
   `,

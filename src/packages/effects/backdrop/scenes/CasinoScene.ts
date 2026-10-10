@@ -1,4 +1,6 @@
 import { Canvas2DContext, createDrawableSurface, DrawableSurface } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
@@ -33,19 +35,19 @@ const paintChip = (context: Canvas2DContext, size: number, color: string) => {
 
   context.fillStyle = color;
   context.beginPath();
-  context.arc(centre, centre, radius, 0, Math.PI * 2);
+  context.arc(centre, centre, radius, 0, TAU);
   context.fill();
   // The edge spots every casino chip has.
   context.strokeStyle = "rgba(255, 255, 255, 0.85)";
   context.lineWidth = size * 0.09;
   context.setLineDash([size * 0.16, size * 0.16]);
   context.beginPath();
-  context.arc(centre, centre, radius * 0.82, 0, Math.PI * 2);
+  context.arc(centre, centre, radius * 0.82, 0, TAU);
   context.stroke();
   context.setLineDash([]);
   context.fillStyle = "rgba(0, 0, 0, 0.25)";
   context.beginPath();
-  context.arc(centre, centre, radius * 0.5, 0, Math.PI * 2);
+  context.arc(centre, centre, radius * 0.5, 0, TAU);
   context.fill();
 };
 
@@ -55,12 +57,12 @@ const paintWheel = (context: Canvas2DContext, size: number, color: string) => {
   context.strokeStyle = color;
   context.lineWidth = Math.max(1, size * 0.006);
   context.beginPath();
-  context.arc(centre, centre, size * 0.48, 0, Math.PI * 2);
-  context.arc(centre, centre, size * 0.36, 0, Math.PI * 2);
-  context.arc(centre, centre, size * 0.12, 0, Math.PI * 2);
+  context.arc(centre, centre, size * 0.48, 0, TAU);
+  context.arc(centre, centre, size * 0.36, 0, TAU);
+  context.arc(centre, centre, size * 0.12, 0, TAU);
 
   for (let pocket = 0; pocket < WHEEL_POCKETS; pocket += 1) {
-    const angle = (pocket / WHEEL_POCKETS) * Math.PI * 2;
+    const angle = (pocket / WHEEL_POCKETS) * TAU;
 
     context.moveTo(centre + Math.cos(angle) * size * 0.36, centre + Math.sin(angle) * size * 0.36);
     context.lineTo(centre + Math.cos(angle) * size * 0.48, centre + Math.sin(angle) * size * 0.48);
@@ -91,7 +93,7 @@ export class CasinoScene implements Scene {
   }
 
   public resize({ width, height, pixelRatio }: SceneSize): void {
-    const chipCount = Math.round(Math.min(22, Math.max(8, (width * height) / AREA_PER_CHIP)));
+    const chipCount = Math.round(clamp((width * height) / AREA_PER_CHIP, 8, 22));
 
     this.width = width;
     this.height = height;
@@ -176,7 +178,7 @@ export class CasinoScene implements Scene {
       y,
       speed: randomBetween(this.random, 0.008, 0.02),
       size: randomBetween(this.random, 18, 34),
-      phase: randomBetween(this.random, 0, Math.PI * 2),
+      phase: randomBetween(this.random, 0, TAU),
       kind: Math.floor(this.random() * Math.max(1, kinds)),
     };
   }

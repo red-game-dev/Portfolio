@@ -1,7 +1,10 @@
 import type { RenderLayer } from "@/packages/games/engine";
-import { northUp } from "@/packages/graphics/globe";
+import { GlobePose, northUp } from "@/packages/graphics/globe";
+import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
-import { SystemBody } from "../../domain/content";
+import { HOME_WORLD, SystemBody } from "../../domain/content";
+import { VoyageState } from "../../domain/state";
 import { VoyageFrame } from "../frame";
 import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
@@ -17,7 +20,7 @@ const FLARE_MS = 4000;
 // starlight from the sky.
 const lightOn = (au: number, luminosity: number): number => (luminosity <= 0
   ? 0.07
-  : Math.max(0.3, Math.min(1.15, 1.1 - 0.12 * Math.log(Math.max(au, 0.05) / Math.sqrt(luminosity)))));
+  : clamp(1.1 - 0.12 * Math.log(Math.max(au, 0.05) / Math.sqrt(luminosity)), 0.3, 1.15));
 
 // The Sun and every body, drawn by the GPU each frame: lit from where the Sun really is, turned to where they
 // really are on the mission clock, a moon that keeps one face to its planet keeping it, Earth's aurora as bright
@@ -25,14 +28,33 @@ const lightOn = (au: number, luminosity: number): number => (luminosity <= 0
 // light allows. A body too small to see is a point of light.
 export class GlobesLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "globes";
+  // Covered by the view from a world's surface: nothing here would be seen.
+  public isHidden = false;
   private readonly turned = new Map<string, boolean>();
 
   constructor(private readonly kit: RenderKit) {}
 
+  // How a body is posed as it is drawn now: lit from its star, turned so its north stays up, a moon that keeps
+  // one face to its planet keeping it. The view from its surface reads the spot under the ship from this.
+  public poseOf(state: Readonly<VoyageState>, body: SystemBody): GlobePose {
+    const { star } = state.system;
+    const lightAngle = Math.atan2(star.y - body.y, star.x - body.x);
+    const parent = body.dayHours === null && body.parent ? state.system.bodies.find((candidate) => candidate.id === body.parent) : undefined;
+
+    return {
+      lightAngle,
+      subsolarLatitude: body.subsolarLatitude,
+      subsolarLongitude: body.subsolarLongitude,
+      viewElevation: VIEW_ELEVATION,
+      isTurned: northUp(lightAngle, this.turned.get(body.id) ?? false),
+      facing: parent ? Math.atan2(parent.y - body.y, parent.x - body.x) : undefined,
+    };
+  }
+
   public draw(frame: VoyageFrame): void {
     const { state } = frame;
 
-    if (state.phase === "lost") {
+    if (state.phase === "lost" || this.isHidden) {
       return;
     }
 
@@ -88,33 +110,24 @@ export class GlobesLayer implements RenderLayer<VoyageFrame> {
     if (radius < POINT_RADIUS) {
       back.context.fillStyle = look.surface.palette[2];
       back.context.beginPath();
-      back.context.arc(x, y, POINT_RADIUS, 0, Math.PI * 2);
+      back.context.arc(x, y, POINT_RADIUS, 0, TAU);
       back.context.fill();
 
       return;
     }
 
-    const lightAngle = Math.atan2(star.y - body.y, star.x - body.x);
-    const isTurned = northUp(lightAngle, this.turned.get(body.id) ?? false);
-    const parent = body.dayHours === null && body.parent ? state.system.bodies.find((candidate) => candidate.id === body.parent) : undefined;
+    const pose = this.poseOf(state, body);
 
-    this.turned.set(body.id, isTurned);
+    this.turned.set(body.id, pose.isTurned);
     globes.drawGlobe(back.context, {
       x,
       y,
       radius,
       look,
-      pose: {
-        lightAngle,
-        subsolarLatitude: body.subsolarLatitude,
-        subsolarLongitude: body.subsolarLongitude,
-        viewElevation: VIEW_ELEVATION,
-        isTurned,
-        facing: parent ? Math.atan2(parent.y - body.y, parent.x - body.x) : undefined,
-      },
+      pose,
       time: now / 1000,
       light: lightOn(body.au, star.luminosity),
-      aurora: body.id === "earth" ? state.aurora : 0,
+      aurora: body.id === HOME_WORLD ? state.aurora : 0,
       craters: state.craters[body.id] ?? [],
     });
   }

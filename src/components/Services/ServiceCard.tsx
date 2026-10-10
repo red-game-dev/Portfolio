@@ -10,6 +10,7 @@ import { BitStrip } from "@/components/BitStrip";
 import { DecodedText } from "@/components/DecodedText";
 import { SERVICES_MOTION } from "@/components/Services/config";
 import useInView from "@/hooks/useInView";
+import { accentFillOnHover, squareBullet } from "@/styles/mixins";
 import { Service, ServiceActions } from "@/types/services";
 
 interface ServiceCardProps extends Service {
@@ -44,18 +45,7 @@ const Points = tw.ul`list-none m-0 p-0 flex flex-col gap-[6px] text-sm text-[#99
 
 const Point = styled.li(() => [
   tw`relative pl-[16px] break-words`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.6em;
-      width: 6px;
-      height: 6px;
-      border-radius: 1px;
-      background: var(--accent);
-    }
-  `,
+  squareBullet({ radius: 1 }),
 ]);
 
 const Actions = tw.div`mt-auto pt-[6px] flex flex-row flex-wrap gap-[10px]`;
@@ -63,16 +53,7 @@ const Actions = tw.div`mt-auto pt-[6px] flex flex-row flex-wrap gap-[10px]`;
 const Action = styled.a(() => [
   tw`inline-flex flex-row items-center gap-2 h-[36px] px-[14px] text-sm font-medium no-underline text-[var(--accent)]
      border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`,
-  css`
-    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      color: #101010;
-      background-color: var(--accent);
-      border-color: var(--accent);
-    }
-  `,
+  accentFillOnHover(true),
 ]);
 
 export const ServiceCard: FC<ServiceCardProps> = ({

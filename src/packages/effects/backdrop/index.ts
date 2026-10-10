@@ -13,8 +13,6 @@ export { CollapseTransition } from "./transitions/CollapseTransition";
 export { PortalTransition } from "./transitions/PortalTransition";
 export { WarpTransition } from "./transitions/WarpTransition";
 export { transitionKey } from "./domain/types";
-export { mixRgb, pulse, rgba } from "./utils/colour";
-export { clamp01, easeInOut } from "./utils/easing";
 export type { BackdropConfig, BackdropConfigOverrides } from "./config";
 export type { BackdropOptions } from "./core/BackdropEngine";
 export type { CasinoSceneOptions } from "./scenes/CasinoScene";
@@ -28,5 +26,4 @@ export type { ChipFlipTransitionOptions } from "./transitions/ChipFlipTransition
 export type { CollapseTransitionOptions } from "./transitions/CollapseTransition";
 export type { PortalTransitionOptions } from "./transitions/PortalTransition";
 export type { WarpTransitionOptions } from "./transitions/WarpTransition";
-export type { Rgb } from "./utils/colour";
 export type { BackdropFrame, Scene, SceneFactory, SceneSize, SceneTransition, TransitionFactory } from "./domain/types";

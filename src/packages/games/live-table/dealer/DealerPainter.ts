@@ -1,4 +1,6 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
+import { lerp } from "@/packages/math/easing";
 
 import { DealerLook, DealerOutfit } from "./outfits";
 
@@ -42,7 +44,7 @@ const HAIR_WIDTH = 0.92;
 const SPARKLES = Array.from({ length: 34 }, (_, index) => ({
   x: 52 + ((index * 53) % 96),
   y: 168 + ((index * 37) % 70),
-  phase: (index * 0.73) % (Math.PI * 2),
+  phase: (index * 0.73) % TAU,
 }));
 
 // The live dealer, painted with curves: long waves of hair, winged liner, red lips, earrings and a gown
@@ -281,7 +283,7 @@ export class DealerPainter {
     context.closePath();
     context.fill();
     context.beginPath();
-    context.arc(CX, 132, 2.6, 0, Math.PI * 2);
+    context.arc(CX, 132, 2.6, 0, TAU);
     context.fill();
   }
 
@@ -346,8 +348,8 @@ export class DealerPainter {
     // Fingertips over the deck.
     context.fillStyle = this.look.skin;
     context.beginPath();
-    context.ellipse(88, 230, 7, 5, -0.4, 0, Math.PI * 2);
-    context.ellipse(112, 230, 7, 5, 0.4, 0, Math.PI * 2);
+    context.ellipse(88, 230, 7, 5, -0.4, 0, TAU);
+    context.ellipse(112, 230, 7, 5, 0.4, 0, TAU);
     context.fill();
   }
 
@@ -410,7 +412,7 @@ export class DealerPainter {
     context.stroke();
     context.globalAlpha = 0.45;
     context.beginPath();
-    context.ellipse(CX, 97.5, 3.2, 1.1, 0, 0, Math.PI * 2);
+    context.ellipse(CX, 97.5, 3.2, 1.1, 0, 0, TAU);
     context.fillStyle = skinShade;
     context.fill();
     context.globalAlpha = 1;
@@ -456,15 +458,15 @@ export class DealerPainter {
         context.clip();
         context.fillStyle = eyes;
         context.beginPath();
-        context.arc(cx, 81, 3.5, 0, Math.PI * 2);
+        context.arc(cx, 81, 3.5, 0, TAU);
         context.fill();
         context.fillStyle = liner;
         context.beginPath();
-        context.arc(cx, 81, 1.6, 0, Math.PI * 2);
+        context.arc(cx, 81, 1.6, 0, TAU);
         context.fill();
         context.fillStyle = "#ffffff";
         context.beginPath();
-        context.arc(cx + 1, 79.8, 0.8, 0, Math.PI * 2);
+        context.arc(cx + 1, 79.8, 0.8, 0, TAU);
         context.fill();
         context.restore();
       }
@@ -479,7 +481,7 @@ export class DealerPainter {
       context.stroke();
       context.lineWidth = 0.9;
       [0.62, 0.8, 0.94].forEach((t, index) => {
-        const x = inner + (outer - inner) * t;
+        const x = lerp(inner, outer, t);
         const y = 82 - (82 - lid) * (1 - (2 * t - 1) ** 2) - 0.4;
 
         context.beginPath();
@@ -497,7 +499,7 @@ export class DealerPainter {
     if (open > 0.3) {
       context.fillStyle = "#4a0d18";
       context.beginPath();
-      context.ellipse(CX, 104 + open / 2, 6, open, 0, 0, Math.PI * 2);
+      context.ellipse(CX, 104 + open / 2, 6, open, 0, 0, TAU);
       context.fill();
     }
 
@@ -518,7 +520,7 @@ export class DealerPainter {
     context.fill();
     context.fillStyle = "rgba(255, 255, 255, 0.45)";
     context.beginPath();
-    context.ellipse(102, 106 + open, 2.2, 0.8, 0, 0, Math.PI * 2);
+    context.ellipse(102, 106 + open, 2.2, 0.8, 0, 0, TAU);
     context.fill();
   }
 

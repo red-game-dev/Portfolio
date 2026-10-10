@@ -7,6 +7,7 @@ import { PlayStateProps } from "@/components/AiUsage/styles";
 import { Panel, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageTimeline } from "@/packages/insights/ai-usage";
+import { media, noTransitionWhenReduced } from "@/styles/mixins";
 
 const { railSeconds } = AI_USAGE_MOTION;
 
@@ -35,7 +36,7 @@ const Rail = styled.span(({ isActive }: PlayStateProps) => [
       transition: transform ${railSeconds}s cubic-bezier(0.165, 0.85, 0.45, 1);
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &::after {
         transition: none;
       }
@@ -51,9 +52,7 @@ const Dot = styled.span(({ isActive, isCurrent, isVisible }: DotProps) => [
   css`
     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 
-    @media (prefers-reduced-motion: reduce) {
-      transition: none;
-    }
+    ${noTransitionWhenReduced}
   `,
   isActive && tw`bg-[var(--accent)] border-[var(--accent)]`,
   isActive && css`box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);`,
@@ -69,7 +68,7 @@ const Dot = styled.span(({ isActive, isCurrent, isVisible }: DotProps) => [
       will-change: transform, opacity;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &::after {
         animation: none;
       }

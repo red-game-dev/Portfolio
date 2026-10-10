@@ -1,4 +1,4 @@
-import type { GlobeLook, StarLook } from "@/packages/graphics/globe";
+import { EARTH_LOOK, GlobeLook, StarLook } from "@/packages/graphics/globe";
 
 // How each body looks. Every one has a recipe the GPU paints by itself; the ones with real maps name them, and
 // a host that hands the game those maps (`VoyageGame.setTexture`) gets the real surfaces: Earth with its clouds
@@ -12,23 +12,7 @@ export const BODY_LOOKS: Record<string, GlobeLook> = {
     surface: { kind: "haze", palette: ["#b88f4f", "#d9b679", "#ecd7a6", "#f8eed2"], seed: 12 },
     atmosphere: { colour: "#ffe6b0", thickness: 0.08, density: 0.95, sunset: "#ffb060" },
   },
-  earth: {
-    surface: {
-      kind: "terran",
-      palette: ["#0b2a5e", "#1f5fa8", "#3d7a45", "#c9b88a"],
-      seed: 13,
-      sea: 0.62,
-      caps: 0.18,
-      map: "earth-day",
-      night: "earth-night",
-      clouds: "earth-clouds",
-      centreLongitude: 0,
-      glint: true,
-    },
-    atmosphere: { colour: "#6fb2ff", thickness: 0.07, density: 0.9, sunset: "#ff7a3a" },
-    clouds: 0.85,
-    cloudDrift: 0.004,
-  },
+  earth: EARTH_LOOK,
   moon: {
     surface: { kind: "cratered", palette: ["#4a4a4e", "#7d7d80", "#a9a9a6", "#d2d2cc"], seed: 14, map: "moon", centreLongitude: 0 },
   },

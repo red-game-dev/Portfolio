@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -9,7 +9,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton, ActionLink, actionStyle } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
+import { useInvite } from "@/components/Finale/hooks/useInvite";
 import { useLaunch } from "@/components/Finale/hooks/useLaunch";
+import { INVITE_SECONDS } from "@/components/Finale/invite";
 import { LazyVoyageDialog } from "@/components/Finale/Voyage/LazyVoyageDialog";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
@@ -17,11 +19,13 @@ import { Section } from "@/components/Section";
 import { SECTION_IDS } from "@/config/sections";
 import { SOCIAL_URLS } from "@/config/social";
 import { CROSSED_ZONES, ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
+import useFocusLeave from "@/hooks/useFocusLeave";
 import useInView from "@/hooks/useInView";
 import { scrollBehavior } from "@/packages/accessibility/motion";
 import type { LaunchSnapshot } from "@/packages/games/launch";
-import { fill } from "@/packages/text/format";
-import { FinaleContent, FinaleLaunch, FinaleRank } from "@/types/game";
+import { fill, formatDuration, formatLocalTime } from "@/packages/text/format";
+import { focusRing, noAnimationWhenReduced } from "@/styles/mixins";
+import { FinaleContent, FinaleLaunch, FinaleLaunchSite, FinaleRank } from "@/types/game";
 import { DocumentLink } from "@/types/portfolio";
 
 interface FinaleProps {
@@ -48,9 +52,7 @@ const Board = styled.div(({ isAlarm }: { isAlarm: boolean }) => [
   isAlarm && css`
     animation: ${shake} 0.16s linear infinite;
 
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
+    ${noAnimationWhenReduced}
   `,
 ]);
 
@@ -71,14 +73,18 @@ const LaunchButton = styled.button(() => [
 
 const Hint = tw.p`m-0 text-xs text-[#999] max-w-[60ch]`;
 
+// In orbit: would the reader like to play? The first time, with a count before the journey goes on by itself.
+const Choice = tw.div``;
+
+const Ask = tw.div`flex flex-col gap-[4px] mt-[18px]`;
+
+const AskTitle = tw.h3`m-0 text-lg font-semibold text-white`;
+
 // The big red button of every film: a domed cap on a striped hazard plate, pressed in when held.
 const RedButton = styled.button(() => [
   tw`flex flex-row items-center gap-[12px] p-0 bg-transparent border-0 cursor-pointer text-sm font-semibold text-white`,
   css`
-    &:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 4px;
-    }
+    ${focusRing("var(--accent)", 4)}
 
     &:disabled {
       cursor: default;
@@ -128,7 +134,7 @@ const StarMark = styled.span(({ isLit }: { isLit: boolean }) => [
   isLit && tw`text-[var(--accent)]`,
 ]);
 
-const Heading = tw.div`flex flex-col gap-[6px] mt-[26px]`;
+const Heading = tw.div`flex flex-col gap-[6px] mb-[18px]`;
 
 const Kicker = tw.p`m-0 text-xs font-semibold text-[var(--accent)]`;
 
@@ -177,8 +183,13 @@ const Restart = styled.button(() => actionStyle(false));
 
 const rankFor = (ranks: FinaleRank[], done: number) => [...ranks].sort((first, second) => second.min - first.min).find((rank) => done >= rank.min) ?? ranks[0];
 
-// What the board says, and what a screen reader hears, at each moment of the launch.
-const statusOf = (launch: FinaleLaunch, { status, passed, countdown }: LaunchSnapshot, zoneLabels: Record<ZoneId, string>) => {
+// What the board says, and what a screen reader hears, at each moment of the launch: the pad and its local time
+// while it waits, ignition, then each moment of the flight as a zone falls behind, and orbit.
+const statusOf = (launch: FinaleLaunch, { status, passed, countdown, milestone }: LaunchSnapshot, zoneLabels: Record<ZoneId, string>, site: FinaleLaunchSite | null) => {
+  if (status === "ready") {
+    return site ? fill(launch.pad, { site: site.name, time: formatLocalTime(site.timeZone) }) : "";
+  }
+
   if (status === "charging") {
     return launch.charging;
   }
@@ -192,16 +203,10 @@ const statusOf = (launch: FinaleLaunch, { status, passed, countdown }: LaunchSna
   }
 
   if (status === "launching") {
-    return passed > 0 ? fill(launch.leaving, { zone: zoneLabels[CROSSED_ZONES[passed - 1]] }) : launch.liftOff;
+    return passed > 0 && milestone ? fill(launch.leaving, { milestone: launch.milestones[milestone], zone: zoneLabels[CROSSED_ZONES[passed - 1]] }) : launch.liftOff;
   }
 
   return status === "orbit" ? launch.orbit : "";
-};
-
-const formatTime = (ms: number) => {
-  const seconds = Math.floor(ms / 1000);
-
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 };
 
 // The end of the run, and the page lifting off: the visitor launches out of the game world past every zone
@@ -212,11 +217,19 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   const boardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isBoardInView = useInView(boardRef, { threshold: 0.6, once: true });
-  const { snapshot, isReady, onPointerDown, onPointerUp, onPointerCancel, onClick, selfDestruct } = useLaunch(boardRef, canvasRef, isBoardInView);
+  const { snapshot, site, isReady, press, selfDestruct } = useLaunch(boardRef, canvasRef, isBoardInView, content.launch.sites, content.launch.readout);
   const isReached = useInView(sectionRef, { threshold: 0.2 });
   const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
   const [isVoyaging, setIsVoyaging] = useState(false);
   const [runMs, setRunMs] = useState<number | null>(null);
+  // Whether the board is on screen now, not just once, so the count before the journey goes on by itself only
+  // runs while the ship can be seen.
+  const isBoardShown = useInView(boardRef, { threshold: 0.6, once: false });
+  const openVoyage = useCallback(() => setIsVoyaging(true), []);
+  // Focus on the choice in orbit holds the count, so a keyboard reader is never rushed while deciding. Whatever
+  // held focus before orbit (the launch button) is gone by then, so reaching or leaving orbit starts afresh.
+  const [isChoosing, setIsChoosing] = useState(false);
+  const onChoiceBlur = useFocusLeave(() => setIsChoosing(false));
   const zoneCount = ZONE_BOUNDARIES.length;
 
   // Read the first time the end is reached and kept, so the number neither ticks while it is read nor
@@ -238,6 +251,12 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   const isOrbit = snapshot.status === "orbit";
   // In orbit, or blowing up there: the choices of what to do next stay on screen.
   const isAloft = isOrbit || snapshot.status === "destructing" || snapshot.status === "exploding";
+  const invite = useInvite({ isOrbit, isInView: isBoardShown, isOpen: isVoyaging, isChoosing, open: openVoyage });
+  const isCounting = invite.count !== null;
+
+  useEffect(() => {
+    setIsChoosing(false);
+  }, [isAloft]);
   const isOnPad = snapshot.status === "ready" || snapshot.status === "charging";
   // One star per stat, lit as each zone falls behind, the last one in orbit.
   const isLit = (index: number) => isOrbit || snapshot.passed > index;
@@ -249,59 +268,73 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
   return (
     <Section id={SECTION_IDS.finale} ref={sectionRef}>
       <Panel>
-        <Board ref={boardRef} role="img" aria-label={content.launch.boardLabel} isAlarm={snapshot.status === "destructing"}>
-          <Canvas ref={canvasRef} aria-hidden="true" />
-          <Status role="status">{statusOf(content.launch, snapshot, zoneLabels)}</Status>
-        </Board>
-        <Controls>
-          {isAloft ? (
-            <>
-              <ActionButton type="button" isPrimary disabled={!isOrbit} onClick={() => setIsVoyaging(true)}>
-                <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
-                {content.launch.continue}
-              </ActionButton>
-              <RedButton type="button" disabled={!isOrbit} aria-describedby={hint} onClick={selfDestruct}>
-                <Plate aria-hidden="true">
-                  <Cap className="cap" />
-                </Plate>
-                {content.launch.doNotPress}
-              </RedButton>
-              <Hint id={hint}>{content.launch.orbitHint}</Hint>
-            </>
-          ) : (
-            <>
-              <LaunchButton
-                type="button"
-                disabled={!isReady || !isOnPad}
-                aria-describedby={hint}
-                onPointerDown={onPointerDown}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerCancel}
-                onContextMenu={(event) => event.preventDefault()}
-                onClick={onClick}
-              >
-                <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
-                {content.launch.hold}
-              </LaunchButton>
-              <Hint id={hint}>{content.launch.hint}</Hint>
-            </>
-          )}
-        </Controls>
-        {isVoyaging && (
-          <LazyVoyageDialog
-            content={content.voyage}
-            universes={CROSSED_ZONES.map((zone) => zoneLabels[zone])}
-            best={voyageBest}
-            onRecord={recordVoyage}
-            onClose={() => setIsVoyaging(false)}
-          />
-        )}
         <Heading>
           <Kicker>{content.kicker}</Kicker>
           <Title>
             <DecodedText text={content.title} isActive={isReached} />
           </Title>
         </Heading>
+        <Board ref={boardRef} role="img" aria-label={content.launch.boardLabel} isAlarm={snapshot.status === "destructing"}>
+          <Canvas ref={canvasRef} aria-hidden="true" />
+          <Status role="status">{statusOf(content.launch, snapshot, zoneLabels, site)}</Status>
+        </Board>
+        <Choice onFocus={() => setIsChoosing(isAloft)} onBlur={onChoiceBlur}>
+          {isAloft && (
+            <Ask>
+              <AskTitle>{content.launch.invite.question}</AskTitle>
+              {isCounting && <Hint role="status">{fill(content.launch.invite.starting, { seconds: INVITE_SECONDS })}</Hint>}
+            </Ask>
+          )}
+          <Controls>
+            {isAloft ? (
+              <>
+                <ActionButton type="button" isPrimary disabled={!isOrbit} onClick={invite.accept}>
+                  <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
+                  {isCounting ? fill(content.launch.invite.playIn, { seconds: invite.count ?? 0 }) : content.launch.invite.play}
+                </ActionButton>
+                {isCounting && (
+                  <ActionButton type="button" isPrimary={false} onClick={invite.decline}>
+                    {content.launch.invite.decline}
+                  </ActionButton>
+                )}
+                <RedButton type="button" disabled={!isOrbit} aria-describedby={hint} onClick={selfDestruct}>
+                  <Plate aria-hidden="true">
+                    <Cap className="cap" />
+                  </Plate>
+                  {content.launch.doNotPress}
+                </RedButton>
+                <Hint id={hint}>{content.launch.orbitHint}</Hint>
+              </>
+            ) : (
+              <>
+                <LaunchButton
+                  type="button"
+                  disabled={!isReady || !isOnPad}
+                  aria-describedby={hint}
+                  onPointerDown={press.onPointerDown}
+                  onPointerUp={press.onPointerUp}
+                  onPointerCancel={press.onPointerCancel}
+                  onContextMenu={press.onContextMenu}
+                  onClick={press.onClick}
+                >
+                  <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
+                  {content.launch.hold}
+                </LaunchButton>
+                <Hint id={hint}>{content.launch.hint}</Hint>
+              </>
+            )}
+          </Controls>
+        </Choice>
+        {isVoyaging && (
+          <LazyVoyageDialog
+            content={content.voyage}
+            universes={CROSSED_ZONES.map((zone) => zoneLabels[zone])}
+            best={voyageBest}
+            homePad={site?.name ?? null}
+            onRecord={recordVoyage}
+            onClose={() => setIsVoyaging(false)}
+          />
+        )}
         <SummaryTitle>{content.summaryTitle}</SummaryTitle>
         <Stats>
           <Stat isDone={objectives[0]}>
@@ -356,7 +389,7 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
               </StarMark>
               {content.stats.time}
             </StatName>
-            <StatValue isDone={false}>{runMs === null ? "0:00" : formatTime(runMs)}</StatValue>
+            <StatValue isDone={false}>{formatDuration((runMs ?? 0) / 1000)}</StatValue>
           </Stat>
         </Stats>
         <Rank>

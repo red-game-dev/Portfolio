@@ -2,6 +2,7 @@ import { AlienRole, Modules, WreckKind } from "./components";
 import { VoyagePhase } from "./events";
 import { FaultKind } from "./faults";
 import { VoyageStatus } from "./state";
+import { SurfaceInfo } from "./surface";
 import { Disposition } from "./universe";
 
 // Someone shown in an MMO frame: what they are called, their level, how they stand towards the ship, and how
@@ -67,6 +68,8 @@ export interface VoyageSnapshot {
   score: number;
   passing: string | null;
   landedOn: string | null;
+  // Where the ship stands on that world, once its surface is in view.
+  surface: SurfaceInfo | null;
   // Each system's integrity, in hundredths.
   modules: Modules;
   // The compass's target, its name where it was made up, and its real distance in km.

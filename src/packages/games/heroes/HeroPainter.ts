@@ -1,4 +1,6 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { hexWithAlpha } from "@/packages/graphics/colour";
+import { TAU } from "@/packages/math/angles";
 
 import { HeroClass, HeroLook } from "./classes";
 
@@ -33,8 +35,7 @@ export class HeroPainter {
   public paintAura(context: Canvas2DContext, hero: HeroClass, glow: number): void {
     const aura = context.createRadialGradient(CX, 130, 10, CX, 130, 110);
 
-    aura.addColorStop(0, `${hero.aura}${Math.round((0.28 + glow * 0.22) * 255).toString(16)
-.padStart(2, "0")}`);
+    aura.addColorStop(0, hexWithAlpha(hero.aura, 0.28 + glow * 0.22));
     aura.addColorStop(1, `${hero.aura}00`);
     context.fillStyle = aura;
     context.fillRect(0, 0, HERO_SIZE.width, HERO_SIZE.height);
@@ -91,7 +92,7 @@ export class HeroPainter {
     // His left hand at his side; the right one belongs to the weapon layer.
     context.fillStyle = skin;
     context.beginPath();
-    context.ellipse(52, 228, 7, 8, 0.2, 0, Math.PI * 2);
+    context.ellipse(52, 228, 7, 8, 0.2, 0, TAU);
     context.fill();
   }
 
@@ -121,7 +122,7 @@ export class HeroPainter {
 
     context.fillStyle = skin;
     context.beginPath();
-    context.ellipse(hand.x, hand.y, 8, 8, 0, 0, Math.PI * 2);
+    context.ellipse(hand.x, hand.y, 8, 8, 0, 0, TAU);
     context.fill();
   }
 
@@ -129,7 +130,7 @@ export class HeroPainter {
     // Pauldrons.
     [-1, 1].forEach((side) => {
       context.beginPath();
-      context.ellipse(CX + side * 50, 152, 20, 13, side * 0.3, Math.PI, Math.PI * 2);
+      context.ellipse(CX + side * 50, 152, 20, 13, side * 0.3, Math.PI, TAU);
       context.ellipse(CX + side * 50, 152, 20, 9, side * 0.3, 0, Math.PI);
       context.fillStyle = linear(context, hero.trim, hero.primary, CX + side * 40, 140, CX + side * 60, 165);
       context.fill();
@@ -150,7 +151,7 @@ export class HeroPainter {
     context.globalAlpha = 0.25;
     context.fillStyle = "#ffffff";
     context.beginPath();
-    context.ellipse(84, 186, 10, 26, -0.15, 0, Math.PI * 2);
+    context.ellipse(84, 186, 10, 26, -0.15, 0, TAU);
     context.fill();
     context.globalAlpha = 1;
 
@@ -166,7 +167,7 @@ export class HeroPainter {
       [70, 86, 114, 130].forEach((x) => context.fillRect(x, 147, 2, 3));
       context.fillStyle = hero.aura;
       context.beginPath();
-      context.arc(CX, 178, 6, 0, Math.PI * 2);
+      context.arc(CX, 178, 6, 0, TAU);
       context.fill();
       context.strokeStyle = hero.trim;
       context.lineWidth = 1.5;
@@ -240,7 +241,7 @@ export class HeroPainter {
     context.fill();
     context.fillStyle = hero.trim;
     context.beginPath();
-    context.arc(CX, 150, 4.5, 0, Math.PI * 2);
+    context.arc(CX, 150, 4.5, 0, TAU);
     context.fill();
   }
 
@@ -251,7 +252,7 @@ export class HeroPainter {
     context.fillStyle = skinShade;
     [-1, 1].forEach((side) => {
       context.beginPath();
-      context.ellipse(CX + side * 26, 84, 4, 7, 0, 0, Math.PI * 2);
+      context.ellipse(CX + side * 26, 84, 4, 7, 0, 0, TAU);
       context.fill();
     });
 
@@ -307,12 +308,12 @@ export class HeroPainter {
 
       if (open > 0.15) {
         context.beginPath();
-        context.ellipse(cx, 80, 5.5, 2.8 * open, 0, 0, Math.PI * 2);
+        context.ellipse(cx, 80, 5.5, 2.8 * open, 0, 0, TAU);
         context.fillStyle = "#fbf7f2";
         context.fill();
         context.fillStyle = eyes;
         context.beginPath();
-        context.arc(cx, 80, 2.4 * Math.min(1, open + 0.2), 0, Math.PI * 2);
+        context.arc(cx, 80, 2.4 * Math.min(1, open + 0.2), 0, TAU);
         context.fill();
         context.fillStyle = "#ffffff";
         context.fillRect(cx + 0.6, 78.6, 1, 1);
@@ -383,7 +384,7 @@ export class HeroPainter {
         [[CX, 34, hero.cape ?? hero.aura], [86, 40, hero.aura], [114, 40, hero.aura]].forEach(([x, y, colour]) => {
           context.fillStyle = colour as string;
           context.beginPath();
-          context.arc(x as number, y as number, 2.6, 0, Math.PI * 2);
+          context.arc(x as number, y as number, 2.6, 0, TAU);
           context.fill();
         });
         break;
@@ -405,7 +406,7 @@ export class HeroPainter {
       case "featherCap": {
         context.fillStyle = linear(context, hero.primary, hero.shade, CX, 30, CX, 54);
         context.beginPath();
-        context.ellipse(96, 44, 30, 12, -0.12, 0, Math.PI * 2);
+        context.ellipse(96, 44, 30, 12, -0.12, 0, TAU);
         context.fill();
         context.strokeStyle = hero.trim;
         context.lineWidth = 2;
@@ -432,11 +433,11 @@ export class HeroPainter {
         context.stroke();
         [-1, 1].forEach((side) => {
           context.beginPath();
-          context.arc(CX + side * 11, 56, 7, 0, Math.PI * 2);
+          context.arc(CX + side * 11, 56, 7, 0, TAU);
           context.fillStyle = hero.trim;
           context.fill();
           context.beginPath();
-          context.arc(CX + side * 11, 56, 4.5, 0, Math.PI * 2);
+          context.arc(CX + side * 11, 56, 4.5, 0, TAU);
           context.fillStyle = hero.aura;
           context.fill();
         });
@@ -468,8 +469,7 @@ export class HeroPainter {
     const light = context.createRadialGradient(x, y, 1, x, y, radius);
 
     light.addColorStop(0, `${colour}ee`);
-    light.addColorStop(0.4, `${colour}${Math.round((0.35 + glow * 0.4) * 255).toString(16)
-.padStart(2, "0")}`);
+    light.addColorStop(0.4, hexWithAlpha(colour, 0.35 + glow * 0.4));
     light.addColorStop(1, `${colour}00`);
     context.fillStyle = light;
     context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
@@ -485,7 +485,7 @@ export class HeroPainter {
         this.glowAt(context, x, 104, 18, hero.aura, glow);
         context.fillStyle = hero.cape ?? hero.aura;
         context.beginPath();
-        context.arc(x, 104, 6, 0, Math.PI * 2);
+        context.arc(x, 104, 6, 0, TAU);
         context.fill();
         context.strokeStyle = "#ffe58a";
         context.lineWidth = 2;
@@ -503,7 +503,7 @@ export class HeroPainter {
         this.glowAt(context, x - 2, 88, 24, hero.aura, glow);
         context.fillStyle = "#e9fbff";
         context.beginPath();
-        context.arc(x - 2, 88, 7, 0, Math.PI * 2);
+        context.arc(x - 2, 88, 7, 0, TAU);
         context.fill();
         break;
       case "quill":
@@ -536,7 +536,7 @@ export class HeroPainter {
         context.moveTo(0, -26);
         context.lineTo(0, 10);
         context.moveTo(-8, 2);
-        context.arc(-4, 2, 4, 0, Math.PI * 2);
+        context.arc(-4, 2, 4, 0, TAU);
         context.stroke();
         context.fillStyle = "#e8e2d0";
         context.fillRect(-18, -34, 36, 5);
@@ -548,7 +548,7 @@ export class HeroPainter {
         context.fillStyle = hero.trim;
         context.beginPath();
         for (let tooth = 0; tooth < 16; tooth += 1) {
-          const angle = (tooth / 16) * Math.PI * 2;
+          const angle = (tooth / 16) * TAU;
           const radius = tooth % 2 === 0 ? 14 : 11;
 
           context.lineTo(x + Math.cos(angle) * radius, y - 22 + Math.sin(angle) * radius);
@@ -557,7 +557,7 @@ export class HeroPainter {
         context.fill();
         context.fillStyle = hero.shade;
         context.beginPath();
-        context.arc(x, y - 22, 4.5, 0, Math.PI * 2);
+        context.arc(x, y - 22, 4.5, 0, TAU);
         context.fill();
         break;
       case "hexChain":
@@ -569,7 +569,7 @@ export class HeroPainter {
           context.lineWidth = 2;
           context.beginPath();
           for (let side = 0; side <= 6; side += 1) {
-            const angle = (side / 6) * Math.PI * 2 + Math.PI / 6;
+            const angle = (side / 6) * TAU + Math.PI / 6;
 
             context.lineTo(x + Math.cos(angle) * 8, cy + Math.sin(angle) * 8);
           }

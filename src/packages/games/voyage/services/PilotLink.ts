@@ -3,6 +3,7 @@ import { RANKS } from "../career/config/ranks";
 import { CareerEvent, Peril } from "../career/domain/career";
 import { Career, CareerOutcome } from "../career/services/Career";
 import { VoyageSimulation } from "../core/VoyageSimulation";
+import { HOME_WORLD } from "../domain/content";
 import { VoyageNotice } from "../domain/notices";
 import { VoyageSnapshot } from "../domain/snapshot";
 import { configForLevel } from "../economy/config/tiers";
@@ -11,6 +12,8 @@ import { Hangar } from "../economy/services/Hangar";
 
 // Deeds big enough to announce what they paid.
 const ANNOUNCED: ReadonlyArray<Deed["kind"]> = ["boss", "universe", "rescue"];
+// Coins picked up are paid together at most this often (ms of the run), so a run's ledger keeps room for deeds.
+const COIN_BATCH_MS = 1000;
 // The Sun's closest approach is only worth telling a mission inside this distance (AU).
 const SUN_WATCH_AU = 1;
 // How near the ship someone must be to count as seen, for the codex (world units).
@@ -44,6 +47,8 @@ export class PilotLink {
   private savedRocks = new Set<number>();
   private peril: Peril | null = null;
   private isRunSettled = false;
+  private pendingCoins = 0;
+  private coinsPaidAt = 0;
 
   constructor({ simulation, hangar, career, nameOf, notify, refresh }: PilotLinkOptions) {
     this.simulation = simulation;
@@ -62,9 +67,11 @@ export class PilotLink {
     this.savedRocks = new Set();
     this.peril = null;
     this.isRunSettled = false;
+    this.pendingCoins = 0;
+    this.coinsPaidAt = 0;
     this.count({ kind: "upgraded", level: this.hangar.level });
     // Every run starts at Earth, which is passed already, so no passing tells the codex of it.
-    this.discover(codexId("worlds", "earth"));
+    this.discover(codexId("worlds", HOME_WORLD));
   }
 
   public attach(): () => void {
@@ -86,6 +93,12 @@ export class PilotLink {
         this.discoverPlace(body);
       }),
       events.on("skimmed", ({ body }) => this.count({ kind: "skimmed", body })),
+      // Red Coins picked up in flight are gathered, and paid into the wallet together (see `tick`).
+      events.on("collected", ({ kind }) => {
+        if (kind === "coin") {
+          this.pendingCoins += 1;
+        }
+      }),
       events.on("downed", ({ role, level }) => {
         if (role === "fighter") {
           this.pay({ kind: "bounty", level });
@@ -164,6 +177,8 @@ export class PilotLink {
   // On every snapshot: a danger lived through once the ship is still flying after it, the Sun's closest approach,
   // who is near enough to be seen, and a run that has ended settled once.
   public tick(snapshot: VoyageSnapshot): void {
+    this.payCoins(snapshot.status === "over");
+
     if (snapshot.status === "flying") {
       if (this.peril) {
         this.count({ kind: "survived", hazard: this.peril });
@@ -191,6 +206,20 @@ export class PilotLink {
         this.notify({ kind: "daily", day, score: snapshot.score, isBest: this.career.recordDaily(day, snapshot.score) });
       }
     }
+  }
+
+  // The coins gathered since the last payment, as one entry: at most once a second, and whatever is left when the
+  // run ends.
+  private payCoins(isFinal: boolean): void {
+    const now = this.simulation.state.elapsedMs;
+
+    if (this.pendingCoins === 0 || (!isFinal && now - this.coinsPaidAt < COIN_BATCH_MS)) {
+      return;
+    }
+
+    this.pay({ kind: "coin", count: this.pendingCoins });
+    this.pendingCoins = 0;
+    this.coinsPaidAt = now;
   }
 
   private pay(deed: Deed): void {

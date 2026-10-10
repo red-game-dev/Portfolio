@@ -1,26 +1,15 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { createSeededRandom } from "@/packages/math/random";
 
 import { HullShape } from "../../domain/universe";
-
-const TAU = Math.PI * 2;
+import { glow } from "./light";
 
 export type CraftShape = HullShape | "trader" | "whale" | "rocket" | "starship";
 
 // Each craft is painted facing +x (its nose to the right) in a square `width` across, centred, so it can be
 // turned to its heading. Colours: hull, trim, glow.
 type Painter = (context: Canvas2DContext, c: number, r: number, colours: [string, string, string]) => void;
-
-const glow = (context: Canvas2DContext, x: number, y: number, radius: number, colour: string) => {
-  const light = context.createRadialGradient(x, y, 0, x, y, radius);
-
-  light.addColorStop(0, colour);
-  light.addColorStop(1, "rgba(0, 0, 0, 0)");
-  context.fillStyle = light;
-  context.beginPath();
-  context.arc(x, y, radius, 0, TAU);
-  context.fill();
-};
 
 const PAINTERS: Record<CraftShape, Painter> = {
   // A flying saucer: a disc with a lit rim and a glass dome.

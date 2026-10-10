@@ -52,6 +52,9 @@ interface TagProps {
   isWrapping?: boolean;
 }
 
+// A row of tags, wrapping onto as many lines as it needs.
+export const TagList = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
+
 // A small pill in a list of tags: a stack, a skill, an area.
 export const Tag = styled.li(({ isCompact = false, isWrapping = false }: TagProps) => [
   tw`text-xs text-[var(--accent)] bg-[#1d1d1d] rounded-full border-[1px] border-solid border-[var(--accent-muted)]`,

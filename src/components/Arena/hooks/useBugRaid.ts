@@ -4,21 +4,16 @@ import { BUG_RAID_THEME } from "@/components/Arena/config";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useInView from "@/hooks/useInView";
 import type { BugRaidSnapshot } from "@/packages/games/bug-raid";
+import { localPoint } from "@/packages/interaction/gestures";
+import { ARROW_STEPS, KeyMap, KeyStep } from "@/packages/interaction/keys";
 
 interface BugRaidOptions {
   productionLabel: string;
   onChange?: (snapshot: BugRaidSnapshot) => void;
 }
 
-// Arrow keys move the cursor one step on each axis.
-const AIM_KEYS: Record<string, [number, number]> = {
-  ArrowLeft: [-1, 0],
-  ArrowRight: [1, 0],
-  ArrowUp: [0, -1],
-  ArrowDown: [0, 1],
-};
-
-const STRIKE_KEYS = new Set([" ", "Enter"]);
+// Arrow keys move the cursor one step on each axis; Space and Enter strike where it is.
+const RAID_KEYS = new KeyMap<Readonly<KeyStep> | "strike">({ ...ARROW_STEPS, " ": "strike", "Enter": "strike" });
 
 // Binds a Bug Raid game to a canvas inside a board element: built (and its code fetched) as the board comes
 // near, sized to the board, paused when the board scrolls away, with pointer and keyboard input mapped
@@ -69,9 +64,9 @@ export const useBugRaid = (boardRef: RefObject<HTMLElement>, canvasRef: RefObjec
   }, [boardRef, game]);
 
   const onPointerDown = useCallback((event: PointerEvent<HTMLElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
+    const point = localPoint(event, event.currentTarget);
 
-    game?.strike(event.clientX - rect.left, event.clientY - rect.top);
+    game?.strike(point.x, point.y);
   }, [game]);
 
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
@@ -79,15 +74,13 @@ export const useBugRaid = (boardRef: RefObject<HTMLElement>, canvasRef: RefObjec
       return;
     }
 
-    const aim = AIM_KEYS[event.key];
-
-    if (aim) {
-      event.preventDefault();
-      game.aim(aim[0], aim[1]);
-    } else if (STRIKE_KEYS.has(event.key)) {
-      event.preventDefault();
-      game.strikeAtCursor();
-    }
+    RAID_KEYS.handle(event, (intent) => {
+      if (intent === "strike") {
+        game.strikeAtCursor();
+      } else {
+        game.aim(intent.x, intent.y);
+      }
+    });
   }, [game]);
 
   return { snapshot, isPaused, play, resume, onPointerDown, onKeyDown };

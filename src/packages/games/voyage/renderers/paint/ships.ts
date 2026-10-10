@@ -1,9 +1,9 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 
 import { HullTier } from "../../economy/domain/economy";
+import { glow } from "./light";
 import { paintShip, SHIP_WIDTH } from "./space";
-
-const TAU = Math.PI * 2;
 
 export interface HullColours {
   hull: string;
@@ -42,17 +42,6 @@ const steel = (context: Canvas2DContext, x: number, r: number, { hull, hullShade
   fill.addColorStop(1, hullShade);
 
   return fill;
-};
-
-const glow = (context: Canvas2DContext, x: number, y: number, radius: number, colour: string) => {
-  const light = context.createRadialGradient(x, y, 0, x, y, radius);
-
-  light.addColorStop(0, colour);
-  light.addColorStop(1, "rgba(0, 0, 0, 0)");
-  context.fillStyle = light;
-  context.beginPath();
-  context.arc(x, y, radius, 0, TAU);
-  context.fill();
 };
 
 const polygon = (context: Canvas2DContext, points: ReadonlyArray<[number, number]>) => {

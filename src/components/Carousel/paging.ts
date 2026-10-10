@@ -20,15 +20,6 @@ export const carouselPage = (start: number, perPage: number, count: number): Car
 // Turning past either end wraps around.
 export const wrapPage = (target: number, pages: number) => ((target % pages) + pages) % pages;
 
-// Which way a swipe turns the page: right to left goes forward. Too short a swipe is a tap or a scroll.
-export const swipeStep = (distance: number, threshold: number): 1 | -1 | null => {
-  if (Math.abs(distance) <= threshold) {
-    return null;
-  }
-
-  return distance < 0 ? 1 : -1;
-};
-
 // When the cards per page change, start on the page that holds the card that was first.
 export const realignStart = (start: number, perPage: number) => Math.floor(start / perPage) * perPage;
 

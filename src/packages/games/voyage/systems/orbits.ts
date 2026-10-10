@@ -1,6 +1,7 @@
-import { centuriesSinceJ2000, daysSinceJ2000, DEG, earthSubsolarPoint, heliocentricPosition, julianDay, subsolarLatitude, wrapDegrees } from "@/packages/physics/kepler";
+import { DEG, wrapDegrees } from "@/packages/math/angles";
+import { centuriesSinceJ2000, daysSinceJ2000, earthSubsolarPoint, heliocentricPosition, julianDay, subsolarLatitude } from "@/packages/physics/kepler";
 
-import { StarSystem, SystemBody } from "../domain/content";
+import { HOME_WORLD, StarSystem, SystemBody } from "../domain/content";
 import { MissionClock } from "../domain/state";
 import { auForRadius, radiusForAu } from "../utils/scale";
 
@@ -83,7 +84,7 @@ export const placeBodies = (system: StarSystem, moment: number, dt = 0): void =>
       body.vy = (body.y - lastY) / dt;
     }
 
-    if (body.id === "earth") {
+    if (body.id === HOME_WORLD) {
       const point = earthSubsolarPoint(jd, body.real);
 
       body.subsolarLongitude = point.longitude;

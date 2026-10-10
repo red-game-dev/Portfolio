@@ -1,6 +1,7 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import type { StarLook } from "@/packages/graphics/globe";
+import { TAU } from "@/packages/math/angles";
 import { createSeededRandom } from "@/packages/math/random";
 
 import { SHOCK_FADES } from "../../domain/state";
@@ -9,7 +10,6 @@ import { VoyageFrame } from "../frame";
 import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
 
-const TAU = Math.PI * 2;
 const PULSAR_REACH = 45;
 
 // The dead and dying stars these things are made of.

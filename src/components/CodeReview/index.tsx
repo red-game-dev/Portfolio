@@ -11,6 +11,7 @@ import { Panel } from "@/components/Panel";
 import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
+import { squareBullet } from "@/styles/mixins";
 import { CodeReviewContent } from "@/types/code-review";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -58,17 +59,7 @@ const Points = tw.ul`list-none m-0 p-0 flex flex-col gap-[6px] text-sm text-[#aa
 
 const Point = styled.li(() => [
   tw`relative pl-[14px]`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.6em;
-      width: 5px;
-      height: 5px;
-      background: var(--accent);
-    }
-  `,
+  squareBullet({ size: 5 }),
 ]);
 
 // Pull requests merged and reviewed on my main account, drawn one square each with no totals, a year by

@@ -1,4 +1,5 @@
 import type { Camera } from "@/packages/games/engine";
+import { lerp } from "@/packages/math/easing";
 
 import { VoyageConfig, VoyageTheme, VoyageUniverseTheme } from "../config";
 import { VoyageWorld } from "../core/world";
@@ -22,9 +23,9 @@ export interface VoyageFrame {
 }
 
 // Where a body is now, between its last two steps.
-export const lerpX = (body: Body, alpha: number) => body.prevX + (body.x - body.prevX) * alpha;
+export const lerpX = (body: Body, alpha: number) => lerp(body.prevX, body.x, alpha);
 
-export const lerpY = (body: Body, alpha: number) => body.prevY + (body.y - body.prevY) * alpha;
+export const lerpY = (body: Body, alpha: number) => lerp(body.prevY, body.y, alpha);
 
 // Sizes are painted once at zoom 1 and only scaled after, so the speed zoom never repaints a sprite.
 export const SIZE_STEP = 2;

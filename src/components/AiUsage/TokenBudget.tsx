@@ -6,6 +6,7 @@ import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageBudget } from "@/packages/insights/ai-usage";
 import { collapseWhitespace, fill } from "@/packages/text/format";
+import { media, squareBullet } from "@/styles/mixins";
 
 interface RevealProps {
   isRevealed: boolean;
@@ -34,7 +35,7 @@ const Segment = styled.span(({ isRevealed }: RevealProps) => [
     transform: scaleX(${isRevealed ? 1 : 0});
     transition: transform 0.9s cubic-bezier(0.165, 0.85, 0.45, 1);
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       transform: none;
       transition: none;
     }
@@ -60,17 +61,7 @@ const Practices = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px] text-sm text-[
 
 const Practice = styled.li(() => [
   tw`relative pl-[16px] break-words`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.6em;
-      width: 6px;
-      height: 6px;
-      background: var(--accent);
-    }
-  `,
+  squareBullet(),
 ]);
 
 const Notes = tw.ul`list-none m-0 mt-[22px] p-0 flex flex-col gap-[6px] text-sm text-[#888]`;

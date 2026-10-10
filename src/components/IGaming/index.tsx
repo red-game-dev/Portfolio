@@ -13,6 +13,7 @@ import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
 import useLoaded from "@/hooks/useLoaded";
+import { media, noAnimationWhenReduced } from "@/styles/mixins";
 import { BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
 import { IGamingContent } from "@/types/domains";
 import { SectionIntros } from "@/types/sections-intros";
@@ -57,9 +58,7 @@ const Dot = styled.span(() => [
   css`
     animation: ${blink} 1.4s ease-in-out infinite;
 
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
+    ${noAnimationWhenReduced}
   `,
 ]);
 
@@ -73,7 +72,7 @@ const Card = styled.li(({ isDealt }: DealtProps) => [
     opacity: ${isDealt ? 1 : 0};
     transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.3s ease;
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       transform: none;
       opacity: 1;
       transition: none;

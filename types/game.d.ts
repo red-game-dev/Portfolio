@@ -1,4 +1,6 @@
 import type { ZoneId } from "@/config/zones";
+import type { LaunchLand, LaunchMilestone, LaunchVehicle } from "@/packages/games/launch";
+import type { SurfaceBiome } from "@/packages/games/voyage";
 
 export interface DuelRound {
   agent: string;
@@ -63,17 +65,48 @@ export interface FinaleRank {
 }
 
 // The launch out of the game world, and what each moment of it is called.
+// Whether the reader wants to play: the first time, the journey goes on by itself after a count unless they say
+// no thanks. "{seconds}" is replaced.
+export interface FinaleInvite {
+  question: string;
+  starting: string;
+  play: string;
+  playIn: string;
+  decline: string;
+}
+
+// A real launch pad: its short name as the board writes it, where it is, its time zone (for the local time), what
+// flies from it, the land round it, which way its rockets fly (1 to the right of the view), and whether the sea
+// lies behind it.
+export interface FinaleLaunchSite {
+  name: string;
+  latitude: number;
+  longitude: number;
+  timeZone: string;
+  vehicle: LaunchVehicle;
+  land: LaunchLand;
+  downrange: number;
+  hasSea: boolean;
+}
+
 export interface FinaleLaunch {
   boardLabel: string;
+  // The pads a launch may fly from, one picked at random each visit; on the pad, the board names it and its local
+  // time ("{site}", "{time}").
+  sites: FinaleLaunchSite[];
+  pad: string;
+  // What each moment of the flight is called, and the readout's labels.
+  milestones: Record<LaunchMilestone, string>;
+  readout: { altitude: string; speed: string };
   hold: string;
   charging: string;
   liftOff: string;
   orbit: string;
-  // Read out as each zone falls behind; "{zone}" is replaced.
+  // Read out at each moment of the flight as each zone falls behind; "{milestone}" and "{zone}" are replaced.
   leaving: string;
   hint: string;
   // In orbit: carry on into space, or press the button nobody should press.
-  continue: string;
+  invite: FinaleInvite;
   doNotPress: string;
   orbitHint: string;
   // "{seconds}" is replaced.
@@ -214,8 +247,22 @@ export interface VoyageCareerCopy {
   photo: { title: string; open: string; close: string; save: string; hint: string; file: string };
 }
 
+// The view from a world's surface: which world ("{body}"), the local time ("{time}"), what each kind of ground is
+// called, and how to leave.
+export interface FinaleSurface {
+  title: string;
+  time: string;
+  biomes: Record<SurfaceBiome, string>;
+  takeOff: string;
+  // Home: a new rocket stands ready (at the finale's pad, "{pad}"), and how to launch it.
+  ready: string;
+  readyAt: string;
+  launch: string;
+}
+
 export interface FinaleVoyage {
   title: string;
+  surface: FinaleSurface;
   intro: string;
   controls: string;
   canvasLabel: string;
@@ -280,6 +327,10 @@ export interface FinaleVoyage {
   // "{body}" is replaced.
   landed: string;
   tookOff: string;
+  // Home safely, met and given a new rocket.
+  recovered: string;
+  // After a run ends: what is kept for the next one.
+  kept: string;
   emergency: string;
   captured: string;
   // "{class}" is replaced with the flare's class; the second when its storm heads for the ship.

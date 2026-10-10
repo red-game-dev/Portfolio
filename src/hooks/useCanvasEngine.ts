@@ -8,9 +8,17 @@ export interface CanvasSize {
   pixelRatio: number;
 }
 
+// An engine stops; one that holds the GPU or other resources also gives them back when it goes.
 interface StoppableEngine {
   stop(): void;
+  dispose?(): void;
 }
+
+// Stops an engine for good: whatever it holds is given back, or it is at least stopped.
+const retire = (engine: StoppableEngine) => {
+  engine.stop();
+  engine.dispose?.();
+};
 
 interface CanvasEngineOptions<TEngine extends StoppableEngine> {
   // Builds the engine for the canvas. Return a promise to load the engine's code first: it is then only
@@ -29,7 +37,8 @@ interface CanvasEngineOptions<TEngine extends StoppableEngine> {
 
 // Wires a canvas engine to the page the same way everywhere: built (and its code loaded) once the canvas is
 // near the screen, sized from a ResizeObserver at the device's pixel ratio, rebuilt when `deps` change, and
-// stopped when the component goes. A build that finishes after the component has gone is stopped at once.
+// retired when the component goes or it is rebuilt (stopped, and its GPU and other resources given back where it
+// has a `dispose`). A build that finishes after the component has gone is retired at once.
 // Starting and stopping while built is the caller's: engines differ in when they should run.
 export default function useCanvasEngine<TEngine extends StoppableEngine>(
   canvasRef: RefObject<HTMLCanvasElement>,
@@ -65,7 +74,7 @@ export default function useCanvasEngine<TEngine extends StoppableEngine>(
     Promise.resolve(createRef.current(context))
       .then((next) => {
         if (isGone) {
-          next.stop();
+          retire(next);
 
           return;
         }
@@ -82,7 +91,10 @@ export default function useCanvasEngine<TEngine extends StoppableEngine>(
     return () => {
       isGone = true;
       observer.disconnect();
-      built?.stop();
+      if (built) {
+        retire(built);
+      }
+
       setEngine(null);
     };
     // Rebuilt for the caller's own dependencies, not for new function identities.

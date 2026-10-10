@@ -1,60 +1,22 @@
 import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useRef, useState, WheelEvent } from "react";
 
+import { PHOTO_PAN, VOYAGE_KEYS, VOYAGE_ZOOM, voyageKeyAction } from "@/components/Finale/Voyage/controls";
 import { usePilotSync } from "@/components/Finale/Voyage/hooks/usePilotSync";
 import { VOYAGE_TEXTURES, VOYAGE_THEME } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import { PauseHolds } from "@/packages/animation/frame-loop";
+import { decodeImage } from "@/packages/browser/images";
 import type { CareerView, EconomyView, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
+import { DragTracker, localPoint } from "@/packages/interaction/gestures";
+import { HeldKeys } from "@/packages/interaction/keys";
+import { ZoomInput } from "@/packages/interaction/zoom";
 import type { Pilot } from "@/services/voyage/pilot";
-
-// What each key asks of the ship: arrows and WASD turn and burn, down and S brake.
-const KEYS: Record<string, "left" | "right" | "burn" | "brake"> = {
-  ArrowLeft: "left",
-  ArrowRight: "right",
-  ArrowUp: "burn",
-  ArrowDown: "brake",
-  a: "left",
-  d: "right",
-  w: "burn",
-  s: "brake",
-};
-
-// How far an arrow looks round in photo mode (CSS pixels the view moves).
-const PHOTO_PAN: Record<string, [number, number] | undefined> = { ArrowLeft: [60, 0], ArrowRight: [-60, 0], ArrowUp: [0, 60], ArrowDown: [0, -60] };
-
-// How much a notch of the wheel, or a key, zooms.
-const WHEEL_ZOOM = 0.0015;
-const KEY_ZOOM = 1.25;
-
-const keyOf = (event: KeyboardEvent<HTMLElement>) => (event.key.length === 1 ? event.key.toLowerCase() : event.key);
-
-// Each real map, fetched and decoded once a visit, however often the voyage is opened.
-const decoded = new Map<string, Promise<HTMLImageElement>>();
-
-const decode = (url: string): Promise<HTMLImageElement> => {
-  const known = decoded.get(url);
-
-  if (known) {
-    return known;
-  }
-
-  const image = new Image();
-
-  image.decoding = "async";
-  image.src = url;
-
-  const ready = image.decode().then(() => image);
-
-  ready.catch(() => decoded.delete(url));
-  decoded.set(url, ready);
-
-  return ready;
-};
 
 // Hands the game each real map as soon as it has loaded, in order, so Earth arrives first. A game already gone
 // takes none: its renderer ignores what comes after it is disposed.
 const loadTextures = (game: VoyageGame) => {
   Object.entries(VOYAGE_TEXTURES).forEach(([id, url]) => {
-    decode(url).then((image) => game.setTexture(id, image), () => undefined);
+    decodeImage(url).then((image) => game.setTexture(id, image), () => undefined);
   });
 };
 
@@ -100,13 +62,14 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const [isHangarOpen, setIsHangarOpen] = useState(false);
   const [career, setCareer] = useState<CareerView | null>(null);
   const [isPhoto, setIsPhoto] = useState(false);
-  const drag = useRef<{ x: number; y: number } | null>(null);
+  // The steering keys held down, the fingers zooming, and a drag looking round photo mode.
+  const [held] = useState(() => new HeldKeys(VOYAGE_KEYS));
+  const [zoom] = useState(() => new ZoomInput(VOYAGE_ZOOM));
+  const [drag] = useState(() => new DragTracker());
   const pilot = useRef<Pilot | null>(null);
   const scheduleSave = usePilotSync(pilot);
-  const isPausedForHangar = useRef(false);
-  const held = useRef(new Set<string>());
-  const touches = useRef(new Map<number, { x: number; y: number }>());
-  const pinch = useRef(0);
+  // The map and the hangar each hold the run still while open, together: it goes on only once both are closed.
+  const [holds] = useState(() => new PauseHolds());
   const game = useCanvasEngine(back, {
     sizeRef: stage,
     contextOptions: { alpha: false },
@@ -157,16 +120,13 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   }, []);
   const isFlying = snapshot?.status === "flying";
 
-  // Closing the voyage gives its GPU contexts and textures back, not just stops it.
-  useEffect(() => () => game?.dispose(), [game]);
-
   const play = useCallback((mode: "free" | "daily" = "free") => {
-    held.current.clear();
+    held.clear();
     game?.setKeys({ turn: 0, thrust: 0, brake: false });
     game?.play(mode);
     setIsPaused(false);
     stage.current?.focus();
-  }, [game, stage]);
+  }, [game, held, stage]);
 
   const pause = useCallback(() => {
     if (game?.isRunning && isFlying) {
@@ -207,11 +167,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const setHangar = useCallback((isOpen: boolean) => {
     setIsHangarOpen(isOpen);
 
-    if (isOpen && game?.isRunning && isFlying) {
-      isPausedForHangar.current = true;
-      game.pause();
-    } else if (!isOpen && isPausedForHangar.current) {
-      isPausedForHangar.current = false;
+    if (isOpen && holds.take("hangar", Boolean(game?.isRunning) && isFlying)) {
+      game?.pause();
+    } else if (!isOpen && holds.release("hangar")) {
       game?.resume();
     }
 
@@ -219,7 +177,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     if (!isOpen) {
       stage.current?.focus();
     }
-  }, [game, isFlying, stage]);
+  }, [game, holds, isFlying, stage]);
 
   // Photo mode holds the view still to be looked round and saved; leaving carries on as before.
   const togglePhoto = useCallback(() => {
@@ -227,9 +185,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
     game?.setPhotoMode(isOn);
     setIsPhoto(isOn);
-    drag.current = null;
+    drag.end();
     stage.current?.focus();
-  }, [game, isPhoto, stage]);
+  }, [drag, game, isPhoto, stage]);
 
   // The view as it is now, every canvas in one picture at the device's resolution, saved as a PNG.
   const savePhoto = useCallback((fileName: string) => {
@@ -266,13 +224,23 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }, "image/png");
   }, [back, game]);
 
+  // The map holds a run still while it is open, so nothing can hit the ship while the pilot finds the way, and
+  // lets it go on when it closes. Held still, the game draws the map once.
   const toggleMap = useCallback(() => {
-    setIsMapOpen((isOpen) => {
-      game?.setMap(!isOpen);
+    const isOpen = !isMapOpen;
 
-      return !isOpen;
-    });
-  }, [game]);
+    if (isOpen && holds.take("map", Boolean(game?.isRunning) && isFlying)) {
+      game?.pause();
+    }
+
+    game?.setMap(isOpen);
+
+    if (!isOpen && holds.release("map")) {
+      game?.resume();
+    }
+
+    setIsMapOpen(isOpen);
+  }, [game, holds, isFlying, isMapOpen]);
 
   useEffect(() => {
     const onVisibility = () => {
@@ -287,146 +255,131 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   }, [pause]);
 
   const applyKeys = useCallback(() => {
-    const keys = [...held.current].map((key) => KEYS[key]);
+    game?.setKeys({ turn: held.axis("left", "right"), thrust: held.isHeld("burn") ? 1 : 0, brake: held.isHeld("brake") });
+  }, [game, held]);
 
-    game?.setKeys({
-      turn: (keys.includes("right") ? 1 : 0) - (keys.includes("left") ? 1 : 0),
-      thrust: keys.includes("burn") ? 1 : 0,
-      brake: keys.includes("brake"),
-    });
-  }, [game]);
-
-  const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
-    const key = keyOf(event);
-
-    // The browser's own shortcuts (Ctrl+H, Cmd+U) are left to the browser.
-    if (event.ctrlKey || event.metaKey || event.altKey) {
-      return;
-    }
-
-    // With the hangar open, only its own keys work: the run is held still under it. In photo mode the same goes
-    // for its own: zoom, the camera key and Escape.
-    if (isHangarOpen && key !== "h" && key !== "Escape" && key !== "u") {
-      return;
-    }
-
+  // What each key does is the voyage's key map and `voyageKeyAction`; carrying it out is here. A key that means
+  // nothing right now is left to the browser, so Escape with nothing open still closes the voyage.
+  const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => VOYAGE_KEYS.offer(event, (command) => {
     // Photo mode is looked round with the arrows too, not only by dragging.
-    if (isPhoto && PHOTO_PAN[key]) {
-      event.preventDefault();
+    const pan = isPhoto && !isHangarOpen ? PHOTO_PAN.intentOf(event) : null;
 
-      const [dx, dy] = PHOTO_PAN[key];
-
-      game?.panBy(dx, dy);
-
-      return;
-    }
-
-    if (isPhoto && key !== "c" && key !== "Escape" && key !== "+" && key !== "=" && key !== "-") {
-      return;
-    }
-
-    if (KEYS[key] && isFlying) {
-      event.preventDefault();
-      held.current.add(key);
-      applyKeys();
-    } else if (key === "p" && isFlying) {
-      event.preventDefault();
-
-      if (isPaused) {
-        resume();
-      } else {
-        pause();
-      }
-    } else if (key === "m" && snapshot && snapshot.status !== "ready") {
-      event.preventDefault();
-      toggleMap();
-    } else if (key === "f" && isFlying) {
-      event.preventDefault();
-      toggleGuns();
-    } else if (key === "h" && game?.economy) {
-      event.preventDefault();
-      setHangar(!isHangarOpen);
-    } else if (key === "Escape" && isHangarOpen) {
-      // Escape closes the hangar first, and only then the voyage.
-      event.preventDefault();
-      setHangar(false);
-    } else if (key === "c" && snapshot && snapshot.status !== "ready" && !isHangarOpen) {
-      event.preventDefault();
-      togglePhoto();
-    } else if (key === "Escape" && isPhoto) {
-      event.preventDefault();
-      togglePhoto();
-    } else if (key === "u" && economy?.suggestion) {
-      event.preventDefault();
-      follow(economy.suggestion);
-    } else if ((key === "+" || key === "=" || key === "-") && game) {
-      event.preventDefault();
-      game.zoomBy(key === "-" ? 1 / KEY_ZOOM : KEY_ZOOM);
-    }
-  }, [applyKeys, economy, follow, game, isFlying, isHangarOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns, toggleMap, togglePhoto]);
-
-  const onKeyUp = useCallback((event: KeyboardEvent<HTMLElement>) => {
-    if (held.current.delete(keyOf(event))) {
-      applyKeys();
-    }
-  }, [applyKeys]);
-
-  const onWheel = useCallback((event: WheelEvent<HTMLElement>) => {
-    game?.zoomBy(Math.exp(-event.deltaY * WHEEL_ZOOM));
-  }, [game]);
-
-  const pointAt = useCallback((event: PointerEvent<HTMLElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-
-    game?.point({ x: event.clientX - rect.left, y: event.clientY - rect.top });
-  }, [game]);
-
-  // Two fingers down zoom by how far they spread; one steers.
-  const trackTouch = useCallback((event: PointerEvent<HTMLElement>) => {
-    touches.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
-
-    const [first, second] = [...touches.current.values()];
-
-    if (first && second) {
-      const spread = Math.hypot(first.x - second.x, first.y - second.y);
-
-      if (pinch.current > 0 && spread > 0) {
-        game?.zoomBy(spread / pinch.current);
-      }
-
-      pinch.current = spread;
-      game?.point(null);
+    if (pan) {
+      game?.panBy(pan.x, pan.y);
 
       return true;
     }
 
-    return false;
+    const action = voyageKeyAction(command, {
+      isFlying,
+      hasRun: snapshot !== null && snapshot.status !== "ready",
+      isHangarOpen,
+      isPhoto,
+      // The view kept from the game, not `game.economy`, which builds a fresh one on every read.
+      hasHangar: economy !== null,
+      hasSuggestion: Boolean(economy?.suggestion),
+      hasGame: game !== null,
+    });
+
+    switch (action) {
+      case "steer":
+        held.press(event);
+        applyKeys();
+        break;
+      case "pause":
+        if (isPaused) {
+          resume();
+        } else {
+          pause();
+        }
+
+        break;
+      case "map":
+        toggleMap();
+        break;
+      case "guns":
+        toggleGuns();
+        break;
+      case "hangar":
+        setHangar(!isHangarOpen);
+        break;
+      case "closeHangar":
+        setHangar(false);
+        break;
+      case "photo":
+        togglePhoto();
+        break;
+      case "follow":
+        if (economy?.suggestion) {
+          follow(economy.suggestion);
+        }
+
+        break;
+      case "zoomIn":
+      case "zoomOut":
+        game?.zoomBy(zoom.step(action === "zoomIn" ? 1 : -1));
+        break;
+      default:
+        return false;
+    }
+
+    return true;
+  }), [applyKeys, economy, follow, game, held, isFlying, isHangarOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns, toggleMap, togglePhoto, zoom]);
+
+  const onKeyUp = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    if (held.release(event)) {
+      applyKeys();
+    }
+  }, [applyKeys, held]);
+
+  const onWheel = useCallback((event: WheelEvent<HTMLElement>) => {
+    game?.zoomBy(zoom.wheel(event.deltaY));
+  }, [game, zoom]);
+
+  const pointAt = useCallback((event: PointerEvent<HTMLElement>) => {
+    game?.point(localPoint(event, event.currentTarget));
   }, [game]);
+
+  // Two fingers down zoom by how far they spread; one steers.
+  const trackTouch = useCallback((event: PointerEvent<HTMLElement>) => {
+    const factor = zoom.track(event.pointerId, event.clientX, event.clientY);
+
+    if (!zoom.isPinching) {
+      return false;
+    }
+
+    if (factor !== null) {
+      game?.zoomBy(factor);
+    }
+
+    game?.point(null);
+
+    return true;
+  }, [game, zoom]);
 
   // In photo mode a drag looks round the view (a pinch still zooms), and nothing steers.
   const dragPhoto = useCallback((event: PointerEvent<HTMLElement>, isStart: boolean) => {
     if (event.pointerType !== "mouse" && trackTouch(event)) {
-      drag.current = null;
+      drag.end();
 
       return;
     }
 
     if (isStart) {
       event.currentTarget.setPointerCapture(event.pointerId);
-      drag.current = { x: event.clientX, y: event.clientY };
+      drag.start(event.clientX, event.clientY);
 
       return;
     }
 
-    if (drag.current && event.currentTarget.hasPointerCapture(event.pointerId)) {
-      game?.panBy(event.clientX - drag.current.x, event.clientY - drag.current.y);
-      drag.current = { x: event.clientX, y: event.clientY };
+    const moved = event.currentTarget.hasPointerCapture(event.pointerId) ? drag.move(event.clientX, event.clientY) : null;
+
+    if (moved) {
+      game?.panBy(moved.x, moved.y);
     }
-  }, [game, trackTouch]);
+  }, [drag, game, trackTouch]);
 
   const onPointerDown = useCallback((event: PointerEvent<HTMLElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-
     if (isPhoto) {
       dragPhoto(event, true);
 
@@ -434,7 +387,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
 
     // A click or a tap on someone locks the guns on them; on nothing, lets go.
-    game?.lockAt({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+    game?.lockAt(localPoint(event, event.currentTarget));
 
     if (event.pointerType !== "mouse") {
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -465,17 +418,13 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
   // A finger lifted, or the mouse gone from the stage: the ship coasts.
   const onPointerEnd = useCallback((event: PointerEvent<HTMLElement>) => {
-    touches.current.delete(event.pointerId);
-    drag.current = null;
-
-    if (touches.current.size < 2) {
-      pinch.current = 0;
-    }
+    zoom.release(event.pointerId);
+    drag.end();
 
     if (event.type !== "pointerup" || event.pointerType !== "mouse") {
       game?.point(null);
     }
-  }, [game]);
+  }, [drag, game, zoom]);
 
   return {
     snapshot,

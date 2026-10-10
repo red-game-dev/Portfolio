@@ -1,16 +1,17 @@
 import { careerNotice } from "@/components/Finale/Voyage/career";
 import { economyNotice } from "@/components/Finale/Voyage/economy";
 import type { VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
-import { fill } from "@/packages/text/format";
+import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
-const formatKm = (km: number) => new Intl.NumberFormat("en-GB", { maximumFractionDigits: km < 10 ? 1 : 0 }).format(km);
+const formatKm = (km: number) => formatNumber(km, km < 10 ? 1 : 0);
 
 // A universe's name: its own, or the zone it is named for.
 const universeName = (snapshot: VoyageSnapshot, universes: string[]) => snapshot.universeName ?? universes[snapshot.universe] ?? "";
 
 // A place's name: the content's for the solar system, its own made up one in a universe.
-const placeName = (content: FinaleVoyage, id: string) => content.stops[id] ?? id;
+// A place's name: ours from the content, a made one as the universe named it.
+export const placeName = (content: FinaleVoyage, id: string, madeName?: string | null) => content.stops[id] ?? madeName ?? id;
 
 // What the voyage says aloud as it changes: each stop passed, the black hole, being lost, and where the ship
 // comes out. Null when nothing new happened.
@@ -52,7 +53,7 @@ export const voyagePlace = (content: FinaleVoyage, snapshot: VoyageSnapshot, uni
     return fill(content.universe, { count: snapshot.universes, name: universeName(snapshot, universes) });
   }
 
-  return fill(content.distance, { au: (snapshot.telemetry.au ?? 1).toFixed(1) });
+  return fill(content.distance, { au: formatNumber(snapshot.telemetry.au ?? 1, 1, true) });
 };
 
 // What to say when something happens that the snapshot does not show: a landing, a lift off, an emergency burn,
@@ -90,6 +91,8 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
       return notice.isBlown ? content.supernova : fill(content.supernovaWarning, { seconds: Math.round(notice.seconds) });
     case "burst":
       return notice.isFired ? content.burst : fill(content.burstWarning, { seconds: Math.round(notice.seconds) });
+    case "recovered":
+      return content.recovered;
     case "landed":
     case "tookOff":
     case "emergency":

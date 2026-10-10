@@ -1,6 +1,7 @@
 import { hslToHex } from "@/packages/graphics/colour";
 import type { GlobeLook, SurfaceKind } from "@/packages/graphics/globe";
-import { createSeededRandom, RandomSource, randomBetween } from "@/packages/math/random";
+import { TAU } from "@/packages/math/angles";
+import { createSeededRandom, pick, pickWeighted, RandomSource, randomBetween } from "@/packages/math/random";
 import { poleVector } from "@/packages/physics/kepler";
 import { muForSurfaceGravity } from "@/packages/physics/newtonian";
 
@@ -69,22 +70,8 @@ export interface UniverseTheme {
   hazard: string;
 }
 
-const weighted = <T>(random: RandomSource, options: Array<[T, number]>): T => {
-  const total = options.reduce((sum, [, weight]) => sum + weight, 0);
-  let roll = random() * total;
-
-  for (const [option, weight] of options) {
-    roll -= weight;
-
-    if (roll <= 0) {
-      return option;
-    }
-  }
-
-  return options[options.length - 1][0];
-};
-
-const pick = <T>(random: RandomSource, items: readonly T[]): T => items[Math.min(items.length - 1, Math.floor(random() * items.length))];
+// One of `options`, as likely as its weight beside it.
+const weighted = <T>(random: RandomSource, options: Array<[T, number]>): T => (pickWeighted(random, options, ([, weight]) => weight) ?? options[0])[0];
 
 // Makes universes. Everything in one comes from its seed, so a run that passes the same way sees the same
 // universes, and every one differs from the last: its star (or none), worlds whose kind follows from how much
@@ -316,7 +303,7 @@ export class UniverseGenerator {
 
   private belt(random: RandomSource, bodies: SystemBody[], scale: SystemScale) {
     const distances = bodies.map((body) => (body.orbit.kind === "circle" ? body.orbit.distance : 0)).sort((first, second) => first - second);
-    const after = distances[Math.floor(random() * distances.length)] ?? 10;
+    const after = pick(random, distances) ?? 10;
     const inner = after + 2.5;
 
     return { id: "belt", inner, outer: inner + randomBetween(random, 2.5, 5), density: randomBetween(random, 0.5, 1.2), isIcy: auForRadius(scale, inner) > 4 };
@@ -354,7 +341,7 @@ export class UniverseGenerator {
     }
 
     return [...chosen].map((kind) => {
-      const angle = random() * Math.PI * 2;
+      const angle = random() * TAU;
       const out = randomBetween(random, edge * 0.35, edge * 0.85);
       const toAngle = angle + randomBetween(random, 1.5, 4);
       const toOut = randomBetween(random, edge * 0.35, edge * 0.9);

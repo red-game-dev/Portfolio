@@ -14,6 +14,7 @@ import useInView from "@/hooks/useInView";
 import { decodeFrame, toBinaryMask } from "@/packages/encoding/binary";
 import { fill } from "@/packages/text/format";
 import { ForgeStation } from "@/services/skills";
+import { media } from "@/styles/mixins";
 import { ForgeContent } from "@/types/forge";
 
 interface StationProps extends ForgeStation {
@@ -42,7 +43,7 @@ const Refining = styled.div(({ isActive }: RefiningProps) => [
       transition: transform ${REFINE_MS}ms cubic-bezier(0.165, 0.85, 0.45, 1);
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &::after {
         transition: none;
       }
@@ -110,7 +111,7 @@ const Items = styled.ul(({ isActive }: RefiningProps) => [
       overflow-wrap: anywhere;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       & > li,
       & .tier {
         transform: none;

@@ -1,4 +1,5 @@
 import { RigModel } from "@/packages/graphics/rig";
+import { TAU } from "@/packages/math/angles";
 
 import { DEFAULT_HERO_LOOK, HeroClass, HeroLook } from "./classes";
 import { HERO_PIVOT, HERO_SIZE, HeroPainter } from "./HeroPainter";
@@ -57,7 +58,7 @@ export const createHeroModel = (look: HeroLook = DEFAULT_HERO_LOOK): RigModel<He
       const time = timeMs / 1000;
       const blinkAt = cues.progress("blink");
       const closed = blinkAt === null ? 0 : 1 - Math.abs(blinkAt * 2 - 1);
-      const pulse = (Math.sin((time / GLOW_PERIOD_S) * Math.PI * 2) + 1) / 2;
+      const pulse = (Math.sin((time / GLOW_PERIOD_S) * TAU) + 1) / 2;
 
       return {
         breath: Math.sin(time * 1.5) * 0.9,

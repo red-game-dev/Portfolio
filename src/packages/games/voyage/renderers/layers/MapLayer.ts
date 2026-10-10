@@ -1,10 +1,11 @@
 import type { RenderLayer } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
-import { VoyageFrame } from "../frame";
+import { lerpX, lerpY, VoyageFrame } from "../frame";
 import { Surface } from "../Surface";
 import { RenderKit } from "./kit";
 
-const TAU = Math.PI * 2;
 // The radar in the corner: its radius in CSS pixels (smaller on narrow screens) and how far it sees (world units).
 const RADAR_RADIUS = 58;
 const RADAR_RADIUS_NARROW = 44;
@@ -39,8 +40,9 @@ const MAP_TOP_ROOM = 150;
 export class MapLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "map";
   public isOpen = false;
-  // Off in photo mode, radar and map both.
+  // Off in photo mode, radar and map both; the radar alone while the ship stands on a world.
   public isHidden = false;
+  public hidesRadar = false;
 
   constructor(private readonly kit: RenderKit) {}
 
@@ -53,7 +55,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
 
     if (this.isOpen) {
       this.drawMap(frame);
-    } else if (state.status === "flying") {
+    } else if (state.status === "flying" && !this.hidesRadar) {
       this.drawRadar(frame);
     }
   }
@@ -74,12 +76,12 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
       return;
     }
 
-    const shipX = ship.prevX + (ship.x - ship.prevX) * alpha;
-    const shipY = ship.prevY + (ship.y - ship.prevY) * alpha;
+    const shipX = lerpX(ship, alpha);
+    const shipY = lerpY(ship, alpha);
     const { system } = state;
     const centreX = inSystem ? system.star.x : shipX;
     const centreY = inSystem ? system.star.y : shipY;
-    const reach = inSystem ? Math.min(system.edge * 1.06, Math.max(32, Math.hypot(shipX - centreX, shipY - centreY) * 1.25)) : 16;
+    const reach = inSystem ? clamp(Math.hypot(shipX - centreX, shipY - centreY) * 1.25, 32, system.edge * 1.06) : 16;
     const scale = (Math.min(front.width, front.height) / 2) * 0.88 / reach;
     const toX = (x: number) => cx + (x - centreX) * scale;
     const toY = (y: number) => cy + (y - centreY) * scale;
@@ -214,8 +216,8 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     const cx = RADAR_MARGIN + radius;
     const cy = front.height - RADAR_MARGIN - radius;
     const scale = radius / RADAR_RANGE;
-    const shipX = ship.prevX + (ship.x - ship.prevX) * alpha;
-    const shipY = ship.prevY + (ship.y - ship.prevY) * alpha;
+    const shipX = lerpX(ship, alpha);
+    const shipY = lerpY(ship, alpha);
     const inSystem = state.phase !== "lost";
     const plot = (x: number, y: number, size: number, colour: string) => {
       const dx = (x - shipX) * scale;

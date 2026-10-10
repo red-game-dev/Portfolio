@@ -1,5 +1,8 @@
 import { ManualScheduler } from "@/packages/animation/frame-loop";
-import { DEFAULT_LAUNCH_CONFIG, LaunchGame, LaunchRenderer, LaunchSimulation, LaunchSnapshot, LaunchState } from "@/packages/games/launch";
+import {
+  ALTITUDE_KM, CLOCK_S, DEFAULT_LAUNCH_CONFIG, DEFAULT_LAUNCH_SITE, LaunchGame, LaunchRenderer, LaunchSimulation, LaunchSnapshot, LaunchState, LaunchVehicle, profileAt,
+  SPEED_KMH, VEHICLES,
+} from "@/packages/games/launch";
 
 const config = DEFAULT_LAUNCH_CONFIG;
 const create = () => new LaunchSimulation({ width: 400, height: 260 }, { config, random: () => 0.5 });
@@ -31,7 +34,7 @@ describe("LaunchSimulation", () => {
     simulation.release();
     run(simulation, config.drainMs);
 
-    expect(simulation.snapshot).toEqual({ status: "ready", passed: 0, countdown: 0 });
+    expect(simulation.snapshot).toEqual({ status: "ready", passed: 0, countdown: 0, milestone: null });
     expect(simulation.state.charge).toBe(0);
   });
 
@@ -58,8 +61,64 @@ describe("LaunchSimulation", () => {
 
     expect(passed).toEqual([...passed].sort((first, second) => first - second));
     expect(new Set(passed)).toEqual(new Set([0, 1, 2, 3, 4, 5].filter((count) => passed.includes(count))));
-    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers, countdown: 0 });
+    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers, countdown: 0, milestone: "seco" });
     expect(simulation.state.altitude).toBe(1);
+  });
+
+  test("climbs as a real launch does: height, speed and the mission clock only rise, ending at orbit", () => {
+    const simulation = create();
+    const readings: Array<[number, number, number]> = [];
+
+    simulation.launch();
+
+    while (simulation.state.status !== "orbit") {
+      simulation.step(16);
+      readings.push([simulation.state.altitudeKm, simulation.state.speedKmh, simulation.state.missionSeconds]);
+    }
+
+    [0, 1, 2].forEach((column) => {
+      const values = readings.map((reading) => reading[column]);
+
+      expect(values).toEqual([...values].sort((first, second) => first - second));
+    });
+    expect(simulation.state.altitudeKm).toBe(200);
+    expect(simulation.state.speedKmh).toBe(27500);
+    // Max Q a minute or so in, near 12 km.
+    expect(profileAt(ALTITUDE_KM, 0.2)).toBe(12);
+    expect(profileAt(CLOCK_S, 0.2)).toBe(72);
+    expect(profileAt(SPEED_KMH, 0.1)).toBeGreaterThan(160);
+  });
+
+  test("every rocket calls out its own five moments in order, the last before orbit", () => {
+    (["booster", "heavy", "steel"] as LaunchVehicle[]).forEach((vehicle) => {
+      const simulation = new LaunchSimulation({ width: 400, height: 260 }, { config, random: () => 0.5, site: { ...DEFAULT_LAUNCH_SITE, vehicle } });
+      const called: string[] = [];
+
+      simulation.launch();
+
+      while (simulation.state.status !== "orbit") {
+        simulation.step(16);
+
+        const { milestone } = simulation.snapshot;
+
+        if (milestone && called[called.length - 1] !== milestone) {
+          called.push(milestone);
+        }
+      }
+
+      expect(called).toEqual(VEHICLES[vehicle].milestones.map(([id]) => id));
+      expect(called).toHaveLength(config.markers);
+    });
+  });
+
+  test("the Sun stands over the pad where it really is: night at a Florida midnight, high at its noon", () => {
+    const at = (iso: string) => new LaunchSimulation({ width: 400, height: 260 }, { config, random: () => 0.5, epochMs: Date.parse(iso) }).state;
+
+    expect(at("2026-10-09T04:00:00Z").sunElevation).toBeLessThan(-30);
+    expect(at("2026-10-09T17:00:00Z").sunElevation).toBeGreaterThan(45);
+    // Morning sun in the east (the right of the view), afternoon sun in the west.
+    expect(at("2026-10-09T13:00:00Z").sunSide).toBeGreaterThan(0);
+    expect(at("2026-10-09T20:00:00Z").sunSide).toBeLessThan(0);
   });
 
   test("the button nobody should press counts down from three, blows the ship up and launches a new one", () => {
@@ -71,7 +130,7 @@ describe("LaunchSimulation", () => {
 
     simulation.complete();
     simulation.selfDestruct();
-    expect(simulation.snapshot).toEqual({ status: "destructing", passed: config.markers, countdown: 3 });
+    expect(simulation.snapshot).toEqual({ status: "destructing", passed: config.markers, countdown: 3, milestone: "seco" });
     expect(simulation.state.debris).toHaveLength(config.debris);
 
     while (simulation.state.status === "destructing") {
@@ -87,7 +146,7 @@ describe("LaunchSimulation", () => {
     expect(simulation.state.isAutoCharging).toBe(true);
 
     run(simulation, config.autoChargeMs + config.ascentMs + 64);
-    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers, countdown: 0 });
+    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers, countdown: 0, milestone: "seco" });
   });
 
   test("pressing does nothing in flight, completing goes straight to orbit, and reset puts the ship back", () => {
@@ -95,10 +154,10 @@ describe("LaunchSimulation", () => {
 
     simulation.complete();
     simulation.press();
-    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers, countdown: 0 });
+    expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers, countdown: 0, milestone: "seco" });
 
     simulation.reset();
-    expect(simulation.snapshot).toEqual({ status: "ready", passed: 0, countdown: 0 });
+    expect(simulation.snapshot).toEqual({ status: "ready", passed: 0, countdown: 0, milestone: null });
     expect(simulation.state.altitude).toBe(0);
   });
 });
@@ -121,13 +180,13 @@ describe("LaunchGame", () => {
     game.launch();
     expect(game.isRunning).toBe(true);
 
-    for (let time = 0; time < 8000 && game.isRunning; time += 16) {
+    for (let time = 0; time < 12000 && game.isRunning; time += 16) {
       scheduler.tick(time);
     }
 
     expect(game.isRunning).toBe(false);
     expect(changes.map((change) => change.status)).toEqual(["charging", "launching", ...Array(config.markers).fill("launching"), "orbit"]);
-    expect(changes[changes.length - 1]).toEqual({ status: "orbit", passed: config.markers, countdown: 0 });
+    expect(changes[changes.length - 1]).toEqual({ status: "orbit", passed: config.markers, countdown: 0, milestone: "seco" });
   });
 
   test("completing for reduced motion draws one still frame in orbit without running the loop", () => {

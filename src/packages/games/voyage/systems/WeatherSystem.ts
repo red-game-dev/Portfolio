@@ -1,7 +1,8 @@
 import type { System } from "@/packages/games/engine";
+import { angleBetween, TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
-import { angleBetween } from "@/packages/physics/newtonian";
 
+import { HOME_WORLD } from "../domain/content";
 import { FlareClass } from "../domain/events";
 import { VoyageContext } from "./context";
 import { bodyById, distanceFromStar, isInSystem, shipOf } from "./queries";
@@ -40,7 +41,7 @@ export class WeatherSystem implements System<VoyageContext> {
       const strength = random() ** 1.6;
       const shipAngle = parts ? Math.atan2(parts.body.y - star.y, parts.body.x - star.x) : 0;
       const isHeading = random() < config.weather.heading;
-      const angle = isHeading ? shipAngle + (random() - 0.5) * 0.4 : random() * Math.PI * 2;
+      const angle = isHeading ? shipAngle + (random() - 0.5) * 0.4 : random() * TAU;
 
       state.storms.push({
         angle,
@@ -56,7 +57,7 @@ export class WeatherSystem implements System<VoyageContext> {
       state.nextFlareAt = state.elapsedMs + randomBetween(random, config.weather.every[0], config.weather.every[1]) * 1000;
     }
 
-    const earth = bodyById(context, "earth");
+    const earth = bodyById(context, HOME_WORLD);
 
     // Moved on in place: most steps there are none, and none should cost an array.
     let kept = 0;

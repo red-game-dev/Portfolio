@@ -14,6 +14,7 @@ import { SOCIAL_URLS } from "@/config/social";
 import useInView from "@/hooks/useInView";
 import { balancedColumns } from "@/packages/math/grid";
 import { collapseWhitespace } from "@/packages/text/format";
+import { media } from "@/styles/mixins";
 import { Detail } from "@/types/details";
 import { Github } from "@/types/general";
 import { DocumentLink } from "@/types/portfolio";
@@ -34,7 +35,7 @@ const Title = tw.h2`relative m-[0 0 30px 0] lg:m-[0 0 35px 35px] inline-block al
 const Top = styled.div(() => [
   tw`grid gap-[22px]`,
   css`
-    @media (min-width: 768px) {
+    ${media.md} {
       grid-template-columns: 160px minmax(0, 1fr);
       gap: 30px;
     }
@@ -56,7 +57,7 @@ const PROOF_COLUMNS = 4;
 const Proof = styled.dl(() => [
   tw`m-0 mt-[28px] grid grid-cols-2 gap-[10px]`,
   css`
-    @media (min-width: 768px) {
+    ${media.md} {
       grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
     }
   `,

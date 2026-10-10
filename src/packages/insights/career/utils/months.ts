@@ -1,3 +1,5 @@
+import { twoDigits } from "@/packages/text/format";
+
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
 // Months since year 0, so ranges can be compared and merged with plain arithmetic.
@@ -21,5 +23,5 @@ export const toIsoMonth = (value: string): string => {
   const index = toMonthIndex(value);
   const year = String(Math.floor(index / 12));
 
-  return value.trim().split(/\s+/).length > 1 ? `${year}-${String((index % 12) + 1).padStart(2, "0")}` : year;
+  return value.trim().split(/\s+/).length > 1 ? `${year}-${twoDigits((index % 12) + 1)}` : year;
 };

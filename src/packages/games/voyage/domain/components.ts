@@ -71,7 +71,7 @@ export interface Hazard {
   isComet: boolean;
 }
 
-export type PickupKind = "score" | "shield" | "fuel" | "repair";
+export type PickupKind = "coin" | "shield" | "fuel" | "repair";
 
 export interface Pickup {
   kind: PickupKind;

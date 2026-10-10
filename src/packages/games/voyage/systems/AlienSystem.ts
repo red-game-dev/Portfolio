@@ -1,5 +1,6 @@
 import type { Entity, System } from "@/packages/games/engine";
-import { randomBetween } from "@/packages/math/random";
+import { TAU } from "@/packages/math/angles";
+import { pick, randomBetween } from "@/packages/math/random";
 
 import { Alien, AlienRole, Weapon } from "../domain/components";
 import { FactionSpec } from "../domain/universe";
@@ -112,7 +113,7 @@ export class AlienSystem implements System<VoyageContext> {
     const open = cosmos.factions.filter((faction) => faction.disposition !== "peaceful" || traders < MAX_TRADERS);
 
     if (open.length > 0 && living < wanted) {
-      const faction = open[Math.floor(random() * open.length)];
+      const faction = pick(random, open);
       const home = this.spot(context, randomBetween(random, config.life.spawnDistance[0], config.life.spawnDistance[1]));
 
       for (let member = 0; member < (faction.disposition === "peaceful" ? 1 : faction.pack); member += 1) {
@@ -140,7 +141,7 @@ export class AlienSystem implements System<VoyageContext> {
       return;
     }
 
-    const faction = fighters[Math.floor(random() * fighters.length)];
+    const faction = pick(random, fighters);
     const home = this.spot(context, 12);
 
     state.boss = this.spawn(context, faction, "boss", home.x, home.y);
@@ -153,7 +154,7 @@ export class AlienSystem implements System<VoyageContext> {
     const parts = shipOf(context);
     const body = parts?.body ?? { x: 0, y: 0, vx: 0, vy: 0 };
     const speed = Math.hypot(body.vx, body.vy);
-    const angle = speed > 0.3 && random() < 0.7 ? Math.atan2(body.vy, body.vx) + (random() - 0.5) * 1.6 : random() * Math.PI * 2;
+    const angle = speed > 0.3 && random() < 0.7 ? Math.atan2(body.vy, body.vx) + (random() - 0.5) * 1.6 : random() * TAU;
 
     return { x: body.x + Math.cos(angle) * distance, y: body.y + Math.sin(angle) * distance };
   }
@@ -175,7 +176,7 @@ export class AlienSystem implements System<VoyageContext> {
       homeX: x,
       homeY: y,
       threat: 0,
-      angle: random() * Math.PI * 2,
+      angle: random() * TAU,
       level: (faction?.level ?? 1) + (boss ? 5 : 0),
       phase: 0,
     });

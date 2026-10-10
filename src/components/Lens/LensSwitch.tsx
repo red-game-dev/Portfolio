@@ -1,13 +1,17 @@
-import { CSSProperties, FC, FocusEvent, KeyboardEvent, MouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { CSSProperties, FC, KeyboardEvent, MouseEvent, useCallback, useId, useMemo, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
 import { LENS_SPRITES } from "@/components/Lens/config";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
+import { useOutsidePress } from "@/components/Lens/hooks/useOutsidePress";
 import { loadEntrance } from "@/components/Lens/loaders";
 import { PixelSprite } from "@/components/PixelSprite";
 import { Lens, LENS_ACCENTS, LENSES } from "@/config/lenses";
+import useFocusLeave from "@/hooks/useFocusLeave";
+import { KeyMap } from "@/packages/interaction/keys";
+import { svgFill } from "@/styles/mixins";
 import { LensContent } from "@/types/lens";
 
 interface LensSwitchProps {
@@ -32,13 +36,7 @@ const Toggle = styled.button(() => [
 
 const Face = styled.span(() => [
   tw`block w-[20px] h-[20px]`,
-  css`
-    & > svg {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-  `,
+  svgFill,
 ]);
 
 const Label = tw.span`hidden sm:inline text-[#888] font-medium`;
@@ -73,6 +71,9 @@ const OptionHint = tw.span`text-xs text-[#888]`;
 
 const accentStyle = (lens: Lens) => ({ "--lens-accent": LENS_ACCENTS[lens].color, "--lens-rgb": LENS_ACCENTS[lens].rgb } as CSSProperties);
 
+// Escape closes the switch, and only the switch.
+const CLOSE_KEYS = new KeyMap({ Escape: "close" });
+
 // The header control for changing who the page is written for, at any point. A disclosure: a button that
 // shows and hides a short list of buttons, one per view.
 export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) => {
@@ -83,22 +84,10 @@ export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) =>
   const toggleRef = useRef<HTMLButtonElement>(null);
   const optionsId = useId();
   const taglines = useMemo(() => new Map(content.cards.map((card) => [card.lens, card.tagline])), [content.cards]);
+  const close = useCallback(() => setIsOpen(false), []);
 
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const close = (event: PointerEvent) => {
-      if (!wrapperRef.current?.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("pointerdown", close);
-
-    return () => document.removeEventListener("pointerdown", close);
-  }, [isOpen]);
+  // A press anywhere else closes it.
+  useOutsidePress(wrapperRef, isOpen, close);
 
   // The header toggles the mobile menu on any click, so the switch keeps its clicks to itself.
   const toggle = useCallback((event: MouseEvent) => {
@@ -126,18 +115,12 @@ export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) =>
   }, [chooseLens, lens]);
 
   // Tabbing out of the switch closes it, as clicking outside does.
-  const closeOnLeave = useCallback((event: FocusEvent) => {
-    if (!wrapperRef.current?.contains(event.relatedTarget as Node | null)) {
-      setIsOpen(false);
-    }
-  }, []);
+  const closeOnLeave = useFocusLeave(close);
 
-  const closeOnEscape = useCallback((event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      setIsOpen(false);
-      toggleRef.current?.focus();
-    }
-  }, []);
+  const closeOnEscape = useCallback((event: KeyboardEvent) => CLOSE_KEYS.handle(event, () => {
+    setIsOpen(false);
+    toggleRef.current?.focus();
+  }), []);
 
   return (
     <Wrapper ref={wrapperRef} onKeyDown={closeOnEscape} onBlur={closeOnLeave} style={accentStyle(lens)}>

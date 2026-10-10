@@ -1,4 +1,5 @@
 import type { RenderLayer } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
 
 import { VoyageFrame } from "../frame";
 import { paintGlow } from "../paint/space";
@@ -60,7 +61,7 @@ export class EffectsLayer implements RenderLayer<VoyageFrame> {
       front.context.globalAlpha = 1 - progress;
       front.context.lineWidth = 1 + (1 - progress) * 4;
       front.context.beginPath();
-      front.context.arc(camera.toScreenX(wave.x), camera.toScreenY(wave.y), progress * wave.reach * camera.scale, 0, Math.PI * 2);
+      front.context.arc(camera.toScreenX(wave.x), camera.toScreenY(wave.y), progress * wave.reach * camera.scale, 0, TAU);
       front.context.stroke();
     }
 

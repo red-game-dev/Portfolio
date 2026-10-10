@@ -1,8 +1,8 @@
 import type { System } from "@/packages/games/engine";
-import { randomBetween } from "@/packages/math/random";
+import { TAU } from "@/packages/math/angles";
+import { pickWeighted, randomBetween } from "@/packages/math/random";
 
 import { WreckKind } from "../domain/components";
-import { pickWeighted } from "../utils/weighted";
 import { VoyageContext } from "./context";
 import { isSolar, shipOf, viewRadius } from "./queries";
 import { leaveWreck } from "./salvage";
@@ -53,7 +53,7 @@ export class WreckSystem implements System<VoyageContext> {
     }
 
     const kind = pickWeighted(random, isSolar(context) ? HOME : AWAY, ([, weight]) => weight)?.[0] ?? "probe";
-    const from = random() * Math.PI * 2;
+    const from = random() * TAU;
     const reach = viewRadius(context) + randomBetween(random, 0.5, 2);
     const drift = randomBetween(random, 0.04, 0.16);
     const heading = from + Math.PI + randomBetween(random, -0.8, 0.8);

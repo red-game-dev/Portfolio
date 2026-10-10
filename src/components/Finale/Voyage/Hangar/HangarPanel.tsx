@@ -43,7 +43,7 @@ import { BarFill, IconButton } from "@/components/Finale/Voyage/VoyageDialog.sty
 import { Tab, TabList } from "@/components/Tabs";
 import useTabs from "@/hooks/useTabs";
 import type { CareerView, CodexCategory, EconomyView, ShipStats, VoyageAction } from "@/packages/games/voyage";
-import { fill } from "@/packages/text/format";
+import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 interface HangarPanelProps {
@@ -80,7 +80,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, career, is
       return copy.weapons[value === "laser" ? "laser" : "cannon"];
     }
 
-    const text = typeof value === "number" ? value.toLocaleString("en-GB") : String(value);
+    const text = typeof value === "number" ? formatNumber(value) : String(value);
 
     return key === "plating" ? fill(copy.units.celsius, { value: text }) : key === "pressure" ? fill(copy.units.bar, { value: text }) :
       key === "thrust" ? fill(copy.units.times, { value: text }) : text;
@@ -100,7 +100,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, career, is
       <Header>
         <Heading id="hangar-heading" ref={headingRef} tabIndex={-1}>{copy.hangar}</Heading>
         <Purse>
-          <span>{`${economy.purse.RED.toLocaleString("en-GB")} ${copy.symbols.RED}`}</span>
+          <span>{`${formatNumber(economy.purse.RED)} ${copy.symbols.RED}`}</span>
           <Shards>{`${economy.purse.VOID} ${copy.symbols.VOID}`}</Shards>
         </Purse>
         <IconButton type="button" onClick={onClose} aria-label={copy.closeHangar}>
@@ -121,10 +121,10 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, career, is
               <div>
                 <ShipName>{rankName(content, career.rankId)}</ShipName>
                 <Note>
-                  {fill(careerCopy.xp, { xp: career.xp.toLocaleString("en-GB") })}
+                  {fill(careerCopy.xp, { xp: formatNumber(career.xp) })}
                   {", "}
                   {career.nextRank
-                    ? fill(careerCopy.nextRank, { xp: (career.nextRank.xp - career.xp).toLocaleString("en-GB"), rank: rankName(content, career.nextRank.id) })
+                    ? fill(careerCopy.nextRank, { xp: formatNumber(career.nextRank.xp - career.xp), rank: rankName(content, career.nextRank.id) })
                     : careerCopy.topRank}
                 </Note>
                 <Meter
@@ -216,7 +216,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, career, is
               {records.map(([label, value]) => (
                 <StatRow key={label}>
                   <StatName>{label}</StatName>
-                  <StatValue>{value.toLocaleString("en-GB")}</StatValue>
+                  <StatValue>{formatNumber(value)}</StatValue>
                   <StatNext />
                 </StatRow>
               ))}

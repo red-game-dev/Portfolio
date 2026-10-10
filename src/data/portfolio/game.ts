@@ -13,14 +13,54 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
     kicker: "Run complete",
     title: "Wow! You made it to the end.",
     launch: {
-      boardLabel: "The ship on its launch pad, at the edge of the game world",
+      boardLabel: "A rocket on a real launch pad, lifting off for orbit",
+      sites: [
+        {
+          name: "LC-39A, Florida", latitude: 28.6084, longitude: -80.6043, timeZone: "America/New_York",
+          vehicle: "booster", land: "scrub", downrange: 1, hasSea: true,
+        },
+        {
+          name: "LC-39B, Florida", latitude: 28.6272, longitude: -80.6209, timeZone: "America/New_York",
+          vehicle: "heavy", land: "scrub", downrange: 1, hasSea: true,
+        },
+        {
+          name: "SLC-40, Cape Canaveral", latitude: 28.5619, longitude: -80.5772, timeZone: "America/New_York",
+          vehicle: "booster", land: "scrub", downrange: 1, hasSea: true,
+        },
+        {
+          name: "Starbase, Texas", latitude: 25.9972, longitude: -97.1566, timeZone: "America/Chicago",
+          vehicle: "steel", land: "flats", downrange: 1, hasSea: true,
+        },
+        {
+          name: "SLC-4E, California", latitude: 34.6321, longitude: -120.6106, timeZone: "America/Los_Angeles",
+          vehicle: "booster", land: "hills", downrange: -1, hasSea: false,
+        },
+      ],
+      pad: "{site}, {time} local",
+      milestones: {
+        maxQ: "Max Q",
+        boosterSeparation: "Booster separation",
+        meco: "Main engine cut off",
+        stageSeparation: "Stage separation",
+        hotStaging: "Hot staging",
+        boostback: "Booster boostback",
+        fairing: "Fairing separation",
+        seco: "Second engine cut off",
+      },
+      readout: { altitude: "Altitude", speed: "Speed" },
       hold: "Hold to launch",
-      charging: "Engines charging",
+      charging: "Ignition",
       liftOff: "Lift off",
       orbit: "In orbit",
-      leaving: "Leaving {zone}",
+      leaving: "{milestone}. Leaving {zone}.",
       hint: "It launches by itself when you get here. To launch it yourself, hold the button, or press it once. Space and Enter work too.",
-      continue: "Continue the journey?",
+      invite: {
+        question: "Want to play a game?",
+        starting: "The journey goes on by itself in {seconds} seconds, unless you choose No thanks.",
+        play: "Yes, continue the journey",
+        playIn: "Yes, continue the journey ({seconds})",
+        decline: "No thanks",
+      },
       doNotPress: "Do not press",
       orbitHint: "Whatever you do, do not press the red button.",
       countdown: "Self destruct in {seconds}",
@@ -28,17 +68,43 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
     },
     voyage: {
       title: "The journey continues",
+      surface: {
+        title: "On {body}",
+        time: "Local time {time}",
+        biomes: {
+          ocean: "Splashed down in the open ocean",
+          ice: "Ice sheet",
+          desert: "Desert",
+          forest: "Forest",
+          grassland: "Grassland",
+          rock: "Rocky highlands",
+          regolith: "Cratered regolith",
+          dust: "Red dust plains",
+          basalt: "Basalt plains under the clouds",
+          sulfur: "Sulphur plains",
+          iceCrust: "Cracked ice crust",
+          dunes: "Dune fields",
+          methaneSea: "On the shore of a methane sea",
+          nitrogenIce: "Nitrogen ice plains",
+          lava: "Cooling lava fields",
+        },
+        takeOff: "Burn to lift off",
+        ready: "Recovered. A new rocket stands fuelled and ready.",
+        readyAt: "Recovered. A new rocket stands fuelled and ready at {pad}.",
+        launch: "Burn to launch it",
+      },
       intro: "The real solar system, every planet and moon where it is today, turning as it really turns. Fly to Venus, to the Sun or " +
         "behind it, land on the Moon or Mars, skim the giants for fuel. Too near the Sun and the ship melts, one system at a time. Past " +
         "the Kuiper belt, something waits.",
       controls: "Point where to fly: the ship turns and burns towards it, harder the further you point. Arrow keys turn and burn, Down " +
-        "brakes. The wheel, a pinch or + and - zoom, M opens the map. The guns aim themselves at threats; click someone to lock on, F " +
+        "brakes. The wheel, a pinch or + and - zoom, M opens the map, which holds the run still. The guns aim themselves at threats; " +
+        "click someone to lock on, F " +
         "holds fire. Rocks and crashes cannot destroy the ship in the solar system, but the Sun can, and past the Kuiper belt anything " +
-        "can. Hold still beside a wreck to salvage it. H opens the hangar and U does whatever is ready. C takes a photo. P pauses, " +
-        "Escape leaves.",
+        "can. Fly through gold coins to pick up Red Coin. Hold still beside a wreck to salvage it. H opens the hangar and U does " +
+        "whatever is ready. C takes a photo. P pauses, Escape leaves.",
       canvasLabel: "Your ship, flying out through space",
       start: "Fly",
-      again: "Fly again",
+      again: "Start again from Earth",
       close: "Back to the page",
       pause: "Pause",
       resume: "Resume",
@@ -96,6 +162,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       },
       landed: "Landed on {body}",
       tookOff: "Lifting off {body}",
+      recovered: "Welcome home: the crew is recovered and a new rocket is rolled out",
+      kept: "Your ship, hold, Red Coin and rank are kept.",
       emergency: "Emergency burn: {body}'s pressure would have crushed the hull",
       captured: "It has you. Nothing escapes now.",
       flare: "Solar flare, class {class}",
@@ -259,7 +327,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         plans: { make: "Make", locked: "Plan not found yet: search wrecks", hullPlans: "Hull blueprints" },
         ledger: {
           balance: "Balance",
-          empty: "Nothing earned yet. Reach new places, land, bring down hostiles, save worlds and salvage wrecks.",
+          empty: "Nothing earned yet. Pick up gold coins, reach new places, land, bring down hostiles, save worlds and salvage wrecks.",
           memos: {
             discovery: "Reached {detail}",
             landing: "Landed on {detail}",
@@ -267,6 +335,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
             rescue: "Saved {detail}",
             boss: "Brought down {detail}",
             universe: "Reached universe {detail}",
+            coin: "Picked up {detail} Red Coin",
             flight: "Flight pay for {detail} points",
             recycling: "Broke down {detail}",
             blueprintCopy: "Sold spare plans",

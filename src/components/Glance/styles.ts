@@ -1,6 +1,8 @@
 import tw, { css, styled } from "twin.macro";
 
+import { TagList } from "@/components/Controls";
 import { fadeIn } from "@/styles/keyframes";
+import { brightenOnHover, media, squareBullet } from "@/styles/mixins";
 
 export const Sheet = tw.div`flex flex-col gap-[26px] p-[22px] md:p-[32px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
@@ -17,14 +19,7 @@ export const Actions = tw.div`flex flex-row flex-wrap gap-[10px]`;
 export const Action = styled.a(({ isPrimary }: { isPrimary: boolean }) => [
   tw`inline-flex flex-row items-center gap-[8px] h-[38px] px-[14px] text-sm font-semibold no-underline rounded-[2px] border-[1px] border-solid`,
   isPrimary ? tw`text-[#101010] bg-[var(--accent)] border-[var(--accent)]` : tw`text-[var(--accent)] bg-transparent border-[var(--accent-muted)]`,
-  css`
-    transition: filter 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      filter: brightness(1.12);
-    }
-  `,
+  brightenOnHover,
 ]);
 
 // A label beside its values on wide screens, above them on narrow ones.
@@ -34,7 +29,7 @@ export const Term = tw.dt`text-xs font-semibold text-[#8a8a8a] md:pt-[6px]`;
 
 export const Value = tw.dd`m-0 flex flex-col gap-[10px] min-w-0`;
 
-export const Chips = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
+export const Chips = TagList;
 
 export const Chip = tw.li`inline-flex flex-row items-baseline gap-[6px] text-sm leading-none text-white bg-[#161616] rounded-[2px] py-[7px] px-[10px]
 border-[1px] border-solid border-[#262626]`;
@@ -81,17 +76,7 @@ export const Rows = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px]`;
 
 export const Row = styled.li(() => [
   tw`relative pl-[16px] text-sm text-[#bbb]`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.55em;
-      width: 6px;
-      height: 6px;
-      background: var(--accent);
-    }
-  `,
+  squareBullet({ top: "0.55em" }),
 ]);
 
 export const Strong = tw.strong`text-white font-semibold`;
@@ -114,7 +99,7 @@ export const Milestone = styled.li(() => [
       background: var(--accent);
     }
 
-    @media (min-width: 768px) {
+    ${media.md} {
       &::before {
         top: 0;
       }
@@ -148,7 +133,7 @@ export const Switched = styled.div(() => [
       animation: ${fadeIn} 0.3s ease-out both;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       & > * {
         animation: none;
       }

@@ -1,4 +1,5 @@
 import type { System } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
 
 import { VoyageContext } from "./context";
@@ -37,7 +38,7 @@ export class TrafficSystem implements System<VoyageContext> {
     state.nextTrafficAt = state.elapsedMs + randomBetween(random, config.traffic[0], config.traffic[1]) * 1000;
 
     const isStarship = random() < 0.4;
-    const from = random() * Math.PI * 2;
+    const from = random() * TAU;
     const reach = viewRadius(context) + 2;
     const x = parts.body.x + Math.cos(from) * reach;
     const y = parts.body.y + Math.sin(from) * reach;

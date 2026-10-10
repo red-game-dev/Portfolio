@@ -7,6 +7,7 @@ import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { createDealerModel, DEFAULT_DEALER_OUTFITS } from "@/packages/games/live-table";
 import { RigActor } from "@/packages/graphics/rig";
+import { focusRing, media, noAnimationWhenReduced } from "@/styles/mixins";
 
 interface DealerProps {
   phrase: string;
@@ -32,17 +33,14 @@ const Figure = styled.button(() => [
     transition: transform 0.15s ease;
     touch-action: manipulation;
 
-    &:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 4px;
-    }
+    ${focusRing("var(--accent)", 4)}
 
     /* A tap shows on the dealer herself, as a small press, rather than as a box over her. */
     &:active {
       transform: scale(0.96);
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       transition: none;
 
       &:active {
@@ -75,9 +73,7 @@ const Bubble = styled.div(({ isClosed }: { isClosed: boolean }) => [
       border-right-color: ${isClosed ? "#b3122e" : "#f4efe6"};
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
+    ${noAnimationWhenReduced}
   `,
 ]);
 

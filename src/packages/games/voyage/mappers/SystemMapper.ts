@@ -97,6 +97,7 @@ export class SystemMapper extends Mapper<SolarSystemData, StarSystem> {
           kind: "moon",
           parent: data.orbit.parent,
           distance: parent.world * Math.sqrt(data.orbit.distanceKm / parent.km),
+          distanceKm: data.orbit.distanceKm,
           periodDays: data.orbit.periodDays,
           longitudeAtEpoch: data.orbit.longitudeAtEpoch,
         }

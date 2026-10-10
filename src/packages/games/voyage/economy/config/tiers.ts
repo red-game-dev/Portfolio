@@ -1,3 +1,5 @@
+import { clamp } from "@/packages/math/clamp";
+
 import { VoyageConfig } from "../../config";
 import { ModuleId } from "../../domain/components";
 import { HullTier } from "../domain/economy";
@@ -34,7 +36,8 @@ export const TIER_SPECS: Readonly<Record<HullTier, TierSpec>> = {
   intergalactic: { strength: 3.2, thrust: 2.1, speed: 1.6, cargo: 80, plating: 2700, pressure: 1300, guns: 4.6, rate: 1.6, radius: 0.1, weapon: "laser" },
 };
 
-const clampLevel = (level: number) => Math.max(0, Math.min(MAX_LEVEL, Math.floor(level)));
+// A level as a whole number within the levels there are.
+export const clampLevel = (level: number) => clamp(Math.floor(level), 0, MAX_LEVEL);
 
 export const tierOf = (level: number): HullTier => TIERS[Math.floor(clampLevel(level) / MARKS)];
 

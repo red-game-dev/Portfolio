@@ -1,9 +1,9 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { createSeededRandom } from "@/packages/math/random";
 
+import { PickupKind } from "../../domain/components";
 import { VoyageStyle } from "../../domain/theme";
-
-const TAU = Math.PI * 2;
 
 // The invader every pixel world has, eleven by eight.
 const INVADER = [
@@ -184,14 +184,14 @@ export const paintHazard = (style: VoyageStyle, colour: string, accent: string) 
   }
 };
 
-// Something to catch: a glowing orb for score, a ring with a cross for shields, a canister for fuel, a wrench
-// cross for hull repair, each with a soft glow round it.
-export const paintPickup = (kind: "score" | "shield" | "fuel" | "repair", colour: string) => (context: Canvas2DContext, width: number) => {
+// Something to catch: a Red Coin (a gold disc with a raised rim and an R struck in it), a ring with a cross for
+// shields, a canister for fuel, a wrench cross for hull repair, each with a soft glow round it.
+export const paintPickup = (kind: PickupKind, colour: string) => (context: Canvas2DContext, width: number) => {
   const c = width / 2;
   const r = width / 2;
   const glow = context.createRadialGradient(c, c, 0, c, c, r);
 
-  glow.addColorStop(0, kind === "score" ? "#ffffff" : "rgba(255, 255, 255, 0.35)");
+  glow.addColorStop(0, "rgba(255, 255, 255, 0.35)");
   glow.addColorStop(0.28, colour);
   glow.addColorStop(1, "rgba(0, 0, 0, 0)");
   context.fillStyle = glow;
@@ -200,7 +200,27 @@ export const paintPickup = (kind: "score" | "shield" | "fuel" | "repair", colour
   context.strokeStyle = "#ffffff";
   context.lineWidth = Math.max(1.5, r * 0.09);
 
-  if (kind === "shield") {
+  if (kind === "coin") {
+    const face = context.createRadialGradient(c - r * 0.15, c - r * 0.15, r * 0.05, c, c, r * 0.52);
+
+    face.addColorStop(0, "#fff3c4");
+    face.addColorStop(0.6, colour);
+    face.addColorStop(1, "#b07a10");
+    context.fillStyle = face;
+    context.beginPath();
+    context.arc(c, c, r * 0.52, 0, TAU);
+    context.fill();
+    context.strokeStyle = "#8a5a00";
+    context.lineWidth = Math.max(1, r * 0.06);
+    context.beginPath();
+    context.arc(c, c, r * 0.4, 0, TAU);
+    context.stroke();
+    context.fillStyle = "#8a5a00";
+    context.font = `bold ${Math.round(r * 0.52)}px Roboto, Arial, sans-serif`;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText("R", c, c + r * 0.03);
+  } else if (kind === "shield") {
     context.beginPath();
     context.arc(c, c, r * 0.46, 0, TAU);
     context.stroke();

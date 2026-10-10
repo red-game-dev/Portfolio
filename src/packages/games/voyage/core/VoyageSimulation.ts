@@ -5,7 +5,7 @@ import { createFieldSample, GravityField } from "@/packages/physics/newtonian";
 import { VoyageConfig } from "../config";
 import { DEFAULT_UNIVERSE_NAMES } from "../config/names";
 import { MODULE_IDS } from "../domain/components";
-import { StarSystem } from "../domain/content";
+import { HOME_WORLD, StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
 import { ShipEffect } from "../domain/faults";
 import { NO_INPUT, VoyageInput } from "../domain/input";
@@ -331,7 +331,7 @@ export class VoyageSimulation {
   private placeShip(): void {
     const { config, state } = this.context;
     const ship = this.world.spawn();
-    const earth = state.system.bodies.find((body) => body.id === "earth") ?? state.system.bodies[0];
+    const earth = state.system.bodies.find((body) => body.id === HOME_WORLD) ?? state.system.bodies[0];
     const x = earth ? earth.x : state.system.star.x + state.system.star.radius * 4;
     const y = earth ? earth.y - earth.radius * START_RADII : state.system.star.y;
     const isFlying = state.status === "flying";
@@ -394,7 +394,7 @@ export class VoyageSimulation {
       score: 0,
       flown: 0,
       // Earth is where the run starts, so it is visited already.
-      passed: new Set(["earth"]),
+      passed: new Set([HOME_WORLD]),
       landings: new Set(),
       passing: null,
       singularitySince: null,

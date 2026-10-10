@@ -1,6 +1,6 @@
 import type { System } from "@/packages/games/engine";
+import { angleBetween, TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
-import { angleBetween } from "@/packages/physics/newtonian";
 
 import { Weapon } from "../domain/components";
 import { SHOCK_FADES } from "../domain/state";
@@ -227,7 +227,7 @@ export class PhenomenaSystem implements System<VoyageContext> {
     if (state.phenomena.strikeAt !== null && state.elapsedMs >= state.phenomena.strikeAt) {
       state.phenomena.strikeAt = null;
 
-      const from = random() * Math.PI * 2;
+      const from = random() * TAU;
       const striker = world.spawn();
       const x = parts.body.x + Math.cos(from) * STRIKE_DISTANCE;
       const y = parts.body.y + Math.sin(from) * STRIKE_DISTANCE;

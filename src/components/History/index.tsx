@@ -12,7 +12,7 @@ import { VENTURE_COLOUR } from "@/components/History/config";
 import { HistoryEntry } from "@/components/History/HistoryEntry";
 import { Panel, PanelTitle } from "@/components/Panel";
 import { Anchor, Section } from "@/components/Section";
-import { hiddenPanel, Tab, TabCount, TabList } from "@/components/Tabs";
+import { Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { industryAnchor, SECTION_IDS } from "@/config/sections";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
@@ -20,6 +20,7 @@ import useScrollProgressVar from "@/hooks/useScrollProgressVar";
 import useTabs from "@/hooks/useTabs";
 import { fill } from "@/packages/text/format";
 import { fadeIn } from "@/styles/keyframes";
+import { honourHidden, media, noAnimationWhenReduced } from "@/styles/mixins";
 import { IndustryLink } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
 import { Resume } from "@/types/resume";
@@ -54,7 +55,7 @@ const Graph = styled.ol(({ lane }: GraphProps) => [
     --lane-main: 14px;
     --lane-venture: 38px;
 
-    @media (min-width: 768px) {
+    ${media.md} {
       --lane-main: 18px;
       --lane-venture: 50px;
     }
@@ -76,7 +77,7 @@ const Graph = styled.ol(({ lane }: GraphProps) => [
       transform: scaleY(var(--scroll-progress, 0));
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &::after {
         transform: none;
       }
@@ -104,9 +105,7 @@ const Command = styled.span(({ characters }: { characters: number }) => [
       color: var(--accent);
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
+    ${noAnimationWhenReduced}
   `,
 ]);
 
@@ -115,9 +114,7 @@ const Answer = styled.span(() => [
   css`
     animation: ${fadeIn} 0.2s ease 0.45s both;
 
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
+    ${noAnimationWhenReduced}
   `,
 ]);
 
@@ -130,7 +127,7 @@ const commitIn = keyframes`
 // After a switch, the branch's commits land one after another, top to bottom, once the checkout has run.
 // A panel coming back from hidden replays this on its own, with no remount.
 const BranchPanel = styled.div(({ isCheckedOut }: { isCheckedOut: boolean }) => [
-  hiddenPanel,
+  honourHidden,
   isCheckedOut && css`
     & > ol > li {
       animation: ${commitIn} 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
@@ -138,7 +135,7 @@ const BranchPanel = styled.div(({ isCheckedOut }: { isCheckedOut: boolean }) => 
 
     ${Array.from({ length: 16 }, (_, index) => `& > ol > li:nth-of-type(${index + 1}) { animation-delay: ${480 + index * 70}ms; }`).join("\n")}
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       & > ol > li {
         animation: none;
       }

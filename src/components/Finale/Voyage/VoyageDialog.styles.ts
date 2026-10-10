@@ -1,5 +1,8 @@
+
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
+
+import { focusRing, honourHidden, media, voyagePanel } from "@/styles/mixins";
 
 // The whole screen, edge to edge, over a black backdrop.
 export const Dialog = styled.dialog(() => [
@@ -47,16 +50,15 @@ export const Hud = styled.header(() => [
   css`
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
 
-    /* Hidden in photo mode, which the flex display would otherwise override. */
-    &[hidden] {
-      display: none;
-    }
+    /* Hidden in photo mode. */
+    ${honourHidden}
   `,
 ]);
 
 export const Vitals = tw.div`flex flex-col gap-[6px] min-w-0`;
 
-export const Place = tw.p`m-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`;
+// Two lines tall on a phone whatever it says, so the bars below always clear the readout row beside it.
+export const Place = tw.p`m-0 min-h-[40px] md:min-h-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`;
 
 export const Bars = tw.dl`m-0 flex flex-col gap-[4px] w-[150px] md:w-[210px]`;
 
@@ -88,15 +90,29 @@ export const BarFill = styled.div(({ colour }: { colour: string }) => [
   `,
 ]);
 
+// Where the ship stands on a world: in the corner the radar keeps in flight.
+export const SurfaceCard = styled.section(() => [
+  tw`absolute left-[10px] bottom-[10px] md:left-[18px] md:bottom-[18px] m-0 p-[8px] md:p-[12px] flex flex-col gap-[2px] pointer-events-none`,
+  css`
+    max-width: min(44vw, 300px);
+    ${voyagePanel()}
+  `,
+]);
+
+export const SurfaceTitle = tw.h3`m-0 text-xs md:text-sm font-semibold text-white`;
+
+export const SurfaceLine = tw.p`m-0 text-[11px] md:text-xs text-[#c4d2ff]`;
+
+export const SurfaceHint = tw.p`m-0 mt-[4px] text-[11px] md:text-xs text-[#9aa3bb]`;
+
 export const TelemetryPanel = styled.section(() => [
   tw`absolute right-[10px] bottom-[10px] md:right-[18px] md:bottom-[18px] p-[8px] md:p-[12px] pointer-events-none`,
   css`
     min-width: 170px;
     max-width: min(66vw, 300px);
-    background: rgba(5, 8, 18, 0.72);
-    border: 1px solid rgba(196, 210, 255, 0.25);
+    ${voyagePanel()}
 
-    @media (min-width: 768px) {
+    ${media.md} {
       min-width: 200px;
     }
   `,
@@ -186,12 +202,7 @@ export const Incoming = styled.section(() => [
 
 export const IconButton = styled.button(() => [
   tw`flex items-center justify-center w-[38px] h-[38px] p-0 cursor-pointer text-white bg-[rgba(10,14,30,0.75)] border-[1px] border-solid border-[#2a3350] rounded-full`,
-  css`
-    &:focus-visible {
-      outline: 2px solid #c4d2ff;
-      outline-offset: 2px;
-    }
-  `,
+  focusRing("#c4d2ff", 2),
 ]);
 
 const fadeLine = keyframes`
@@ -206,11 +217,10 @@ export const Message = styled.p(() => [
   tw`absolute left-1/2 top-[96px] md:top-[84px] m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
   css`
     max-width: min(90vw, 520px);
-    background: rgba(5, 8, 18, 0.72);
-    border: 1px solid rgba(196, 210, 255, 0.35);
+    ${voyagePanel(0.72, 0.35)}
     animation: ${fadeLine} 2.8s ease both;
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       animation-duration: 0.01s;
       animation-delay: 2.6s;
     }
@@ -227,8 +237,7 @@ export const Card = styled.section(() => [
     max-height: calc(100dvh - 32px);
     overflow-y: auto;
     overscroll-behavior: contain;
-    background: rgba(5, 8, 18, 0.86);
-    border: 1px solid rgba(196, 210, 255, 0.4);
+    ${voyagePanel(0.86, 0.4)}
   `,
 ]);
 
@@ -247,8 +256,27 @@ export const ShipLine = tw.p`m-0 text-[11px] md:text-xs text-[#9aa3bb]`;
 
 // Red Coin gold, Void Shards violet.
 export const Coin = styled.dd(({ isShards = false }: { isShards?: boolean }) => [
-  tw`m-0 font-semibold`,
+  tw`relative m-0 font-semibold`,
   isShards ? tw`text-[#c58bff]` : tw`text-[#ffd76a]`,
+]);
+
+const floatGain = keyframes`
+  0% { opacity: 0; transform: translateY(4px); }
+  15% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-16px); }
+`;
+
+// What a count just rose by, floating up off it and gone.
+export const Gain = styled.span(() => [
+  tw`absolute right-0 bottom-full text-[11px] md:text-xs font-bold whitespace-nowrap pointer-events-none`,
+  css`
+    animation: ${floatGain} 1.2s ease-out both;
+
+    ${media.reducedMotion} {
+      animation-name: none;
+      opacity: 1;
+    }
+  `,
 ]);
 
 // Faults on board, each with its fix; the buttons take clicks through the HUD.
@@ -269,10 +297,7 @@ export const FixButton = styled.button(({ isReady }: { isReady: boolean }) => [
   css`
     border: ${isReady ? "0" : "1px solid #3a4566"};
 
-    &:focus-visible {
-      outline: 2px solid #c4d2ff;
-      outline-offset: 2px;
-    }
+    ${focusRing("#c4d2ff", 2)}
   `,
 ]);
 
@@ -286,10 +311,7 @@ export const ReadyButton = styled.button(() => [
   css`
     box-shadow: 0 0 0 1px rgba(125, 255, 207, 0.4), 0 0 18px rgba(125, 255, 207, 0.35);
 
-    &:focus-visible {
-      outline: 2px solid #ffffff;
-      outline-offset: 2px;
-    }
+    ${focusRing("#ffffff", 2)}
   `,
 ]);
 
@@ -308,8 +330,7 @@ export const PhotoBar = styled.section(() => [
   css`
     width: min(92vw, 560px);
     transform: translateX(-50%);
-    background: rgba(5, 8, 18, 0.82);
-    border: 1px solid rgba(196, 210, 255, 0.35);
+    ${voyagePanel(0.82, 0.35)}
   `,
 ]);
 

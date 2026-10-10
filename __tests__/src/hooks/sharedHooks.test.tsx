@@ -3,10 +3,12 @@ import { useRef } from "react";
 import { act, fireEvent, render, renderHook, waitFor } from "@testing-library/react";
 
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import useFocusLeave from "@/hooks/useFocusLeave";
 import useHashState, { useHashValue } from "@/hooks/useHashState";
 import useInView from "@/hooks/useInView";
 import useModalDialog from "@/hooks/useModalDialog";
 import useScrollLock, { usePageHeld } from "@/hooks/useScrollLock";
+import useSettledAnchors from "@/hooks/useSettledAnchors";
 
 const root = () => document.documentElement.style.overflow;
 
@@ -224,5 +226,85 @@ describe("useInView", () => {
     expect(getByText("unseen")).toBeInTheDocument();
     rerender(<Later isShown />);
     expect(getByText("seen")).toBeInTheDocument();
+  });
+});
+
+describe("useSettledAnchors", () => {
+  beforeEach(() => jest.useFakeTimers());
+
+  afterEach(() => {
+    jest.useRealTimers();
+    document.body.replaceChildren();
+  });
+
+  // A settle starts by listening for the scroll the jump begins.
+  const settles = (listen: jest.SpyInstance) => listen.mock.calls.some(([type]) => type === "scroll");
+
+  it("settles the target of a same page link however deep inside it the click lands, and of no other link", () => {
+    const { unmount } = renderHook(() => useSettledAnchors());
+    const target = document.createElement("section");
+    const local = document.createElement("a");
+    const inner = document.createElement("span");
+    const away = document.createElement("a");
+
+    target.id = "far";
+    local.href = "#far";
+    away.href = "https://example.com/elsewhere#far";
+    away.addEventListener("click", (event) => event.preventDefault());
+    local.append(inner);
+    document.body.append(target, local, away);
+
+    const listen = jest.spyOn(window, "addEventListener");
+
+    away.click();
+    expect(settles(listen)).toBe(false);
+
+    inner.click();
+    expect(settles(listen)).toBe(true);
+
+    listen.mockRestore();
+    jest.runOnlyPendingTimers();
+    unmount();
+  });
+});
+
+const Group = ({ onLeave }: { onLeave: () => void }) => {
+  const onBlur = useFocusLeave(onLeave);
+
+  return (
+    <>
+      <div onBlur={onBlur}>
+        <button type="button">first</button>
+        <button type="button">second</button>
+      </div>
+      <button type="button">outside</button>
+    </>
+  );
+};
+
+describe("useFocusLeave", () => {
+  it("calls back when focus leaves the container or the page, not when it moves inside it", () => {
+    const onLeave = jest.fn();
+    const { getByText } = render(<Group onLeave={onLeave} />);
+
+    fireEvent.blur(getByText("first"), { relatedTarget: getByText("second") });
+    expect(onLeave).not.toHaveBeenCalled();
+
+    fireEvent.blur(getByText("second"), { relatedTarget: getByText("outside") });
+    expect(onLeave).toHaveBeenCalledTimes(1);
+
+    fireEvent.blur(getByText("first"), { relatedTarget: null });
+    expect(onLeave).toHaveBeenCalledTimes(2);
+  });
+
+  it("calls the latest callback", () => {
+    const first = jest.fn();
+    const second = jest.fn();
+    const { getByText, rerender } = render(<Group onLeave={first} />);
+
+    rerender(<Group onLeave={second} />);
+    fireEvent.blur(getByText("first"), { relatedTarget: getByText("outside") });
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledTimes(1);
   });
 });

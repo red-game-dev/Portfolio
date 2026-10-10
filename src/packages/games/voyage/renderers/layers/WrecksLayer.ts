@@ -1,5 +1,6 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import type { Canvas2DContext, DrawableSurface } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { createSeededRandom } from "@/packages/math/random";
 
 import { Wreck } from "../../domain/components";
@@ -9,7 +10,6 @@ import { paintRock } from "../paint/hazards";
 import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
 
-const TAU = Math.PI * 2;
 // Ours, and the hulks of those with no colours of their own.
 const OURS: [string, string, string] = ["#8a92a8", "#2a3350", "rgba(255, 200, 120, 1)"];
 // Each wreck is drawn in one of a few broken variants, chosen by its seed.

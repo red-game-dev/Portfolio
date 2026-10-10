@@ -1,5 +1,6 @@
+import { DEG, wrapDegrees } from "@/packages/math/angles";
+
 import { Element, KeplerElements, Vec3 } from "../domain/types";
-import { DEG, wrapDegrees } from "./angles";
 
 const at = (element: Element, centuries: number) => element.value + element.rate * centuries;
 

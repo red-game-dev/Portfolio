@@ -4,7 +4,9 @@ import tw, { css, styled } from "twin.macro";
 
 import { useTypewriter } from "@/components/TypingAnimation/hooks/useTypewriter";
 import useInView from "@/hooks/useInView";
+import { sumBy } from "@/packages/math/stats";
 import { caretBlink } from "@/styles/keyframes";
+import { hiddenWhenReduced } from "@/styles/mixins";
 
 interface TypingAnimationProps {
   // Phrases with the highlighted part in <strong>, as written in the content.
@@ -49,9 +51,7 @@ const Caret = styled.span(() => [
     vertical-align: -0.08em;
     animation: ${caretBlink} 0.9s steps(1) infinite;
 
-    @media (prefers-reduced-motion: reduce) {
-      display: none;
-    }
+    ${hiddenWhenReduced}
   `,
 ]);
 
@@ -85,7 +85,7 @@ const renderSegments = (segments: Segment[], typed?: number, caret?: JSX.Element
 // revealed in place, with a caret, so the line wraps once, at its final shape, on any screen.
 const TypingAnimation: FC<TypingAnimationProps> = ({ typingData }: TypingAnimationProps) => {
   const phrases = useMemo(() => typingData.map(toSegments), [typingData]);
-  const lengths = useMemo(() => phrases.map((segments) => segments.reduce((total, segment) => total + segment.text.length, 0)), [phrases]);
+  const lengths = useMemo(() => phrases.map((segments) => sumBy(segments, (segment) => segment.text.length)), [phrases]);
   const stackRef = useRef<HTMLParagraphElement>(null);
   // Stops typing while the cover is scrolled away, and carries on from the same letter on the way back.
   const isOnScreen = useInView(stackRef, { once: false, threshold: 0 });

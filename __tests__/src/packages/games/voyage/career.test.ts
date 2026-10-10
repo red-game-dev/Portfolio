@@ -120,6 +120,8 @@ describe("voyage career", () => {
     expect(dayKey(Date.parse("2026-10-10T00:10:00Z"))).toBe("2026-10-10");
     expect(dailySeed(day)).toBe(dailySeed("2026-10-09"));
     expect(dailySeed(day)).not.toBe(dailySeed("2026-10-10"));
+    // The seed for a date never changes, or a day's ghosts and records would stop matching its universes.
+    expect(dailySeed("2026-10-10")).toBe(245697895);
     expect(dailyEpoch(day)).toBe(Date.parse("2026-10-09T12:00:00Z"));
     expect(career.recordDaily(day, 1200)).toBe(true);
     expect(career.recordDaily(day, 900)).toBe(false);

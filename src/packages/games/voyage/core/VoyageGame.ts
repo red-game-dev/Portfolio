@@ -21,7 +21,7 @@ import { CatalogLootTable } from "../economy/core/CatalogLootTable";
 import { EconomyView, ShipStatus, Suggestion } from "../economy/domain/economy";
 import { Hangar } from "../economy/services/Hangar";
 import { CanvasVoyageRenderer, VoyageRenderer } from "../renderers/CanvasVoyageRenderer";
-import { universeOf } from "../renderers/frame";
+import { lerpX, lerpY, universeOf } from "../renderers/frame";
 import { PilotLink } from "../services/PilotLink";
 import { SystemService } from "../services/SystemService";
 import { SolarSystemSource } from "../sources/SolarSystemSource";
@@ -110,6 +110,7 @@ interface Moment {
   level: number;
   faults: number;
   isSalvaging: boolean;
+  isOnSurface: boolean;
 }
 
 // Hosts a voyage on the shared frame loop: steps the simulation in fixed steps, flies the camera after the ship,
@@ -624,8 +625,8 @@ export class VoyageGame extends FrameLoop {
       return;
     }
 
-    const x = body.prevX + (body.x - body.prevX) * alpha;
-    const y = body.prevY + (body.y - body.prevY) * alpha;
+    const x = lerpX(body, alpha);
+    const y = lerpY(body, alpha);
     const speed = Math.hypot(body.vx, body.vy);
     const lookAhead = state.capture ? 0 : 0.4;
     const fall = state.capture?.progress ?? 0;
@@ -698,6 +699,7 @@ export class VoyageGame extends FrameLoop {
     const offs = [
       tell("landed", ({ body }) => ({ kind: "landed", body })),
       tell("tookOff", ({ body }) => ({ kind: "tookOff", body })),
+      tell("recovered", ({ body }) => ({ kind: "recovered", body })),
       tell("emergency", ({ body }) => ({ kind: "emergency", body })),
       tell("captured", ({ isSingularity }) => ({ kind: "captured", isSingularity })),
       tell("destroyed", () => ({ kind: "destroyed" })),
@@ -762,7 +764,7 @@ export class VoyageGame extends FrameLoop {
     const isMoment = this.hasMomentChanged();
 
     if (force || isMoment || now - this.lastTickAt >= TICK_MS) {
-      this.lastSnapshot = this.simulation.snapshot;
+      this.lastSnapshot = { ...this.simulation.snapshot, surface: this.renderer.surface };
       this.lastTickAt = now;
       this.onChange(this.lastSnapshot);
       this.link?.tick(this.lastSnapshot);
@@ -806,8 +808,10 @@ export class VoyageGame extends FrameLoop {
     const waypoint = state.waypoint?.id ?? null;
 
     const isSalvaging = state.salvage !== null;
+    const isOnSurface = this.renderer.surface !== null;
 
-    if (last && last.status === state.status && last.phase === state.phase && last.universe === state.universe && last.universes === state.universes &&
+    if (last && last.isOnSurface === isOnSurface && last.status === state.status && last.phase === state.phase && last.universe === state.universe &&
+      last.universes === state.universes &&
       last.passing === state.passing && last.landedOn === landedOn && last.waypoint === waypoint && last.level === state.level &&
       last.faults === state.faults.length && last.isSalvaging === isSalvaging) {
       return false;
@@ -824,6 +828,7 @@ export class VoyageGame extends FrameLoop {
       level: state.level,
       faults: state.faults.length,
       isSalvaging,
+      isOnSurface,
     };
 
     return true;

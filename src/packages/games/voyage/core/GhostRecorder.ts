@@ -1,3 +1,6 @@
+import { lerpAngle } from "@/packages/math/angles";
+import { lerp } from "@/packages/math/easing";
+
 import { VoyagePhase } from "../domain/events";
 import { GHOST_STRIDE, GhostRun } from "../domain/ghost";
 
@@ -52,11 +55,10 @@ export const ghostAt = (run: GhostRun, elapsedMs: number, place: number): { x: n
   }
 
   const t = at - index;
-  const turn = Math.atan2(Math.sin(run.samples[b + 2] - run.samples[a + 2]), Math.cos(run.samples[b + 2] - run.samples[a + 2]));
 
   return {
-    x: run.samples[a] + (run.samples[b] - run.samples[a]) * t,
-    y: run.samples[a + 1] + (run.samples[b + 1] - run.samples[a + 1]) * t,
-    angle: run.samples[a + 2] + turn * t,
+    x: lerp(run.samples[a], run.samples[b], t),
+    y: lerp(run.samples[a + 1], run.samples[b + 1], t),
+    angle: lerpAngle(run.samples[a + 2], run.samples[b + 2], t),
   };
 };

@@ -1,6 +1,7 @@
 import tw, { css, styled } from "twin.macro";
 
-import { hiddenPanel } from "@/components/Tabs";
+import { focusRing, honourHidden } from "@/styles/mixins";
+
 
 // How each rarity is coloured wherever a thing is named.
 export const RARITY_COLOUR: Record<"common" | "uncommon" | "rare" | "epic" | "legendary", string> = {
@@ -40,7 +41,7 @@ export const Body = styled.div(() => [
   `,
 ]);
 
-export const TabPanel = styled.div(() => [tw`flex flex-col gap-[14px]`, hiddenPanel]);
+export const TabPanel = styled.div(() => [tw`flex flex-col gap-[14px]`, honourHidden]);
 
 export const Subheading = tw.h3`m-0 text-sm font-semibold text-[#c4d2ff]`;
 
@@ -113,10 +114,7 @@ export const SmallButton = styled.button(({ isPrimary = false }: { isPrimary?: b
       opacity: 0.45;
     }
 
-    &:focus-visible {
-      outline: 2px solid #c4d2ff;
-      outline-offset: 2px;
-    }
+    ${focusRing("#c4d2ff", 2)}
   `,
 ]);
 

@@ -1,7 +1,6 @@
 import { Canvas2DContext, createDrawableSurface, DrawableSurface } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 import { createSeededRandom } from "@/packages/math/random";
-
-const TAU = Math.PI * 2;
 
 // A dent: a dark hollow with a bright lip where the light catches the bent metal.
 export const paintDent = (context: Canvas2DContext, width: number) => {

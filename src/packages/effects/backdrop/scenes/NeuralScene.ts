@@ -1,5 +1,7 @@
 import { Canvas2DContext, createGlowSprite, DrawableSurface } from "@/packages/graphics/canvas";
-import { randomBetween, RandomSource } from "@/packages/math/random";
+import { clamp } from "@/packages/math/clamp";
+import { lerp } from "@/packages/math/easing";
+import { pick, randomBetween, RandomSource } from "@/packages/math/random";
 
 import { Scene, SceneSize } from "../domain/types";
 
@@ -51,11 +53,11 @@ export class NeuralScene implements Scene {
   }
 
   public resize({ width, height, pixelRatio }: SceneSize): void {
-    const count = Math.round(Math.min(MAX_NODES, Math.max(MIN_NODES, (width * height) / AREA_PER_NODE)));
+    const count = Math.round(clamp((width * height) / AREA_PER_NODE, MIN_NODES, MAX_NODES));
 
     this.width = width;
     this.height = height;
-    this.linkDistance = Math.min(170, Math.max(110, width / 7));
+    this.linkDistance = clamp(width / 7, 110, 170);
     this.nodes = Array.from({ length: count }, () => ({
       x: randomBetween(this.random, 0, width),
       y: randomBetween(this.random, 0, height),
@@ -105,8 +107,8 @@ export class NeuralScene implements Scene {
       this.pulses.forEach((pulse) => {
         const from = this.nodes[pulse.from];
         const to = this.nodes[pulse.to];
-        const x = from.x + (to.x - from.x) * pulse.progress;
-        const y = from.y + (to.y - from.y) * pulse.progress;
+        const x = lerp(from.x, to.x, pulse.progress);
+        const y = lerp(from.y, to.y, pulse.progress);
 
         context.drawImage((this.glow as DrawableSurface).surface, x - 9, y - 9, 18, 18);
       });
@@ -165,7 +167,7 @@ export class NeuralScene implements Scene {
       return;
     }
 
-    const target = neighbours[Math.floor(this.random() * neighbours.length)];
+    const target = pick(this.random, neighbours);
 
     this.pulses.push({ from, to: target.index, progress: 0, speed: randomBetween(this.random, 0.0007, 0.0014) });
   }

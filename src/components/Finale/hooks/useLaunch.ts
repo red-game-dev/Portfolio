@@ -1,34 +1,82 @@
-import { MouseEvent, PointerEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 
-import { LAUNCH_THEME } from "@/config/theme";
+import { usePressGesture } from "@/components/Finale/hooks/usePressGesture";
+import { LAUNCH_TEXTURES, LAUNCH_THEME } from "@/config/theme";
 import { CROSSED_ZONES } from "@/config/zones";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import useInView from "@/hooks/useInView";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { decodeImage } from "@/packages/browser/images";
 import type { LaunchSnapshot } from "@/packages/games/launch";
+import { FinaleLaunchSite } from "@/types/game";
 
 // A press shorter than this is a tap, which launches by itself; anything longer is a hold.
 const TAP_MS = 250;
 
-const READY: LaunchSnapshot = { status: "ready", passed: 0, countdown: 0 };
+const READY: LaunchSnapshot = { status: "ready", passed: 0, countdown: 0, milestone: null };
 
 // Binds the launch to a canvas inside its board: built (and its code fetched) as the board comes near, sized
-// to it. It lifts off by itself the first time the board is in view. Holding the button charges the engines; a
-// tap, Space, Enter or an assistive click launches with no holding at all; reduced motion goes straight to
-// orbit. In orbit, the button nobody should press blows the ship up and launches a new one.
-export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject<HTMLCanvasElement>, isInView: boolean) => {
+// to it, at a real pad picked at random each visit (after mount, so the server and the first render agree), with
+// the Sun over it where it really is now. It lifts off by itself the first time the board is in view. Holding the
+// button charges the engines; a tap, Space, Enter or an assistive click launches with no holding at all; reduced
+// motion goes straight to orbit. In orbit, the button nobody should press blows the rocket up and launches
+// another.
+export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject<HTMLCanvasElement>, isInView: boolean, sites: FinaleLaunchSite[],
+  labels: { altitude: string; speed: string }) => {
   const [snapshot, setSnapshot] = useState<LaunchSnapshot>(READY);
-  const pressedAt = useRef<number | null>(null);
+  const [site, setSite] = useState<FinaleLaunchSite | null>(null);
   const hasLaunchedItself = useRef(false);
+
+  useEffect(() => {
+    setSite(sites[Math.floor(Math.random() * sites.length)] ?? null);
+  }, [sites]);
+
+  // The Earth below is fetched a screen and a half before the board arrives, so it is the real one by orbit; the
+  // game picks the maps up from the same promises once it is built.
+  const isApproaching = useInView(boardRef, { once: true, threshold: 0, rootMargin: "150% 0px" });
+
+  useEffect(() => {
+    if (isApproaching) {
+      Object.values(LAUNCH_TEXTURES).forEach((url) => {
+        decodeImage(url).catch(() => undefined);
+      });
+    }
+  }, [isApproaching]);
+
   const game = useCanvasEngine(canvasRef, {
     sizeRef: boardRef,
     contextOptions: { alpha: false },
+    // Built well before it is seen, so loading its code, compiling the Earth's shaders and uploading its maps are
+    // done while the reader is still scrolling, not during the launch.
+    nearMargin: "150% 0px",
+    isEnabled: site !== null,
     create: async (context) => {
       const { LaunchGame } = await import("@/packages/games/launch");
 
-      return LaunchGame.forCanvas(context, { theme: LAUNCH_THEME, config: { markers: CROSSED_ZONES.length }, onChange: setSnapshot });
+      return LaunchGame.forCanvas(context, {
+        theme: LAUNCH_THEME,
+        labels,
+        site: site ?? undefined,
+        epochMs: Date.now(),
+        config: { markers: CROSSED_ZONES.length },
+        onChange: setSnapshot,
+      });
     },
     resize: (launch, { width, height, pixelRatio }) => launch.resize({ width, height }, pixelRatio),
-  }, []);
+  }, [site]);
+
+  // The real maps of the Earth below, once the board is built (the engine hook gives its GPU back when it goes).
+  useEffect(() => {
+    if (!game) {
+      return undefined;
+    }
+
+    Object.entries(LAUNCH_TEXTURES).forEach(([id, url]) => {
+      decodeImage(url).then((image) => game.setTexture(id, image), () => undefined);
+    });
+
+    return undefined;
+  }, [game]);
 
   const launchNow = useCallback(() => {
     if (prefersReducedMotion()) {
@@ -56,48 +104,28 @@ export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject
     }
   }, [game]);
 
-  const onPointerDown = useCallback((event: PointerEvent<HTMLButtonElement>) => {
-    if (!game || (snapshot.status !== "ready" && snapshot.status !== "charging")) {
-      return;
-    }
+  // The launch button: held on the pad it charges, let go it releases, and a tap launches by itself. Keyboards and
+  // assistive technology press it once, which launches too.
+  const press = usePressGesture({
+    tapMs: TAP_MS,
+    canPress: () => game !== null && (snapshot.status === "ready" || snapshot.status === "charging"),
+    onPress: () => {
+      if (prefersReducedMotion()) {
+        game?.complete();
+      } else {
+        game?.press();
+      }
+    },
+    onRelease: (kind) => {
+      game?.release();
 
-    event.currentTarget.setPointerCapture(event.pointerId);
-    pressedAt.current = event.timeStamp;
+      if (kind === "tap") {
+        launchNow();
+      }
+    },
+    onCancel: () => game?.release(),
+    onPointerlessClick: launchNow,
+  });
 
-    if (prefersReducedMotion()) {
-      game.complete();
-    } else {
-      game.press();
-    }
-  }, [game, snapshot.status]);
-
-  const onPointerUp = useCallback((event: PointerEvent<HTMLButtonElement>) => {
-    if (pressedAt.current === null) {
-      return;
-    }
-
-    const heldMs = event.timeStamp - pressedAt.current;
-
-    pressedAt.current = null;
-
-    game?.release();
-
-    if (heldMs < TAP_MS) {
-      launchNow();
-    }
-  }, [game, launchNow]);
-
-  const onPointerCancel = useCallback(() => {
-    pressedAt.current = null;
-    game?.release();
-  }, [game]);
-
-  // Keyboards and assistive technology click without a pointer (detail is 0): that is a single press.
-  const onClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    if (event.detail === 0) {
-      launchNow();
-    }
-  }, [launchNow]);
-
-  return { snapshot, isReady: game !== null, onPointerDown, onPointerUp, onPointerCancel, onClick, selfDestruct };
+  return { snapshot, site, isReady: game !== null, press, selfDestruct };
 };

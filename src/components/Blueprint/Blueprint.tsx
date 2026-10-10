@@ -5,10 +5,12 @@ import tw, { css, styled } from "twin.macro";
 import { Architecture } from "@/components/Blueprint/Architecture";
 import { BLEED, NEAR_MARGIN } from "@/components/Blueprint/config";
 import { Wireframe } from "@/components/Blueprint/Wireframe";
+import { TagList } from "@/components/Controls";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { Lens } from "@/config/lenses";
 import useInView from "@/hooks/useInView";
+import { media } from "@/styles/mixins";
 import { Blueprint as BlueprintContent, BlueprintJourney, BlueprintLabels } from "@/types/blueprints";
 
 export interface BlueprintProps extends BlueprintContent {
@@ -26,7 +28,7 @@ const VIEW_ORDER: View[] = ["overview", "architecture", "flow"];
 const Figure = styled.figure(({ isBleed }: { isBleed: boolean }) => [
   tw`m-0 flex flex-col gap-[16px] p-[18px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
   isBleed && css`
-    @media (min-width: 1024px) {
+    ${media.lg} {
       margin-left: ${BLEED};
       margin-right: ${BLEED};
     }
@@ -64,8 +66,6 @@ const Facts = tw.dl`grid gap-x-[20px] gap-y-[12px] m-0 md:grid-cols-[120px 1fr]`
 const Term = tw.dt`text-xs font-semibold text-[#8a8a8a] md:pt-[3px]`;
 
 const Value = tw.dd`m-0 text-sm text-[#ddd]`;
-
-const Stack = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 
 const Tech = tw.li`text-xs leading-none text-[var(--accent)] bg-[#161616] rounded-full py-[6px] px-[10px] border-[1px] border-solid
 border-[var(--accent-muted)]`;
@@ -190,7 +190,7 @@ export const Blueprint: FC<BlueprintProps> = ({
               <>
                 <Term>{labels.stack}</Term>
                 <Value>
-                  <Stack>{summary.stack.map((tech) => <Tech key={tech}>{tech}</Tech>)}</Stack>
+                  <TagList>{summary.stack.map((tech) => <Tech key={tech}>{tech}</Tech>)}</TagList>
                 </Value>
               </>
             )}

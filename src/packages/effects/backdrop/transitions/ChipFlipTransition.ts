@@ -1,9 +1,10 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { Rgb, rgba } from "@/packages/graphics/colour";
+import { TAU } from "@/packages/math/angles";
+import { easeInOut, lerp, pulse } from "@/packages/math/easing";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { SceneSize, SceneTransition } from "../domain/types";
-import { pulse, Rgb, rgba } from "../utils/colour";
-import { easeInOut } from "../utils/easing";
 
 export interface ChipFlipTransitionOptions {
   chipColors: Rgb[];
@@ -54,15 +55,15 @@ export class ChipFlipTransition implements SceneTransition {
 
     context.lineWidth = 2;
     this.chips.forEach((chip) => {
-      const x = chip.startX + (chip.endX - chip.startX) * travel;
-      const y = chip.startY + (chip.endY - chip.startY) * travel;
+      const x = lerp(chip.startX, chip.endX, travel);
+      const y = lerp(chip.startY, chip.endY, travel);
       // The flip: the chip's width follows the cosine of its spin.
       const width = Math.max(0.5, chip.radius * Math.abs(Math.cos(travel * Math.PI * chip.spin)));
 
       context.fillStyle = rgba(this.options.chipColors[chip.color] ?? this.options.rim, strength * 0.8);
       context.strokeStyle = rgba(this.options.rim, strength * 0.7);
       context.beginPath();
-      context.ellipse(x, y, width, chip.radius, 0, 0, Math.PI * 2);
+      context.ellipse(x, y, width, chip.radius, 0, 0, TAU);
       context.fill();
       context.stroke();
     });

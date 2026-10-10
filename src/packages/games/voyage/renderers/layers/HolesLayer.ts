@@ -1,12 +1,12 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { createDrawableSurface, DrawableSurface } from "@/packages/graphics/canvas";
+import { TAU } from "@/packages/math/angles";
 
 import { lerpX, lerpY, sizeBucket, VoyageFrame } from "../frame";
 import { DISK_REACH, LENS_REACH, paintDisk, paintLens } from "../paint/space";
 import { Surface } from "../Surface";
 import { RenderKit } from "./kit";
 
-const TAU = Math.PI * 2;
 const SQUASH = 0.32;
 // How far below the centre line the near half fades in, as a share of the squashed disk's height, so it meets
 // the bent far half without a seam.

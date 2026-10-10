@@ -81,7 +81,7 @@ export class ProjectileSystem implements System<VoyageContext> {
             const { x, y } = target;
 
             world.stores.body.set(item, { x, y, vx: target.vx * 0.5, vy: target.vy * 0.5, prevX: x, prevY: y, radius: 0.045, mass: 0.01 });
-            world.stores.pickup.set(item, { kind: random() < 0.5 ? "score" : "repair" });
+            world.stores.pickup.set(item, { kind: random() < 0.5 ? "coin" : "repair" });
           }
 
           world.despawn(other);

@@ -2,12 +2,13 @@ import { FC, useId, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { Tag } from "@/components/Controls";
+import { Tag, TagList } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import { HISTORY_VIEW, VENTURE_COLOUR } from "@/components/History/config";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import useInView from "@/hooks/useInView";
 import { fill } from "@/packages/text/format";
+import { accentFillOnHover, honourHidden, media, noTransitionWhenReduced, squareBullet } from "@/styles/mixins";
 import { HistoryLabels } from "@/types/history";
 import { Resume } from "@/types/resume";
 
@@ -46,9 +47,7 @@ const Node = styled.span(({ isVenture, isReached, isCurrent, hasVentureLane }: N
     left: ${isVenture && hasVentureLane ? "calc(var(--lane-venture) - 6px)" : "calc(var(--lane-main) - 6px)"};
     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 
-    @media (prefers-reduced-motion: reduce) {
-      transition: none;
-    }
+    ${noTransitionWhenReduced}
   `,
   isReached && css`
     background: ${isVenture ? VENTURE_COLOUR : "var(--accent)"};
@@ -65,7 +64,7 @@ const Node = styled.span(({ isVenture, isReached, isCurrent, hasVentureLane }: N
       animation: live-ring 1.8s ease-out infinite;
     }
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       &::after {
         animation: none;
       }
@@ -107,44 +106,16 @@ const Bullets = tw.ul`list-none m-0 p-0 flex flex-col gap-[6px] text-sm text-[#a
 
 const Bullet = styled.li(() => [
   tw`relative pl-[16px] break-words`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.6em;
-      width: 6px;
-      height: 6px;
-      border-radius: 1px;
-      background: var(--accent-muted);
-    }
-  `,
+  squareBullet({ colour: "var(--accent-muted)", radius: 1 }),
 ]);
 
 // display: flex would beat the hidden attribute, so hidden is restated here.
-const More = styled.div(() => [
-  tw`flex flex-col gap-[10px]`,
-  css`
-    &[hidden] {
-      display: none;
-    }
-  `,
-]);
-
-const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
+const More = styled.div(() => [tw`flex flex-col gap-[10px]`, honourHidden]);
 
 const Toggle = styled.button(() => [
   tw`self-start cursor-pointer text-xs font-medium py-[6px] px-[10px] text-[var(--accent)] bg-transparent border-[1px] border-solid border-[var(--accent-muted)]
      rounded-[2px]`,
-  css`
-    transition: background-color 0.2s ease, color 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      color: #101010;
-      background-color: var(--accent);
-    }
-  `,
+  accentFillOnHover(),
 ]);
 
 export const HistoryEntry: FC<HistoryEntryProps> = ({
@@ -185,11 +156,11 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
         {outcome && <Outcome>{outcome}</Outcome>}
         {lead && <Lead>{lead}</Lead>}
         {stackPreview.length > 0 && (
-          <Tags>
+          <TagList>
             {stackPreview.map((tech) => (
               <Tag isCompact key={tech}>{tech}</Tag>
             ))}
-          </Tags>
+          </TagList>
         )}
         {preview.length > 0 && (
           <Bullets>
@@ -211,11 +182,11 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
               </Bullets>
             )}
             {restStack.length > 0 && (
-              <Tags>
+              <TagList>
                 {restStack.map((tech) => (
                   <Tag isCompact key={tech}>{tech}</Tag>
                 ))}
-              </Tags>
+              </TagList>
             )}
           </More>
         )}

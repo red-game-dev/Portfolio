@@ -6,6 +6,7 @@ import { faRobot, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import useInView from "@/hooks/useInView";
+import { media, noTransitionWhenReduced } from "@/styles/mixins";
 import { DuelRound as DuelRoundContent, Duels } from "@/types/game";
 
 interface DuelRoundProps extends DuelRoundContent {
@@ -50,9 +51,7 @@ const Verdict = styled.span(({ isRevealed }: RevealProps) => [
     opacity: 0;
     transition: opacity 0.25s ease 0.35s, transform 0.25s cubic-bezier(0.3, 1.6, 0.6, 1) 0.35s;
 
-    @media (prefers-reduced-motion: reduce) {
-      transition: none;
-    }
+    ${noTransitionWhenReduced}
   `,
   isRevealed && css`
     transform: rotate(-6deg);
@@ -68,7 +67,7 @@ const HumanSide = styled(Side)(({ isRevealed, isLoser }: SideProps) => [
     opacity: 0;
     transition: opacity 0.4s ease 0.15s, transform 0.4s cubic-bezier(0.165, 0.85, 0.45, 1) 0.15s;
 
-    @media (prefers-reduced-motion: reduce) {
+    ${media.reducedMotion} {
       transform: none;
       opacity: 1;
       transition: none;

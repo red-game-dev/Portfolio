@@ -1,14 +1,16 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
+import { Rgb, rgba, scaleRgb } from "@/packages/graphics/colour";
+import { TAU } from "@/packages/math/angles";
+import { wrap } from "@/packages/math/clamp";
 
 import { GlobeDraw, GlobeRenderer, StarDraw } from "../domain/types";
 import { blackbody } from "../utils/colour";
 import { globeFrame } from "../utils/frame";
 
-const TAU = Math.PI * 2;
-
 const isDrawable = (image: TexImageSource): image is Exclude<TexImageSource, ImageData> => typeof ImageData === "undefined" || !(image instanceof ImageData);
 
-const css = ([r, g, b]: [number, number, number], alpha = 1) => `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${alpha})`;
+// Channels from 0 to 1, as the shaders take them, as a CSS colour.
+const css = (colour: Rgb, alpha = 1) => rgba(scaleRgb(colour, 255), alpha);
 
 // Globes without WebGL: the map's facing half drawn into the disc and scrolled as the body turns, shaded from
 // its light, with a rim of air. Flatter than the GPU's, but every body still turns, has day and night, and
@@ -49,7 +51,7 @@ export class CanvasGlobeRenderer implements GlobeRenderer {
       const height = Number(map.height);
       const left = (look.surface.centreLongitude ?? 0) - 180;
       const facing = (globeFrame(pose).spin * 180) / Math.PI;
-      const start = ((((facing - 90 - left) / 360) % 1) + 1) % 1;
+      const start = wrap((facing - 90 - left) / 360, 1);
       const first = Math.min(0.5, 1 - start);
 
       target.drawImage(map, start * width, 0, first * width, height, x - radius, y - radius, (first / 0.5) * radius * 2, radius * 2);

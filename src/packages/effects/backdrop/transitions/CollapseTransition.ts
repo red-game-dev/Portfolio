@@ -1,9 +1,9 @@
 import { Canvas2DContext } from "@/packages/graphics/canvas";
+import { mixRgb, Rgb, rgba } from "@/packages/graphics/colour";
+import { easeInOut, lerp, pulse } from "@/packages/math/easing";
 import { randomBetween, RandomSource } from "@/packages/math/random";
 
 import { SceneSize, SceneTransition } from "../domain/types";
-import { mixRgb, pulse, Rgb, rgba } from "../utils/colour";
-import { easeInOut } from "../utils/easing";
 
 export interface CollapseTransitionOptions {
   from: Rgb;
@@ -48,8 +48,8 @@ export class CollapseTransition implements SceneTransition {
     const colour = mixRgb(this.options.from, this.options.to, travel);
     const strength = pulse(progress);
     const positions = this.particles.map((particle) => ({
-      x: particle.startX + (particle.endX - particle.startX) * travel,
-      y: particle.startY + (particle.endY - particle.startY) * travel,
+      x: lerp(particle.startX, particle.endX, travel),
+      y: lerp(particle.startY, particle.endY, travel),
     }));
 
     if (travel > 0.55) {

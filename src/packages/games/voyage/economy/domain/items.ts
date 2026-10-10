@@ -1,5 +1,5 @@
 import { ModuleId } from "../../domain/components";
-import { LootSource } from "../../domain/loot";
+import { ItemStack, LootSource } from "../../domain/loot";
 import { VoyageStyle } from "../../domain/theme";
 
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
@@ -32,5 +32,7 @@ export interface ItemSpec {
   use?: ItemUse;
 }
 
+// A number of one thing, as the hold, a recipe or a cost lists it.
+export const stack = (id: string, count = 1): ItemStack => ({ id, count });
 
 export type { ItemStack, Loot, LootSource } from "../../domain/loot";

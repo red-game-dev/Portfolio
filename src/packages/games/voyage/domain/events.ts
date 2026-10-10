@@ -19,6 +19,8 @@ export interface VoyageEvents {
   destroyed: { x: number; y: number; vx: number; vy: number; angle: number };
   collected: { kind: PickupKind; x: number; y: number };
   landed: { body: string };
+  // Home safely: recovered, and a new rocket ready.
+  recovered: { body: string };
   tookOff: { body: string };
   passing: { stop: string };
   phase: { phase: VoyagePhase; universe: number };

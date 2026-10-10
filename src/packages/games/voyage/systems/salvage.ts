@@ -1,3 +1,4 @@
+import { TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
 
 import { WreckKind } from "../domain/components";
@@ -30,7 +31,7 @@ export const leaveWreck = (context: VoyageContext, kind: WreckKind, { x, y, vx, 
   const universe = state.phase === "universe" ? state.universe : -1;
 
   world.stores.body.set(wreck, { x, y, vx, vy, prevX: x, prevY: y, radius: size, mass: size * size * 60 });
-  world.stores.spin.set(wreck, { angle: random() * Math.PI * 2, rate: randomBetween(random, -0.6, 0.6) });
+  world.stores.spin.set(wreck, { angle: random() * TAU, rate: randomBetween(random, -0.6, 0.6) });
   world.stores.wreck.set(wreck, {
     kind,
     loot: loot.roll({ source: isBoss ? "boss" : SOURCE[kind], style: state.cosmos?.style ?? null, universe, level }, random),

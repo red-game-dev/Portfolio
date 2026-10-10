@@ -1,11 +1,9 @@
-import { Guard, isArrayOf, isRecord, isText, isTextArray } from "@/packages/core/domain";
+import { Guard, isArrayOf, isCount, isRecord, isText, isTextArray } from "@/packages/core/domain";
 import { isLedgerSnapshot } from "@/packages/finance/ledger";
 
 import { isCareerProfile } from "../../career/guards/isCareerProfile";
 import { ItemStack } from "../domain/items";
 import { EconomyProfile, PilotProfile, PilotRecords } from "../domain/profile";
-
-const isCount = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0;
 
 const isStack: Guard<ItemStack> = (value): value is ItemStack => isRecord(value) && isText(value.id) && isCount(value.count);
 

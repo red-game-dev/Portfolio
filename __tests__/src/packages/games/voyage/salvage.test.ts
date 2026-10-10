@@ -2,10 +2,14 @@ import {
   CatalogLootTable,
   configForLevel,
   DEFAULT_VOYAGE_CONFIG,
+  Hangar,
   Loot,
+  newProfile,
   NO_INPUT,
+  PilotLink,
   radiusForAu,
   resolveVoyageConfig,
+  REWARDS,
   SolarSystemSource,
   SystemService,
   VoyageConfig,
@@ -81,6 +85,79 @@ const wreckBeside = (simulation: VoyageSimulation, loot: Loot, kind: WreckKind =
 const CARGO: Loot = { items: [{ id: "titanium", count: 2 }], blueprints: ["recipe:nozzle"] };
 
 describe("voyage salvage and breakdowns", () => {
+  test("coming home is a recovery: a safe landing on Earth refuels and mends the ship and says so; the Moon does not", () => {
+    const touchDown = (bodyId: string) => {
+      const simulation = create();
+      const { state, world } = simulation;
+      const place = state.system.bodies.find((body) => body.id === bodyId);
+      const parts = partsOf(simulation);
+      const recovered: string[] = [];
+
+      if (!place) {
+        throw new Error(`no ${bodyId}`);
+      }
+
+      simulation.events.on("recovered", ({ body }) => recovered.push(body));
+      parts.ship.fuel = 10;
+      parts.health.hull = parts.health.maxHull * 0.3;
+      state.faults.push({ id: 7, kind: "fuelLeak", at: state.elapsedMs, severity: 0.5 });
+
+      const contact = place.radius + parts.body.radius * 0.9;
+
+      Object.assign(parts.body, { x: place.x + contact, y: place.y, prevX: place.x + contact, prevY: place.y, vx: place.vx, vy: place.vy });
+      simulation.step(defaults.stepMs * 2);
+
+      return { landedOn: world.stores.ship.get(state.ship)?.landedOn, parts: partsOf(simulation), faults: state.faults.length, recovered };
+    };
+
+    const home = touchDown("earth");
+
+    expect(home.landedOn).toBe("earth");
+    expect(home.recovered).toEqual(["earth"]);
+    expect(home.parts.ship.fuel).toBe(home.parts.ship.maxFuel);
+    expect(home.parts.health.hull).toBe(home.parts.health.maxHull);
+    expect(home.faults).toBe(0);
+
+    const moon = touchDown("moon");
+
+    expect(moon.landedOn).toBe("moon");
+    expect(moon.recovered).toEqual([]);
+    expect(moon.parts.ship.fuel).toBeLessThan(moon.parts.ship.maxFuel);
+  });
+
+  test("a Red Coin close by is drawn in to the ship, picked up and paid into the wallet; one out of reach stays", () => {
+    const simulation = create();
+    const hangar = new Hangar(newProfile());
+    const link = new PilotLink({ simulation, hangar, career: null, nameOf: (id) => id, notify: () => undefined, refresh: () => undefined });
+    const { world } = simulation;
+    const ship = park(simulation);
+    const coinAt = (dx: number) => {
+      const coin = world.spawn();
+
+      world.stores.body.set(coin, { x: ship.x + dx, y: ship.y, vx: 0, vy: 0, prevX: ship.x + dx, prevY: ship.y, radius: 0.045, mass: 0.01 });
+      world.stores.pickup.set(coin, { kind: "coin" });
+
+      return coin;
+    };
+
+    link.attach();
+
+    const near = coinAt(defaults.pickups.magnet * 0.8);
+    const far = coinAt(defaults.pickups.magnet * 4);
+    const before = hangar.purse.RED;
+
+    world.flush();
+    simulation.step(1500);
+
+    expect(world.isAlive(near)).toBe(false);
+    expect(world.isAlive(far)).toBe(true);
+    // Paid on the next tick, gathered into one entry.
+    expect(hangar.purse.RED).toBe(before);
+    link.tick(simulation.snapshot);
+    expect(hangar.purse.RED).toBe(before + REWARDS.coin.RED);
+    expect(hangar.view().history.some((row) => row.memo === "coin:1")).toBe(true);
+  });
+
   test("a wreck is salvaged by holding alongside it at its speed, and gives up what it held once", () => {
     const simulation = create();
     const found: Loot[] = [];

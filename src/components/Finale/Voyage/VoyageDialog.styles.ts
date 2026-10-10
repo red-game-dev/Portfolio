@@ -181,11 +181,16 @@ export const FrameMeta = tw.span`text-[10px] md:text-[11px] font-normal text-[#9
 
 export const FrameTrack = tw.div`relative h-[5px] overflow-hidden bg-[rgba(255,255,255,0.12)]`;
 
+// On a phone narrow enough to clear the ability bar down the right edge; above the bar where there is room.
 export const Frames = styled.div(() => [
-  tw`absolute left-1/2 top-[150px] md:top-auto md:bottom-[18px] flex flex-col gap-[6px] pointer-events-none`,
+  tw`absolute left-1/2 top-[150px] md:top-auto md:bottom-[82px] flex flex-col gap-[6px] pointer-events-none`,
   css`
-    width: min(88vw, 420px);
+    width: min(72vw, 420px);
     transform: translateX(-50%);
+
+    ${media.md} {
+      width: min(88vw, 420px);
+    }
   `,
 ]);
 

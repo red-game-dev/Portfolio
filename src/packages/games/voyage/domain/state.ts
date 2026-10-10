@@ -1,6 +1,7 @@
 import type { Entity } from "@/packages/games/engine";
 
 import type { DescentState, LandingPlan, LandingWorld } from "../landing";
+import { ActiveBoost, BoostId } from "./boosts";
 import { StarSystem } from "./content";
 import { VoyagePhase } from "./events";
 import { Fault } from "./faults";
@@ -199,6 +200,14 @@ export interface VoyageState {
   homecoming: Homecoming | null;
   // Since when (ms on the run's clock) the ship has had no fuel to leave where it is, if it has none.
   stranded: { since: number } | null;
+  // The boosts at work, when each can be used again (ms on the run's clock), the blocks of a block shield still
+  // standing, a gravity well set down, the decoy thrown, and when the next boost core drifts in.
+  boosts: ActiveBoost[];
+  boostReady: Partial<Record<BoostId, number>>;
+  blocks: number;
+  well: { x: number; y: number; mu: number; until: number } | null;
+  decoy: Entity | null;
+  nextBoostAt: number | null;
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

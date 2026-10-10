@@ -1,3 +1,4 @@
+import { boostNotice } from "@/components/Finale/Voyage/abilities";
 import { careerNotice } from "@/components/Finale/Voyage/career";
 import { economyNotice } from "@/components/Finale/Voyage/economy";
 import type { VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
@@ -107,7 +108,7 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
     case "flare":
       return fill(notice.isHeading ? content.flareHeading : content.flare, { class: notice.flareClass });
     case "storm":
-      return content.storm;
+      return notice.isTurned ? content.stormTurned : content.storm;
     case "failing":
       return fill(notice.isGone ? content.gone : content.failing, { system: content.systems.names[notice.module] ?? notice.module });
     case "melting":
@@ -158,6 +159,6 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
     case "emergency":
       return fill(notice.kind === "tookOff" ? content.tookOff : content.emergency, { body: placeName(content, notice.body) });
     default:
-      return economyNotice(content, notice) ?? careerNotice(content, notice);
+      return economyNotice(content, notice) ?? careerNotice(content, notice) ?? boostNotice(content, notice);
   }
 };

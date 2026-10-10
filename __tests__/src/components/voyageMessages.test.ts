@@ -29,6 +29,7 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   descent: null,
   homecoming: null,
   stranded: null,
+  boosts: { active: [], cooldowns: {}, blocks: 0 },
   people: null,
   maze: null,
   modules: { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 },
@@ -118,7 +119,8 @@ describe("the voyage's messages", () => {
   test("flares, storms, failing systems and a melting hull are said as they happen", () => {
     expect(voyageNotice(voyage, { kind: "flare", flareClass: "X", isHeading: true })).toContain("class X");
     expect(voyageNotice(voyage, { kind: "flare", flareClass: "C", isHeading: false })).toBe("Solar flare, class C");
-    expect(voyageNotice(voyage, { kind: "storm" })).toBe(voyage.storm);
+    expect(voyageNotice(voyage, { kind: "storm", isTurned: false })).toBe(voyage.storm);
+    expect(voyageNotice(voyage, { kind: "storm", isTurned: true })).toBe(voyage.stormTurned);
     expect(voyageNotice(voyage, { kind: "failing", module: "sensors", isGone: false })).toBe("Sensors failing");
     expect(voyageNotice(voyage, { kind: "failing", module: "engines", isGone: true })).toBe("Engines lost");
     expect(voyageNotice(voyage, { kind: "melting", temperatureC: 641.4 })).toContain("641");

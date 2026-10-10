@@ -4,11 +4,13 @@ import { roundTo } from "@/packages/math/round";
 import type { Vec3 } from "@/packages/physics/kepler";
 
 import { VoyageConfig } from "../config";
+import { BOOSTS } from "../config/boosts";
 import { VoyageWorld } from "../core/world";
 import { MODULE_IDS, Modules } from "../domain/components";
 import { DescentView, Frame, IncomingRock, VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState } from "../domain/state";
 import { safeSpeedOf } from "../landing";
+import { boostDuration, isBoostId } from "../utils/boosts";
 import { auForRadius } from "../utils/scale";
 import { TelemetryMapper } from "./TelemetryMapper";
 
@@ -59,6 +61,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       surface: null,
       descent: this.descent(state),
       homecoming: state.homecoming ? { stage: state.homecoming.stage, days: state.homecoming.days, isSea: state.homecoming.isSea } : null,
+      boosts: this.boosts(state),
       stranded: state.stranded
         ? {
           secondsLeft: Math.max(0, Math.ceil(this.config.descent.strandedSeconds - (state.elapsedMs - state.stranded.since) / 1000)),
@@ -120,6 +123,28 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
     const gate = /^gate-(\d+)$/.exec(id);
 
     return gate && state.network ? state.network.nodes[Number(gate[1])]?.name ?? null : state.cosmos?.names[id] ?? null;
+  }
+
+  // Each boost at work with the share of it still to run, each used one's seconds to wait, and the blocks standing.
+  private boosts(state: Readonly<VoyageState>): VoyageSnapshot["boosts"] {
+    const now = state.elapsedMs;
+    const cooldowns: VoyageSnapshot["boosts"]["cooldowns"] = {};
+
+    Object.entries(state.boostReady).forEach(([id, readyAt]) => {
+      if (readyAt !== undefined && readyAt > now && isBoostId(id)) {
+        cooldowns[id] = { seconds: Math.ceil((readyAt - now) / 1000), share: Math.min(1, (readyAt - now) / (BOOSTS[id].cooldownS * 1000)) };
+      }
+    });
+
+    return {
+      active: state.boosts.filter((active) => active.until > now).map(({ id, level, until }) => ({
+        id,
+        level,
+        left: Math.min(1, (until - now) / boostDuration(id, level)),
+      })),
+      cooldowns,
+      blocks: state.blocks,
+    };
   }
 
   // The way down while it is coming down, in real units rounded for reading.

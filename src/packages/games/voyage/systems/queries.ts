@@ -45,7 +45,8 @@ export const isSolar = ({ state }: VoyageContext): boolean => state.phase === "s
 export const viewRadius = ({ state }: VoyageContext): number => Math.hypot(state.view.halfWidth, state.view.halfHeight);
 
 // Takes everything but the ship out of the world, as a black hole or a gate does: rocks, pickups, holes, who lived
-// there, shots in flight, rocks headed for worlds, passing ships, wrecks and the gates of the system left.
+// there, shots in flight, rocks headed for worlds, passing ships, wrecks and the gates of the system left, and a
+// decoy or a gravity well left behind there.
 export const clearSpace = ({ world, state }: VoyageContext): void => {
   [world.stores.hazard, world.stores.pickup, world.stores.hole, world.stores.alien, world.stores.projectile, world.stores.impactor, world.stores.traffic,
     world.stores.wreck, world.stores.gate]
@@ -54,4 +55,12 @@ export const clearSpace = ({ world, state }: VoyageContext): void => {
   state.capture = null;
   state.salvage = null;
   state.storms = [];
+  state.well = null;
+
+  if (state.decoy !== null) {
+    world.despawn(state.decoy);
+    state.decoy = null;
+  }
+
+  state.boosts = state.boosts.filter((active) => active.id !== "decoy" && active.id !== "gravityWell");
 };

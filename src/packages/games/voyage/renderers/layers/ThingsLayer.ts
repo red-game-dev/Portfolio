@@ -1,6 +1,7 @@
 import type { RenderLayer } from "@/packages/games/engine";
 
 import { DEEP_STYLES } from "../../domain/theme";
+import { boostColour } from "../../utils/boosts";
 import { auForRadius } from "../../utils/scale";
 import { lerpX, lerpY, sizeBucket, VoyageFrame } from "../frame";
 import { paintHazard, paintPickup, paintRock } from "../paint/hazards";
@@ -10,8 +11,9 @@ import { RenderKit } from "./kit";
 // How far a comet's tails can reach (world units), so it is drawn while they are in view.
 const TAIL_REACH = 7;
 
-// The colour of each kind of pickup: coins are gold everywhere, so they read as coin in every universe.
-const PICKUP_COLOUR = { coin: "#ffd76a", shield: "#4fd8ff", fuel: "#62ffc8", repair: "#ff8fa3" };
+// The colour of each kind of pickup: coins are gold everywhere, so they read as coin in every universe. A boost
+// core takes the colour of where it is from.
+const PICKUP_COLOUR = { coin: "#ffd76a", shield: "#4fd8ff", fuel: "#62ffc8", repair: "#ff8fa3", boost: "#f4f0ff" };
 // How fast a coin turns over as it drifts (radians a millisecond), and the narrowest it gets edge on.
 const COIN_SPIN = 0.004;
 const COIN_EDGE = 0.22;
@@ -41,8 +43,8 @@ export class ThingsLayer implements RenderLayer<VoyageFrame> {
         return;
       }
 
-      const { kind } = world.stores.pickup.values[index];
-      const colour = PICKUP_COLOUR[kind];
+      const { kind, boost } = world.stores.pickup.values[index];
+      const colour = boost ? boostColour(boost) : PICKUP_COLOUR[kind];
       const size = sizeBucket(body.radius * 3 * base);
       const sprite = this.kit.sprite(`pickup:${kind}:${colour}:${size}`, size, size, paintPickup(kind, colour));
       const drawn = body.radius * 3 * camera.scale * pulse;

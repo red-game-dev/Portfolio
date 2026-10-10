@@ -160,6 +160,12 @@ export class PilotLink {
         this.discover(codexId("wrecks", kind));
         kept.forEach(({ id }) => this.discover(codexId("things", id), false));
       }),
+      // A boost's core is a charge and a find towards its level; the find is announced, so the codex takes it
+      // quietly.
+      events.on("boostFound", ({ boost }) => {
+        this.notify({ kind: "boostFound", boost, ...hangar.findBoost(boost) });
+        this.discover(codexId("boosts", boost), false);
+      }),
       // A fault, or its fix, changes what can be mended from the hold.
       events.on("fault", () => this.refresh()),
       events.on("fixed", () => this.refresh()),

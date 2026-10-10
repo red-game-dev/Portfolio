@@ -16,10 +16,11 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton } from "@/components/Controls";
+import { AbilityBar } from "@/components/Finale/Voyage/AbilityBar/AbilityBar";
 import { rankName } from "@/components/Finale/Voyage/career";
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
-import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
+import { HangarPanel, HangarTab } from "@/components/Finale/Voyage/Hangar/HangarPanel";
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
@@ -165,6 +166,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const { snapshot, notices, takeNotices, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;
   const { economy, isHangarOpen, setHangar, act, follow } = voyage;
   const { career, isPhoto, togglePhoto, savePhoto, landing } = voyage;
+  // The hangar opens on its first tab, or on the Loadout when an empty slot of the bar is pressed.
+  const [hangarTab, setHangarTab] = useState<HangarTab | null>(null);
   const [pay, setPay] = useState<number | null>(null);
   const [daily, setDaily] = useState<{ score: number; isBest: boolean } | null>(null);
   // Today, as the daily voyage counts days: the UTC date.
@@ -220,6 +223,17 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   }, [message]);
 
   useEffect(() => {
+    if (!isHangarOpen) {
+      setHangarTab(null);
+    }
+  }, [isHangarOpen]);
+
+  const openLoadout = () => {
+    setHangarTab("loadout");
+    setHangar(true);
+  };
+
+  useEffect(() => {
     if (!snapshot) {
       return;
     }
@@ -247,6 +261,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         setPay(notice.coin);
       } else if (notice.kind === "daily") {
         setDaily({ score: notice.score, isBest: notice.isBest });
+      } else if (notice.kind === "slotRefused") {
+        // The answer to a press shows at once, as a tap's does.
+        reply(voyageNotice(content, notice) ?? "");
       } else {
         say(voyageNotice(content, notice));
       }
@@ -549,6 +566,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           )}
         </Frames>
       )}
+      {economy && snapshot && status === "flying" && !isPaused && !isHangarOpen && !isPhoto && (
+        <AbilityBar content={content} rows={economy.bar} boosts={snapshot.boosts} onUse={(index) => act({ kind: "slot", index })} onFill={openLoadout} />
+      )}
       {message && status === "flying" && !isPhoto && <Message key={message.id} role="status">{message.text}</Message>}
       {economy && isHangarOpen && (
         <HangarPanel
@@ -556,6 +576,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           settings={settings}
           economy={economy}
           career={career}
+          opensOn={hangarTab}
           isFlying={status === "flying"}
           onAct={act}
           onClose={() => setHangar(false)}

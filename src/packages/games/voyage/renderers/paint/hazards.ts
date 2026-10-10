@@ -238,5 +238,21 @@ export const paintPickup = (kind: PickupKind, colour: string) => (context: Canva
     context.fillRect(-r * 0.07, -r * 0.34, r * 0.14, r * 0.68);
     context.fillRect(-r * 0.34, -r * 0.07, r * 0.68, r * 0.14);
     context.restore();
+  } else if (kind === "boost") {
+    // A boost core: a four pointed spark in a ring of its own colour.
+    context.strokeStyle = colour;
+    context.beginPath();
+    context.arc(c, c, r * 0.5, 0, TAU);
+    context.stroke();
+    context.beginPath();
+    [0, 1, 2, 3].forEach((point) => {
+      const angle = (point * TAU) / 4 - Math.PI / 2;
+      const between = angle + TAU / 8;
+
+      context.lineTo(c + Math.cos(angle) * r * 0.42, c + Math.sin(angle) * r * 0.42);
+      context.lineTo(c + Math.cos(between) * r * 0.12, c + Math.sin(between) * r * 0.12);
+    });
+    context.closePath();
+    context.fill();
   }
 };

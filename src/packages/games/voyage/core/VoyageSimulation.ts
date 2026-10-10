@@ -4,6 +4,7 @@ import { createFieldSample, GravityField } from "@/packages/physics/newtonian";
 
 import { VoyageConfig } from "../config";
 import { DEFAULT_UNIVERSE_NAMES } from "../config/names";
+import { BoostId } from "../domain/boosts";
 import { MODULE_IDS } from "../domain/components";
 import { HOME_WORLD, StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
@@ -17,6 +18,8 @@ import { UniverseGenerator, UniverseTheme } from "../generators/UniverseGenerato
 import { SnapshotMapper } from "../mappers/SnapshotMapper";
 import { AlienSystem } from "../systems/AlienSystem";
 import { AtmosphereSystem } from "../systems/AtmosphereSystem";
+import { activateBoost } from "../systems/boosts";
+import { BoostSystem } from "../systems/BoostSystem";
 import { CaptureSystem } from "../systems/CaptureSystem";
 import { CollisionSystem } from "../systems/CollisionSystem";
 import { VoyageContext } from "../systems/context";
@@ -118,6 +121,7 @@ export class VoyageSimulation {
       new OrbitSystem(),
       new NavigationSystem(),
       new PhaseSystem(),
+      new BoostSystem(),
       new ControlSystem(),
       new GravitySystem(),
       new AtmosphereSystem(),
@@ -182,6 +186,11 @@ export class VoyageSimulation {
 
   public setSpaceDrag(drag: SpaceDrag): void {
     this.context.spaceDrag = drag;
+  }
+
+  // Sets a boost to work at a level, if it is ready and the ship can use one now; says whether it did.
+  public boost(id: BoostId, level: number): boolean {
+    return activateBoost(this.context, id, level);
   }
 
   // What the ground is where the ship is coming down, once the surface has been seen: open water, where a capsule
@@ -476,6 +485,12 @@ export class VoyageSimulation {
       homecoming: null,
       speedLimit: config.ship.maxSpeed,
       stranded: null,
+      boosts: [],
+      boostReady: {},
+      blocks: 0,
+      well: null,
+      decoy: null,
+      nextBoostAt: null,
       view: this.context?.state.view ?? { halfWidth: 2, halfHeight: 2 },
     };
   }

@@ -1,6 +1,6 @@
 import type { ZoneId } from "@/config/zones";
 import type { LaunchLand, LaunchMilestone, LaunchVehicle } from "@/packages/games/launch";
-import type { LandingMethod, LandingPhase, SurfaceBiome } from "@/packages/games/voyage";
+import type { BoostId, LandingMethod, LandingPhase, SlotRefusal, SurfaceBiome } from "@/packages/games/voyage";
 
 export interface DuelRound {
   agent: string;
@@ -228,7 +228,7 @@ export interface VoyageCareerCopy {
   codexTitle: string;
   // "{found}" and "{total}" are replaced.
   codexFound: string;
-  categories: Record<"worlds" | "kinds" | "universes" | "galaxies" | "stars" | "phenomena" | "life" | "wrecks" | "things", string>;
+  categories: Record<"worlds" | "kinds" | "universes" | "galaxies" | "stars" | "phenomena" | "life" | "wrecks" | "things" | "boosts", string>;
   // "{count}" is replaced with how many in a category are still to find.
   unknown: string;
   kinds: Record<string, NamedNote>;
@@ -246,6 +246,31 @@ export interface VoyageCareerCopy {
   edgeNote: string;
   // "{date}" is replaced in the file's name.
   photo: { title: string; open: string; close: string; save: string; hint: string; file: string };
+}
+
+// The boosts: each one's name and what it does; the ability bar's words ("{n}" a slot's number, "{name}" what it
+// holds, "{count}", "{level}", "{seconds}"), and why a press did nothing; what a find says; and the hangar's Loadout.
+export interface VoyageBoostCopy {
+  names: Record<BoostId, string>;
+  notes: Record<BoostId, string>;
+  bar: { label: string; slot: string; empty: string; left: string; level: string; on: string; cooling: string; refused: Record<SlotRefusal, string> };
+  found: string;
+  firstFound: string;
+  levelUp: string;
+  loadout: {
+    tab: string;
+    note: string;
+    slots: string;
+    boosts: string;
+    things: string;
+    none: string;
+    put: string;
+    putLabel: string;
+    clear: string;
+    progress: string;
+    top: string;
+    charges: string;
+  };
 }
 
 // The view from a world's surface: which world ("{body}"), the local time ("{time}"), what each kind of ground is
@@ -403,6 +428,8 @@ export interface FinaleVoyage {
   flare: string;
   flareHeading: string;
   storm: string;
+  // A storm turned aside by the magnetic shield boost.
+  stormTurned: string;
   // "{system}" is replaced.
   failing: string;
   gone: string;
@@ -482,6 +509,7 @@ export interface FinaleVoyage {
   pay: string;
   economy: VoyageEconomyCopy;
   career: VoyageCareerCopy;
+  boosts: VoyageBoostCopy;
 }
 
 export interface FinaleContent {

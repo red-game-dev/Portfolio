@@ -400,6 +400,11 @@ export class VoyageGame extends FrameLoop {
 
         return isFlying && fault !== undefined && this.applyEffects(hangar.repair(fault));
       }
+      // The bar works only while the run moves: not held still under the pause card, the map or the hangar.
+      case "slot":
+        return isFlying && this.isRunning && this.useSlot(action.index);
+      case "setSlot":
+        return hangar.setSlot(action.index, action.slot);
       case "reset":
         if (isFlying) {
           return false;
@@ -549,6 +554,43 @@ export class VoyageGame extends FrameLoop {
     if (this.overFor(now) > WRECK_MS && state.status === "over") {
       this.stop();
     }
+  }
+
+  // What a slot of the bar holds, used: a thing from the hold as if used from it, or a boost set off at its level,
+  // which spends a charge only once the simulation has taken it (not while it cools down or cannot work here).
+  private useSlot(index: number): boolean {
+    const { hangar, simulation } = this;
+    const slot = hangar?.slot(index) ?? null;
+
+    if (!hangar || !slot) {
+      return false;
+    }
+
+    if (slot.kind === "item") {
+      const isUsed = this.act({ kind: "use", item: slot.id });
+
+      if (!isUsed) {
+        this.onNotice({ kind: "slotRefused", slot, reason: hangar.count(slot.id) > 0 ? "unneeded" : "empty", seconds: 0 });
+      }
+
+      return isUsed;
+    }
+
+    const { state } = simulation;
+    const seconds = Math.max(0, ((state.boostReady[slot.id] ?? 0) - state.elapsedMs) / 1000);
+
+    if (hangar.boostCharges(slot.id) <= 0 || !simulation.boost(slot.id, hangar.boostLevel(slot.id))) {
+      const reason = hangar.boostCharges(slot.id) <= 0 ? "empty" : seconds > 0 ? "cooling" : "unable";
+
+      this.onNotice({ kind: "slotRefused", slot, reason, seconds });
+
+      return false;
+    }
+
+    hangar.spendBoost(slot.id);
+    this.publish(true);
+
+    return true;
   }
 
   private applyEffects(effects: ShipEffect[] | null): boolean {
@@ -767,7 +809,7 @@ export class VoyageGame extends FrameLoop {
       tell("captured", ({ isSingularity }) => ({ kind: "captured", isSingularity })),
       tell("destroyed", () => ({ kind: "destroyed" })),
       tell("flare", ({ class: flareClass, isHeading }) => ({ kind: "flare", flareClass, isHeading })),
-      tell("storm", () => ({ kind: "storm" })),
+      tell("storm", ({ isTurned }) => ({ kind: "storm", isTurned })),
       tell("failing", ({ module, isGone }) => ({ kind: "failing", module, isGone })),
       tell("melting", ({ temperatureC }) => ({ kind: "melting", temperatureC })),
       tell("impactAlert", ({ target, diameterKm, seconds }) => ({ kind: "impactAlert", target: this.nameOf(target), diameterKm, seconds })),

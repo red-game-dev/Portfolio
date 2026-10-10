@@ -1,7 +1,8 @@
+import { BoostId } from "../../domain/boosts";
 import { ModuleId } from "../../domain/components";
 import { FaultKind } from "../../domain/faults";
 import { ItemStack, Rarity } from "./items";
-import { PilotRecords } from "./profile";
+import { BarSlot, PilotRecords } from "./profile";
 
 // The five hulls, from the rocket every pilot begins in to an intergalactic starship, each built in five marks.
 export type HullTier = "rocket" | "shuttle" | "corvette" | "starship" | "intergalactic";
@@ -136,9 +137,39 @@ export interface EconomyView {
   // What a Void Shard sells and buys for, in Red Coin.
   prices: { sell: number; buy: number };
   suggestion: Suggestion | null;
-  // Each fault on board and what would fix it from the hold now (null when nothing would).
   // Each fault on board: what would fix it now (null when nothing would), the plan to make first where that is
   // the way, and every way it can be fixed, for saying what to look for.
   repairs: Array<{ fault: number; kind: FaultKind; parts: ItemStack[] | null; craft: string | null; options: ItemStack[][] }>;
   records: PilotRecords;
+  bar: BarRow[];
+  boosts: BoostRow[];
+}
+
+// A slot of the ability bar as shown: what it holds, how many uses are left (a boost's charges, or that many of
+// the thing in the hold), a boost's level and the colour of where it is from (null for a thing from the hold).
+export interface BarRow {
+  slot: BarSlot | null;
+  count: number;
+  level: number;
+  colour: string | null;
+}
+
+// A boost the pilot has found: its charges (and the most the ship carries), its level, and the finds the next level
+// needs (null at the top).
+export interface BoostRow {
+  id: BoostId;
+  colour: string;
+  charges: number;
+  max: number;
+  finds: number;
+  level: number;
+  nextAt: number | null;
+}
+
+// What finding a boost's core did: its level and charges now, and whether it was the first or raised the level.
+export interface BoostFind {
+  level: number;
+  charges: number;
+  isFirst: boolean;
+  isLevelUp: boolean;
 }

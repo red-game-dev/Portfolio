@@ -1,3 +1,4 @@
+import { isBoostName } from "@/components/Finale/Voyage/abilities";
 import type { CodexEntry, VoyageNotice } from "@/packages/games/voyage";
 import { capitalise, fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
@@ -43,6 +44,8 @@ export const codexName = (content: FinaleVoyage, { category, subject }: Pick<Cod
     }
     case "things":
       return content.economy.items[subject]?.name ?? subject;
+    case "boosts":
+      return isBoostName(content.boosts.names, subject) ? content.boosts.names[subject] : subject;
     default:
       return subject;
   }
@@ -84,6 +87,8 @@ export const codexNotes = (content: FinaleVoyage, entry: CodexEntry): string[] =
       return [copy.wreckNotes[entry.subject] ?? ""];
     case "things":
       return [content.economy.items[entry.subject]?.note ?? ""];
+    case "boosts":
+      return isBoostName(content.boosts.names, entry.subject) ? [content.boosts.notes[entry.subject]] : [];
     default:
       return [];
   }
@@ -109,6 +114,6 @@ export const careerNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
   }
 };
 
-const CATEGORIES: ReadonlyArray<CodexEntry["category"]> = ["worlds", "kinds", "universes", "galaxies", "stars", "phenomena", "life", "wrecks", "things"];
+const CATEGORIES: ReadonlyArray<CodexEntry["category"]> = ["worlds", "kinds", "universes", "galaxies", "stars", "phenomena", "life", "wrecks", "things", "boosts"];
 
 const isCategory = (value: string): value is CodexEntry["category"] => CATEGORIES.some((category) => category === value);

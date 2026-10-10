@@ -1,7 +1,11 @@
 import { sumBy } from "@/packages/math/stats";
 
 import { DEFAULT_VOYAGE_CONFIG, VoyageConfig } from "../../config";
+import { LEVEL_FINDS } from "../../config/boosts";
+import { BoostId } from "../../domain/boosts";
 import { FaultKind, ShipEffect } from "../../domain/faults";
+import { boostColour, isBoostId, levelForFinds } from "../../utils/boosts";
+import { BAR_SLOTS, MAX_CHARGES, newBar } from "../config/bar";
 import { ITEMS } from "../config/catalog";
 import { FAULT_FIXES, recipeBlueprint, recipeById, RECIPES, UNIVERSAL_FIX } from "../config/recipes";
 import { REWARDS, VOID_PRICE } from "../config/rewards";
@@ -9,9 +13,11 @@ import { cargoFor, clampLevel, configForLevel, markOf, tierOf } from "../config/
 import { upgradeCost } from "../config/upgrades";
 import { Backpack } from "../core/Backpack";
 import { emptyPurse, Wallet } from "../core/Wallet";
-import { CargoRow, Cost, CurrencyCode, Deed, EconomyView, Purse, Recipe, ShipStats, ShipStatus, Shortfall, Stowed, Suggestion } from "../domain/economy";
+import {
+  BarRow, BoostFind, BoostRow, CargoRow, Cost, CurrencyCode, Deed, EconomyView, Purse, Recipe, ShipStats, ShipStatus, Shortfall, Stowed, Suggestion,
+} from "../domain/economy";
 import { ItemSpec, ItemStack, Loot } from "../domain/items";
-import { EconomyProfile, PilotRecords } from "../domain/profile";
+import { BarSlot, BoostRecord, EconomyProfile, KeptSlot, PilotRecords } from "../domain/profile";
 
 // How many ledger entries the UI is shown.
 const HISTORY = 30;
@@ -53,6 +59,8 @@ export const newEconomyProfile = (): EconomyProfile => ({
   blueprints: [],
   ledger: Wallet.open().toSnapshot(),
   records: newRecords(),
+  boosts: {},
+  bar: newBar(),
 });
 
 export interface HangarOptions {
@@ -77,6 +85,8 @@ export class Hangar {
   private known: Set<string>;
   private shipLevel: number;
   private records: PilotRecords;
+  private boosts: Map<BoostId, BoostRecord>;
+  private bar: Array<BarSlot | null>;
   // Counts every change, so what is worked out from the hangar (the next upgrade, the suggestion) is worked out
   // once per change rather than on every tick that asks.
   private revision = 0;
@@ -91,6 +101,8 @@ export class Hangar {
     this.wallet = Wallet.from(profile.ledger);
     this.known = new Set(profile.blueprints);
     this.records = { ...newRecords(), ...profile.records };
+    this.boosts = boostsOf(profile.boosts);
+    this.bar = this.barOf(profile.bar);
   }
 
   public get level(): number {
@@ -113,6 +125,8 @@ export class Hangar {
     this.wallet = Wallet.from(profile.ledger);
     this.known = new Set(profile.blueprints);
     this.records = { ...newRecords(), ...profile.records };
+    this.boosts = boostsOf(profile.boosts);
+    this.bar = this.barOf(profile.bar);
     this.changed();
   }
 
@@ -328,6 +342,72 @@ export class Hangar {
     return effects;
   }
 
+  // A boost's core picked up: a charge more (up to the most the ship carries) and a find towards its next level.
+  // The first of a boost takes the first empty slot of the bar.
+  public findBoost(id: BoostId): BoostFind {
+    const before = this.boosts.get(id) ?? { charges: 0, finds: 0 };
+    const after = { charges: Math.min(MAX_CHARGES, before.charges + 1), finds: before.finds + 1 };
+    const isFirst = before.finds === 0;
+    const level = levelForFinds(after.finds);
+
+    this.boosts.set(id, after);
+
+    const empty = this.bar.indexOf(null);
+
+    if (isFirst && empty >= 0 && !this.bar.some((slot) => slot?.kind === "boost" && slot.id === id)) {
+      this.bar[empty] = { kind: "boost", id };
+    }
+
+    this.changed();
+
+    return { level, charges: after.charges, isFirst, isLevelUp: !isFirst && level > levelForFinds(before.finds) };
+  }
+
+  public boostLevel(id: BoostId): number {
+    return levelForFinds(this.boosts.get(id)?.finds ?? 0);
+  }
+
+  public boostCharges(id: BoostId): number {
+    return this.boosts.get(id)?.charges ?? 0;
+  }
+
+  // Takes one of a boost's charges once it has been set off; false when there is none.
+  public spendBoost(id: BoostId): boolean {
+    const record = this.boosts.get(id);
+
+    if (!record || record.charges <= 0) {
+      return false;
+    }
+
+    this.boosts.set(id, { ...record, charges: record.charges - 1 });
+    this.changed();
+
+    return true;
+  }
+
+  public slot(index: number): BarSlot | null {
+    return this.bar[index] ?? null;
+  }
+
+  // Puts a boost or a usable thing in a slot of the bar, or empties it. Something already on the bar moves, and
+  // what the slot held takes its place. Only boosts that have been found and things that do something fit.
+  public setSlot(index: number, slot: BarSlot | null): boolean {
+    if (!Number.isInteger(index) || index < 0 || index >= BAR_SLOTS || (slot !== null && !this.fits(slot))) {
+      return false;
+    }
+
+    const from = slot ? this.bar.findIndex((held) => held?.kind === slot.kind && held.id === slot.id) : -1;
+
+    if (from >= 0) {
+      this.bar[from] = this.bar[index];
+    }
+
+    this.bar[index] = slot ? { ...slot } : null;
+    this.changed();
+
+    return true;
+  }
+
   // Sells Void Shards for Red Coin, or buys them, at the hangar's rates.
   public trade(direction: "sell" | "buy", shards = 1): boolean {
     const isSell = direction === "sell";
@@ -407,6 +487,8 @@ export class Hangar {
         };
       }),
       records: { ...this.records },
+      bar: this.bar.map((slot) => this.barRow(slot)),
+      boosts: [...this.boosts].map(([id, record]) => boostRow(id, record)),
     };
   }
 
@@ -418,6 +500,8 @@ export class Hangar {
       blueprints: [...this.known],
       ledger: this.wallet.toSnapshot(),
       records: { ...this.records },
+      boosts: Object.fromEntries([...this.boosts].map(([id, record]) => [id, { ...record }])),
+      bar: this.bar.map((slot) => (slot ? { ...slot } : null)),
     };
   }
 
@@ -509,6 +593,37 @@ export class Hangar {
     return want ? { kind: "use", item: want.item, reason: want.reason } : null;
   }
 
+  // Whether something can go on the bar: a boost found, or a thing in the catalogue that does something used.
+  private fits(slot: BarSlot): boolean {
+    if (slot.kind === "boost") {
+      return this.boosts.has(slot.id);
+    }
+
+    const spec = this.catalog[slot.id];
+
+    return spec !== undefined && effectsOf(spec).length > 0;
+  }
+
+  // A bar read back from a profile: always four slots, each kept only while it still names something that fits.
+  private barOf(bar: ReadonlyArray<KeptSlot | null>): Array<BarSlot | null> {
+    return Array.from({ length: BAR_SLOTS }, (_, index) => {
+      const kept = bar[index] ?? null;
+      const slot: BarSlot | null = !kept ? null : kept.kind === "item" ? { kind: "item", id: kept.id } : isBoostId(kept.id) ? { kind: "boost", id: kept.id } : null;
+
+      return slot && this.fits(slot) ? slot : null;
+    });
+  }
+
+  private barRow(slot: BarSlot | null): BarRow {
+    if (!slot) {
+      return { slot: null, count: 0, level: 0, colour: null };
+    }
+
+    return slot.kind === "boost"
+      ? { slot: { ...slot }, count: this.boostCharges(slot.id), level: this.boostLevel(slot.id), colour: boostColour(slot.id) }
+      : { slot: { ...slot }, count: this.backpack.count(slot.id), level: 0, colour: null };
+  }
+
   private row(id: string, count: number): CargoRow | null {
     const spec = this.catalog[id];
 
@@ -529,6 +644,29 @@ export class Hangar {
     this.listeners.forEach((listener) => listener());
   }
 }
+
+// The boosts kept in a profile, leaving out any name the boosts no longer know.
+const boostsOf = (boosts: EconomyProfile["boosts"]): Map<BoostId, BoostRecord> => {
+  const kept = new Map<BoostId, BoostRecord>();
+
+  Object.entries(boosts).forEach(([id, record]) => {
+    if (isBoostId(id)) {
+      kept.set(id, { charges: Math.min(MAX_CHARGES, record.charges), finds: record.finds });
+    }
+  });
+
+  return kept;
+};
+
+const boostRow = (id: BoostId, { charges, finds }: BoostRecord): BoostRow => ({
+  id,
+  colour: boostColour(id),
+  charges,
+  max: MAX_CHARGES,
+  finds,
+  level: levelForFinds(finds),
+  nextAt: LEVEL_FINDS.find((needed) => needed > finds) ?? null,
+});
 
 const costOf = (recipe: Recipe): Cost => ({ coin: { RED: recipe.coin, VOID: 0 }, items: recipe.needs, blueprint: null });
 

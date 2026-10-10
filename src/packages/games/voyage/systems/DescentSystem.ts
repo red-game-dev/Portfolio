@@ -165,7 +165,7 @@ export class DescentSystem implements System<VoyageContext> {
 
     const offset = shipOf(context)?.ship.landedOffset;
 
-    applyDamage(context, config.descent.groundFire * dt, offset ? Math.atan2(-offset.y, -offset.x) : 0, "weapon");
+    applyDamage(context, config.descent.groundFire * dt, offset ? Math.atan2(-offset.y, -offset.x) : 0, "groundFire");
   }
 
 

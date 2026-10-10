@@ -2,9 +2,17 @@ import type { System } from "@/packages/games/engine";
 import { angleBetween } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
 
+import { boostStrength } from "../utils/boosts";
+import { levelOf } from "./boosts";
 import { VoyageContext } from "./context";
 import { isMisfiring } from "./faults";
 import { bodyById, shipOf } from "./queries";
+
+// An ion burn's share of the usual push; a solar sail's push at Earth's sunlight (W/m^2), and the most sunlight's
+// pressure grows to close in, as a share of that.
+const ION_PUSH = 0.85;
+const EARTH_SUNLIGHT = 1361;
+const SAIL_MOST = 4;
 
 // How much thrust the ship still gives: less as the hull falls apart, far less as the engines melt.
 const efficiency = (hull: number, maxHull: number, engines: number) => (0.55 + 0.45 * (hull / maxHull)) * (0.25 + 0.75 * engines);
@@ -72,10 +80,26 @@ export class ControlSystem implements System<VoyageContext> {
       }
     }
 
-    const push = thrust * power * efficiency(health.hull, health.maxHull, modules.engines);
+    // Boosts on the engines: an afterburner pushes harder, an ion burn gives a little push for far less fuel.
+    const afterburner = levelOf(context, "afterburner");
+    const ion = levelOf(context, "ionBurn");
+    const boosted = (afterburner > 0 ? boostStrength("afterburner", afterburner) : 1) * (ion > 0 ? ION_PUSH : 1);
+    const push = thrust * power * efficiency(health.hull, health.maxHull, modules.engines) * boosted;
 
     body.vx += Math.cos(ship.angle) * push * dt;
     body.vy += Math.sin(ship.angle) * push * dt;
+
+    // A solar sail: sunlight's pressure, away from the Sun, as strong as the light is (at Earth's, the boost's own).
+    const sail = levelOf(context, "solarSail");
+
+    if (sail > 0) {
+      const { star } = state.system;
+      const out = Math.hypot(body.x - star.x, body.y - star.y) || 1;
+      const sailPush = Math.min(SAIL_MOST, state.readings.sunlight / EARTH_SUNLIGHT) * boostStrength("solarSail", sail);
+
+      body.vx += ((body.x - star.x) / out) * sailPush * dt;
+      body.vy += ((body.y - star.y) / out) * sailPush * dt;
+    }
 
     const speed = Math.hypot(body.vx, body.vy);
 
@@ -86,6 +110,6 @@ export class ControlSystem implements System<VoyageContext> {
       body.vy -= (body.vy / speed) * slow;
     }
 
-    ship.fuel = Math.max(0, ship.fuel - burn * (power + (ship.isBraking ? 0.6 : 0)) * dt);
+    ship.fuel = Math.max(0, ship.fuel - burn * (power + (ship.isBraking ? 0.6 : 0)) * (ion > 0 ? boostStrength("ionBurn", ion) : 1) * dt);
   }
 }

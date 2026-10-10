@@ -1,9 +1,10 @@
 import type { LandingPhase } from "../landing";
+import { BoostId } from "./boosts";
 import { AlienRole, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
 import { FaultKind } from "./faults";
 import { Loot } from "./loot";
 
-export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "tidal" | "breach";
+export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "groundFire" | "tidal" | "breach";
 
 // What became of a world an impact struck: a crater, a burst high in its air, a scar that melted half a
 // hemisphere, or the world broken apart.
@@ -27,6 +28,11 @@ export interface VoyageEvents {
   hardLanding: { body: string; speed: number; safe: number };
   // Home safely: the crew picked up, and days later a new rocket ready on the pad.
   recovered: { body: string; days: number };
+  // A boost core picked up where it drifted, and a boost set to work at a level.
+  boostFound: { boost: BoostId; x: number; y: number };
+  boosted: { boost: BoostId; level: number };
+  // A block of a block shield took a hit whole, and how many stand.
+  blocked: { left: number };
   // No fuel to leave where it is (on a world, or null adrift): the countdown begun, with how long it has, whether a
   // rescue ends it or the run does, and when it has run out in the universes, the run over.
   stranded: { body: string | null; seconds: number; isRescue: boolean; isOver: boolean };
@@ -42,7 +48,7 @@ export interface VoyageEvents {
   // ship.
   flare: { angle: number; strength: number; class: FlareClass; isHeading: boolean };
   // The storm from a flare reaches the ship.
-  storm: { strength: number };
+  storm: { strength: number; isTurned: boolean };
   // A system has fallen below half, or has gone.
   failing: { module: ModuleId; isGone: boolean };
   // The hull has passed the temperature it was built for.

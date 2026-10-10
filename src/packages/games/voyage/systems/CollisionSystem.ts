@@ -1,6 +1,8 @@
 import type { System } from "@/packages/games/engine";
 
 import { Body, MODULE_IDS, PickupKind } from "../domain/components";
+import { boostStrength } from "../utils/boosts";
+import { levelOf } from "./boosts";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
 import { placeBody, shipOf } from "./queries";
@@ -57,6 +59,13 @@ export class CollisionSystem implements System<VoyageContext> {
 
       const pickup = world.stores.pickup.get(entity);
 
+      if (pickup?.boost) {
+        context.events.emit("boostFound", { boost: pickup.boost, x: other.x, y: other.y });
+        world.despawn(entity);
+
+        return;
+      }
+
       if (pickup) {
         this.collect(context, pickup.kind, other.x, other.y);
         world.despawn(entity);
@@ -104,14 +113,18 @@ export class CollisionSystem implements System<VoyageContext> {
   }
 
   // Coins within reach fly in to the ship, so a pass close by collects them without having to touch each one. The
-  // reach is wider than the contact search below: a coin drawn in is caught once it is close.
-  private drawCoins({ world, config }: VoyageContext, ship: Body): void {
-    const reach = config.pickups.magnet;
+  // reach is wider than the contact search below: a coin drawn in is caught once it is close. A tractor pulse
+  // reaches further, and draws boost cores in too.
+  private drawCoins(context: VoyageContext, ship: Body): void {
+    const { world, config } = context;
+    const tractor = levelOf(context, "tractor");
+    const reach = config.pickups.magnet * (tractor > 0 ? boostStrength("tractor", tractor) : 1);
 
     world.stores.pickup.entities.forEach((entity, index) => {
       const coin = world.stores.body.get(entity);
+      const { kind } = world.stores.pickup.values[index];
 
-      if (!coin || world.stores.pickup.values[index].kind !== "coin") {
+      if (!coin || (kind !== "coin" && !(tractor > 0 && kind === "boost"))) {
         return;
       }
 

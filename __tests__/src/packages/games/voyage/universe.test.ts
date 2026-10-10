@@ -912,6 +912,18 @@ describe("living worlds", () => {
     expect(simulation.snapshot.people).toEqual({ name: "Kesh Concord", disposition: "peaceful" });
   });
 
+  test("fire from the ground comes as a stream, not hits, so a block shield's blocks still stand under it", () => {
+    const { simulation } = landAmong("hostile");
+
+    expect(simulation.boost("blockShield", 1)).toBe(true);
+
+    const hull = partsOf(simulation).health.hull;
+
+    simulation.step(500);
+    expect(simulation.state.blocks).toBe(3);
+    expect(partsOf(simulation).health.hull + partsOf(simulation).health.shields).toBeLessThan(hull + partsOf(simulation).health.maxShields);
+  });
+
   test("fired on as it comes down, a burn aborts the landing and lifts the ship away", () => {
     const { simulation, events } = landAmong("hostile", true);
 

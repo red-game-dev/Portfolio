@@ -43,7 +43,7 @@ export default function App({ Component, pageProps }: AppProps) {
           <LensProvider>
             <GameProvider>
               <Component {...pageProps} />
-              <Analytics debug={Boolean(process.env.DEBUG)} />
+              <Analytics debug={process.env.DEBUG === "true"} />
             </GameProvider>
           </LensProvider>
         </PreferencesProvider>

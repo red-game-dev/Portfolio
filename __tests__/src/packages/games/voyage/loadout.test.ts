@@ -36,12 +36,12 @@ const hostFor = (simulation: VoyageSimulation, hangar: Hangar) => {
 };
 
 describe("voyage loadout", () => {
-  test("a new pilot's bar holds the starter fuel cell and repair kit, two slots left for boosts", () => {
+  test("a new pilot's bar holds the starter fuel cell and repair kit, the other four left for boosts and weapons", () => {
     const hangar = new Hangar(newProfile());
 
     expect(newBar()).toHaveLength(BAR_SLOTS);
-    expect(hangar.view().bar.map((row) => row.slot)).toEqual([{ kind: "item", id: "fuelCell" }, { kind: "item", id: "repairKit" }, null, null]);
-    expect(hangar.view().bar.map((row) => row.count)).toEqual([1, 1, 0, 0]);
+    expect(hangar.view().bar.map((row) => row.slot)).toEqual([{ kind: "item", id: "fuelCell" }, { kind: "item", id: "repairKit" }, null, null, null, null]);
+    expect(hangar.view().bar.map((row) => row.count)).toEqual([1, 1, 0, 0, 0, 0]);
     expect(hangar.view().boosts).toEqual([]);
   });
 
@@ -60,11 +60,10 @@ describe("voyage loadout", () => {
     expect(hangar.boostLevel("afterburner")).toBe(5);
     expect(hangar.view().boosts[0]).toMatchObject({ id: "afterburner", finds: 15, level: 5, nextAt: null, max: MAX_CHARGES });
 
-    // A second boost takes the last empty slot; a third finds none and waits in the Loadout.
-    hangar.findBoost("tractor");
-    hangar.findBoost("decoy");
-    expect(hangar.view().bar.map((row) => row.slot?.id ?? null)).toEqual(["fuelCell", "repairKit", "afterburner", "tractor"]);
-    expect(hangar.view().boosts.map((row) => row.id)).toEqual(["afterburner", "tractor", "decoy"]);
+    // Each new boost takes the next empty slot; once the bar is full the rest wait in the Loadout.
+    ["tractor", "decoy", "cloak", "prism"].forEach((id) => hangar.findBoost(id as Parameters<Hangar["findBoost"]>[0]));
+    expect(hangar.view().bar.map((row) => row.slot?.id ?? null)).toEqual(["fuelCell", "repairKit", "afterburner", "tractor", "decoy", "cloak"]);
+    expect(hangar.view().boosts.map((row) => row.id)).toEqual(["afterburner", "tractor", "decoy", "cloak", "prism"]);
   });
 
   test("a charge is spent only while there is one", () => {
@@ -91,11 +90,11 @@ describe("voyage loadout", () => {
     expect(hangar.setSlot(-1, null)).toBe(false);
 
     expect(hangar.setSlot(0, { kind: "boost", id: "prism" })).toBe(true);
-    expect(hangar.view().bar.map((row) => row.slot?.id ?? null)).toEqual(["prism", "repairKit", "fuelCell", null]);
+    expect(hangar.view().bar.map((row) => row.slot?.id ?? null)).toEqual(["prism", "repairKit", "fuelCell", null, null, null]);
 
     expect(hangar.setSlot(3, { kind: "item", id: "shieldCell" })).toBe(true);
     expect(hangar.setSlot(1, null)).toBe(true);
-    expect(hangar.view().bar.map((row) => row.slot?.id ?? null)).toEqual(["prism", null, "fuelCell", "shieldCell"]);
+    expect(hangar.view().bar.map((row) => row.slot?.id ?? null)).toEqual(["prism", null, "fuelCell", "shieldCell", null, null]);
     // A thing not in the hold still sits on the bar, with none left.
     expect(hangar.view().bar[3]).toMatchObject({ count: 0, level: 0, colour: null });
     expect(hangar.view().bar[0].colour).toMatch(/^#[0-9a-f]{6}$/);
@@ -122,7 +121,7 @@ describe("voyage loadout", () => {
       boosts: { gravityWell: { charges: 40, finds: 2 } },
     });
 
-    expect(odd.view().bar.map((row) => row.slot)).toEqual([null, null, null, null]);
+    expect(odd.view().bar.map((row) => row.slot)).toEqual([null, null, null, null, null, null]);
     expect(odd.boostCharges("gravityWell")).toBe(MAX_CHARGES);
   });
 
@@ -142,7 +141,7 @@ describe("voyage loadout", () => {
     expect(hangar.slot(0)).toBeNull();
 
     expect(isPilotProfile({ ...profile, boosts: { cloak: { charges: -1, finds: 1 } } })).toBe(false);
-    expect(isPilotProfile({ ...profile, bar: [{ kind: "weapon", id: "railgun" }] })).toBe(false);
+    expect(isPilotProfile({ ...profile, bar: [{ kind: "cannon", id: "railgun" }] })).toBe(false);
     expect(isPilotProfile({ ...profile, bar: "fuelCell" })).toBe(false);
   });
 

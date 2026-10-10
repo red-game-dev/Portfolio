@@ -4,8 +4,8 @@ import { FaultKind } from "../../domain/faults";
 import { ItemStack, Rarity } from "./items";
 import { BarSlot, PilotRecords } from "./profile";
 
-// The five hulls, from the rocket every pilot begins in to an intergalactic starship, each built in five marks.
-export type HullTier = "rocket" | "shuttle" | "corvette" | "starship" | "intergalactic";
+// The six hulls, from the rocket every pilot begins in to a Titan, each built in five marks: thirty forms.
+export type HullTier = "rocket" | "shuttle" | "corvette" | "starship" | "intergalactic" | "titan";
 
 // The two currencies: Red Coin, paid for nearly everything, and Void Shards, torn from black holes and bosses,
 // which the great hulls need.
@@ -39,9 +39,10 @@ export interface Recipe {
 }
 
 // Why money moved, which names the account it moved through.
-export type EarningReason = "discovery" | "landing" | "hosted" | "bounty" | "rescue" | "boss" | "universe" | "mission" | "coin" | "salvage" | "flight" | "recycling";
+export type EarningReason =
+  "discovery" | "landing" | "hosted" | "bounty" | "rescue" | "boss" | "universe" | "mission" | "coin" | "salvage" | "flight" | "recycling" | "streak";
 
-export type SpendingReason = "upgrade" | "crafting" | "repair" | "exchange";
+export type SpendingReason = "upgrade" | "crafting" | "repair" | "exchange" | "enhance" | "forge";
 
 // What the pilot can do next, ready to do in one click.
 export type Suggestion =
@@ -63,7 +64,9 @@ export type Deed =
   | { kind: "universe"; index: number }
   | { kind: "mission"; id: string; coin: number }
   // Coins picked up together, paid as one entry.
-  | { kind: "coin"; count: number };
+  | { kind: "coin"; count: number }
+  // A streak of kills in quick succession, at each milestone.
+  | { kind: "streak"; count: number };
 
 // What the economy needs to know of the ship to suggest the next thing to do: whether it is flying, its faults,
 // and its hull, fuel and shields as shares, and its heat as a share of what its plating is built for.

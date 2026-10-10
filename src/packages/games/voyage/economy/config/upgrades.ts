@@ -10,6 +10,7 @@ export const TIER_MATERIALS: Readonly<Record<HullTier, readonly ItemStack[]>> = 
   corvette: [stack("alloy", 2), stack("circuits", 2), stack("synapseGel", 1), stack("hashCrystals", 1)],
   starship: [stack("alloy", 3), stack("plasma", 2), stack("luckyChips", 1), stack("pixelDust", 1)],
   intergalactic: [stack("exotic", 1), stack("plasma", 3), stack("stardust", 1), stack("voidEssence", 1)],
+  titan: [stack("exotic", 2), stack("abyssPearl", 1), stack("emberCore", 1), stack("crystalShards", 1), stack("voidEssence", 2)],
 };
 
 // Red Coin for the first upgrade, and how much more each one after costs.

@@ -72,7 +72,7 @@ export interface Hazard {
   isComet: boolean;
 }
 
-export type PickupKind = "coin" | "shield" | "fuel" | "repair" | "boost";
+export type PickupKind = "coin" | "shield" | "fuel" | "repair" | "boost" | "cache" | "chest";
 
 // Something to pick up, and for a boost core, which boost.
 export interface Pickup {
@@ -97,12 +97,14 @@ export interface Alien {
   angle: number;
   level: number;
   phase: number;
+  // Until when an EMP holds it still and silent (ms on the run's clock).
+  stunnedUntil?: number;
 }
 
 // A gun: what it fires, how hard, how often (shots a second), how far, how fast its shots fly, how much heat each
 // shot adds to the hull, and how long until it can fire again (seconds).
 export interface Weapon {
-  kind: "cannon" | "laser" | "missile" | "spit" | "photoid";
+  kind: "cannon" | "laser" | "missile" | "spit" | "photoid" | "mine" | "flak" | "backup" | "rail" | "emp";
   damage: number;
   rate: number;
   range: number;
@@ -118,6 +120,13 @@ export interface Projectile {
   team: "ship" | "aliens";
   kind: Weapon["kind"];
   damage: number;
+  // The ship's shots: the piece that fired it (null for the main gun), whether it is a critical hit, a burst's
+  // radius on impact, and for a mine when it arms (ms on the run's clock) and how near something must come.
+  source?: string | null;
+  isCrit?: boolean;
+  blast?: number;
+  armAt?: number;
+  trigger?: number;
   ttl: number;
   target: number | null;
 }

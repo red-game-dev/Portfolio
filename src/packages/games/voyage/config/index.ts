@@ -25,6 +25,8 @@ export interface ShipConfig {
   // Inertial dampers: velocity bled per second, so the ship stays flyable. Space itself has no drag.
   dampers: number;
   maxSpeed: number;
+  // The share of every hit the ship's fittings turn away.
+  resist: number;
 }
 
 export interface FlightConfig {
@@ -103,6 +105,8 @@ export interface ArmsConfig {
   heat: number;
   // A rock is shot down when it would hit within this many seconds.
   threatSeconds: number;
+  // The chance a shot does double.
+  crit: number;
 }
 
 // Who lives in the universes: how many groups round the ship (more as danger grows), how far out they appear,
@@ -194,6 +198,8 @@ export interface BoostConfig {
   radius: number;
   own: number;
   away: number;
+  // The share of what drifts in that is a cache of ammunition and gear rather than a boost's core.
+  caches: number;
 }
 
 export interface HoleConfig {
@@ -291,6 +297,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     turnRate: 5.5,
     dampers: 0.22,
     maxSpeed: 3.2,
+    resist: 0,
   },
   flight: { safeLanding: 0.42, crash: 520, drag: 0.8, crush: 600, skim: 12, impact: 70 },
   descent: {
@@ -307,7 +314,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     pressureBar: 50,
   },
   weather: { every: [55, 120], speed: [0.45, 1.2], width: [0.6, 1.5], heading: 0.45, drain: 280, sensors: 0.2, radiation: 60000, auroraFade: 0.05 },
-  arms: { kind: "cannon", damage: 32, rate: 3.2, range: 6.5, speed: 7, heat: 3, threatSeconds: 1.6 },
+  arms: { kind: "cannon", damage: 32, rate: 3.2, range: 6.5, speed: 7, heat: 3, threatSeconds: 1.6, crit: 0 },
   life: { packs: 2, packsPerDanger: 1, spawnDistance: [9, 16], bossAfter: 45 },
   impacts: { every: [70, 150], speed: [0.7, 1.2], solarKm: [0.5, 15], universeKm: [200, 3500], planetoid: 0.3 },
   traffic: [25, 60],
@@ -349,7 +356,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     jumpMs: 1600,
   },
   medium: { speeds: { void: 1.4, open: 1, haze: 0.85, belt: 0.75, nebula: 0.65, ring: 0.6 }, easing: 1.5 },
-  boosts: { every: [40, 80], universeEvery: [28, 60], radius: 0.07, own: 0.6, away: 0.1 },
+  boosts: { every: [40, 80], universeEvery: [28, 60], radius: 0.07, own: 0.6, away: 0.1, caches: 0.3 },
   pickups: { magnet: 1.1, repair: 150, shield: 200, fuel: 35 },
   scoring: { perUnit: 6, pickup: 25, universe: 500, landing: 150, discovery: 100 },
   units: { kmPerSecond: 7, kmPerAu: 149597870.7 },

@@ -55,13 +55,16 @@ export const bleedHull = (context: VoyageContext, amount: number): void => {
 // marked where it was hit (in the ship's own frame, so the mark turns with it), and a strike wears the system
 // under it. Marks grow worse as the hull fails; past a limit a new hit deepens the nearest old one instead. In
 // the warm up the hull keeps a floor against everything but the star's own heat.
-export const applyDamage = (context: VoyageContext, amount: number, worldAngle: number, kind: DamageKind): void => {
+export const applyDamage = (context: VoyageContext, raw: number, worldAngle: number, kind: DamageKind): void => {
   const parts = shipOf(context);
   const { state, config, events, random } = context;
 
-  if (!parts || amount <= 0 || state.status !== "flying") {
+  if (!parts || raw <= 0 || state.status !== "flying") {
     return;
   }
+
+  // The fittings turn away a share of every hit, though not the heat of melting plating.
+  const amount = kind === "melt" ? raw : raw * (1 - config.ship.resist);
 
   const { body, ship, health, modules } = parts;
 

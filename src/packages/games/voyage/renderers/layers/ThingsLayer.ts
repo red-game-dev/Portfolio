@@ -13,7 +13,7 @@ const TAIL_REACH = 7;
 
 // The colour of each kind of pickup: coins are gold everywhere, so they read as coin in every universe. A boost
 // core takes the colour of where it is from.
-const PICKUP_COLOUR = { coin: "#ffd76a", shield: "#4fd8ff", fuel: "#62ffc8", repair: "#ff8fa3", boost: "#f4f0ff" };
+const PICKUP_COLOUR = { coin: "#ffd76a", shield: "#4fd8ff", fuel: "#62ffc8", repair: "#ff8fa3", boost: "#f4f0ff", cache: "#9aa8ff", chest: "#ffc45c" };
 // How fast a coin turns over as it drifts (radians a millisecond), and the narrowest it gets edge on.
 const COIN_SPIN = 0.004;
 const COIN_EDGE = 0.22;

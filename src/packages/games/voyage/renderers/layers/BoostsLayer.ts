@@ -147,7 +147,9 @@ export class BoostsLayer implements RenderLayer<VoyageFrame> {
       const body = world.stores.body.get(entity);
 
       // Only coins and cores are drawn in; the other pickups wait to be flown through.
-      if ((kind === "coin" || kind === "boost") && body && camera.sees(body.x, body.y, body.radius) && Math.hypot(body.x - ship.x, body.y - ship.y) <= reach) {
+      const isDrawn = kind === "coin" || kind === "boost" || kind === "cache";
+
+      if (isDrawn && body && camera.sees(body.x, body.y, body.radius) && Math.hypot(body.x - ship.x, body.y - ship.y) <= reach) {
         context.moveTo(x, y);
         context.lineTo(camera.toScreenX(lerpX(body, alpha)), camera.toScreenY(lerpY(body, alpha)));
       }

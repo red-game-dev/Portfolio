@@ -66,6 +66,18 @@ export class CollisionSystem implements System<VoyageContext> {
         return;
       }
 
+      // A cache or a chest opens as the ship flies through it.
+      if (pickup && (pickup.kind === "cache" || pickup.kind === "chest")) {
+        const { loot, random } = context;
+        const run = context.state;
+        const situation = { source: pickup.kind, style: run.cosmos?.style ?? null, universe: run.phase === "universe" ? run.universe : -1, level: run.level };
+
+        context.events.emit("opened", { kind: pickup.kind, loot: loot.roll(situation, random), x: other.x, y: other.y });
+        world.despawn(entity);
+
+        return;
+      }
+
       if (pickup) {
         this.collect(context, pickup.kind, other.x, other.y);
         world.despawn(entity);
@@ -124,7 +136,7 @@ export class CollisionSystem implements System<VoyageContext> {
       const coin = world.stores.body.get(entity);
       const { kind } = world.stores.pickup.values[index];
 
-      if (!coin || (kind !== "coin" && !(tractor > 0 && kind === "boost"))) {
+      if (!coin || (kind !== "coin" && !(tractor > 0 && (kind === "boost" || kind === "cache")))) {
         return;
       }
 

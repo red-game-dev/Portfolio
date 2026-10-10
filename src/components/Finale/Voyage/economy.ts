@@ -2,7 +2,7 @@ import type { HullTier, ItemStack, Purse, Suggestion, VoyageNotice } from "@/pac
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage, VoyageEconomyCopy } from "@/types/game";
 
-const TIER_ORDER: readonly HullTier[] = ["rocket", "shuttle", "corvette", "starship", "intergalactic"];
+const TIER_ORDER: readonly HullTier[] = ["rocket", "shuttle", "corvette", "starship", "intergalactic", "titan"];
 const CURRENCIES: ReadonlyArray<keyof Purse> = ["RED", "VOID"];
 const MARKS_PER_HULL = 5;
 
@@ -12,7 +12,7 @@ export const shipName = (copy: VoyageEconomyCopy, tier: HullTier, mark: number):
   mark: copy.marks[mark - 1] ?? String(mark),
 });
 
-// The same from a level, 0 to 24.
+// The same from a level, 0 to 29.
 export const shipAtLevel = (copy: VoyageEconomyCopy, level: number): string => shipName(
   copy,
   TIER_ORDER[Math.min(TIER_ORDER.length - 1, Math.floor(level / MARKS_PER_HULL))],

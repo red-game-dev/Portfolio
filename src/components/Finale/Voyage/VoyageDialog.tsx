@@ -598,7 +598,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                   <Setup aria-labelledby="voyage-setup-title">
                     <SetupTitle id="voyage-setup-title">{content.setup.title}</SetupTitle>
                     <Text>{content.setup.note}</Text>
-                    <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
+                    <SettingsPanel copy={settings} names={voyageSettings.setupNames} onPick={voyageSettings.onPick} />
                   </Setup>
                 )}
                 {career && <Text>{dailyNote}</Text>}

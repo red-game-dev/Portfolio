@@ -12,11 +12,14 @@ import { ShipEffect } from "../domain/faults";
 import { DEFAULT_LANDING, LandingOptions, NO_INPUT, SpaceDrag, VoyageInput } from "../domain/input";
 import { Loot, LootTable, NO_LOOT_TABLE } from "../domain/loot";
 import { VoyageSnapshot } from "../domain/snapshot";
-import { VoyageState, VoyageStatus } from "../domain/state";
+import { AimMode, Difficulty, VoyageState, VoyageStatus } from "../domain/state";
 import { UniverseNames } from "../domain/universe";
+import { AMMO_TYPES, STARTER_AMMO } from "../gear/config/slots";
+import { AmmoStock, ArmedWeapon } from "../gear/domain/gear";
 import { UniverseGenerator, UniverseTheme } from "../generators/UniverseGenerator";
 import { SnapshotMapper } from "../mappers/SnapshotMapper";
 import { AlienSystem } from "../systems/AlienSystem";
+import { fireWeapon, FireOutcome } from "../systems/arsenal";
 import { AtmosphereSystem } from "../systems/AtmosphereSystem";
 import { activateBoost } from "../systems/boosts";
 import { BoostSystem } from "../systems/BoostSystem";
@@ -189,6 +192,36 @@ export class VoyageSimulation {
   }
 
   // Sets a boost to work at a level, if it is ready and the ship can use one now; says whether it did.
+  // The weapons on the bar, armed as the armoury makes them; and the ammunition aboard, set or added to.
+  public setArsenal(weapons: readonly ArmedWeapon[]): void {
+    this.context.state.arsenal = weapons.map((weapon) => ({ ...weapon }));
+  }
+
+  public setAmmo(stock: AmmoStock): void {
+    this.context.state.ammo = { ...stock };
+  }
+
+  public addAmmo(found: Partial<AmmoStock>): void {
+    const { ammo } = this.context.state;
+
+    AMMO_TYPES.forEach((type) => {
+      ammo[type] += found[type] ?? 0;
+    });
+  }
+
+  public setDifficulty(difficulty: Difficulty): void {
+    this.context.state.difficulty = difficulty;
+  }
+
+  public setAimMode(mode: AimMode): void {
+    this.context.state.aimMode = mode;
+  }
+
+  // Fires a weapon from the bar, aimed at a world point (by hand) or by itself.
+  public fireWeapon(uid: string, point: { x: number; y: number } | null = null): FireOutcome {
+    return fireWeapon(this.context, uid, point);
+  }
+
   public boost(id: BoostId, level: number): boolean {
     return activateBoost(this.context, id, level);
   }
@@ -491,6 +524,12 @@ export class VoyageSimulation {
       well: null,
       decoy: null,
       nextBoostAt: null,
+      arsenal: this.context?.state.arsenal ?? [],
+      weaponReady: {},
+      ammo: this.context?.state.ammo ?? { ...STARTER_AMMO },
+      difficulty: this.context?.state.difficulty ?? "normal",
+      aimMode: this.context?.state.aimMode ?? "auto",
+      streak: { count: 0, lastAt: 0, best: 0 },
       view: this.context?.state.view ?? { halfWidth: 2, halfHeight: 2 },
     };
   }

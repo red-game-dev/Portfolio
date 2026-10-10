@@ -4,7 +4,7 @@ import { VoyageConfig } from "../../config";
 import { ModuleId } from "../../domain/components";
 import { HullTier } from "../domain/economy";
 
-export const TIERS: readonly HullTier[] = ["rocket", "shuttle", "corvette", "starship", "intergalactic"];
+export const TIERS: readonly HullTier[] = ["rocket", "shuttle", "corvette", "starship", "intergalactic", "titan"];
 
 export const MARKS = 5;
 export const MAX_LEVEL = TIERS.length * MARKS - 1;
@@ -26,7 +26,7 @@ export interface TierSpec {
 }
 
 // A Shuttle's heat shield lands it on Venus (465 C, 92 bar); a Corvette dives into a giant's clouds; a Starship
-// skims the Sun's corona for a while; an intergalactic starship goes nearly anywhere. Each hull's first mark is
+// skims the Sun's corona for a while; an intergalactic starship goes nearly anywhere; a Titan anywhere at all. Each hull's first mark is
 // better in every way than the last hull's fifth, so an upgrade never makes the ship worse at anything.
 export const TIER_SPECS: Readonly<Record<HullTier, TierSpec>> = {
   rocket: { strength: 1, thrust: 1, speed: 1, cargo: 14, plating: 600, pressure: 50, guns: 1, rate: 1, radius: 0.06, weapon: "cannon" },
@@ -34,6 +34,7 @@ export const TIER_SPECS: Readonly<Record<HullTier, TierSpec>> = {
   corvette: { strength: 1.8, thrust: 1.45, speed: 1.2, cargo: 34, plating: 1350, pressure: 260, guns: 2.2, rate: 1.3, radius: 0.078, weapon: "laser" },
   starship: { strength: 2.4, thrust: 1.75, speed: 1.35, cargo: 50, plating: 1900, pressure: 550, guns: 3.2, rate: 1.45, radius: 0.09, weapon: "laser" },
   intergalactic: { strength: 3.2, thrust: 2.1, speed: 1.6, cargo: 80, plating: 2700, pressure: 1300, guns: 4.6, rate: 1.6, radius: 0.1, weapon: "laser" },
+  titan: { strength: 4.3, thrust: 2.5, speed: 1.8, cargo: 120, plating: 3700, pressure: 3000, guns: 6.8, rate: 1.75, radius: 0.11, weapon: "laser" },
 };
 
 // A level as a whole number within the levels there are.

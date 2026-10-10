@@ -30,7 +30,7 @@ export const usePilotSync = (pilot: RefObject<Pilot | null>) => {
       return;
     }
 
-    const profile = { ...opened.hangar.toProfile(), career: opened.career.toProfile() };
+    const profile = { ...opened.hangar.toProfile(), career: opened.career.toProfile(), armory: opened.armory.toProfile(), progress: opened.progress.toProfile() };
 
     void opened.repository.save(profile).then((isSaved) => {
       if (isSaved) {
@@ -72,6 +72,9 @@ export const usePilotSync = (pilot: RefObject<Pilot | null>) => {
         if (timer.current === null && profile.savedAt > lastSaved.current) {
           lastSaved.current = profile.savedAt;
           isAdopting.current = true;
+          // The armoury first: the hangar's bar asks it which weapons are owned.
+          opened.armory.replace(profile.armory);
+          opened.progress.replace(profile.progress);
           opened.hangar.replace(profile);
           opened.career.replace(profile.career);
           isAdopting.current = false;

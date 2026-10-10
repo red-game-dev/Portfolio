@@ -1,3 +1,4 @@
+import { AmmoType, WeaponKind } from "../gear/domain/gear";
 import type { LandingPhase } from "../landing";
 import { BoostId } from "./boosts";
 import { AlienRole, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
@@ -30,6 +31,8 @@ export interface VoyageEvents {
   recovered: { body: string; days: number };
   // A boost core picked up where it drifted, and a boost set to work at a level.
   boostFound: { boost: BoostId; x: number; y: number };
+  // A cache drifting in space, or the chest a boss left, flown through and opened: what was inside.
+  opened: { kind: "cache" | "chest"; loot: Loot; x: number; y: number };
   boosted: { boost: BoostId; level: number };
   // A block of a block shield took a hit whole, and how many stand.
   blocked: { left: number };
@@ -53,10 +56,19 @@ export interface VoyageEvents {
   failing: { module: ModuleId; isGone: boolean };
   // The hull has passed the temperature it was built for.
   melting: { temperatureC: number };
-  fired: { x: number; y: number; angle: number; kind: Weapon["kind"]; team: "ship" | "aliens" };
+  // A shot fired: what with, for which side, the ammunition it took (null for none) and the piece that fired it.
+  fired: { x: number; y: number; angle: number; kind: Weapon["kind"]; team: "ship" | "aliens"; ammo: AmmoType | null; source: string | null };
+  // A weapon from the bar: a railgun's line, an EMP's pulse, a burst from a missile, a mine or a blast; and a gun
+  // that clicks with nothing left to fire.
+  railed: { x0: number; y0: number; x1: number; y1: number };
+  pulsed: { x: number; y: number; radius: number };
+  blast: { x: number; y: number; radius: number };
+  dry: { kind: WeaponKind | "primary" };
+  // Kills in quick succession, at each milestone.
+  streak: { count: number };
   // Someone who lives here was struck, or destroyed; the boss shows itself, or falls.
-  struck: { x: number; y: number; toShields: number };
-  downed: { x: number; y: number; role: AlienRole; faction: number; level: number };
+  struck: { x: number; y: number; toShields: number; amount: number; entity: number; isCrit: boolean; source: string | null };
+  downed: { x: number; y: number; role: AlienRole; faction: number; level: number; source: string | null };
   boss: { name: string; isFallen: boolean };
   // A drifting rock shot to pieces.
   shattered: { x: number; y: number; radius: number };

@@ -2,6 +2,7 @@ import { codexId } from "../career/config/codex";
 import { RANKS } from "../career/config/ranks";
 import { CareerEvent, Peril } from "../career/domain/career";
 import { Career, CareerOutcome } from "../career/services/Career";
+import { VoyageConfig } from "../config";
 import { VoyageSimulation } from "../core/VoyageSimulation";
 import { HOME_WORLD } from "../domain/content";
 import { VoyageNotice } from "../domain/notices";
@@ -28,6 +29,12 @@ export interface PilotLinkOptions {
   notify: (notice: VoyageNotice) => void;
   // The economy changed and should reach the UI.
   refresh: () => void;
+  // What a ship at a level flies with (its hull alone, unless the host adds its fittings and its pilot's level),
+  // and who else hears of every deed paid (for the pilot's experience).
+  shipConfig?: (base: VoyageConfig, level: number) => VoyageConfig;
+  onDeed?: (deed: Deed) => void;
+  // The experience a mission done paid, for the pilot's level too.
+  onMission?: (xp: number) => void;
 }
 
 // Joins a run to the pilot who flies it: deeds pay into the hangar and count for the career's missions, finds go
@@ -43,6 +50,9 @@ export class PilotLink {
   private readonly notify: (notice: VoyageNotice) => void;
   private readonly refresh: () => void;
   private readonly baseConfig;
+  private readonly shipConfig: (base: VoyageConfig, level: number) => VoyageConfig;
+  private readonly onDeed: (deed: Deed) => void;
+  private readonly onMission: (xp: number) => void;
   private landed = new Set<string>();
   // The worlds whose people have given a gift this run: they mend the ship every time, but give only once.
   private hosts = new Set<string>();
@@ -52,15 +62,24 @@ export class PilotLink {
   private pendingCoins = 0;
   private coinsPaidAt = 0;
 
-  constructor({ simulation, hangar, career, nameOf, notify, refresh }: PilotLinkOptions) {
+  constructor({ simulation, hangar, career, nameOf, notify, refresh, shipConfig = configForLevel, onDeed = () => undefined, onMission = () => undefined }:
+    PilotLinkOptions) {
     this.simulation = simulation;
     this.hangar = hangar;
     this.career = career;
     this.nameOf = nameOf;
     this.notify = notify;
     this.refresh = refresh;
+    this.shipConfig = shipConfig;
+    this.onDeed = onDeed;
+    this.onMission = onMission;
     this.baseConfig = simulation.config;
-    simulation.refit(configForLevel(this.baseConfig, hangar.level), hangar.level);
+    this.refitShip();
+  }
+
+  // Refits the ship for what it is now: its level, and whatever the host adds to it.
+  public refitShip(): void {
+    this.simulation.refit(this.shipConfig(this.baseConfig, this.hangar.level), this.hangar.level);
   }
 
   // A new run: nothing landed on, given, stopped or lived through yet.
@@ -172,7 +191,7 @@ export class PilotLink {
       hangar.subscribe(() => {
         // A level that changed from outside a run (a reset, another tab's save) refits the ship too.
         if (hangar.level !== simulation.state.level) {
-          simulation.refit(configForLevel(this.baseConfig, hangar.level), hangar.level);
+          this.refitShip();
         }
 
         this.refresh();
@@ -246,6 +265,8 @@ export class PilotLink {
   private pay(deed: Deed): void {
     const amounts = this.hangar.reward(deed);
 
+    this.onDeed(deed);
+
     if (ANNOUNCED.includes(deed.kind)) {
       this.notify({ kind: "earned", deed: deed.kind, amounts });
     }
@@ -276,6 +297,7 @@ export class PilotLink {
         this.hangar.reward({ kind: "mission", id: mission.id, coin });
       }
 
+      this.onMission(xp);
       this.notify({ kind: "missionDone", mission: mission.id, xp, coin });
     });
 

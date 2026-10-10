@@ -63,11 +63,19 @@ export const newEconomyProfile = (): EconomyProfile => ({
   bar: newBar(),
 });
 
+// What the bar needs to know of the armoury: whether a piece is a weapon the pilot owns, and how its slot reads
+// (the shots its ammunition has left, its level and its colour).
+export interface WeaponPort {
+  has: (uid: string) => boolean;
+  describe: (uid: string) => { count: number; level: number; colour: string } | null;
+}
+
 export interface HangarOptions {
   now?: () => number;
   catalog?: Readonly<Record<string, ItemSpec>>;
   // The config a Rocket Mk I flies with, which every level's stats grow from.
   base?: VoyageConfig;
+  weapons?: WeaponPort | null;
 }
 
 // The economy between and during runs: the hold, the wallet, the plans found and the ship's level. Deeds pay
@@ -78,6 +86,7 @@ export interface HangarOptions {
 export class Hangar {
   private readonly catalog: Readonly<Record<string, ItemSpec>>;
   private readonly now: () => number;
+  private readonly weapons: WeaponPort | null;
   private readonly listeners = new Set<() => void>();
   private readonly base: VoyageConfig;
   private backpack: Backpack;
@@ -92,7 +101,8 @@ export class Hangar {
   private revision = 0;
   private cache: HangarCache = { revision: -1, next: undefined, statusKey: null, suggestion: undefined };
 
-  constructor(profile: EconomyProfile, { now = Date.now, catalog = ITEMS, base = DEFAULT_VOYAGE_CONFIG }: HangarOptions = {}) {
+  constructor(profile: EconomyProfile, { now = Date.now, catalog = ITEMS, base = DEFAULT_VOYAGE_CONFIG, weapons = null }: HangarOptions = {}) {
+    this.weapons = weapons;
     this.catalog = catalog;
     this.now = now;
     this.base = base;
@@ -160,6 +170,33 @@ export class Hangar {
     this.changed();
 
     return paid;
+  }
+
+  // Pays a cost in Red Coin and things from the hold for something done in the armoury (an enhancement, a weapon
+  // forged), all of it or none; returns whether it was paid.
+  public pay(cost: { coin: number; items: readonly ItemStack[] }, reason: "enhance" | "forge", detail: string): boolean {
+    const items = [...cost.items];
+
+    if (!this.shortfall({ coin: { RED: cost.coin, VOID: 0 }, items, blueprint: null }).isReady) {
+      return false;
+    }
+
+    if (cost.coin > 0 && !this.wallet.spend(reason, { RED: cost.coin }, memo(reason, detail), this.now())) {
+      return false;
+    }
+
+    this.backpack.take(items);
+    this.changed();
+
+    return true;
+  }
+
+  // Red Coin paid for a piece of gear broken down.
+  public credit(coin: number, detail: string): void {
+    if (coin > 0) {
+      this.wallet.earn("recycling", { RED: Math.round(coin) }, memo("dismantle", detail), this.now());
+      this.changed();
+    }
   }
 
   // Puts a find in the hold as far as there is room, learns any plans new to the pilot and is paid for copies of
@@ -552,6 +589,8 @@ export class Hangar {
         return { RED: Math.max(0, Math.round(deed.coin)), VOID: 0 };
       case "coin":
         return { RED: REWARDS.coin.RED * Math.max(0, deed.count), VOID: REWARDS.coin.VOID * Math.max(0, deed.count) };
+      case "streak":
+        return { RED: REWARDS.streakPerKill * Math.max(0, deed.count), VOID: 0 };
       default:
         return emptyPurse();
     }
@@ -593,10 +632,15 @@ export class Hangar {
     return want ? { kind: "use", item: want.item, reason: want.reason } : null;
   }
 
-  // Whether something can go on the bar: a boost found, or a thing in the catalogue that does something used.
+  // Whether something can go on the bar: a boost found, a weapon owned, or a thing in the catalogue that does
+  // something used.
   private fits(slot: BarSlot): boolean {
     if (slot.kind === "boost") {
       return this.boosts.has(slot.id);
+    }
+
+    if (slot.kind === "weapon") {
+      return this.weapons?.has(slot.id) ?? false;
     }
 
     const spec = this.catalog[slot.id];
@@ -604,11 +648,12 @@ export class Hangar {
     return spec !== undefined && effectsOf(spec).length > 0;
   }
 
-  // A bar read back from a profile: always four slots, each kept only while it still names something that fits.
+  // A bar read back from a profile: always its full number of slots (an older, shorter bar grows), each kept only
+  // while it still names something that fits.
   private barOf(bar: ReadonlyArray<KeptSlot | null>): Array<BarSlot | null> {
     return Array.from({ length: BAR_SLOTS }, (_, index) => {
       const kept = bar[index] ?? null;
-      const slot: BarSlot | null = !kept ? null : kept.kind === "item" ? { kind: "item", id: kept.id } : isBoostId(kept.id) ? { kind: "boost", id: kept.id } : null;
+      const slot = keptToSlot(kept);
 
       return slot && this.fits(slot) ? slot : null;
     });
@@ -617,6 +662,12 @@ export class Hangar {
   private barRow(slot: BarSlot | null): BarRow {
     if (!slot) {
       return { slot: null, count: 0, level: 0, colour: null };
+    }
+
+    if (slot.kind === "weapon") {
+      const weapon = this.weapons?.describe(slot.id) ?? null;
+
+      return { slot: { ...slot }, count: weapon?.count ?? 0, level: weapon?.level ?? 0, colour: weapon?.colour ?? null };
     }
 
     return slot.kind === "boost"
@@ -644,6 +695,19 @@ export class Hangar {
     this.listeners.forEach((listener) => listener());
   }
 }
+
+// A slot as kept read back as what it holds: a boost only by a name the boosts still know.
+const keptToSlot = (kept: KeptSlot | null): BarSlot | null => {
+  if (!kept) {
+    return null;
+  }
+
+  if (kept.kind === "boost") {
+    return isBoostId(kept.id) ? { kind: "boost", id: kept.id } : null;
+  }
+
+  return { kind: kept.kind, id: kept.id };
+};
 
 // The boosts kept in a profile, leaving out any name the boosts no longer know.
 const boostsOf = (boosts: EconomyProfile["boosts"]): Map<BoostId, BoostRecord> => {
@@ -689,6 +753,7 @@ const detailOf = (deed: Deed): string => {
     case "mission":
       return deed.id;
     case "coin":
+    case "streak":
       return String(deed.count);
     default:
       return "";

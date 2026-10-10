@@ -1,6 +1,6 @@
 import type { System } from "@/packages/games/engine";
 
-import { damageAlien } from "./combat";
+import { damageAlien, explode } from "./combat";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
 import { damageImpactor } from "./impacts";
@@ -11,12 +11,17 @@ import { leaveWreck } from "./salvage";
 const REACH = 1.4;
 // How much of a pickup a shattered rock leaves, now and then.
 const DROP_CHANCE = 0.18;
+// How near a flak pellet must pass a missile to bring it down.
+const FLAK_REACH = 0.09;
 
 // Shots meeting what they were fired at, found through the spatial hash. The ship's shots strike the living,
-// break drifting rocks (leaving ore or ice to gather, or a pickup) and chip and push rocks headed for worlds; theirs strike the ship. A shot is spent on
-// the first thing it hits.
+// break drifting rocks (leaving ore or ice to gather, or a pickup) and chip and push rocks headed for worlds; theirs
+// strike the ship. A shot is spent on the first thing it hits, and one that bursts strikes everything near; a mine
+// waits until it is armed and something hostile comes near; flak brings down the missiles it passes.
 export class ProjectileSystem implements System<VoyageContext> {
   public readonly name = "projectiles";
+  // The missiles flying at the ship this step, kept in one list reused every step.
+  private readonly missiles: number[] = [];
 
   public update(context: VoyageContext): void {
     const { world, grid, state, random, events } = context;
@@ -36,6 +41,13 @@ export class ProjectileSystem implements System<VoyageContext> {
 
     const ship = shipOf(context);
 
+    this.missiles.length = 0;
+    world.stores.projectile.entities.forEach((entity, index) => {
+      if (world.stores.projectile.values[index].team === "aliens" && world.stores.projectile.values[index].kind === "missile") {
+        this.missiles.push(entity);
+      }
+    });
+
     world.stores.projectile.entities.forEach((entity, index) => {
       const shot = world.stores.projectile.values[index];
       const at = world.stores.body.get(entity);
@@ -53,6 +65,31 @@ export class ProjectileSystem implements System<VoyageContext> {
         return;
       }
 
+      // A mine waits until it is armed, then bursts as soon as anything comes near.
+      if (shot.armAt !== undefined) {
+        if (state.elapsedMs >= shot.armAt && this.isNear(context, at.x, at.y, shot.trigger ?? 0.3)) {
+          explode(context, at.x, at.y, shot.blast ?? 0.5, shot.damage, shot.source ?? null);
+          world.despawn(entity);
+        }
+
+        return;
+      }
+
+      // Flak brings down the missiles it passes.
+      if (shot.kind === "flak") {
+        for (const missile of this.missiles) {
+          const threat = world.stores.body.get(missile);
+
+          if (threat && world.isAlive(missile) && Math.hypot(threat.x - at.x, threat.y - at.y) < FLAK_REACH) {
+            world.despawn(missile);
+            world.despawn(entity);
+            events.emit("blast", { x: threat.x, y: threat.y, radius: 0.12 });
+
+            return;
+          }
+        }
+      }
+
       let isSpent = false;
 
       grid.near(at.x, at.y, REACH, (other) => {
@@ -64,8 +101,10 @@ export class ProjectileSystem implements System<VoyageContext> {
 
         isSpent = true;
 
-        if (world.stores.alien.has(other)) {
-          damageAlien(context, other, shot.damage);
+        if (shot.blast) {
+          explode(context, at.x, at.y, shot.blast, shot.damage, shot.source ?? null);
+        } else if (world.stores.alien.has(other)) {
+          damageAlien(context, other, shot.damage, shot.source ?? null, shot.isCrit ?? false);
         } else if (world.stores.impactor.has(other)) {
           damageImpactor(context, other, shot.damage, at.vx, at.vy);
         } else {
@@ -92,5 +131,22 @@ export class ProjectileSystem implements System<VoyageContext> {
         world.despawn(entity);
       }
     });
+  }
+
+  // Whether anything a mine bursts for is near a point: someone not at peace, a rock headed for a world, or a rock.
+  private isNear({ world, grid, state }: VoyageContext, x: number, y: number, reach: number): boolean {
+    let isFound = false;
+
+    grid.near(x, y, reach + REACH, (other) => {
+      const at = world.stores.body.get(other);
+      const alien = world.stores.alien.get(other);
+      const isPeaceful = alien !== undefined && (alien.faction < 0 || state.cosmos?.factions[alien.faction]?.disposition === "peaceful");
+
+      if (!isFound && at && !isPeaceful && Math.hypot(at.x - x, at.y - y) < reach + at.radius) {
+        isFound = true;
+      }
+    });
+
+    return isFound;
   }
 }

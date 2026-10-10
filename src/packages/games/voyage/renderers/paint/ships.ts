@@ -28,9 +28,22 @@ export const NOZZLES: Readonly<Record<HullTier, readonly Nozzle[]>> = {
   starship: [{ x: -0.28, y: 0.96, size: 0.55 }, { x: 0, y: 0.96, size: 0.6 }, { x: 0.28, y: 0.96, size: 0.55 }, { x: -0.85, y: 0.92, size: 0.32 },
     { x: 0.85, y: 0.92, size: 0.32 }],
   intergalactic: [{ x: 0, y: 0.84, size: 1.15 }],
+  titan: [{ x: -0.42, y: 0.94, size: 0.7 }, { x: 0, y: 0.98, size: 0.85 }, { x: 0.42, y: 0.94, size: 0.7 }, { x: -1.02, y: 0.86, size: 0.4 },
+    { x: 1.02, y: 0.86, size: 0.4 }],
 };
 
-export const ION_TIERS: readonly HullTier[] = ["starship", "intergalactic"];
+export const ION_TIERS: readonly HullTier[] = ["starship", "intergalactic", "titan"];
+
+// The pieces a ship grows that show on its hull once fitted: thruster pods on its flanks, a reactor's glow at its
+// heart, warp coils along its spine and a halo ring behind it.
+export interface ShipExtras {
+  pods: boolean;
+  reactor: boolean;
+  drive: boolean;
+  halo: boolean;
+}
+
+export const NO_EXTRAS: ShipExtras = { pods: false, reactor: false, drive: false, halo: false };
 
 type Painter = (context: Canvas2DContext, x: number, y: number, r: number, colours: HullColours) => void;
 
@@ -239,20 +252,128 @@ const intergalactic: Painter = (context, x, y, r, colours) => {
   context.stroke();
 };
 
-const PAINTERS: Readonly<Record<Exclude<HullTier, "rocket">, Painter>> = { shuttle, corvette, starship, intergalactic };
+// A Titan: a capital ship, a broad arrowhead on a long spine between two flanking hulls, its bridge raised high,
+// a halo of light round its stern and five drives.
+const titan: Painter = (context, x, y, r, colours) => {
+  glow(context, x, y + r * 0.55, r * 1.1, colours.accent);
+  context.fillStyle = colours.hullShade;
+  polygon(context, [[x - r * 1.0, y - r * 0.4], [x - r * 1.18, y + r * 0.9], [x - r * 0.82, y + r * 0.9], [x - r * 0.7, y - r * 0.2]]);
+  polygon(context, [[x + r * 1.0, y - r * 0.4], [x + r * 1.18, y + r * 0.9], [x + r * 0.82, y + r * 0.9], [x + r * 0.7, y - r * 0.2]]);
+  context.fillStyle = steel(context, x, r, colours, 0.9);
+  polygon(context, [[x, y - r * 1.65], [x + r * 0.9, y + r * 0.55], [x + r * 0.55, y + r * 0.95], [x - r * 0.55, y + r * 0.95], [x - r * 0.9, y + r * 0.55]]);
+  context.fillStyle = steel(context, x, r, colours, 0.3);
+  context.fillRect(x - r * 0.16, y - r * 1.2, r * 0.32, r * 2.1);
+  context.fillStyle = colours.fin;
+  polygon(context, [[x - r * 0.22, y - r * 0.15], [x, y - r * 0.55], [x + r * 0.22, y - r * 0.15]]);
+  context.strokeStyle = colours.accent;
+  context.lineWidth = Math.max(1, r * 0.04);
+  context.beginPath();
+  context.moveTo(x - r * 0.62, y + r * 0.45);
+  context.lineTo(x, y - r * 1.25);
+  context.lineTo(x + r * 0.62, y + r * 0.45);
+  context.stroke();
+  context.fillStyle = colours.window;
+
+  for (let index = 0; index < 6; index += 1) {
+    context.fillRect(x - r * 0.05, y - r * 0.95 + index * r * 0.22, r * 0.1, r * 0.08);
+  }
+
+  glow(context, x, y - r * 0.35, r * 0.2, colours.window);
+};
+
+const PAINTERS: Readonly<Record<Exclude<HullTier, "rocket">, Painter>> = { shuttle, corvette, starship, intergalactic, titan };
+
+// The parts each mark adds to any hull, so all five marks of a hull look their own: fins from the second mark, an
+// antenna mast from the third, small thrusters from the fourth and a sensor dish from the fifth.
+const paintMarks = (context: Canvas2DContext, x: number, y: number, r: number, mark: number, colours: HullColours) => {
+  context.fillStyle = colours.fin;
+
+  if (mark >= 2) {
+    polygon(context, [[x - r * 0.42, y + r * 0.25], [x - r * 0.72, y + r * 0.62], [x - r * 0.42, y + r * 0.55]]);
+    polygon(context, [[x + r * 0.42, y + r * 0.25], [x + r * 0.72, y + r * 0.62], [x + r * 0.42, y + r * 0.55]]);
+  }
+
+  if (mark >= 3) {
+    context.strokeStyle = colours.hullShade;
+    context.lineWidth = Math.max(1, r * 0.035);
+    context.beginPath();
+    context.moveTo(x + r * 0.12, y - r * 0.5);
+    context.lineTo(x + r * 0.28, y - r * 0.92);
+    context.stroke();
+    glow(context, x + r * 0.28, y - r * 0.92, r * 0.07, colours.accent);
+  }
+
+  if (mark >= 4) {
+    context.fillStyle = colours.hullShade;
+    context.fillRect(x - r * 0.56, y + r * 0.6, r * 0.12, r * 0.26);
+    context.fillRect(x + r * 0.44, y + r * 0.6, r * 0.12, r * 0.26);
+  }
+
+  if (mark >= 5) {
+    context.fillStyle = colours.window;
+    context.beginPath();
+    context.ellipse(x - r * 0.2, y - r * 0.55, r * 0.11, r * 0.07, -0.5, 0, TAU);
+    context.fill();
+  }
+};
+
+// The fitted pieces that show on any hull.
+const paintExtras = (context: Canvas2DContext, x: number, y: number, r: number, extras: ShipExtras, colours: HullColours) => {
+  if (extras.halo) {
+    context.strokeStyle = colours.accent;
+    context.lineWidth = Math.max(1, r * 0.06);
+    context.beginPath();
+    context.ellipse(x, y + r * 0.95, r * 0.9, r * 0.24, 0, 0, TAU);
+    context.stroke();
+  }
+
+  if (extras.pods) {
+    context.fillStyle = steel(context, x, r, colours, 1.3);
+    [-1, 1].forEach((side) => {
+      context.beginPath();
+      context.ellipse(x + side * r * 0.95, y + r * 0.35, r * 0.13, r * 0.4, 0, 0, TAU);
+      context.fill();
+    });
+  }
+
+  if (extras.drive) {
+    context.strokeStyle = colours.accent;
+    context.lineWidth = Math.max(1, r * 0.03);
+
+    for (let index = 0; index < 3; index += 1) {
+      context.beginPath();
+      context.ellipse(x, y - r * 0.3 + index * r * 0.3, r * 0.3, r * 0.06, 0, 0, TAU);
+      context.stroke();
+    }
+  }
+
+  if (extras.reactor) {
+    glow(context, x, y + r * 0.1, r * 0.28, colours.accent);
+  }
+};
 
 // The ship's sprite for its hull and mark, nose up in a box `SHIP_WIDTH` by `SHIP_HEIGHT` radii: each hull its own
-// shape, with a chevron in the universe's colour for every mark past the first, and its engines' mouths.
-export const paintHull = (tier: HullTier, mark: number, colours: HullColours) => (context: Canvas2DContext, width: number, height: number) => {
+// shape, each mark's own parts and a chevron in the universe's colour for every mark past the first, the fitted
+// pieces that show, and its engines' mouths.
+export const paintHull = (tier: HullTier, mark: number, colours: HullColours, extras: ShipExtras = NO_EXTRAS) => (context: Canvas2DContext, width: number,
+  height: number) => {
   const r = width / SHIP_WIDTH;
   const x = width / 2;
   const y = height / 2;
+
+  if (extras.halo || extras.pods) {
+    paintExtras(context, x, y, r, { ...NO_EXTRAS, halo: extras.halo, pods: extras.pods }, colours);
+  }
+
+  paintMarks(context, x, y, r, mark, colours);
 
   if (tier === "rocket") {
     paintShip(colours)(context, width, height);
   } else {
     PAINTERS[tier](context, x, y, r, colours);
   }
+
+  paintExtras(context, x, y, r, { ...NO_EXTRAS, drive: extras.drive, reactor: extras.reactor }, colours);
 
   context.strokeStyle = colours.accent;
   context.lineWidth = Math.max(1, r * 0.05);

@@ -1,11 +1,18 @@
 import type { Entity } from "@/packages/games/engine";
 
+import { AmmoStock, ArmedWeapon } from "../gear/domain/gear";
 import type { DescentState, LandingPlan, LandingWorld } from "../landing";
 import { ActiveBoost, BoostId } from "./boosts";
 import { StarSystem } from "./content";
 import { VoyagePhase } from "./events";
 import { Fault } from "./faults";
 import { UniverseNetwork, UniverseSpec } from "./universe";
+
+// How hard a run is: on normal the main gun keeps a weak backup shot when its rounds run out; on hard it falls silent.
+export type Difficulty = "normal" | "hard";
+
+// How the guns aim: by themselves at whatever threatens (spending more), or where the pilot points, only as asked.
+export type AimMode = "auto" | "manual";
 
 export type VoyageStatus = "ready" | "flying" | "over";
 
@@ -208,6 +215,15 @@ export interface VoyageState {
   well: { x: number; y: number; mu: number; until: number } | null;
   decoy: Entity | null;
   nextBoostAt: number | null;
+  // The weapons on the bar as the run fires them, when each can fire again (ms on the run's clock), the ammunition
+  // aboard, how hard the run is (hard: no backup shot when the rounds run out) and how the guns aim.
+  arsenal: ArmedWeapon[];
+  weaponReady: Record<string, number>;
+  ammo: AmmoStock;
+  difficulty: Difficulty;
+  aimMode: AimMode;
+  // Kills in quick succession: how many, when the last fell, and the best this run.
+  streak: { count: number; lastAt: number; best: number };
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

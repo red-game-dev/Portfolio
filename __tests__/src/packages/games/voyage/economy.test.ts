@@ -10,8 +10,10 @@ import {
   levelOf,
   markOf,
   MAX_LEVEL,
+  newArmoryProfile,
   newCareer,
   newProfile,
+  newProgressProfile,
   PilotRepository,
   recipeBlueprint,
   RECIPES,
@@ -103,11 +105,11 @@ describe("voyage economy", () => {
     expect(Array.from({ length: 400 }, (_, seed) => roll(null, "boss", seed + 1, 0)).some((loot) => loot.blueprints.includes("hull:intergalactic"))).toBe(false);
   });
 
-  test("25 levels over five hulls, each stronger, bigger in the hold and built for more heat and pressure", () => {
+  test("30 levels over six hulls, each stronger, bigger in the hold and built for more heat and pressure", () => {
     const configs = Array.from({ length: MAX_LEVEL + 1 }, (_, level) => configForLevel(DEFAULT_VOYAGE_CONFIG, level));
 
-    expect(TIERS.map((tier) => levelOf(tier, 1))).toEqual([0, 5, 10, 15, 20]);
-    expect([tierOf(0), markOf(0), tierOf(24), markOf(24)]).toEqual(["rocket", 1, "intergalactic", 5]);
+    expect(TIERS.map((tier) => levelOf(tier, 1))).toEqual([0, 5, 10, 15, 20, 25]);
+    expect([tierOf(0), markOf(0), tierOf(24), markOf(24), tierOf(29), markOf(29)]).toEqual(["rocket", 1, "intergalactic", 5, "titan", 5]);
     configs.slice(1).forEach((config, index) => {
       const before = configs[index];
 
@@ -222,7 +224,7 @@ describe("voyage economy", () => {
     const repository = new PilotRepository(new MemoryAdapter());
     const hangar = hangarWith({ scrap: 2 }, { coin: 40 });
 
-    const whole = { ...hangar.toProfile(), career: newCareer() };
+    const whole = { ...hangar.toProfile(), career: newCareer(), armory: newArmoryProfile(), progress: newProgressProfile() };
 
     expect(isPilotProfile(whole)).toBe(true);
     expect(isPilotProfile({ ...whole, level: -1 })).toBe(false);
@@ -272,7 +274,7 @@ describe("voyage economy", () => {
   });
 
   test("a profile from an older release with fewer records is still read, and another tab's newer save can be taken on", () => {
-    const profile = { ...hangarWith({ scrap: 4 }, { coin: 30 }).toProfile(), career: newCareer() };
+    const profile = { ...hangarWith({ scrap: 4 }, { coin: 30 }).toProfile(), career: newCareer(), armory: newArmoryProfile(), progress: newProgressProfile() };
     const older = Object.fromEntries(Object.entries(profile.records).filter(([key]) => key !== "salvaged"));
 
     expect(isPilotProfile({ ...profile, records: older })).toBe(true);

@@ -22,6 +22,12 @@ const GUNS: Record<Weapon["kind"], [number, number, number, number]> = {
   missile: [34, 0.45, 9, 3.5],
   spit: [18, 1.1, 5, 4.5],
   photoid: [700, 0.2, 60, 9],
+  // The ship's own kinds, never carried by anyone out there.
+  mine: [0, 0, 0, 0],
+  flak: [0, 0, 0, 0],
+  backup: [0, 0, 0, 0],
+  rail: [0, 0, 0, 0],
+  emp: [0, 0, 0, 0],
 };
 // Packs are let go this far from the ship when not chasing it; a fleeing one escapes this far. Traders keep to
 // a few at a time; a fight is fought close enough to see.
@@ -224,6 +230,14 @@ export class AlienSystem implements System<VoyageContext> {
 
     if (health.rechargeIn === 0) {
       health.shields = Math.min(health.maxShields, health.shields + health.maxShields * 0.15 * dt);
+    }
+
+    // Stunned by an EMP, it drifts, slowing, and neither thinks nor fires until it wakes.
+    if ((alien.stunnedUntil ?? 0) > state.elapsedMs) {
+      body.vx *= 1 - Math.min(1, dt * 1.5);
+      body.vy *= 1 - Math.min(1, dt * 1.5);
+
+      return;
     }
 
     // Cloaked, the ship is not seen at all.

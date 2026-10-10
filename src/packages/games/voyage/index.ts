@@ -23,6 +23,34 @@ export { auForRadius, radiusForAu } from "./utils/scale";
 export { landingWorldOf } from "./utils/landing";
 export { BOOST_COLOURS, BOOST_IDS, BOOSTS, LEVEL_FINDS } from "./config/boosts";
 export { boostColour, boostDuration, boostStrength, boostToFind, isBoostId, levelForFinds } from "./utils/boosts";
+export { ENHANCE_COIN, ENHANCE_MATERIALS, ENHANCE_TIERS, STABILISER } from "./gear/config/enhance";
+export { dismantleValue, forgeCost, weaponPlan } from "./gear/config/forge";
+export { GEAR_CURVE, GEAR_EXP, PILOT_CURVE, PILOT_EXP } from "./gear/config/levels";
+export {
+  AMMO_RACKS, AMMO_TYPES, GEAR_SLOTS, GEAR_STATS, GRADE_LEVEL, GRADE_SCALE, GRADES, RARITY_POWER, SLOT_SPECS, STARTER_AMMO, STOCK_SLOTS,
+} from "./gear/config/slots";
+export { WEAPON_COLOURS, WEAPON_KINDS, WEAPON_SPECS } from "./gear/config/weapons";
+export { isArmoryProfile } from "./gear/guards/isArmoryProfile";
+export { Armory, newArmoryProfile } from "./gear/services/Armory";
+export {
+  armedWeapon, baseOf, ENHANCE_LADDER, enhanceCost, GEAR_BASES, GEAR_LEVELS, isSlotOpen, loadoutStats, pieceLevel, piecePower, pieceStats, rackFor, slotBaseId,
+  weaponBaseId,
+} from "./gear/utils/gear";
+export { configForShip } from "./gear/utils/ship";
+export { armoryView, progressView } from "./gear/utils/view";
+export { ACHIEVEMENTS, COUNTERS } from "./progress/config/achievements";
+export { DEFAULT_PAINT, DEFAULT_TRAIL, PAINTS, STAR_UNLOCKS, TRAILS } from "./progress/config/cosmetics";
+export { isProgressProfile } from "./progress/guards/isProgressProfile";
+export { GUIDE_STEPS, newProgressProfile, PILOT_LEVELS, Progress } from "./progress/services/Progress";
+export { ProgressLink } from "./services/ProgressLink";
+export type {
+  AmmoStock, AmmoType, ArmedWeapon, ArmoryProfile, GearBase, GearDrop, GearPiece, GearSlot, GearStat, GearStats, SlotSpec, WeaponKind as ShipWeaponKind, WeaponSpec,
+} from "./gear/domain/gear";
+export type { ArmoryView, ForgeView, PieceView, ProgressView, SlotView } from "./gear/domain/view";
+export type { AchievementSpec, PaintSpec, ProgressOutcome, ProgressProfile, TrailSpec } from "./progress/domain/progress";
+export type { RunSummary } from "./services/ProgressLink";
+export type { FireOutcome } from "./systems/arsenal";
+export type { WeaponPort } from "./economy/services/Hangar";
 export type { ActiveBoost, BoostId, BoostOrigin, BoostSpec } from "./domain/boosts";
 export { missionMarks, NO_MISSION_MARKS } from "./utils/missions";
 export type { MissionMarks } from "./utils/missions";
@@ -139,7 +167,7 @@ export type { VoyageInput } from "./domain/input";
 export type { DescentView, Frame, IncomingRock, Telemetry, VoyageSnapshot } from "./domain/snapshot";
 export type { HomePad, SurfaceBiome, SurfaceInfo } from "./domain/surface";
 export { airFor, earthGround, groundAt, phaseOf, skyPlace, solarHours } from "./utils/surface";
-export type { Capture, Descent, Homecoming, MissionClock, Readings, Storm, VoyageState, VoyageStatus, Waypoint } from "./domain/state";
+export type { AimMode, Capture, Descent, Difficulty, Homecoming, MissionClock, Readings, Storm, VoyageState, VoyageStatus, Waypoint } from "./domain/state";
 export type { VoyageStyle } from "./domain/theme";
 export type {
   Disposition, FactionSpec, GalaxyKind, GalaxySpec, HullShape, PhenomenonKind, PhenomenonSpec, StarKind, UniverseNames, UniverseSpec, WeaponKind, WorldClass,

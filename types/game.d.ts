@@ -115,7 +115,7 @@ export interface FinaleLaunch {
 }
 
 // The voyage past orbit: out of the solar system, through a black hole, and from universe to universe.
-type HullTierKey = "rocket" | "shuttle" | "corvette" | "starship" | "intergalactic";
+type HullTierKey = "rocket" | "shuttle" | "corvette" | "starship" | "intergalactic" | "titan";
 type FaultKey = "misfire" | "fuelLeak" | "coolantLeak" | "glitch" | "emitter" | "breach";
 type CurrencyKey = "RED" | "VOID";
 

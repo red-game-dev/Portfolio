@@ -30,6 +30,33 @@ export const preferencesContent: Pick<PortfolioData, "preferences"> = {
           "Hold it the way you like when you start: that is level.",
         options: { on: "On", off: "Off" },
       },
+      "voyage-aim": {
+        name: "Aiming",
+        description: "Auto: the guns pick their own targets and fire by themselves, which spends ammunition faster. By hand: " +
+          "keys, a thumb stick or tilting fly the ship, while the mouse or your other thumb aims and fires.",
+        options: { auto: "Auto", manual: "By hand" },
+      },
+      "voyage-difficulty": {
+        name: "Difficulty",
+        description: "Normal: when the main gun's rounds run out it keeps firing a weak backup shot. Hard: every gun needs " +
+          "ammunition, so salvage wrecks and open caches to keep firing.",
+        options: { normal: "Normal", hard: "Hard" },
+      },
+      "voyage-sound": {
+        name: "Sound",
+        description: "Engines, guns, hits and finds, all made in your browser as you play.",
+        options: { off: "Off", low: "Low", medium: "Medium", high: "High" },
+      },
+      "voyage-music": {
+        name: "Music",
+        description: "A score that changes with each universe and builds in a fight, never the same twice.",
+        options: { off: "Off", low: "Low", medium: "Medium", high: "High" },
+      },
+      "voyage-haptics": {
+        name: "Vibration",
+        description: "A short buzz on hits, kills and finds, on a phone that can.",
+        options: { on: "On", off: "Off" },
+      },
     },
     terminal: {
       settingsSummary: "See your settings",

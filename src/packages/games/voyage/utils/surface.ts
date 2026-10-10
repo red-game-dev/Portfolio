@@ -13,11 +13,15 @@ const MARS_RELIEFS: readonly Relief[] = ["dunes", "hills", "mountains"];
 // Where something stands in the sky for someone on a world: `up` is the world angle straight up from the spot,
 // `towards` the angle from the world's centre to the thing. Overhead when they agree, on the horizon a quarter
 // turn off, below it beyond; and how far across the view it sits, from -0.9 (one edge) to 0.9 (the other).
-export const skyPlace = (up: number, towards: number): { elevation: number; side: number } => {
+export const elevationOf = (up: number, towards: number): number => 90 - Math.abs(angleBetween(up, towards)) * RAD;
+
+export const sideOf = (up: number, towards: number): number => {
   const offset = angleBetween(up, towards);
 
-  return { elevation: 90 - Math.abs(offset) * RAD, side: Math.sign(offset) * Math.min(1, Math.abs(offset) / (Math.PI / 2)) * 0.9 };
+  return Math.sign(offset) * Math.min(1, Math.abs(offset) / (Math.PI / 2)) * 0.9;
 };
+
+export const skyPlace = (up: number, towards: number): { elevation: number; side: number } => ({ elevation: elevationOf(up, towards), side: sideOf(up, towards) });
 
 // The local solar time at the spot: noon with the star overhead, six with it on one horizon, eighteen on the other.
 export const solarHours = (up: number, towardsStar: number): number => wrap(12 + (angleBetween(up, towardsStar) * RAD) / 15, 24);

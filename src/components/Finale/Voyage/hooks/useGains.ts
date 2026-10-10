@@ -19,7 +19,10 @@ export const useGains = (value: number | null): Gain | null => {
   const nextId = useRef(0);
 
   useEffect(() => {
+    // A count that goes away (the economy reloading) starts afresh: its next reading is not a gain.
     if (value === null) {
+      last.current = null;
+
       return;
     }
 

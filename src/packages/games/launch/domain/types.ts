@@ -98,5 +98,7 @@ export interface LaunchRenderer {
   draw(state: LaunchState, now: number): void;
   // A real map of the Earth below, as it arrives.
   setTexture?(id: string, image: TexImageSource): void;
+  // How fine to draw, 0 the finest.
+  setQuality?(level: number): void;
   dispose?(): void;
 }

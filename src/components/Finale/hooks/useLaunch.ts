@@ -62,7 +62,7 @@ export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject
     resize: (launch, { width, height, pixelRatio }) => launch.resize({ width, height }, pixelRatio),
   }, [site]);
 
-  // The real maps of the Earth below, once the board is built; and the GPU given back when it goes.
+  // The real maps of the Earth below, once the board is built (the engine hook gives its GPU back when it goes).
   useEffect(() => {
     if (!game) {
       return undefined;
@@ -72,7 +72,7 @@ export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject
       decodeImage(url).then((image) => game.setTexture(id, image), () => undefined);
     });
 
-    return () => game.dispose();
+    return undefined;
   }, [game]);
 
   const launchNow = useCallback(() => {

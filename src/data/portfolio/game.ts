@@ -335,7 +335,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
             rescue: "Saved {detail}",
             boss: "Brought down {detail}",
             universe: "Reached universe {detail}",
-            coin: "Picked up a Red Coin",
+            coin: "Picked up {detail} Red Coin",
             flight: "Flight pay for {detail} points",
             recycling: "Broke down {detail}",
             blueprintCopy: "Sold spare plans",

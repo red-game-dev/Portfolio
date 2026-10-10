@@ -465,7 +465,7 @@ export class Hangar {
       case "mission":
         return { RED: Math.max(0, Math.round(deed.coin)), VOID: 0 };
       case "coin":
-        return { ...REWARDS.coin };
+        return { RED: REWARDS.coin.RED * Math.max(0, deed.count), VOID: REWARDS.coin.VOID * Math.max(0, deed.count) };
       default:
         return emptyPurse();
     }
@@ -547,6 +547,8 @@ const detailOf = (deed: Deed): string => {
       return String(deed.index);
     case "mission":
       return deed.id;
+    case "coin":
+      return String(deed.count);
     default:
       return "";
   }

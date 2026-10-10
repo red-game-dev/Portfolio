@@ -59,7 +59,8 @@ export type Deed =
   | { kind: "boss"; name: string }
   | { kind: "universe"; index: number }
   | { kind: "mission"; id: string; coin: number }
-  | { kind: "coin" };
+  // Coins picked up together, paid as one entry.
+  | { kind: "coin"; count: number };
 
 // What the economy needs to know of the ship to suggest the next thing to do: whether it is flying, its faults,
 // and its hull, fuel and shields as shares, and its heat as a share of what its plating is built for.

@@ -1,4 +1,4 @@
-import { FrameLoop, FrameScheduler } from "@/packages/animation/frame-loop";
+import { FrameLoop, FrameScheduler, QualityGovernor } from "@/packages/animation/frame-loop";
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { CanvasGlobeRenderer, GlobeRenderer, WebGLGlobeRenderer } from "@/packages/graphics/globe";
 import { RandomSource } from "@/packages/math/random";
@@ -33,6 +33,11 @@ export class LaunchGame extends FrameLoop {
   private readonly simulation: LaunchSimulation;
   private readonly onChange: (snapshot: LaunchSnapshot) => void;
   private lastSnapshot: LaunchSnapshot;
+  // Steps the drawing down on a device whose frames run slow; the last level also draws at one pixel per pixel.
+  private readonly governor = new QualityGovernor({ levels: 3 });
+  private lastFrameAt = 0;
+  private size: LaunchSize = { width: 0, height: 0 };
+  private pixelRatio = 1;
 
   constructor(renderer: LaunchRenderer, options: LaunchOptions = {}) {
     const config: LaunchConfig = resolveLaunchConfig(options.config);
@@ -61,8 +66,10 @@ export class LaunchGame extends FrameLoop {
       return;
     }
 
+    this.size = size;
+    this.pixelRatio = pixelRatio;
     this.simulation.resize(size);
-    this.renderer.resize(size, pixelRatio);
+    this.renderer.resize(size, this.sharpness());
     this.renderer.draw(this.simulation.state, 0);
   }
 
@@ -122,6 +129,14 @@ export class LaunchGame extends FrameLoop {
 
   protected render(now: number): void {
     const { state } = this.simulation;
+    const level = this.lastFrameAt > 0 ? this.governor.sample(now - this.lastFrameAt, now) : null;
+
+    this.lastFrameAt = now;
+
+    if (level !== null) {
+      this.renderer.setQuality?.(level);
+      this.renderer.resize(this.size, this.sharpness());
+    }
 
     this.renderer.draw(state, now);
 
@@ -130,8 +145,14 @@ export class LaunchGame extends FrameLoop {
     }
   }
 
+  // The pixel ratio to draw at: the device's, or one at the lowest quality.
+  private sharpness(): number {
+    return this.governor.level >= 2 ? 1 : this.pixelRatio;
+  }
+
   private publishAndRun(): void {
     this.publish();
+    this.lastFrameAt = 0;
     this.start();
   }
 

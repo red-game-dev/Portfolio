@@ -1,4 +1,5 @@
 export { FrameLoop } from "./core/FrameLoop";
+export { PauseHolds } from "./core/PauseHolds";
 export { QualityGovernor } from "./core/QualityGovernor";
 export { AnimationFrameScheduler } from "./schedulers/AnimationFrameScheduler";
 export { ManualScheduler } from "./schedulers/ManualScheduler";

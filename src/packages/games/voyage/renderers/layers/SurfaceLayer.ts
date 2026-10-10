@@ -9,7 +9,7 @@ import { smoothstep } from "@/packages/math/easing";
 import { HOME_WORLD, SystemBody } from "../../domain/content";
 import { SurfaceInfo } from "../../domain/surface";
 import { markOf, tierOf } from "../../economy/config/tiers";
-import { airFor, groundAt, phaseOf, skyPlace, solarHours, toGround } from "../../utils/surface";
+import { airFor, elevationOf, groundAt, phaseOf, sideOf, solarHours, toGround } from "../../utils/surface";
 import { VoyageFrame } from "../frame";
 import { paintHull } from "../paint/ships";
 import { paintFlame, SHIP_HEIGHT, SHIP_WIDTH } from "../paint/space";
@@ -47,6 +47,9 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
   private readonly painter = new LandscapePainter(17);
   private scene: Scene | null = null;
   private body: string | null = null;
+  // The world stood on, and what hangs in its sky (its planet, or its moons) with how far each really is.
+  private place: SystemBody | null = null;
+  private neighbours: Array<{ body: SystemBody; sky: SkyBody }> = [];
   // The world angle straight up from the spot.
   private up = 0;
   private shown = 0;
@@ -67,7 +70,9 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
   public draw(frame: VoyageFrame): void {
     const { state, world, dt, now } = frame;
     const ship = world.stores.ship.get(state.ship);
-    const ground = state.phase !== "lost" && ship?.landedOn ? state.system.bodies.find((candidate) => candidate.id === ship.landedOn) : undefined;
+    const landedOn = state.phase !== "lost" ? ship?.landedOn ?? null : null;
+    // The world already stood on is kept, so a frame only looks one up when the ship sets down somewhere new.
+    const ground = landedOn === null ? undefined : landedOn === this.place?.id ? this.place : state.system.bodies.find((candidate) => candidate.id === landedOn);
 
     const up = ship?.landedOffset ? Math.atan2(ship.landedOffset.y, ship.landedOffset.x) : 0;
 
@@ -85,14 +90,15 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
 
     if (!ground && this.shown === 0) {
       this.body = null;
+      this.place = null;
+      this.neighbours = [];
       this.info = null;
       this.scene = null;
 
       return;
     }
 
-    const scene = this.scene;
-    const place = state.system.bodies.find((candidate) => candidate.id === this.body);
+    const { scene, place } = this;
 
     if (!scene || !place) {
       return;
@@ -123,43 +129,68 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const sample = map ? this.sample(map, longitude, latitude, look?.surface.centreLongitude ?? 0) : null;
     const preset = groundAt(place.id, look, sample, latitude, longitude, isHome);
 
+    const { star, bodies } = state.system;
+    const starLook = state.cosmos?.starLook;
+    const toStar = Math.hypot(star.x - place.x, star.y - place.y) || 1;
+
     this.body = place.id;
+    this.place = place;
     this.up = up;
     this.landedAt = state.elapsedMs;
-    this.scene = { air: airFor(place.id, look, place.air?.pressureBar ?? null, isHome), sun: null, bodies: [], ground: toGround(preset, latitude, longitude) };
-    this.info = { body: place.id, isHome: isHome && place.id === HOME_WORLD, latitude, longitude, hours: 12, biome: preset.biome };
-  }
-
-  // The star, and the planet or moons in the sky, where they stand now: they move as the world goes round.
-  private placeSky({ state, theme }: VoyageFrame, scene: Scene, place: SystemBody): void {
-    const { star, bodies } = state.system;
-    const isHome = !state.cosmos;
-    const towardsStar = Math.atan2(star.y - place.y, star.x - place.x);
-    const distance = Math.hypot(star.x - place.x, star.y - place.y) || 1;
-    const sunPlace = skyPlace(this.up, towardsStar);
-    const starLook = state.cosmos?.starLook;
-
-    scene.sun = star.luminosity <= 0 ? null : {
-      ...sunPlace,
-      radius: isHome ? Math.asin(Math.min(1, SUN_KM / (Math.max(place.au, 0.01) * KM_PER_AU))) * RAD : Math.max(0.05, Math.atan(star.radius / distance) * RAD * 0.35),
-      colour: starLook ? this.starColour(starLook.temperatureK) : "#fff3d6",
-    };
-
-    const neighbours = bodies.filter((other) => !other.isShattered && (other.id === place.parent || other.parent === place.id));
-
-    scene.bodies = neighbours.map((other): SkyBody => {
-      const towards = Math.atan2(other.y - place.y, other.x - place.x);
+    // Its planet over a moon, its moons over a planet, each as large as it really looks from here.
+    this.neighbours = bodies.filter((other) => !other.isShattered && (other.id === place.parent || other.parent === place.id)).map((other) => {
       const orbit = other.id === place.parent ? place.orbit : other.orbit;
       const kilometres = orbit.kind === "moon" ? orbit.distanceKm : Math.hypot(other.x - place.x, other.y - place.y) * place.kmPerUnit;
-      const look = theme.bodies[other.id] ?? state.cosmos?.looks[other.id];
+      const otherLook = theme.bodies[other.id] ?? state.cosmos?.looks[other.id];
 
       return {
-        ...skyPlace(this.up, towards),
-        ...phaseOf(towards, towardsStar),
-        radius: Math.asin(Math.min(1, (other.radius * other.kmPerUnit) / Math.max(kilometres, 1))) * RAD,
-        colour: look?.surface.palette[2] ?? "#c8c8c8",
-        hasRings: Boolean(look?.rings),
+        body: other,
+        sky: {
+          elevation: 0,
+          side: 0,
+          lit: 1,
+          lightSide: 1,
+          radius: Math.asin(Math.min(1, (other.radius * other.kmPerUnit) / Math.max(kilometres, 1))) * RAD,
+          colour: otherLook?.surface.palette[2] ?? "#c8c8c8",
+          hasRings: Boolean(otherLook?.rings),
+        },
       };
+    });
+    this.scene = {
+      air: airFor(place.id, look, place.air?.pressureBar ?? null, isHome),
+      sun: star.luminosity <= 0 ? null : {
+        elevation: 0,
+        side: 0,
+        radius: isHome ? Math.asin(Math.min(1, SUN_KM / (Math.max(place.au, 0.01) * KM_PER_AU))) * RAD : Math.max(0.05, Math.atan(star.radius / toStar) * RAD * 0.35),
+        colour: starLook ? this.starColour(starLook.temperatureK) : "#fff3d6",
+      },
+      bodies: this.neighbours.map(({ sky }) => sky),
+      ground: toGround(preset, latitude, longitude),
+    };
+    this.info = {
+      body: place.id, name: state.cosmos?.names[place.id] ?? null, isHome: isHome && place.id === HOME_WORLD, latitude, longitude, hours: 12, biome: preset.biome,
+    };
+  }
+
+  // The star, and the planet or moons in the sky, where they stand now, as the world goes round: the scene's own
+  // objects moved in place, so a frame makes none.
+  private placeSky({ state }: VoyageFrame, scene: Scene, place: SystemBody): void {
+    const { star } = state.system;
+    const towardsStar = Math.atan2(star.y - place.y, star.x - place.x);
+
+    if (scene.sun) {
+      scene.sun.elevation = elevationOf(this.up, towardsStar);
+      scene.sun.side = sideOf(this.up, towardsStar);
+    }
+
+    this.neighbours.forEach(({ body, sky }) => {
+      const towards = Math.atan2(body.y - place.y, body.x - place.x);
+      const phase = phaseOf(towards, towardsStar);
+
+      sky.elevation = elevationOf(this.up, towards);
+      sky.side = sideOf(this.up, towards);
+      sky.lit = phase.lit;
+      sky.lightSide = phase.lightSide;
     });
 
     if (this.info) {

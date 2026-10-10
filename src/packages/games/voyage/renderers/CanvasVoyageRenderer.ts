@@ -351,7 +351,6 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.light.clear();
   }
 
-  // A fireball and a ring of shock, as something is destroyed or something strikes.
   // The colour of a map at a spot (degrees), averaged over a few of its pixels, or null with no map yet: drawn
   // into one pixel of a small canvas made once.
   private sampleMap(texture: string, longitude: number, latitude: number, centreLongitude: number): Rgb | null {
@@ -389,6 +388,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     }
   }
 
+  // A fireball and a ring of shock, as something is destroyed or something strikes.
   private blast(x: number, y: number, radius: number, camera: Camera, trauma: number): void {
     const { particles } = this.kit;
     const fire = this.kit.cache.get("fire", 64, 64, paintGlow("rgba(255, 120, 40, 1)"));

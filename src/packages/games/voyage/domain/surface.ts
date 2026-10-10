@@ -20,6 +20,8 @@ export type SurfaceBiome =
 // (hours), what the ground is, and whether it is home, where a capsule comes down and a new rocket waits.
 export interface SurfaceInfo {
   body: string;
+  // The name a universe gave a world it made, null for ours.
+  name: string | null;
   isHome: boolean;
   latitude: number;
   longitude: number;

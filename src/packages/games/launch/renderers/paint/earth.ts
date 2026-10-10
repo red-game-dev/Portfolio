@@ -76,3 +76,19 @@ export const paintAirglow = (context: Canvas2DContext, scene: LimbScene): void =
     context.fillRect(gx - reach, top - reach, reach * 2, reach * 2);
   }
 };
+
+// The Earth below as a plain painted globe, for a device that cannot keep up with the GPU's: blue sea by day,
+// dark by night.
+export const paintPlainEarth = (context: Canvas2DContext, scene: LimbScene): void => {
+  const { x, y, radius } = limbOf(scene);
+  const day = smoothstep(-8, 8, scene.sunElevation);
+  const sea: Rgb = mixRgb([4, 8, 18], [26, 82, 150], day);
+  const surface = context.createRadialGradient(x, y, radius * 0.96, x, y, radius);
+
+  surface.addColorStop(0, rgba(sea, 1));
+  surface.addColorStop(1, rgba(mixRgb(sea, [120, 170, 230], 0.45 * day), 1));
+  context.fillStyle = surface;
+  context.beginPath();
+  context.arc(x, y, radius, 0, TAU);
+  context.fill();
+};

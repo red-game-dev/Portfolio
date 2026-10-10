@@ -417,7 +417,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </IconButton>
           )}
           {status === "flying" && (
-            <IconButton type="button" onClick={isPaused ? resume : pause} aria-label={isPaused ? content.resume : content.pause}>
+            <IconButton type="button" disabled={isMapOpen} onClick={isPaused ? resume : pause} aria-label={isPaused ? content.resume : content.pause}>
               <FontAwesomeIcon icon={isPaused ? faPlay : faPause} aria-hidden="true" />
             </IconButton>
           )}
@@ -427,8 +427,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </HudButtons>
       </Hud>
       {snapshot?.surface && status === "flying" && !isHangarOpen && !isPhoto && (
-        <SurfaceCard aria-label={fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.landedOn) })}>
-          <SurfaceTitle>{fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.landedOn) })}</SurfaceTitle>
+        <SurfaceCard aria-label={fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn) })}>
+          <SurfaceTitle>{fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn) })}</SurfaceTitle>
           <SurfaceLine>{content.surface.biomes[snapshot.surface.biome]}</SurfaceLine>
           <SurfaceLine>{formatLatLon(snapshot.surface.latitude, snapshot.surface.longitude)}</SurfaceLine>
           <SurfaceLine>{fill(content.surface.time, { time: formatHours(snapshot.surface.hours) })}</SurfaceLine>

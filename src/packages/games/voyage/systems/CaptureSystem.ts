@@ -39,6 +39,7 @@ export class CaptureSystem implements System<VoyageContext> {
       state.phase = "lost";
       state.phaseMs = 0;
       parts.ship.landedOn = null;
+      parts.ship.landedOffset = null;
       events.emit("phase", { phase: "lost", universe: state.universe });
     }
   }

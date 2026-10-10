@@ -151,8 +151,11 @@ describe("voyage salvage and breakdowns", () => {
 
     expect(world.isAlive(near)).toBe(false);
     expect(world.isAlive(far)).toBe(true);
+    // Paid on the next tick, gathered into one entry.
+    expect(hangar.purse.RED).toBe(before);
+    link.tick(simulation.snapshot);
     expect(hangar.purse.RED).toBe(before + REWARDS.coin.RED);
-    expect(hangar.view().history.some((row) => row.memo === "coin")).toBe(true);
+    expect(hangar.view().history.some((row) => row.memo === "coin:1")).toBe(true);
   });
 
   test("a wreck is salvaged by holding alongside it at its speed, and gives up what it held once", () => {

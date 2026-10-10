@@ -4,6 +4,7 @@ import { PHOTO_PAN, VOYAGE_KEYS, VOYAGE_ZOOM, voyageKeyAction } from "@/componen
 import { usePilotSync } from "@/components/Finale/Voyage/hooks/usePilotSync";
 import { VOYAGE_TEXTURES, VOYAGE_THEME } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import { PauseHolds } from "@/packages/animation/frame-loop";
 import { decodeImage } from "@/packages/browser/images";
 import type { CareerView, EconomyView, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
 import { DragTracker, localPoint } from "@/packages/interaction/gestures";
@@ -67,8 +68,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const [drag] = useState(() => new DragTracker());
   const pilot = useRef<Pilot | null>(null);
   const scheduleSave = usePilotSync(pilot);
-  const isPausedForHangar = useRef(false);
-  const isPausedForMap = useRef(false);
+  // The map and the hangar each hold the run still while open, together: it goes on only once both are closed.
+  const [holds] = useState(() => new PauseHolds());
   const game = useCanvasEngine(back, {
     sizeRef: stage,
     contextOptions: { alpha: false },
@@ -119,9 +120,6 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   }, []);
   const isFlying = snapshot?.status === "flying";
 
-  // Closing the voyage gives its GPU contexts and textures back, not just stops it.
-  useEffect(() => () => game?.dispose(), [game]);
-
   const play = useCallback((mode: "free" | "daily" = "free") => {
     held.clear();
     game?.setKeys({ turn: 0, thrust: 0, brake: false });
@@ -169,11 +167,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const setHangar = useCallback((isOpen: boolean) => {
     setIsHangarOpen(isOpen);
 
-    if (isOpen && game?.isRunning && isFlying) {
-      isPausedForHangar.current = true;
-      game.pause();
-    } else if (!isOpen && isPausedForHangar.current) {
-      isPausedForHangar.current = false;
+    if (isOpen && holds.take("hangar", Boolean(game?.isRunning) && isFlying)) {
+      game?.pause();
+    } else if (!isOpen && holds.release("hangar")) {
       game?.resume();
     }
 
@@ -181,7 +177,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     if (!isOpen) {
       stage.current?.focus();
     }
-  }, [game, isFlying, stage]);
+  }, [game, holds, isFlying, stage]);
 
   // Photo mode holds the view still to be looked round and saved; leaving carries on as before.
   const togglePhoto = useCallback(() => {
@@ -233,20 +229,18 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const toggleMap = useCallback(() => {
     const isOpen = !isMapOpen;
 
-    if (isOpen && game?.isRunning && isFlying) {
-      isPausedForMap.current = true;
-      game.pause();
+    if (isOpen && holds.take("map", Boolean(game?.isRunning) && isFlying)) {
+      game?.pause();
     }
 
     game?.setMap(isOpen);
 
-    if (!isOpen && isPausedForMap.current) {
-      isPausedForMap.current = false;
+    if (!isOpen && holds.release("map")) {
       game?.resume();
     }
 
     setIsMapOpen(isOpen);
-  }, [game, isFlying, isMapOpen]);
+  }, [game, holds, isFlying, isMapOpen]);
 
   useEffect(() => {
     const onVisibility = () => {

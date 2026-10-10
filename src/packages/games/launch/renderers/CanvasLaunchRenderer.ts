@@ -1,6 +1,6 @@
-import { Canvas2DContext, CanvasRenderer } from "@/packages/graphics/canvas";
+import { Canvas2DContext, CanvasRenderer, SpriteCache } from "@/packages/graphics/canvas";
 import { mixRgb, Rgb, shadeHex } from "@/packages/graphics/colour";
-import { EARTH_LOOK, GlobeLook, GlobeRenderer, northUp } from "@/packages/graphics/globe";
+import { CanvasGlobeRenderer, EARTH_LOOK, GlobeLook, GlobeRenderer, northUp } from "@/packages/graphics/globe";
 import { Air, Ground, LandscapePainter, Scene, SkyLight } from "@/packages/graphics/landscape";
 import { TAU } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
@@ -10,7 +10,7 @@ import { formatDuration, formatNumber } from "@/packages/text/format";
 
 import { LaunchLabels, LaunchTheme, VEHICLES } from "../config";
 import { LaunchLand, LaunchMilestone, LaunchSize, LaunchState } from "../domain/types";
-import { limbOf, paintAirglow, paintCloud } from "./paint/earth";
+import { limbOf, paintAirglow, paintCloud, paintPlainEarth } from "./paint/earth";
 import { paintPad } from "./paint/pad";
 import { BUILDS, nozzles, paintPlume, paintVehicle, PLUMES, Stack } from "./paint/vehicles";
 import { Smoke } from "./Smoke";
@@ -38,6 +38,11 @@ const PAD_SHARE = 0.88;
 const FOLLOW_SHARE = 0.7;
 // About how many seconds the climb takes, for how fast separated stages fall away.
 const CLIMB_SECONDS = 9;
+// What each quality level keeps (0 the finest): the share of the smoke made, whether the clouds that pass in front
+// are drawn, and whether the Earth below is the GPU's globe or a plain painted one.
+const QUALITY = { smoke: [1, 0.5, 0.25], frontClouds: [true, true, false], gpuEarth: [true, true, false] };
+// A cloud's sprite (units): the cloud painted `size` across round its middle, with room for its puffs.
+const CLOUD = { width: 128, height: 90, x: 64, y: 44, size: 60 };
 
 const stretch = (metres: number) => (metres < TRUE_SCALE ? metres : TRUE_SCALE * (1 + Math.log(metres / TRUE_SCALE)));
 
@@ -59,7 +64,11 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
   private readonly painter = new LandscapePainter(11);
   private readonly smoke = new Smoke();
   private readonly clouds: Cloud[];
-  private readonly globes: GlobeRenderer;
+  private globes: GlobeRenderer;
+  // The real maps handed over, kept to hand on if the GPU's globe gives way to the 2D one.
+  private readonly textures = new Map<string, TexImageSource>();
+  private readonly cloudSprites = new SpriteCache({ width: CLOUD.width, height: CLOUD.height, scale: 1, maxEntries: 32 });
+  private quality = 0;
   private lastNow = 0;
 
   constructor(context: Canvas2DContext, theme: LaunchTheme, labels: LaunchLabels, globes: GlobeRenderer) {
@@ -80,7 +89,13 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
   }
 
   public setTexture(id: string, image: TexImageSource): void {
+    this.textures.set(id, image);
     this.globes.setTexture(id, image);
+  }
+
+  // How fine to draw, 0 the finest (see `QUALITY`): stepped down on a device whose frames run slow.
+  public setQuality(level: number): void {
+    this.quality = Math.max(0, Math.min(QUALITY.smoke.length - 1, level));
   }
 
   public dispose(): void {
@@ -155,7 +170,9 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
       this.drawRocket(state, stack, x + shake, baseY, rocketHeight, rocketLight, density, now);
     }
 
-    this.drawClouds(toY, sky, x, baseY, state, true);
+    if (QUALITY.frontClouds[this.quality]) {
+      this.drawClouds(toY, sky, x, baseY, state, true);
+    }
     this.drawReadout(state);
 
     if (state.status === "destructing") {
@@ -176,6 +193,22 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     const { width, height } = this.size;
     const scene = { width, height, rise, sunElevation: state.sunElevation, sunSide: state.sunSide };
     const limb = limbOf(scene);
+
+    if (!QUALITY.gpuEarth[this.quality]) {
+      paintPlainEarth(this.context, scene);
+      paintAirglow(this.context, scene);
+
+      return;
+    }
+
+    // A GPU context the browser took back (a phone backgrounding the tab) leaves the Earth to the 2D globe, with
+    // the maps it already had.
+    if (this.globes.isGpu && !this.globes.available) {
+      this.globes = new CanvasGlobeRenderer();
+      this.globes.resize(width, height, Math.min(2, this.pixelRatio));
+      this.textures.forEach((image, id) => this.globes.setTexture(id, image));
+    }
+
     // The Sun's side and height, as an angle from the Earth's centre: overhead light comes from straight up, a
     // Sun below the horizon from below the edge.
     const lightAngle = -Math.PI / 2 + Math.sign(state.sunSide || 1) * ((90 - state.sunElevation) * Math.PI) / 180;
@@ -235,17 +268,12 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
 
     const random = Math.random;
     const scale = this.size.height / 220;
-
-    if (state.status === "ready" && random() < seconds * 6) {
-      const side = random() < 0.5 ? -1 : 1;
-
-      this.smoke.emit(side * rocketWidth * 0.6, VEHICLES[state.site.vehicle].heightM * (0.55 + random() * 0.2), side * 8 * scale, -1.5, 1.5 * scale, 4 * scale, 1.6, 1);
-    }
+    const share = QUALITY.smoke[this.quality];
 
     const isLighting = state.status === "charging" || (state.status === "launching" && state.ascent < 0.07);
 
     if (isLighting) {
-      const count = Math.round(seconds * 90 * (state.status === "charging" ? 0.4 + state.charge : 1));
+      const count = Math.round(seconds * 90 * share * (state.status === "charging" ? 0.4 + state.charge : 1));
 
       for (let puff = 0; puff < count; puff += 1) {
         const side = random() < 0.5 ? -1 : 1;
@@ -256,7 +284,7 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     }
 
     if (state.status === "launching" && density > 0.06 && state.ascent < this.momentAt(state, "meco")) {
-      const count = Math.round(seconds * 60 * density + random());
+      const count = Math.round(seconds * 60 * share * density + random());
 
       for (let puff = 0; puff < count; puff += 1) {
         this.smoke.emit((random() - 0.5) * rocketWidth, state.altitudeKm * 1000 - rocketHeight * 0.02, (random() - 0.5) * 12 * scale, 0,
@@ -287,7 +315,15 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
       const near = isBurning ? Math.max(0, 1 - Math.hypot(cloud.x * width - x, y - baseY) / (width * 0.5)) : 0;
       const colour = mixRgb(lit, [255, 170, 90], near * (1 - day) * 0.8);
 
-      paintCloud(this.context, cloud.x * width, y, size, colour, isFront ? 0.75 : 0.9);
+      // Painted once per colour and blitted after.
+      const alpha = isFront ? 0.75 : 0.9;
+      const key = `cloud:${Math.round(colour[0] / 8)}:${Math.round(colour[1] / 8)}:${Math.round(colour[2] / 8)}:${alpha}`;
+      const sprite = this.cloudSprites.get(key, (context) => paintCloud(context, CLOUD.x, CLOUD.y, CLOUD.size, colour, alpha));
+      const scale = size / CLOUD.size;
+
+      if (sprite) {
+        this.context.drawImage(sprite, cloud.x * width - CLOUD.x * scale, y - CLOUD.y * scale, CLOUD.width * scale, CLOUD.height * scale);
+      }
     });
   }
 

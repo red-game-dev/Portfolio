@@ -101,6 +101,26 @@ describe("the finale's invite to play", () => {
     hidden.mockRestore();
   });
 
+  test("a reader who prefers reduced motion is only asked: no count, nothing opens by itself", () => {
+    const open = jest.fn();
+    const matchMedia = window.matchMedia;
+
+    const reduced = (query: string) => ({ matches: query.includes("reduce"), media: query, addEventListener: () => undefined, removeEventListener: () => undefined });
+
+    window.matchMedia = reduced as unknown as typeof window.matchMedia;
+
+    try {
+      const { result } = renderHook(() => useInvite({ isOrbit: true, isInView: true, isOpen: false, isChoosing: false, open }));
+
+      wait(INVITE_SECONDS * 2);
+      expect(result.current.count).toBeNull();
+      expect(open).not.toHaveBeenCalled();
+      expect(window.localStorage.getItem(INVITE_KEY)).toBeNull();
+    } finally {
+      window.matchMedia = matchMedia;
+    }
+  });
+
   test("no thanks stops the count and is remembered, and the reader can still choose to play", () => {
     const open = jest.fn();
     const { result } = renderHook(() => useInvite({ isOrbit: true, isInView: true, isOpen: false, isChoosing: false, open }));

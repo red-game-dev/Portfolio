@@ -47,9 +47,16 @@ export class ControlSystem implements System<VoyageContext> {
       // and settling, or a crew home still being picked up: there is nothing yet to lift off in.
       const descent = state.descent;
       const isComingDown = descent !== null && descent.downAt === null && (!descent.isFiredOn || descent.craft.isPilot);
-      const isSettling = descent !== null && descent.downAt !== null && state.homecoming?.stage !== "pad" &&
+      const homecoming = state.homecoming;
+      const isSettling = descent !== null && descent.downAt !== null && homecoming?.stage !== "pad" &&
         state.elapsedMs - descent.downAt < config.descent.settleSeconds * 1000;
-      const isHeld = isComingDown || isSettling || state.homecoming?.stage === "recovery";
+
+      // On the pad, a burn launches only once it has been let go of since the crew got there.
+      if (homecoming?.stage === "pad" && power <= 0.15) {
+        homecoming.isArmed = true;
+      }
+
+      const isHeld = isComingDown || isSettling || homecoming?.stage === "recovery" || (homecoming?.stage === "pad" && !homecoming.isArmed);
 
       if (power > 0.15 && !isHeld) {
         events.emit("tookOff", { body: ship.landedOn });

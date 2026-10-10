@@ -125,7 +125,7 @@ export class DescentSystem implements System<VoyageContext> {
       }
 
       if (world.isHome) {
-        state.homecoming = { stage: "recovery", since: state.elapsedMs, days: config.descent.recoveryDays, isSea: world.isWater };
+        state.homecoming = { stage: "recovery", since: state.elapsedMs, days: config.descent.recoveryDays, isSea: world.isWater, isArmed: false };
       }
 
       return;
@@ -181,7 +181,7 @@ export class DescentSystem implements System<VoyageContext> {
     state.clock = { ...state.clock, epochMs: state.clock.epochMs + homecoming.days * DAY_MS };
     // Every world moved on to where the days took it, at once, so none seems to have flown there in one step.
     placeBodies(state.system, missionTime(state.clock, state.elapsedMs));
-    state.homecoming = { ...homecoming, stage: "pad", since: state.elapsedMs };
+    state.homecoming = { ...homecoming, stage: "pad", since: state.elapsedMs, isArmed: false };
     this.recover(context, parts, homecoming.days);
   }
 

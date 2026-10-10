@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { screenLean, tiltSteer } from "@/components/Finale/Voyage/tilt";
+import { screenAngle, screenLean, tiltSteer } from "@/components/Finale/Voyage/tilt";
 import type { VoyageGame } from "@/packages/games/voyage";
 
 // Steers the voyage by tilting the device while `isOn`: level is however it is held when the flight starts (or the
@@ -24,7 +24,7 @@ export const useTiltSteering = (game: VoyageGame | null, isOn: boolean, isFlying
         return;
       }
 
-      const lean = screenLean(event.beta, event.gamma, window.screen.orientation?.angle ?? 0);
+      const lean = screenLean(event.beta, event.gamma, screenAngle());
 
       level.current = level.current ?? lean;
       game.setTilt(tiltSteer(lean, level.current));

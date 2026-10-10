@@ -160,6 +160,42 @@ describe("voyage descents", () => {
     expect(partsOf(simulation).ship.landedOn).toBeNull();
   });
 
+  test("a burn held through the rescue waits to be let go on the pad, and the new rocket does not point at the Sun", () => {
+    const simulation = createFlying();
+    const tookOff = heard(simulation, "tookOff");
+
+    touchDown(simulation, "venus");
+    untilDown(simulation);
+    simulation.step((defaults.descent.strandedSeconds + 2) * 1000, BURN);
+
+    expect(partsOf(simulation).ship.landedOn).toBe("earth");
+    expect(tookOff).toHaveLength(0);
+
+    const { star } = simulation.state.system;
+    const earth = simulation.state.system.bodies.find((body) => body.id === "earth");
+    const sunward = Math.atan2(star.y - (earth?.y ?? 0), star.x - (earth?.x ?? 0));
+    const off = Math.abs(Math.atan2(Math.sin(partsOf(simulation).ship.angle - sunward), Math.cos(partsOf(simulation).ship.angle - sunward)));
+
+    expect(off).toBeGreaterThan(Math.PI / 4);
+
+    // Let go, then burn: it launches.
+    simulation.step(200);
+    simulation.step(300, BURN);
+    expect(partsOf(simulation).ship.landedOn).toBeNull();
+  });
+
+  test("stranded on the Moon, the rescue takes the fewest days, not a transfer orbit's months", () => {
+    const simulation = createFlying();
+    const rescued = heard(simulation, "rescued");
+
+    touchDown(simulation, "moon");
+    untilDown(simulation);
+    partsOf(simulation).ship.fuel = 0;
+    simulation.step((defaults.descent.strandedSeconds + 1) * 1000);
+
+    expect(rescued).toEqual([{ from: "moon", days: defaults.descent.rescueFewestDays }]);
+  });
+
   test("fuel loaded in time ends being stranded", () => {
     const simulation = createFlying();
 

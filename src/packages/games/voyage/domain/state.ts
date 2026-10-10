@@ -41,6 +41,9 @@ export interface Homecoming {
   since: number;
   days: number;
   isSea: boolean;
+  // Whether the burn has been let go of since the crew reached the pad, so a held one does not fire the new rocket
+  // off before the pad is seen.
+  isArmed: boolean;
 }
 
 // Where the compass points, and what it is.

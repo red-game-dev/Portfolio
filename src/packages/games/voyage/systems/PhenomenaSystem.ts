@@ -28,7 +28,6 @@ const NOISE_FADE = 0.12;
 const ENGINE_NOISE = 0.28;
 const STRIKE_WARNING = 1500;
 const STRIKE_DISTANCE = 22;
-// Tides past this (world units per second squared across the ship) start to tear it.
 // A wormhole's mouth (world units), and how long before the same ship can go through again (ms).
 const MOUTH = 0.45;
 const JUMP_COOLDOWN = 2500;

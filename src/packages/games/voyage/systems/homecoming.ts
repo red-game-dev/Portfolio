@@ -41,16 +41,20 @@ export const rescueHome = (context: VoyageContext, parts: ShipParts, fewestDays:
     return null;
   }
 
-  // From the world it stands on (a moon's planet), at that world's real distance; adrift, from where it is.
+  // From the world it stands on (a moon's planet), at that world's real distance; adrift, from where it is. From Earth,
+  // the Moon or near Earth (where Earth pulls hardest) no transfer orbit is needed, only the fewest days.
   const ground = parts.ship.landedOn ? bodyById(context, parts.ship.landedOn) : undefined;
   const world = ground?.parent ? bodyById(context, ground.parent) : ground;
-  const days = transferDays(world ? world.au : auForRadius(state.system.scale, distanceFromStar(context, parts.body)), fewestDays);
+  const isNearHome = world ? world.id === HOME_WORLD : state.readings.dominant === HOME_WORLD;
+  const au = world ? world.au : auForRadius(state.system.scale, distanceFromStar(context, parts.body));
+  const days = isNearHome ? fewestDays : transferDays(au, fewestDays);
 
   state.clock = { ...state.clock, epochMs: state.clock.epochMs + days * DAY_MS };
   placeBodies(state.system, missionTime(state.clock, state.elapsedMs));
 
-  // Set down on the day side, where the view stands the pad.
-  const up = Math.atan2(state.system.star.y - home.y, state.system.star.x - home.x);
+  // Set down where morning comes, a quarter of the way round from the Sun, so the pad is lit and its rocket, pointed
+  // straight up, is not aimed at the Sun.
+  const up = Math.atan2(state.system.star.y - home.y, state.system.star.x - home.x) + Math.PI / 2;
   const contact = home.radius + parts.body.radius;
   const offset = { x: Math.cos(up) * contact, y: Math.sin(up) * contact };
   const homeWorld = landingWorldOf(home, true);
@@ -60,9 +64,11 @@ export const rescueHome = (context: VoyageContext, parts: ShipParts, fewestDays:
   Object.assign(craft, { altitude: 0, across: 0, up: 0, phase: "down", isDown: true });
   parts.ship.landedOn = home.id;
   parts.ship.landedOffset = offset;
+  parts.ship.angle = up;
+  parts.ship.prevAngle = up;
   placeBody(parts.body, home.x + offset.x, home.y + offset.y, home.vx, home.vy);
   state.descent = { body: home.id, world: homeWorld, plan, craft, speedUp: 1, pace: 1, downAt: state.elapsedMs, isSoft: true, isFiredOn: false };
-  state.homecoming = { stage: "pad", since: state.elapsedMs, days, isSea: false };
+  state.homecoming = { stage: "pad", since: state.elapsedMs, days, isSea: false, isArmed: false };
   restoreShip(context, parts);
   parts.health.decals = [];
   // A new rocket, standing at the temperature of the ground it stands on.

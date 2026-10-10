@@ -14,7 +14,8 @@ describe("steering the voyage by tilting", () => {
   test("held as it was at the start it holds still; leaning flies that way, harder the further it leans", () => {
     const level = { x: 5, y: 40 };
 
-    expect(tiltSteer({ x: 6, y: 41 }, level)).toBeNull();
+    // Held level it holds still, and still steers, so a finger on the screen never takes over.
+    expect(tiltSteer({ x: 6, y: 41 }, level)).toEqual({ x: 0, y: 0 });
 
     const right = tiltSteer({ x: 15, y: 40 }, level);
     const full = tiltSteer({ x: 5, y: 80 }, level);

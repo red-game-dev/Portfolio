@@ -5,6 +5,7 @@ import { ImageConfigContext } from "next/dist/shared/lib/image-config-context.sh
 import { AppLoaderProvider } from "@/components/AppLoader/context/AppLoaderContext";
 import { GameProvider } from "@/components/Game/context/GameContext";
 import { LensProvider } from "@/components/Lens/context/LensContext";
+import { PreferencesProvider } from "@/components/Preferences/context/PreferencesContext";
 import { JOURNEY_STOPS } from "@/config/journey";
 import { LENSES } from "@/config/lenses";
 import { SECTION_IDS } from "@/config/sections";
@@ -19,11 +20,13 @@ const { images } = require("../../../next.config.js") as { images: Partial<typeo
 const renderPage = () => render(
   <ImageConfigContext.Provider value={{ ...imageConfigDefault, ...images }}>
     <AppLoaderProvider>
-      <LensProvider>
-        <GameProvider>
-          <Home />
-        </GameProvider>
-      </LensProvider>
+      <PreferencesProvider>
+        <LensProvider>
+          <GameProvider>
+            <Home />
+          </GameProvider>
+        </LensProvider>
+      </PreferencesProvider>
     </AppLoaderProvider>
   </ImageConfigContext.Provider>,
 );

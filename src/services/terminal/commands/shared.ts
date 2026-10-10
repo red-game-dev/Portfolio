@@ -18,6 +18,7 @@ export const GROUPS = {
   ask: "Ask my agent",
   around: "Get around",
   fun: "Just for fun",
+  settings: "Settings",
   terminal: "Terminal",
 } as const;
 

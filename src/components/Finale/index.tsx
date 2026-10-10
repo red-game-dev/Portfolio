@@ -27,6 +27,7 @@ import { fill, formatDuration, formatLocalTime } from "@/packages/text/format";
 import { focusRing, noAnimationWhenReduced } from "@/styles/mixins";
 import { FinaleContent, FinaleLaunch, FinaleLaunchSite, FinaleRank } from "@/types/game";
 import { DocumentLink } from "@/types/portfolio";
+import { PreferencesContent } from "@/types/preferences";
 
 interface FinaleProps {
   content: FinaleContent;
@@ -38,6 +39,8 @@ interface FinaleProps {
   email: string;
   linkedInUsername: string;
   cvUrl: string;
+  // The reader's settings, offered in the voyage's hangar.
+  settings: PreferencesContent;
 }
 
 const shake = keyframes`
@@ -212,7 +215,9 @@ const statusOf = (launch: FinaleLaunch, { status, passed, countdown, milestone }
 // The end of the run, and the page lifting off: the visitor launches out of the game world past every zone
 // they crossed, their run lights up as stars on the way, and the journey closes on where I want to go next,
 // with one last quest: get in touch.
-export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, bossCount, duelCount, email, linkedInUsername, cvUrl, fullResume }: FinaleProps) => {
+export const Finale: FC<FinaleProps> = ({
+  content, zoneLabels, contactTime, bossCount, duelCount, email, linkedInUsername, cvUrl, fullResume, settings,
+}: FinaleProps) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -331,6 +336,7 @@ export const Finale: FC<FinaleProps> = ({ content, zoneLabels, contactTime, boss
             universes={CROSSED_ZONES.map((zone) => zoneLabels[zone])}
             best={voyageBest}
             homePad={site?.name ?? null}
+            settings={settings}
             onRecord={recordVoyage}
             onClose={() => setIsVoyaging(false)}
           />

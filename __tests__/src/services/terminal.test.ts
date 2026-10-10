@@ -1,5 +1,6 @@
 import { SECTION_IDS } from "@/config/sections";
 import { portfolioData } from "@/data/resume";
+import { preferences } from "@/services/preferences/store";
 import { GROUPS } from "@/services/terminal/commands/shared";
 import { createPortfolioCommands, createPortfolioTerminal } from "@/services/terminal/portfolioTerminal";
 
@@ -137,7 +138,27 @@ describe("portfolio commands", () => {
   test("help lists the groups in their order", () => {
     const order = [...new Set(commands.map((command) => command.group))];
 
-    expect(order).toEqual([GROUPS.red, GROUPS.ask, GROUPS.me, GROUPS.work, GROUPS.contact, GROUPS.around, GROUPS.fun]);
+    expect(order).toEqual([GROUPS.red, GROUPS.ask, GROUPS.me, GROUPS.work, GROUPS.contact, GROUPS.around, GROUPS.fun, GROUPS.settings]);
+  });
+
+  test("settings lists every setting, set changes one in the store the page reads, and reset puts them back", () => {
+    const run = (name: string, args: string[]) => {
+      const command = commands.find((candidate) => candidate.name === name);
+
+      return command ? command.run(args).lines.map((line) => line.text).join("\n") : "";
+    };
+
+    preferences.reset();
+    expect(run("settings", [])).toContain("landing-control: auto");
+    expect(run("set", ["landing-control", "Manual"])).toContain("Landing control is now manual.");
+    expect(preferences.get("landing-control")).toBe("manual");
+    expect(run("set", ["landing-control", "sideways"])).toContain("Landing control can be auto, manual.");
+    expect(run("set", ["volume", "11"])).toContain("There is no setting called volume.");
+    expect(run("set", [])).toContain("Usage: set <setting> <value>");
+    expect(run("reset", ["landing-control"])).toContain("Landing control is back to auto.");
+    run("set", ["landing-time", "real"]);
+    expect(run("reset", [])).toContain("Every setting is back to its default.");
+    expect(preferences.get("landing-time")).toBe("compressed");
   });
 });
 

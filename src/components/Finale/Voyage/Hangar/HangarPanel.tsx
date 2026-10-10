@@ -40,14 +40,17 @@ import {
   Tabs,
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
 import { BarFill, IconButton } from "@/components/Finale/Voyage/VoyageDialog.styles";
+import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
 import { Tab, TabList } from "@/components/Tabs";
 import useTabs from "@/hooks/useTabs";
 import type { CareerView, CodexCategory, EconomyView, ShipStats, VoyageAction } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
+import { PreferencesContent } from "@/types/preferences";
 
 interface HangarPanelProps {
   content: FinaleVoyage;
+  settings: PreferencesContent;
   economy: EconomyView;
   career: CareerView | null;
   isFlying: boolean;
@@ -62,12 +65,12 @@ const STAT_KEYS: ReadonlyArray<keyof ShipStats> = ["hull", "shields", "fuel", "t
 // The hangar: the ship, what it can do and what the next level needs (upgraded in one click); the hold, with
 // each thing's use and worth; the plans, made from the hold; and the ledger of every coin earned and spent. Its
 // own records, the Void Shard trade and the reset sit beside them. Opening it focuses its heading.
-export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, career, isFlying, onAct, onClose }: HangarPanelProps) => {
+export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, isFlying, onAct, onClose }: HangarPanelProps) => {
   const copy = content.economy;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const careerCopy = content.career;
-  const tabs = [careerCopy.tabs.pilot, copy.tabs.ship, copy.tabs.hold, copy.tabs.plans, copy.tabs.ledger, careerCopy.tabs.codex];
+  const tabs = [careerCopy.tabs.pilot, copy.tabs.ship, copy.tabs.hold, copy.tabs.plans, copy.tabs.ledger, careerCopy.tabs.codex, settings.title];
   const { active, listProps, tabProps, panelProps } = useTabs({ count: tabs.length });
   const { next, stats } = economy;
 
@@ -358,6 +361,9 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, economy, career, is
               })}
             </>
           )}
+        </TabPanel>
+        <TabPanel {...panelProps(6)}>
+          <SettingsPanel copy={settings} />
         </TabPanel>
       </Body>
       <Footer>

@@ -5,6 +5,7 @@ import { domainsContent } from "@/data/portfolio/domains";
 import { gameContent } from "@/data/portfolio/game";
 import { historyContent } from "@/data/portfolio/history";
 import { navigationContent } from "@/data/portfolio/navigation";
+import { preferencesContent } from "@/data/portfolio/preferences";
 import { profileContent } from "@/data/portfolio/profile";
 import { projectsContent } from "@/data/portfolio/projects";
 import { rosterContent } from "@/data/portfolio/roster";
@@ -35,4 +36,5 @@ export const portfolioData: PortfolioData = {
   ...aiUsageContent,
   ...navigationContent,
   ...cvDocumentContent,
+  ...preferencesContent,
 };

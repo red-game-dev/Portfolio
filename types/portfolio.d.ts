@@ -22,6 +22,7 @@ import { ServiceActions, ServiceGroup } from "@/types/services";
 import { SkillArea, SkillLists } from "@/types/skills";
 import { TerminalContent } from "@/types/terminal";
 import { TimelapseContent } from "@/types/timelapse";
+import { PreferencesContent } from "@/types/preferences";
 
 // A document the site offers, and what its link says.
 export interface DocumentLink {
@@ -70,6 +71,7 @@ export interface PortfolioData {
   // Every startup I founded or co-founded, listed in History or not.
   foundedTotal: number;
   menu: MenuContent;
+  preferences: PreferencesContent;
   expertise: ExpertiseContent;
   codeReview: CodeReviewContent;
   web3: Web3Content;

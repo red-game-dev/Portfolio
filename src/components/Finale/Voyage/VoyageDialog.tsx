@@ -92,6 +92,7 @@ import useModalDialog from "@/hooks/useModalDialog";
 import type { Frame, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
 import { fill, formatHours, formatLatLon, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
+import { PreferencesContent } from "@/types/preferences";
 
 interface VoyageDialogProps {
   content: FinaleVoyage;
@@ -100,6 +101,7 @@ interface VoyageDialogProps {
   best: number;
   // The pad the finale's launch flew from, where a new rocket waits when the crew comes home.
   homePad: string | null;
+  settings: PreferencesContent;
   onRecord: (score: number) => void;
   onClose: () => void;
 }
@@ -120,7 +122,7 @@ const SOUND = 0.995;
 // text everything it shows: where the ship is, its hull, shields and fuel as MMO bars, any system that is hurt,
 // the score, the live telemetry, and each moment said once. A card starts, pauses and ends a run; a button opens
 // the map. Opens itself on mount.
-export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, homePad, onRecord, onClose }: VoyageDialogProps) => {
+export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, homePad, settings, onRecord, onClose }: VoyageDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLCanvasElement>(null);
@@ -500,7 +502,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       {message && status === "flying" && !isPhoto && <Message key={message.id} role="status">{message.text}</Message>}
       {economy && isHangarOpen && (
-        <HangarPanel content={content} economy={economy} career={career} isFlying={status === "flying"} onAct={act} onClose={() => setHangar(false)} />
+        <HangarPanel
+          content={content}
+          settings={settings}
+          economy={economy}
+          career={career}
+          isFlying={status === "flying"}
+          onAct={act}
+          onClose={() => setHangar(false)}
+        />
       )}
       {(status !== "flying" || isPaused) && !isHangarOpen && !isPhoto && (
         <Overlay>

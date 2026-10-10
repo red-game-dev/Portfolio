@@ -6,6 +6,7 @@ import { createAskCommands } from "@/services/terminal/commands/ask";
 import { createContactCommands } from "@/services/terminal/commands/contact";
 import { createFunCommands } from "@/services/terminal/commands/fun";
 import { createMeCommands } from "@/services/terminal/commands/me";
+import { createSettingsCommands } from "@/services/terminal/commands/settings";
 import { createCommandContext, GROUPS } from "@/services/terminal/commands/shared";
 import { createWorkCommands } from "@/services/terminal/commands/work";
 import { createRedCommand } from "@/services/terminal/redCommand";
@@ -22,6 +23,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     ...createContactCommands(context),
     ...createAroundCommands(context),
     ...createFunCommands(context),
+    ...createSettingsCommands(context),
   ];
 
   commands.forEach((command) => context.commandsByName.set(command.name, command));

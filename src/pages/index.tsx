@@ -147,6 +147,7 @@ export default function Home() {
           email={portfolioData.details.email}
           linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
           cvUrl={portfolioData.cv}
+          settings={portfolioData.preferences}
         />
         <Timelapse intro={portfolioData.sections.timelapse} content={portfolioData.timelapse} />
       </BlueprintLabelsProvider>

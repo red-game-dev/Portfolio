@@ -158,7 +158,10 @@ export interface Gate {
 }
 
 // A black hole: its gravitational parameter, its horizon, and whether it is the one past Pluto.
+// A black hole: its mass in Suns, its pull, and its event horizon (world units), which grows in step with its mass
+// as a real one's does.
 export interface Hole {
+  mass: number;
   mu: number;
   horizon: number;
   isSingularity: boolean;

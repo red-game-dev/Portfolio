@@ -2,6 +2,7 @@ import type { System } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
 
+import { massOfPull, pullOfMass } from "../utils/stars";
 import { VoyageContext } from "./context";
 import { enterSystem } from "./gates";
 import { placeBody, shipOf } from "./queries";
@@ -29,6 +30,7 @@ export class PhaseSystem implements System<VoyageContext> {
       world.stores.hole.values.forEach((hole) => {
         if (hole.isSingularity) {
           hole.mu = config.holes.singularityMu * (1 + seconds * config.holes.singularityGrowth);
+          hole.mass = massOfPull(config.layout, hole.mu);
         }
       });
     }
@@ -92,10 +94,13 @@ export class PhaseSystem implements System<VoyageContext> {
       const distance = randomBetween(random, config.holes.spawnDistance[0], config.holes.spawnDistance[1]);
       const x = parts.body.x + Math.cos(angle) * distance;
       const y = parts.body.y + Math.sin(angle) * distance;
+      // Lighter ones are commoner: drawn evenly in the logarithm of mass.
+      const mass = Math.exp(randomBetween(random, Math.log(config.holes.masses[0]), Math.log(config.holes.masses[1])));
+      const horizon = config.holes.horizonPerSun * mass;
       const hole = world.spawn();
 
-      world.stores.body.set(hole, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius: config.holes.horizon, mass: 0 });
-      world.stores.hole.set(hole, { mu: config.holes.mu, horizon: config.holes.horizon, isSingularity: false });
+      world.stores.body.set(hole, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius: horizon, mass: 0 });
+      world.stores.hole.set(hole, { mass, mu: pullOfMass(config.layout, mass), horizon, isSingularity: false });
     }
   }
 }

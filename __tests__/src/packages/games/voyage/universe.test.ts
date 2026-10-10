@@ -11,8 +11,10 @@ import {
   impactOutcome,
   landingWorldOf,
   leadDirection,
+  massOfPull,
   NO_INPUT,
   PhenomenonSpec,
+  pullOfMass,
   resolveVoyageConfig,
   SolarSystemSource,
   SystemService,
@@ -466,6 +468,22 @@ describe("combat", () => {
     expect(state.system.bodies.every((body) => body.id.startsWith(`u5.${to}-`))).toBe(true);
   });
 
+  test("stranded with no fuel out in the universes, nobody is coming: the run ends", () => {
+    const simulation = create();
+    const stranded: Array<{ isOver: boolean; isRescue: boolean }> = [];
+
+    simulation.events.on("stranded", ({ isOver, isRescue }) => stranded.push({ isOver, isRescue }));
+    intoUniverse(simulation);
+    partsOf(simulation).health.hull = partsOf(simulation).health.maxHull;
+    Object.assign(simulation.world.stores.ship.get(simulation.state.ship) ?? {}, { fuel: 0 });
+    simulation.step(1000);
+    expect(simulation.state.status).toBe("flying");
+    simulation.step(defaults.descent.strandedSeconds * 1000);
+
+    expect(stranded).toEqual([{ isOver: false, isRescue: false }, { isOver: true, isRescue: false }]);
+    expect(simulation.state.status).toBe("over");
+  });
+
   test("a shot led at a moving target meets it", () => {
     const from = { x: 0, y: 0, vx: 0, vy: 0, prevX: 0, prevY: 0, radius: 0.1, mass: 1 };
     const to = { x: 5, y: 0, vx: 0, vy: 1, prevX: 5, prevY: 0, radius: 0.1, mass: 1 };
@@ -644,6 +662,80 @@ describe("rocks headed for worlds", () => {
   });
 });
 
+describe("black holes", () => {
+  // The universe's first hole, made a given mass, with the ship set a given distance outside its horizon, at rest.
+  const nearHole = (mass: number, outside: number) => {
+    const simulation = create();
+
+    intoUniverse(simulation);
+
+    const { stores } = simulation.world;
+    const [entity] = stores.hole.entities;
+    const hole = stores.hole.get(entity);
+    const at = stores.body.get(entity);
+
+    if (!hole || !at) {
+      throw new Error("expected a black hole");
+    }
+
+    Object.assign(hole, { mass, mu: pullOfMass(defaults.layout, mass), horizon: defaults.holes.horizonPerSun * mass });
+    // Only this hole: the other is sent far off.
+    stores.hole.entities.slice(1).forEach((other) => Object.assign(stores.body.get(other) ?? {}, { x: 1e5, y: 1e5, prevX: 1e5, prevY: 1e5 }));
+    place(simulation, at.x + hole.horizon + outside, at.y);
+    partsOf(simulation).health.hull = partsOf(simulation).health.maxHull;
+
+    return { simulation, hole, at };
+  };
+
+  test("a universe's black holes weigh as stellar black holes do, pull as stars of their mass, and their horizons grow with them", () => {
+    const simulation = create();
+
+    intoUniverse(simulation);
+    simulation.world.stores.hole.values.forEach((hole) => {
+      expect(hole.mass).toBeGreaterThanOrEqual(defaults.holes.masses[0]);
+      expect(hole.mass).toBeLessThanOrEqual(defaults.holes.masses[1]);
+      expect(hole.mu).toBeCloseTo(pullOfMass(defaults.layout, hole.mass), 10);
+      expect(hole.horizon).toBeCloseTo(defaults.holes.horizonPerSun * hole.mass, 10);
+    });
+    // Ten Suns pull as hard as ten Suns, softened as a star's pull is.
+    expect(massOfPull(defaults.layout, pullOfMass(defaults.layout, 10))).toBeCloseTo(10, 8);
+  });
+
+  test("felt from far off: within a few units of a heavy black hole its pull beats the engines, and a full burn away does not get out", () => {
+    const { simulation, at } = nearHole(30, 4);
+    const ship = simulation.world.stores.ship.get(simulation.state.ship);
+
+    if (!ship) {
+      throw new Error("expected a ship");
+    }
+
+    ship.angle = 0;
+
+    for (let waited = 0; !simulation.state.capture && simulation.state.status === "flying" && waited < 20000; waited += 100) {
+      simulation.step(100, { ...NO_INPUT, thrust: 1 });
+      ship.angle = Math.atan2(partsOf(simulation).body.y - at.y, partsOf(simulation).body.x - at.x);
+    }
+
+    expect(simulation.state.capture ?? simulation.state.status === "over").toBeTruthy();
+  });
+
+  test("tides tear at a ship close in, far harder by a light black hole than a heavy one at the same few horizons out", () => {
+    // Five horizons out from each: the heavy one's tides are within what the hull takes, the light one's tear.
+    const light = nearHole(5, 5 * defaults.holes.horizonPerSun * 5);
+    const heavy = nearHole(30, 30 * defaults.holes.horizonPerSun * 5);
+
+    light.simulation.step(50);
+    heavy.simulation.step(50);
+
+    const lost = (run: typeof light) => partsOf(run.simulation).health.maxHull + partsOf(run.simulation).health.maxShields -
+      partsOf(run.simulation).health.hull - partsOf(run.simulation).health.shields;
+
+    expect(light.simulation.state.readings.tidal).toBeGreaterThan(heavy.simulation.state.readings.tidal * 10);
+    expect(lost(light)).toBeGreaterThan(0);
+    expect(lost(heavy)).toBe(0);
+  });
+});
+
 describe("strange things", () => {
   test("a pulsar's beam drains the shields of a ship it crosses", () => {
     const simulation = create();
@@ -670,12 +762,17 @@ describe("strange things", () => {
     withPhenomenon(simulation, { kind: "darkForest" });
     simulation.events.on("heard", ({ seconds }) => heard.push(seconds));
     simulation.events.on("fired", ({ kind }) => strikes.push(kind));
-    // Engines at full burn are loud; long enough, and they are heard.
+    // Engines at full burn are loud; long enough, and they are heard. Then quiet, it strikes once its warning is up.
     simulation.setAutoFire(false);
-    simulation.step(9000, { ...NO_INPUT, thrust: 1 });
-    simulation.step(1800, NO_INPUT);
 
-    expect(heard.length).toBe(1);
+    for (let waited = 0; heard.length === 0 && waited < 20000; waited += 100) {
+      simulation.step(100, { ...NO_INPUT, thrust: 1 });
+    }
+
+    expect(heard).toHaveLength(1);
+    simulation.step(heard[0] * 1000 + 300, NO_INPUT);
+
+    expect(heard).toHaveLength(1);
     expect(strikes).toContain("photoid");
   });
 

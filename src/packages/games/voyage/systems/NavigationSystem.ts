@@ -2,6 +2,7 @@ import type { System } from "@/packages/games/engine";
 
 import { Waypoint } from "../domain/state";
 import { auForRadius } from "../utils/scale";
+import { massOfPull } from "../utils/stars";
 import { VoyageContext } from "./context";
 import { nextHop } from "./gates";
 import { distanceFromStar, isInSystem, isSolar, shipOf } from "./queries";
@@ -71,7 +72,9 @@ export class NavigationSystem implements System<VoyageContext> {
         const hole = world.spawn();
 
         world.stores.body.set(hole, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius: config.holes.singularityHorizon, mass: 0 });
-        world.stores.hole.set(hole, { mu: config.holes.singularityMu, horizon: config.holes.singularityHorizon, isSingularity: true });
+        world.stores.hole.set(hole, {
+          mass: massOfPull(config.layout, config.holes.singularityMu), mu: config.holes.singularityMu, horizon: config.holes.singularityHorizon, isSingularity: true,
+        });
         state.singularitySince = state.elapsedMs;
         state.phase = "singularity";
         state.phaseMs = 0;

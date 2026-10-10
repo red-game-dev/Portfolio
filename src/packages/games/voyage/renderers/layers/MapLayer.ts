@@ -2,7 +2,9 @@ import type { RenderLayer } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
 
+import { MissionMarks, NO_MISSION_MARKS } from "../../utils/missions";
 import { lerpX, lerpY, VoyageFrame } from "../frame";
+import { MapSeen, MapView, paintHoles, paintHostiles, paintKey, paintMissions, paintPeoples, paintPhenomena, paintRocks } from "../paint/mapMarks";
 import { Surface } from "../Surface";
 import { RenderKit } from "./kit";
 
@@ -36,13 +38,16 @@ const MAP_TOP_ROOM = 150;
 // The way to find things: a small radar in the corner of what is near (and an arrow towards the star), and on
 // request a map of the whole system over the view, every orbit drawn through where each body really is now,
 // the belts, the edge where the black hole waits, the storms on their way out, and the ship with a line to the
-// next stop.
+// next stop. The map also shows what could kill the ship (each black hole with the ring inside which it outpulls
+// the engines, the strange things of a universe, rocks headed for worlds, hostile ships while the sensors work,
+// peoples who fire from the ground) and where the missions send it, with a key to what is shown.
 export class MapLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "map";
   public isOpen = false;
   // Off in photo mode, radar and map both; the radar alone while the ship stands on a world.
   public isHidden = false;
   public hidesRadar = false;
+  public missions: MissionMarks = NO_MISSION_MARKS;
 
   constructor(private readonly kit: RenderKit) {}
 
@@ -184,19 +189,19 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
       });
     }
 
-    world.stores.hole.entities.forEach((entity) => {
-      const hole = world.stores.body.get(entity);
+    const view: MapView = { context, toX, toY, scale, labels };
+    const isSensing = (world.stores.modules.get(state.ship)?.sensors ?? 1) > 0;
+    const seen: MapSeen = { mission: false, pull: false, hostile: false, rock: false, hazard: false };
 
-      if (hole) {
-        context.fillStyle = "#000000";
-        context.strokeStyle = theme.disk;
-        context.lineWidth = 2;
-        context.beginPath();
-        context.arc(toX(hole.x), toY(hole.y), 5, 0, TAU);
-        context.fill();
-        context.stroke();
-      }
-    });
+    if (inSystem) {
+      paintPeoples(view, frame);
+      seen.hazard = paintPhenomena(view, frame);
+      seen.rock = isSensing && paintRocks(view, frame);
+    }
+
+    seen.pull = paintHoles(view, frame, this.missions.wayOn);
+    seen.hostile = isSensing && paintHostiles(view, frame, this.missions.hostiles);
+    seen.mission = paintMissions(view, frame, this.missions);
 
     if (state.waypoint) {
       context.setLineDash([3, 5]);
@@ -222,6 +227,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
       }
     });
     this.drawNetwork(frame);
+    paintKey(view, front.width, front.height, seen);
   }
 
   // A maze universe's web as far as it is known, in a corner of the map: every system been to and those its gates

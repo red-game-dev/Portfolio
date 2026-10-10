@@ -44,7 +44,8 @@ export interface FlightConfig {
 // takes against the others stays true, but never longer than `longest` seconds (Huygens took two and a half hours).
 // Down, the ship settles on its legs for `settleSeconds`, so a burn held through touchdown does not lift it straight
 // off again. Home, the crew is picked up over `recoverySeconds`, and the new rocket stands on the pad `recoveryDays`
-// later. On a
+// later. With no fuel to leave where it is for `strandedSeconds`, a ship in our solar system is rescued (the crew home
+// in the days a transfer orbit takes, never fewer than `rescueFewestDays`) and one in the universes is lost. On a
 // world whose people want no visitors, their defences open fire below `fireAltitude` (m) and keep firing while the
 // ship stays, `groundFire` of damage a second: enough that staying is fatal, not so much that a pilot who takes the
 // last 150 m by hand cannot land a sound ship.
@@ -54,6 +55,8 @@ export interface DescentConfig {
   settleSeconds: number;
   recoverySeconds: number;
   recoveryDays: number;
+  strandedSeconds: number;
+  rescueFewestDays: number;
   fireAltitude: number;
   groundFire: number;
 }
@@ -179,9 +182,13 @@ export interface HoleConfig {
   // How fast the singularity's pull grows once Pluto is behind, as a share of itself per second.
   singularityGrowth: number;
   singularityHorizon: number;
-  mu: number;
-  horizon: number;
-  // Black holes kept round the ship in each universe, and how far away they appear.
+  // A universe's black holes weigh as the stellar black holes found so far do, from five to thirty Suns (Cygnus X-1
+  // is 21), more of them light than heavy; each pulls as a star of its mass, and its horizon is this many world
+  // units for each Sun, in proportion as a real horizon is.
+  masses: [number, number];
+  horizonPerSun: number;
+  // Black holes kept round the ship in each universe, and how far away they appear: beyond where a heavy one's pull
+  // is past the engines.
   perUniverse: number;
   spawnDistance: [number, number];
   captureMs: number;
@@ -265,7 +272,9 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     maxSpeed: 3.2,
   },
   flight: { safeLanding: 0.42, crash: 520, drag: 0.8, crush: 600, skim: 12, impact: 70 },
-  descent: { speedUp: 40, longest: 15, settleSeconds: 1.2, recoverySeconds: 6, recoveryDays: 3, fireAltitude: 8000, groundFire: 15 },
+  descent: {
+    speedUp: 40, longest: 15, settleSeconds: 1.2, recoverySeconds: 6, recoveryDays: 3, strandedSeconds: 15, rescueFewestDays: 3, fireAltitude: 8000, groundFire: 15,
+  },
   thermal: {
     timeConstant: 3,
     entry: 120,
@@ -310,10 +319,10 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     singularityMu: 4,
     singularityGrowth: 1.2,
     singularityHorizon: 0.42,
-    mu: 1.6,
-    horizon: 0.24,
+    masses: [5, 30],
+    horizonPerSun: 0.024,
     perUniverse: 2,
-    spawnDistance: [6, 11],
+    spawnDistance: [16, 26],
     captureMs: 2400,
     lostMs: 3200,
     jumpMs: 1600,

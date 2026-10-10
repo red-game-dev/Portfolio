@@ -12,6 +12,7 @@ import { VoyageEvents } from "../domain/events";
 import { GhostRun } from "../domain/ghost";
 import { VoyageState } from "../domain/state";
 import { HomePad, SurfaceInfo } from "../domain/surface";
+import { MissionMarks } from "../utils/missions";
 import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
@@ -55,6 +56,8 @@ export interface VoyageRenderer {
   setPhoto(isOn: boolean): void;
   // The pad at home a new rocket stands on once a crew is back.
   setHome(pad: HomePad | null): void;
+  // Where the missions on the board send the pilot, marked on the map.
+  setMissions(marks: MissionMarks): void;
   dispose(): void;
 }
 
@@ -162,6 +165,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
   public setMap(isOpen: boolean): void {
     this.map.isOpen = isOpen;
+  }
+
+  public setMissions(marks: MissionMarks): void {
+    this.map.missions = marks;
   }
 
   public setQuality(level: number): void {

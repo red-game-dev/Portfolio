@@ -97,6 +97,8 @@ export interface VoyageSnapshot {
   descent: DescentView | null;
   // A crew coming home: being picked up, or at the pad days later.
   homecoming: { stage: "recovery" | "pad"; days: number; isSea: boolean } | null;
+  // With no fuel to leave: the whole seconds before a rescue (in our solar system) or the end of the run.
+  stranded: { secondsLeft: number; isRescue: boolean } | null;
   // Who lives on the world the ship is coming down to or stands on, and how they meet visitors.
   people: { name: string; disposition: Disposition } | null;
   // A maze universe: the system the ship is in, how many there are and have been reached, and whether this one holds

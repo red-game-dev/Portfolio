@@ -448,7 +448,7 @@ describe("the way out and beyond", () => {
     place(simulation, first.x, first.y);
     simulation.step(defaults.holes.captureMs + defaults.holes.lostMs + 300);
 
-    while (universes.length < 6) {
+    for (let attempt = 0; universes.length < 6 && attempt < 12; attempt += 1) {
       expect(simulation.world.stores.hole.size).toBe(defaults.holes.perUniverse);
 
       const hole = simulation.world.stores.hole.entities[0];
@@ -461,6 +461,7 @@ describe("the way out and beyond", () => {
       simulation.step(defaults.holes.captureMs + defaults.holes.jumpMs + 300);
     }
 
+    expect(universes).toHaveLength(6);
     universes.slice(1).forEach((universe, index) => expect(universe).not.toBe(universes[index]));
     expect(new Set(universes.slice(0, defaults.universes)).size).toBe(defaults.universes);
   });

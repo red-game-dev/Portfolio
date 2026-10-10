@@ -37,6 +37,7 @@ import { ProjectileSystem } from "../systems/ProjectileSystem";
 import { shipOf } from "../systems/queries";
 import { SalvageSystem } from "../systems/SalvageSystem";
 import { SpawnSystem } from "../systems/SpawnSystem";
+import { StrandedSystem } from "../systems/StrandedSystem";
 import { SurfaceSystem } from "../systems/SurfaceSystem";
 import { ThermalSystem } from "../systems/ThermalSystem";
 import { TrafficSystem } from "../systems/TrafficSystem";
@@ -127,6 +128,7 @@ export class VoyageSimulation {
       new SurfaceSystem(),
       new DescentSystem(),
       new GateSystem(),
+      new StrandedSystem(),
       new CollisionSystem(),
       new SalvageSystem(),
       new ProjectileSystem(),
@@ -466,6 +468,7 @@ export class VoyageSimulation {
       nextWreckAt: null,
       descent: null,
       homecoming: null,
+      stranded: null,
       view: this.context?.state.view ?? { halfWidth: 2, halfHeight: 2 },
     };
   }

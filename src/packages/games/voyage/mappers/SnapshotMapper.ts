@@ -59,6 +59,12 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       surface: null,
       descent: this.descent(state),
       homecoming: state.homecoming ? { stage: state.homecoming.stage, days: state.homecoming.days, isSea: state.homecoming.isSea } : null,
+      stranded: state.stranded
+        ? {
+          secondsLeft: Math.max(0, Math.ceil(this.config.descent.strandedSeconds - (state.elapsedMs - state.stranded.since) / 1000)),
+          isRescue: state.phase === "solar" && this.config.isSolarSafe,
+        }
+        : null,
       people: this.people(state, ship?.landedOn ?? null),
       maze: state.network && state.phase === "universe"
         ? { system: state.network.nodes[state.node].name, systems: state.network.nodes.length, explored: state.explored.size, isExit: state.node === state.network.exit }

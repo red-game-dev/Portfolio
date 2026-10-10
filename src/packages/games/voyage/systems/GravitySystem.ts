@@ -1,9 +1,14 @@
 import type { System } from "@/packages/games/engine";
+import { tidalAcceleration } from "@/packages/physics/newtonian";
 
 import { SystemStar } from "../domain/content";
 import { auForRadius } from "../utils/scale";
 import { VoyageContext } from "./context";
+import { tear } from "./damage";
 import { isInSystem, shipOf } from "./queries";
+
+// The least distance outside a black hole's horizon its pull is told at, as a share of the horizon.
+const HORIZON_FLOOR = 0.05;
 
 const KM_PER_AU = 149597870.7;
 
@@ -31,6 +36,7 @@ export class GravitySystem implements System<VoyageContext> {
 
     sources.length = 0;
     sourceIds.length = 0;
+    state.readings.tidal = 0;
 
     if (inSystem) {
       sources.push({ x: star.x, y: star.y, mu: star.mu, radius: star.radius });
@@ -50,7 +56,7 @@ export class GravitySystem implements System<VoyageContext> {
       const hole = world.stores.hole.values[index];
 
       if (body) {
-        sources.push({ x: body.x, y: body.y, mu: hole.mu, radius: hole.horizon * 0.5 });
+        sources.push({ x: body.x, y: body.y, mu: hole.mu, radius: hole.horizon * HORIZON_FLOOR, horizon: hole.horizon });
         sourceIds.push(hole.isSingularity ? "singularity" : "hole");
       }
     });
@@ -91,13 +97,20 @@ export class GravitySystem implements System<VoyageContext> {
 
     state.readings.gravity = !source ? 0 : pulling
       ? starPull(context, pulling, sample.dominantDistance)
-      : source.mu / Math.max(source.radius, sample.dominantDistance) ** 2 / config.layout.gravityScale;
+      : source.mu / Math.max(source.radius, sample.dominantDistance - (source.horizon ?? 0)) ** 2 / config.layout.gravityScale;
 
+    // Each black hole slows clocks, and close in its tides stretch the ship.
     world.stores.hole.entities.forEach((entity, index) => {
-      const hole = world.stores.body.get(entity);
+      const at = world.stores.body.get(entity);
+      const hole = world.stores.hole.values[index];
 
-      if (hole) {
-        state.readings.holeRatio = Math.min(state.readings.holeRatio, Math.hypot(hole.x - body.x, hole.y - body.y) / world.stores.hole.values[index].horizon);
+      if (at) {
+        const distance = Math.hypot(at.x - body.x, at.y - body.y);
+        const tidal = tidalAcceleration(hole.mu, Math.max(hole.horizon * HORIZON_FLOOR, distance - hole.horizon), body.radius * 2);
+
+        state.readings.holeRatio = Math.min(state.readings.holeRatio, distance / hole.horizon);
+        state.readings.tidal = Math.max(state.readings.tidal, tidal);
+        tear(context, tidal, Math.atan2(at.y - body.y, at.x - body.x), dt);
       }
     });
   }

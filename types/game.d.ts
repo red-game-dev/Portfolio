@@ -370,8 +370,23 @@ export interface FinaleVoyage {
   // "{body}" is replaced.
   landed: string;
   tookOff: string;
+  // The map's marks ("{mass}" is a black hole's in Suns) and its key.
+  map: { mission: string; holeMass: string; keyMission: string; keyPull: string; keyHostile: string; keyRock: string; keyHazard: string };
   // Home safely, met and given a new rocket.
   recovered: string;
+  // No fuel to leave ("{body}", "{seconds}", "{days}"): a rescue on its way in our solar system or the run ending in
+  // the universes, each on a world or adrift; the run over; rescued; and the countdown while it runs.
+  stranded: {
+    rescueBegun: string;
+    rescueBegunAdrift: string;
+    lostBegun: string;
+    lostBegunAdrift: string;
+    over: string;
+    rescued: string;
+    rescuedAdrift: string;
+    rescueIn: string;
+    lostIn: string;
+  };
   // After a run ends: what is kept for the next one.
   kept: string;
   emergency: string;

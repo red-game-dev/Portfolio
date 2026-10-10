@@ -9,6 +9,9 @@ import { ItemStack } from "./loot";
 export type VoyageNotice =
   | { kind: "tookOff" | "emergency"; body: string }
   | { kind: "recovered"; body: string; days: number }
+  // No fuel to leave (a world's name, or null adrift): the countdown begun, or over and the run with it; and rescued.
+  | { kind: "stranded"; body: string | null; seconds: number; isRescue: boolean; isOver: boolean }
+  | { kind: "rescued"; from: string | null; days: number }
   // Down in one piece at a speed (m/s), a phase of the way down beginning, or a touchdown too hard for the craft.
   | { kind: "landed"; body: string; speed: number | null }
   | { kind: "descent"; body: string; phase: LandingPhase }

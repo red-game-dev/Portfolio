@@ -100,3 +100,19 @@ export const applyDamage = (context: VoyageContext, amount: number, worldAngle: 
     kind,
   });
 };
+
+// The most tidal stretch (world units, 2 mu L / r^3 across the ship's length) a hull takes, how hard it tears past
+// it for each multiple over, and the hardest it tears (hull a second). Near a dead star, or a black hole: the lighter
+// the hole, the further out it tears, since its pull changes more sharply across a ship's length at the same few
+// horizons out, as real stellar black holes tear apart what falls in before it reaches them. The cap is what lets
+// a ship plunge through to the universe beyond with its hull in tatters, while one that lingers close is torn up.
+export const TIDAL_LIMIT = 0.5;
+const TIDAL_TEAR = 160;
+const HARDEST_TEAR = 320;
+
+// Tides past what the hull takes tear at it, from the side facing what pulls.
+export const tear = (context: VoyageContext, tidal: number, towards: number, dt: number): void => {
+  if (tidal > TIDAL_LIMIT) {
+    applyDamage(context, Math.min(HARDEST_TEAR, TIDAL_TEAR * (tidal / TIDAL_LIMIT - 1)) * dt, towards, "tidal");
+  }
+};

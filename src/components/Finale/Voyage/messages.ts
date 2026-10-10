@@ -20,6 +20,27 @@ const sunsPhrase = (content: FinaleVoyage, star: string | null, companions: read
   return third ? fill(content.starTrio, { first, second, third }) : second ? fill(content.starPair, { first, second }) : first;
 };
 
+// No fuel to leave: a rescue on its way, the run's end coming (each on a world or adrift), or the run over.
+const strandedNotice = (content: FinaleVoyage, notice: Extract<VoyageNotice, { kind: "stranded" }>): string => {
+  const copy = content.stranded;
+
+  if (notice.isOver) {
+    return copy.over;
+  }
+
+  const values = { body: notice.body === null ? "" : placeName(content, notice.body), seconds: notice.seconds };
+
+  if (notice.isRescue) {
+    return fill(notice.body === null ? copy.rescueBegunAdrift : copy.rescueBegun, values);
+  }
+
+  return fill(notice.body === null ? copy.lostBegunAdrift : copy.lostBegun, values);
+};
+
+// While stranded, how long is left: until a rescue, or until the run ends unless fuel is loaded.
+export const strandedLine = (content: FinaleVoyage, snapshot: VoyageSnapshot): string | null =>
+  (snapshot.stranded ? fill(snapshot.stranded.isRescue ? content.stranded.rescueIn : content.stranded.lostIn, { seconds: snapshot.stranded.secondsLeft }) : null);
+
 // What the voyage says aloud as it changes: each stop passed, the black hole, being lost, and where the ship
 // comes out. Null when nothing new happened.
 export const voyageMessage = (content: FinaleVoyage, next: VoyageSnapshot, previous: VoyageSnapshot | null, universes: string[]): string | null => {
@@ -118,6 +139,12 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
       return notice.isFired ? content.burst : fill(content.burstWarning, { seconds: Math.round(notice.seconds) });
     case "recovered":
       return fill(content.recovered, { days: notice.days });
+    case "stranded":
+      return strandedNotice(content, notice);
+    case "rescued":
+      return notice.from === null
+        ? fill(content.stranded.rescuedAdrift, { days: notice.days })
+        : fill(content.stranded.rescued, { body: placeName(content, notice.from), days: notice.days });
     case "landed":
       return notice.speed === null
         ? fill(content.landed, { body: placeName(content, notice.body) })

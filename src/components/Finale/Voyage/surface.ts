@@ -1,4 +1,4 @@
-import { placeName } from "@/components/Finale/Voyage/messages";
+import { placeName, strandedLine } from "@/components/Finale/Voyage/messages";
 import type { VoyageSnapshot } from "@/packages/games/voyage";
 import { fill, formatHours, formatLatLon } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
@@ -49,10 +49,16 @@ export const surfaceLines = (content: FinaleVoyage, snapshot: VoyageSnapshot, pa
   return lines;
 };
 
-// What the pilot can do next: wait while the crew is picked up and a rocket readied, launch the new one, or lift off.
+// What the pilot can do next: wait while the crew is picked up and a rocket readied, launch the new one, lift off,
+// or, with no fuel to lift off, how long until a rescue or the end.
 export const surfaceHint = (content: FinaleVoyage, snapshot: VoyageSnapshot, pad: string | null): string => {
   const { surface, homecoming } = snapshot;
   const copy = content.surface;
+  const stranded = strandedLine(content, snapshot);
+
+  if (stranded) {
+    return stranded;
+  }
 
   if (surface?.isHome && homecoming?.stage === "recovery") {
     return pad ? fill(copy.readyingAt, { pad }) : copy.readying;

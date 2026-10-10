@@ -1,5 +1,25 @@
+import { muForSurfaceGravity } from "@/packages/physics/newtonian";
+
 import { StarSystem, SystemStar } from "../domain/content";
+import type { SystemLayout } from "../mappers/SystemMapper";
 import { auForRadius } from "./scale";
+
+// A star's pull grows as its mass to this power, softened so a supergiant's, or a black hole of many Suns, does not
+// hold a ship for ever.
+const MASS_PULL = 0.6;
+const SUN_KM = 695700;
+const EARTH_KM = 6371;
+
+// The Sun's pull as the layout draws it: its surface pull at its drawn radius.
+const sunPull = (layout: SystemLayout): number =>
+  muForSurfaceGravity(layout.starSurfaceAcceleration, layout.earthRadius * (SUN_KM / EARTH_KM) ** layout.radiusExponent);
+
+// The pull (mu, world units) of a mass of that many Suns, a star or a black hole alike: from afar a black hole pulls
+// just as a star of its mass would.
+export const pullOfMass = (layout: SystemLayout, mass: number): number => sunPull(layout) * mass ** MASS_PULL;
+
+// The mass in Suns that pulls that hard.
+export const massOfPull = (layout: SystemLayout, mu: number): number => (mu / sunPull(layout)) ** (1 / MASS_PULL);
 
 // The light falling at a point from every star of a system, written here so asking makes nothing: the total (in
 // Suns at 1 AU), and which star gives the most and how much.

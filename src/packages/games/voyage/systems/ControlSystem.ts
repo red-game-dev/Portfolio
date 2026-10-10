@@ -47,7 +47,8 @@ export class ControlSystem implements System<VoyageContext> {
       // and settling, or a crew home still being picked up: there is nothing yet to lift off in.
       const descent = state.descent;
       const isComingDown = descent !== null && descent.downAt === null && (!descent.isFiredOn || descent.craft.isPilot);
-      const isSettling = descent !== null && descent.downAt !== null && state.elapsedMs - descent.downAt < config.descent.settleSeconds * 1000;
+      const isSettling = descent !== null && descent.downAt !== null && state.homecoming?.stage !== "pad" &&
+        state.elapsedMs - descent.downAt < config.descent.settleSeconds * 1000;
       const isHeld = isComingDown || isSettling || state.homecoming?.stage === "recovery";
 
       if (power > 0.15 && !isHeld) {

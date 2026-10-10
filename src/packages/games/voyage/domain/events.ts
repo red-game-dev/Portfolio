@@ -27,6 +27,11 @@ export interface VoyageEvents {
   hardLanding: { body: string; speed: number; safe: number };
   // Home safely: the crew picked up, and days later a new rocket ready on the pad.
   recovered: { body: string; days: number };
+  // No fuel to leave where it is (on a world, or null adrift): the countdown begun, with how long it has, whether a
+  // rescue ends it or the run does, and when it has run out in the universes, the run over.
+  stranded: { body: string | null; seconds: number; isRescue: boolean; isOver: boolean };
+  // Stranded in our solar system, the crew brought home from there (null adrift) after so many days.
+  rescued: { from: string | null; days: number };
   tookOff: { body: string };
   passing: { stop: string };
   phase: { phase: VoyagePhase; universe: number };

@@ -27,6 +27,7 @@ import { PilotLink } from "../services/PilotLink";
 import { SystemService } from "../services/SystemService";
 import { SolarSystemSource } from "../sources/SolarSystemSource";
 import { dailyEpoch, dailySeed, dayKey } from "../utils/daily";
+import { missionMarks } from "../utils/missions";
 import { GhostRecorder, placeCode } from "./GhostRecorder";
 import { VoyageSimulation } from "./VoyageSimulation";
 
@@ -729,6 +730,8 @@ export class VoyageGame extends FrameLoop {
       tell("hardLanding", ({ body, speed, safe }) => ({ kind: "hardLanding", body: this.nameOf(body), speed, safe })),
       tell("tookOff", ({ body }) => ({ kind: "tookOff", body: this.nameOf(body) })),
       tell("recovered", ({ body, days }) => ({ kind: "recovered", body, days })),
+      tell("stranded", ({ body, seconds, isRescue, isOver }) => ({ kind: "stranded", body: body ? this.nameOf(body) : null, seconds, isRescue, isOver })),
+      tell("rescued", ({ from, days }) => ({ kind: "rescued", from: from ? this.nameOf(from) : null, days })),
       tell("emergency", ({ body }) => ({ kind: "emergency", body })),
       tell("captured", ({ isSingularity }) => ({ kind: "captured", isSingularity })),
       tell("destroyed", () => ({ kind: "destroyed" })),
@@ -759,7 +762,13 @@ export class VoyageGame extends FrameLoop {
     const { career } = this;
 
     if (career) {
-      offs.push(career.subscribe(() => this.onCareer(career.view())));
+      this.renderer.setMissions(missionMarks(career.view().missions));
+      offs.push(career.subscribe(() => {
+        const view = career.view();
+
+        this.renderer.setMissions(missionMarks(view.missions));
+        this.onCareer(view);
+      }));
     }
 
     return () => {

@@ -1,6 +1,5 @@
 import type { System } from "@/packages/games/engine";
 
-import { MODULE_IDS } from "../domain/components";
 import { HOME_WORLD, SystemBody } from "../domain/content";
 import { Descent } from "../domain/state";
 import { FactionSpec } from "../domain/universe";
@@ -8,6 +7,7 @@ import { advanceDescent, isSoftTouchdown, LandingPlan, LandingWorld, planLanding
 import { landingWorldOf } from "../utils/landing";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
+import { DAY_MS, restoreShip } from "./homecoming";
 import { missionTime, placeBodies } from "./orbits";
 import { bodyById, isSolar, shipOf, ShipParts } from "./queries";
 
@@ -15,9 +15,6 @@ import { bodyById, isSolar, shipOf, ShipParts } from "./queries";
 // down over it, and never more than this.
 const HARD_SHARE = 1 / 3;
 const HARDEST = 1.5;
-
-// A day, in ms.
-const DAY_MS = 86400000;
 
 // The way down. Once the ship touches a world gently enough to land, it comes down the way that world calls for
 // (see the landing package), stepped through the real physics and played as many times faster than life as the
@@ -123,7 +120,7 @@ export class DescentSystem implements System<VoyageContext> {
       const people = this.peopleOf(context, body);
 
       if (people && (people.disposition === "peaceful" || people.disposition === "neutral")) {
-        this.restore(context, parts);
+        restoreShip(context, parts);
         events.emit("hosted", { body, faction: people.name });
       }
 
@@ -171,16 +168,6 @@ export class DescentSystem implements System<VoyageContext> {
     applyDamage(context, config.descent.groundFire * dt, offset ? Math.atan2(-offset.y, -offset.x) : 0, "weapon");
   }
 
-  // Seen to as guests are: every system mended, the tanks full, the hull and shields whole.
-  private restore(context: VoyageContext, { ship, health, modules }: ShipParts): void {
-    ship.fuel = ship.maxFuel;
-    health.hull = health.maxHull;
-    health.shields = health.maxShields;
-    MODULE_IDS.forEach((id) => {
-      modules[id] = 1;
-    });
-    context.state.faults = [];
-  }
 
   // Once the crew has been picked up, the days pass to the next launch and the new rocket is on the pad.
   private bringHome(context: VoyageContext, parts: ShipParts): void {
@@ -201,7 +188,7 @@ export class DescentSystem implements System<VoyageContext> {
   // Home: a new rocket rolled out, full of fuel, its hull, shields and every system sound, no fault left and no
   // scar on it.
   private recover(context: VoyageContext, parts: ShipParts, days: number): void {
-    this.restore(context, parts);
+    restoreShip(context, parts);
     parts.health.decals = [];
     context.events.emit("recovered", { body: HOME_WORLD, days });
   }

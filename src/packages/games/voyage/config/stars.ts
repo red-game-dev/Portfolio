@@ -30,11 +30,11 @@ export const STAR_CLASSES: Readonly<Record<StarKind, StarClass>> = {
   neutron: { temperatureK: 600000, luminosity: 0.0002, radius: 0.000014, mass: 1.4, spots: 0, corona: 0.25 },
 };
 
-// The dead stars are drawn no smaller than this (world units), and pull at their surface this hard, far past any
-// engine, so their pull is told from their surface rather than their mass.
-export const COMPACT: Readonly<Partial<Record<StarKind, { radius: number; pull: number }>>> = {
-  whiteDwarf: { radius: 0.25, pull: 4 },
-  neutron: { radius: 0.08, pull: 30 },
+// The dead stars are drawn no smaller than this (world units). They pull by their mass as any star does, so from
+// afar a neutron star pulls like the 1.4 Suns it weighs, and at so small a surface far past any engine.
+export const COMPACT: Readonly<Partial<Record<StarKind, { radius: number }>>> = {
+  whiteDwarf: { radius: 0.25 },
+  neutron: { radius: 0.08 },
 };
 
 // How common each kind is in each kind of galaxy. Most stars anywhere are red dwarfs. Spiral arms are where stars

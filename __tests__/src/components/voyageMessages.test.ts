@@ -1,5 +1,5 @@
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
-import { voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { strandedLine, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { formatClock, formatDistance, telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import { portfolioData } from "@/data/resume";
@@ -28,6 +28,7 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   surface: null,
   descent: null,
   homecoming: null,
+  stranded: null,
   people: null,
   maze: null,
   modules: { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 },
@@ -98,6 +99,18 @@ describe("the voyage's messages", () => {
     expect(voyageNotice(voyage, { kind: "emergency", body: "jupiter" })).toContain("Jupiter");
     expect(voyageNotice(voyage, { kind: "captured", isSingularity: true })).toBe(voyage.captured);
     expect(voyageNotice(voyage, { kind: "destroyed" })).toBeNull();
+  });
+
+  test("stranded with no fuel: a rescue coming home, or the run's end out in the universes, then rescued days later", () => {
+    expect(voyageNotice(voyage, { kind: "stranded", body: "venus", seconds: 15, isRescue: true, isOver: false }))
+      .toBe("No fuel to lift off Venus: a rescue is on its way");
+    expect(voyageNotice(voyage, { kind: "stranded", body: null, seconds: 15, isRescue: false, isOver: false }))
+      .toBe("Adrift with no fuel: load a fuel cell within 15 s, or the run ends here");
+    expect(voyageNotice(voyage, { kind: "stranded", body: null, seconds: 0, isRescue: false, isOver: true }))
+      .toBe("Stranded with no fuel, and nobody comes this far out");
+    expect(voyageNotice(voyage, { kind: "rescued", from: "venus", days: 146 })).toBe("Rescued from Venus: 146 days later, a new rocket stands on the pad");
+    expect(strandedLine(voyage, at({ stranded: { secondsLeft: 9, isRescue: true } }))).toBe("No fuel to lift off: rescue in 9 s");
+    expect(strandedLine(voyage, at())).toBeNull();
   });
 
   test("flares, storms, failing systems and a melting hull are said as they happen", () => {

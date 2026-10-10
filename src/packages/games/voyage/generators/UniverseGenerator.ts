@@ -31,6 +31,7 @@ import {
 import { airModel } from "../mappers/air";
 import { SystemLayout } from "../mappers/SystemMapper";
 import { auForRadius, radiusForAu } from "../utils/scale";
+import { pullOfMass } from "../utils/stars";
 import { lookFor } from "./looks";
 import { beltName, factionName, nameWord, universeName } from "./names";
 import { airFor, classFor, equilibriumC, gravityFor, moonClassFor, radiusFor, spreadOrbits } from "./worlds";
@@ -61,8 +62,6 @@ const KM_PER_AU = 149597870.7;
 // The Sun's surface gravity (m/s^2) and the days in a year, for a star's pull and a world's year by Kepler's law.
 const SUN_GRAVITY = 274;
 const DAYS_PER_YEAR = 365.25;
-// A star's pull grows as its mass to this power, softened so a supergiant's does not hold a ship forever.
-const MASS_PULL = 0.6;
 // The square root distance begins this many of the star's drawn radii out, and never nearer than this (world units).
 const INNER_RADII = 3.5;
 const NEAREST = 8;
@@ -435,14 +434,12 @@ export class UniverseGenerator {
     const radiusKm = spec.radius * SUN_KM;
     const compact = COMPACT[kind];
     const radius = compact?.radius ?? this.layout.earthRadius * (radiusKm / EARTH_KM) ** this.layout.radiusExponent;
-    const sunRadius = this.layout.earthRadius * (SUN_KM / EARTH_KM) ** this.layout.radiusExponent;
-    const sunMu = muForSurfaceGravity(this.layout.starSurfaceAcceleration, sunRadius);
 
     return {
       spec,
       radius,
       radiusKm,
-      mu: compact ? muForSurfaceGravity(compact.pull, compact.radius) : sunMu * spec.mass ** MASS_PULL,
+      mu: pullOfMass(this.layout, spec.mass),
       surfaceGravity: (SUN_GRAVITY * spec.mass) / spec.radius ** 2,
     };
   }

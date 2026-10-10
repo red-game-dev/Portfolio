@@ -22,7 +22,7 @@ import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage
 import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
-import { placeName, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { placeName, strandedLine, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import {
@@ -134,7 +134,18 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const onBackdropClick = useModalDialog(dialogRef, true);
   // What the canvas writes: the places on the map, and the ghost's name.
   const labels = useMemo(() => ({
-    ...content.stops, ghost: content.career.ghost, edgeNote: content.career.edgeNote, gateWayOn: content.gate.markWayOn, gateVisited: content.gate.markVisited,
+    ...content.stops,
+    ghost: content.career.ghost,
+    edgeNote: content.career.edgeNote,
+    gateWayOn: content.gate.markWayOn,
+    gateVisited: content.gate.markVisited,
+    mapMission: content.map.mission,
+    mapHoleMass: content.map.holeMass,
+    mapKeyMission: content.map.keyMission,
+    mapKeyPull: content.map.keyPull,
+    mapKeyHostile: content.map.keyHostile,
+    mapKeyRock: content.map.keyRock,
+    mapKeyHazard: content.map.keyHazard,
   }), [content]);
   const canvases = { stage: stageRef, back: backRef, front: frontRef, lens: lensRef };
   const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames, home });
@@ -159,6 +170,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const previous = useRef<VoyageSnapshot | null>(null);
   const bestBefore = useRef(best);
   const status = snapshot?.status ?? "ready";
+  // Stranded adrift, the countdown shows over the view; down on a world, the surface card says it.
+  const adrift = snapshot && !snapshot.landedOn ? strandedLine(content, snapshot) : null;
   const surfaceTitle = snapshot?.surface ? surfaceHeading(content, snapshot) : "";
   // The world a landing is coming down on: by the surface once it is seen, else by the name the snapshot gives.
   const comingDownOn = snapshot?.surface
@@ -468,8 +481,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </TelemetryList>
         </TelemetryPanel>
       )}
-      {status === "flying" && snapshot && (snapshot.boss || snapshot.incoming || snapshot.salvage || economy?.suggestion) && !isHangarOpen && !isPhoto && (
+      {status === "flying" && snapshot && (snapshot.boss || snapshot.incoming || snapshot.salvage || adrift || economy?.suggestion) && !isHangarOpen && !isPhoto && (
         <Frames>
+          {adrift && <Incoming role="status">{adrift}</Incoming>}
           {economy?.suggestion && (
             <ReadyButton type="button" onClick={() => economy.suggestion && follow(economy.suggestion)}>
               <FontAwesomeIcon icon={faCircleUp} aria-hidden="true" />

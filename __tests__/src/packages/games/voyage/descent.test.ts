@@ -122,6 +122,55 @@ describe("voyage descents", () => {
     expect(sound()).toBeLessThan(before);
   });
 
+  test("a Rocket stranded on Venus, its tank boiled dry and its engines wrecked, is rescued home: 146 days later a new rocket waits on the pad", () => {
+    const simulation = createFlying();
+    const stranded = heard(simulation, "stranded");
+    const rescued = heard(simulation, "rescued");
+
+    touchDown(simulation, "venus");
+    untilDown(simulation);
+
+    const epoch = simulation.state.clock.epochMs;
+
+    // Burning does nothing with no fuel, and the crush cannot take the hull below its floor: without a rescue it
+    // would stay there for ever.
+    simulation.step(1000, BURN);
+    expect(partsOf(simulation).ship.landedOn).toBe("venus");
+    expect(stranded).toEqual([{ body: "venus", seconds: defaults.descent.strandedSeconds, isRescue: true, isOver: false }]);
+    expect(simulation.snapshot.stranded?.isRescue).toBe(true);
+    expect(simulation.snapshot.stranded?.secondsLeft).toBeGreaterThanOrEqual(defaults.descent.strandedSeconds - 1);
+
+    simulation.step(defaults.descent.strandedSeconds * 1000);
+
+    // Half a transfer orbit from Venus's 0.72 AU to Earth's.
+    expect(rescued).toHaveLength(1);
+    expect(rescued[0].from).toBe("venus");
+    expect(rescued[0].days).toBeGreaterThanOrEqual(144);
+    expect(rescued[0].days).toBeLessThanOrEqual(148);
+    expect(simulation.state.clock.epochMs - epoch).toBe(rescued[0].days * 86400000);
+    expect(partsOf(simulation).ship.landedOn).toBe("earth");
+    expect(partsOf(simulation).ship.fuel).toBe(partsOf(simulation).ship.maxFuel);
+    expect(partsOf(simulation).health.hull).toBe(partsOf(simulation).health.maxHull);
+    expect(simulation.state.homecoming?.stage).toBe("pad");
+    expect(simulation.state.stranded).toBeNull();
+
+    // The new rocket launches as after any homecoming.
+    partsOf(simulation).ship.angle = Math.atan2(partsOf(simulation).ship.landedOffset?.y ?? 1, partsOf(simulation).ship.landedOffset?.x ?? 0);
+    simulation.step(300, BURN);
+    expect(partsOf(simulation).ship.landedOn).toBeNull();
+  });
+
+  test("fuel loaded in time ends being stranded", () => {
+    const simulation = createFlying();
+
+    partsOf(simulation).ship.fuel = 0;
+    simulation.step(1000);
+    expect(simulation.state.stranded).not.toBeNull();
+    partsOf(simulation).ship.fuel = 20;
+    simulation.step(100);
+    expect(simulation.state.stranded).toBeNull();
+  });
+
   test("a pilot holding the fall to a crawl touches down in one piece", () => {
     const simulation = createFlying();
     const landed = heard(simulation, "landed");

@@ -186,6 +186,8 @@ export interface VoyageState {
   // The landing under way, or the last one while the ship still stands where it came down; and a crew coming home.
   descent: Descent | null;
   homecoming: Homecoming | null;
+  // Since when (ms on the run's clock) the ship has had no fuel to leave where it is, if it has none.
+  stranded: { since: number } | null;
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

@@ -46,6 +46,9 @@ export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject
   const game = useCanvasEngine(canvasRef, {
     sizeRef: boardRef,
     contextOptions: { alpha: false },
+    // Built well before it is seen, so loading its code, compiling the Earth's shaders and uploading its maps are
+    // done while the reader is still scrolling, not during the launch.
+    nearMargin: "150% 0px",
     isEnabled: site !== null,
     create: async (context) => {
       const { LaunchGame } = await import("@/packages/games/launch");

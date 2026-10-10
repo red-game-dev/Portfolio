@@ -27,6 +27,11 @@ export class SurfaceCache {
     return drawable;
   }
 
+  // Lets go of one surface no longer needed, such as the sky of a universe left behind.
+  public delete(key: string): void {
+    this.surfaces.delete(key);
+  }
+
   public clear(): void {
     this.surfaces.clear();
   }

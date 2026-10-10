@@ -3,6 +3,7 @@ import { clamp01 } from "@/packages/math/clamp";
 
 import { auForRadius } from "../../utils/scale";
 import { VoyageFrame } from "../frame";
+import { paintGalaxySky } from "../paint/galaxies";
 import { paintMilkyWay, paintStars, paintSun, paintUniverse } from "../paint/space";
 import { RenderKit } from "./kit";
 
@@ -15,11 +16,13 @@ const STARS = [
 ];
 const BACKDROP_TILE = 720;
 
-// The sky: the deep colour of the region, the Milky Way, three layers of stars moving at their own depths as the
-// camera crosses them, a universe's own backdrop, and, while the Sun is out of sight, its glow from its direction,
-// fading with distance.
+// The sky: the deep colour of the region, the galaxy it lies in (our Milky Way at home, a universe's own galaxy
+// beyond), three layers of stars moving at their own depths as the camera crosses them, a universe's own backdrop,
+// and, while the star is out of sight, its glow from its direction, fading with distance.
 export class BackdropLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "backdrop";
+  // The galaxy sky painted for the universe the ship is in, let go of when it leaves for another.
+  private skyKey: string | null = null;
 
   constructor(private readonly kit: RenderKit) {}
 
@@ -34,10 +37,21 @@ export class BackdropLayer implements RenderLayer<VoyageFrame> {
 
     const ratio = Math.min(1.5, back.pixelRatio);
     const base = camera.scale / camera.zoom;
-    const milkyWay = this.kit.cache.get("milky-way", 512, 512, paintMilkyWay(theme.star));
+    const galaxy = state.cosmos?.galaxy;
+    const skyKey = galaxy ? `galaxy:${galaxy.kind}:${galaxy.seed}` : null;
 
-    if (milkyWay) {
-      back.context.drawImage(milkyWay.surface, 0, 0, back.width, back.height);
+    if (skyKey !== this.skyKey && this.skyKey) {
+      this.kit.cache.delete(this.skyKey);
+    }
+
+    this.skyKey = skyKey;
+
+    const sky = galaxy && skyKey
+      ? this.kit.cache.get(skyKey, 512, 512, paintGalaxySky(galaxy, theme.star))
+      : this.kit.cache.get("milky-way", 512, 512, paintMilkyWay(theme.star));
+
+    if (sky) {
+      back.context.drawImage(sky.surface, 0, 0, back.width, back.height);
     }
 
     STARS.forEach(({ depth, tile, shift }, layer) => {

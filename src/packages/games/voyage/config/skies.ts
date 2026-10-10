@@ -64,4 +64,6 @@ export const GROUND_BY_KIND: Readonly<Record<SurfaceKind, Pick<GroundPreset, "bi
   haze: { biome: "dunes", relief: "dunes", hasRocks: false },
   toxic: { biome: "basalt", relief: "flat", hasRocks: true },
   rogue: { biome: "ice", relief: "ice", hasRocks: false },
+  eyeball: { biome: "iceCrust", relief: "ice", hasRocks: false },
+  hotJupiter: { biome: "rock", relief: "flat", hasRocks: false },
 };

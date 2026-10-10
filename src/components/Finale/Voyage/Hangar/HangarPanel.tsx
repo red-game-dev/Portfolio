@@ -58,7 +58,7 @@ interface HangarPanelProps {
   onClose: () => void;
 }
 
-const CODEX_ORDER: readonly CodexCategory[] = ["worlds", "kinds", "universes", "stars", "phenomena", "life", "wrecks", "things"];
+const CODEX_ORDER: readonly CodexCategory[] = ["worlds", "kinds", "universes", "galaxies", "stars", "phenomena", "life", "wrecks", "things"];
 
 const STAT_KEYS: ReadonlyArray<keyof ShipStats> = ["hull", "shields", "fuel", "thrust", "cargo", "plating", "pressure", "guns", "weapon"];
 

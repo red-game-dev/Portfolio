@@ -3,9 +3,67 @@ import type { GlobeLook, StarLook } from "@/packages/graphics/globe";
 import { StarSystem } from "./content";
 import { VoyageStyle } from "./theme";
 
-// What a star can be: from a cool red dwarf to a blue giant, a swollen red giant, or a dead white dwarf or
-// neutron star. Each has its colour, size, brightness and pull.
-export type StarKind = "red" | "orange" | "yellow" | "white" | "blue" | "giant" | "whiteDwarf" | "neutron";
+// What a star can be, as astronomers class them: a brown dwarf too small to shine by fusion, the dwarfs of the main
+// sequence from cool red to hot blue, a red giant (`giant`), the supergiants (blue like Rigel, red like Betelgeuse)
+// and the hypergiants beyond them (VY Canis Majoris), a Wolf-Rayet star blowing itself apart, or what stars leave
+// behind: a white dwarf or a neutron star. Each has its colour, size, brightness and mass.
+export type StarKind =
+  | "brownDwarf"
+  | "red"
+  | "orange"
+  | "yellow"
+  | "white"
+  | "blue"
+  | "giant"
+  | "blueSupergiant"
+  | "redSupergiant"
+  | "hypergiant"
+  | "wolfRayet"
+  | "whiteDwarf"
+  | "neutron";
+
+// The kinds of planet found round other stars, each a real class with members we know of: an iron world stripped to
+// its core, a lava world, a carbon world of graphite and diamond, bare rock, a cratered moon of a world, a desert, an
+// Earth-like terran world, a super-Earth, an ocean world, an eyeball world locked with one face to a red dwarf, a
+// toxic Venus, a hazy Titan, an ice world, a volcanic Io, a mini-Neptune, an ice giant, a gas giant, a hot Jupiter,
+// a super-puff, a chthonian core left when a giant's air was boiled away, and a rogue with no star at all.
+export type WorldClass =
+  | "iron"
+  | "lava"
+  | "carbon"
+  | "rocky"
+  | "cratered"
+  | "desert"
+  | "terran"
+  | "superEarth"
+  | "ocean"
+  | "eyeball"
+  | "toxic"
+  | "haze"
+  | "icy"
+  | "volcanic"
+  | "miniNeptune"
+  | "iceGiant"
+  | "gas"
+  | "hotJupiter"
+  | "puffy"
+  | "chthonian"
+  | "rogue";
+
+// The kinds of galaxy a universe can sit in, as Hubble sorted them: a spiral, a barred spiral like our own, an
+// elliptical of old stars, an irregular cloud, a dwarf, a ring.
+export type GalaxyKind = "spiral" | "barred" | "elliptical" | "irregular" | "dwarf" | "ring";
+
+// The galaxy round a universe: its kind, its own colours (young blue arms, an old gold core), how its disc lies in
+// the sky (radians), how many arms it has, and a seed for its shape.
+export interface GalaxySpec {
+  kind: GalaxyKind;
+  core: string;
+  arms: string;
+  tilt: number;
+  armCount: number;
+  seed: number;
+}
 
 // How a faction meets a stranger: on sight, near home, only once struck, or never.
 export type Disposition = "hostile" | "territorial" | "neutral" | "peaceful";
@@ -70,8 +128,11 @@ export interface UniverseSpec {
   hazard: string;
   starKind: StarKind | null;
   starLook: StarLook | null;
+  galaxy: GalaxySpec;
   system: StarSystem;
   looks: Record<string, GlobeLook>;
+  // What kind of world each of its worlds (and moons) is, by id.
+  classes: Record<string, WorldClass>;
   // What its star and worlds are called, by id.
   names: Record<string, string>;
   factions: FactionSpec[];

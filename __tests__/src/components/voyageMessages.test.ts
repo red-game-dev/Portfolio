@@ -3,7 +3,9 @@ import { voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Vo
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { formatClock, formatDistance, telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import { portfolioData } from "@/data/resume";
-import { DescentView, MODULE_IDS, SOLAR_SYSTEM, SurfaceInfo, VoyageSnapshot } from "@/packages/games/voyage";
+import {
+  DescentView, GALAXY_KINDS, MODULE_IDS, SOLAR_SYSTEM, STAR_CLASSES, SurfaceInfo, VoyageSnapshot, WORLD_CLASS_IDS,
+} from "@/packages/games/voyage";
 
 const { voyage } = portfolioData.finale;
 const universes = ["The Matrix", "AI", "Chain", "Casino", "Game world"];
@@ -13,6 +15,7 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   universe: -1,
   universes: 0,
   universeName: null,
+  cosmos: null,
   hull: 1000,
   maxHull: 1000,
   shields: 400,
@@ -75,9 +78,10 @@ describe("the voyage's messages", () => {
 
     expect(voyageMessage(voyage, singularity, pluto, universes)).toBe(voyage.singularity);
     expect(voyageMessage(voyage, lost, singularity, universes)).toBe(voyage.lost);
-    expect(voyageMessage(voyage, at({ phase: "universe", universe: 0, universes: 1 }), lost, universes)).toBe("You wake up in The Matrix");
+    expect(voyageMessage(voyage, at({ phase: "universe", universe: 0, universes: 1, cosmos: { galaxy: "barred", star: "redSupergiant" } }), lost, universes))
+      .toBe("You wake up in The Matrix, in a barred spiral galaxy, round a red supergiant");
     expect(voyageMessage(voyage, at({ phase: "universe", universe: 3, universes: 2 }), at({ phase: "lost", universe: 0, universes: 1 }), universes))
-      .toBe("Thrown into Casino");
+      .toBe("Thrown into Casino, in a spiral galaxy, round no star at all");
   });
 
   test("landings, lift offs, emergency burns and the moment a black hole takes the ship are said with the body's name", () => {
@@ -160,6 +164,22 @@ describe("the voyage's telemetry", () => {
   test("distances read in millions of km once they are that far", () => {
     expect(formatDistance(voyage, 1500000)).toBe("1.5 million km");
     expect(formatDistance(voyage, 42000)).toBe("42,000 km");
+  });
+});
+
+describe("the voyage's words for what the universes hold", () => {
+  test("every kind of galaxy, star and world has a name, a note and a phrase", () => {
+    const career = voyage.career;
+
+    GALAXY_KINDS.forEach((kind) => {
+      expect(career.galaxies[kind]?.name).toBeTruthy();
+      expect(voyage.galaxyPhrases[kind]).toBeTruthy();
+    });
+    Object.keys(STAR_CLASSES).forEach((kind) => {
+      expect(career.stars[kind]?.note).toBeTruthy();
+      expect(voyage.starPhrases[kind]).toBeTruthy();
+    });
+    WORLD_CLASS_IDS.forEach((kind) => expect(career.kinds[kind]?.note).toBeTruthy());
   });
 });
 

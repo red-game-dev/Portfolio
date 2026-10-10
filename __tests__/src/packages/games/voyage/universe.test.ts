@@ -1,5 +1,6 @@
 import {
   arrivalSpeed,
+  auForRadius,
   bindingEnergy,
   craterKm,
   DEFAULT_UNIVERSE_NAMES,
@@ -15,6 +16,7 @@ import {
   UniverseGenerator,
   VoyageConfig,
   VoyageSimulation,
+  WORLD_CLASSES,
 } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
 
@@ -109,13 +111,77 @@ describe("universes", () => {
     expect(spec).toMatchObject({ name: "The Matrix", style: "matrix", accent: "#4bffa5" });
   });
 
-  test("a world's kind follows the light that reaches it: hot near a bright star, cold far out", () => {
-    const specs = Array.from({ length: 40 }, (_, index) => generator.generate(5, 500 + index, null)).filter((spec) => spec.starKind && spec.starKind !== "neutron");
-    const inner = specs.map((spec) => spec.looks[spec.system.bodies[0].id].surface.kind);
-    const hot = ["lava", "volcanic", "desert", "toxic", "haze", "terran"];
+  test("a world's kind follows the light that reaches it: each is a real kind for the warmth its star gives it there", () => {
+    const specs = Array.from({ length: 120 }, (_, index) => generator.generate(5, 500 + index * 13, null)).filter((spec) => spec.starKind);
+    let checked = 0;
 
-    expect(inner.filter((kind) => hot.includes(kind)).length).toBeGreaterThan(inner.length * 0.4);
-    specs.forEach((spec) => spec.system.bodies.filter((body) => body.isGiant).forEach((body) => expect(body.air?.kind).toBe("giant")));
+    specs.forEach((spec) => {
+      spec.system.bodies.filter((body) => body.kind === "planet" && body.orbit.kind === "circle").forEach((body) => {
+        const au = body.orbit.kind === "circle" ? auForRadius(spec.system.scale, body.orbit.distance) : 1;
+        const temperatureC = (278.6 * spec.system.star.luminosity ** 0.25) / Math.sqrt(au) - 273.15;
+        const kind = WORLD_CLASSES[spec.classes[body.id]];
+
+        if (temperatureC < 2900) {
+          expect(temperatureC).toBeGreaterThanOrEqual(kind.coldest - 0.5);
+          expect(temperatureC).toBeLessThanOrEqual(kind.warmest + 0.5);
+          checked += 1;
+        }
+
+        expect(spec.looks[body.id].surface.kind).toBe(kind.surface);
+      });
+      spec.system.bodies.filter((body) => body.isGiant).forEach((body) => expect(body.air?.kind).toBe("giant"));
+    });
+    expect(checked).toBeGreaterThan(200);
+  });
+
+  test("galaxies shape their stars: an elliptical's are old, never young blue ones; big stars make vast systems, dwarfs tight ones", () => {
+    const specs = Array.from({ length: 600 }, (_, index) => generator.generate(6, 7000 + index * 31, null));
+    const young = ["blue", "blueSupergiant", "wolfRayet", "hypergiant"];
+    const kinds = new Set(specs.map((spec) => spec.galaxy.kind));
+    const edgeOf = (kind: string) => Math.max(0, ...specs.filter((spec) => spec.starKind === kind).map((spec) => spec.system.edge));
+
+    expect(kinds.size).toBe(6);
+    specs.filter((spec) => spec.galaxy.kind === "elliptical").forEach((spec) => expect(young).not.toContain(spec.starKind));
+    expect(specs.some((spec) => spec.starKind === "redSupergiant" || spec.starKind === "blueSupergiant" || spec.starKind === "hypergiant")).toBe(true);
+    expect(Math.max(edgeOf("redSupergiant"), edgeOf("blueSupergiant"), edgeOf("hypergiant"))).toBeGreaterThan(edgeOf("red") * 2.5);
+    specs.forEach((spec) => expect(spec.system.edge).toBeLessThan(500));
+  });
+
+  test("worlds are lettered from b and moons numbered; giants keep moons, each further out on a longer Kepler period", () => {
+    const specs = Array.from({ length: 80 }, (_, index) => generator.generate(6, 3100 + index * 7, null)).filter((spec) => spec.starKind);
+    const giants = specs.flatMap((spec) => spec.system.bodies
+      .filter((body) => body.kind === "planet" && spec.classes[body.id] === "gas")
+      .map((body) => ({ spec, body })));
+
+    expect(specs[0].names[specs[0].system.bodies[0].id]).toBe(`${specs[0].names.star} b`);
+    expect(giants.length).toBeGreaterThan(5);
+    giants.forEach(({ spec, body }) => {
+      const moons = spec.system.bodies.filter((moon) => moon.parent === body.id);
+
+      expect(moons.length).toBeGreaterThanOrEqual(2);
+      expect(spec.names[moons[0].id]).toBe(`${spec.names[body.id]} I`);
+      moons.slice(1).forEach((moon, order) => {
+        const inner = moons[order].orbit;
+
+        if (moon.orbit.kind === "moon" && inner.kind === "moon") {
+          expect(moon.orbit.periodDays).toBeGreaterThan(inner.periodDays);
+          expect(moon.dayHours).toBeNull();
+        }
+      });
+    });
+  });
+
+  test("some systems are crowded with worlds, and Earth-like worlds turn up, some with an ocean or locked as eyeballs to red dwarfs", () => {
+    const specs = Array.from({ length: 300 }, (_, index) => generator.generate(6, 12000 + index * 11, null));
+    const classes = specs.flatMap((spec) => Object.values(spec.classes));
+
+    expect(Math.max(...specs.map((spec) => spec.system.bodies.filter((body) => body.kind === "planet").length))).toBeGreaterThanOrEqual(8);
+    expect(classes.filter((kind) => kind === "terran").length).toBeGreaterThan(10);
+    expect(classes).toEqual(expect.arrayContaining(["ocean", "eyeball", "superEarth", "hotJupiter", "miniNeptune", "lava"]));
+    specs.forEach((spec) => spec.system.bodies.filter((body) => spec.classes[body.id] === "eyeball").forEach((body) => {
+      expect(["red", "orange", "brownDwarf"]).toContain(spec.starKind);
+      expect(body.dayHours).toBeNull();
+    }));
   });
 
   test("a void has no star, only dark rogue worlds; a dark forest hides everyone who lives there", () => {

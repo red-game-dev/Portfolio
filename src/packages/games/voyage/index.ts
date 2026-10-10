@@ -1,5 +1,8 @@
 export { DEFAULT_VOYAGE_CONFIG, DEFAULT_VOYAGE_THEME, resolveVoyageConfig } from "./config";
 export { BODY_LOOKS, SUN_LOOK, TEXTURE_IDS } from "./config/looks";
+export { GALAXIES, GALAXY_KINDS } from "./config/galaxies";
+export { STAR_CLASSES } from "./config/stars";
+export { WORLD_CLASS_IDS, WORLD_CLASSES } from "./config/worlds";
 export { VoyageGame } from "./core/VoyageGame";
 export { VoyageSimulation } from "./core/VoyageSimulation";
 export { DEFAULT_UNIVERSE_NAMES } from "./config/names";
@@ -127,6 +130,8 @@ export type { HomePad, SurfaceBiome, SurfaceInfo } from "./domain/surface";
 export { airFor, earthGround, groundAt, phaseOf, skyPlace, solarHours } from "./utils/surface";
 export type { Capture, Descent, Homecoming, MissionClock, Readings, Storm, VoyageState, VoyageStatus, Waypoint } from "./domain/state";
 export type { VoyageStyle } from "./domain/theme";
-export type { Disposition, FactionSpec, HullShape, PhenomenonKind, PhenomenonSpec, StarKind, UniverseNames, UniverseSpec, WeaponKind } from "./domain/universe";
+export type {
+  Disposition, FactionSpec, GalaxyKind, GalaxySpec, HullShape, PhenomenonKind, PhenomenonSpec, StarKind, UniverseNames, UniverseSpec, WeaponKind, WorldClass,
+} from "./domain/universe";
 export type { SystemLayout } from "./mappers/SystemMapper";
 export type { UniverseTheme } from "./generators/UniverseGenerator";

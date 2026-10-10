@@ -274,12 +274,12 @@ export class PilotLink {
   // A place passed: one of our own worlds, or a kind of world in a universe.
   private discoverPlace(stop: string): void {
     const { state } = this.simulation;
-    const kind = state.cosmos?.looks[stop]?.surface.kind;
+    const kind = state.cosmos?.classes[stop];
 
     this.discover(state.phase === "universe" && kind ? codexId("kinds", kind) : codexId("worlds", stop));
   }
 
-  // A universe reached: its kind, its star, and every strange thing it holds.
+  // A universe reached: its kind, the galaxy it sits in, its star, and every strange thing it holds.
   private discoverUniverse(): void {
     const cosmos = this.simulation.state.cosmos;
 
@@ -288,6 +288,7 @@ export class PilotLink {
     }
 
     this.discover(codexId("universes", cosmos.style));
+    this.discover(codexId("galaxies", cosmos.galaxy.kind));
     this.discover(codexId("stars", cosmos.starKind ?? "none"));
     cosmos.phenomena.forEach((phenomenon) => this.discover(codexId("phenomena", phenomenon.kind)));
   }

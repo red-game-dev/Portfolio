@@ -228,11 +228,12 @@ export interface VoyageCareerCopy {
   codexTitle: string;
   // "{found}" and "{total}" are replaced.
   codexFound: string;
-  categories: Record<"worlds" | "kinds" | "universes" | "stars" | "phenomena" | "life" | "wrecks" | "things", string>;
+  categories: Record<"worlds" | "kinds" | "universes" | "galaxies" | "stars" | "phenomena" | "life" | "wrecks" | "things", string>;
   // "{count}" is replaced with how many in a category are still to find.
   unknown: string;
   kinds: Record<string, NamedNote>;
   universes: Record<string, NamedNote>;
+  galaxies: Record<string, NamedNote>;
   stars: Record<string, NamedNote>;
   phenomena: Record<string, NamedNote>;
   life: Record<string, NamedNote>;
@@ -427,8 +428,11 @@ export interface FinaleVoyage {
   singularity: string;
   lost: string;
   // "{universe}" is replaced: the first universe, then each one after.
+  // "{universe}", "{galaxy}" and "{star}" are filled from the phrases below.
   arrived: string;
   jumped: string;
+  galaxyPhrases: Record<string, string>;
+  starPhrases: Record<string, string>;
   over: string;
   // "{score}" is replaced.
   finalScore: string;

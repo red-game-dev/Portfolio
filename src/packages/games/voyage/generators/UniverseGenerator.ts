@@ -1,15 +1,20 @@
 import { hslToHex } from "@/packages/graphics/colour";
-import type { GlobeLook, SurfaceKind } from "@/packages/graphics/globe";
+import type { GlobeLook } from "@/packages/graphics/globe";
 import { TAU } from "@/packages/math/angles";
 import { createSeededRandom, pick, pickWeighted, RandomSource, randomBetween } from "@/packages/math/random";
 import { poleVector } from "@/packages/physics/kepler";
 import { muForSurfaceGravity } from "@/packages/physics/newtonian";
 
-import { AirData, StarSystem, SystemBody, SystemScale } from "../domain/content";
+import { GALAXIES, GALAXY_KINDS } from "../config/galaxies";
+import { COMPACT, STAR_CLASSES, STAR_WEIGHTS, StarClass } from "../config/stars";
+import { WORLD_CLASSES } from "../config/worlds";
+import { StarSystem, SystemBody, SystemOrbit, SystemScale } from "../domain/content";
 import { VoyageStyle, DEEP_STYLES } from "../domain/theme";
 import {
   Disposition,
   FactionSpec,
+  GalaxyKind,
+  GalaxySpec,
   HullShape,
   PhenomenonKind,
   PhenomenonSpec,
@@ -17,33 +22,17 @@ import {
   UniverseNames,
   UniverseSpec,
   WeaponKind,
+  WorldClass,
 } from "../domain/universe";
 import { airModel } from "../mappers/air";
 import { SystemLayout } from "../mappers/SystemMapper";
-import { auForRadius } from "../utils/scale";
+import { auForRadius, radiusForAu } from "../utils/scale";
+import { lookFor } from "./looks";
 import { factionName, nameWord, universeName } from "./names";
-
-// What each kind of star is: surface temperature (K), brightness against the Sun, world radius, the pull at its
-// surface (world units, a dead star's far past any engine) and how restless its surface is.
-const STARS: Record<StarKind, { temperatureK: number; luminosity: number; radius: number; pull: number; spots: number; corona: number }> = {
-  red: { temperatureK: 3200, luminosity: 0.04, radius: 1.2, pull: 1, spots: 0.9, corona: 0.7 },
-  orange: { temperatureK: 4500, luminosity: 0.35, radius: 1.6, pull: 1, spots: 0.6, corona: 0.75 },
-  yellow: { temperatureK: 5800, luminosity: 1, radius: 2, pull: 1.1, spots: 0.5, corona: 0.85 },
-  white: { temperatureK: 8500, luminosity: 6, radius: 2.3, pull: 1.2, spots: 0.2, corona: 0.9 },
-  blue: { temperatureK: 18000, luminosity: 60, radius: 3.2, pull: 1.3, spots: 0.1, corona: 1 },
-  giant: { temperatureK: 3600, luminosity: 400, radius: 5.5, pull: 0.6, spots: 1, corona: 0.6 },
-  whiteDwarf: { temperatureK: 25000, luminosity: 0.02, radius: 0.25, pull: 4, spots: 0, corona: 0.4 },
-  neutron: { temperatureK: 40000, luminosity: 0.001, radius: 0.08, pull: 30, spots: 0, corona: 0.25 },
-};
-
-const STAR_WEIGHTS: Array<[StarKind, number]> = [
-  ["red", 30], ["orange", 20], ["yellow", 15], ["white", 10], ["blue", 8], ["giant", 7], ["whiteDwarf", 5], ["neutron", 5],
-];
+import { airFor, classFor, equilibriumC, gravityFor, moonClassFor, radiusFor } from "./worlds";
 
 const SHAPE_WEAPONS: Record<HullShape, WeaponKind> = { saucer: "cannon", insect: "spit", crystal: "laser", organic: "spit", monolith: "laser", swarm: "cannon" };
 const SHAPES: readonly HullShape[] = ["saucer", "insect", "crystal", "organic", "monolith", "swarm"];
-const WARM_KINDS: readonly SurfaceKind[] = ["desert", "toxic", "volcanic", "haze"];
-const COLD_KINDS: readonly SurfaceKind[] = ["rocky", "cratered", "icy"];
 
 // What can be found in a universe, how likely, and from which universe on.
 const PHENOMENA: Array<{ kind: PhenomenonKind; weight: number; from: number }> = [
@@ -58,11 +47,75 @@ const PHENOMENA: Array<{ kind: PhenomenonKind; weight: number; from: number }> =
   { kind: "darkForest", weight: 2, from: 3 },
 ];
 
-const ABSOLUTE_ZERO = -273.15;
-// The molar mass (kg/mol) of the gases a made world's air is mostly of.
-const GAS = { nitrogen: 0.028, carbonDioxide: 0.044, sulphurDioxide: 0.064, hydrogen: 0.0023 };
 const WARM_UP = 3;
+// Planets are lettered from b out, as astronomers letter them round other stars; moons numbered.
+const LETTERS = ["b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
 const NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+const MOST_WORLDS = 10;
+const SUN_KM = 695700;
+const EARTH_KM = 6371;
+const KM_PER_AU = 149597870.7;
+// The Sun's surface gravity (m/s^2) and the days in a year, for a star's pull and a world's year by Kepler's law.
+const SUN_GRAVITY = 274;
+const DAYS_PER_YEAR = 365.25;
+// A star's pull grows as its mass to this power, softened so a supergiant's does not hold a ship forever.
+const MASS_PULL = 0.6;
+// The square root distance begins this many of the star's drawn radii out, and never nearer than this (world units).
+const INNER_RADII = 3.5;
+const NEAREST = 8;
+// The first moon lies this many of its planet's drawn radii out (and this many real radii), each next this many
+// times further (Io, Europa, Ganymede and Callisto each lie about 1.6 times further out than the last).
+const MOON_GAP = 2.6;
+const MOON_RADII = 5;
+const MOON_SPREAD = 1.55;
+// No world circles further out than this (world units), so even a supergiant's system can be crossed.
+const FURTHEST = 420;
+// No world circles nearer its star than this many of the star's drawn radii.
+const HUGGING = 1.6;
+
+// A star in world units, with the class it is of.
+interface StarBody {
+  spec: StarClass;
+  radius: number;
+  radiusKm: number;
+  mu: number;
+  surfaceGravity: number;
+}
+
+// What a system's worlds are made round, and what is collected as they are made.
+interface SystemPlan {
+  index: number;
+  starKind: StarKind | null;
+  star: StarBody | null;
+  scale: SystemScale;
+  metals: number;
+  isVoid: boolean;
+}
+
+interface Made {
+  looks: Record<string, GlobeLook>;
+  classes: Record<string, WorldClass>;
+  names: Record<string, string>;
+  base: string;
+}
+
+interface WorldPlan {
+  id: string;
+  kind: WorldClass;
+  temperatureC: number;
+  au: number;
+  orbit: SystemOrbit;
+  parent: string | null;
+  starKind: StarKind | null;
+  seed: number;
+}
+
+interface MadeWorld {
+  body: SystemBody;
+  radiusKm: number;
+  gravity: number;
+  kind: WorldClass;
+}
 
 export interface UniverseTheme {
   name: string;
@@ -73,7 +126,7 @@ export interface UniverseTheme {
 }
 
 // One of `options`, as likely as its weight beside it.
-const weighted = <T>(random: RandomSource, options: Array<[T, number]>): T => (pickWeighted(random, options, ([, weight]) => weight) ?? options[0])[0];
+const weighted = <T>(random: RandomSource, options: ReadonlyArray<readonly [T, number]>): T => (pickWeighted(random, options, ([, weight]) => weight) ?? options[0])[0];
 
 // Makes universes. Everything in one comes from its seed, so a run that passes the same way sees the same
 // universes, and every one differs from the last: its star (or none), worlds whose kind follows from how much
@@ -96,27 +149,33 @@ export class UniverseGenerator {
     const style: VoyageStyle = theme?.style ?? pick(random, DEEP_STYLES);
     const hue = random() * 360;
     const isVoid = style === "void";
-    const starKind: StarKind | null = isVoid ? null : weighted(random, STAR_WEIGHTS);
-    const star = starKind ? STARS[starKind] : null;
-    const starRadius = star?.radius ?? 0.5;
-    const scale: SystemScale = { unitsPerRootAu: this.layout.unitsPerRootAu, innerAu: 0.3, starRadius, starRadiusAu: (0.0047 * starRadius) / 2 };
+    const galaxy = this.galaxy(random);
+    const metals = GALAXIES[galaxy.kind].metals;
+    const starKind: StarKind | null = isVoid ? null : weighted(random, STAR_WEIGHTS[galaxy.kind]);
+    const star = starKind ? this.starOf(starKind) : null;
+    const scale = this.scaleFor(star);
     const looks: Record<string, GlobeLook> = {};
-    const bodies = this.worlds(random, index, star, scale, looks, isVoid);
+    const classes: Record<string, WorldClass> = {};
     const base = nameWord(random, this.names);
-    const names: Record<string, string> = Object.fromEntries([["star", base], ...bodies.map((body, order) => [body.id, `${base} ${NUMERALS[order] ?? order + 1}`])]);
-    const edge = Math.max(30, ...bodies.map((body) => (body.orbit.kind === "circle" ? body.orbit.distance : 0))) + 14;
+    const names: Record<string, string> = { star: base };
+    const bodies = this.worlds(random, { index, starKind, star, scale, metals, isVoid }, { looks, classes, names, base });
+    // How far out each world's moons reach.
+    const moonReach = (body: SystemBody) =>
+      Math.max(body.radius, ...bodies.map((moon) => (moon.orbit.kind === "moon" && moon.parent === body.id ? moon.orbit.distance : 0)));
+    const reach = (body: SystemBody) => (body.orbit.kind === "circle" ? body.orbit.distance + moonReach(body) : 0);
+    const edge = Math.max(30, ...bodies.map(reach)) + 14;
     const system: StarSystem = {
       star: {
         id: "star",
         x: 0,
         y: 0,
         radius: star?.radius ?? 0.5,
-        mu: star ? muForSurfaceGravity(star.pull, star.radius) : 0,
-        surfaceGravity: star ? star.pull / this.layout.gravityScale : 0,
-        temperatureK: star?.temperatureK ?? 3,
+        mu: star?.mu ?? 0,
+        surfaceGravity: star?.surfaceGravity ?? 0,
+        temperatureK: star?.spec.temperatureK ?? 3,
         rotationDays: randomBetween(random, 2, 40),
-        kmPerUnit: 695700 / 2.9,
-        luminosity: star?.luminosity ?? 0,
+        kmPerUnit: star ? star.radiusKm / star.radius : SUN_KM / 2.9,
+        luminosity: star?.spec.luminosity ?? 0,
       },
       bodies,
       belts: random() < 0.5 ? [this.belt(random, bodies, scale)] : [],
@@ -138,9 +197,13 @@ export class UniverseGenerator {
       deep: theme?.deep ?? hslToHex(hue, 0.55, 0.035),
       hazard: theme?.hazard ?? hslToHex(hue + 180, 0.85, 0.62),
       starKind,
-      starLook: star ? { temperatureK: star.temperatureK, granulation: starKind === "neutron" ? 0 : 1, spots: star.spots, corona: star.corona, seed: seed % 997 } : null,
+      starLook: star
+        ? { temperatureK: star.spec.temperatureK, granulation: starKind === "neutron" ? 0 : 1, spots: star.spec.spots, corona: star.spec.corona, seed: seed % 997 }
+        : null,
+      galaxy,
       system,
       looks,
+      classes,
       names,
       factions,
       phenomena,
@@ -148,166 +211,170 @@ export class UniverseGenerator {
     };
   }
 
-  // Worlds out from the star, each kind decided by the temperature its light would hold it at.
-  private worlds(random: RandomSource, index: number, star: (typeof STARS)[StarKind] | null, scale: SystemScale, looks: Record<string, GlobeLook>,
-    isVoid: boolean): SystemBody[] {
-    const count = isVoid ? 1 + Math.floor(random() * 2) : 2 + Math.floor(random() * 5);
-    let distance = (star?.radius ?? 0.5) * 3 + randomBetween(random, 4, 7);
+  // The galaxy a universe sits in: a kind as common as galaxies of that kind are, in its own colours.
+  private galaxy(random: RandomSource): GalaxySpec {
+    const kind = weighted(random, GALAXY_KINDS.map((option): [GalaxyKind, number] => [option, GALAXIES[option].weight]));
+    const spec = GALAXIES[kind];
+    const [fewest, most] = spec.armCount;
+
+    return {
+      kind, core: spec.core, arms: spec.arms, tilt: random() * TAU, armCount: fewest + Math.floor(random() * (most - fewest + 1)), seed: Math.floor(random() * 1e6),
+    };
+  }
+
+  // A star of a kind in world units: as large on screen as the same rule that sizes the worlds makes it (the dead
+  // stars a little larger, to be seen), its pull from its mass (softened, so a giant's thin outer layers barely pull
+  // at all and a ship can always climb away), and its real surface gravity, for the readings.
+  private starOf(kind: StarKind): StarBody {
+    const spec = STAR_CLASSES[kind];
+    const radiusKm = spec.radius * SUN_KM;
+    const compact = COMPACT[kind];
+    const radius = compact?.radius ?? this.layout.earthRadius * (radiusKm / EARTH_KM) ** this.layout.radiusExponent;
+    const sunRadius = this.layout.earthRadius * (SUN_KM / EARTH_KM) ** this.layout.radiusExponent;
+    const sunMu = muForSurfaceGravity(this.layout.starSurfaceAcceleration, sunRadius);
+
+    return {
+      spec,
+      radius,
+      radiusKm,
+      mu: compact ? muForSurfaceGravity(compact.pull, compact.radius) : sunMu * spec.mass ** MASS_PULL,
+      surfaceGravity: (SUN_GRAVITY * spec.mass) / spec.radius ** 2,
+    };
+  }
+
+  // How world distance maps to AU round a star. The star's real radius is where its surface is drawn; the square
+  // root of the distance begins a little way out (ten of its radii, or nearer than its warm zone, whichever is
+  // further: Mercury's 0.3 AU for the Sun), drawn a few of its own radii out. So its light falls on its worlds as it
+  // really would: round a red dwarf its warm zone is a few hundredths of an AU out and its worlds crowd close; round
+  // a supergiant it lies hundreds of AU out and the system is vast.
+  private scaleFor(star: StarBody | null): SystemScale {
+    if (!star) {
+      return { unitsPerRootAu: this.layout.unitsPerRootAu, innerAu: 0.3, starRadius: 0.5, starRadiusAu: 0.0023 };
+    }
+
+    const radiusAu = star.radiusKm / KM_PER_AU;
+    const innerAu = Math.max(radiusAu * 10, 0.3 * Math.sqrt(star.spec.luminosity));
+    const inner = Math.max(star.radius * INNER_RADII, NEAREST);
+
+    return { unitsPerRootAu: inner / Math.sqrt(innerAu), innerAu, starRadius: star.radius, starRadiusAu: radiusAu };
+  }
+
+  // Worlds out from the star, spread as real systems spread theirs, evenly in the logarithm of distance: round a
+  // Sun-like star from inside Mercury's orbit (where hot Jupiters and lava worlds circle in days) out to Neptune's
+  // and beyond; round a dwarf crowded close, as TRAPPIST-1's seven are. Each kind is decided by the temperature its
+  // light holds it at and how rich the galaxy is in metals, and each keeps its moons. More metals, more worlds. A
+  // void's worlds are rogues lit by nothing.
+  private worlds(random: RandomSource, system: SystemPlan, made: Made): SystemBody[] {
+    const { index, starKind, star, scale, metals, isVoid } = system;
+    const count = isVoid ? 1 + Math.floor(random() * 3) : Math.max(1, Math.min(MOST_WORLDS, Math.round(randomBetween(random, 1.5, 8.5) * (0.55 + 0.45 * metals))));
+    const isCompact = starKind === "red" || starKind === "brownDwarf";
+    const luminosity = star?.spec.luminosity ?? 0;
+    const bodies: SystemBody[] = [];
+    // The innermost often lies well inside the inner zone, but never nearer the star's surface than `HUGGING` of its
+    // radius; the outermost tens or hundreds of times further.
+    const first = Math.log(Math.max(this.nearestAu(scale), scale.innerAu * 10 ** randomBetween(random, -1.3, 0.2)));
+    const last = Math.log(Math.min(auForRadius(scale, FURTHEST), scale.innerAu * (isCompact ? randomBetween(random, 2, 12) : randomBetween(random, 40, 180))));
+    const step = count > 1 ? (last - first) / (count - 1) : 0;
+
+    for (let order = 0; order < count; order += 1) {
+      const au = Math.exp(first + step * (order + (order > 0 && order < count - 1 ? randomBetween(random, -0.3, 0.3) : 0)));
+      const id = `u${index}-${order}`;
+      const temperatureC = equilibriumC(luminosity, au);
+      const kind = classFor(random, temperatureC, starKind, metals);
+      const distance = radiusForAu(scale, au);
+      const periodDays = star ? DAYS_PER_YEAR * Math.sqrt(au ** 3 / star.spec.mass) : randomBetween(random, 400, 4000);
+      const orbit: SystemOrbit = { kind: "circle", distance, periodDays, longitudeAtEpoch: random() * 360 };
+      const planet = this.world(random, { id, kind, temperatureC, au, orbit, parent: null, starKind, seed: index * 31 + order }, made);
+
+      made.names[id] = `${made.base} ${LETTERS[order] ?? order + 2}`;
+      bodies.push(planet.body, ...this.moons(random, planet, { starKind, metals, temperatureC, au, index }, made));
+    }
+
+    return bodies;
+  }
+
+  // The nearest a world can circle: just clear of the star's surface as it is drawn.
+  private nearestAu(scale: SystemScale): number {
+    return auForRadius(scale, scale.starRadius * HUGGING);
+  }
+
+  // One world of a kind: its size, pull and air from its kind, its days (none for a world locked with a face to its
+  // star, or a moon to its planet), its pole, rings for some giants, and its look.
+  private world(random: RandomSource, plan: WorldPlan, made: Made): MadeWorld {
+    const { id, kind, temperatureC, au, orbit, parent, starKind, seed } = plan;
+    const spec = WORLD_CLASSES[kind];
+    const radiusEarths = radiusFor(random, kind, parent !== null);
+    const gravity = gravityFor(random, kind, radiusEarths);
+    const radiusKm = radiusEarths * EARTH_KM;
+    const radius = this.layout.earthRadius * radiusEarths ** this.layout.radiusExponent;
+    const air = airFor(random, spec.air, temperatureC);
+    const isLocked = parent !== null || spec.isLocked === true;
+    const body: SystemBody = {
+      id,
+      kind: parent ? "moon" : "planet",
+      parent,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      real: { x: 0, y: 0, z: 0 },
+      au,
+      radius,
+      mu: muForSurfaceGravity(gravity * this.layout.gravityScale, radius),
+      isGiant: spec.isGiant,
+      isLandable: !spec.isGiant,
+      air: air ? airModel(air, radius) : null,
+      surfaceGravity: gravity,
+      dayC: air ? air.temperatureC : temperatureC + 60,
+      nightC: air ? air.temperatureC : temperatureC - 120,
+      kmPerUnit: radiusKm / radius,
+      orbit,
+      dayHours: isLocked ? null : (random() < 0.15 ? -1 : 1) * randomBetween(random, 8, 60),
+      pole: poleVector({ ra: random() * 360, dec: randomBetween(random, 40, 90) }),
+      rings: random() < spec.rings ? { inner: randomBetween(random, 1.25, 1.5), outer: randomBetween(random, 1.9, 2.6) } : null,
+      subsolarLongitude: 0,
+      subsolarLatitude: 0,
+      isShattered: false,
+    };
+
+    made.looks[id] = lookFor(random, kind, air, body.rings, seed, starKind, temperatureC);
+    made.classes[id] = kind;
+
+    return { body, radiusKm, gravity, kind };
+  }
+
+  // A world's moons, as many as its kind keeps: each further out than the last by about the same ratio (Io, Europa,
+  // Ganymede and Callisto lie at about 6, 9, 15 and 26 of Jupiter's radii), on the period Kepler's law gives for its
+  // planet's mass, its kind from how warm that part of the system is.
+  private moons(random: RandomSource, planet: MadeWorld, around: { starKind: StarKind | null; metals: number; temperatureC: number; au: number; index: number },
+    made: Made): SystemBody[] {
+    const [fewest, most] = WORLD_CLASSES[planet.kind].moons;
+    const count = fewest + Math.floor(random() * (most - fewest + 1));
+    const { body } = planet;
+    // GM from the surface pull and radius (m^3/s^2).
+    const pull = planet.gravity * (planet.radiusKm * 1000) ** 2;
 
     return Array.from({ length: count }, (_, order) => {
-      const id = `u${index}-${order}`;
-      const au = auForRadius(scale, distance);
-      const equilibriumC = star ? 278.6 * star.luminosity ** 0.25 / Math.sqrt(au) + ABSOLUTE_ZERO : -230;
-      // A void's worlds are dark rocks drifting without a star: no giants, which would need air to be entered.
-      const isGiant = !isVoid && equilibriumC < 30 && random() < 0.38;
-      const kind = this.kindFor(random, equilibriumC, isGiant, isVoid);
-      const radius = isGiant ? randomBetween(random, 0.65, 1.2) : randomBetween(random, 0.17, 0.45);
-      const gravity = isGiant ? randomBetween(random, 9, 28) : 2 + (radius / 0.45) * randomBetween(random, 4, 12);
-      const air = this.air(random, kind, equilibriumC);
-      const body: SystemBody = {
-        id,
-        kind: "planet",
-        parent: null,
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        real: { x: 0, y: 0, z: 0 },
-        au,
-        radius,
-        mu: muForSurfaceGravity(gravity * this.layout.gravityScale, radius),
-        isGiant,
-        isLandable: !isGiant,
-        air: air ? airModel(air, radius) : null,
-        surfaceGravity: gravity,
-        dayC: air ? air.temperatureC : equilibriumC + 60,
-        nightC: air ? air.temperatureC : equilibriumC - 120,
-        kmPerUnit: randomBetween(random, 9000, 22000),
-        orbit: { kind: "circle", distance, periodDays: randomBetween(random, 40, 900) * Math.sqrt(au), longitudeAtEpoch: random() * 360 },
-        dayHours: (random() < 0.15 ? -1 : 1) * randomBetween(random, 8, 60),
-        pole: poleVector({ ra: random() * 360, dec: randomBetween(random, 40, 90) }),
-        rings: isGiant && random() < 0.45 ? { inner: randomBetween(random, 1.25, 1.5), outer: randomBetween(random, 1.9, 2.6) } : null,
-        subsolarLongitude: 0,
-        subsolarLatitude: 0,
-        isShattered: false,
+      const id = `${body.id}-${order}`;
+      const kind = moonClassFor(random, around.temperatureC, around.starKind, around.metals, order, body.isGiant);
+      const spread = MOON_SPREAD ** order * randomBetween(random, 0.95, 1.05);
+      const distanceKm = planet.radiusKm * MOON_RADII * spread;
+      const periodDays = (TAU * Math.sqrt((distanceKm * 1000) ** 3 / pull)) / 86400;
+      const orbit: SystemOrbit = {
+        kind: "moon",
+        parent: body.id,
+        distance: body.radius * MOON_GAP * spread,
+        distanceKm,
+        periodDays,
+        longitudeAtEpoch: random() * 360,
       };
+      const moon = this.world(random, { id, kind, temperatureC: around.temperatureC, au: around.au, orbit, parent: body.id, starKind: around.starKind,
+        seed: around.index * 97 + order * 13 + body.id.length }, made);
 
-      looks[id] = this.look(random, kind, air, body.rings, index * 31 + order);
-      distance += randomBetween(random, 6, 11) + (isGiant ? 3 : 0);
+      made.names[id] = `${made.names[body.id] ?? made.base} ${NUMERALS[order] ?? order + 1}`;
 
-      return body;
+      return moon.body;
     });
-  }
-
-  private kindFor(random: RandomSource, equilibriumC: number, isGiant: boolean, isVoid: boolean): SurfaceKind {
-    if (isVoid) {
-      return "rogue";
-    }
-
-    if (isGiant) {
-      return equilibriumC < -150 || random() < 0.3 ? "iceGiant" : "gas";
-    }
-
-    if (equilibriumC > 330) {
-      return random() < 0.6 ? "lava" : "volcanic";
-    }
-
-    if (equilibriumC > 80) {
-      return pick(random, WARM_KINDS);
-    }
-
-    if (equilibriumC > -40) {
-      return random() < 0.7 ? "terran" : "desert";
-    }
-
-    if (equilibriumC > -150) {
-      return pick(random, COLD_KINDS);
-    }
-
-    return random() < 0.6 ? "icy" : "cratered";
-  }
-
-  // Air that suits the world: a terran world's nitrogen and oxygen, a toxic or hazy one's carbon dioxide as thick as
-  // Venus's, a desert's thin carbon dioxide as on Mars, a lava world's sulphur dioxide as on Io, a giant's hydrogen and
-  // helium. Each gas's molar mass follows from what it is, so nothing more is drawn for it.
-  private air(random: RandomSource, kind: SurfaceKind, equilibriumC: number): AirData | null {
-    switch (kind) {
-      case "terran":
-        return {
-          kind: "thick", pressureBar: randomBetween(random, 0.5, 3), temperatureC: equilibriumC + randomBetween(random, 5, 30), topTemperatureC: equilibriumC - 70,
-          molarMass: GAS.nitrogen,
-        };
-      case "toxic":
-      case "haze":
-        return {
-          kind: "thick", pressureBar: randomBetween(random, 8, 120), temperatureC: equilibriumC + randomBetween(random, 150, 400), topTemperatureC: equilibriumC - 50,
-          molarMass: GAS.carbonDioxide,
-        };
-      case "desert":
-        return random() < 0.5 ? {
-          kind: "thin", pressureBar: randomBetween(random, 0.005, 0.2), temperatureC: equilibriumC, topTemperatureC: equilibriumC - 60, molarMass: GAS.carbonDioxide,
-        } : null;
-      case "gas":
-      case "iceGiant":
-        return { kind: "giant", pressureBar: 1, temperatureC: equilibriumC - 20, topTemperatureC: equilibriumC - 60, molarMass: GAS.hydrogen };
-      case "lava":
-        return {
-          kind: "thin", pressureBar: randomBetween(random, 0.01, 0.1), temperatureC: equilibriumC + 300, topTemperatureC: equilibriumC, molarMass: GAS.sulphurDioxide,
-        };
-      default:
-        return null;
-    }
-  }
-
-  private look(random: RandomSource, kind: SurfaceKind, air: AirData | null, rings: SystemBody["rings"], seed: number): GlobeLook {
-    const hue = random() * 360;
-    const tone = (shift: number, saturation: number, lightness: number) => hslToHex(hue + shift, saturation, lightness);
-    const palettes: Record<SurfaceKind, [string, string, string, string]> = {
-      terran: [tone(200 - hue % 40, 0.7, 0.18), tone(205 - hue % 40, 0.65, 0.38), tone(110 + (hue % 60), 0.4, 0.32), tone(40, 0.3, 0.62)],
-      desert: [tone(0, 0.55, 0.22), tone(10, 0.55, 0.38), tone(20, 0.5, 0.55), tone(30, 0.4, 0.72)],
-      toxic: [tone(0, 0.6, 0.2), tone(20, 0.7, 0.38), tone(40, 0.7, 0.55), tone(60, 0.6, 0.72)],
-      haze: [tone(0, 0.4, 0.3), tone(10, 0.45, 0.48), tone(20, 0.45, 0.64), tone(30, 0.35, 0.8)],
-      volcanic: [tone(0, 0.5, 0.12), tone(40, 0.7, 0.45), tone(50, 0.7, 0.62), "#ff7a2a"],
-      lava: ["#1a0f0c", "#3a1c12", "#6a2a14", "#ff6a1a"],
-      rocky: [tone(0, 0.12, 0.22), tone(0, 0.12, 0.38), tone(0, 0.1, 0.55), tone(0, 0.08, 0.72)],
-      cratered: [tone(0, 0.08, 0.2), tone(0, 0.08, 0.36), tone(0, 0.07, 0.52), tone(0, 0.06, 0.72)],
-      icy: [tone(0, 0.35, 0.35), tone(0, 0.25, 0.7), tone(0, 0.15, 0.85), "#f6f8fa"],
-      gas: [tone(0, 0.45, 0.28), tone(15, 0.5, 0.48), tone(30, 0.45, 0.68), tone(45, 0.35, 0.86)],
-      iceGiant: [tone(0, 0.5, 0.3), tone(5, 0.55, 0.48), tone(10, 0.5, 0.62), tone(15, 0.4, 0.82)],
-      rogue: ["#05070a", "#0d1218", "#1a222c", "#2e3a48"],
-    };
-    const look: GlobeLook = {
-      surface: {
-        kind,
-        palette: palettes[kind],
-        seed,
-        sea: randomBetween(random, 0.45, 0.72),
-        bands: random(),
-        turbulence: random(),
-        caps: kind === "terran" ? randomBetween(random, 0.05, 0.25) : 0,
-        glint: kind === "terran",
-      },
-    };
-
-    if (air && air.kind !== "thin") {
-      look.atmosphere = {
-        colour: tone(kind === "terran" ? 210 - hue : 20, 0.6, 0.65),
-        thickness: air.kind === "giant" ? 0.03 : 0.07,
-        density: Math.min(1, 0.4 + air.pressureBar / 30),
-        sunset: tone(180, 0.7, 0.55),
-      };
-    }
-
-    if (kind === "terran") {
-      look.clouds = randomBetween(random, 0.3, 0.75);
-      look.cloudDrift = randomBetween(random, 0.002, 0.008);
-    }
-
-    if (rings) {
-      look.rings = { inner: rings.inner, outer: rings.outer, colour: tone(30, 0.25, 0.7), opacity: randomBetween(random, 0.35, 0.8), seed };
-    }
-
-    return look;
   }
 
   private belt(random: RandomSource, bodies: SystemBody[], scale: SystemScale) {

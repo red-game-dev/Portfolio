@@ -50,6 +50,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       maxFuel: ship?.maxFuel ?? 0,
       score: Math.floor(state.score),
       universeName: state.phase === "universe" && state.cosmos ? state.cosmos.name : null,
+      cosmos: state.phase === "universe" && state.cosmos ? { galaxy: state.cosmos.galaxy.kind, star: state.cosmos.starKind } : null,
       passing: state.passing ? state.cosmos?.names[state.passing] ?? state.passing : null,
       landedOn: ship?.landedOn ? state.cosmos?.names[ship.landedOn] ?? ship.landedOn : null,
       // The view from the surface is the renderer's; the game adds it.

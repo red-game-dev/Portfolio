@@ -14,7 +14,9 @@ export type SurfaceKind =
   | "iceGiant"
   | "haze"
   | "toxic"
-  | "rogue";
+  | "rogue"
+  | "eyeball"
+  | "hotJupiter";
 
 export interface GlobeSurface {
   kind: SurfaceKind;

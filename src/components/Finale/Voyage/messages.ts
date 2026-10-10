@@ -32,7 +32,11 @@ export const voyageMessage = (content: FinaleVoyage, next: VoyageSnapshot, previ
     }
 
     if (next.phase === "universe") {
-      return fill(next.universes === 1 ? content.arrived : content.jumped, { universe: universeName(next, universes) });
+      return fill(next.universes === 1 ? content.arrived : content.jumped, {
+        universe: universeName(next, universes),
+        galaxy: content.galaxyPhrases[next.cosmos?.galaxy ?? "spiral"] ?? "",
+        star: content.starPhrases[next.cosmos?.star ?? "none"] ?? "",
+      });
     }
   }
 

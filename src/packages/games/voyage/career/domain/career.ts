@@ -59,7 +59,7 @@ export interface RankSpec {
 
 // The kinds of things the codex keeps: worlds of our own system, kinds of world, kinds of universe, stars, the
 // strange things, those who live out there, wrecks, and things found.
-export type CodexCategory = "worlds" | "kinds" | "universes" | "stars" | "phenomena" | "life" | "wrecks" | "things";
+export type CodexCategory = "worlds" | "kinds" | "universes" | "galaxies" | "stars" | "phenomena" | "life" | "wrecks" | "things";
 
 export interface CodexEntry {
   id: string;

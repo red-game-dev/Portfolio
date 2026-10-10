@@ -4,7 +4,7 @@ import { VoyagePhase } from "./events";
 import { FaultKind } from "./faults";
 import { VoyageStatus } from "./state";
 import { SurfaceInfo } from "./surface";
-import { Disposition } from "./universe";
+import { Disposition, GalaxyKind, StarKind } from "./universe";
 
 // Someone shown in an MMO frame: what they are called, their level, how they stand towards the ship, and how
 // much hull and shield they have left.
@@ -78,8 +78,9 @@ export interface VoyageSnapshot {
   phase: VoyagePhase;
   universe: number;
   universes: number;
-  // The universe's own name, once there.
+  // The universe's own name, once there, and the galaxy and star it holds.
   universeName: string | null;
+  cosmos: { galaxy: GalaxyKind; star: StarKind | null } | null;
   hull: number;
   maxHull: number;
   shields: number;

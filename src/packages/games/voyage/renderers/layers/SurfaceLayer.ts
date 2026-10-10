@@ -323,23 +323,18 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       context.beginPath();
       context.ellipse(0, -high * 0.08, base * 0.62, tall * 0.05, 0, 0, TAU);
       context.fill();
-      // The sea round its base: a rippled waterline in the colour of the surface near by, the capsule's lower edge
-      // showing through it.
+      // The sea round its base: an even ring of water in the colour of the surface near by, over the capsule's lower
+      // edge, with a pale ripple at the waterline.
       context.fillStyle = this.scene ? this.scene.ground.far : "#2b6b9a";
-      context.globalAlpha *= 0.7;
+      context.globalAlpha *= 0.75;
       context.beginPath();
-      context.moveTo(-base * 0.78, 0);
-
-      for (let step = 0; step <= 12; step += 1) {
-        const across = -base * 0.78 + (step / 12) * base * 1.56;
-
-        context.lineTo(across, -high * 0.06 + Math.sin(now * 0.004 + step * 1.3) * high * 0.025);
-      }
-
-      context.lineTo(base * 0.78, high * 0.1);
-      context.ellipse(0, high * 0.1, base * 0.78, high * 0.05, 0, 0, Math.PI);
-      context.closePath();
+      context.ellipse(0, -high * 0.01, base * 0.82, high * 0.09, 0, 0, TAU);
       context.fill();
+      context.strokeStyle = "rgba(235, 245, 255, 0.55)";
+      context.lineWidth = Math.max(1, tall * 0.012);
+      context.beginPath();
+      context.ellipse(0, -high * 0.04, base * (0.7 + Math.sin(now * 0.004) * 0.04), high * 0.06, 0, Math.PI, TAU);
+      context.stroke();
     }
 
     context.restore();
@@ -444,9 +439,21 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       // Lifting off, or the landing burn: throttled up hardest just before touchdown.
       const flame = this.kit.sprite(`flame:${theme.flameCore}:${size}`, size * 1.1, size * 2.8, paintFlame(theme.flameCore, theme.flameEdge));
       const thrust = isLeaving ? 1 : 0.55 + 0.45 * descent;
+      // From the nozzle, and no further than the ground: what reaches it spreads out along it as a glow.
+      const nozzle = y - tall * 0.2;
+      const length = Math.min(tall * thrust * (0.8 + Math.sin(now * 0.05) * 0.1), Math.max(0, groundY - nozzle));
 
       if (flame) {
-        context.drawImage(flame.surface, x - wide * 0.22, y - tall * 0.05, wide * 0.44, tall * thrust * (0.8 + Math.sin(now * 0.05) * 0.1));
+        context.drawImage(flame.surface, x - wide * 0.22, nozzle, wide * 0.44, length);
+      }
+
+      if (!isLeaving && groundY - nozzle < tall * thrust) {
+        const spread = context.createRadialGradient(x, groundY, 0, x, groundY, wide * 1.6);
+
+        spread.addColorStop(0, "rgba(255, 220, 160, 0.7)");
+        spread.addColorStop(1, "rgba(255, 160, 80, 0)");
+        context.fillStyle = spread;
+        context.fillRect(x - wide * 1.6, groundY - wide * 0.5, wide * 3.2, wide);
       }
     }
 

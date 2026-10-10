@@ -2,7 +2,7 @@ import { FC, useState } from "react";
 
 import tw from "twin.macro";
 
-import { faChevronDown, faChevronUp, faMugHot } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp, faHeart } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton, ActionLink } from "@/components/Controls";
@@ -44,7 +44,7 @@ export const Timelapse: FC<TimelapseProps> = ({ intro, content }: TimelapseProps
           <Support>
             {support.note}
             <ActionLink href={support.url} target="_blank" rel="noopener noreferrer" isPrimary={false}>
-              <FontAwesomeIcon icon={faMugHot} aria-hidden="true" />
+              <FontAwesomeIcon icon={faHeart} aria-hidden="true" />
               {support.label}
             </ActionLink>
           </Support>

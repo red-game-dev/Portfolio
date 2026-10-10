@@ -265,7 +265,7 @@ export const CardButtons = styled.div(() => [
     position: sticky;
     bottom: -16px;
     margin: 6px -22px -22px;
-    background: linear-gradient(to bottom, rgba(5, 8, 18, 0), rgba(5, 8, 18, 0.96) 28%);
+    background: linear-gradient(to bottom, rgba(5, 8, 18, 0), #05080f 14px);
 
     ${media.md} {
       margin: 6px -28px -28px;

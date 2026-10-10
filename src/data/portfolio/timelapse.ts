@@ -6,6 +6,12 @@ export const timelapseContent: Pick<PortfolioData, "timelapse"> = {
   timelapse: {
     show: "Watch it being built",
     hide: "Hide the time-lapse",
+    support: {
+      note: "Enjoyed it? A coffee keeps the next feature coming.",
+      label: "Buy me a coffee",
+      // Shown once Red has a support page to link to.
+      url: "",
+    },
     stats: {
       commits: "Commits",
       first: "First commit",

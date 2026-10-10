@@ -149,6 +149,10 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         "can. Fly through gold coins to pick up Red Coin. Hold still beside a wreck to salvage it. H opens the hangar and U does " +
         "whatever is ready. C takes a photo. P pauses, Escape leaves.",
       canvasLabel: "Your ship, flying out through space",
+      setup: {
+        title: "How do you like to fly?",
+        note: "Pick what suits you before your first flight. You can change any of it later in the hangar's Settings.",
+      },
       start: "Fly",
       again: "Start again from Earth",
       close: "Back to the page",
@@ -178,6 +182,16 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         dilation: "Time dilation",
         next: "Next",
         blackHole: "Black hole",
+        space: "Space",
+        media: {
+          void: "Empty void",
+          open: "Open space",
+          haze: "Nebular haze",
+          belt: "Asteroid belt",
+          nebula: "Inside a nebula",
+          ring: "In a planet's rings",
+        },
+        tides: "Tides",
         noSignal: "No signal",
       },
       units: {
@@ -195,6 +209,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         metres: "{value} m",
         metresPerSecond: "{value} m/s",
         further: "{value} AU further out",
+        tides: "{value} times what the hull takes",
         clock: "{date} UTC",
       },
       systems: {
@@ -210,7 +225,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       },
       landed: "Landed on {body}",
       tookOff: "Lifting off {body}",
-      map: {
+      mapMarks: {
         mission: "Mission",
         holeMass: "{mass} Suns",
         keyMission: "Where your missions send you",
@@ -746,6 +761,11 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
     linkedInLabel: "LinkedIn",
     cvLabel: "Download my CV",
     restartLabel: "New game+",
+    referral: {
+      note: "Not hiring right now? If you know a team that is, I would be grateful if you passed my name on.",
+      share: "Share the site on LinkedIn",
+      recommend: "Worked with me? Recommend me on LinkedIn",
+    },
   },
   arena: {
     boardLabel: "Bug Raid game board",

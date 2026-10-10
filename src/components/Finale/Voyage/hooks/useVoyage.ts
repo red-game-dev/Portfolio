@@ -2,6 +2,8 @@ import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useMemo
 
 import { PHOTO_PAN, VOYAGE_KEYS, VOYAGE_ZOOM, voyageKeyAction } from "@/components/Finale/Voyage/controls";
 import { usePilotSync } from "@/components/Finale/Voyage/hooks/usePilotSync";
+import { useTiltSteering } from "@/components/Finale/Voyage/hooks/useTiltSteering";
+import { canTilt } from "@/components/Finale/Voyage/tilt";
 import { usePreferencesStateHook } from "@/components/Preferences/hooks/usePreferencesStateHook";
 import { VOYAGE_TEXTURES, VOYAGE_THEME } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
@@ -132,6 +134,12 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   useEffect(() => {
     game?.setLanding(landing);
   }, [game, landing]);
+
+  useEffect(() => {
+    game?.setSpaceDrag(preferences["space-drag"]);
+  }, [game, preferences]);
+
+  useTiltSteering(game, preferences["tilt-steering"] && canTilt(), isFlying);
 
   const play = useCallback((mode: "free" | "daily" = "free") => {
     held.clear();

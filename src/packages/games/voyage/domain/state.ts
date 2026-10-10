@@ -115,7 +115,13 @@ export interface Readings {
   // nebula (0 to 1).
   tidal: number;
   nebula: number;
+  // The kind of space the ship is in, which sets how fast it can go.
+  medium: Medium;
 }
+
+// What the space round the ship is, from the emptiest to the densest: the void between universes or of a void
+// universe, open space, the haze filling a nebula universe, an asteroid belt, inside a nebula, and a giant's rings.
+export type Medium = "void" | "open" | "haze" | "belt" | "nebula" | "ring";
 
 // Everything about a run that is not an entity.
 export interface VoyageState {
@@ -142,6 +148,8 @@ export interface VoyageState {
   capture: Capture | null;
   waypoint: Waypoint | null;
   readings: Readings;
+  // How fast the ship may go now (world units a second), easing towards what the space round it allows.
+  speedLimit: number;
   storms: Storm[];
   // How bright Earth's aurora burns, 0 to 1, lit by storms and fading after, and the extra radiation a storm
   // leaves round the ship as it passes (uSv/h), fading too.

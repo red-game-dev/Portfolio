@@ -18,6 +18,18 @@ export const preferencesContent: Pick<PortfolioData, "preferences"> = {
           "down gently enough not to break the legs. Only a landing made on an engine can be flown by hand; parachutes come down by themselves.",
         options: { auto: "Flown for you", manual: "Fly it yourself" },
       },
+      "space-drag": {
+        name: "Space",
+        description: "Felt: denser places slow you down, in the order real space has them. Voids are emptiest, then open space, " +
+          "asteroid belts, nebulae and planetary rings. Real: space is far too empty to slow a ship, so how fast you go is up to your engines.",
+        options: { felt: "Felt", real: "Real" },
+      },
+      "tilt-steering": {
+        name: "Steer by tilting",
+        description: "On a phone or tablet, tilt it the way you want to fly. The further you tilt, the harder you burn. " +
+          "Hold it the way you like when you start: that is level.",
+        options: { on: "On", off: "Off" },
+      },
     },
     terminal: {
       settingsSummary: "See your settings",

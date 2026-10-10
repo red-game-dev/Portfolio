@@ -12,7 +12,7 @@ import { StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
 import { ShipEffect } from "../domain/faults";
 import { GhostRun } from "../domain/ghost";
-import { LandingOptions, VoyageInput } from "../domain/input";
+import { LandingOptions, SpaceDrag, VoyageInput } from "../domain/input";
 import { VoyageAction, VoyageNotice } from "../domain/notices";
 import { VoyageSnapshot } from "../domain/snapshot";
 import { HomePad } from "../domain/surface";
@@ -81,6 +81,9 @@ export interface VoyageCanvasOptions extends VoyageOptions {
 const TICK_MS = 250;
 // After the ship is lost the loop runs this long more for the wreck to finish, then stops on its last frame.
 const WRECK_MS = 3200;
+// Tilting aims the ship at a point this far ahead of it the way the device leans (world units).
+const TILT_REACH = 3;
+
 // A pointer this close to the ship (in CSS pixels) asks for no thrust; this far or more, full thrust.
 const DEADZONE = 26;
 const FULL_THRUST_SHARE = 0.32;
@@ -137,6 +140,9 @@ export class VoyageGame extends FrameLoop {
   private isPressing = false;
   private zoomBias = 1;
   private keys = { turn: 0, thrust: 0, brake: false };
+  // A phone or tablet tilted to steer: the way to fly on screen (x right, y down) and how hard, 0 to 1; null when
+  // tilting does not steer.
+  private tilt: { x: number; y: number } | null = null;
   private lastSnapshot: VoyageSnapshot;
   private lastTickAt = 0;
   private lastFrameAt = 0;
@@ -326,6 +332,11 @@ export class VoyageGame extends FrameLoop {
     this.isPressing = isDown;
   }
 
+  // How the device is tilted, as the hook reads it, or null when tilting does not steer.
+  public setTilt(tilt: { x: number; y: number } | null): void {
+    this.tilt = tilt;
+  }
+
   public setKeys(keys: { turn: number; thrust: number; brake: boolean }): void {
     this.keys = keys;
 
@@ -502,9 +513,13 @@ export class VoyageGame extends FrameLoop {
     this.publish(true);
   }
 
-  // How the pilot likes their landings, from their preferences.
+  // How the pilot likes their landings, and how much space slows the ship, from their preferences.
   public setLanding(options: LandingOptions): void {
     this.simulation.setLanding(options);
+  }
+
+  public setSpaceDrag(drag: SpaceDrag): void {
+    this.simulation.setSpaceDrag(drag);
   }
 
 
@@ -620,6 +635,21 @@ export class VoyageGame extends FrameLoop {
     }
 
     const parts = this.shipScreen();
+    const isKeyed = this.keys.turn !== 0 || this.keys.thrust !== 0 || this.keys.brake;
+
+    // Tilted to steer: towards the way it leans, as hard as it leans, unless keys are flying it. A finger on the
+    // screen still locks the guns but no longer steers.
+    if (this.tilt && !isKeyed) {
+      const strength = Math.min(1, Math.hypot(this.tilt.x, this.tilt.y));
+      const body = this.simulation.world.stores.body.get(this.simulation.state.ship);
+
+      return {
+        aim: body && strength > 0 ? { x: body.x + (this.tilt.x / strength) * TILT_REACH, y: body.y + (this.tilt.y / strength) * TILT_REACH } : null,
+        thrust: strength,
+        turn: 0,
+        brake: false,
+      };
+    }
 
     if (this.pointer && parts) {
       const distance = Math.hypot(this.pointer.x - parts.x, this.pointer.y - parts.y);

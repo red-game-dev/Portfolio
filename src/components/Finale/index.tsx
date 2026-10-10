@@ -17,6 +17,7 @@ import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
 import { Section } from "@/components/Section";
 import { SECTION_IDS } from "@/config/sections";
+import { SITE_URL } from "@/config/site";
 import { SOCIAL_URLS } from "@/config/social";
 import { CROSSED_ZONES, ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
 import useFocusLeave from "@/hooks/useFocusLeave";
@@ -181,6 +182,11 @@ const QuestTitle = tw.h3`m-0 text-base font-semibold text-white`;
 const Note = tw.p`m-0 text-sm text-[#bbb] max-w-[70ch]`;
 
 const Actions = tw.div`flex flex-row flex-wrap gap-[10px]`;
+
+// The quiet ask for a reader who is not hiring, under the ways to get in touch.
+const Referral = tw.p`m-0 flex flex-row flex-wrap items-center gap-x-[14px] gap-y-[6px] text-xs text-[#9aa3bb] max-w-[70ch]`;
+
+const ReferralLink = tw.a`text-[#c4d2ff] underline hover:text-white`;
 
 const Restart = styled.button(() => actionStyle(false));
 
@@ -434,6 +440,15 @@ export const Finale: FC<FinaleProps> = ({
               {content.restartLabel}
             </Restart>
           </Actions>
+          <Referral>
+            {content.referral.note}
+            <ReferralLink href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(SITE_URL)}`} target="_blank" rel="noopener noreferrer">
+              {content.referral.share}
+            </ReferralLink>
+            <ReferralLink href={SOCIAL_URLS.linkedIn(linkedInUsername)} target="_blank" rel="noopener noreferrer">
+              {content.referral.recommend}
+            </ReferralLink>
+          </Referral>
         </Quest>
       </Panel>
     </Section>

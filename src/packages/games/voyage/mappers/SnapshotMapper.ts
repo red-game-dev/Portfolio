@@ -94,6 +94,8 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
         radiation: 0,
         timeDilation: 1,
         missionTime: state.clock.epochMs,
+        medium: "open",
+        tides: 0,
       },
     };
   }

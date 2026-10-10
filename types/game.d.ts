@@ -305,6 +305,8 @@ export interface FinaleVoyage {
   descent: FinaleDescent;
   intro: string;
   controls: string;
+  // The first time the voyage opens, before the first flight: how the pilot likes to fly.
+  setup: { title: string; note: string };
   canvasLabel: string;
   start: string;
   again: string;
@@ -340,6 +342,10 @@ export interface FinaleVoyage {
     next: string;
     // How much further out the black hole waits, until it wakes.
     blackHole: string;
+    // The kind of space the ship is in, by id, and how hard tides stretch it.
+    space: string;
+    media: Record<"void" | "open" | "haze" | "belt" | "nebula" | "ring", string>;
+    tides: string;
     noSignal: string;
   };
   units: {
@@ -359,6 +365,8 @@ export interface FinaleVoyage {
     metresPerSecond: string;
     // "{value}" is replaced with AU still to go.
     further: string;
+    // "{value}" is replaced with how many times what the hull takes the tides pull.
+    tides: string;
     // "{date}" is replaced with the mission clock's date and time.
     clock: string;
   };
@@ -371,7 +379,7 @@ export interface FinaleVoyage {
   landed: string;
   tookOff: string;
   // The map's marks ("{mass}" is a black hole's in Suns) and its key.
-  map: { mission: string; holeMass: string; keyMission: string; keyPull: string; keyHostile: string; keyRock: string; keyHazard: string };
+  mapMarks: { mission: string; holeMass: string; keyMission: string; keyPull: string; keyHostile: string; keyRock: string; keyHazard: string };
   // Home safely, met and given a new rocket.
   recovered: string;
   // No fuel to leave ("{body}", "{seconds}", "{days}"): a rescue on its way in our solar system or the run ending in
@@ -508,6 +516,8 @@ export interface FinaleContent {
   linkedInLabel: string;
   cvLabel: string;
   restartLabel: string;
+  // For a reader who is not hiring: pass my name on, share the site, or recommend me if we have worked together.
+  referral: { note: string; share: string; recommend: string };
 }
 
 export interface HudLabels {

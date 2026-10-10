@@ -1,6 +1,7 @@
 import type { GlobeLook, StarLook } from "@/packages/graphics/globe";
 
 import { ModuleId } from "../domain/components";
+import type { Medium } from "../domain/state";
 import { VoyageStyle } from "../domain/theme";
 import { SystemLayout } from "../mappers/SystemMapper";
 import { BODY_LOOKS, SUN_LOOK } from "./looks";
@@ -177,6 +178,14 @@ export interface SpawnConfig {
   cometEvery: [number, number];
 }
 
+// How fast the ship can go in each kind of space, as a share of its top speed, when space is felt: faster in a
+// void, slower in belts, nebulae and rings. Entering denser space it eases down to the new limit over about
+// 1 / `easing` seconds rather than stopping dead.
+export interface MediumConfig {
+  speeds: Record<Medium, number>;
+  easing: number;
+}
+
 export interface HoleConfig {
   singularityMu: number;
   // How fast the singularity's pull grows once Pluto is behind, as a share of itself per second.
@@ -239,6 +248,7 @@ export interface VoyageConfig {
   faults: FaultConfig;
   spawn: SpawnConfig;
   holes: HoleConfig;
+  medium: MediumConfig;
   pickups: PickupConfig;
   scoring: ScoringConfig;
   units: UnitsConfig;
@@ -327,6 +337,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     lostMs: 3200,
     jumpMs: 1600,
   },
+  medium: { speeds: { void: 1.4, open: 1, haze: 0.85, belt: 0.75, nebula: 0.65, ring: 0.6 }, easing: 1.5 },
   pickups: { magnet: 1.1, repair: 150, shield: 200, fuel: 35 },
   scoring: { perUnit: 6, pickup: 25, universe: 500, landing: 150, discovery: 100 },
   units: { kmPerSecond: 7, kmPerAu: 149597870.7 },

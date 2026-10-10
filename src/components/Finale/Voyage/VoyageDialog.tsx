@@ -22,6 +22,7 @@ import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage
 import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
+import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
 import { placeName, strandedLine, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
@@ -87,11 +88,15 @@ import {
   TelemetryRow,
   TelemetryTitle,
   TelemetryValue,
+  Setup,
+  SetupTitle,
   Text,
   Title,
   Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
+import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
 import useModalDialog from "@/hooks/useModalDialog";
+import { readStored, writeStored } from "@/packages/browser/storage";
 import type { Frame, HomePad, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
@@ -110,6 +115,9 @@ interface VoyageDialogProps {
 }
 
 const CONTROLS_ID = "voyage-controls";
+// Whether the pilot has been asked how they like to fly, kept so it is asked only the first time.
+const SETUP_KEY = "redgame.voyageSetup";
+const isTrue = (value: unknown): value is true => value === true;
 // How long each line the voyage says stays (ms, its animation's length), and how many may wait.
 const MESSAGE_MS = 2800;
 const MESSAGE_QUEUE = 4;
@@ -132,6 +140,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const frontRef = useRef<HTMLCanvasElement>(null);
   const lensRef = useRef<HTMLCanvasElement>(null);
   const onBackdropClick = useModalDialog(dialogRef, true);
+  const voyageSettings = useVoyageSettings();
+  // Asked once: read after mount, so the server and the first render agree (asked, until known otherwise).
+  const [isSetUp, setIsSetUp] = useState(true);
+
+  useEffect(() => setIsSetUp(readStored(SETUP_KEY, isTrue) === true), []);
   // What the canvas writes: the places on the map, and the ghost's name.
   const labels = useMemo(() => ({
     ...content.stops,
@@ -139,13 +152,13 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     edgeNote: content.career.edgeNote,
     gateWayOn: content.gate.markWayOn,
     gateVisited: content.gate.markVisited,
-    mapMission: content.map.mission,
-    mapHoleMass: content.map.holeMass,
-    mapKeyMission: content.map.keyMission,
-    mapKeyPull: content.map.keyPull,
-    mapKeyHostile: content.map.keyHostile,
-    mapKeyRock: content.map.keyRock,
-    mapKeyHazard: content.map.keyHazard,
+    mapMission: content.mapMarks.mission,
+    mapHoleMass: content.mapMarks.holeMass,
+    mapKeyMission: content.mapMarks.keyMission,
+    mapKeyPull: content.mapMarks.keyPull,
+    mapKeyHostile: content.mapMarks.keyHostile,
+    mapKeyRock: content.mapMarks.keyRock,
+    mapKeyHazard: content.mapMarks.keyHazard,
   }), [content]);
   const canvases = { stage: stageRef, back: backRef, front: frontRef, lens: lensRef };
   const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames, home });
@@ -242,6 +255,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   }, [content, notices, takeNotices]);
 
   const start = (mode: "free" | "daily" = "free") => {
+    if (!isSetUp) {
+      writeStored(SETUP_KEY, true);
+      setIsSetUp(true);
+    }
+
     setPay(null);
     setDaily(null);
     setHangar(false);
@@ -551,6 +569,13 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 <Title>{content.title}</Title>
                 <Text>{content.intro}</Text>
                 <Text>{content.controls}</Text>
+                {!isSetUp && (
+                  <Setup aria-labelledby="voyage-setup-title">
+                    <SetupTitle id="voyage-setup-title">{content.setup.title}</SetupTitle>
+                    <Text>{content.setup.note}</Text>
+                    <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
+                  </Setup>
+                )}
                 <Buttons>
                   <ActionButton type="button" isPrimary disabled={!isReady} onClick={() => start()}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />

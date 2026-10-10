@@ -51,6 +51,11 @@ export const telemetryRows = (content: FinaleVoyage, snapshot: VoyageSnapshot): 
     waypoint
       ? { label: labels.next, value: sense(`${waypoint.name ?? stops[waypoint.id] ?? waypoint.id}, ${formatDistance(content, waypoint.distanceKm)}`), isKey: true }
       : null,
+    { label: labels.space, value: sense(labels.media[telemetry.medium]), isKey: false },
+    // Tides worth knowing about: from a fifth of what the hull takes, and key once they tear.
+    telemetry.tides >= 0.2
+      ? { label: labels.tides, value: sense(fill(units.tides, { value: formatNumber(telemetry.tides, 1, true) })), isKey: telemetry.tides >= 1 }
+      : null,
     // Where the way on leads: the black hole past the edge of the system.
     telemetry.toHoleAu !== null
       ? { label: labels.blackHole, value: fill(units.further, { value: formatNumber(telemetry.toHoleAu, 1, true) }), isKey: true }

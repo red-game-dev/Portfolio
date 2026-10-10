@@ -54,6 +54,8 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
     radiation: 65,
     timeDilation: 1,
     missionTime: Date.parse("2026-10-09T12:00:00Z"),
+    medium: "open",
+    tides: 0,
   },
   ...snapshot,
 });

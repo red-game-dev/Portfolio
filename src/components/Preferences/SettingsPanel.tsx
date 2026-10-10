@@ -9,6 +9,9 @@ import { PreferencesContent } from "@/types/preferences";
 
 interface SettingsPanelProps {
   copy: PreferencesContent;
+  // Which settings to show, all of them unless given; and what to do once one is picked, beyond keeping it.
+  names?: readonly PreferenceName[];
+  onPick?: (name: PreferenceName, value: string | boolean) => void;
 }
 
 const Group = tw.fieldset`m-0 p-0 border-0 flex flex-col gap-[6px]`;
@@ -47,9 +50,9 @@ const optionsOf = (setting: Setting): Array<{ key: string; value: string | boole
 // The reader's settings as a form: each preference a group of options (a switch's being on and off), changed as
 // soon as one is picked and kept in this browser. The same store the terminal's `set` changes, so either shows
 // the other's change.
-export const SettingsPanel: FC<SettingsPanelProps> = ({ copy }: SettingsPanelProps) => {
+export const SettingsPanel: FC<SettingsPanelProps> = ({ copy, names: only, onPick }: SettingsPanelProps) => {
   const { values, set } = usePreferencesStateHook();
-  const names = Object.keys(SITE_PREFERENCES).filter((key): key is PreferenceName => key in copy.items);
+  const names = Object.keys(SITE_PREFERENCES).filter((key): key is PreferenceName => key in copy.items && (!only || only.some((name) => name === key)));
 
   return (
     <List>
@@ -65,7 +68,16 @@ export const SettingsPanel: FC<SettingsPanelProps> = ({ copy }: SettingsPanelPro
             <Options>
               {optionsOf(setting).map(({ key, value }) => (
                 <Option key={key} isChosen={values[name] === value}>
-                  <input type="radio" name={`setting-${name}`} value={key} checked={values[name] === value} onChange={() => set(name, value)} />
+                  <input
+                    type="radio"
+                    name={`setting-${name}`}
+                    value={key}
+                    checked={values[name] === value}
+                    onChange={() => {
+                      set(name, value);
+                      onPick?.(name, value);
+                    }}
+                  />
                   {item.options[key] ?? key}
                 </Option>
               ))}

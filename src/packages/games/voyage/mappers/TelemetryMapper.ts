@@ -6,6 +6,7 @@ import { VoyageConfig } from "../config";
 import { Body, Ship } from "../domain/components";
 import { Telemetry } from "../domain/snapshot";
 import { VoyageState } from "../domain/state";
+import { TIDAL_LIMIT } from "../systems/damage";
 import { missionTime } from "../systems/orbits";
 import { auForRadius } from "../utils/scale";
 
@@ -49,6 +50,8 @@ export class TelemetryMapper extends Mapper<TelemetrySource, Telemetry> {
       radiation: Math.round(readings.radiation),
       timeDilation: Number.isFinite(readings.holeRatio) ? roundTo(timeDilation(readings.holeRatio, 1), 2) : 1,
       missionTime: missionTime(state.clock, state.elapsedMs),
+      medium: readings.medium,
+      tides: roundTo(readings.tidal / TIDAL_LIMIT, 1),
     };
   }
 }

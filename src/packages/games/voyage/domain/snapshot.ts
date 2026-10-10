@@ -2,6 +2,7 @@ import type { LandingMethod, LandingPhase } from "../landing";
 import { AlienRole, Modules, WreckKind } from "./components";
 import { VoyagePhase } from "./events";
 import { FaultKind } from "./faults";
+import type { Medium } from "./state";
 import { VoyageStatus } from "./state";
 import { SurfaceInfo } from "./surface";
 import { Disposition, GalaxyKind, StarKind } from "./universe";
@@ -50,6 +51,9 @@ export interface Telemetry {
   timeDilation: number;
   // The mission clock, as a real moment (ms since 1970).
   missionTime: number;
+  // The kind of space the ship is in, and how hard tides pull it apart as a multiple of what the hull takes.
+  medium: Medium;
+  tides: number;
 }
 
 // A landing on its way down, in real units: how it comes down and what it is doing now, how high (m), how fast (m/s,

@@ -9,6 +9,11 @@ export const SITE_PREFERENCES = {
   "landing-time": { kind: "choice", options: ["compressed", "real"], initial: "compressed" },
   // Who flies the landing burn: the guidance, as a real landing is flown, or the pilot.
   "landing-control": { kind: "choice", options: ["auto", "manual"], initial: "auto" },
+  // How much the space round the ship slows it: felt, in the real order (voids emptiest, rings and nebulae
+  // densest), or strictly real, where space is too empty to slow a ship at all.
+  "space-drag": { kind: "choice", options: ["felt", "real"], initial: "felt" },
+  // On a phone or tablet, steering by tilting it: off until the reader turns it on.
+  "tilt-steering": { kind: "toggle", initial: false },
 } as const satisfies Schema;
 
 export type SitePreferences = typeof SITE_PREFERENCES;

@@ -207,7 +207,7 @@ describe("the launch button", () => {
 
 const VOYAGE_METHODS = [
   "stop", "dispose", "resize", "setTexture", "setKeys", "play", "pause", "resume", "zoomBy", "point", "lockAt", "panBy", "setPhotoMode", "setMap",
-  "setAutoFire", "act", "follow", "photo", "setLanding", "press",
+  "setAutoFire", "act", "follow", "photo", "setLanding", "setSpaceDrag", "setTilt", "press",
 ] as const;
 
 const Voyage = () => {

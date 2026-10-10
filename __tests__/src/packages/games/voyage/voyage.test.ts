@@ -466,6 +466,30 @@ describe("the way out and beyond", () => {
     expect(new Set(universes.slice(0, defaults.universes)).size).toBe(defaults.universes);
   });
 
+  test("space slows the ship as it really thickens, felt: in the asteroid belt it eases down; set to real, only the engines limit it", () => {
+    const felt = create();
+    const real = create();
+    const belt = felt.state.system.belts.find((ring) => ring.id === "belt");
+
+    if (!belt) {
+      throw new Error("expected the asteroid belt");
+    }
+
+    real.setSpaceDrag("real");
+    [felt, real].forEach((run) => {
+      const out = (belt.inner + belt.outer) / 2;
+      const { star } = run.state.system;
+
+      place(run, star.x + out, star.y, 0, defaults.ship.maxSpeed);
+      run.step(4000, { ...NO_INPUT, thrust: 1 });
+    });
+
+    expect(felt.state.readings.medium).toBe("belt");
+    expect(felt.snapshot.telemetry.medium).toBe("belt");
+    expect(felt.state.speedLimit).toBeCloseTo(defaults.ship.maxSpeed * defaults.medium.speeds.belt, 1);
+    expect(real.state.speedLimit).toBeCloseTo(defaults.ship.maxSpeed, 6);
+  });
+
   test("time runs slow by a black hole, and the telemetry says so", () => {
     const simulation = create();
 

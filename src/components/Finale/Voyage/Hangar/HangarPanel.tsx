@@ -39,6 +39,7 @@ import {
   TabPanel,
   Tabs,
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
+import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
 import { BarFill, IconButton } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
 import { Tab, TabList } from "@/components/Tabs";
@@ -72,6 +73,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
   const careerCopy = content.career;
   const tabs = [careerCopy.tabs.pilot, copy.tabs.ship, copy.tabs.hold, copy.tabs.plans, copy.tabs.ledger, careerCopy.tabs.codex, settings.title];
   const { active, listProps, tabProps, panelProps } = useTabs({ count: tabs.length });
+  const voyageSettings = useVoyageSettings();
   const { next, stats } = economy;
 
   useEffect(() => {
@@ -363,7 +365,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
           )}
         </TabPanel>
         <TabPanel {...panelProps(6)}>
-          <SettingsPanel copy={settings} />
+          <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
         </TabPanel>
       </Body>
       <Footer>

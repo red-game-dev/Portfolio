@@ -5,7 +5,7 @@ import tw, { css, styled } from "twin.macro";
 import { faSkull } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { Tag } from "@/components/Controls";
+import { Tag, TagList } from "@/components/Controls";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import { faTreasureChest } from "@/config/icons";
@@ -112,8 +112,6 @@ const Solution = styled.div(() => [tw`flex flex-col gap-[8px]`, honourHidden]);
 
 const Loot = tw.div`flex flex-row items-start gap-[10px] p-[12px] text-sm text-[#ffd98c] bg-[#1a1408] border-[1px] border-solid border-[#5c4a26]`;
 
-const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
-
 export const BossCard: FC<BossCardProps> = ({ area, title, summary, points, tags, loot, labels, caseLabels }: BossCardProps) => {
   const cardRef = useRef<HTMLElement>(null);
   const { defeatBoss } = useGameStateHook();
@@ -175,11 +173,11 @@ export const BossCard: FC<BossCardProps> = ({ area, title, summary, points, tags
           {loot}
         </span>
       </Loot>
-      <Tags>
+      <TagList>
         {tags.map((tag) => (
           <Tag isCompact key={tag}>{tag}</Tag>
         ))}
-      </Tags>
+      </TagList>
     </Card>
   );
 };

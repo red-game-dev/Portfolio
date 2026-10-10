@@ -5,6 +5,7 @@ import tw, { css, styled } from "twin.macro";
 import { faEnvelope, faGamepad } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { Tag, TagList } from "@/components/Controls";
 import { HeroPortrait } from "@/components/Roster/HeroPortrait";
 import { hiddenWhenReduced, media, noTransitionWhenReduced } from "@/styles/mixins";
 import { Character, Roster } from "@/types/roster";
@@ -129,11 +130,6 @@ const GroupLabel = tw.h4`m-0 text-xs font-medium text-[#999]`;
 
 const Note = tw.p`m-0 text-sm text-[#bbb] leading-relaxed`;
 
-const Chips = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
-
-const Ability = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[6px] px-[10px] border-[1px] border-solid
-border-[var(--accent-muted)]`;
-
 // Pushed to the bottom of the card, so the buttons line up across a row.
 const Select = styled.button(({ isSelected }: SelectedProps) => [
   tw`mt-auto inline-flex flex-row items-center justify-center gap-[8px] h-[38px] px-[14px] cursor-pointer text-sm font-semibold
@@ -186,11 +182,11 @@ export const CharacterCard: FC<CharacterCardProps> = ({
             ))}
           </Stats>
           <GroupLabel>{labels.abilities}</GroupLabel>
-          <Chips>
+          <TagList>
             {abilities.map((ability) => (
-              <Ability key={ability}>{ability}</Ability>
+              <Tag isCompact key={ability}>{ability}</Tag>
             ))}
-          </Chips>
+          </TagList>
           {note && <Note>{note}</Note>}
           <Select type="button" isSelected={isSelected} aria-haspopup="dialog" onClick={() => onSelect(characterClass)}>
             <FontAwesomeIcon icon={isGameLayer ? faGamepad : faEnvelope} aria-hidden="true" />

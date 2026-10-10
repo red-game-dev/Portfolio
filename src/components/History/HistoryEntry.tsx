@@ -2,7 +2,7 @@ import { FC, useId, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { Tag } from "@/components/Controls";
+import { Tag, TagList } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import { HISTORY_VIEW, VENTURE_COLOUR } from "@/components/History/config";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
@@ -112,8 +112,6 @@ const Bullet = styled.li(() => [
 // display: flex would beat the hidden attribute, so hidden is restated here.
 const More = styled.div(() => [tw`flex flex-col gap-[10px]`, honourHidden]);
 
-const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
-
 const Toggle = styled.button(() => [
   tw`self-start cursor-pointer text-xs font-medium py-[6px] px-[10px] text-[var(--accent)] bg-transparent border-[1px] border-solid border-[var(--accent-muted)]
      rounded-[2px]`,
@@ -158,11 +156,11 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
         {outcome && <Outcome>{outcome}</Outcome>}
         {lead && <Lead>{lead}</Lead>}
         {stackPreview.length > 0 && (
-          <Tags>
+          <TagList>
             {stackPreview.map((tech) => (
               <Tag isCompact key={tech}>{tech}</Tag>
             ))}
-          </Tags>
+          </TagList>
         )}
         {preview.length > 0 && (
           <Bullets>
@@ -184,11 +182,11 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
               </Bullets>
             )}
             {restStack.length > 0 && (
-              <Tags>
+              <TagList>
                 {restStack.map((tech) => (
                   <Tag isCompact key={tech}>{tech}</Tag>
                 ))}
-              </Tags>
+              </TagList>
             )}
           </More>
         )}

@@ -3,6 +3,7 @@ import { FC, useCallback } from "react";
 import tw, { styled } from "twin.macro";
 
 import { BlueprintSection } from "@/components/Blueprint";
+import { Tag, TagList } from "@/components/Controls";
 import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import { Anchor, Section } from "@/components/Section";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
@@ -35,18 +36,14 @@ const TileName = tw.h3`m-0 text-base font-semibold text-white`;
 
 const TileDetail = tw.p`m-0 text-sm text-[#bbb] break-words`;
 
-const Places = tw.ul`list-none m-0 mt-auto p-0 flex flex-row flex-wrap gap-[6px]`;
-
-const Place = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[6px] px-[10px] border-[1px] border-solid
-border-[var(--accent-muted)]`;
+// At the foot of the tile, so the places line up across a row.
+const Places = styled(TagList)(() => [tw`mt-auto`]);
 
 const Example = tw.div`mt-[22px]`;
 
 const Kinds = tw.section`flex flex-col gap-[10px] mb-[25px]`;
 
 const KindsTitle = tw.h3`m-0 text-base font-semibold text-white`;
-
-const KindList = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 
 const Kind = tw.li`text-xs leading-none text-white bg-[#161616] rounded-[2px] py-[7px] px-[10px] border-[1px] border-solid border-[#2a2a2a]`;
 
@@ -81,7 +78,7 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
               <TileDetail>{tile.detail}</TileDetail>
               <Places>
                 {tile.places.map((place) => (
-                  <Place key={place}>{place}</Place>
+                  <Tag isCompact key={place}>{place}</Tag>
                 ))}
               </Places>
             </Tile>
@@ -92,9 +89,9 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
     </Groups>
     <Kinds>
       <KindsTitle>{expertise.architectureKindsTitle}</KindsTitle>
-      <KindList>
+      <TagList>
         {expertise.architectureKinds.map((kind) => <Kind key={kind}>{kind}</Kind>)}
-      </KindList>
+      </TagList>
     </Kinds>
     <Panel>
       <PanelTitle>{expertise.exampleTitle}</PanelTitle>

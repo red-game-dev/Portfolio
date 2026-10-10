@@ -1,5 +1,6 @@
 import tw, { css, styled } from "twin.macro";
 
+import { TagList } from "@/components/Controls";
 import { fadeIn } from "@/styles/keyframes";
 import { brightenOnHover, media, squareBullet } from "@/styles/mixins";
 
@@ -28,7 +29,7 @@ export const Term = tw.dt`text-xs font-semibold text-[#8a8a8a] md:pt-[6px]`;
 
 export const Value = tw.dd`m-0 flex flex-col gap-[10px] min-w-0`;
 
-export const Chips = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
+export const Chips = TagList;
 
 export const Chip = tw.li`inline-flex flex-row items-baseline gap-[6px] text-sm leading-none text-white bg-[#161616] rounded-[2px] py-[7px] px-[10px]
 border-[1px] border-solid border-[#262626]`;

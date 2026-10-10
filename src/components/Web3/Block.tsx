@@ -2,6 +2,7 @@ import { FC, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { Tag, TagList } from "@/components/Controls";
 import useInView from "@/hooks/useInView";
 import { collapseWhitespace } from "@/packages/text/format";
 import { DomainCapability } from "@/types/domains";
@@ -52,11 +53,6 @@ const Name = tw.h3`m-0 text-base md:text-lg font-semibold text-white`;
 
 const Detail = tw.p`m-0 text-sm text-[#bbb] break-words`;
 
-const Places = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
-
-const Place = tw.li`text-xs leading-none text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[6px] px-[10px] border-[1px] border-solid
-border-[var(--accent-muted)]`;
-
 // A capability as a block: its height in the chain, its hash and the previous block's, and a status that
 // confirms once the reader reaches it.
 export const Block: FC<BlockProps> = ({ name, detail, places, height, hash, previousHash, labels }: BlockProps) => {
@@ -76,11 +72,11 @@ export const Block: FC<BlockProps> = ({ name, detail, places, height, hash, prev
       <Name>{name}</Name>
       <Detail>{collapseWhitespace(detail)}</Detail>
       {places.length > 0 && (
-        <Places>
+        <TagList>
           {places.map((place) => (
-            <Place key={place}>{place}</Place>
+            <Tag isCompact key={place}>{place}</Tag>
           ))}
-        </Places>
+        </TagList>
       )}
     </Card>
   );

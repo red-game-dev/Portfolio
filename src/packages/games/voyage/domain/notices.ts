@@ -7,7 +7,8 @@ import { ItemStack } from "./loot";
 
 // Something the UI may want to say, as it happens, beyond what the snapshot shows.
 export type VoyageNotice =
-  | { kind: "tookOff" | "emergency" | "recovered"; body: string }
+  | { kind: "tookOff" | "emergency"; body: string }
+  | { kind: "recovered"; body: string; days: number }
   // Down in one piece at a speed (m/s), a phase of the way down beginning, or a touchdown too hard for the craft.
   | { kind: "landed"; body: string; speed: number | null }
   | { kind: "descent"; body: string; phase: LandingPhase }

@@ -297,16 +297,21 @@ describe("surfaces and air", () => {
     const venus = bodyOf(simulation, "venus");
     const failing: string[] = [];
 
+    // Held just above the ground as Venus moves, never touching it (a touch would begin a landing's way down).
+    const low = () => venus.y - venus.radius - defaults.ship.radius - 0.0005;
+
     simulation.events.on("failing", ({ module }) => failing.push(module));
     partsOf(simulation).ship.landedOn = null;
-    place(simulation, venus.x, venus.y - venus.radius - 0.002, venus.vx, venus.vy);
+    place(simulation, venus.x, low(), venus.vx, venus.vy);
     simulation.step(defaults.stepMs);
     expect(simulation.snapshot.telemetry.pressureBar).toBeGreaterThan(80);
 
-    for (let second = 0; second < 6; second += 1) {
-      place(simulation, venus.x, venus.y - venus.radius - 0.002, venus.vx, venus.vy);
-      simulation.step(1000);
+    for (let elapsed = 0; elapsed < 6000; elapsed += defaults.stepMs) {
+      place(simulation, venus.x, low(), venus.vx, venus.vy);
+      simulation.step(defaults.stepMs);
     }
+
+    expect(partsOf(simulation).ship.landedOn).toBeNull();
 
     expect(simulation.snapshot.telemetry.hullTemperatureC).toBeGreaterThan(400);
     expect(failing).toEqual(expect.arrayContaining(["sensors", "shields"]));

@@ -23,6 +23,7 @@ import { HangarPanel } from "@/components/Finale/Voyage/Hangar/HangarPanel";
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { placeName, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import {
   Badge,
@@ -91,8 +92,8 @@ import {
   Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import useModalDialog from "@/hooks/useModalDialog";
-import type { Frame, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
-import { fill, formatHours, formatLatLon, formatNumber } from "@/packages/text/format";
+import type { Frame, HomePad, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
+import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 import { PreferencesContent } from "@/types/preferences";
 
@@ -102,7 +103,8 @@ interface VoyageDialogProps {
   universes: string[];
   best: number;
   // The pad the finale's launch flew from, where a new rocket waits when the crew comes home.
-  homePad: string | null;
+  // The pad at home a new rocket waits on once a crew is back.
+  home: HomePad | null;
   settings: PreferencesContent;
   onRecord: (score: number) => void;
   onClose: () => void;
@@ -124,7 +126,7 @@ const SOUND = 0.995;
 // text everything it shows: where the ship is, its hull, shields and fuel as MMO bars, any system that is hurt,
 // the score, the live telemetry, and each moment said once. A card starts, pauses and ends a run; a button opens
 // the map. Opens itself on mount.
-export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, homePad, settings, onRecord, onClose }: VoyageDialogProps) => {
+export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, home, settings, onRecord, onClose }: VoyageDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLCanvasElement>(null);
@@ -134,7 +136,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   // What the canvas writes: the places on the map, and the ghost's name.
   const labels = useMemo(() => ({ ...content.stops, ghost: content.career.ghost, edgeNote: content.career.edgeNote }), [content]);
   const canvases = { stage: stageRef, back: backRef, front: frontRef, lens: lensRef };
-  const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames });
+  const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames, home });
   const { snapshot, notices, takeNotices, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;
   const { economy, isHangarOpen, setHangar, act, follow } = voyage;
   const { career, isPhoto, togglePhoto, savePhoto, landing } = voyage;
@@ -156,6 +158,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const previous = useRef<VoyageSnapshot | null>(null);
   const bestBefore = useRef(best);
   const status = snapshot?.status ?? "ready";
+  const surfaceTitle = snapshot?.surface ? surfaceHeading(content, snapshot) : "";
   // The world a landing is coming down on: by the surface once it is seen, else by the name the snapshot gives.
   const comingDownOn = snapshot?.surface
     ? placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn)
@@ -444,13 +447,10 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </SurfaceCard>
       )}
       {!snapshot?.descent && snapshot?.surface && status === "flying" && !isHangarOpen && !isPhoto && (
-        <SurfaceCard aria-label={fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn) })}>
-          <SurfaceTitle>{fill(content.surface.title, { body: placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn) })}</SurfaceTitle>
-          <SurfaceLine>{content.surface.biomes[snapshot.surface.biome]}</SurfaceLine>
-          <SurfaceLine>{formatLatLon(snapshot.surface.latitude, snapshot.surface.longitude)}</SurfaceLine>
-          <SurfaceLine>{fill(content.surface.time, { time: formatHours(snapshot.surface.hours) })}</SurfaceLine>
-          {snapshot.surface.isHome && <SurfaceLine>{homePad ? fill(content.surface.readyAt, { pad: homePad }) : content.surface.ready}</SurfaceLine>}
-          <SurfaceHint>{snapshot.surface.isHome ? content.surface.launch : content.surface.takeOff}</SurfaceHint>
+        <SurfaceCard aria-label={surfaceTitle}>
+          <SurfaceTitle>{surfaceTitle}</SurfaceTitle>
+          {surfaceLines(content, snapshot, home?.name ?? null).map((line) => <SurfaceLine key={line}>{line}</SurfaceLine>)}
+          <SurfaceHint>{surfaceHint(content, snapshot, home?.name ?? null)}</SurfaceHint>
         </SurfaceCard>
       )}
       {snapshot && status === "flying" && !isHangarOpen && !isPhoto && (

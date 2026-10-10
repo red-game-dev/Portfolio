@@ -459,6 +459,7 @@ export class VoyageSimulation {
       salvage: null,
       nextWreckAt: null,
       descent: null,
+      homecoming: null,
       view: this.context?.state.view ?? { halfWidth: 2, halfHeight: 2 },
     };
   }

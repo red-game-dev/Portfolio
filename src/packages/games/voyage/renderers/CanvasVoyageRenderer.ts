@@ -11,7 +11,7 @@ import { VoyageWorld } from "../core/world";
 import { VoyageEvents } from "../domain/events";
 import { GhostRun } from "../domain/ghost";
 import { VoyageState } from "../domain/state";
-import { SurfaceInfo } from "../domain/surface";
+import { HomePad, SurfaceInfo } from "../domain/surface";
 import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
@@ -52,6 +52,8 @@ export interface VoyageRenderer {
   setGhost(run: GhostRun | null): void;
   // Photo mode: no radar, map, compass or arrows.
   setPhoto(isOn: boolean): void;
+  // The pad at home a new rocket stands on once a crew is back.
+  setHome(pad: HomePad | null): void;
   dispose(): void;
 }
 
@@ -133,6 +135,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
   public get surface(): SurfaceInfo | null {
     return this.surfaceLayer.info ? { ...this.surfaceLayer.info } : null;
+  }
+
+  public setHome(pad: HomePad | null): void {
+    this.surfaceLayer.setHome(pad);
   }
 
   public resize(width: number, height: number, pixelRatio: number): void {

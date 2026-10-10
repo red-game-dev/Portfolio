@@ -55,6 +55,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       // The view from the surface is the renderer's; the game adds it.
       surface: null,
       descent: this.descent(state),
+      homecoming: state.homecoming ? { stage: state.homecoming.stage, days: state.homecoming.days, isSea: state.homecoming.isSea } : null,
       modules: MODULE_IDS.reduce<Modules>((all, id) => ({ ...all, [id]: roundTo(modules[id], 2) }), { ...SOUND }),
       waypoint: state.waypoint && body
         ? { id: state.waypoint.id, name: state.cosmos?.names[state.waypoint.id] ?? null, distanceKm: this.distanceKm(state, body.x, body.y) }

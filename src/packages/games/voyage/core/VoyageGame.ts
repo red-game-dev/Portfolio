@@ -15,6 +15,7 @@ import { GhostRun } from "../domain/ghost";
 import { LandingOptions, VoyageInput } from "../domain/input";
 import { VoyageAction, VoyageNotice } from "../domain/notices";
 import { VoyageSnapshot } from "../domain/snapshot";
+import { HomePad } from "../domain/surface";
 import { UniverseNames } from "../domain/universe";
 import { markOf, tierOf } from "../economy/config/tiers";
 import { CatalogLootTable } from "../economy/core/CatalogLootTable";
@@ -41,6 +42,8 @@ export interface VoyageOptions {
   // What to call each place on the system map, by id; what the first universes are called (the site's zones,
   // in the order of the theme's), and the syllables the rest are named from.
   labels?: Record<string, string>;
+  // The pad at home where a new rocket waits once a crew is back.
+  home?: HomePad | null;
   universeNames?: string[];
   syllables?: UniverseNames;
   onChange?: (snapshot: VoyageSnapshot) => void;
@@ -161,6 +164,7 @@ export class VoyageGame extends FrameLoop {
     super({ framesPerSecond: simulation.config.framesPerSecond, maxStepMs: 100, scheduler: options.scheduler });
     this.simulation = simulation;
     this.renderer = renderer;
+    renderer.setHome(options.home ?? null);
     this.presenter = presenter;
     this.backCanvas = backCanvas;
     this.theme = theme;
@@ -722,7 +726,7 @@ export class VoyageGame extends FrameLoop {
       tell("descending", ({ body, phase }) => ({ kind: "descent", body, phase })),
       tell("hardLanding", ({ body, speed, safe }) => ({ kind: "hardLanding", body, speed, safe })),
       tell("tookOff", ({ body }) => ({ kind: "tookOff", body })),
-      tell("recovered", ({ body }) => ({ kind: "recovered", body })),
+      tell("recovered", ({ body, days }) => ({ kind: "recovered", body, days })),
       tell("emergency", ({ body }) => ({ kind: "emergency", body })),
       tell("captured", ({ isSingularity }) => ({ kind: "captured", isSingularity })),
       tell("destroyed", () => ({ kind: "destroyed" })),

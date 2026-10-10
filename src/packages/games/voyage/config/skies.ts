@@ -1,7 +1,7 @@
 import type { SurfaceKind } from "@/packages/graphics/globe";
 import type { Air, Relief } from "@/packages/graphics/landscape";
 
-import { SurfaceBiome } from "../domain/surface";
+import { HomePad, SurfaceBiome } from "../domain/surface";
 
 // The ground of a kind of world where no map says otherwise: its biome, its shape, its colour near by and far
 // off, and whether boulders lie about.
@@ -26,6 +26,14 @@ export const SKIES: Readonly<Record<string, Air>> = {
 };
 
 // The ground of each world of ours that can be stood on. Earth's is read from its map where the ship sets down.
+// The land round a pad at home: Florida's scrub and marsh, the sand flats of a Gulf coast, California's coastal
+// hills.
+export const PAD_GROUNDS: Readonly<Record<HomePad["ground"], GroundPreset>> = {
+  scrub: { biome: "grassland", relief: "flat", colour: "#6b7046", far: "#4c5a3c", hasRocks: false },
+  flats: { biome: "desert", relief: "flat", colour: "#b8a882", far: "#8c8a6e", hasRocks: false },
+  hills: { biome: "grassland", relief: "hills", colour: "#7a7650", far: "#56604a", hasRocks: true },
+};
+
 export const GROUNDS: Readonly<Record<string, GroundPreset>> = {
   mercury: { biome: "regolith", relief: "craters", colour: "#8a7f74", far: "#5c544c", hasRocks: true },
   venus: { biome: "basalt", relief: "flat", colour: "#7a5634", far: "#4d3520", hasRocks: true },

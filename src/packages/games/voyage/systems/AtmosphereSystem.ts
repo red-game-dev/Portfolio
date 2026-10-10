@@ -3,9 +3,10 @@ import { lerp } from "@/packages/math/easing";
 import { densityAt, dragDeceleration, entryHeating } from "@/packages/physics/newtonian";
 
 import { AirModel } from "../domain/content";
+import { Descent } from "../domain/state";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
-import { isInSystem, placeBody, shipOf } from "./queries";
+import { bodyById, isInSystem, placeBody, shipOf } from "./queries";
 
 // How much hotter a giant's air gets for each scale height below its one bar level, and how much shorter its
 // scale height is down there, where the gas is squeezed by everything above it.
@@ -33,7 +34,8 @@ export const airTemperatureAt = (air: AirModel, altitude: number): number => (al
 // Air: drag slows the ship and entry heats its hull, in proportion to density and the square and the cube of its
 // speed. Skimming a giant's upper air scoops fuel. Past the pressure the hull is built for, it is crushed, harder
 // the further past: deep in a giant, or near the ground on Venus. In the warm up an emergency burn throws a ship
-// that sinks too deep into a giant clear instead of letting it die there.
+// that sinks too deep into a giant clear instead of letting it die there. On a landing's way down the air is the
+// air at the craft's real height, so the ground's heat and weight are felt only as it nears the ground.
 export class AtmosphereSystem implements System<VoyageContext> {
   public readonly name = "atmosphere";
 
@@ -51,6 +53,13 @@ export class AtmosphereSystem implements System<VoyageContext> {
     }
 
     const { body, ship } = parts;
+    const { descent } = state;
+
+    if (descent && descent.downAt === null && ship.landedOn === descent.body) {
+      this.comingDown(context, descent, dt);
+
+      return;
+    }
 
     for (const place of state.system.bodies) {
       const dx = body.x - place.x;
@@ -110,6 +119,33 @@ export class AtmosphereSystem implements System<VoyageContext> {
       }
 
       break;
+    }
+  }
+
+  // The air round a craft on its way down: the real air's pressure at its height, and a temperature from the
+  // ground's to the top's on the way up.
+  private comingDown(context: VoyageContext, descent: Descent, dt: number): void {
+    const { state, config } = context;
+    const place = bodyById(context, descent.body);
+    const real = descent.world.air;
+
+    if (!place?.air || !real) {
+      return;
+    }
+
+    const { altitude } = descent.craft;
+    const pressure = place.air.pressureBar * Math.exp(-altitude / real.scaleHeight);
+    const rating = config.thermal.pressureBar;
+
+    state.readings.pressureBar = pressure;
+    state.readings.airOf = place.id;
+    state.readings.airC = lerp(place.air.temperatureC, place.air.topTemperatureC, Math.min(1, altitude / descent.plan.startAltitude));
+
+    if (pressure > rating) {
+      const parts = shipOf(context);
+      const offset = parts?.ship.landedOffset;
+
+      applyDamage(context, config.flight.crush * ((pressure - rating) / rating) * dt, offset ? Math.atan2(-offset.y, -offset.x) : 0, "crush");
     }
   }
 }

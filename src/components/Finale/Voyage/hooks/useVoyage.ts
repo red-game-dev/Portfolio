@@ -8,7 +8,7 @@ import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { PauseHolds } from "@/packages/animation/frame-loop";
 import { decodeImage } from "@/packages/browser/images";
 import type {
-  CareerView, EconomyView, LandingOptions, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot,
+  CareerView, EconomyView, HomePad, LandingOptions, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot,
 } from "@/packages/games/voyage";
 import { DragTracker, localPoint } from "@/packages/interaction/gestures";
 import { HeldKeys } from "@/packages/interaction/keys";
@@ -52,9 +52,11 @@ export interface VoyageNames {
   labels: Record<string, string>;
   universes: string[];
   syllables: UniverseNames;
+  // The pad at home a new rocket waits on once a crew is back.
+  home?: HomePad | null;
 }
 
-export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labels, universes, syllables }: VoyageNames) => {
+export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labels, universes, syllables, home = null }: VoyageNames) => {
   const [snapshot, setSnapshot] = useState<VoyageSnapshot | null>(null);
   // Notices queue up: several can come in the same moment (a run paid, a mission done, a promotion), and each
   // must be heard.
@@ -98,6 +100,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
         {
           theme: VOYAGE_THEME,
           labels,
+          home,
           universeNames: universes,
           syllables,
           quality: startingQuality(),

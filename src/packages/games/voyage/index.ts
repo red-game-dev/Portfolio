@@ -123,9 +123,9 @@ export type {
 export type { DamageKind, FlareClass, VoyageEvents, VoyagePhase } from "./domain/events";
 export type { VoyageInput } from "./domain/input";
 export type { DescentView, Frame, IncomingRock, Telemetry, VoyageSnapshot } from "./domain/snapshot";
-export type { SurfaceBiome, SurfaceInfo } from "./domain/surface";
+export type { HomePad, SurfaceBiome, SurfaceInfo } from "./domain/surface";
 export { airFor, earthGround, groundAt, phaseOf, skyPlace, solarHours } from "./utils/surface";
-export type { Capture, Descent, MissionClock, Readings, Storm, VoyageState, VoyageStatus, Waypoint } from "./domain/state";
+export type { Capture, Descent, Homecoming, MissionClock, Readings, Storm, VoyageState, VoyageStatus, Waypoint } from "./domain/state";
 export type { VoyageStyle } from "./domain/theme";
 export type { Disposition, FactionSpec, HullShape, PhenomenonKind, PhenomenonSpec, StarKind, UniverseNames, UniverseSpec, WeaponKind } from "./domain/universe";
 export type { SystemLayout } from "./mappers/SystemMapper";

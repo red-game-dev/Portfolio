@@ -92,6 +92,8 @@ export interface VoyageSnapshot {
   // Where the ship stands on that world, once its surface is in view, and the way down while it is coming down.
   surface: SurfaceInfo | null;
   descent: DescentView | null;
+  // A crew coming home: being picked up, or at the pad days later.
+  homecoming: { stage: "recovery" | "pad"; days: number; isSea: boolean } | null;
   // Each system's integrity, in hundredths.
   modules: Modules;
   // The compass's target, its name where it was made up, and its real distance in km.

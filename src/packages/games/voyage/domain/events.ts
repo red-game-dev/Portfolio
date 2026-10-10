@@ -25,8 +25,8 @@ export interface VoyageEvents {
   descending: { body: string; phase: LandingPhase };
   // Down too hard: how fast it hit (m/s) and what the craft could take.
   hardLanding: { body: string; speed: number; safe: number };
-  // Home safely: recovered, and a new rocket ready.
-  recovered: { body: string };
+  // Home safely: the crew picked up, and days later a new rocket ready on the pad.
+  recovered: { body: string; days: number };
   tookOff: { body: string };
   passing: { stop: string };
   phase: { phase: VoyagePhase; universe: number };

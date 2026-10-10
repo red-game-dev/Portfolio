@@ -258,6 +258,14 @@ export interface FinaleSurface {
   ready: string;
   readyAt: string;
   launch: string;
+  // Home, the crew picked up at sea or on land while a new rocket is readied (at "{pad}"); then the pad ("{pad}"),
+  // "{days}" days later.
+  recoverySea: string;
+  recoveryLand: string;
+  readying: string;
+  readyingAt: string;
+  atPad: string;
+  daysLater: string;
 }
 
 // The way down on a world, as the card reads it: what it is coming down on ("{body}"), the way each kind of world is

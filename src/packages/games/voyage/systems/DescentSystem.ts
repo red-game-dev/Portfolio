@@ -7,6 +7,7 @@ import { advanceDescent, isSoftTouchdown, LandingPlan, LandingWorld, planLanding
 import { landingWorldOf } from "../utils/landing";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
+import { missionTime, placeBodies } from "./orbits";
 import { bodyById, isSolar, shipOf, ShipParts } from "./queries";
 
 // Down too hard: the hull loses this share of itself for each multiple of the speed the craft takes that it came
@@ -14,11 +15,15 @@ import { bodyById, isSolar, shipOf, ShipParts } from "./queries";
 const HARD_SHARE = 1 / 3;
 const HARDEST = 1.5;
 
+// A day, in ms.
+const DAY_MS = 86400000;
+
 // The way down. Once the ship touches a world gently enough to land, it comes down the way that world calls for
 // (see the landing package), stepped through the real physics and played as many times faster than life as the
 // config and the pilot's choice allow, or at life's pace once a pilot flies the burn. Until it is down the ship
-// cannot lift off. Down in one piece, the landing counts and is scored (and home is a recovery); down too hard, the
-// legs give way and the hull pays for it.
+// cannot lift off. Down in one piece, the landing counts and is scored; down too hard, the legs give way and the
+// hull pays for it. Home, nobody flies the capsule again: the crew is picked up where it came down, and some days
+// later (the mission clock moving on with them) a new rocket stands fuelled and sound on the pad.
 export class DescentSystem implements System<VoyageContext> {
   public readonly name = "descent";
   // How long each world's way down takes, flown ahead once per world each run (and once more for a pilot, whose
@@ -32,9 +37,12 @@ export class DescentSystem implements System<VoyageContext> {
 
     if (!parts || !landedOn || state.status !== "flying") {
       state.descent = null;
+      state.homecoming = null;
 
       return;
     }
+
+    this.bringHome(context, parts);
 
     const place = state.descent?.body === landedOn ? null : bodyById(context, landedOn);
 
@@ -106,7 +114,7 @@ export class DescentSystem implements System<VoyageContext> {
       events.emit("landed", { body, speed });
 
       if (world.isHome) {
-        this.recover(context, parts);
+        state.homecoming = { stage: "recovery", since: state.elapsedMs, days: config.descent.recoveryDays, isSea: world.isWater };
       }
 
       return;
@@ -122,9 +130,25 @@ export class DescentSystem implements System<VoyageContext> {
     events.emit("hardLanding", { body, speed, safe });
   }
 
-  // Home: the crew is recovered and a new rocket rolled out, full of fuel, its hull, shields and every system
-  // sound, no fault left and no scar on it.
-  private recover(context: VoyageContext, { ship, health, modules }: ShipParts): void {
+  // Once the crew has been picked up, the days pass to the next launch and the new rocket is on the pad.
+  private bringHome(context: VoyageContext, parts: ShipParts): void {
+    const { state, config } = context;
+    const { homecoming } = state;
+
+    if (homecoming?.stage !== "recovery" || state.elapsedMs - homecoming.since < config.descent.recoverySeconds * 1000) {
+      return;
+    }
+
+    state.clock = { ...state.clock, epochMs: state.clock.epochMs + homecoming.days * DAY_MS };
+    // Every world moved on to where the days took it, at once, so none seems to have flown there in one step.
+    placeBodies(state.system, missionTime(state.clock, state.elapsedMs));
+    state.homecoming = { ...homecoming, stage: "pad", since: state.elapsedMs };
+    this.recover(context, parts, homecoming.days);
+  }
+
+  // Home: a new rocket rolled out, full of fuel, its hull, shields and every system sound, no fault left and no
+  // scar on it.
+  private recover(context: VoyageContext, { ship, health, modules }: ShipParts, days: number): void {
     ship.fuel = ship.maxFuel;
     health.hull = health.maxHull;
     health.shields = health.maxShields;
@@ -133,6 +157,6 @@ export class DescentSystem implements System<VoyageContext> {
       modules[id] = 1;
     });
     context.state.faults = [];
-    context.events.emit("recovered", { body: HOME_WORLD });
+    context.events.emit("recovered", { body: HOME_WORLD, days });
   }
 }

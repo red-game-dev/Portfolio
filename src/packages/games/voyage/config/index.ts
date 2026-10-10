@@ -42,9 +42,12 @@ export interface FlightConfig {
 
 // How a landing's way down is played: this many times faster than life, the same for every world so how long each
 // takes against the others stays true, but never longer than `longest` seconds (Huygens took two and a half hours).
+// Home, the crew is picked up over `recoverySeconds`, and the new rocket stands on the pad `recoveryDays` later.
 export interface DescentConfig {
   speedUp: number;
   longest: number;
+  recoverySeconds: number;
+  recoveryDays: number;
 }
 
 export interface ThermalConfig {
@@ -254,7 +257,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     maxSpeed: 3.2,
   },
   flight: { safeLanding: 0.42, crash: 520, drag: 0.8, crush: 600, skim: 12, impact: 70 },
-  descent: { speedUp: 40, longest: 15 },
+  descent: { speedUp: 40, longest: 15, recoverySeconds: 6, recoveryDays: 3 },
   thermal: {
     timeConstant: 3,
     entry: 120,

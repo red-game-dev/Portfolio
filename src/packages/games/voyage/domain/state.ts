@@ -31,6 +31,15 @@ export interface Descent {
   isSoft: boolean;
 }
 
+// A crew home: picked up where the capsule came down (by the recovery ship at sea, the recovery crews on land),
+// then some days later at the pad, where a new rocket stands ready. When each began (ms on the run's clock).
+export interface Homecoming {
+  stage: "recovery" | "pad";
+  since: number;
+  days: number;
+  isSea: boolean;
+}
+
 // Where the compass points, and what it is.
 export interface Waypoint {
   id: string;
@@ -165,8 +174,9 @@ export interface VoyageState {
   nextFaultId: number;
   salvage: { wreck: Entity; progress: number } | null;
   nextWreckAt: number | null;
-  // The landing under way, or the last one while the ship still stands where it came down.
+  // The landing under way, or the last one while the ship still stands where it came down; and a crew coming home.
   descent: Descent | null;
+  homecoming: Homecoming | null;
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

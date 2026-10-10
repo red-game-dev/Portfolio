@@ -42,11 +42,11 @@ export const paintCanopies = (context: Canvas2DContext, x: number, anchorY: numb
   now: number): void => {
   const offsets = set.count === 1 ? [0] : set.count === 2 ? [-0.6, 0.6] : [-1, 0, 1];
   const rx = wide * 0.62 * set.size;
-  const ry = tall * 0.34 * set.size;
+  const ry = tall * 0.3 * set.size;
 
   offsets.forEach((offset, index) => {
     const cx = x + offset * wide * 0.8 * set.size + Math.sin(now * 0.0019 + index) * wide * 0.06;
-    const cy = anchorY - tall * (1.1 + 0.25 * set.size + Math.abs(offset) * 0.12);
+    const cy = anchorY - tall * (0.85 + 0.2 * set.size + Math.abs(offset) * 0.1);
 
     context.strokeStyle = shadeHex("#e6e6e6", ambient, 0.55);
     context.lineWidth = 1;
@@ -224,4 +224,99 @@ export const paintSplash = (context: Canvas2DContext, x: number, waterY: number,
     context.ellipse(x + side * reach, waterY - rise, wide * 0.16 * (1 - spread * 0.4), tall * 0.07, 0, 0, TAU);
     context.fill();
   });
+};
+
+// A recovery ship on the water: a dark hull, its white bridge and deck house aft, a crane over the stern, rising and
+// falling a little on the swell. `size` is its length.
+export const paintRecoveryShip = (context: Canvas2DContext, x: number, waterY: number, size: number, ambient: number, now: number): void => {
+  const bob = Math.sin(now * 0.0021) * size * 0.012;
+  const y = waterY + bob;
+  const deck = y - size * 0.07;
+
+  context.fillStyle = shadeHex("#2c3440", ambient);
+  context.beginPath();
+  context.moveTo(x - size * 0.5, deck);
+  context.lineTo(x + size * 0.5, deck - size * 0.02);
+  context.lineTo(x + size * 0.44, y + size * 0.03);
+  context.lineTo(x - size * 0.46, y + size * 0.03);
+  context.closePath();
+  context.fill();
+  context.fillStyle = shadeHex("#eef0f2", ambient);
+  context.fillRect(x + size * 0.12, deck - size * 0.12, size * 0.22, size * 0.12);
+  context.fillRect(x + size * 0.18, deck - size * 0.18, size * 0.1, size * 0.06);
+  context.fillStyle = "rgba(24, 34, 54, 0.9)";
+  context.fillRect(x + size * 0.19, deck - size * 0.165, size * 0.08, size * 0.02);
+  context.strokeStyle = shadeHex("#f2a33a", ambient);
+  context.lineWidth = Math.max(1, size * 0.012);
+  context.beginPath();
+  context.moveTo(x - size * 0.3, deck);
+  context.lineTo(x - size * 0.42, deck - size * 0.2);
+  context.lineTo(x - size * 0.55, deck - size * 0.12);
+  context.stroke();
+  // A pale wake along the waterline.
+  context.strokeStyle = "rgba(235, 245, 255, 0.45)";
+  context.beginPath();
+  context.moveTo(x - size * 0.5, y + size * 0.035);
+  context.lineTo(x + size * 0.46, y + size * 0.035);
+  context.stroke();
+};
+
+// A recovery helicopter: its body and tail boom, skids, and the blur of its rotor turning.
+export const paintHelicopter = (context: Canvas2DContext, x: number, y: number, size: number, ambient: number, now: number): void => {
+  context.fillStyle = shadeHex("#3b4a3a", ambient);
+  context.beginPath();
+  context.ellipse(x, y, size * 0.22, size * 0.1, 0, 0, TAU);
+  context.fill();
+  context.fillRect(x + size * 0.15, y - size * 0.03, size * 0.38, size * 0.04);
+  context.fillStyle = "rgba(24, 34, 54, 0.85)";
+  context.beginPath();
+  context.ellipse(x - size * 0.12, y - size * 0.02, size * 0.07, size * 0.05, 0, 0, TAU);
+  context.fill();
+  context.strokeStyle = shadeHex("#2a2f36", ambient);
+  context.lineWidth = Math.max(1, size * 0.02);
+  context.beginPath();
+  context.moveTo(x - size * 0.2, y + size * 0.15);
+  context.lineTo(x + size * 0.15, y + size * 0.15);
+  context.moveTo(x, y - size * 0.1);
+  context.lineTo(x, y - size * 0.15);
+  context.stroke();
+  const sweep = size * (0.42 + 0.06 * Math.sin(now * 0.08));
+
+  context.strokeStyle = "rgba(40, 46, 54, 0.55)";
+  context.beginPath();
+  context.moveTo(x - sweep, y - size * 0.15);
+  context.lineTo(x + sweep, y - size * 0.15);
+  context.stroke();
+};
+
+// The pad a new rocket stands on: a concrete apron, and beside it the launch tower, a steel lattice with its swing
+// arm reaching across to the rocket. `tall` is the rocket's height.
+export const paintPad = (context: Canvas2DContext, x: number, groundY: number, tall: number, wide: number, ambient: number): void => {
+  const towerX = x + wide * 1.05;
+  const towerTop = groundY - tall * 1.2;
+  const towerWide = wide * 0.55;
+
+  context.fillStyle = shadeHex("#9a9c9e", ambient);
+  context.beginPath();
+  context.ellipse(x + wide * 0.4, groundY + tall * 0.02, wide * 2.2, tall * 0.05, 0, 0, TAU);
+  context.fill();
+  context.strokeStyle = shadeHex("#7d3326", ambient);
+  context.lineWidth = Math.max(1, wide * 0.035);
+  context.strokeRect(towerX, towerTop, towerWide, groundY - towerTop);
+  context.beginPath();
+
+  for (let level = 0; level < 9; level += 1) {
+    const top = towerTop + ((groundY - towerTop) * level) / 9;
+    const bottom = towerTop + ((groundY - towerTop) * (level + 1)) / 9;
+
+    context.moveTo(towerX, top);
+    context.lineTo(towerX + towerWide, bottom);
+    context.moveTo(towerX + towerWide, top);
+    context.lineTo(towerX, bottom);
+  }
+
+  // The crew access arm, across to the rocket near its top.
+  context.moveTo(towerX, groundY - tall * 0.82);
+  context.lineTo(x + wide * 0.32, groundY - tall * 0.82);
+  context.stroke();
 };

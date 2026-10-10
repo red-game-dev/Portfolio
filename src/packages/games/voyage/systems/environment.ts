@@ -77,8 +77,10 @@ export const environmentAt = (context: VoyageContext, body: Body, ship: Ship): E
     }
 
     const landedHere = ship.landedOn === place.id;
+    // Still on the way down to it, the craft is high over the ground, not on it.
+    const isComingDown = landedHere && state.descent !== null && state.descent.downAt === null;
 
-    if (!place.air && (landedHere || away - place.radius - body.radius < GROUND)) {
+    if (!place.air && !isComingDown && (landedHere || away - place.radius - body.radius < GROUND)) {
       // Day or night where the ship is: the sun's height over it.
       const facing = ((body.x - place.x) * (star.x - place.x) + (body.y - place.y) * (star.y - place.y)) / (away * Math.hypot(star.x - place.x, star.y - place.y) || 1);
 

@@ -3,19 +3,34 @@ import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { Rgb, rgbToHex, shadeHex } from "@/packages/graphics/colour";
 import { blackbody, globeFrame, surfacePoint } from "@/packages/graphics/globe";
 import { LandscapePainter, Scene, SkyBody } from "@/packages/graphics/landscape";
-import { angleBetween, RAD, TAU } from "@/packages/math/angles";
+import { angleBetween, DEG, RAD, TAU, wrapDegrees } from "@/packages/math/angles";
 import { clamp01, wrap } from "@/packages/math/clamp";
 import { smoothstep } from "@/packages/math/easing";
+import { solarElevation } from "@/packages/physics/kepler";
 
+import { PAD_GROUNDS } from "../../config/skies";
 import { HOME_WORLD, SystemBody } from "../../domain/content";
 import { Descent } from "../../domain/state";
-import { SurfaceInfo } from "../../domain/surface";
+import { HomePad, SurfaceInfo } from "../../domain/surface";
 import { markOf, tierOf } from "../../economy/config/tiers";
 import { densityAt, DescentState } from "../../landing";
 import { airFor, elevationOf, groundAt, phaseOf, sideOf, solarHours, toGround } from "../../utils/surface";
 import { VoyageFrame } from "../frame";
 import {
-  AEROSHELL, CAPSULE, canopiesFor, paintCanopies, paintDrapedCanopies, paintDust, paintPlasma, paintPlate, paintShell, paintSplash, ShellColours,
+  AEROSHELL,
+  CAPSULE,
+  canopiesFor,
+  paintCanopies,
+  paintDrapedCanopies,
+  paintDust,
+  paintHelicopter,
+  paintPad,
+  paintPlasma,
+  paintPlate,
+  paintRecoveryShip,
+  paintShell,
+  paintSplash,
+  ShellColours,
 } from "../paint/landers";
 import { paintHull } from "../paint/ships";
 import { paintFlame, SHIP_HEIGHT, SHIP_WIDTH } from "../paint/space";
@@ -35,13 +50,13 @@ const SHIP_SHARE = 0.15;
 // How long the dust of a touchdown hangs and how long a splash's spray hangs (ms).
 const DUST_MS = 1400;
 const SPLASH_MS = 1100;
-// Coming down, the craft is held in view no higher than this share of the screen from the top while the land lies
-// far below, and comes down to its spot over the last stretch: its height above the ground on screen grows with the
-// log of its real height over `LIFT_METRES`, so the last hundred metres take as much of the screen as the kilometres
-// above them.
-const HIGHEST = 0.2;
+// Coming down, the craft is held in view at this share of the screen from the top while the land lies far below
+// (room above it for its canopies), and comes down to its spot over the last `FULL_METRES`: its height above the
+// ground on screen grows with the log of its real height over `LIFT_METRES`, so the last hundred metres take as much
+// of the screen as the kilometres above them.
+const HIGHEST = 0.44;
 const LIFT_METRES = 12;
-const LIFT_SCALE = 1.6;
+const FULL_METRES = 2000;
 // Seen from this high (m) the land is half as near as standing on it; the legs swing out between these heights
 // (m); a burn raises dust from this high (m); and a craft down too hard leans this far (radians).
 const NEAR_METRES = 2000;
@@ -51,6 +66,10 @@ const DUST_METRES = 30;
 const HARD_TILT = 0.18;
 // Where the air thins to nearly nothing it shows edge on as a bright band along the horizon, this tall.
 const AIR_BAND = 0.03;
+// The days to the next launch pass in this long a moment of black (ms), and at the pad the Sun's place across the
+// sky goes as far as this share of the view to either side.
+const PAD_FADE_MS = 1200;
+const SUN_SPREAD = 0.9;
 
 // Where the craft is drawn and what it is doing, for drawing the ship.
 interface ShipPlace {
@@ -66,8 +85,8 @@ interface ShipPlace {
   altitude: number;
 }
 
-// How far above its spot the craft stands on screen (pixels) at a real height (m), no higher than `highest`.
-const liftOf = (altitude: number, tall: number, highest: number) => Math.min(highest, tall * LIFT_SCALE * Math.log1p(Math.max(0, altitude) / LIFT_METRES));
+// How far above its spot the craft stands on screen (pixels) at a real height (m), up to `highest`.
+const liftOf = (altitude: number, highest: number) => highest * Math.min(1, Math.log1p(Math.max(0, altitude) / LIFT_METRES) / Math.log1p(FULL_METRES / LIFT_METRES));
 
 // Reads the colour of a world's map at a spot (degrees), or null when there is no map yet.
 export type MapSampler = (texture: string, longitude: number, latitude: number, centreLongitude: number) => Rgb | null;
@@ -91,6 +110,9 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
   // The world angle straight up from the spot.
   private up = 0;
   private shown = 0;
+  // The pad at home a new rocket stands on, and since when the view has been there (ms), or null before it is.
+  private home: HomePad | null = null;
+  private padSince: number | null = null;
   private hull: { key: string; paint: ReturnType<typeof paintHull> } | null = null;
 
   constructor(private readonly kit: RenderKit, private readonly globes: GlobesLayer, private readonly sample: MapSampler) {}
@@ -102,6 +124,10 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
 
   public get isShown(): boolean {
     return this.shown > 0;
+  }
+
+  public setHome(pad: HomePad | null): void {
+    this.home = pad;
   }
 
   public draw(frame: VoyageFrame): void {
@@ -118,6 +144,11 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       this.land(frame, ground, up);
     }
 
+    // A crew home, days later: the view goes to the pad where the new rocket stands.
+    if (ground?.id === HOME_WORLD && state.homecoming?.stage === "pad" && this.home && this.padSince === null) {
+      this.toPad(frame, ground, this.home);
+    }
+
     this.shown = clamp01(this.shown + (ground ? 1 : -1) * (dt / FADE_SECONDS));
 
     // A still frame (a photo, the map over a held run) shows the ground at once if the ship is on it.
@@ -131,6 +162,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       this.neighbours = [];
       this.info = null;
       this.scene = null;
+      this.padSince = null;
 
       return;
     }
@@ -162,7 +194,36 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     }
 
     this.drawCraft(frame, horizon + height * 0.07, sky.light, !ground);
+
+    // Arriving at the pad: the days between pass in a moment of black.
+    if (this.padSince !== null && now - this.padSince < PAD_FADE_MS) {
+      front.context.globalAlpha = this.shown * (1 - (now - this.padSince) / PAD_FADE_MS);
+      front.context.fillStyle = "#000000";
+      front.context.fillRect(0, 0, width, height);
+    }
+
     front.context.globalAlpha = 1;
+  }
+
+  // The pad at home: its own spot and land, the Sun where it stands there at this moment, and the pad's name.
+  private toPad({ theme, now }: VoyageFrame, earth: SystemBody, pad: HomePad): void {
+    const look = theme.bodies[earth.id];
+    const map = look?.surface.map;
+    const sample = map ? this.sample(map, pad.longitude, pad.latitude, look?.surface.centreLongitude ?? 0) : null;
+    const land = PAD_GROUNDS[pad.ground];
+    // The map's own colour there, unless the pad's pixel is the sea it stands beside.
+    const sampled = groundAt(earth.id, look, sample, pad.latitude, pad.longitude, true);
+    const preset = sampled.biome === "ocean" ? land : { ...land, colour: sampled.colour, far: sampled.far };
+
+    this.padSince = now;
+
+    if (this.scene) {
+      this.scene.ground = toGround(preset, pad.latitude, pad.longitude);
+    }
+
+    if (this.info) {
+      this.info = { ...this.info, pad: pad.name, latitude: pad.latitude, longitude: pad.longitude, biome: preset.biome };
+    }
   }
 
   // The air seen edge on from high above: a thin bright band in the sky's own colour along the horizon, strongest
@@ -234,8 +295,10 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       bodies: this.neighbours.map(({ sky }) => sky),
       ground: toGround(preset, latitude, longitude),
     };
+    this.padSince = null;
     this.info = {
       body: place.id, name: state.cosmos?.names[place.id] ?? null, isHome: isHome && place.id === HOME_WORLD, latitude, longitude, hours: 12, biome: preset.biome,
+      pad: null,
     };
   }
 
@@ -245,7 +308,15 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const { star } = state.system;
     const towardsStar = Math.atan2(star.y - place.y, star.x - place.x);
 
-    if (scene.sun) {
+    const pad = this.padSince !== null ? this.home : null;
+
+    if (scene.sun && pad) {
+      // At the pad the Sun stands where it really does over it now: from the point under it on the real Earth.
+      const hourAngle = wrapDegrees(pad.longitude - place.subsolarLongitude);
+
+      scene.sun.elevation = solarElevation({ latitude: place.subsolarLatitude, longitude: place.subsolarLongitude }, pad.latitude, pad.longitude);
+      scene.sun.side = Math.sin(hourAngle * DEG) * SUN_SPREAD;
+    } else if (scene.sun) {
       scene.sun.elevation = elevationOf(this.up, towardsStar);
       scene.sun.side = sideOf(this.up, towardsStar);
     }
@@ -261,7 +332,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     });
 
     if (this.info) {
-      this.info.hours = solarHours(this.up, towardsStar);
+      this.info.hours = pad ? wrap(12 + wrapDegrees(pad.longitude - place.subsolarLongitude) / 15, 24) : solarHours(this.up, towardsStar);
     }
   }
 
@@ -276,7 +347,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
   // under its parachutes; elsewhere an aeroshell through entry, then the ship under its canopies, on its drag
   // plate or on its engine, legs swinging out as the ground comes up; the dust it raises and the splash at sea. On
   // take off it lifts away on its flame.
-  private drawCraft({ state, theme, universe, now }: VoyageFrame, groundY: number, light: number, isLeaving: boolean): void {
+  private drawCraft({ state, theme, universe, now, config }: VoyageFrame, groundY: number, light: number, isLeaving: boolean): void {
     const { front } = this.kit;
     const context = front.context;
     const { width, height } = front;
@@ -285,7 +356,7 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
     const descent = state.descent?.body === this.body ? state.descent : null;
     const craft = isLeaving ? null : descent?.craft ?? null;
     const altitude = craft?.altitude ?? 0;
-    const lift = isLeaving ? (1 - this.shown) ** 2 * height * 0.8 : liftOf(altitude, tall, groundY - height * HIGHEST);
+    const lift = isLeaving ? (1 - this.shown) ** 2 * height * 0.8 : liftOf(altitude, groundY - height * HIGHEST);
     const x = width / 2;
     const y = groundY - lift;
     const sunSide = this.scene?.sun ? Math.sign(this.scene.sun.side) || 1 : 1;
@@ -315,8 +386,13 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
 
     context.globalAlpha = alpha;
 
-    if (isHome && !isLeaving) {
+    if (isHome && !isLeaving && this.padSince !== null) {
+      // The new rocket on the pad, beside its tower.
+      paintPad(context, x, groundY, tall, wide, ambient);
+      this.drawShip({ state, theme, universe, now }, { x, y: groundY, groundY, tall, wide, ambient, descent: null, isLeaving: false, sinceDown: Infinity, altitude: 0 });
+    } else if (isHome && !isLeaving) {
       this.drawCapsule(context, x, y, groundY, tall, ambient, sunSide, now, descent, sinceDown);
+      this.drawRecovery({ state, config, now }, context, x, groundY, tall, ambient);
     } else if (craft?.phase === "entry") {
       this.drawShell(context, x, y, tall, ambient, sunSide, now, craft, AEROSHELL);
     } else {
@@ -397,6 +473,29 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       paintSplash(context, x, groundY, wide, tall, sinceDown / SPLASH_MS);
     } else if (this.scene && sinceDown < DUST_MS) {
       paintDust(context, x, groundY, wide, tall, this.scene.ground.colour, sinceDown / DUST_MS, 0.6);
+    }
+  }
+
+  // The crew being picked up: the recovery ship coming alongside at sea, the recovery helicopter setting down
+  // beside the capsule on land.
+  private drawRecovery({ state, config, now }: Pick<VoyageFrame, "state" | "config" | "now">, context: Canvas2DContext, x: number, groundY: number, tall: number,
+    ambient: number): void {
+    const { homecoming } = state;
+
+    if (homecoming?.stage !== "recovery") {
+      return;
+    }
+
+    const { width } = this.kit.front;
+    const arrival = smoothstep(0, config.descent.recoverySeconds * 1000 * 0.75, state.elapsedMs - homecoming.since);
+    const size = tall * 2.6;
+
+    if (homecoming.isSea) {
+      paintRecoveryShip(context, width + size - (width + size - (x + tall * 1.9)) * arrival, groundY + tall * 0.02, size, ambient, now);
+    } else {
+      const still = 1 - arrival;
+
+      paintHelicopter(context, x + tall * 1.6 + (width - x) * still, groundY - tall * 0.16 - this.kit.front.height * 0.4 * still, tall * 1.1, ambient, now);
     }
   }
 

@@ -335,7 +335,7 @@ export const Finale: FC<FinaleProps> = ({
             content={content.voyage}
             universes={CROSSED_ZONES.map((zone) => zoneLabels[zone])}
             best={voyageBest}
-            homePad={site?.name ?? null}
+            home={site ? { name: site.name, latitude: site.latitude, longitude: site.longitude, ground: site.land } : null}
             settings={settings}
             onRecord={recordVoyage}
             onClose={() => setIsVoyaging(false)}

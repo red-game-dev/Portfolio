@@ -93,7 +93,7 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
     case "burst":
       return notice.isFired ? content.burst : fill(content.burstWarning, { seconds: Math.round(notice.seconds) });
     case "recovered":
-      return content.recovered;
+      return fill(content.recovered, { days: notice.days });
     case "landed":
       return notice.speed === null
         ? fill(content.landed, { body: placeName(content, notice.body) })

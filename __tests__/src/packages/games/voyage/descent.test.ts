@@ -109,7 +109,7 @@ describe("voyage descents", () => {
     expect(landed[0].speed).toBeLessThan(3);
   });
 
-  test("home over the sea the capsule splashes down without its landing rockets, and the crew is recovered", () => {
+  test("home over the sea the capsule splashes down without its landing rockets; the crew is picked up, and days later a new rocket waits on the pad", () => {
     const simulation = createFlying();
     const phases = heard(simulation, "descending");
     const recovered = heard(simulation, "recovered");
@@ -119,7 +119,27 @@ describe("voyage descents", () => {
     untilDown(simulation);
 
     expect(phases.map(({ phase }) => phase)).toEqual(["entry", "drogue", "main"]);
-    expect(recovered).toHaveLength(1);
+    expect(simulation.snapshot.homecoming).toEqual({ stage: "recovery", days: defaults.descent.recoveryDays, isSea: true });
+    expect(recovered).toHaveLength(0);
+
+    // Nothing to launch from the sea.
+    partsOf(simulation).ship.angle = Math.atan2(partsOf(simulation).ship.landedOffset?.y ?? -1, partsOf(simulation).ship.landedOffset?.x ?? 0);
+    simulation.step(1000, BURN);
+    expect(partsOf(simulation).ship.landedOn).toBe("earth");
+
+    const epoch = simulation.state.clock.epochMs;
+
+    partsOf(simulation).ship.fuel = 1;
+    simulation.step(defaults.descent.recoverySeconds * 1000);
+
+    expect(recovered).toEqual([{ body: "earth", days: defaults.descent.recoveryDays }]);
+    expect(simulation.state.clock.epochMs - epoch).toBe(defaults.descent.recoveryDays * 86400000);
+    expect(simulation.snapshot.homecoming?.stage).toBe("pad");
+    expect(partsOf(simulation).ship.fuel).toBe(partsOf(simulation).ship.maxFuel);
+
+    simulation.step(300, BURN);
+    expect(partsOf(simulation).ship.landedOn).toBeNull();
+    expect(simulation.state.homecoming).toBeNull();
   });
 
   test("a way down ends at once if the ship is no longer on the world", () => {

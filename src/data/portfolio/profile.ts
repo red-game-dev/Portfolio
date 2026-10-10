@@ -105,9 +105,9 @@ export const profileContent: ProfileContent = {
       `Today I lead architecture at Conrad for a 90+ person delivery organisation, on a storefront in 16 markets at up to 7M+ sessions
       a month. Before that I took Chiliz's fan app for 1.5M+ users in 167 countries from critically unstable to the core its seven
       squads ship on.`,
-      `As a founder I grew a social network for anime and gaming fans to 10M+ registered users, ran Gods of Zushin, an MMORPG on a
-      C/C++ engine of my own, as a live business, and co-founded CoinOn as CTO, a Web3 platform taken from zero to web, mobile and its
-      own chain. I also built a gamified social platform on payments, double entry ledgers and an ads engine with its own auction.`,
+      `As a founder I grew a social network for anime and gaming fans to 10M+ registered users, and ran Gods of Zushin, an MMORPG on
+      a C/C++ engine of my own, as a live business. I co-founded CoinOn, a Web3 platform I took from zero to web, mobile and its own
+      chain as CTO. I also built a gamified social platform on payments, double entry ledgers and an ads engine with its own auction.`,
       `I have worked across e-commerce, payments, iGaming, game publishing and Web3, on the engineering side and on the business side.
       I have put machine learning into production since 2019, at KPMG and in my own products, and today I build with AI agents inside
       rules, context and checks I write, with a person reviewing every change. That mix is why I can be useful to a CTO in the morning

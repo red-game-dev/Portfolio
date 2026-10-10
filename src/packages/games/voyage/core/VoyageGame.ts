@@ -629,8 +629,9 @@ export class VoyageGame extends FrameLoop {
     const descent = this.simulation.state.descent;
 
     // Coming down, a burn (the pilot's on the landing engine, or one that aborts the landing under fire) is the burn
-    // key or a held press, never where a mouse happens to rest.
-    if (descent?.downAt === null) {
+    // key or a held press, never where a mouse happens to rest or a phone happens to lean; so is the burn that
+    // launches the new rocket from the pad after a homecoming, which also stays pointed straight up.
+    if (descent?.downAt === null || this.simulation.state.homecoming) {
       return { aim: null, thrust: Math.max(this.keys.thrust, this.isPressing ? 1 : 0), turn: 0, brake: false };
     }
 

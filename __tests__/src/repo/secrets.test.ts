@@ -17,7 +17,11 @@ describe("this public repo holds no secrets", () => {
     // Built here so no key shaped string sits in the repo.
     expect(findSecrets(`const key = "AIza${"x".repeat(35)}";`)).toHaveLength(1);
     expect(findSecrets(`token: "sk-ant-${"a1".repeat(12)}"`)).toHaveLength(1);
+    expect(findSecrets(`KV_REST_API_TOKEN=AYQg${"Ab9".repeat(8)}`)).toHaveLength(1);
+    expect(findSecrets(`MISTRAL_API_KEY: "${"k".repeat(32)}"`)).toHaveLength(1);
     expect(findSecrets("the docs talk about an API key, but hold none")).toEqual([]);
+    expect(findSecrets("const salt = process.env.ASK_SALT ?? \"\";")).toEqual([]);
+    expect(findSecrets("KV_REST_API_TOKEN=")).toEqual([]);
     expect(isEnvFile(".env")).toBe(true);
     expect(isEnvFile("apps/web/.env.production")).toBe(true);
     expect(isEnvFile("src/packages/games/voyage/systems/environment.ts")).toBe(false);

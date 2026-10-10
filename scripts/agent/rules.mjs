@@ -73,6 +73,10 @@ const SECRET_SHAPES = [
   /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
 ];
 
+// Secrets with no shape of their own (the Upstash token, the visitors' salt, a Mistral key) are known by the name they
+// are given: a long value written straight after one, never an empty one or a read of the environment.
+const SECRET_NAMES = /\b(?:KV_REST_API_TOKEN|UPSTASH_REDIS_REST_TOKEN|ASK_SALT|[A-Z][A-Z0-9_]*(?:_API_KEY|_SECRET|_TOKEN|_PASSWORD))\s*[:=]\s*["'`]?[A-Za-z0-9_\-+/=.]{16,}/;
+
 // Every line of a text that holds something shaped like a secret, as short readable messages (never the secret).
 export const findSecrets = (text) => text.split("\n").flatMap((line, index) =>
-  (SECRET_SHAPES.some((shape) => shape.test(line)) ? [`line ${index + 1}: something shaped like a secret key`] : []));
+  (SECRET_SHAPES.some((shape) => shape.test(line)) || SECRET_NAMES.test(line) ? [`line ${index + 1}: something shaped like a secret key`] : []));

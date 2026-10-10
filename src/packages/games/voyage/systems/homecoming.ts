@@ -42,10 +42,13 @@ export const rescueHome = (context: VoyageContext, parts: ShipParts, fewestDays:
   }
 
   // From the world it stands on (a moon's planet), at that world's real distance; adrift, from where it is. From Earth,
-  // the Moon or near Earth (where Earth pulls hardest) no transfer orbit is needed, only the fewest days.
+  // the Moon, or anywhere out to half again the Moon's distance from Earth, no transfer orbit is needed, only the
+  // fewest days.
   const ground = parts.ship.landedOn ? bodyById(context, parts.ship.landedOn) : undefined;
   const world = ground?.parent ? bodyById(context, ground.parent) : ground;
-  const isNearHome = world ? world.id === HOME_WORLD : state.readings.dominant === HOME_WORLD;
+  const moon = state.system.bodies.find((body) => body.orbit.kind === "moon" && body.parent === HOME_WORLD);
+  const homeReach = 1.5 * (moon?.orbit.kind === "moon" ? moon.orbit.distance : home.radius * 10);
+  const isNearHome = world ? world.id === HOME_WORLD : Math.hypot(parts.body.x - home.x, parts.body.y - home.y) < homeReach;
   const au = world ? world.au : auForRadius(state.system.scale, distanceFromStar(context, parts.body));
   const days = isNearHome ? fewestDays : transferDays(au, fewestDays);
 

@@ -196,6 +196,31 @@ describe("voyage descents", () => {
     expect(rescued).toEqual([{ from: "moon", days: defaults.descent.rescueFewestDays }]);
   });
 
+  test("adrift with no fuel just off the Moon, where the Moon or the Sun pulls hardest, the rescue still takes the fewest days", () => {
+    const simulation = createFlying();
+    const rescued = heard(simulation, "rescued");
+    const moon = simulation.state.system.bodies.find((body) => body.id === "moon");
+
+    if (!moon) {
+      throw new Error("expected the Moon");
+    }
+
+    const earth = simulation.state.system.bodies.find((place) => place.id === "earth");
+    const { body } = partsOf(simulation);
+    // On the far side of the Moon from Earth, three Moon radii out.
+    const away = Math.atan2(moon.y - (earth?.y ?? 0), moon.x - (earth?.x ?? 0));
+    const x = moon.x + Math.cos(away) * moon.radius * 3;
+    const y = moon.y + Math.sin(away) * moon.radius * 3;
+
+    Object.assign(body, { x, y, prevX: x, prevY: y, vx: moon.vx, vy: moon.vy });
+    partsOf(simulation).ship.fuel = 0;
+    simulation.step(500);
+    expect(simulation.state.readings.dominant).not.toBe("earth");
+    simulation.step((defaults.descent.strandedSeconds + 1) * 1000);
+
+    expect(rescued).toEqual([{ from: null, days: defaults.descent.rescueFewestDays }]);
+  });
+
   test("fuel loaded in time ends being stranded", () => {
     const simulation = createFlying();
 

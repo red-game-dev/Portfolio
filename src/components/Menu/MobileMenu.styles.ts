@@ -2,7 +2,7 @@
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { media } from "@/styles/mixins";
+import { focusRing, media } from "@/styles/mixins";
 
 export const Toggle = styled.button(() => [
   tw`absolute top-[-8px] right-[-8px] z-[11] flex flex-col items-center justify-center gap-[5px] w-[44px] h-[44px] p-0 cursor-pointer
@@ -23,10 +23,7 @@ export const Toggle = styled.button(() => [
       background: var(--accent);
     }
 
-    &:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: -4px;
-    }
+    ${focusRing("var(--accent)", -4)}
   `,
 ]);
 
@@ -93,9 +90,7 @@ export const Close = styled.button(() => [
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
 
-    &:focus-visible {
-      outline: 2px solid var(--here);
-    }
+    ${focusRing("var(--here)")}
   `,
 ]);
 

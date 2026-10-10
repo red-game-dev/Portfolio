@@ -28,7 +28,8 @@ import {
   TerminalSession
 } from "@/packages/interaction/terminal";
 import { fill } from "@/packages/text/format";
-import { media, noAnimationWhenReduced } from "@/styles/mixins";
+import { caretBlink } from "@/styles/keyframes";
+import { accentFillOnHover, media, noAnimationWhenReduced } from "@/styles/mixins";
 import { SectionIntros } from "@/types/sections-intros";
 import { TerminalContent } from "@/types/terminal";
 
@@ -109,13 +110,7 @@ const Suggestion = styled.button(({ isFeatured }: { isFeatured: boolean }) => [
      border-[1px] border-solid border-[var(--accent-muted)]`,
   css`
     font-family: ${MONO};
-    transition: background-color 0.2s ease, color 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      color: #101010;
-      background-color: var(--accent);
-    }
+    ${accentFillOnHover()}
   `,
   // The place to start pulses gently and carries a star, until it has been used once.
   isFeatured && css`
@@ -145,15 +140,11 @@ const Suggestion = styled.button(({ isFeatured }: { isFeatured: boolean }) => [
 
 const FeaturedLabel = tw.span`font-sans font-semibold`;
 
-const blink = keyframes`
-  50% { opacity: 0; }
-`;
-
 // The cursor at the end of an answer still being written.
 const Caret = styled.span(() => [
   tw`inline-block w-[7px] h-[1em] ml-[2px] align-text-bottom bg-[var(--accent)]`,
   css`
-    animation: ${blink} 1s steps(1) infinite;
+    animation: ${caretBlink} 1s steps(1) infinite;
 
     ${noAnimationWhenReduced}
   `,

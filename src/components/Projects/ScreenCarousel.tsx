@@ -9,6 +9,7 @@ import { Image } from "@/components/Image";
 import { scrollBehavior } from "@/packages/accessibility/motion";
 import { HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
 import { fill } from "@/packages/text/format";
+import { focusRing } from "@/styles/mixins";
 import { ProjectScreen } from "@/types/projects";
 
 interface ScreenCarouselProps {
@@ -100,10 +101,7 @@ const Dot = styled.button(({ isOn }: { isOn: boolean }) => [
       transition: background 0.2s ease;
     }
 
-    &:focus-visible {
-      outline: 2px solid var(--kind);
-      outline-offset: -2px;
-    }
+    ${focusRing("var(--kind)", -2)}
   `,
 ]);
 

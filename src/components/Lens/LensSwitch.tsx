@@ -11,6 +11,7 @@ import { PixelSprite } from "@/components/PixelSprite";
 import { Lens, LENS_ACCENTS, LENSES } from "@/config/lenses";
 import useFocusLeave from "@/hooks/useFocusLeave";
 import { KeyMap } from "@/packages/interaction/keys";
+import { svgFill } from "@/styles/mixins";
 import { LensContent } from "@/types/lens";
 
 interface LensSwitchProps {
@@ -35,13 +36,7 @@ const Toggle = styled.button(() => [
 
 const Face = styled.span(() => [
   tw`block w-[20px] h-[20px]`,
-  css`
-    & > svg {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-  `,
+  svgFill,
 ]);
 
 const Label = tw.span`hidden sm:inline text-[#888] font-medium`;

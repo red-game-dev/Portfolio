@@ -215,7 +215,7 @@
   }
 }
 
-/* AI usage section */
+/* AI usage section. The scan beam also sweeps down the terminal's quest card as it opens. */
 @keyframes scan-beam {
   0% {
     transform: translateY(-100%);

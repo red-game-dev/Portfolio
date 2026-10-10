@@ -1,6 +1,6 @@
 import tw, { css, styled } from "twin.macro";
 
-import { honourHidden } from "@/styles/mixins";
+import { focusRing, honourHidden } from "@/styles/mixins";
 
 
 // How each rarity is coloured wherever a thing is named.
@@ -114,10 +114,7 @@ export const SmallButton = styled.button(({ isPrimary = false }: { isPrimary?: b
       opacity: 0.45;
     }
 
-    &:focus-visible {
-      outline: 2px solid #c4d2ff;
-      outline-offset: 2px;
-    }
+    ${focusRing("#c4d2ff", 2)}
   `,
 ]);
 

@@ -24,7 +24,7 @@ import useInView from "@/hooks/useInView";
 import { scrollBehavior } from "@/packages/accessibility/motion";
 import type { LaunchSnapshot } from "@/packages/games/launch";
 import { fill, formatDuration, formatLocalTime } from "@/packages/text/format";
-import { noAnimationWhenReduced } from "@/styles/mixins";
+import { focusRing, noAnimationWhenReduced } from "@/styles/mixins";
 import { FinaleContent, FinaleLaunch, FinaleLaunchSite, FinaleRank } from "@/types/game";
 import { DocumentLink } from "@/types/portfolio";
 
@@ -84,10 +84,7 @@ const AskTitle = tw.h3`m-0 text-lg font-semibold text-white`;
 const RedButton = styled.button(() => [
   tw`flex flex-row items-center gap-[12px] p-0 bg-transparent border-0 cursor-pointer text-sm font-semibold text-white`,
   css`
-    &:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 4px;
-    }
+    ${focusRing("var(--accent)", 4)}
 
     &:disabled {
       cursor: default;

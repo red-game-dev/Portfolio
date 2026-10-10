@@ -8,7 +8,7 @@ import { HISTORY_VIEW, VENTURE_COLOUR } from "@/components/History/config";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
 import useInView from "@/hooks/useInView";
 import { fill } from "@/packages/text/format";
-import { honourHidden, media, noTransitionWhenReduced } from "@/styles/mixins";
+import { accentFillOnHover, honourHidden, media, noTransitionWhenReduced, squareBullet } from "@/styles/mixins";
 import { HistoryLabels } from "@/types/history";
 import { Resume } from "@/types/resume";
 
@@ -106,18 +106,7 @@ const Bullets = tw.ul`list-none m-0 p-0 flex flex-col gap-[6px] text-sm text-[#a
 
 const Bullet = styled.li(() => [
   tw`relative pl-[16px] break-words`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.6em;
-      width: 6px;
-      height: 6px;
-      border-radius: 1px;
-      background: var(--accent-muted);
-    }
-  `,
+  squareBullet({ colour: "var(--accent-muted)", radius: 1 }),
 ]);
 
 // display: flex would beat the hidden attribute, so hidden is restated here.
@@ -128,15 +117,7 @@ const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-[6px]`;
 const Toggle = styled.button(() => [
   tw`self-start cursor-pointer text-xs font-medium py-[6px] px-[10px] text-[var(--accent)] bg-transparent border-[1px] border-solid border-[var(--accent-muted)]
      rounded-[2px]`,
-  css`
-    transition: background-color 0.2s ease, color 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      color: #101010;
-      background-color: var(--accent);
-    }
-  `,
+  accentFillOnHover(),
 ]);
 
 export const HistoryEntry: FC<HistoryEntryProps> = ({

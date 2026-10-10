@@ -6,6 +6,7 @@ import useTrail from "@/components/Journey/hooks/useTrail";
 import { ZoneId } from "@/config/zones";
 import { fill } from "@/packages/text/format";
 import { TrailSection } from "@/services/journey/trail";
+import { progressText } from "@/styles/mixins";
 import { JourneyTrailContent } from "@/types/game";
 
 interface ZoneTrailProps {
@@ -18,16 +19,7 @@ interface ZoneTrailProps {
 }
 
 // The title is painted with a gradient clipped to its letters: zone colour up to the progress, dim after.
-const progressFill = (direction: "bottom" | "right") => css`
-  background-image: linear-gradient(
-    to ${direction},
-    var(--accent) calc(var(--trail-progress, 0) * 100%),
-    rgba(255, 255, 255, 0.24) calc(var(--trail-progress, 0) * 100%)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-`;
+const progressFill = (direction: "bottom" | "right") => progressText(direction, "--trail-progress", "rgba(255, 255, 255, 0.24)");
 
 // Down the left edge on desktop, mirroring "Follow Me" on the right, reading top to bottom.
 const Vertical = styled.div(() => [

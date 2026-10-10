@@ -6,7 +6,7 @@ import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import useInView from "@/hooks/useInView";
 import { AiUsageBudget } from "@/packages/insights/ai-usage";
 import { collapseWhitespace, fill } from "@/packages/text/format";
-import { media } from "@/styles/mixins";
+import { media, squareBullet } from "@/styles/mixins";
 
 interface RevealProps {
   isRevealed: boolean;
@@ -61,17 +61,7 @@ const Practices = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px] text-sm text-[
 
 const Practice = styled.li(() => [
   tw`relative pl-[16px] break-words`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.6em;
-      width: 6px;
-      height: 6px;
-      background: var(--accent);
-    }
-  `,
+  squareBullet(),
 ]);
 
 const Notes = tw.ul`list-none m-0 mt-[22px] p-0 flex flex-col gap-[6px] text-sm text-[#888]`;

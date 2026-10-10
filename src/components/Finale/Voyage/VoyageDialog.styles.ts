@@ -2,7 +2,7 @@
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { honourHidden, media } from "@/styles/mixins";
+import { focusRing, honourHidden, media, voyagePanel } from "@/styles/mixins";
 
 // The whole screen, edge to edge, over a black backdrop.
 export const Dialog = styled.dialog(() => [
@@ -95,8 +95,7 @@ export const SurfaceCard = styled.section(() => [
   tw`absolute left-[10px] bottom-[10px] md:left-[18px] md:bottom-[18px] m-0 p-[8px] md:p-[12px] flex flex-col gap-[2px] pointer-events-none`,
   css`
     max-width: min(44vw, 300px);
-    background: rgba(5, 8, 18, 0.72);
-    border: 1px solid rgba(196, 210, 255, 0.25);
+    ${voyagePanel()}
   `,
 ]);
 
@@ -111,8 +110,7 @@ export const TelemetryPanel = styled.section(() => [
   css`
     min-width: 170px;
     max-width: min(66vw, 300px);
-    background: rgba(5, 8, 18, 0.72);
-    border: 1px solid rgba(196, 210, 255, 0.25);
+    ${voyagePanel()}
 
     ${media.md} {
       min-width: 200px;
@@ -204,12 +202,7 @@ export const Incoming = styled.section(() => [
 
 export const IconButton = styled.button(() => [
   tw`flex items-center justify-center w-[38px] h-[38px] p-0 cursor-pointer text-white bg-[rgba(10,14,30,0.75)] border-[1px] border-solid border-[#2a3350] rounded-full`,
-  css`
-    &:focus-visible {
-      outline: 2px solid #c4d2ff;
-      outline-offset: 2px;
-    }
-  `,
+  focusRing("#c4d2ff", 2),
 ]);
 
 const fadeLine = keyframes`
@@ -224,8 +217,7 @@ export const Message = styled.p(() => [
   tw`absolute left-1/2 top-[96px] md:top-[84px] m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
   css`
     max-width: min(90vw, 520px);
-    background: rgba(5, 8, 18, 0.72);
-    border: 1px solid rgba(196, 210, 255, 0.35);
+    ${voyagePanel(0.72, 0.35)}
     animation: ${fadeLine} 2.8s ease both;
 
     ${media.reducedMotion} {
@@ -245,8 +237,7 @@ export const Card = styled.section(() => [
     max-height: calc(100dvh - 32px);
     overflow-y: auto;
     overscroll-behavior: contain;
-    background: rgba(5, 8, 18, 0.86);
-    border: 1px solid rgba(196, 210, 255, 0.4);
+    ${voyagePanel(0.86, 0.4)}
   `,
 ]);
 
@@ -306,10 +297,7 @@ export const FixButton = styled.button(({ isReady }: { isReady: boolean }) => [
   css`
     border: ${isReady ? "0" : "1px solid #3a4566"};
 
-    &:focus-visible {
-      outline: 2px solid #c4d2ff;
-      outline-offset: 2px;
-    }
+    ${focusRing("#c4d2ff", 2)}
   `,
 ]);
 
@@ -323,10 +311,7 @@ export const ReadyButton = styled.button(() => [
   css`
     box-shadow: 0 0 0 1px rgba(125, 255, 207, 0.4), 0 0 18px rgba(125, 255, 207, 0.35);
 
-    &:focus-visible {
-      outline: 2px solid #ffffff;
-      outline-offset: 2px;
-    }
+    ${focusRing("#ffffff", 2)}
   `,
 ]);
 
@@ -345,8 +330,7 @@ export const PhotoBar = styled.section(() => [
   css`
     width: min(92vw, 560px);
     transform: translateX(-50%);
-    background: rgba(5, 8, 18, 0.82);
-    border: 1px solid rgba(196, 210, 255, 0.35);
+    ${voyagePanel(0.82, 0.35)}
   `,
 ]);
 

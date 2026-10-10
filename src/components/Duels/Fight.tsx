@@ -5,7 +5,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { PixelSprite } from "@/components/PixelSprite";
 import { AGENT_SPRITE, WARRIOR_SPRITE } from "@/config/sprites";
-import { media } from "@/styles/mixins";
+import { media, svgFill } from "@/styles/mixins";
 
 interface FightProps {
   played: number;
@@ -152,11 +152,7 @@ const Sprite = styled.div(({ isMirrored }: { isMirrored?: boolean }) => [
   css`
     filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.25));
 
-    & > svg {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
+    ${svgFill}
   `,
   isMirrored && css`
     transform: scaleX(-1);

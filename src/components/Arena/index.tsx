@@ -12,6 +12,7 @@ import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import { BugRaidSnapshot, DEFAULT_BUG_RAID_CONFIG } from "@/packages/games/bug-raid";
+import { brightenOnHover } from "@/styles/mixins";
 import { ArenaContent } from "@/types/game";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -63,14 +64,7 @@ const NewBest = tw.span`text-xs font-bold text-[#101010] bg-[var(--accent)] roun
 
 const Action = styled.button(() => [
   tw`inline-flex flex-row items-center h-[40px] px-[18px] cursor-pointer text-sm font-semibold text-[#101010] bg-[var(--accent)] border-0 rounded-[2px]`,
-  css`
-    transition: filter 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      filter: brightness(1.12);
-    }
-  `,
+  brightenOnHover,
 ]);
 
 const Hint = tw.p`m-0 mt-[12px] text-xs text-[#999] max-w-[70ch]`;

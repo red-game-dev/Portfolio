@@ -7,7 +7,7 @@ import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { createDealerModel, DEFAULT_DEALER_OUTFITS } from "@/packages/games/live-table";
 import { RigActor } from "@/packages/graphics/rig";
-import { media, noAnimationWhenReduced } from "@/styles/mixins";
+import { focusRing, media, noAnimationWhenReduced } from "@/styles/mixins";
 
 interface DealerProps {
   phrase: string;
@@ -33,10 +33,7 @@ const Figure = styled.button(() => [
     transition: transform 0.15s ease;
     touch-action: manipulation;
 
-    &:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 4px;
-    }
+    ${focusRing("var(--accent)", 4)}
 
     /* A tap shows on the dealer herself, as a small press, rather than as a box over her. */
     &:active {

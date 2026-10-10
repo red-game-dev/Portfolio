@@ -11,7 +11,7 @@ import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { firstFocusable, isFocusLost, isInside, isTypingTarget } from "@/packages/interaction/focus";
 import { HORIZONTAL_ARROWS, KeyMap } from "@/packages/interaction/keys";
-import { honourHidden } from "@/styles/mixins";
+import { focusRing, honourHidden } from "@/styles/mixins";
 import { CarouselLabels } from "@/types/carousel";
 
 interface CarouselProps<T> {
@@ -82,9 +82,7 @@ const Segment = styled.button(({ isOn }: { isOn: boolean }) => [
       transition: background 0.2s ease;
     }
 
-    &:focus-visible {
-      outline: 2px solid var(--accent);
-    }
+    ${focusRing("var(--accent)")}
   `,
 ]);
 

@@ -10,6 +10,7 @@ import { Image } from "@/components/Image";
 import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import TypingAnimation from "@/components/TypingAnimation";
 import { industryAnchor, SECTION_IDS } from "@/config/sections";
+import { accentFillOnHover } from "@/styles/mixins";
 import { Headline } from "@/types/headline";
 
 interface CoverProps {
@@ -55,16 +56,7 @@ const Actions = tw.div`flex flex-row flex-wrap gap-[10px]`;
 const Action = styled.a(() => [
   tw`inline-flex flex-row items-center gap-2 h-[40px] px-[16px] text-sm font-medium no-underline text-[var(--accent)] bg-[rgba(16, 16, 16, 0.6)]
      border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`,
-  css`
-    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      color: #101010;
-      background-color: var(--accent);
-      border-color: var(--accent);
-    }
-  `,
+  accentFillOnHover(true),
 ]);
 
 const Audiences = tw.nav`flex flex-row flex-wrap items-center gap-[8px] text-xs text-[#999]`;

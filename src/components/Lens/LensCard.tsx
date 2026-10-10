@@ -6,7 +6,7 @@ import tw, { css, styled } from "twin.macro";
 import { LENS_SPRITES } from "@/components/Lens/config";
 import { PixelSprite } from "@/components/PixelSprite";
 import { Lens, LENS_ACCENTS, LENS_STAT_MAX } from "@/config/lenses";
-import { media } from "@/styles/mixins";
+import { media, squareBullet, svgFill } from "@/styles/mixins";
 import { LensCard as LensCardContent } from "@/types/lens";
 
 interface LensCardProps extends LensCardContent {
@@ -78,11 +78,7 @@ const Sprite = styled.span(() => [
   css`
     filter: drop-shadow(0 0 8px rgba(var(--lens-rgb), 0.35));
 
-    & > svg {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
+    ${svgFill}
 
     button:hover &,
     button:focus-visible & {
@@ -120,17 +116,7 @@ const Perks = tw.span`hidden md:flex flex-col gap-[6px] text-sm text-[#bbb]`;
 
 const Perk = styled.span(() => [
   tw`relative block pl-[14px]`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.55em;
-      width: 5px;
-      height: 5px;
-      background: var(--lens-accent);
-    }
-  `,
+  squareBullet({ size: 5, top: "0.55em", colour: "var(--lens-accent)" }),
 ]);
 
 const Select = styled.span(() => [

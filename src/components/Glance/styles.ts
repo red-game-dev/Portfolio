@@ -1,7 +1,7 @@
 import tw, { css, styled } from "twin.macro";
 
 import { fadeIn } from "@/styles/keyframes";
-import { media } from "@/styles/mixins";
+import { brightenOnHover, media, squareBullet } from "@/styles/mixins";
 
 export const Sheet = tw.div`flex flex-col gap-[26px] p-[22px] md:p-[32px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
@@ -18,14 +18,7 @@ export const Actions = tw.div`flex flex-row flex-wrap gap-[10px]`;
 export const Action = styled.a(({ isPrimary }: { isPrimary: boolean }) => [
   tw`inline-flex flex-row items-center gap-[8px] h-[38px] px-[14px] text-sm font-semibold no-underline rounded-[2px] border-[1px] border-solid`,
   isPrimary ? tw`text-[#101010] bg-[var(--accent)] border-[var(--accent)]` : tw`text-[var(--accent)] bg-transparent border-[var(--accent-muted)]`,
-  css`
-    transition: filter 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-      filter: brightness(1.12);
-    }
-  `,
+  brightenOnHover,
 ]);
 
 // A label beside its values on wide screens, above them on narrow ones.
@@ -82,17 +75,7 @@ export const Rows = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px]`;
 
 export const Row = styled.li(() => [
   tw`relative pl-[16px] text-sm text-[#bbb]`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.55em;
-      width: 6px;
-      height: 6px;
-      background: var(--accent);
-    }
-  `,
+  squareBullet({ top: "0.55em" }),
 ]);
 
 export const Strong = tw.strong`text-white font-semibold`;

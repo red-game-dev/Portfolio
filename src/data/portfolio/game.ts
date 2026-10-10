@@ -151,8 +151,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         "takes a photo. P pauses, Escape leaves.",
       controlsTouch: "Hold a finger where to fly: the ship turns and burns towards it, harder the further you point. Pinch to zoom. " +
         "The guns aim themselves; tap someone to lock on. Fly through gold coins for Red Coin, and hold still beside a wreck to " +
-        "salvage it. The buttons at the top open the hangar, the map and photo mode, and the ability bar on the right uses boosts " +
-        "and things from the hold.",
+        "salvage it. The buttons at the top open the hangar, the map and photo mode, and the ability bar uses boosts and things from " +
+        "the hold.",
       canvasLabel: "Your ship, flying out through space",
       setup: {
         title: "How do you like to fly?",

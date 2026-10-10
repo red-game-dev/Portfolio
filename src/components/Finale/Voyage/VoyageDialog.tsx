@@ -343,7 +343,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         <Canvas ref={backRef} aria-hidden="true" />
         <LensCanvas ref={lensRef} aria-hidden="true" />
         <Canvas ref={frontRef} aria-hidden="true" />
-        <ControlsNote id={CONTROLS_ID}>{content.controls}</ControlsNote>
+        <ControlsNote id={CONTROLS_ID}>{controlsText}</ControlsNote>
       </Stage>
       {isPhoto && (
         <PhotoBar aria-label={content.career.photo.title}>
@@ -587,8 +587,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         />
       )}
       {(status !== "flying" || isPaused) && !isHangarOpen && !isPhoto && (
-        <Overlay>
-          <Card>
+        <Overlay isPassThrough={status === "flying"}>
+          <Card isPassThrough={status === "flying"}>
             {status === "ready" && (
               <>
                 <Title>{content.title}</Title>
@@ -601,6 +601,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                     <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
                   </Setup>
                 )}
+                {career && <Text>{dailyNote}</Text>}
+                <Credits>{content.credits}</Credits>
                 <CardButtons>
                   <ActionButton type="button" isPrimary disabled={!isReady} onClick={() => start()}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
@@ -619,8 +621,6 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                     </ActionButton>
                   )}
                 </CardButtons>
-                {career && <Text>{dailyNote}</Text>}
-                <Credits>{content.credits}</Credits>
               </>
             )}
             {status === "flying" && isPaused && (

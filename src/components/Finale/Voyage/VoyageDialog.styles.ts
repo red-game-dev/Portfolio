@@ -237,20 +237,29 @@ export const Message = styled.p(() => [
 
 // Under the HUD's buttons (so they still answer while a card is up), the card's own scrolling area: the whole of it
 // scrolls as one, so a card taller than a short phone is read to the end. Some phones will not scroll a box nested
-// inside a layer that lets touches through to the canvas, so this layer takes the touches itself.
-export const Overlay = styled.div(() => [
-  tw`absolute left-0 right-0 bottom-0 top-[58px] md:top-[72px] flex flex-col items-center px-[16px] pt-[6px] pb-[16px] pointer-events-auto`,
+// inside a layer that lets touches through to the canvas, so this layer takes the touches itself; the paused card,
+// short enough for any screen, lets them through instead, so the fixes and the suggestion beside it still answer.
+// A control focused by the keyboard is scrolled clear of the pinned buttons.
+export const Overlay = styled.div(({ isPassThrough }: { isPassThrough: boolean }) => [
+  tw`absolute left-0 right-0 bottom-0 top-[58px] md:top-[72px] flex flex-col items-center px-[16px] pt-[6px] pb-[16px]`,
+  isPassThrough ? tw`pointer-events-none` : tw`pointer-events-auto`,
   css`
     overflow-y: auto;
     overscroll-behavior: contain;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
+    scroll-padding-bottom: 128px;
+
+    ${media.md} {
+      scroll-padding-bottom: 96px;
+    }
   `,
 ]);
 
 // Centred where it fits, from the top where it does not; it never scrolls inside itself.
-export const Card = styled.section(() => [
+export const Card = styled.section(({ isPassThrough }: { isPassThrough: boolean }) => [
   tw`flex flex-col gap-[12px] w-full max-w-[460px] p-[22px] md:p-[28px]`,
+  isPassThrough && tw`pointer-events-auto`,
   css`
     margin: auto 0;
     flex-shrink: 0;
@@ -258,7 +267,8 @@ export const Card = styled.section(() => [
   `,
 ]);
 
-// A card's actions, held at the bottom of the screen while the rest of a long card scrolls under them.
+// A card's actions, held at the bottom of the screen while the rest of a long card scrolls under them; always the
+// card's last part, so it reaches the card's edges.
 export const CardButtons = styled.div(() => [
   tw`flex flex-row flex-wrap gap-[10px] mt-[6px] px-[22px] pt-[12px] pb-[18px] md:px-[28px] md:pb-[24px]`,
   css`
@@ -285,8 +295,6 @@ export const SetupTitle = tw.h3`m-0 text-base font-semibold text-white`;
 export const Score = tw.p`m-0 text-3xl font-bold text-[#c4d2ff] tabular-nums`;
 
 export const Badge = tw.p`m-0 self-start px-[10px] py-[4px] text-xs font-semibold text-[#101010] bg-[#ffc45c]`;
-
-export const Buttons = tw.div`flex flex-row flex-wrap gap-[10px] mt-[6px]`;
 
 // The ship's hull and mark, under where it is.
 export const ShipLine = tw.p`m-0 text-[11px] md:text-xs text-[#9aa3bb]`;

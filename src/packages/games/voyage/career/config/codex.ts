@@ -1,3 +1,4 @@
+import { BOOST_IDS } from "../../config/boosts";
 import { GALAXY_KINDS } from "../../config/galaxies";
 import { WORLD_CLASS_IDS } from "../../config/worlds";
 import { WreckKind } from "../../domain/components";
@@ -30,7 +31,7 @@ const LIFE: ReadonlyArray<HullShape | "trader" | "whale"> = ["saucer", "insect",
 const WRECKS: readonly WreckKind[] = ["probe", "rocket", "starship", "alien", "ore", "ice"];
 
 // Everything the codex can hold, in the order it lists them: every world of our own system with its real
-// figures, the Sun and the belts, then what the universes hold.
+// figures, the Sun and the belts, then what the universes hold, and every boost.
 export const CODEX: readonly CodexEntry[] = [
   entry("worlds", SOLAR_SYSTEM.star.id, { radiusKm: SOLAR_SYSTEM.star.radiusKm, gravity: SOLAR_SYSTEM.star.surfaceGravity, dayHours: SOLAR_SYSTEM.star.rotationDays * 24,
     pressureBar: null, dayC: SOLAR_SYSTEM.star.temperatureK - 273, nightC: SOLAR_SYSTEM.star.temperatureK - 273 }),
@@ -51,6 +52,7 @@ export const CODEX: readonly CodexEntry[] = [
   ...LIFE.map((shape) => entry("life", shape)),
   ...WRECKS.map((kind) => entry("wrecks", kind)),
   ...Object.keys(ITEMS).map((id) => entry("things", id)),
+  ...BOOST_IDS.map((id) => entry("boosts", id)),
 ];
 
 export const codexId = (category: CodexCategory, subject: string): string => `${category}:${subject}`;

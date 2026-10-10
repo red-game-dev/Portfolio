@@ -1,8 +1,7 @@
 import type { RenderLayer } from "@/packages/games/engine";
 
-import { BOOSTS } from "../../config/boosts";
-import { BoostOrigin } from "../../domain/boosts";
 import { DEEP_STYLES } from "../../domain/theme";
+import { boostColour } from "../../utils/boosts";
 import { auForRadius } from "../../utils/scale";
 import { lerpX, lerpY, sizeBucket, VoyageFrame } from "../frame";
 import { paintHazard, paintPickup, paintRock } from "../paint/hazards";
@@ -15,20 +14,6 @@ const TAIL_REACH = 7;
 // The colour of each kind of pickup: coins are gold everywhere, so they read as coin in every universe. A boost
 // core takes the colour of where it is from.
 const PICKUP_COLOUR = { coin: "#ffd76a", shield: "#4fd8ff", fuel: "#62ffc8", repair: "#ff8fa3", boost: "#f4f0ff" };
-const BOOST_COLOUR: Readonly<Record<BoostOrigin, string>> = {
-  anywhere: "#f4f0ff",
-  solar: "#ffb347",
-  matrix: "#4bffa5",
-  neural: "#4fd8ff",
-  blocks: "#b48cff",
-  chips: "#ff5c9a",
-  pixels: "#ffc857",
-  nebula: "#ff9df0",
-  void: "#9aa8ff",
-  crystal: "#7df9ff",
-  ember: "#ff7a45",
-  abyss: "#3fd0c9",
-};
 // How fast a coin turns over as it drifts (radians a millisecond), and the narrowest it gets edge on.
 const COIN_SPIN = 0.004;
 const COIN_EDGE = 0.22;
@@ -59,7 +44,7 @@ export class ThingsLayer implements RenderLayer<VoyageFrame> {
       }
 
       const { kind, boost } = world.stores.pickup.values[index];
-      const colour = boost ? BOOST_COLOUR[BOOSTS[boost].origin] : PICKUP_COLOUR[kind];
+      const colour = boost ? boostColour(boost) : PICKUP_COLOUR[kind];
       const size = sizeBucket(body.radius * 3 * base);
       const sprite = this.kit.sprite(`pickup:${kind}:${colour}:${size}`, size, size, paintPickup(kind, colour));
       const drawn = body.radius * 3 * camera.scale * pulse;

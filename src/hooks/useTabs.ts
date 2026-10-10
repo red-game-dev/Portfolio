@@ -4,6 +4,8 @@ import { rovingTarget } from "@/packages/accessibility/roving";
 
 interface TabsOptions {
   count: number;
+  // The tab open at first.
+  initial?: number;
   // Called before the switch with the tab being opened and the one being left, for direction aware effects.
   onSelect?: (next: number, previous: number) => void;
 }
@@ -13,8 +15,8 @@ interface TabsOptions {
 // tablist, `tabProps(index)` on each tab and `panelProps(index)` on each panel. Rendering every panel and
 // letting `hidden` hide the others keeps all of them in the server HTML; a showcase that only ever mounts
 // the open one passes `panelProps(active)`.
-const useTabs = ({ count, onSelect }: TabsOptions) => {
-  const [active, setActive] = useState(0);
+const useTabs = ({ count, initial = 0, onSelect }: TabsOptions) => {
+  const [active, setActive] = useState(initial);
   const listRef = useRef<HTMLDivElement>(null);
   const baseId = useId();
   const panelId = (index: number) => `${baseId}-panel-${index}`;

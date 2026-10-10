@@ -1,6 +1,6 @@
 import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState, WheelEvent } from "react";
 
-import { PHOTO_PAN, VOYAGE_KEYS, VOYAGE_ZOOM, voyageKeyAction } from "@/components/Finale/Voyage/controls";
+import { PHOTO_PAN, slotOf, VOYAGE_KEYS, VOYAGE_ZOOM, voyageKeyAction } from "@/components/Finale/Voyage/controls";
 import { usePilotSync } from "@/components/Finale/Voyage/hooks/usePilotSync";
 import { useTiltSteering } from "@/components/Finale/Voyage/hooks/useTiltSteering";
 import { canTilt } from "@/components/Finale/Voyage/tilt";
@@ -341,11 +341,17 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
         game?.zoomBy(zoom.step(action === "zoomIn" ? 1 : -1));
         break;
       default:
-        return false;
+        if (slotOf(action) < 0) {
+          return false;
+        }
+
+        act({ kind: "slot", index: slotOf(action) });
     }
 
     return true;
-  }), [applyKeys, economy, follow, game, held, isFlying, isHangarOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns, toggleMap, togglePhoto, zoom]);
+  }), [
+    act, applyKeys, economy, follow, game, held, isFlying, isHangarOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns, toggleMap, togglePhoto, zoom,
+  ]);
 
   const onKeyUp = useCallback((event: KeyboardEvent<HTMLElement>) => {
     if (held.release(event)) {

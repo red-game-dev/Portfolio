@@ -1,4 +1,4 @@
-import { PHOTO_PAN, VOYAGE_KEYS, voyageKeyAction, VoyageKeyState } from "@/components/Finale/Voyage/controls";
+import { PHOTO_PAN, slotOf, VOYAGE_KEYS, voyageKeyAction, VoyageKeyState } from "@/components/Finale/Voyage/controls";
 
 import { keyPress } from "../packages/interaction/fixtures/events";
 
@@ -29,6 +29,9 @@ describe("the voyage's keys", () => {
     expect(VOYAGE_KEYS.intentOf(keyPress("="))).toBe("zoomIn");
     expect(VOYAGE_KEYS.intentOf(keyPress("-"))).toBe("zoomOut");
     expect(VOYAGE_KEYS.intentOf(keyPress("Escape"))).toBe("back");
+    expect(VOYAGE_KEYS.intentOf(keyPress("1"))).toBe("slot1");
+    expect(VOYAGE_KEYS.intentOf(keyPress("4"))).toBe("slot4");
+    expect(VOYAGE_KEYS.intentOf(keyPress("5"))).toBeNull();
     expect(VOYAGE_KEYS.intentOf(keyPress("q"))).toBeNull();
   });
 
@@ -37,6 +40,7 @@ describe("the voyage's keys", () => {
     expect(VOYAGE_KEYS.intentOf(keyPress("u", { metaKey: true }))).toBeNull();
     expect(VOYAGE_KEYS.intentOf(keyPress("ArrowLeft", { altKey: true }))).toBeNull();
     expect(VOYAGE_KEYS.intentOf(keyPress("+", { shiftKey: true }))).toBe("zoomIn");
+    expect(VOYAGE_KEYS.intentOf(keyPress("1", { metaKey: true }))).toBeNull();
   });
 
   test("look round photo mode with the arrows only, against the arrow", () => {
@@ -72,6 +76,16 @@ describe("voyageKeyAction", () => {
     expect(voyageKeyAction("zoomIn", state({ isFlying: false, hasRun: false }))).toBe("zoomIn");
     expect(voyageKeyAction("zoomOut", state())).toBe("zoomOut");
     expect(voyageKeyAction("zoomIn", state({ hasGame: false }))).toBeNull();
+  });
+
+  test("uses the ability bar's slots only in flight with the hangar loaded, each key its own slot", () => {
+    expect(voyageKeyAction("slot1", state())).toBe("slot1");
+    expect(voyageKeyAction("slot3", state())).toBe("slot3");
+    expect(voyageKeyAction("slot1", state({ isFlying: false }))).toBeNull();
+    expect(voyageKeyAction("slot2", state({ hasHangar: false }))).toBeNull();
+    expect(voyageKeyAction("slot4", state({ isHangarOpen: true }))).toBeNull();
+    expect(voyageKeyAction("slot4", state({ isPhoto: true }))).toBeNull();
+    expect([slotOf("slot1"), slotOf("slot4"), slotOf("pause"), slotOf(null)]).toEqual([0, 3, -1, -1]);
   });
 
   test("keeps to the hangar's own keys while it is open", () => {

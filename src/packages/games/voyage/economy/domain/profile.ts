@@ -1,7 +1,17 @@
 import type { LedgerSnapshot } from "@/packages/finance/ledger";
 
 import { CareerProfile } from "../../career/domain/career";
+import { BoostId } from "../../domain/boosts";
 import { ItemStack } from "./items";
+
+// A boost's charges kept between runs, and how many of its cores have been found, which sets its level.
+export interface BoostRecord {
+  charges: number;
+  finds: number;
+}
+
+// What a slot of the ability bar holds: a boost, or a consumable from the hold.
+export type BarSlot = { kind: "boost"; id: BoostId } | { kind: "item"; id: string };
 
 // What a pilot has done across every run, kept for the records the HUD and the codex show.
 export interface PilotRecords {
@@ -23,6 +33,9 @@ export interface EconomyProfile {
   blueprints: string[];
   ledger: LedgerSnapshot;
   records: PilotRecords;
+  // Each boost found, and what sits in each slot of the ability bar.
+  boosts: Partial<Record<BoostId, BoostRecord>>;
+  bar: Array<BarSlot | null>;
 }
 
 // Everything a pilot keeps between runs: the hangar's part and the career's.

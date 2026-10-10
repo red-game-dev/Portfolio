@@ -7,6 +7,7 @@ import { VoyageTheme } from "../../config";
 import { Decal } from "../../domain/components";
 import { markOf, tierOf } from "../../economy/config/tiers";
 import { HullTier } from "../../economy/domain/economy";
+import { activeLevel } from "../../utils/boosts";
 import { lerpX, lerpY, sizeBucket, VoyageFrame } from "../frame";
 import { paintBreach, paintDent, paintScorch, paintShieldRing, tintRed } from "../paint/damage";
 import { ION_TIERS, NOZZLES, paintHull } from "../paint/ships";
@@ -17,7 +18,10 @@ import { RenderKit } from "./kit";
 const DECAL_PAINTERS: Record<Decal["kind"], (context: Canvas2DContext, width: number) => void> = { dent: paintDent, scorch: paintScorch, breach: paintBreach };
 const DECAL_KEYS: Record<Decal["kind"], string> = { dent: "decal:dent", scorch: "decal:scorch", breach: "decal:breach" };
 
-// The blue white of an ion drive, for the great ships.
+// How much of the ship shows through a cloak, and how much longer an afterburner's flame is.
+const CLOAKED = 0.3;
+const BURNER = 1.6;
+// The blue white of an ion drive, for the great ships (and any ship on the ion drive boost).
 const ION = { core: "#eef8ff", edge: "#5fb8ff" };
 
 // Where on the hull a mark at `angle` sits, in the ship's own frame (nose up), as shares of its radius.
@@ -29,7 +33,8 @@ const HEAT_GLOW_C = 350;
 // when the hull is failing), its body as its hull and mark, the marks of every hit where it landed,
 // glowing breaches that smoke and then burn, the shimmer of its shields and their flash where a hit is caught,
 // the plasma at its nose on entry, its hull glowing as it heats and shedding molten drops once it melts, and,
-// falling into a black hole, stretched long and red.
+// falling into a black hole, stretched long and red. A cloak leaves it faint, an afterburner lengthens the flame to
+// white, and the ion drive boost turns it blue.
 export class ShipLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "ship";
   private shieldFlash = 0;
@@ -71,13 +76,16 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const hull = health.hull / health.maxHull;
     const capture = state.capture;
     const fall = capture ? capture.progress : 0;
+    const shown = activeLevel(state, "cloak") > 0 ? CLOAKED : 1;
+    const isBurner = activeLevel(state, "afterburner") > 0;
+    const isIon = ION_TIERS.includes(tier) || activeLevel(state, "ionBurn") > 0;
 
     // Pulled long towards the hole and thin across it, its light shifting to red as it nears the horizon.
     const stretch = 1 + fall * 2.6;
     const squeeze = 1 - fall * 0.7;
 
     this.sputter = hull < 0.25 && Math.random() < 0.08 ? 0.12 : Math.max(0, this.sputter - dt);
-    this.emitExhaust(worldX, worldY, angle, body.radius, ship.thrust, hull, ION_TIERS.includes(tierOf(state.level)));
+    this.emitExhaust(worldX, worldY, angle, body.radius, ship.thrust, hull, isIon);
     this.emitDamage(worldX, worldY, angle, body.radius, health.decals, hull);
 
     if (ship.temperatureC > config.thermal.ratings.hull) {
@@ -87,11 +95,12 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     front.frame(x, y, angle + Math.PI / 2, squeeze, stretch);
 
     if ((ship.thrust > 0.02 || ship.isBraking) && this.sputter === 0 && !capture) {
-      const isIon = ION_TIERS.includes(tier);
-      const core = isIon ? ION.core : theme.flameCore;
+      const core = isIon ? ION.core : isBurner ? "#ffffff" : theme.flameCore;
       const edge = isIon ? ION.edge : theme.flameEdge;
-      const flame = this.kit.sprite(`flame:${core}:${size}`, size * 1.1, size * 2.8, paintFlame(core, edge));
-      const length = r * 2.8 * (0.45 + ship.thrust * 0.75) * (0.88 + Math.sin(now * 0.05) * 0.12);
+      const flame = this.kit.sprite(`flame:${core}:${edge}:${size}`, size * 1.1, size * 2.8, paintFlame(core, edge));
+      const length = r * 2.8 * (0.45 + ship.thrust * 0.75) * (0.88 + Math.sin(now * 0.05) * 0.12) * (isBurner ? BURNER : 1);
+
+      front.context.globalAlpha = shown;
 
       if (flame) {
         NOZZLES[tier].forEach(({ x: nx, y: ny, size: scale }) => {
@@ -101,7 +110,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     }
 
     if (sprite) {
-      front.context.globalAlpha = Math.max(0, 1 - fall * 0.85);
+      front.context.globalAlpha = Math.max(0, 1 - fall * 0.85) * shown;
       front.context.drawImage(sprite.surface, -r * SHIP_WIDTH / 2, -r * SHIP_HEIGHT / 2, r * SHIP_WIDTH, r * SHIP_HEIGHT);
 
       if (fall > 0) {

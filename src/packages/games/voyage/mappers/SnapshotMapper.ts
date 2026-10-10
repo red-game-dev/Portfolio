@@ -4,8 +4,8 @@ import { roundTo } from "@/packages/math/round";
 import type { Vec3 } from "@/packages/physics/kepler";
 
 import { VoyageConfig } from "../config";
+import { BOOSTS } from "../config/boosts";
 import { VoyageWorld } from "../core/world";
-import { BoostId } from "../domain/boosts";
 import { MODULE_IDS, Modules } from "../domain/components";
 import { DescentView, Frame, IncomingRock, VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState } from "../domain/state";
@@ -129,11 +129,11 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
   // Each boost at work with the share of it still to run, each used one's seconds to wait, and the blocks standing.
   private boosts(state: Readonly<VoyageState>): VoyageSnapshot["boosts"] {
     const now = state.elapsedMs;
-    const cooldowns: Partial<Record<BoostId, number>> = {};
+    const cooldowns: VoyageSnapshot["boosts"]["cooldowns"] = {};
 
     Object.entries(state.boostReady).forEach(([id, readyAt]) => {
       if (readyAt !== undefined && readyAt > now && isBoostId(id)) {
-        cooldowns[id] = Math.ceil((readyAt - now) / 1000);
+        cooldowns[id] = { seconds: Math.ceil((readyAt - now) / 1000), share: Math.min(1, (readyAt - now) / (BOOSTS[id].cooldownS * 1000)) };
       }
     });
 

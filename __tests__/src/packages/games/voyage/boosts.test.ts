@@ -84,7 +84,9 @@ describe("voyage boosts", () => {
 
     simulation.step(BOOSTS.afterburner.durationS * 1000 + 100);
     expect(simulation.state.boosts).toEqual([]);
-    expect(simulation.snapshot.boosts.cooldowns.afterburner).toBeGreaterThan(0);
+    expect(simulation.snapshot.boosts.cooldowns.afterburner?.seconds).toBeGreaterThan(0);
+    expect(simulation.snapshot.boosts.cooldowns.afterburner?.share).toBeGreaterThan(0);
+    expect(simulation.snapshot.boosts.cooldowns.afterburner?.share).toBeLessThan(1);
 
     simulation.step((BOOSTS.afterburner.cooldownS - BOOSTS.afterburner.durationS) * 1000);
     expect(simulation.boost("afterburner", 1)).toBe(true);

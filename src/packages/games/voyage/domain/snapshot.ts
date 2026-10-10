@@ -104,11 +104,11 @@ export interface VoyageSnapshot {
   homecoming: { stage: "recovery" | "pad"; days: number; isSea: boolean } | null;
   // With no fuel to leave: the whole seconds before a rescue (in our solar system) or the end of the run.
   stranded: { secondsLeft: number; isRescue: boolean } | null;
-  // The boosts at work (the share of each still to run, 1 to 0), the seconds before each used one is ready again,
-  // and a block shield's blocks still standing.
+  // The boosts at work (the share of each still to run, 1 to 0), the whole seconds before each used one is ready
+  // again and the share of its cooldown still to run, and a block shield's blocks still standing.
   boosts: {
     active: Array<{ id: BoostId; level: number; left: number }>;
-    cooldowns: Partial<Record<BoostId, number>>;
+    cooldowns: Partial<Record<BoostId, { seconds: number; share: number }>>;
     blocks: number;
   };
   // Who lives on the world the ship is coming down to or stands on, and how they meet visitors.

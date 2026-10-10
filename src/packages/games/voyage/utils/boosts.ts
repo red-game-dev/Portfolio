@@ -1,6 +1,6 @@
 import { pick, pickWeighted, RandomSource } from "@/packages/math/random";
 
-import { BOOSTS, DURATION_PER_LEVEL, LEVEL_FINDS } from "../config/boosts";
+import { BOOST_COLOURS, BOOSTS, DURATION_PER_LEVEL, LEVEL_FINDS } from "../config/boosts";
 import { BoostId, BoostOrigin } from "../domain/boosts";
 import { VoyageState } from "../domain/state";
 import { DEEP_STYLES, VoyageStyle } from "../domain/theme";
@@ -10,6 +10,8 @@ export const isBoostId = (value: string): value is BoostId => Object.prototype.h
 
 // The level a boost has reached from how many of its cores have been found: 0 before the first.
 export const levelForFinds = (finds: number): number => LEVEL_FINDS.filter((needed) => finds >= needed).length;
+
+export const boostColour = (id: BoostId): string => BOOST_COLOURS[BOOSTS[id].origin];
 
 // How strong a boost is at a level, and how long it lasts (ms).
 export const boostStrength = (id: BoostId, level: number): number => BOOSTS[id].strength + BOOSTS[id].perLevel * (Math.max(1, level) - 1);

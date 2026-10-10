@@ -21,8 +21,8 @@ export { SOLAR_SYSTEM, SolarSystemSource } from "./sources/SolarSystemSource";
 export { missionTime, placeBodies } from "./systems/orbits";
 export { auForRadius, radiusForAu } from "./utils/scale";
 export { landingWorldOf } from "./utils/landing";
-export { BOOST_IDS, BOOSTS, LEVEL_FINDS } from "./config/boosts";
-export { boostDuration, boostStrength, boostToFind, isBoostId, levelForFinds } from "./utils/boosts";
+export { BOOST_COLOURS, BOOST_IDS, BOOSTS, LEVEL_FINDS } from "./config/boosts";
+export { boostColour, boostDuration, boostStrength, boostToFind, isBoostId, levelForFinds } from "./utils/boosts";
 export type { ActiveBoost, BoostId, BoostOrigin, BoostSpec } from "./domain/boosts";
 export { missionMarks, NO_MISSION_MARKS } from "./utils/missions";
 export type { MissionMarks } from "./utils/missions";
@@ -30,6 +30,7 @@ export { lightAt, massOfPull, pullOfMass } from "./utils/stars";
 export { SolarSystemValidator } from "./validators/SolarSystemValidator";
 export { CanvasVoyageRenderer } from "./renderers/CanvasVoyageRenderer";
 export { FAULT_KINDS, FAULT_MODULE } from "./domain/faults";
+export { BAR_SLOTS, MAX_CHARGES, newBar } from "./economy/config/bar";
 export { BLUEPRINT_DROPS, ITEMS } from "./economy/config/catalog";
 export { FAULT_FIXES, RECIPES, recipeBlueprint } from "./economy/config/recipes";
 export { REWARDS, VOID_PRICE } from "./economy/config/rewards";
@@ -70,7 +71,7 @@ export type {
 export type { VoyageCanvases, VoyageCanvasOptions, VoyageOptions } from "./core/VoyageGame";
 export type { LandingOptions } from "./domain/input";
 export type { LandingMethod, LandingPhase } from "./landing";
-export type { VoyageAction, VoyageNotice } from "./domain/notices";
+export type { SlotRefusal, VoyageAction, VoyageNotice } from "./domain/notices";
 export type { VoyageStores, VoyageWorld } from "./core/world";
 export type { VoyageRenderer } from "./renderers/CanvasVoyageRenderer";
 export type { VoyageFrame } from "./renderers/frame";
@@ -78,6 +79,9 @@ export type { Body, Decal, Health, Hazard, Hole, ModuleId, Modules, Pickup, Pick
 export type { Fault, FaultKind, ShipEffect } from "./domain/faults";
 export type { ItemStack, Loot, LootSituation, LootSource, LootTable } from "./domain/loot";
 export type {
+  BarRow,
+  BoostFind,
+  BoostRow,
   CargoRow,
   Cost,
   CurrencyCode,
@@ -94,7 +98,7 @@ export type {
   Suggestion,
 } from "./economy/domain/economy";
 export type { ItemKind, ItemSpec, ItemUse, Rarity } from "./economy/domain/items";
-export type { EconomyProfile, PilotProfile, PilotRecords } from "./economy/domain/profile";
+export type { BarSlot, BoostRecord, EconomyProfile, PilotProfile, PilotRecords } from "./economy/domain/profile";
 export type {
   CareerEvent,
   CareerProfile,

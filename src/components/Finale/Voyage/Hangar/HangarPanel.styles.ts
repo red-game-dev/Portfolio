@@ -118,6 +118,26 @@ export const SmallButton = styled.button(({ isPrimary = false }: { isPrimary?: b
   `,
 ]);
 
+// The bar's four slots as the Loadout lists them, each edged in the colour of what it holds.
+export const LoadoutSlots = tw.ol`m-0 p-0 list-none flex flex-col gap-[6px] text-xs md:text-sm`;
+
+export const LoadoutSlot = styled.li(({ colour }: { colour: string }) => [
+  tw`flex flex-row flex-wrap items-center gap-[8px] px-[8px] py-[6px]`,
+  css`
+    color: #ffffff;
+    border-left: 3px solid ${colour};
+    background: rgba(255, 255, 255, 0.03);
+
+    & > svg {
+      color: ${colour};
+    }
+
+    & > button {
+      margin-left: auto;
+    }
+  `,
+]);
+
 export const Meter = tw.div`relative h-[6px] overflow-hidden bg-[rgba(255,255,255,0.12)]`;
 
 export const Entries = tw.ol`m-0 p-0 list-none flex flex-col gap-[6px] text-xs md:text-sm`;

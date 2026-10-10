@@ -1,9 +1,13 @@
 import { HullTier, Purse, Deed } from "../economy/domain/economy";
+import { BarSlot } from "../economy/domain/profile";
 import type { LandingPhase } from "../landing";
+import { BoostId } from "./boosts";
 import { ModuleId, WreckKind } from "./components";
 import { FlareClass, ImpactOutcome } from "./events";
 import { FaultKind } from "./faults";
 import { ItemStack } from "./loot";
+
+export type SlotRefusal = "empty" | "cooling" | "unable" | "unneeded";
 
 // Something the UI may want to say, as it happens, beyond what the snapshot shows.
 export type VoyageNotice =
@@ -33,6 +37,11 @@ export type VoyageNotice =
   | { kind: "burst"; seconds: number; isFired: boolean }
   | { kind: "salvaged"; wreck: WreckKind; kept: ItemStack[]; lost: ItemStack[]; blueprints: string[] }
   | { kind: "fault" | "fixed"; fault: FaultKind }
+  // A boost's core picked up: its level and charges now, and whether it was the first or raised the level.
+  | { kind: "boostFound"; boost: BoostId; level: number; charges: number; isFirst: boolean; isLevelUp: boolean }
+  // A slot of the bar pressed for nothing: none left, still cooling down (for "{seconds}"), unable to work here, or
+  // of no help now.
+  | { kind: "slotRefused"; slot: BarSlot; reason: SlotRefusal; seconds: number }
   | { kind: "upgraded"; level: number; tier: HullTier; mark: number }
   | { kind: "earned"; deed: Deed["kind"]; amounts: Purse }
   | { kind: "paid"; coin: number }
@@ -48,6 +57,9 @@ export type VoyageAction =
   | { kind: "craft"; recipe: string }
   | { kind: "recycle"; item: string; count: number }
   | { kind: "use"; item: string }
+  // What sits in a slot of the ability bar used, and a slot filled or emptied.
+  | { kind: "slot"; index: number }
+  | { kind: "setSlot"; index: number; slot: BarSlot | null }
   | { kind: "repair"; fault: number }
   | { kind: "trade"; direction: "sell" | "buy" }
   | { kind: "reset" };

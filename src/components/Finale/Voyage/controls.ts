@@ -1,12 +1,18 @@
 import { BROWSER_SHORTCUTS, KeyMap, KeyStep } from "@/packages/interaction/keys";
 import type { ZoomInputOptions } from "@/packages/interaction/zoom";
 
+// The ability bar's slots, in order, as the keys 1 to 4 name them.
+export const SLOT_COMMANDS = ["slot1", "slot2", "slot3", "slot4"] as const;
+
+export type SlotCommand = typeof SLOT_COMMANDS[number];
+
 // What a key asks of the voyage.
-export type VoyageCommand = "left" | "right" | "burn" | "brake" | "pause" | "map" | "guns" | "hangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | "back";
+export type VoyageCommand =
+  "left" | "right" | "burn" | "brake" | "pause" | "map" | "guns" | "hangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | "back" | SlotCommand;
 
 // Arrows and WASD turn and burn, down and S brake; P pauses, M opens the map, F holds fire, H opens the hangar, C photo
-// mode and U does what the hangar suggests; + and - zoom, and Escape steps back out of the hangar or photo mode. The
-// browser's own shortcuts (Ctrl+H, Cmd+U) are left to the browser.
+// mode and U does what the hangar suggests; 1 to 4 use the ability bar; + and - zoom, and Escape steps back out of the
+// hangar or photo mode. The browser's own shortcuts (Ctrl+H, Cmd+U, Cmd+1) are left to the browser.
 export const VOYAGE_KEYS = new KeyMap<VoyageCommand>({
   "ArrowLeft": "left",
   "ArrowRight": "right",
@@ -22,6 +28,10 @@ export const VOYAGE_KEYS = new KeyMap<VoyageCommand>({
   "h": "hangar",
   "c": "photo",
   "u": "follow",
+  "1": "slot1",
+  "2": "slot2",
+  "3": "slot3",
+  "4": "slot4",
   "+": "zoomIn",
   "=": "zoomIn",
   "-": "zoomOut",
@@ -53,7 +63,10 @@ export interface VoyageKeyState {
 }
 
 // What a key does: steer (held until it comes up), or one of the voyage's own actions.
-export type VoyageKeyAction = "steer" | "pause" | "map" | "guns" | "hangar" | "closeHangar" | "photo" | "follow" | "zoomIn" | "zoomOut";
+export type VoyageKeyAction = "steer" | "pause" | "map" | "guns" | "hangar" | "closeHangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | SlotCommand;
+
+// Which slot of the bar a key action uses, or -1 for any other.
+export const slotOf = (action: VoyageKeyAction | null): number => SLOT_COMMANDS.findIndex((command) => command === action);
 
 // The keys that still work with the hangar open (the run is held still under it), and in photo mode.
 const HANGAR_KEYS: ReadonlySet<VoyageCommand> = new Set<VoyageCommand>(["hangar", "back", "follow"]);
@@ -84,6 +97,11 @@ export const voyageKeyAction = (command: VoyageCommand, state: VoyageKeyState): 
       return state.hasRun && !state.isHangarOpen ? "photo" : null;
     case "follow":
       return state.hasSuggestion ? "follow" : null;
+    case "slot1":
+    case "slot2":
+    case "slot3":
+    case "slot4":
+      return state.isFlying && state.hasHangar ? command : null;
     case "back":
       if (state.isHangarOpen) {
         return "closeHangar";

@@ -16,6 +16,7 @@ import { MissionMarks } from "../utils/missions";
 import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
+import { BoostsLayer } from "./layers/BoostsLayer";
 import { EffectsLayer } from "./layers/EffectsLayer";
 import { GatesLayer } from "./layers/GatesLayer";
 import { GhostLayer } from "./layers/GhostLayer";
@@ -131,6 +132,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       this.effects,
       this.ghost,
       this.ship,
+      new BoostsLayer(this.kit),
       this.light,
       this.surfaceLayer,
       this.overlay,

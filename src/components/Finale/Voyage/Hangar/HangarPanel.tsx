@@ -3,6 +3,8 @@ import { FC, useEffect, useRef, useState } from "react";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { slotName } from "@/components/Finale/Voyage/abilities";
+import { slotIcon } from "@/components/Finale/Voyage/AbilityBar/icons";
 import { codexName, codexNotes, missionName, rankName } from "@/components/Finale/Voyage/career";
 import { blueprintName, formatPurse, itemName, ledgerMemo, shipName } from "@/components/Finale/Voyage/economy";
 import {
@@ -20,6 +22,8 @@ import {
   ItemName,
   Items,
   ItemTop,
+  LoadoutSlot,
+  LoadoutSlots,
   Meter,
   Need,
   Needs,
@@ -44,35 +48,45 @@ import { BarFill, IconButton } from "@/components/Finale/Voyage/VoyageDialog.sty
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
 import { Tab, TabList } from "@/components/Tabs";
 import useTabs from "@/hooks/useTabs";
-import type { CareerView, CodexCategory, EconomyView, ShipStats, VoyageAction } from "@/packages/games/voyage";
+import type { BarSlot, CareerView, CodexCategory, EconomyView, ShipStats, VoyageAction } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 import { PreferencesContent } from "@/types/preferences";
+
+// A tab the hangar can be opened on, other than its first.
+export type HangarTab = "loadout";
 
 interface HangarPanelProps {
   content: FinaleVoyage;
   settings: PreferencesContent;
   economy: EconomyView;
   career: CareerView | null;
+  opensOn?: HangarTab | null;
   isFlying: boolean;
   onAct: (action: VoyageAction) => boolean;
   onClose: () => void;
 }
 
-const CODEX_ORDER: readonly CodexCategory[] = ["worlds", "kinds", "universes", "galaxies", "stars", "phenomena", "life", "wrecks", "things"];
+const CODEX_ORDER: readonly CodexCategory[] = ["worlds", "kinds", "universes", "galaxies", "stars", "phenomena", "life", "wrecks", "things", "boosts"];
+
+const LOADOUT_TAB = 2;
+// What a thing from the hold looks like in the Loadout, as on the bar.
+const ITEM_COLOUR = "#c9cfdf";
 
 const STAT_KEYS: ReadonlyArray<keyof ShipStats> = ["hull", "shields", "fuel", "thrust", "cargo", "plating", "pressure", "guns", "weapon"];
 
-// The hangar: the ship, what it can do and what the next level needs (upgraded in one click); the hold, with
+// The hangar: the ship, what it can do and what the next level needs (upgraded in one click); the Loadout, which
+// puts boosts and things from the hold on the ability bar; the hold, with
 // each thing's use and worth; the plans, made from the hold; and the ledger of every coin earned and spent. Its
 // own records, the Void Shard trade and the reset sit beside them. Opening it focuses its heading.
-export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, isFlying, onAct, onClose }: HangarPanelProps) => {
+export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, opensOn = null, isFlying, onAct, onClose }: HangarPanelProps) => {
   const copy = content.economy;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const careerCopy = content.career;
-  const tabs = [careerCopy.tabs.pilot, copy.tabs.ship, copy.tabs.hold, copy.tabs.plans, copy.tabs.ledger, careerCopy.tabs.codex, settings.title];
-  const { active, listProps, tabProps, panelProps } = useTabs({ count: tabs.length });
+  const loadout = content.boosts.loadout;
+  const tabs = [careerCopy.tabs.pilot, copy.tabs.ship, loadout.tab, copy.tabs.hold, copy.tabs.plans, copy.tabs.ledger, careerCopy.tabs.codex, settings.title];
+  const { active, listProps, tabProps, panelProps } = useTabs({ count: tabs.length, initial: opensOn === "loadout" ? LOADOUT_TAB : 0 });
   const voyageSettings = useVoyageSettings();
   const { next, stats } = economy;
 
@@ -91,6 +105,27 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
       key === "thrust" ? fill(copy.units.times, { value: text }) : text;
   };
   const have = (id: string) => economy.cargo.find((row) => row.id === id)?.count ?? 0;
+  // A slot button for something that can go on the bar: pressed where it already sits, which empties that slot.
+  const slotButtons = (slot: BarSlot, name: string) => (
+    <Actions role="group" aria-label={name}>
+      {economy.bar.map((row, index) => {
+        const isThere = row.slot?.kind === slot.kind && row.slot.id === slot.id;
+
+        return (
+          <SmallButton
+            key={index}
+            type="button"
+            isPrimary={isThere}
+            aria-pressed={isThere}
+            aria-label={fill(loadout.putLabel, { name, n: index + 1 })}
+            onClick={() => onAct({ kind: "setSlot", index, slot: isThere ? null : slot })}
+          >
+            {fill(loadout.put, { n: index + 1 })}
+          </SmallButton>
+        );
+      })}
+    </Actions>
+  );
   const records: Array<[string, number]> = [
     [copy.records.runs, economy.records.runs],
     [copy.records.best, economy.records.bestScore],
@@ -236,7 +271,74 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             </SmallButton>
           </Actions>
         </TabPanel>
-        <TabPanel {...panelProps(2)}>
+        <TabPanel {...panelProps(LOADOUT_TAB)}>
+          <Note>{loadout.note}</Note>
+          <Block aria-labelledby="loadout-slots">
+            <Subheading id="loadout-slots">{loadout.slots}</Subheading>
+            <LoadoutSlots>
+              {economy.bar.map((row, index) => (
+                <LoadoutSlot key={row.slot ? `${row.slot.kind}:${row.slot.id}` : `empty:${index}`} colour={row.colour ?? ITEM_COLOUR}>
+                  <span aria-hidden="true">{index + 1}</span>
+                  {row.slot ? (
+                    <>
+                      <FontAwesomeIcon icon={slotIcon(row.slot)} aria-hidden="true" />
+                      <span>{`${slotName(content, row.slot)}, x${row.count}`}</span>
+                      <SmallButton type="button" onClick={() => onAct({ kind: "setSlot", index, slot: null })}>
+                        {fill(loadout.clear, { n: index + 1 })}
+                      </SmallButton>
+                    </>
+                  ) : (
+                    <span>{fill(content.boosts.bar.empty, { n: index + 1 })}</span>
+                  )}
+                </LoadoutSlot>
+              ))}
+            </LoadoutSlots>
+          </Block>
+          <Block aria-labelledby="loadout-boosts">
+            <Subheading id="loadout-boosts">{loadout.boosts}</Subheading>
+            {economy.boosts.length === 0 && <Note>{loadout.none}</Note>}
+            <Items>
+              {economy.boosts.map((boost) => {
+                const name = content.boosts.names[boost.id];
+                const standing = `${fill(content.boosts.bar.level, { level: boost.level })}, ${fill(loadout.charges, { count: boost.charges, max: boost.max })}`;
+
+                return (
+                  <Item key={boost.id}>
+                    <ItemTop>
+                      <ItemName colour={boost.colour}>
+                        <FontAwesomeIcon icon={slotIcon({ kind: "boost", id: boost.id })} aria-hidden="true" />
+                        {` ${name}`}
+                      </ItemName>
+                      <ItemCount>{standing}</ItemCount>
+                    </ItemTop>
+                    <Note>{content.boosts.notes[boost.id]}</Note>
+                    <Note>
+                      {boost.nextAt === null
+                        ? fill(loadout.top, { finds: boost.finds })
+                        : fill(loadout.progress, { finds: boost.finds, next: boost.nextAt, level: boost.level + 1 })}
+                    </Note>
+                    {slotButtons({ kind: "boost", id: boost.id }, name)}
+                  </Item>
+                );
+              })}
+            </Items>
+          </Block>
+          <Block aria-labelledby="loadout-things">
+            <Subheading id="loadout-things">{loadout.things}</Subheading>
+            <Items>
+              {economy.cargo.filter((row) => row.isUsable).map((row) => (
+                <Item key={row.id}>
+                  <ItemTop>
+                    <ItemName colour={RARITY_COLOUR[row.rarity]}>{itemName(copy, row.id)}</ItemName>
+                    <ItemCount>{`x${row.count}`}</ItemCount>
+                  </ItemTop>
+                  {slotButtons({ kind: "item", id: row.id }, itemName(copy, row.id))}
+                </Item>
+              ))}
+            </Items>
+          </Block>
+        </TabPanel>
+        <TabPanel {...panelProps(3)}>
           <div>
             <Note>{fill(copy.hold, { used: economy.used, capacity: economy.capacity })}</Note>
             <Meter role="meter" aria-label={copy.tabs.hold} aria-valuemin={0} aria-valuemax={economy.capacity} aria-valuenow={economy.used}>
@@ -276,7 +378,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             ))}
           </Items>
         </TabPanel>
-        <TabPanel {...panelProps(3)}>
+        <TabPanel {...panelProps(4)}>
           <Items>
             {economy.recipes.map(({ recipe, isKnown, shortfall }) => (
               <Item key={recipe.id}>
@@ -320,7 +422,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             </Block>
           )}
         </TabPanel>
-        <TabPanel {...panelProps(4)}>
+        <TabPanel {...panelProps(5)}>
           <Stats>
             <StatName>{copy.ledger.balance}</StatName>
             <StatValue>{formatPurse(copy, economy.purse)}</StatValue>
@@ -336,7 +438,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             ))}
           </Entries>
         </TabPanel>
-        <TabPanel {...panelProps(5)}>
+        <TabPanel {...panelProps(6)}>
           {career && (
             <>
               <Note>{fill(careerCopy.codexFound, { found: career.found, total: career.codex.length })}</Note>
@@ -364,7 +466,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             </>
           )}
         </TabPanel>
-        <TabPanel {...panelProps(6)}>
+        <TabPanel {...panelProps(7)}>
           <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
         </TabPanel>
       </Body>

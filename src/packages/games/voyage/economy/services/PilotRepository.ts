@@ -3,20 +3,31 @@ import { Repository, StoreAdapter } from "@/packages/browser/store";
 import { newCareer } from "../../career/services/Career";
 import { GhostRun } from "../../domain/ghost";
 import { isGhostRun } from "../../guards/isGhostRun";
+import { newBar } from "../config/bar";
 import { PilotProfile } from "../domain/profile";
 import { isPilotProfile } from "../guards/isPilotProfile";
 import { newEconomyProfile } from "./Hangar";
 
-// The shape version this code writes: 2 added the career.
-const VERSION = 2;
+// The shape version this code writes: 2 added the career, 3 the boosts and the ability bar.
+const VERSION = 3;
 
 // A pilot who has never flown.
 export const newProfile = (): PilotProfile => ({ ...newEconomyProfile(), career: newCareer() });
 
 const isGhostOrNone = (value: unknown): value is GhostRun | null => value === null || isGhostRun(value);
 
-// A profile from before careers keeps its hangar and starts its career.
-const migrate = (data: unknown, from: number): unknown => (from < 2 && typeof data === "object" && data !== null ? { ...data, career: newCareer() } : data);
+// A profile from before careers keeps its hangar and starts its career; one from before boosts starts with none
+// found and the ability bar laid out as a new pilot's.
+const migrate = (data: unknown, from: number): unknown => {
+  if (typeof data !== "object" || data === null) {
+    return data;
+  }
+
+  const withCareer = from < 2 ? { ...data, career: newCareer() } : data;
+
+  return from < 3 ? { ...withCareer, boosts: {}, bar: newBar() } : withCareer;
+};
+
 const KEY = "pilot";
 const GHOST_KEY = "ghost";
 

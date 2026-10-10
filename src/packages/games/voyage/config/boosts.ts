@@ -1,4 +1,4 @@
-import { BoostId, BoostSpec } from "../domain/boosts";
+import { BoostId, BoostOrigin, BoostSpec } from "../domain/boosts";
 
 const boost = (id: BoostId, origin: BoostSpec["origin"], weight: number, durationS: number, cooldownS: number, strength: number, perLevel = 0): BoostSpec => ({
   id,
@@ -50,6 +50,23 @@ export const BOOSTS: Readonly<Record<BoostId, BoostSpec>> = {
 };
 
 export const BOOST_IDS: readonly BoostId[] = Object.values(BOOSTS).map((spec) => spec.id);
+
+// Each core, and each boost on the bar, takes the colour of where it is from: white for anywhere, the Sun's
+// orange for our solar system, each universe its own.
+export const BOOST_COLOURS: Readonly<Record<BoostOrigin, string>> = {
+  anywhere: "#f4f0ff",
+  solar: "#ffb347",
+  matrix: "#4bffa5",
+  neural: "#4fd8ff",
+  blocks: "#b48cff",
+  chips: "#ff5c9a",
+  pixels: "#ffc857",
+  nebula: "#ff9df0",
+  void: "#9aa8ff",
+  crystal: "#7df9ff",
+  ember: "#ff7a45",
+  abyss: "#3fd0c9",
+};
 
 // Finding the same boost again raises it: the finds that reach each level, from the first.
 export const LEVEL_FINDS: readonly number[] = [1, 3, 6, 10, 15];

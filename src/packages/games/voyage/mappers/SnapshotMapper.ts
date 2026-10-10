@@ -59,9 +59,12 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       surface: null,
       descent: this.descent(state),
       homecoming: state.homecoming ? { stage: state.homecoming.stage, days: state.homecoming.days, isSea: state.homecoming.isSea } : null,
+      maze: state.network && state.phase === "universe"
+        ? { system: state.network.nodes[state.node].name, systems: state.network.nodes.length, explored: state.explored.size, isExit: state.node === state.network.exit }
+        : null,
       modules: MODULE_IDS.reduce<Modules>((all, id) => ({ ...all, [id]: roundTo(modules[id], 2) }), { ...SOUND }),
       waypoint: state.waypoint && body
-        ? { id: state.waypoint.id, name: state.cosmos?.names[state.waypoint.id] ?? null, distanceKm: this.distanceKm(state, body.x, body.y) }
+        ? { id: state.waypoint.id, name: this.waypointName(state, state.waypoint.id), distanceKm: this.distanceKm(state, body.x, body.y) }
         : null,
       target: state.lockedTarget !== null ? this.frame(state, world, state.lockedTarget) : null,
       boss: state.boss !== null ? this.frame(state, world, state.boss) : null,
@@ -96,6 +99,13 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
   }
 
   // Someone the guns are on, or the boss, for an MMO frame.
+  // What the compass's target is called: a world a universe named, or the system a maze's gate leads to.
+  private waypointName(state: VoyageState, id: string): string | null {
+    const gate = /^gate-(\d+)$/.exec(id);
+
+    return gate && state.network ? state.network.nodes[Number(gate[1])]?.name ?? null : state.cosmos?.names[id] ?? null;
+  }
+
   // The way down while it is coming down, in real units rounded for reading.
   private descent({ descent }: VoyageState): DescentView | null {
     if (!descent || descent.downAt !== null) {

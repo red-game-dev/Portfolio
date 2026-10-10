@@ -16,6 +16,7 @@ import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
 import { EffectsLayer } from "./layers/EffectsLayer";
+import { GatesLayer } from "./layers/GatesLayer";
 import { GhostLayer } from "./layers/GhostLayer";
 import { GlobesLayer } from "./layers/GlobesLayer";
 import { HolesLayer } from "./layers/HolesLayer";
@@ -119,6 +120,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     ]);
     this.frontLayers = new RenderPipeline([
       new HolesLayer(this.kit, "front"),
+      new GatesLayer(this.kit),
       new ThingsLayer(this.kit),
       new WrecksLayer(this.kit),
       new AliensLayer(this.kit),

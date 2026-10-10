@@ -60,6 +60,12 @@ export const voyagePlace = (content: FinaleVoyage, snapshot: VoyageSnapshot, uni
     return content.lost;
   }
 
+  if (snapshot.phase === "universe" && snapshot.maze) {
+    const { system, explored, systems } = snapshot.maze;
+
+    return fill(content.universeMaze, { count: snapshot.universes, name: universeName(snapshot, universes), system, explored, systems });
+  }
+
   if (snapshot.phase === "universe") {
     return fill(content.universe, { count: snapshot.universes, name: universeName(snapshot, universes) });
   }
@@ -99,6 +105,10 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
       return content.heard;
     case "wormhole":
       return content.wormhole;
+    case "gate":
+      return fill(notice.isExit ? content.gate.wayOn : !notice.isNew ? content.gate.again : notice.isDeadEnd ? content.gate.deadEnd : content.gate.through, {
+        system: notice.system,
+      });
     case "supernova":
       return notice.isBlown ? content.supernova : fill(content.supernovaWarning, { seconds: Math.round(notice.seconds) });
     case "burst":

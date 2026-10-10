@@ -17,10 +17,12 @@ import {
   GalaxySpec,
   HullShape,
   Multiplicity,
+  NetworkNode,
   PhenomenonKind,
   PhenomenonSpec,
   StarKind,
   UniverseNames,
+  UniverseNetwork,
   UniverseSpec,
   WeaponKind,
   WorldClass,
@@ -77,6 +79,30 @@ const S_TYPE_LIMIT = 3.5;
 // No world circles nearer its star than this many of the star's drawn radii.
 const HUGGING = 1.6;
 
+// From the fifth universe on, this share are mazes; each system of one is made from the universe's seed and this
+// much more for each place along the network.
+const MAZE_FROM = 5;
+const MAZE_CHANCE = 0.4;
+const NODE_SEED = 7919;
+
+// What every system of a universe shares.
+interface Shared {
+  index: number;
+  seed: number;
+  theme: UniverseTheme | null;
+  node: number;
+  danger: number;
+  style: VoyageStyle;
+  hue: number;
+  isVoid: boolean;
+  galaxy: GalaxySpec;
+  metals: number;
+  network: UniverseNetwork | null;
+  universe: string;
+  living: FactionSpec[];
+  place: NetworkNode | null;
+}
+
 // A star keeping another company, its kind and its body in world units.
 interface Partner {
   kind: StarKind;
@@ -112,6 +138,7 @@ interface StarBody {
 // separation, past which its partner would pull them away).
 interface SystemPlan {
   index: number;
+  node: number;
   starKind: StarKind | null;
   star: StarBody | null;
   scale: SystemScale;
@@ -157,6 +184,39 @@ export interface UniverseTheme {
   hazard: string;
 }
 
+// A seeded generator with its first draws thrown away: a Park-Miller generator's first values follow its seed
+// closely, so near seeds would make near universes.
+const warmed = (seed: number): RandomSource => {
+  const random = createSeededRandom(seed);
+
+  for (let draw = 0; draw < WARM_UP; draw += 1) {
+    random();
+  }
+
+  return random;
+};
+
+// How many links each node is from `from`, in a web of links.
+const hops = (links: number[][], from: number): number[] => {
+  const depth = links.map(() => Infinity);
+  const queue = [from];
+
+  depth[from] = 0;
+
+  while (queue.length > 0) {
+    const node = queue.shift() ?? from;
+
+    links[node].forEach((next) => {
+      if (depth[next] === Infinity) {
+        depth[next] = depth[node] + 1;
+        queue.push(next);
+      }
+    });
+  }
+
+  return depth;
+};
+
 // One of `options`, as likely as its weight beside it.
 const weighted = <T>(random: RandomSource, options: ReadonlyArray<readonly [T, number]>): T => (pickWeighted(random, options, ([, weight]) => weight) ?? options[0])[0];
 
@@ -168,21 +228,29 @@ const weighted = <T>(random: RandomSource, options: ReadonlyArray<readonly [T, n
 export class UniverseGenerator {
   constructor(private readonly layout: SystemLayout, private readonly names: UniverseNames) {}
 
-  public generate(index: number, seed: number, theme: UniverseTheme | null): UniverseSpec {
-    const random = createSeededRandom(seed);
-
-    // A Park-Miller generator's first values follow its seed closely, so near seeds would make near universes;
-    // a few draws thrown away scatter them.
-    for (let draw = 0; draw < WARM_UP; draw += 1) {
-      random();
-    }
-
+  // A universe, or in a maze one of its systems (`node`): what the whole universe shares (its look, galaxy, name,
+  // the factions living there and the maze itself) comes from its seed, and each system from a seed of its own, so
+  // every system of a maze is made the same whenever it is reached.
+  public generate(index: number, seed: number, theme: UniverseTheme | null, node = 0): UniverseSpec {
+    const random = warmed(seed);
     const danger = 1 + index * 0.35;
     const style: VoyageStyle = theme?.style ?? pick(random, DEEP_STYLES);
     const hue = random() * 360;
     const isVoid = style === "void";
     const galaxy = this.galaxy(random);
     const metals = GALAXIES[galaxy.kind].metals;
+    const network = this.network(random, index, isVoid);
+    const universe = theme?.name ?? universeName(random, this.names);
+    const disposition = (): Disposition => weighted(random, [["hostile", 3 + index * 0.6], ["territorial", 2.5], ["neutral", 2], ["peaceful", 2]]);
+    const living = Array.from({ length: isVoid ? 1 : 1 + Math.floor(random() * 3) }, (_, id) => this.faction(random, id, disposition(), danger, hue));
+    const place = network?.nodes[node] ?? null;
+
+    return this.system(warmed(seed + (node + 1) * NODE_SEED), { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place });
+  }
+
+  // One star system of a universe: its stars, worlds and strange things.
+  private system(random: RandomSource, shared: Shared): UniverseSpec {
+    const { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place } = shared;
     const starKind: StarKind | null = isVoid ? null : weighted(random, STAR_WEIGHTS[galaxy.kind]);
     const star = starKind ? this.starOf(starKind) : null;
     const multiplicity = starKind ? this.multiplicity(random, starKind) : "single";
@@ -195,7 +263,7 @@ export class UniverseGenerator {
     const separation = pair && star ? (star.radius + pair.body.radius) * randomBetween(random, 2.5, 4) : 0;
     const looks: Record<string, GlobeLook> = {};
     const classes: Record<string, WorldClass> = {};
-    const word = nameWord(random, this.names);
+    const word = place?.name ?? nameWord(random, this.names);
     const isMultiple = multiplicity !== "single";
     const names: Record<string, string> = { star: isMultiple ? `${word} A` : word };
     const base = pair ? `${word} AB` : isMultiple ? `${word} A` : word;
@@ -203,7 +271,7 @@ export class UniverseGenerator {
     // A wide pair's two stars far apart, its worlds within a third of that of the brighter.
     const apart = multiplicity === "wide" ? FURTHEST * randomBetween(random, 0.6, 1) : separation;
     const furthest = multiplicity === "wide" ? apart / S_TYPE_LIMIT : FURTHEST;
-    const plan = { index, starKind, star, scale, metals, isVoid, luminosity, mass, host, clearance: separation * 3, furthest };
+    const plan = { index, node, starKind, star, scale, metals, isVoid, luminosity, mass, host, clearance: separation * 3, furthest };
     const bodies = this.worlds(random, plan, { looks, classes, names, base });
     const companions = star ? this.arrange(random, { star, partners, multiplicity, apart, scale, bodies }) : { primary: null, others: [] };
 
@@ -237,16 +305,15 @@ export class UniverseGenerator {
       edge,
       scale,
     };
-    const disposition = (): Disposition => weighted(random, [["hostile", 3 + index * 0.6], ["territorial", 2.5], ["neutral", 2], ["peaceful", 2]]);
     const phenomena = this.phenomena(random, index, edge);
     const isDark = phenomena.some((phenomenon) => phenomenon.kind === "darkForest");
     // In a dark forest every civilisation hides: no ship is ever seen until one strikes.
-    const factions = isDark ? [] : Array.from({ length: isVoid ? 1 : 1 + Math.floor(random() * 3) }, (_, id) => this.faction(random, id, disposition(), danger, hue));
+    const factions = isDark ? [] : living;
 
     return {
       index,
       seed,
-      name: theme?.name ?? universeName(random, this.names),
+      name: universe,
       style,
       accent: theme?.accent ?? hslToHex(hue, 0.9, 0.66),
       deep: theme?.deep ?? hslToHex(hue, 0.55, 0.035),
@@ -272,7 +339,59 @@ export class UniverseGenerator {
       factions,
       phenomena,
       danger,
+      network,
+      node,
     };
+  }
+
+  // Whether a universe is a maze, and if so its web of systems: each joined to one made before it (mostly the last
+  // few, so there are long runs as well as branches), a loop or two besides, every system named, the ship coming in
+  // at the first and the way on waiting at whichever is furthest from it.
+  private network(random: RandomSource, index: number, isVoid: boolean): UniverseNetwork | null {
+    if (isVoid || index < MAZE_FROM || random() >= MAZE_CHANCE) {
+      return null;
+    }
+
+    const count = 3 + Math.floor(random() * Math.min(6, 2 + index - MAZE_FROM));
+    const links: number[][] = Array.from({ length: count }, () => []);
+    const join = (first: number, second: number) => {
+      if (first !== second && !links[first].includes(second)) {
+        links[first].push(second);
+        links[second].push(first);
+      }
+    };
+
+    for (let node = 1; node < count; node += 1) {
+      join(node, node - 1 - Math.floor(random() * Math.min(node, 3)));
+    }
+
+    for (let loop = Math.floor(random() * 2.5); loop > 0; loop -= 1) {
+      join(Math.floor(random() * count), Math.floor(random() * count));
+    }
+
+    const depth = hops(links, 0);
+    const deepest = Math.max(...depth);
+    const exit = depth.indexOf(deepest);
+    const names = new Set<string>();
+    const layer = new Map<number, number>();
+    const nodes = links.map((linked, node) => {
+      let name = nameWord(random, this.names);
+
+      for (let tries = 0; names.has(name) && tries < 6; tries += 1) {
+        name = nameWord(random, this.names);
+      }
+
+      names.add(name);
+
+      const row = layer.get(depth[node]) ?? 0;
+      const rows = depth.filter((value) => value === depth[node]).length;
+
+      layer.set(depth[node], row + 1);
+
+      return { links: linked, name, x: deepest > 0 ? depth[node] / deepest : 0.5, y: (row + 1) / (rows + 1) };
+    });
+
+    return { nodes, start: 0, exit };
   }
 
   // The galaxy a universe sits in: a kind as common as galaxies of that kind are, in its own colours.
@@ -403,7 +522,7 @@ export class UniverseGenerator {
   // light holds it at and how rich the galaxy is in metals, and each keeps its moons. More metals, more worlds. A
   // void's worlds are rogues lit by nothing.
   private worlds(random: RandomSource, system: SystemPlan, made: Made): SystemBody[] {
-    const { index, starKind, star, scale, metals, isVoid, luminosity, mass, host, clearance, furthest } = system;
+    const { index, node, starKind, star, scale, metals, isVoid, luminosity, mass, host, clearance, furthest } = system;
     const count = isVoid ? 1 + Math.floor(random() * 3) : Math.max(1, Math.min(MOST_WORLDS, Math.round(randomBetween(random, 1.5, 8.5) * (0.55 + 0.45 * metals))));
     const isCompact = starKind === "red" || starKind === "brownDwarf";
     const bodies: SystemBody[] = [];
@@ -416,7 +535,8 @@ export class UniverseGenerator {
 
     for (let order = 0; order < count; order += 1) {
       const au = Math.exp(first + step * (order + (order > 0 && order < count - 1 ? randomBetween(random, -0.3, 0.3) : 0)));
-      const id = `u${index}-${order}`;
+      // Every system of a maze has worlds of its own, so their ids carry the system's place.
+      const id = node > 0 ? `u${index}.${node}-${order}` : `u${index}-${order}`;
       const temperatureC = equilibriumC(luminosity, au);
       const kind = classFor(random, temperatureC, starKind, metals);
       const distance = radiusForAu(scale, au);

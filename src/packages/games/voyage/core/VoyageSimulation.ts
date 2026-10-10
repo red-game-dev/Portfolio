@@ -22,6 +22,7 @@ import { CollisionSystem } from "../systems/CollisionSystem";
 import { VoyageContext } from "../systems/context";
 import { ControlSystem } from "../systems/ControlSystem";
 import { DescentSystem } from "../systems/DescentSystem";
+import { GateSystem } from "../systems/GateSystem";
 import { GravitySystem } from "../systems/GravitySystem";
 import { HealthSystem } from "../systems/HealthSystem";
 import { ImpactSystem } from "../systems/ImpactSystem";
@@ -125,6 +126,7 @@ export class VoyageSimulation {
       new MotionSystem(),
       new SurfaceSystem(),
       new DescentSystem(),
+      new GateSystem(),
       new CollisionSystem(),
       new SalvageSystem(),
       new ProjectileSystem(),
@@ -440,6 +442,10 @@ export class VoyageSimulation {
       nextFlareAt: null,
       nextCometAt: null,
       cosmos: null,
+      network: null,
+      node: 0,
+      explored: new Set(),
+      nodes: new Map(),
       runSeed: Math.floor(random() * 2 ** 31),
       lockedTarget: null,
       autoFire: true,

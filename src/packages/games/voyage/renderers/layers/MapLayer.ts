@@ -60,7 +60,8 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     }
   }
 
-  private drawMap({ state, world, alpha, theme }: VoyageFrame): void {
+  private drawMap(frame: VoyageFrame): void {
+    const { state, world, alpha, theme } = frame;
     const { front, labels } = this.kit;
     const ship = world.stores.body.get(state.ship);
     const shipState = world.stores.ship.get(state.ship);
@@ -200,6 +201,63 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     }
 
     drawArrow(front, toX(shipX), toY(shipY), shipState?.angle ?? 0, 8, theme.shield);
+    world.stores.gate.entities.forEach((entity) => {
+      const gate = world.stores.body.get(entity);
+
+      if (gate) {
+        context.strokeStyle = theme.shield;
+        context.lineWidth = 2;
+        context.beginPath();
+        context.arc(toX(gate.x), toY(gate.y), 6, 0, TAU);
+        context.stroke();
+      }
+    });
+    this.drawNetwork(frame);
+  }
+
+  // A maze universe's web as far as it is known, in a corner of the map: every system been to and those its gates
+  // lead to, the gates between them, where the ship is, and the system with the way on once it has been reached.
+  private drawNetwork({ state, theme }: VoyageFrame): void {
+    const { network, explored } = state;
+
+    if (!network || state.phase !== "universe") {
+      return;
+    }
+
+    const { front } = this.kit;
+    const context = front.context;
+    const width = Math.min(220, front.width * 0.5);
+    const height = width * 0.55;
+    const left = 12;
+    const top = front.height - height - 12;
+    const known = new Set<number>(explored);
+
+    explored.forEach((node) => network.nodes[node].links.forEach((next) => known.add(next)));
+
+    const at = (node: number) => ({ x: left + 14 + network.nodes[node].x * (width - 28), y: top + network.nodes[node].y * height });
+
+    context.fillStyle = "rgba(8, 12, 24, 0.85)";
+    context.fillRect(left, top, width, height);
+    context.strokeStyle = "rgba(196, 210, 255, 0.35)";
+    context.lineWidth = 1;
+    explored.forEach((node) => network.nodes[node].links.forEach((next) => {
+      const from = at(node);
+      const to = at(next);
+
+      context.beginPath();
+      context.moveTo(from.x, from.y);
+      context.lineTo(to.x, to.y);
+      context.stroke();
+    }));
+    known.forEach((node) => {
+      const { x, y } = at(node);
+      const isHere = node === state.node;
+
+      context.fillStyle = isHere ? theme.shield : explored.has(node) ? (node === network.exit ? theme.danger : "#c4d2ff") : "rgba(196, 210, 255, 0.35)";
+      context.beginPath();
+      context.arc(x, y, isHere ? 5 : 3.5, 0, TAU);
+      context.fill();
+    });
   }
 
   private drawRadar({ state, world, alpha, theme }: VoyageFrame): void {

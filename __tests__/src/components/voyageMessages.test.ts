@@ -28,6 +28,7 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   surface: null,
   descent: null,
   homecoming: null,
+  maze: null,
   modules: { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 },
   waypoint: null,
   target: null,

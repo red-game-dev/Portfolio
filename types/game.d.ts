@@ -435,6 +435,10 @@ export interface FinaleVoyage {
   starPhrases: Record<string, string>;
   starPair: string;
   starTrio: string;
+  // A maze universe: where the ship is in it ("{count}", "{name}", "{system}", "{explored}", "{systems}"), and what
+  // is said through a gate ("{system}"): a new system, one with the way on, a dead end, one been to before.
+  universeMaze: string;
+  gate: { through: string; wayOn: string; deadEnd: string; again: string };
   over: string;
   // "{score}" is replaced.
   finalScore: string;

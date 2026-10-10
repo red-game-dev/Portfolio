@@ -152,6 +152,11 @@ export interface Wreck {
   faction: number;
 }
 
+// A gate between the star systems of a maze universe: the system (by its place in the network) it leads to.
+export interface Gate {
+  to: number;
+}
+
 // A black hole: its gravitational parameter, its horizon, and whether it is the one past Pluto.
 export interface Hole {
   mu: number;

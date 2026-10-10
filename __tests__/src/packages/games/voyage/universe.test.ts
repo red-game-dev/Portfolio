@@ -18,6 +18,7 @@ import {
   UniverseGenerator,
   VoyageConfig,
   VoyageSimulation,
+  VoyageState,
   WORLD_CLASSES,
 } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
@@ -161,7 +162,13 @@ describe("universes", () => {
       .filter((body) => body.kind === "planet" && spec.classes[body.id] === "gas")
       .map((body) => ({ spec, body })));
 
-    expect(specs[0].names[specs[0].system.bodies[0].id]).toBe(`${specs[0].names.star} b`);
+    // Round one star "Name b"; round a close pair "Name AB b"; round one of a wide pair "Name A b".
+    specs.forEach((spec) => {
+      const root = spec.names.star.replace(/ A$/, "");
+      const pair = spec.multiplicity === "close" || spec.multiplicity === "triple" ? " AB" : spec.multiplicity === "wide" ? " A" : "";
+
+      expect(spec.names[spec.system.bodies[0].id]).toBe(`${root}${pair} b`);
+    });
     expect(giants.length).toBeGreaterThan(5);
     giants.forEach(({ spec, body }) => {
       const moons = spec.system.bodies.filter((moon) => moon.parent === body.id);
@@ -257,6 +264,60 @@ describe("universes", () => {
     expect(lightAt(spec.system, spec.system.star.x + 0.01, spec.system.star.y).brightest).toBe(spec.system.star);
   });
 
+  test("some universes are mazes: systems joined by gates in a web with dead ends, the way on furthest from the way in", () => {
+    const mazes = Array.from({ length: 120 }, (_, index) => generator.generate(6, 41000 + index * 23, null)).filter((spec) => spec.network);
+
+    expect(mazes.length).toBeGreaterThan(20);
+    expect(Array.from({ length: 60 }, (_, index) => generator.generate(2, 41000 + index * 23, null)).some((spec) => spec.network)).toBe(false);
+    mazes.forEach((spec) => {
+      const network = spec.network;
+
+      if (!network) {
+        return;
+      }
+
+      const { nodes, exit } = network;
+      const reached = new Set([0]);
+      const queue = [0];
+
+      expect(nodes.length).toBeGreaterThanOrEqual(3);
+      expect(nodes.length).toBeLessThanOrEqual(8);
+      nodes.forEach((node, index) => node.links.forEach((next) => expect(nodes[next].links).toContain(index)));
+
+      while (queue.length > 0) {
+        nodes[queue.shift() ?? 0].links.forEach((next) => {
+          if (!reached.has(next)) {
+            reached.add(next);
+            queue.push(next);
+          }
+        });
+      }
+
+      expect(reached.size).toBe(nodes.length);
+      expect(exit).not.toBe(0);
+      expect(new Set(nodes.map((node) => node.name)).size).toBe(nodes.length);
+    });
+    expect(mazes.some((spec) => spec.network?.nodes.some((node, index) => index > 0 && node.links.length === 1))).toBe(true);
+  });
+
+  test("each system of a maze is made the same whenever it is reached, with worlds of its own and the name the maze gives it", () => {
+    const seed = Array.from({ length: 200 }, (_, index) => 51000 + index * 29).find((candidate) => generator.generate(6, candidate, null).network);
+
+    if (seed === undefined) {
+      throw new Error("expected a maze");
+    }
+
+    const start = generator.generate(6, seed, null);
+    const second = generator.generate(6, seed, null, 1);
+    const again = generator.generate(6, seed, null, 1);
+
+    expect(second.name).toBe(start.name);
+    expect(second.galaxy).toEqual(start.galaxy);
+    expect(second.names.star.startsWith(start.network?.nodes[1].name ?? "?")).toBe(true);
+    expect(again.system.bodies.map((body) => body.id)).toEqual(second.system.bodies.map((body) => body.id));
+    second.system.bodies.forEach((body) => expect(start.system.bodies.map((other) => other.id)).not.toContain(body.id));
+  });
+
   test("some systems are crowded with worlds, and Earth-like worlds turn up, some with an ocean or locked as eyeballs to red dwarfs", () => {
     const specs = Array.from({ length: 300 }, (_, index) => generator.generate(6, 12000 + index * 11, null));
     const classes = specs.flatMap((spec) => Object.values(spec.classes));
@@ -298,6 +359,58 @@ describe("universes", () => {
 });
 
 describe("combat", () => {
+  test("in a maze, a gate carries the ship to its system, the compass leads on to somewhere new, and only the furthest holds the way on", () => {
+    const simulation = create();
+    const seed = Array.from({ length: 300 }, (_, index) => 61000 + index * 31).find((candidate) => {
+      const network = generator.generate(5, candidate, null).network;
+
+      return network && network.nodes[0].links.length >= 1 && network.exit !== network.nodes[0].links[0];
+    });
+
+    if (seed === undefined) {
+      throw new Error("expected a maze");
+    }
+
+    const state = simulation.state as VoyageState;
+    const gates: Array<{ name: string; isNew: boolean }> = [];
+
+    simulation.events.on("gate", ({ name, isNew }) => gates.push({ name, isNew }));
+    state.runSeed = seed - 6 * 7919;
+    state.universes = 5;
+    state.phase = "lost";
+    state.phaseMs = 1e9;
+    simulation.step(defaults.stepMs * 2);
+
+    const network = state.network;
+
+    if (!network) {
+      throw new Error("expected to arrive in a maze");
+    }
+
+    expect(state.node).toBe(0);
+    expect(simulation.world.stores.gate.size).toBe(network.nodes[0].links.length);
+    expect(simulation.world.stores.hole.size).toBe(0);
+    simulation.step(500);
+    expect(simulation.snapshot.maze).toEqual(expect.objectContaining({ systems: network.nodes.length, explored: 1, isExit: false }));
+
+    const to = network.nodes[0].links[0];
+    const gate = simulation.world.stores.gate.entities.find((entity) => simulation.world.stores.gate.get(entity)?.to === to);
+    const at = gate !== undefined ? simulation.world.stores.body.get(gate) : undefined;
+
+    if (!at) {
+      throw new Error("expected a gate");
+    }
+
+    place(simulation, at.x, at.y);
+    simulation.step(defaults.stepMs * 2);
+
+    expect(state.node).toBe(to);
+    expect(state.explored.has(to)).toBe(true);
+    expect(gates).toEqual([{ name: network.nodes[to].name, isNew: true }]);
+    expect(state.cosmos?.node).toBe(to);
+    expect(state.system.bodies.every((body) => body.id.startsWith(`u5.${to}-`))).toBe(true);
+  });
+
   test("a shot led at a moving target meets it", () => {
     const from = { x: 0, y: 0, vx: 0, vy: 0, prevX: 0, prevY: 0, radius: 0.1, mass: 1 };
     const to = { x: 5, y: 0, vx: 0, vy: 1, prevX: 5, prevY: 0, radius: 0.1, mass: 1 };

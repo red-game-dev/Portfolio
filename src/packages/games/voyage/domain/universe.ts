@@ -121,6 +121,22 @@ export interface PhenomenonSpec {
   seed: number;
 }
 
+// A universe so large it is a maze: star systems joined by gates in a web with dead ends and loops, the way on to
+// the next universe waiting in only one. Each system's links (by place in the network), its star's name, and
+// where it sits on the map (0 to 1 across and down); where the ship comes in, and the system with the way on.
+export interface NetworkNode {
+  links: number[];
+  name: string;
+  x: number;
+  y: number;
+}
+
+export interface UniverseNetwork {
+  nodes: NetworkNode[];
+  start: number;
+  exit: number;
+}
+
 // One universe, all of it decided by its seed: what it is called and looks like, its star (or none), its worlds,
 // who lives there, the strange things in it, and how dangerous it is.
 export interface UniverseSpec {
@@ -147,6 +163,9 @@ export interface UniverseSpec {
   factions: FactionSpec[];
   phenomena: PhenomenonSpec[];
   danger: number;
+  // The maze it is part of, and which of its systems this is; null and 0 for a universe of one system.
+  network: UniverseNetwork | null;
+  node: number;
 }
 
 // Syllables a universe's and a faction's names are made from, and the words a faction calls itself by its

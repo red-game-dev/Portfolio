@@ -95,6 +95,9 @@ export interface VoyageSnapshot {
   descent: DescentView | null;
   // A crew coming home: being picked up, or at the pad days later.
   homecoming: { stage: "recovery" | "pad"; days: number; isSea: boolean } | null;
+  // A maze universe: the system the ship is in, how many there are and have been reached, and whether this one holds
+  // the way on.
+  maze: { system: string; systems: number; explored: number; isExit: boolean } | null;
   // Each system's integrity, in hundredths.
   modules: Modules;
   // The compass's target, its name where it was made up, and its real distance in km.

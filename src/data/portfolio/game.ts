@@ -310,6 +310,13 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         neutron: "a neutron star",
         none: "no star at all",
       },
+      universeMaze: "Universe {count}: {name}, at {system}, {explored} of {systems} systems found",
+      gate: {
+        through: "Through the gate to {system}",
+        wayOn: "Through the gate to {system}, and the way on waits here",
+        deadEnd: "Through the gate to {system}, a dead end",
+        again: "Back through the gate to {system}",
+      },
       // Two or three suns named together.
       starPair: "{first} and {second}",
       starTrio: "{first}, {second} and {third}",

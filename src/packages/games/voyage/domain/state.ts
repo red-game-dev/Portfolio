@@ -4,7 +4,7 @@ import type { DescentState, LandingPlan, LandingWorld } from "../landing";
 import { StarSystem } from "./content";
 import { VoyagePhase } from "./events";
 import { Fault } from "./faults";
-import { UniverseSpec } from "./universe";
+import { UniverseNetwork, UniverseSpec } from "./universe";
 
 export type VoyageStatus = "ready" | "flying" | "over";
 
@@ -150,6 +150,12 @@ export interface VoyageState {
   nextCometAt: number | null;
   // The universe the ship is in, all of it from its seed, and the seed universes are made from on this run.
   cosmos: UniverseSpec | null;
+  // A maze universe's network, the system the ship is in, those it has been to, and each system as it was
+  // left, so going back finds it as it was.
+  network: UniverseNetwork | null;
+  node: number;
+  explored: Set<number>;
+  nodes: Map<number, UniverseSpec>;
   runSeed: number;
   // What the guns are locked on (chosen by the player), and whether they fire by themselves at what threatens.
   lockedTarget: Entity | null;

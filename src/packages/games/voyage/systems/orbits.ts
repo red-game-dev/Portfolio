@@ -1,7 +1,7 @@
 import { DEG, wrapDegrees } from "@/packages/math/angles";
 import { centuriesSinceJ2000, daysSinceJ2000, earthSubsolarPoint, heliocentricPosition, julianDay, subsolarLatitude } from "@/packages/physics/kepler";
 
-import { HOME_WORLD, StarSystem, SystemBody } from "../domain/content";
+import { HOME_WORLD, StarSystem, SystemBody, SystemStar } from "../domain/content";
 import { MissionClock } from "../domain/state";
 import { auForRadius, radiusForAu } from "../utils/scale";
 
@@ -24,6 +24,21 @@ const byIdOf = (system: StarSystem): Map<string, SystemBody> => {
   return made;
 };
 
+// A star of the system by id: the brightest, or one it shares the system with.
+const starById = (system: StarSystem, id: string): SystemStar | undefined => (system.star.id === id ? system.star : system.companions.find((star) => star.id === id));
+
+// Every star that moves where it is now, round the system's centre.
+const placeStars = (system: StarSystem, days: number): void => {
+  [system.star, ...system.companions].forEach((star) => {
+    if (star.orbit) {
+      const phase = (star.orbit.longitudeAtEpoch + (360 * days) / star.orbit.periodDays) * DEG;
+
+      star.x = Math.cos(phase) * star.orbit.distance;
+      star.y = -Math.sin(phase) * star.orbit.distance;
+    }
+  });
+};
+
 // The real moment the mission clock reads after `elapsedMs` of flying.
 export const missionTime = (clock: MissionClock, elapsedMs: number): number => clock.epochMs + (elapsedMs / 1000) * clock.hoursPerSecond * MS_PER_HOUR;
 
@@ -39,6 +54,8 @@ export const placeBodies = (system: StarSystem, moment: number, dt = 0): void =>
   const hours = days * 24;
   const byId = byIdOf(system);
   const radiusFor = (distance: number) => auForRadius(system.scale, distance);
+
+  placeStars(system, days);
 
   system.bodies.forEach((body) => {
     const lastX = body.x;
@@ -63,8 +80,10 @@ export const placeBodies = (system: StarSystem, moment: number, dt = 0): void =>
       body.real.y = Math.sin(phase) * out;
       body.real.z = 0;
       body.au = out;
-      body.x = system.star.x + Math.cos(phase) * body.orbit.distance;
-      body.y = system.star.y - Math.sin(phase) * body.orbit.distance;
+      const host = body.orbit.host ? starById(system, body.orbit.host) : null;
+
+      body.x = (host?.x ?? 0) + Math.cos(phase) * body.orbit.distance;
+      body.y = (host?.y ?? 0) - Math.sin(phase) * body.orbit.distance;
     } else {
       const parent = byId.get(body.orbit.parent);
       const phase = (body.orbit.longitudeAtEpoch + (360 * days) / body.orbit.periodDays) * DEG;

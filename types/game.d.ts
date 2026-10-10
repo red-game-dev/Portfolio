@@ -433,6 +433,8 @@ export interface FinaleVoyage {
   jumped: string;
   galaxyPhrases: Record<string, string>;
   starPhrases: Record<string, string>;
+  starPair: string;
+  starTrio: string;
   over: string;
   // "{score}" is replaced.
   finalScore: string;

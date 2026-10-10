@@ -279,7 +279,8 @@ export class PilotLink {
     this.discover(state.phase === "universe" && kind ? codexId("kinds", kind) : codexId("worlds", stop));
   }
 
-  // A universe reached: its kind, the galaxy it sits in, its star, and every strange thing it holds.
+  // A universe reached: its kind, the galaxy it sits in, its stars (and that they are a pair or a triple), and every
+  // strange thing it holds.
   private discoverUniverse(): void {
     const cosmos = this.simulation.state.cosmos;
 
@@ -290,6 +291,11 @@ export class PilotLink {
     this.discover(codexId("universes", cosmos.style));
     this.discover(codexId("galaxies", cosmos.galaxy.kind));
     this.discover(codexId("stars", cosmos.starKind ?? "none"));
+    cosmos.companionKinds.forEach((kind) => this.discover(codexId("stars", kind)));
+
+    if (cosmos.multiplicity !== "single") {
+      this.discover(codexId("stars", cosmos.multiplicity === "triple" ? "triple" : "binary"));
+    }
     cosmos.phenomena.forEach((phenomenon) => this.discover(codexId("phenomena", phenomenon.kind)));
   }
 

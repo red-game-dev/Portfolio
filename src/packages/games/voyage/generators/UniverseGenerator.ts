@@ -6,9 +6,9 @@ import { poleVector } from "@/packages/physics/kepler";
 import { muForSurfaceGravity } from "@/packages/physics/newtonian";
 
 import { GALAXIES, GALAXY_KINDS } from "../config/galaxies";
-import { COMPACT, STAR_CLASSES, STAR_WEIGHTS, StarClass } from "../config/stars";
+import { COMPACT, MULTIPLES, PARTNERS, STAR_CLASSES, STAR_WEIGHTS, StarClass } from "../config/stars";
 import { WORLD_CLASSES } from "../config/worlds";
-import { StarSystem, SystemBody, SystemOrbit, SystemScale } from "../domain/content";
+import { StarOrbit, StarSystem, SystemBody, SystemOrbit, SystemScale, SystemStar } from "../domain/content";
 import { VoyageStyle, DEEP_STYLES } from "../domain/theme";
 import {
   Disposition,
@@ -16,6 +16,7 @@ import {
   GalaxyKind,
   GalaxySpec,
   HullShape,
+  Multiplicity,
   PhenomenonKind,
   PhenomenonSpec,
   StarKind,
@@ -70,8 +71,31 @@ const MOON_RADII = 5;
 const MOON_SPREAD = 1.55;
 // No world circles further out than this (world units), so even a supergiant's system can be crossed.
 const FURTHEST = 420;
+// Round one star of a wide pair, worlds stay within this fraction of the pair's separation; further, the partner
+// would pull them away.
+const S_TYPE_LIMIT = 3.5;
 // No world circles nearer its star than this many of the star's drawn radii.
 const HUGGING = 1.6;
+
+// A star keeping another company, its kind and its body in world units.
+interface Partner {
+  kind: StarKind;
+  body: StarBody;
+}
+
+// How a system's stars are to be arranged: the brightest, those keeping it company and how, how far apart the pair
+// is, the scale, and the worlds already made.
+interface Arrangement {
+  star: StarBody;
+  partners: Partner[];
+  multiplicity: Multiplicity;
+  apart: number;
+  scale: SystemScale;
+  bodies: SystemBody[];
+}
+
+// The stars that keep the brightest company are lettered B and C.
+const PARTNER_LETTERS = ["b", "c"];
 
 // A star in world units, with the class it is of.
 interface StarBody {
@@ -82,7 +106,10 @@ interface StarBody {
   surfaceGravity: number;
 }
 
-// What a system's worlds are made round, and what is collected as they are made.
+// What a system's worlds are made round, and what is collected as they are made: the light and mass they circle
+// (both of a close pair's), the star they circle if only one (a wide pair's brighter star), and how far from the
+// centre they must keep (clear of a close pair) and how far they can stray (inside a third of a wide pair's
+// separation, past which its partner would pull them away).
 interface SystemPlan {
   index: number;
   starKind: StarKind | null;
@@ -90,6 +117,11 @@ interface SystemPlan {
   scale: SystemScale;
   metals: number;
   isVoid: boolean;
+  luminosity: number;
+  mass: number;
+  host: string | undefined;
+  clearance: number;
+  furthest: number;
 }
 
 interface Made {
@@ -153,17 +185,38 @@ export class UniverseGenerator {
     const metals = GALAXIES[galaxy.kind].metals;
     const starKind: StarKind | null = isVoid ? null : weighted(random, STAR_WEIGHTS[galaxy.kind]);
     const star = starKind ? this.starOf(starKind) : null;
-    const scale = this.scaleFor(star);
+    const multiplicity = starKind ? this.multiplicity(random, starKind) : "single";
+    const partners = this.partners(random, star, multiplicity, galaxy.kind);
+    const pair = multiplicity === "close" || multiplicity === "triple" ? partners[0] : null;
+    const luminosity = (star?.spec.luminosity ?? 0) + (pair?.body.spec.luminosity ?? 0);
+    const mass = (star?.spec.mass ?? 1) + (pair?.body.spec.mass ?? 0);
+    const scale = this.scaleFor(star, luminosity);
+    // A close pair's two stars a few of their own radii apart, its worlds no nearer than three times that.
+    const separation = pair && star ? (star.radius + pair.body.radius) * randomBetween(random, 2.5, 4) : 0;
     const looks: Record<string, GlobeLook> = {};
     const classes: Record<string, WorldClass> = {};
-    const base = nameWord(random, this.names);
-    const names: Record<string, string> = { star: base };
-    const bodies = this.worlds(random, { index, starKind, star, scale, metals, isVoid }, { looks, classes, names, base });
+    const word = nameWord(random, this.names);
+    const isMultiple = multiplicity !== "single";
+    const names: Record<string, string> = { star: isMultiple ? `${word} A` : word };
+    const base = pair ? `${word} AB` : isMultiple ? `${word} A` : word;
+    const host = multiplicity === "wide" ? "star" : undefined;
+    // A wide pair's two stars far apart, its worlds within a third of that of the brighter.
+    const apart = multiplicity === "wide" ? FURTHEST * randomBetween(random, 0.6, 1) : separation;
+    const furthest = multiplicity === "wide" ? apart / S_TYPE_LIMIT : FURTHEST;
+    const plan = { index, starKind, star, scale, metals, isVoid, luminosity, mass, host, clearance: separation * 3, furthest };
+    const bodies = this.worlds(random, plan, { looks, classes, names, base });
+    const companions = star ? this.arrange(random, { star, partners, multiplicity, apart, scale, bodies }) : { primary: null, others: [] };
+
+    partners.forEach((_, order) => {
+      names[`star-${PARTNER_LETTERS[order]}`] = `${word} ${PARTNER_LETTERS[order].toUpperCase()}`;
+    });
     // How far out each world's moons reach.
     const moonReach = (body: SystemBody) =>
       Math.max(body.radius, ...bodies.map((moon) => (moon.orbit.kind === "moon" && moon.parent === body.id ? moon.orbit.distance : 0)));
-    const reach = (body: SystemBody) => (body.orbit.kind === "circle" ? body.orbit.distance + moonReach(body) : 0);
-    const edge = Math.max(30, ...bodies.map(reach)) + 14;
+    // A wide pair's worlds ride round with their star, as far from the centre as it is.
+    const hostReach = companions.primary && host ? companions.primary.distance : 0;
+    const reach = (body: SystemBody) => (body.orbit.kind === "circle" ? hostReach + body.orbit.distance + moonReach(body) : 0);
+    const edge = Math.max(30, ...bodies.map(reach), ...companions.others.map((other) => (other.orbit?.distance ?? 0) + other.radius)) + 14;
     const system: StarSystem = {
       star: {
         id: "star",
@@ -176,7 +229,9 @@ export class UniverseGenerator {
         rotationDays: randomBetween(random, 2, 40),
         kmPerUnit: star ? star.radiusKm / star.radius : SUN_KM / 2.9,
         luminosity: star?.spec.luminosity ?? 0,
+        orbit: companions.primary,
       },
+      companions: companions.others,
       bodies,
       belts: random() < 0.5 ? [this.belt(random, bodies, scale)] : [],
       edge,
@@ -200,6 +255,15 @@ export class UniverseGenerator {
       starLook: star
         ? { temperatureK: star.spec.temperatureK, granulation: starKind === "neutron" ? 0 : 1, spots: star.spec.spots, corona: star.spec.corona, seed: seed % 997 }
         : null,
+      multiplicity,
+      companionKinds: partners.map((partner) => partner.kind),
+      companionLooks: partners.map((partner, order) => ({
+        temperatureK: partner.body.spec.temperatureK,
+        granulation: partner.kind === "whiteDwarf" ? 0 : 1,
+        spots: partner.body.spec.spots,
+        corona: partner.body.spec.corona,
+        seed: (seed + order * 131) % 997,
+      })),
       galaxy,
       system,
       looks,
@@ -242,18 +306,92 @@ export class UniverseGenerator {
     };
   }
 
+  // Whether a star of this kind shares its system, and how.
+  private multiplicity(random: RandomSource, kind: StarKind): Multiplicity {
+    const [close, wide, triple] = MULTIPLES[kind] ?? [0, 0, 0];
+    const roll = random();
+
+    return roll < close ? "close" : roll < close + wide ? "wide" : roll < close + wide + triple ? "triple" : "single";
+  }
+
+  // The stars that keep a star company: each no heavier than it, as common as the galaxy makes such stars.
+  private partners(random: RandomSource, star: StarBody | null, multiplicity: Multiplicity, galaxy: GalaxyKind): Partner[] {
+    if (!star || multiplicity === "single") {
+      return [];
+    }
+
+    const options = STAR_WEIGHTS[galaxy].filter(([kind]) => PARTNERS.includes(kind) && STAR_CLASSES[kind].mass <= star.spec.mass);
+
+    return Array.from({ length: multiplicity === "triple" ? 2 : 1 }, () => {
+      const kind = options.length > 0 ? weighted(random, options) : "red";
+
+      return { kind, body: this.starOf(kind) };
+    });
+  }
+
+  // Where the stars go. A close pair circles the centre in days, the heavier nearer, its worlds circling round both;
+  // a wide pair's partner keeps well beyond the brighter star's worlds, the two circling the centre over centuries
+  // with those worlds carried round with their star; a triple's third keeps far out round the close pair.
+  private arrange(random: RandomSource, plan: Arrangement): { primary: StarOrbit | null; others: SystemStar[] } {
+    const { star, partners, apart, scale, bodies } = plan;
+    const outer = Math.max(30, ...bodies.map((body) => (body.orbit.kind === "circle" ? body.orbit.distance + body.radius * 4 : 0)));
+    const phase = random() * 360;
+    const periodFor = (distance: number, mass: number) => DAYS_PER_YEAR * Math.sqrt(auForRadius(scale, distance) ** 3 / mass);
+    const others: SystemStar[] = [];
+    let primary: StarOrbit | null = null;
+
+    if (partners.length === 0) {
+      return { primary, others };
+    }
+
+    const [first, second] = partners;
+    const total = star.spec.mass + first.body.spec.mass;
+    const periodDays = periodFor(apart, total);
+
+    primary = { distance: (apart * first.body.spec.mass) / total, periodDays, longitudeAtEpoch: phase };
+    others.push(this.systemStar(random, `star-${PARTNER_LETTERS[0]}`, first.body, {
+      distance: (apart * star.spec.mass) / total, periodDays, longitudeAtEpoch: phase + 180,
+    }));
+
+    if (second) {
+      const far = Math.min(FURTHEST, Math.max(outer * 1.8, outer + 40));
+
+      others.push(this.systemStar(random, `star-${PARTNER_LETTERS[1]}`, second.body, {
+        distance: far, periodDays: periodFor(far, total + second.body.spec.mass), longitudeAtEpoch: random() * 360,
+      }));
+    }
+
+    return { primary, others };
+  }
+
+  private systemStar(random: RandomSource, id: string, body: StarBody, orbit: StarOrbit): SystemStar {
+    return {
+      id,
+      x: 0,
+      y: 0,
+      radius: body.radius,
+      mu: body.mu,
+      surfaceGravity: body.surfaceGravity,
+      temperatureK: body.spec.temperatureK,
+      rotationDays: randomBetween(random, 2, 40),
+      kmPerUnit: body.radiusKm / body.radius,
+      luminosity: body.spec.luminosity,
+      orbit,
+    };
+  }
+
   // How world distance maps to AU round a star. The star's real radius is where its surface is drawn; the square
   // root of the distance begins a little way out (ten of its radii, or nearer than its warm zone, whichever is
   // further: Mercury's 0.3 AU for the Sun), drawn a few of its own radii out. So its light falls on its worlds as it
   // really would: round a red dwarf its warm zone is a few hundredths of an AU out and its worlds crowd close; round
   // a supergiant it lies hundreds of AU out and the system is vast.
-  private scaleFor(star: StarBody | null): SystemScale {
+  private scaleFor(star: StarBody | null, luminosity: number): SystemScale {
     if (!star) {
       return { unitsPerRootAu: this.layout.unitsPerRootAu, innerAu: 0.3, starRadius: 0.5, starRadiusAu: 0.0023 };
     }
 
     const radiusAu = star.radiusKm / KM_PER_AU;
-    const innerAu = Math.max(radiusAu * 10, 0.3 * Math.sqrt(star.spec.luminosity));
+    const innerAu = Math.max(radiusAu * 10, 0.3 * Math.sqrt(luminosity));
     const inner = Math.max(star.radius * INNER_RADII, NEAREST);
 
     return { unitsPerRootAu: inner / Math.sqrt(innerAu), innerAu, starRadius: star.radius, starRadiusAu: radiusAu };
@@ -265,16 +403,16 @@ export class UniverseGenerator {
   // light holds it at and how rich the galaxy is in metals, and each keeps its moons. More metals, more worlds. A
   // void's worlds are rogues lit by nothing.
   private worlds(random: RandomSource, system: SystemPlan, made: Made): SystemBody[] {
-    const { index, starKind, star, scale, metals, isVoid } = system;
+    const { index, starKind, star, scale, metals, isVoid, luminosity, mass, host, clearance, furthest } = system;
     const count = isVoid ? 1 + Math.floor(random() * 3) : Math.max(1, Math.min(MOST_WORLDS, Math.round(randomBetween(random, 1.5, 8.5) * (0.55 + 0.45 * metals))));
     const isCompact = starKind === "red" || starKind === "brownDwarf";
-    const luminosity = star?.spec.luminosity ?? 0;
     const bodies: SystemBody[] = [];
     // The innermost often lies well inside the inner zone, but never nearer the star's surface than `HUGGING` of its
     // radius; the outermost tens or hundreds of times further.
-    const first = Math.log(Math.max(this.nearestAu(scale), scale.innerAu * 10 ** randomBetween(random, -1.3, 0.2)));
-    const last = Math.log(Math.min(auForRadius(scale, FURTHEST), scale.innerAu * (isCompact ? randomBetween(random, 2, 12) : randomBetween(random, 40, 180))));
-    const step = count > 1 ? (last - first) / (count - 1) : 0;
+    const nearest = Math.max(this.nearestAu(scale), clearance > 0 ? auForRadius(scale, clearance) : 0);
+    const first = Math.log(Math.max(nearest, scale.innerAu * 10 ** randomBetween(random, -1.3, 0.2)));
+    const last = Math.log(Math.min(auForRadius(scale, furthest), scale.innerAu * (isCompact ? randomBetween(random, 2, 12) : randomBetween(random, 40, 180))));
+    const step = count > 1 ? Math.max(0, last - first) / (count - 1) : 0;
 
     for (let order = 0; order < count; order += 1) {
       const au = Math.exp(first + step * (order + (order > 0 && order < count - 1 ? randomBetween(random, -0.3, 0.3) : 0)));
@@ -282,8 +420,8 @@ export class UniverseGenerator {
       const temperatureC = equilibriumC(luminosity, au);
       const kind = classFor(random, temperatureC, starKind, metals);
       const distance = radiusForAu(scale, au);
-      const periodDays = star ? DAYS_PER_YEAR * Math.sqrt(au ** 3 / star.spec.mass) : randomBetween(random, 400, 4000);
-      const orbit: SystemOrbit = { kind: "circle", distance, periodDays, longitudeAtEpoch: random() * 360 };
+      const periodDays = star ? DAYS_PER_YEAR * Math.sqrt(au ** 3 / mass) : randomBetween(random, 400, 4000);
+      const orbit: SystemOrbit = { kind: "circle", distance, periodDays, longitudeAtEpoch: random() * 360, ...(host ? { host } : {}) };
       const planet = this.world(random, { id, kind, temperatureC, au, orbit, parent: null, starKind, seed: index * 31 + order }, made);
 
       made.names[id] = `${made.base} ${LETTERS[order] ?? order + 2}`;

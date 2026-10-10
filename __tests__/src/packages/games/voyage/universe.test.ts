@@ -1,6 +1,8 @@
 import {
   arrivalSpeed,
   auForRadius,
+  lightAt,
+  placeBodies,
   bindingEnergy,
   craterKm,
   DEFAULT_UNIVERSE_NAMES,
@@ -116,9 +118,13 @@ describe("universes", () => {
     let checked = 0;
 
     specs.forEach((spec) => {
+      // A close pair's worlds circle both stars and take the light of both.
+      const isPair = spec.multiplicity === "close" || spec.multiplicity === "triple";
+      const luminosity = spec.system.star.luminosity + (isPair ? spec.system.companions[0].luminosity : 0);
+
       spec.system.bodies.filter((body) => body.kind === "planet" && body.orbit.kind === "circle").forEach((body) => {
         const au = body.orbit.kind === "circle" ? auForRadius(spec.system.scale, body.orbit.distance) : 1;
-        const temperatureC = (278.6 * spec.system.star.luminosity ** 0.25) / Math.sqrt(au) - 273.15;
+        const temperatureC = (278.6 * luminosity ** 0.25) / Math.sqrt(au) - 273.15;
         const kind = WORLD_CLASSES[spec.classes[body.id]];
 
         if (temperatureC < 2900) {
@@ -138,7 +144,9 @@ describe("universes", () => {
     const specs = Array.from({ length: 600 }, (_, index) => generator.generate(6, 7000 + index * 31, null));
     const young = ["blue", "blueSupergiant", "wolfRayet", "hypergiant"];
     const kinds = new Set(specs.map((spec) => spec.galaxy.kind));
-    const edgeOf = (kind: string) => Math.max(0, ...specs.filter((spec) => spec.starKind === kind).map((spec) => spec.system.edge));
+    // How far out a kind of star's worlds reach (a distant partner star aside).
+    const edgeOf = (kind: string) => Math.max(0, ...specs.filter((spec) => spec.starKind === kind)
+      .flatMap((spec) => spec.system.bodies.map((body) => (body.orbit.kind === "circle" ? body.orbit.distance : 0))));
 
     expect(kinds.size).toBe(6);
     specs.filter((spec) => spec.galaxy.kind === "elliptical").forEach((spec) => expect(young).not.toContain(spec.starKind));
@@ -169,6 +177,84 @@ describe("universes", () => {
         }
       });
     });
+  });
+
+  test("many stars share their systems: close pairs their worlds circle together, wide pairs, and triples, the massive stars most often", () => {
+    const specs = Array.from({ length: 900 }, (_, index) => generator.generate(6, 21000 + index * 17, null)).filter((spec) => spec.starKind);
+    const share = (kinds: string[]) => {
+      const of = specs.filter((spec) => spec.starKind && kinds.includes(spec.starKind));
+
+      return of.filter((spec) => spec.multiplicity !== "single").length / Math.max(1, of.length);
+    };
+
+    ["close", "wide", "triple"].forEach((kind) => expect(specs.some((spec) => spec.multiplicity === kind)).toBe(true));
+    expect(share(["blue", "blueSupergiant", "wolfRayet"])).toBeGreaterThan(share(["red", "brownDwarf"]));
+    specs.forEach((spec) => {
+      expect(spec.system.companions).toHaveLength(spec.multiplicity === "single" ? 0 : spec.multiplicity === "triple" ? 2 : 1);
+      spec.system.companions.forEach((other) => expect(other.luminosity).toBeLessThanOrEqual(Math.max(spec.system.star.luminosity, 0.05)));
+    });
+  });
+
+  test("a close pair circles the centre in days on opposite sides, its worlds well clear of it; a wide pair's worlds keep to one star", () => {
+    const specs = Array.from({ length: 900 }, (_, index) => generator.generate(6, 33000 + index * 13, null));
+    const close = specs.find((spec) => spec.multiplicity === "close");
+    const wide = specs.find((spec) => spec.multiplicity === "wide");
+    const triple = specs.find((spec) => spec.multiplicity === "triple");
+
+    if (!close || !wide || !triple) {
+      throw new Error("expected every kind of multiple star");
+    }
+
+    const { star, companions, bodies } = close.system;
+    const where = () => ({ ax: star.x, ay: star.y, bx: companions[0].x, by: companions[0].y });
+
+    placeBodies(close.system, EPOCH);
+    const before = where();
+    const apart = Math.hypot(before.ax - before.bx, before.ay - before.by);
+
+    // On opposite sides of the centre, the heavier nearer to it.
+    expect(before.ax * before.bx + before.ay * before.by).toBeLessThan(0);
+    expect(Math.hypot(before.ax, before.ay)).toBeLessThanOrEqual(Math.hypot(before.bx, before.by) + 1e-9);
+    bodies.filter((body) => body.orbit.kind === "circle").forEach((body) => {
+      expect(body.orbit.kind === "circle" && body.orbit.host).toBeFalsy();
+      expect(body.orbit.kind === "circle" ? body.orbit.distance : 0).toBeGreaterThanOrEqual(apart * 2.9);
+    });
+
+    placeBodies(close.system, EPOCH + 2 * 86400000);
+    const after = where();
+
+    expect(Math.hypot(after.ax - before.ax, after.ay - before.ay)).toBeGreaterThan(0);
+    expect(Math.hypot(after.ax - after.bx, after.ay - after.by)).toBeCloseTo(apart, 6);
+
+    const wideApart = (wide.system.star.orbit?.distance ?? 0) + (wide.system.companions[0].orbit?.distance ?? 0);
+
+    wide.system.bodies.filter((body) => body.orbit.kind === "circle").forEach((body) => {
+      expect(body.orbit.kind === "circle" ? body.orbit.host : null).toBe("star");
+      expect(body.orbit.kind === "circle" ? body.orbit.distance : Infinity).toBeLessThanOrEqual(wideApart / 3.5 + 1e-6);
+    });
+
+    const third = triple.system.companions[1];
+
+    triple.system.bodies.filter((body) => body.orbit.kind === "circle").forEach((body) => {
+      expect(body.orbit.kind === "circle" ? body.orbit.distance : Infinity).toBeLessThan(third.orbit?.distance ?? 0);
+    });
+  });
+
+  test("every star's light adds up where it falls, and the heat comes from the brightest", () => {
+    const spec = Array.from({ length: 900 }, (_, index) => generator.generate(6, 33000 + index * 13, null)).find((candidate) => candidate.multiplicity === "close");
+
+    if (!spec) {
+      throw new Error("expected a close pair");
+    }
+
+    placeBodies(spec.system, EPOCH);
+
+    const point = { x: spec.system.star.x + 40, y: spec.system.star.y };
+    const both = lightAt(spec.system, point.x, point.y).flux;
+    const alone = lightAt({ ...spec.system, companions: [] }, point.x, point.y).flux;
+
+    expect(both).toBeGreaterThan(alone);
+    expect(lightAt(spec.system, spec.system.star.x + 0.01, spec.system.star.y).brightest).toBe(spec.system.star);
   });
 
   test("some systems are crowded with worlds, and Earth-like worlds turn up, some with an ocean or locked as eyeballs to red dwarfs", () => {

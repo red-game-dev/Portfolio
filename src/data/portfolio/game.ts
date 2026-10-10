@@ -310,6 +310,9 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         neutron: "a neutron star",
         none: "no star at all",
       },
+      // Two or three suns named together.
+      starPair: "{first} and {second}",
+      starTrio: "{first}, {second} and {third}",
       over: "Ship lost",
       finalScore: "Score {score}",
       newBest: "A new best",
@@ -609,6 +612,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           },
           hypergiant: { name: "Hypergiant", note: "The largest stars there are: VY Canis Majoris is over a thousand times the Sun's size." },
           wolfRayet: { name: "Wolf-Rayet star", note: "A giant so hot it is blowing its own outer layers away into space." },
+          binary: { name: "Binary star", note: "Two suns circling each other. Worlds may circle both, as Kepler-16 b does, or keep to one." },
+          triple: { name: "Triple star", note: "A close pair with a third sun far out, as Proxima Centauri is to Alpha Centauri's pair." },
           whiteDwarf: { name: "White dwarf", note: "The hot cinder a star like the Sun leaves behind." },
           neutron: { name: "Neutron star", note: "A ball of neutrons the size of a city, as heavy as a sun." },
           none: { name: "No star", note: "A universe of rogue worlds in the dark." },

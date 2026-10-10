@@ -7,7 +7,7 @@ import { GalaxySpec } from "../../domain/universe";
 
 // A galaxy seen from outside: a soft core, and for a spiral, arms of dots winding out round it, tilted by `tilt` and
 // squashed by `lean` as a disc seen at an angle is.
-const paintDisc = (context: Canvas2DContext, random: RandomSource, x: number, y: number, size: number, galaxy: GalaxySpec, lean: number): void => {
+const paintDisc = (context: Canvas2DContext, random: RandomSource, x: number, y: number, size: number, galaxy: GalaxySpec, lean: number, brightness = 1): void => {
   context.save();
   context.translate(x, y);
   context.rotate(galaxy.tilt);
@@ -15,7 +15,7 @@ const paintDisc = (context: Canvas2DContext, random: RandomSource, x: number, y:
 
   const core = context.createRadialGradient(0, 0, 0, 0, 0, size * 0.35);
 
-  core.addColorStop(0, hexWithAlpha(galaxy.core, 0.9));
+  core.addColorStop(0, hexWithAlpha(galaxy.core, 0.9 * brightness));
   core.addColorStop(1, hexWithAlpha(galaxy.core, 0));
   context.fillStyle = core;
   context.beginPath();
@@ -34,7 +34,7 @@ const paintDisc = (context: Canvas2DContext, random: RandomSource, x: number, y:
       const radius = size * (0.12 + t * 0.88);
       const scatter = size * 0.06 * (random() - 0.5);
 
-      context.globalAlpha = (1 - t) * 0.5 * random();
+      context.globalAlpha = (1 - t) * 0.5 * random() * brightness;
       context.fillRect(Math.cos(angle) * radius + scatter, Math.sin(angle) * radius + scatter, 1.4, 1.4);
     }
   }
@@ -133,8 +133,8 @@ export const paintGalaxySky = (galaxy: GalaxySpec, starColour: string) => (conte
 
   // Far galaxies, small smudges in the dark.
   for (let far = 0; far < 3; far += 1) {
-    paintDisc(context, random, random() * width, random() * height, width * (0.025 + random() * 0.03), { ...galaxy, tilt: random() * TAU, armCount: 2, kind: "spiral" },
-      0.3 + random() * 0.6);
+    paintDisc(context, random, random() * width, random() * height, width * (0.02 + random() * 0.025), { ...galaxy, tilt: random() * TAU, armCount: 2, kind: "spiral" },
+      0.3 + random() * 0.6, 0.45);
   }
 
   context.globalAlpha = 1;

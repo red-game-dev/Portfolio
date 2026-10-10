@@ -78,8 +78,10 @@ describe("the voyage's messages", () => {
 
     expect(voyageMessage(voyage, singularity, pluto, universes)).toBe(voyage.singularity);
     expect(voyageMessage(voyage, lost, singularity, universes)).toBe(voyage.lost);
-    expect(voyageMessage(voyage, at({ phase: "universe", universe: 0, universes: 1, cosmos: { galaxy: "barred", star: "redSupergiant" } }), lost, universes))
-      .toBe("You wake up in The Matrix, in a barred spiral galaxy, round a red supergiant");
+    const arrival = at({ phase: "universe", universe: 0, universes: 1, cosmos: { galaxy: "barred", star: "redSupergiant", companions: ["blue"] } });
+
+    expect(voyageMessage(voyage, arrival, lost, universes))
+      .toBe("You wake up in The Matrix, in a barred spiral galaxy, round a red supergiant and a blue star");
     expect(voyageMessage(voyage, at({ phase: "universe", universe: 3, universes: 2 }), at({ phase: "lost", universe: 0, universes: 1 }), universes))
       .toBe("Thrown into Casino, in a spiral galaxy, round no star at all");
   });

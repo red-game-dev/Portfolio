@@ -13,6 +13,13 @@ const universeName = (snapshot: VoyageSnapshot, universes: string[]) => snapshot
 // A place's name: ours from the content, a made one as the universe named it.
 export const placeName = (content: FinaleVoyage, id: string, madeName?: string | null) => content.stops[id] ?? madeName ?? id;
 
+// The suns a universe is lit by, named together: one, a pair, or three.
+const sunsPhrase = (content: FinaleVoyage, star: string | null, companions: readonly string[]): string => {
+  const [first, second, third] = [star ?? "none", ...companions].map((kind) => content.starPhrases[kind] ?? kind);
+
+  return third ? fill(content.starTrio, { first, second, third }) : second ? fill(content.starPair, { first, second }) : first;
+};
+
 // What the voyage says aloud as it changes: each stop passed, the black hole, being lost, and where the ship
 // comes out. Null when nothing new happened.
 export const voyageMessage = (content: FinaleVoyage, next: VoyageSnapshot, previous: VoyageSnapshot | null, universes: string[]): string | null => {
@@ -35,7 +42,7 @@ export const voyageMessage = (content: FinaleVoyage, next: VoyageSnapshot, previ
       return fill(next.universes === 1 ? content.arrived : content.jumped, {
         universe: universeName(next, universes),
         galaxy: content.galaxyPhrases[next.cosmos?.galaxy ?? "spiral"] ?? "",
-        star: content.starPhrases[next.cosmos?.star ?? "none"] ?? "",
+        star: sunsPhrase(content, next.cosmos?.star ?? null, next.cosmos?.companions ?? []),
       });
     }
   }

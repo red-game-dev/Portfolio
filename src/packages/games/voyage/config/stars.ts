@@ -63,3 +63,23 @@ export const STAR_WEIGHTS: Readonly<Record<GalaxyKind, ReadonlyArray<readonly [S
     ["hypergiant", 2.5], ["wolfRayet", 2], ["brownDwarf", 4], ["whiteDwarf", 4], ["neutron", 4],
   ],
 };
+
+// How often a star of each kind shares its system, as surveys find: massive stars almost always do, Sun-like stars
+// about half the time, red dwarfs mostly not. The chances of a close pair, a wide pair and a triple. A giant has
+// only wide partners: anything close would orbit inside it.
+export const MULTIPLES: Readonly<Partial<Record<StarKind, readonly [number, number, number]>>> = {
+  brownDwarf: [0.1, 0.08, 0.02],
+  red: [0.12, 0.12, 0.03],
+  orange: [0.15, 0.2, 0.06],
+  yellow: [0.15, 0.22, 0.08],
+  white: [0.2, 0.25, 0.1],
+  blue: [0.3, 0.25, 0.15],
+  giant: [0, 0.3, 0],
+  blueSupergiant: [0, 0.55, 0],
+  redSupergiant: [0, 0.45, 0],
+  hypergiant: [0, 0.4, 0],
+  wolfRayet: [0.35, 0.2, 0.15],
+};
+
+// What can keep a star company: a lighter main sequence star, or a white or brown dwarf.
+export const PARTNERS: readonly StarKind[] = ["brownDwarf", "red", "orange", "yellow", "white", "blue", "whiteDwarf"];

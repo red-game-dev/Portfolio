@@ -4,7 +4,7 @@ import { clamp } from "@/packages/math/clamp";
 import { smoothstep } from "@/packages/math/easing";
 import { createSeededRandom } from "@/packages/math/random";
 
-import { Frame, Ground, Scene, SkyLight } from "../domain/types";
+import { Frame, Ground, Scene, SkyLight, Sun } from "../domain/types";
 import { skyLight, sunColour } from "../utils/sky";
 import { RELIEF, ridgeline } from "../utils/terrain";
 
@@ -119,33 +119,10 @@ export class LandscapePainter {
   }
 
   public paintSun(frame: Frame, scene: Scene): void {
-    const { context, width, height, fieldOfView, density } = frame;
-    const { sun, air } = scene;
+    scene.suns?.forEach((other) => this.paintOneSun(frame, scene, other));
 
-    if (!sun || sun.elevation < -sun.radius * 2) {
-      return;
-    }
-
-    const perDegree = height / fieldOfView;
-    const x = width * (0.5 + sun.side * SPREAD);
-    const y = LandscapePainter.heightOf(frame, sun.elevation);
-    const radius = Math.max(2.2, sun.radius * perDegree);
-    const colour = sunColour(sun.colour, air, sun.elevation, density);
-    const haze = air ? air.haze * density : 0;
-    const halo = context.createRadialGradient(x, y, 0, x, y, radius * (haze > 0.7 ? 14 : 9));
-
-    halo.addColorStop(0, rgba(colour, haze > 0.7 ? 0.55 : 0.9));
-    halo.addColorStop(0.15, rgba(colour, 0.35));
-    halo.addColorStop(1, rgba(colour, 0));
-    context.fillStyle = halo;
-    context.fillRect(x - radius * 14, y - radius * 14, radius * 28, radius * 28);
-
-    // Through thick cloud only a bright patch shows, never the disc.
-    if (haze <= 0.7) {
-      context.fillStyle = rgbCss(mixRgb(colour, [255, 255, 255], 0.55));
-      context.beginPath();
-      context.arc(x, y, radius, 0, TAU);
-      context.fill();
+    if (scene.sun) {
+      this.paintOneSun(frame, scene, scene.sun);
     }
   }
 
@@ -252,6 +229,38 @@ export class LandscapePainter {
       context.globalAlpha = opacity * Math.min(1, (nearness - NEAR_DETAIL) / (1 - NEAR_DETAIL));
       this.paintNear(frame, scene, groundTop, tone(near, 2), light);
       context.globalAlpha = opacity;
+    }
+  }
+
+  // A sun in the sky, its halo wider through haze, only a bright patch showing through thick cloud.
+  private paintOneSun(frame: Frame, scene: Scene, sun: Sun): void {
+    const { context, width, height, fieldOfView, density } = frame;
+    const { air } = scene;
+
+    if (sun.elevation < -sun.radius * 2) {
+      return;
+    }
+
+    const perDegree = height / fieldOfView;
+    const x = width * (0.5 + sun.side * SPREAD);
+    const y = LandscapePainter.heightOf(frame, sun.elevation);
+    const radius = Math.max(2.2, sun.radius * perDegree);
+    const colour = sunColour(sun.colour, air, sun.elevation, density);
+    const haze = air ? air.haze * density : 0;
+    const halo = context.createRadialGradient(x, y, 0, x, y, radius * (haze > 0.7 ? 14 : 9));
+
+    halo.addColorStop(0, rgba(colour, haze > 0.7 ? 0.55 : 0.9));
+    halo.addColorStop(0.15, rgba(colour, 0.35));
+    halo.addColorStop(1, rgba(colour, 0));
+    context.fillStyle = halo;
+    context.fillRect(x - radius * 14, y - radius * 14, radius * 28, radius * 28);
+
+    // Through thick cloud only a bright patch shows, never the disc.
+    if (haze <= 0.7) {
+      context.fillStyle = rgbCss(mixRgb(colour, [255, 255, 255], 0.55));
+      context.beginPath();
+      context.arc(x, y, radius, 0, TAU);
+      context.fill();
     }
   }
 

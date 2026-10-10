@@ -10,8 +10,9 @@ import { CodexCategory, CodexEntry, CodexFacts } from "../domain/career";
 const entry = (category: CodexCategory, subject: string, facts: CodexFacts | null = null): CodexEntry => ({ id: `${category}:${subject}`, category, subject, facts });
 
 const ZONE_STYLES: readonly VoyageStyle[] = ["matrix", "neural", "blocks", "chips", "pixels"];
-const STARS: ReadonlyArray<StarKind | "none"> = [
+const STARS: ReadonlyArray<StarKind | "none" | "binary" | "triple"> = [
   "brownDwarf", "red", "orange", "yellow", "white", "blue", "giant", "blueSupergiant", "redSupergiant", "hypergiant", "wolfRayet", "whiteDwarf", "neutron", "none",
+  "binary", "triple",
 ];
 const PHENOMENA: ReadonlyArray<PhenomenonKind | "blackHole"> = [
   "blackHole",

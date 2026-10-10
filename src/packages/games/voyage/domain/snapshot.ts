@@ -80,7 +80,7 @@ export interface VoyageSnapshot {
   universes: number;
   // The universe's own name, once there, and the galaxy and star it holds.
   universeName: string | null;
-  cosmos: { galaxy: GalaxyKind; star: StarKind | null } | null;
+  cosmos: { galaxy: GalaxyKind; star: StarKind | null; companions: StarKind[] } | null;
   hull: number;
   maxHull: number;
   shields: number;

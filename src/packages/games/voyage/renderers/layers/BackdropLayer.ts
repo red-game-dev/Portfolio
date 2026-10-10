@@ -1,6 +1,7 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { clamp01 } from "@/packages/math/clamp";
 
+import { SystemStar } from "../../domain/content";
 import { auForRadius } from "../../utils/scale";
 import { VoyageFrame } from "../frame";
 import { paintGalaxySky } from "../paint/galaxies";
@@ -26,7 +27,8 @@ export class BackdropLayer implements RenderLayer<VoyageFrame> {
 
   constructor(private readonly kit: RenderKit) {}
 
-  public draw({ state, camera, universe, theme }: VoyageFrame): void {
+  public draw(frame: VoyageFrame): void {
+    const { state, camera, universe, theme } = frame;
     const { back } = this.kit;
 
     back.fill(state.phase === "lost" ? "#000000" : universe?.deep ?? theme.space);
@@ -68,24 +70,34 @@ export class BackdropLayer implements RenderLayer<VoyageFrame> {
       this.kit.tile(back, backdrop, BACKDROP_TILE, -camera.x * base * depth, -camera.y * base * depth + state.elapsedMs * (universe.style === "matrix" ? 0.06 : 0), 0.9);
     }
 
-    if (state.system.star.luminosity > 0) {
-      const { star, scale } = state.system;
-      const out = Math.hypot(camera.x - star.x, camera.y - star.y);
+    this.glowFrom(frame, state.system.star);
+    state.system.companions.forEach((other) => this.glowFrom(frame, other));
+  }
 
-      // Close enough to see the star itself, it needs no glow from off screen.
-      if (out < star.radius * 3 + Math.hypot(back.width, back.height) / camera.scale) {
-        return;
-      }
+  // A star out of sight still lights the sky from its direction, as bright as it looks from here: its light falls off
+  // with the square of the distance, so a supergiant hundreds of AU away still glows like the Sun from Earth.
+  private glowFrom({ state, camera }: VoyageFrame, star: SystemStar): void {
+    const { back } = this.kit;
 
-      const au = auForRadius(scale, out);
-      const angle = Math.atan2(star.y - camera.y, star.x - camera.x);
-      const reach = Math.hypot(back.width, back.height) * 0.62;
-      const radius = Math.max(back.width, back.height) * 0.9;
-      const sun = this.kit.cache.get("sun", 256, 256, paintSun);
-
-      back.context.globalAlpha = clamp01(1.1 / au);
-      back.blit(sun, back.width / 2 + Math.cos(angle) * reach, back.height / 2 + Math.sin(angle) * reach, radius * 2, radius * 2);
-      back.context.globalAlpha = 1;
+    if (star.luminosity <= 0) {
+      return;
     }
+
+    const out = Math.hypot(camera.x - star.x, camera.y - star.y);
+
+    // Close enough to see the star itself, it needs no glow from off screen.
+    if (out < star.radius * 3 + Math.hypot(back.width, back.height) / camera.scale) {
+      return;
+    }
+
+    const au = auForRadius(state.system.scale, out);
+    const angle = Math.atan2(star.y - camera.y, star.x - camera.x);
+    const reach = Math.hypot(back.width, back.height) * 0.62;
+    const radius = Math.max(back.width, back.height) * 0.9;
+    const sun = this.kit.cache.get("sun", 256, 256, paintSun);
+
+    back.context.globalAlpha = clamp01((1.1 * Math.sqrt(star.luminosity)) / au);
+    back.blit(sun, back.width / 2 + Math.cos(angle) * reach, back.height / 2 + Math.sin(angle) * reach, radius * 2, radius * 2);
+    back.context.globalAlpha = 1;
   }
 }

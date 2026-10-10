@@ -50,7 +50,10 @@ export interface Sun {
 
 export interface Scene {
   air: Air | null;
+  // The sun that lights the day, and any others in the sky (a binary's partner, a triple's third), drawn but
+  // leaving the day to the first.
   sun: Sun | null;
+  suns?: Sun[];
   bodies: SkyBody[];
   ground: Ground;
 }

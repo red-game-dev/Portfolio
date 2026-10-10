@@ -292,6 +292,13 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
         radius: isHome ? Math.asin(Math.min(1, SUN_KM / (Math.max(place.au, 0.01) * KM_PER_AU))) * RAD : Math.max(0.05, Math.atan(star.radius / toStar) * RAD * 0.35),
         colour: starLook ? this.starColour(starLook.temperatureK) : "#fff3d6",
       },
+      // A binary's partner and a triple's third, each in the sky as large and as coloured as it is.
+      suns: state.system.companions.filter((other) => other.luminosity > 0).map((other, order) => ({
+        elevation: 0,
+        side: 0,
+        radius: Math.max(0.04, Math.atan(other.radius / (Math.hypot(other.x - place.x, other.y - place.y) || 1)) * RAD * 0.35),
+        colour: this.starColour(state.cosmos?.companionLooks[order]?.temperatureK ?? other.temperatureK),
+      })),
       bodies: this.neighbours.map(({ sky }) => sky),
       ground: toGround(preset, latitude, longitude),
     };
@@ -320,6 +327,21 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       scene.sun.elevation = elevationOf(this.up, towardsStar);
       scene.sun.side = sideOf(this.up, towardsStar);
     }
+
+    // The other suns, where they stand now.
+    let lit = 0;
+
+    state.system.companions.forEach((other) => {
+      const sun = other.luminosity > 0 ? scene.suns?.[lit] : undefined;
+
+      if (sun) {
+        const towards = Math.atan2(other.y - place.y, other.x - place.x);
+
+        sun.elevation = elevationOf(this.up, towards);
+        sun.side = sideOf(this.up, towards);
+        lit += 1;
+      }
+    });
 
     this.neighbours.forEach(({ body, sky }) => {
       const towards = Math.atan2(body.y - place.y, body.x - place.x);

@@ -50,6 +50,11 @@ export type WorldClass =
   | "chthonian"
   | "rogue";
 
+// How many stars a system has, and how they are arranged: one alone; a close pair that its worlds circle together,
+// as Kepler-16 b circles its two suns; a wide pair, its worlds circling one star while the other keeps far out, as
+// round Alpha Centauri; or a close pair with a third far out, as Proxima Centauri is to Alpha Centauri's pair.
+export type Multiplicity = "single" | "close" | "wide" | "triple";
+
 // The kinds of galaxy a universe can sit in, as Hubble sorted them: a spiral, a barred spiral like our own, an
 // elliptical of old stars, an irregular cloud, a dwarf, a ring.
 export type GalaxyKind = "spiral" | "barred" | "elliptical" | "irregular" | "dwarf" | "ring";
@@ -128,6 +133,10 @@ export interface UniverseSpec {
   hazard: string;
   starKind: StarKind | null;
   starLook: StarLook | null;
+  // The stars it shares the system with, in the order of `system.companions`, and how they are arranged.
+  multiplicity: Multiplicity;
+  companionKinds: StarKind[];
+  companionLooks: StarLook[];
   galaxy: GalaxySpec;
   system: StarSystem;
   looks: Record<string, GlobeLook>;

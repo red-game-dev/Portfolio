@@ -51,7 +51,9 @@ export class SystemMapper extends Mapper<SolarSystemData, StarSystem> {
         rotationDays: star.rotationDays,
         kmPerUnit: star.radiusKm / starRadius,
         luminosity: 1,
+        orbit: null,
       },
+      companions: [],
       bodies: bodies.map((body) => this.body(body, radii)),
       belts: belts.map((belt) => ({
         id: belt.id,

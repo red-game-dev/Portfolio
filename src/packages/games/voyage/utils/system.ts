@@ -5,6 +5,7 @@ import { StarSystem } from "../domain/content";
 export const cloneSystem = (system: StarSystem): StarSystem => ({
   ...system,
   star: { ...system.star },
+  companions: system.companions.map((star) => ({ ...star })),
   bodies: system.bodies.map((body) => ({ ...body, real: { ...body.real } })),
   belts: system.belts.map((belt) => ({ ...belt })),
 });

@@ -1,22 +1,23 @@
 import type { System } from "@/packages/games/engine";
 
+import { SystemStar } from "../domain/content";
 import { auForRadius } from "../utils/scale";
 import { VoyageContext } from "./context";
 import { isInSystem, shipOf } from "./queries";
 
 const KM_PER_AU = 149597870.7;
 
-// The star's real pull (m/s^2) at a world distance from it: its surface gravity over the square of the real
+// A star's real pull (m/s^2) at a world distance from it: its surface gravity over the square of the real
 // distance in its radii.
-const starPull = ({ state }: VoyageContext, distance: number): number => {
-  const { star, scale } = state.system;
+const starPull = ({ state }: VoyageContext, star: SystemStar, distance: number): number => {
+  const { scale } = state.system;
   const radiusKm = star.radius * star.kmPerUnit;
   const realKm = distance <= star.radius ? radiusKm : auForRadius(scale, distance) * KM_PER_AU;
 
   return star.surfaceGravity * (radiusKm / realKm) ** 2;
 };
 
-// Every body, the star and every black hole pull on everything that moves, by Newton's law. The ship's reading
+// Every body, every star and every black hole pull on everything that moves, by Newton's law. The ship's reading
 // is kept in real units for the telemetry: what pulls hardest, and its pull, a planet's as its real surface
 // gravity scaled by distance and the star's from the real distance to it (so near Earth's orbit it reads the
 // Sun's true 0.006 m/s^2).
@@ -26,7 +27,7 @@ export class GravitySystem implements System<VoyageContext> {
   public update(context: VoyageContext, dt: number): void {
     const { state, world, field, sample, sources, sourceIds, config } = context;
     const inSystem = isInSystem(context);
-    const { star } = state.system;
+    const { star, companions } = state.system;
 
     sources.length = 0;
     sourceIds.length = 0;
@@ -34,6 +35,10 @@ export class GravitySystem implements System<VoyageContext> {
     if (inSystem) {
       sources.push({ x: star.x, y: star.y, mu: star.mu, radius: star.radius });
       sourceIds.push(star.id);
+      companions.forEach((other) => {
+        sources.push({ x: other.x, y: other.y, mu: other.mu, radius: other.radius });
+        sourceIds.push(other.id);
+      });
       state.system.bodies.forEach((body) => {
         sources.push({ x: body.x, y: body.y, mu: body.mu, radius: body.radius });
         sourceIds.push(body.id);
@@ -82,8 +87,10 @@ export class GravitySystem implements System<VoyageContext> {
     state.readings.dominant = source ? id : null;
     state.readings.dominantDistance = sample.dominantDistance;
     state.readings.holeRatio = Infinity;
-    state.readings.gravity = !source ? 0 : id === star.id
-      ? starPull(context, sample.dominantDistance)
+    const pulling = id === star.id ? star : companions.find((other) => other.id === id);
+
+    state.readings.gravity = !source ? 0 : pulling
+      ? starPull(context, pulling, sample.dominantDistance)
       : source.mu / Math.max(source.radius, sample.dominantDistance) ** 2 / config.layout.gravityScale;
 
     world.stores.hole.entities.forEach((entity, index) => {

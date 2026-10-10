@@ -22,8 +22,8 @@ export const profileContent: ProfileContent = {
     "Hello! I’m <strong>Redeemer Pace</strong>. Let's get to know each other, shall we?",
   headline: {
     lines: [
-      "Software architect who ships with AI agents. Payments, ledgers and platform architecture.",
-      "Open to applied AI and forward deployed, architect, engineering leadership, product and blockchain roles, full time or B2B.",
+      "Software architect and founder. Game engines, payments and ledgers, a blockchain, AI in production and platforms for millions.",
+      "Open to architect, engineering leadership, product, blockchain and applied AI roles, forward deployed included, full time or B2B.",
     ],
     availability: "Maltese citizen, EU work rights, open to relocation, available now.",
     cvLabel: "Download CV",
@@ -82,11 +82,11 @@ export const profileContent: ProfileContent = {
   ],
   stackoverflow: "https://stackoverflow.com/users/15786039/ired-game-dev",
   typingsTitles: [
+    "Your next <strong>Software Architect</strong>",
+    "Your next <strong>Game Developer</strong>",
+    "Your next <strong>Backend Engineer</strong>",
     "Your next <strong>Architect who ships with AI agents</strong>",
     "Your next <strong>Frontend Engineer</strong>",
-    "Your next <strong>Backend Engineer</strong>",
-    "Your next <strong>Architect</strong>",
-    "Your next <strong>Game Developer</strong>",
     "Your next <strong>Game Consultant</strong>",
     "Your next <strong>App Developer</strong>",
     "Your next <strong>Software Engineer</strong>",
@@ -99,16 +99,19 @@ export const profileContent: ProfileContent = {
     intro: "Architect. Builder. Founder.",
     hook: "I build game engines, payment systems, a blockchain, platforms for millions and companies of my own.",
     paragraphs: [
-      `I am a software architect with 15+ years in the industry, most of them leading: CEO and CTO of my own social network and MMORPG,
-      co-founder and CTO of CoinOn, then architect and tech lead at Chiliz and Conrad. I design systems that are not tied to a vendor or a framework,
-      and I stay hands on while I do it.`,
-      `I have put machine learning into production since 2019: PyTorch and TensorFlow models for enterprise clients at KPMG and in my
-      own products, from training and fine tuning to serving: personalised suggestions for food delivery and taxi apps, social
-      feeds, ranking, vision and language.`,
-      `Today I build with AI agents. I write the rules, the context and the checks they work within, and a person reviews every change.
-      The "How I use AI" section shows what that looks like day to day.`,
+      `I am a software architect with 20+ years writing software, since I was 7, and 15+ years in the industry, most of them leading.
+      I have built 14 startups, and products at the companies I have worked for reach 200M+ active users. I design systems that are
+      not tied to a vendor or a framework, and I stay hands on while I do it.`,
+      `Today I lead architecture at Conrad for a 90+ person delivery organisation, on a storefront in 16 markets at up to 7M+ sessions
+      a month. Before that I took Chiliz's fan app for 1.5M+ users in 167 countries from critically unstable to the core its seven
+      squads ship on.`,
+      `As a founder I grew a social network for anime and gaming fans to 10M+ registered users, ran Gods of Zushin, an MMORPG on a
+      C/C++ engine of my own, as a live business, and co-founded CoinOn as CTO, a Web3 platform taken from zero to web, mobile and its
+      own chain. I also built a gamified social platform on payments, double entry ledgers and an ads engine with its own auction.`,
       `I have worked across e-commerce, payments, iGaming, game publishing and Web3, on the engineering side and on the business side.
-      That is why I can be useful to a CTO in the morning and to a marketing team in the afternoon.`,
+      I have put machine learning into production since 2019, at KPMG and in my own products, and today I build with AI agents inside
+      rules, context and checks I write, with a person reviewing every change. That mix is why I can be useful to a CTO in the morning
+      and to a marketing team in the afternoon.`,
       `I am looking for an architect, head or VP of engineering, product engineering, blockchain or AI engineering role where the
       problems are hard and the standards are high.`,
     ],

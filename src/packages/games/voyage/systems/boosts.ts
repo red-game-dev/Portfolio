@@ -9,8 +9,10 @@ import { placeBody, shipOf, ShipParts } from "./queries";
 
 // A jump's path is tried in this many steps, and stops short of anything it would end inside.
 const JUMP_STEPS = 12;
-// A gravity well is set this far ahead of the ship (world units).
+// A gravity well is set this far ahead of the ship (world units), or nearer where the view is smaller, so it is
+// always set where the pilot can see it work: within this share of the view's shorter half.
 const WELL_AHEAD = 3;
+const WELL_IN_VIEW = 0.6;
 // The decoy drifts back from the ship at this speed (world units a second).
 const DECOY_DRIFT = 0.8;
 
@@ -92,15 +94,19 @@ const begin = (context: VoyageContext, parts: ShipParts, id: BoostId, level: num
 
       return 0;
     }
-    case "gravityWell":
+    case "gravityWell": {
+      const room = Math.min(state.view.halfWidth, state.view.halfHeight);
+      const ahead = room > 0 ? Math.min(WELL_AHEAD, room * WELL_IN_VIEW) : WELL_AHEAD;
+
       state.well = {
-        x: body.x + Math.cos(ship.angle) * WELL_AHEAD,
-        y: body.y + Math.sin(ship.angle) * WELL_AHEAD,
+        x: body.x + Math.cos(ship.angle) * ahead,
+        y: body.y + Math.sin(ship.angle) * ahead,
         mu: strength,
         until: state.elapsedMs + duration,
       };
 
       return duration;
+    }
     case "luckyRoll": {
       const other = pick(random, BOOST_IDS.filter((choice) => choice !== "luckyRoll"));
       const better = level + Math.floor(random() * (strength + 1));

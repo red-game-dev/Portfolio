@@ -261,6 +261,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         setPay(notice.coin);
       } else if (notice.kind === "daily") {
         setDaily({ score: notice.score, isBest: notice.isBest });
+      } else if (notice.kind === "slotRefused") {
+        // The answer to a press shows at once, as a tap's does.
+        reply(voyageNotice(content, notice) ?? "");
       } else {
         say(voyageNotice(content, notice));
       }

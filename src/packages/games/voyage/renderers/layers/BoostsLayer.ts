@@ -37,14 +37,16 @@ const levelOn = (state: Readonly<VoyageState>, id: BoostId): number => {
 // What the boosts at work look like, round the ship and where they act: a gravity well's dark mass with arms of
 // light turning into it, a decoy's flare, a block shield's blocks circling, the wingman's drone alongside, a
 // magnetic shield's field lines, an overcharged shield's brighter ring, a heat sink's frost, a solar sail held up to
-// the star, the reach of a tractor beam, and bullet time's green cast over everything. The cloak, the afterburner
+// the star, a tractor beam to each coin and core in its reach, and bullet time's green cast over everything. The cloak, the afterburner
 // and the ion drive change the ship itself, so the ship's layer draws them.
 export class BoostsLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "boosts";
 
   constructor(private readonly kit: RenderKit) {}
 
-  public draw({ state, world, camera, alpha, now, config }: VoyageFrame): void {
+  public draw(frame: VoyageFrame): void {
+    const { state, world, camera, alpha, now, config } = frame;
+
     if (state.boosts.length === 0 && !state.well && state.decoy === null) {
       return;
     }
@@ -88,15 +90,7 @@ export class BoostsLayer implements RenderLayer<VoyageFrame> {
     const tractor = levelOn(state, "tractor");
 
     if (tractor > 0) {
-      context.globalAlpha = 0.22 + Math.sin(now * 0.006) * 0.08;
-      context.strokeStyle = BOOST_COLOURS.anywhere;
-      context.lineWidth = 1;
-      context.setLineDash([4, 6]);
-      context.beginPath();
-      context.arc(x, y, config.pickups.magnet * boostStrength("tractor", tractor) * camera.scale, 0, TAU);
-      context.stroke();
-      context.setLineDash([]);
-      context.globalAlpha = 1;
+      this.drawBeams(frame, x, y, config.pickups.magnet * boostStrength("tractor", tractor));
     }
 
     if (levelOn(state, "solarSail") > 0) {
@@ -143,6 +137,34 @@ export class BoostsLayer implements RenderLayer<VoyageFrame> {
     if (levelOn(state, "wingman") > 0) {
       this.drawWingman(x, y, r, angle, now);
     }
+  }
+
+  // A faint beam to each coin and core the tractor is drawing in, within its reach (world units).
+  private drawBeams({ state, world, camera, alpha, now }: VoyageFrame, x: number, y: number, reach: number): void {
+    const context = this.kit.front.context;
+    const ship = world.stores.body.get(state.ship);
+    const pickups = world.stores.pickup;
+
+    if (!ship) {
+      return;
+    }
+
+    context.strokeStyle = BOOST_COLOURS.anywhere;
+    context.lineWidth = 1;
+    context.globalAlpha = 0.3 + Math.sin(now * 0.01) * 0.1;
+    context.beginPath();
+
+    for (const entity of pickups.entities) {
+      const body = world.stores.body.get(entity);
+
+      if (body && Math.hypot(body.x - ship.x, body.y - ship.y) <= reach) {
+        context.moveTo(x, y);
+        context.lineTo(camera.toScreenX(lerpX(body, alpha)), camera.toScreenY(lerpY(body, alpha)));
+      }
+    }
+
+    context.stroke();
+    context.globalAlpha = 1;
   }
 
   // A dark mass with arms of the abyss's light turning into it.

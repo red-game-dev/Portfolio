@@ -233,15 +233,22 @@ describe("voyage boosts", () => {
     const rock = simulation.world.spawn();
 
     ship.angle = 0;
-    stores.body.set(rock, { x: body.x + 3, y: body.y + 2, vx: 0, vy: 0, prevX: body.x + 3, prevY: body.y + 2, radius: 0.05, mass: 1 });
-    stores.hazard.set(rock, { shape: 0, isIcy: false, isComet: false });
     simulation.boost("gravityWell", 1);
+
+    // Set ahead of the ship, within the view.
+    const well = simulation.state.well ?? { x: 0, y: 0 };
+    const room = Math.min(simulation.state.view.halfWidth, simulation.state.view.halfHeight);
+
+    expect(well.x - body.x).toBeGreaterThan(0);
+    expect(well.x - body.x).toBeLessThan(room);
+    expect(well.y).toBeCloseTo(body.y);
+
+    stores.body.set(rock, { x: well.x, y: well.y + 2, vx: 0, vy: 0, prevX: well.x, prevY: well.y + 2, radius: 0.05, mass: 1 });
+    stores.hazard.set(rock, { shape: 0, isIcy: false, isComet: false });
     simulation.step(500);
 
-    const at = stores.body.get(rock);
-
-    // Pulled down towards the well, three units ahead of where the ship was.
-    expect(at?.vy).toBeLessThan(-0.5);
+    // Pulled down towards the well.
+    expect(stores.body.get(rock)?.vy).toBeLessThan(-0.5);
 
     const slow = createFlying();
 

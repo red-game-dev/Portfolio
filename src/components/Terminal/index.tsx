@@ -192,7 +192,9 @@ const SHORTCUT = new KeyMap({ "`": "prompt", "/": "prompt" }, {
 });
 
 // Up and down walk through the commands typed before; Tab completes the one being typed.
-const PROMPT_KEYS = new KeyMap<"previous" | "next" | "complete">({ ArrowUp: "previous", ArrowDown: "next", Tab: "complete" });
+// Up and down walk the history and Tab completes; with Shift held each keeps its usual job (Shift+Tab moves focus
+// back, Shift+arrows select text), so a keyboard is never kept in the prompt.
+const PROMPT_KEYS = new KeyMap<"previous" | "next" | "complete">({ ArrowUp: "previous", ArrowDown: "next", Tab: "complete" }, { ignore: ["shift"] });
 
 // A real command line over the portfolio. The session is plain state from the terminal package; this
 // component only renders it and carries out the effects a command asks for.

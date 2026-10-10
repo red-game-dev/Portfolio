@@ -22,7 +22,7 @@ beforeAll(() => {
 describe("RegionDialog", () => {
   const plain = portfolioData.projects.filter((project) => !project.deepDive);
 
-  it("travels between regions with a bare arrow key and leaves the key's own action to the browser", () => {
+  it("travels between regions with a bare arrow key, which is the dialog's alone", () => {
     const onPrevious = jest.fn();
     const onNext = jest.fn();
 
@@ -43,7 +43,7 @@ describe("RegionDialog", () => {
 
     const dialog = document.querySelector("dialog") as HTMLDialogElement;
 
-    expect(fireEvent.keyDown(dialog, { key: "ArrowRight" })).toBe(true);
+    expect(fireEvent.keyDown(dialog, { key: "ArrowRight" })).toBe(false);
     expect(onNext).toHaveBeenCalledTimes(1);
 
     fireEvent.keyDown(dialog, { key: "ArrowRight", shiftKey: true });
@@ -139,6 +139,16 @@ describe("Terminal", () => {
     expect(fireEvent.keyDown(prompt(), { key: "Tab" })).toBe(false);
     expect(prompt()).toHaveValue("help");
   });
+
+  it("leaves Shift+Tab and Shift+arrows to the browser, so a keyboard can always leave the prompt", () => {
+    renderTerminal();
+
+    fireEvent.change(prompt(), { target: { value: "hel" } });
+    expect(fireEvent.keyDown(prompt(), { key: "Tab", shiftKey: true })).toBe(true);
+    expect(prompt()).toHaveValue("hel");
+    expect(fireEvent.keyDown(prompt(), { key: "ArrowUp", shiftKey: true })).toBe(true);
+    expect(prompt()).toHaveValue("hel");
+  });
 });
 
 describe("LensSwitch", () => {
@@ -175,11 +185,11 @@ describe("LensSwitch", () => {
     expect(options()).toHaveLength(0);
   });
 
-  it("closes on Escape and hands focus back to its button, leaving the key to the browser", () => {
+  it("closes on Escape and hands focus back to its button, taking the key for itself", () => {
     renderSwitch();
 
     fireEvent.click(toggle());
-    expect(fireEvent.keyDown(options()[0], { key: "Escape" })).toBe(true);
+    expect(fireEvent.keyDown(options()[0], { key: "Escape" })).toBe(false);
     expect(options()).toHaveLength(0);
     expect(toggle()).toHaveFocus();
   });

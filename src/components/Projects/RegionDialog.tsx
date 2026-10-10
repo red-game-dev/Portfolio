@@ -59,11 +59,10 @@ interface RegionDialogProps {
 }
 
 // Arrow keys travel between regions, like moving across a map, unless they are moving something sideways inside
-// the dialog (anything marked data-scroll-x: a strip of screens, a row of tabs) or carry a modifier. The browser
-// keeps the key's own action.
+// the dialog (anything marked data-scroll-x: a strip of screens, a row of tabs) or carry a modifier. A key that
+// travels is the dialog's alone, so the page under it does not scroll as well.
 const TRAVEL_KEYS = new KeyMap(HORIZONTAL_ARROWS, {
   ignore: ANY_MODIFIER,
-  preventDefault: false,
   skip: (event) => closestTo(event.target, "[data-scroll-x]") !== null,
 });
 

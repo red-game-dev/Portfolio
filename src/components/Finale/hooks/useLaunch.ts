@@ -4,6 +4,7 @@ import { usePressGesture } from "@/components/Finale/hooks/usePressGesture";
 import { LAUNCH_TEXTURES, LAUNCH_THEME } from "@/config/theme";
 import { CROSSED_ZONES } from "@/config/zones";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import useInView from "@/hooks/useInView";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { decodeImage } from "@/packages/browser/images";
 import type { LaunchSnapshot } from "@/packages/games/launch";
@@ -29,6 +30,18 @@ export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject
   useEffect(() => {
     setSite(sites[Math.floor(Math.random() * sites.length)] ?? null);
   }, [sites]);
+
+  // The Earth below is fetched a screen and a half before the board arrives, so it is the real one by orbit; the
+  // game picks the maps up from the same promises once it is built.
+  const isApproaching = useInView(boardRef, { once: true, threshold: 0, rootMargin: "150% 0px" });
+
+  useEffect(() => {
+    if (isApproaching) {
+      Object.values(LAUNCH_TEXTURES).forEach((url) => {
+        decodeImage(url).catch(() => undefined);
+      });
+    }
+  }, [isApproaching]);
 
   const game = useCanvasEngine(canvasRef, {
     sizeRef: boardRef,

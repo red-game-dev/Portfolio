@@ -71,8 +71,8 @@ const OptionHint = tw.span`text-xs text-[#888]`;
 
 const accentStyle = (lens: Lens) => ({ "--lens-accent": LENS_ACCENTS[lens].color, "--lens-rgb": LENS_ACCENTS[lens].rgb } as CSSProperties);
 
-// Escape closes the switch; the browser still gets the key.
-const CLOSE_KEYS = new KeyMap({ Escape: "close" }, { preventDefault: false });
+// Escape closes the switch, and only the switch.
+const CLOSE_KEYS = new KeyMap({ Escape: "close" });
 
 // The header control for changing who the page is written for, at any point. A disclosure: a button that
 // shows and hides a short list of buttons, one per view.

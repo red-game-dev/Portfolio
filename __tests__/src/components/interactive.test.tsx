@@ -233,7 +233,7 @@ describe("LensGate", () => {
     expect(JSON.parse(window.localStorage.getItem(LENS_STORAGE_KEY) ?? "null")).toBe("product");
   });
 
-  it("moves between the cards with the arrow keys, wrapping, and leaves Home and End to the browser", () => {
+  it("moves between the cards with the arrow keys, wrapping, and jumps to the first and last with Home and End", () => {
     render(<Gate />);
     pastIntro();
 
@@ -250,7 +250,10 @@ describe("LensGate", () => {
     fireEvent.keyDown(cards[cards.length - 1], { key: "ArrowDown" });
     expect(cards[0]).toHaveFocus();
 
-    expect(fireEvent.keyDown(cards[0], { key: "End" })).toBe(true);
+    expect(fireEvent.keyDown(cards[0], { key: "End" })).toBe(false);
+    expect(cards[cards.length - 1]).toHaveFocus();
+
+    fireEvent.keyDown(cards[cards.length - 1], { key: "Home" });
     expect(cards[0]).toHaveFocus();
   });
 

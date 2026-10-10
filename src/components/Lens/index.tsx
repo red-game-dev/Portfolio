@@ -164,10 +164,10 @@ export const LensGate: FC<LensGateProps> = ({ content, counts, candidate }: Lens
     }
   }, [finishEntrance, status, switchLens]);
 
-  // Arrow keys move between the cards and wrap, as on a game's select screen. Home and End stay the browser's.
+  // Arrow keys move between the cards and wrap, as on a game's select screen; Home and End jump to the first and last.
   const moveFocus = useCallback((event: KeyboardEvent<HTMLButtonElement>) => {
     const cards = Array.from(dialogRef.current?.querySelectorAll<HTMLButtonElement>("[data-lens-card]") ?? []);
-    const next = rovingTarget(event.key, cards.indexOf(event.currentTarget), cards.length, { ends: false });
+    const next = rovingTarget(event.key, cards.indexOf(event.currentTarget), cards.length);
 
     if (next === null) {
       return;

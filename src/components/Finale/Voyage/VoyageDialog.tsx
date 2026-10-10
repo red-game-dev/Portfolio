@@ -36,9 +36,9 @@ import {
   Bars,
   BarTrack,
   BarValue,
-  Buttons,
   Canvas,
   Card,
+  CardButtons,
   Coin,
   FaultList,
   FaultNeed,
@@ -96,6 +96,7 @@ import {
   Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
+import useMediaQuery from "@/hooks/useMediaQuery";
 import useModalDialog from "@/hooks/useModalDialog";
 import { readStored, writeStored } from "@/packages/browser/storage";
 import type { Frame, HomePad, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
@@ -142,6 +143,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const lensRef = useRef<HTMLCanvasElement>(null);
   const onBackdropClick = useModalDialog(dialogRef, true);
   const voyageSettings = useVoyageSettings();
+  // On a touch screen, how to fly by touch rather than by keys.
+  const isTouch = useMediaQuery("(hover: none) and (pointer: coarse)");
+  const controlsText = isTouch ? content.controlsTouch : content.controls;
   // Asked once: read after mount, so the server and the first render agree (asked, until known otherwise).
   const [isSetUp, setIsSetUp] = useState(true);
 
@@ -339,7 +343,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         <Canvas ref={backRef} aria-hidden="true" />
         <LensCanvas ref={lensRef} aria-hidden="true" />
         <Canvas ref={frontRef} aria-hidden="true" />
-        <ControlsNote id={CONTROLS_ID}>{content.controls}</ControlsNote>
+        <ControlsNote id={CONTROLS_ID}>{controlsText}</ControlsNote>
       </Stage>
       {isPhoto && (
         <PhotoBar aria-label={content.career.photo.title}>
@@ -583,13 +587,13 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         />
       )}
       {(status !== "flying" || isPaused) && !isHangarOpen && !isPhoto && (
-        <Overlay>
-          <Card>
+        <Overlay isPassThrough={status === "flying"}>
+          <Card isPassThrough={status === "flying"}>
             {status === "ready" && (
               <>
                 <Title>{content.title}</Title>
                 <Text>{content.intro}</Text>
-                <Text>{content.controls}</Text>
+                <Text>{controlsText}</Text>
                 {!isSetUp && (
                   <Setup aria-labelledby="voyage-setup-title">
                     <SetupTitle id="voyage-setup-title">{content.setup.title}</SetupTitle>
@@ -597,7 +601,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                     <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
                   </Setup>
                 )}
-                <Buttons>
+                {career && <Text>{dailyNote}</Text>}
+                <Credits>{content.credits}</Credits>
+                <CardButtons>
                   <ActionButton type="button" isPrimary disabled={!isReady} onClick={() => start()}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
                     {content.start}
@@ -614,21 +620,19 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                       {copy.hangar}
                     </ActionButton>
                   )}
-                </Buttons>
-                {career && <Text>{dailyNote}</Text>}
-                <Credits>{content.credits}</Credits>
+                </CardButtons>
               </>
             )}
             {status === "flying" && isPaused && (
               <>
                 <Title>{content.paused}</Title>
-                <Text>{content.controls}</Text>
-                <Buttons>
+                <Text>{controlsText}</Text>
+                <CardButtons>
                   <ActionButton type="button" isPrimary onClick={resume}>
                     <FontAwesomeIcon icon={faPlay} aria-hidden="true" />
                     {content.resume}
                   </ActionButton>
-                </Buttons>
+                </CardButtons>
               </>
             )}
             {status === "over" && snapshot && (
@@ -641,7 +645,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 {daily?.isBest && <Badge>{content.career.daily.newBest}</Badge>}
                 <Text>{voyagePlace(content, snapshot, universes)}</Text>
                 <Text>{content.kept}</Text>
-                <Buttons>
+                <CardButtons>
                   <ActionButton type="button" isPrimary onClick={() => start()}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
                     {content.again}
@@ -661,7 +665,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                   <ActionButton type="button" isPrimary={false} onClick={onClose}>
                     {content.close}
                   </ActionButton>
-                </Buttons>
+                </CardButtons>
               </>
             )}
           </Card>

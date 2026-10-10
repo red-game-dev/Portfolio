@@ -193,7 +193,7 @@ describe("voyage boosts", () => {
     (simulation.state as VoyageState).storms.push({ angle: 0, width: Math.PI, radius: 19.9, speed: 2, strength: 1, hasHitShip: false, hasHitEarth: true });
     simulation.step(300);
     expect(storms.length).toBeGreaterThan(0);
-    expect(storms[0].strength).toBe(0);
+    expect(storms[0]).toEqual({ strength: 0, isTurned: true });
     expect(health.shields).toBeGreaterThanOrEqual(shields - 1);
   });
 
@@ -299,5 +299,67 @@ describe("voyage boosts", () => {
     expect(simulation.boost("luckyRoll", 1)).toBe(true);
     expect(boosted.map((event) => event.boost)).toContain("luckyRoll");
     expect(boosted.some((event) => event.boost !== "luckyRoll")).toBe(true);
+  });
+  test("a jump with a world just ahead would go nowhere, so it is refused and nothing cools down", () => {
+    const simulation = createFlying();
+    const jupiter = simulation.state.system.bodies.find((body) => body.id === "jupiter");
+
+    if (!jupiter) {
+      throw new Error("no Jupiter");
+    }
+
+    const { body, ship } = partsOf(simulation);
+    const x = jupiter.x - jupiter.radius - 0.2;
+
+    Object.assign(body, { x, y: jupiter.y, prevX: x, prevY: jupiter.y, vx: 0, vy: 0 });
+    ship.angle = 0;
+    expect(simulation.boost("pixelBlink", 1)).toBe(false);
+    expect(simulation.boost("warpJump", 1)).toBe(false);
+    expect(simulation.state.boostReady.pixelBlink).toBeUndefined();
+    expect(body.x).toBe(x);
+
+    // Turned away from it, the way is clear.
+    ship.angle = Math.PI;
+    expect(simulation.boost("pixelBlink", 1)).toBe(true);
+    expect(body.x).toBeLessThan(x);
+  });
+
+  test("a lucky roll on the ground lands only on a boost that works there, never a jump or a well", () => {
+    const simulation = createFlying();
+    const rolled = heard(simulation, "boosted");
+
+    outThere(simulation);
+    partsOf(simulation).ship.landedOn = "moon";
+
+    for (let roll = 0; roll < 40; roll += 1) {
+      (simulation.state as VoyageState).boostReady.luckyRoll = 0;
+      expect(simulation.boost("luckyRoll", 1)).toBe(true);
+    }
+
+    const landed = rolled.map(({ boost }) => boost).filter((boost) => boost !== "luckyRoll");
+
+    expect(landed.length).toBe(40);
+    expect(landed.some((boost) => boost === "pixelBlink" || boost === "warpJump" || boost === "gravityWell")).toBe(false);
+  });
+
+  test("a decoy and a gravity well stay behind when a black hole takes the ship on", () => {
+    const simulation = createFlying();
+
+    outThere(simulation);
+    simulation.boost("decoy", 1);
+    simulation.boost("gravityWell", 1);
+
+    const decoy = simulation.state.decoy;
+    const state = simulation.state as VoyageState;
+    const { body } = partsOf(simulation);
+
+    expect(decoy).not.toBeNull();
+    state.capture = { centre: { x: body.x, y: body.y }, from: 0.1, angle: 0, progress: 0.999, hole: 0 };
+    simulation.step(defaults.stepMs * 4);
+
+    expect(simulation.state.decoy).toBeNull();
+    expect(decoy !== null && simulation.world.isAlive(decoy)).toBe(false);
+    expect(simulation.state.well).toBeNull();
+    expect(simulation.state.boosts.map((active) => active.id)).toEqual([]);
   });
 });

@@ -119,7 +119,8 @@ describe("the voyage's messages", () => {
   test("flares, storms, failing systems and a melting hull are said as they happen", () => {
     expect(voyageNotice(voyage, { kind: "flare", flareClass: "X", isHeading: true })).toContain("class X");
     expect(voyageNotice(voyage, { kind: "flare", flareClass: "C", isHeading: false })).toBe("Solar flare, class C");
-    expect(voyageNotice(voyage, { kind: "storm" })).toBe(voyage.storm);
+    expect(voyageNotice(voyage, { kind: "storm", isTurned: false })).toBe(voyage.storm);
+    expect(voyageNotice(voyage, { kind: "storm", isTurned: true })).toBe(voyage.stormTurned);
     expect(voyageNotice(voyage, { kind: "failing", module: "sensors", isGone: false })).toBe("Sensors failing");
     expect(voyageNotice(voyage, { kind: "failing", module: "engines", isGone: true })).toBe("Engines lost");
     expect(voyageNotice(voyage, { kind: "melting", temperatureC: 641.4 })).toContain("641");

@@ -17,7 +17,7 @@ import {
   BarRow, BoostFind, BoostRow, CargoRow, Cost, CurrencyCode, Deed, EconomyView, Purse, Recipe, ShipStats, ShipStatus, Shortfall, Stowed, Suggestion,
 } from "../domain/economy";
 import { ItemSpec, ItemStack, Loot } from "../domain/items";
-import { BarSlot, BoostRecord, EconomyProfile, PilotRecords } from "../domain/profile";
+import { BarSlot, BoostRecord, EconomyProfile, KeptSlot, PilotRecords } from "../domain/profile";
 
 // How many ledger entries the UI is shown.
 const HISTORY = 30;
@@ -604,12 +604,13 @@ export class Hangar {
     return spec !== undefined && effectsOf(spec).length > 0;
   }
 
-  // A bar read back from a profile: always four slots, each kept only while it still fits.
-  private barOf(bar: ReadonlyArray<BarSlot | null>): Array<BarSlot | null> {
+  // A bar read back from a profile: always four slots, each kept only while it still names something that fits.
+  private barOf(bar: ReadonlyArray<KeptSlot | null>): Array<BarSlot | null> {
     return Array.from({ length: BAR_SLOTS }, (_, index) => {
-      const slot = bar[index] ?? null;
+      const kept = bar[index] ?? null;
+      const slot: BarSlot | null = !kept ? null : kept.kind === "item" ? { kind: "item", id: kept.id } : isBoostId(kept.id) ? { kind: "boost", id: kept.id } : null;
 
-      return slot && this.fits(slot) ? { ...slot } : null;
+      return slot && this.fits(slot) ? slot : null;
     });
   }
 
@@ -649,7 +650,7 @@ const boostsOf = (boosts: EconomyProfile["boosts"]): Map<BoostId, BoostRecord> =
   const kept = new Map<BoostId, BoostRecord>();
 
   Object.entries(boosts).forEach(([id, record]) => {
-    if (isBoostId(id) && record) {
+    if (isBoostId(id)) {
       kept.set(id, { charges: Math.min(MAX_CHARGES, record.charges), finds: record.finds });
     }
   });

@@ -55,6 +55,6 @@ describe("the ability bar's words", () => {
     expect(voyageNotice(voyage, { kind: "slotRefused", slot: { kind: "boost", id: "prism" }, reason: "cooling", seconds: 4.2 })).toBe("Prism is cooling down: 5 s");
     expect(voyageNotice(voyage, { kind: "slotRefused", slot: { kind: "item", id: "fuelCell" }, reason: "empty", seconds: 0 })).toContain("No Fuel cell left");
     expect(voyageNotice(voyage, { kind: "slotRefused", slot: { kind: "boost", id: "warpJump" }, reason: "unable", seconds: 0 })).toBe("Warp jump cannot work here.");
-    expect(boostNotice(voyage, { kind: "storm" })).toBeNull();
+    expect(boostNotice(voyage, { kind: "storm", isTurned: false })).toBeNull();
   });
 });

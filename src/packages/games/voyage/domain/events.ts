@@ -4,7 +4,7 @@ import { AlienRole, ModuleId, PickupKind, Weapon, WreckKind } from "./components
 import { FaultKind } from "./faults";
 import { Loot } from "./loot";
 
-export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "tidal" | "breach";
+export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "groundFire" | "tidal" | "breach";
 
 // What became of a world an impact struck: a crater, a burst high in its air, a scar that melted half a
 // hemisphere, or the world broken apart.
@@ -48,7 +48,7 @@ export interface VoyageEvents {
   // ship.
   flare: { angle: number; strength: number; class: FlareClass; isHeading: boolean };
   // The storm from a flare reaches the ship.
-  storm: { strength: number };
+  storm: { strength: number; isTurned: boolean };
   // A system has fallen below half, or has gone.
   failing: { module: ModuleId; isGone: boolean };
   // The hull has passed the temperature it was built for.

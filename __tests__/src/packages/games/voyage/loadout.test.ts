@@ -12,6 +12,7 @@ import {
   newEconomyProfile,
   newProfile,
   PilotLink,
+  PilotProfile,
   PilotRepository,
   VoyageGame,
   VoyageNotice,
@@ -125,12 +126,22 @@ describe("voyage loadout", () => {
     expect(odd.boostCharges("gravityWell")).toBe(MAX_CHARGES);
   });
 
-  test("the guard turns away boosts it does not know and bars that are not slots", () => {
+  test("the guard checks only the shape: a boost no longer known is dropped as the hangar reads it, never the whole profile", () => {
     const profile = newProfile();
+    const renamed: PilotProfile = {
+      ...profile,
+      boosts: { hyperdrive: { charges: 1, finds: 1 }, cloak: { charges: 2, finds: 2 } },
+      bar: [{ kind: "boost", id: "hyperdrive" }, null, null, null],
+    };
 
-    expect(isPilotProfile({ ...profile, boosts: { hyperdrive: { charges: 1, finds: 1 } } })).toBe(false);
+    expect(isPilotProfile(renamed)).toBe(true);
+
+    const hangar = new Hangar(renamed);
+
+    expect(hangar.view().boosts.map((row) => row.id)).toEqual(["cloak"]);
+    expect(hangar.slot(0)).toBeNull();
+
     expect(isPilotProfile({ ...profile, boosts: { cloak: { charges: -1, finds: 1 } } })).toBe(false);
-    expect(isPilotProfile({ ...profile, bar: [{ kind: "boost", id: "hyperdrive" }] })).toBe(false);
     expect(isPilotProfile({ ...profile, bar: [{ kind: "weapon", id: "railgun" }] })).toBe(false);
     expect(isPilotProfile({ ...profile, bar: "fuelCell" })).toBe(false);
   });
@@ -177,6 +188,10 @@ describe("voyage loadout", () => {
     simulation.start(EPOCH);
     hangar.findBoost("afterburner");
     hangar.findBoost("afterburner");
+
+    // Held still, the bar does nothing.
+    expect(game.act({ kind: "slot", index: 2 })).toBe(false);
+    game.resume();
 
     expect(game.act({ kind: "slot", index: 2 })).toBe(true);
     expect(hangar.boostCharges("afterburner")).toBe(1);

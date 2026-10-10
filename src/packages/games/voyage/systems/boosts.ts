@@ -39,6 +39,18 @@ const clearJump = ({ state }: VoyageContext, parts: ShipParts, distance: number)
   return clear;
 };
 
+// Whether a boost can do anything where the ship is: a jump or a well not while standing on a world, and a jump not
+// when the first step ahead would end inside a world or a star, which would leave it where it is.
+const canWorkHere = (context: VoyageContext, parts: ShipParts, id: BoostId, level: number): boolean => {
+  const isJump = id === "pixelBlink" || id === "warpJump";
+
+  if ((isJump || id === "gravityWell") && parts.ship.landedOn !== null) {
+    return false;
+  }
+
+  return !isJump || clearJump(context, parts, boostStrength(id, level)) > 0;
+};
+
 // What a boost does the moment it is set to work, and how long it then lasts (ms; nothing for one done at once).
 const begin = (context: VoyageContext, parts: ShipParts, id: BoostId, level: number): number => {
   const { state, world, random } = context;
@@ -108,8 +120,16 @@ const begin = (context: VoyageContext, parts: ShipParts, id: BoostId, level: num
       return duration;
     }
     case "luckyRoll": {
-      const other = pick(random, BOOST_IDS.filter((choice) => choice !== "luckyRoll"));
+      // Only a boost that can work here and now: no jump that would go nowhere or off a world. The roll is the
+      // luck, so the boost it lands on need not have cooled down.
       const better = level + Math.floor(random() * (strength + 1));
+      const choices = BOOST_IDS.filter((choice) => choice !== "luckyRoll" && canWorkHere(context, parts, choice, better));
+
+      if (choices.length === 0) {
+        return 0;
+      }
+
+      const other = pick(random, choices);
       const lasts = begin(context, parts, other, better);
 
       if (lasts > 0) {
@@ -127,18 +147,18 @@ const begin = (context: VoyageContext, parts: ShipParts, id: BoostId, level: num
 };
 
 // Sets a boost to work at a level, if the ship can use one now and it is ready: not while lost between universes,
-// falling into a black hole or coming down, and a jump not while standing on a world. Returns whether it did.
+// falling into a black hole or coming down, nor where it could do nothing. Returns whether it did, so a charge is
+// spent only on one that worked.
 export const activateBoost = (context: VoyageContext, id: BoostId, level: number): boolean => {
   const { state, events } = context;
   const parts = shipOf(context);
   const isComingDown = state.descent !== null && state.descent.downAt === null;
-  const isJump = id === "pixelBlink" || id === "warpJump" || id === "gravityWell";
 
   if (!parts || state.status !== "flying" || state.phase === "lost" || state.capture || isComingDown || level < 1) {
     return false;
   }
 
-  if ((state.boostReady[id] ?? 0) > state.elapsedMs || (isJump && parts.ship.landedOn !== null)) {
+  if ((state.boostReady[id] ?? 0) > state.elapsedMs || !canWorkHere(context, parts, id, level)) {
     return false;
   }
 

@@ -4,6 +4,7 @@ import { keyPress } from "../packages/interaction/fixtures/events";
 
 const state = (overrides: Partial<VoyageKeyState> = {}): VoyageKeyState => ({
   isFlying: true,
+  isPaused: false,
   hasRun: true,
   isHangarOpen: false,
   isPhoto: false,
@@ -83,6 +84,7 @@ describe("voyageKeyAction", () => {
     expect(voyageKeyAction("slot3", state())).toBe("slot3");
     expect(voyageKeyAction("slot1", state({ isFlying: false }))).toBeNull();
     expect(voyageKeyAction("slot2", state({ hasHangar: false }))).toBeNull();
+    expect(voyageKeyAction("slot3", state({ isPaused: true }))).toBeNull();
     expect(voyageKeyAction("slot4", state({ isHangarOpen: true }))).toBeNull();
     expect(voyageKeyAction("slot4", state({ isPhoto: true }))).toBeNull();
     expect([slotOf("slot1"), slotOf("slot4"), slotOf("pause"), slotOf(null)]).toEqual([0, 3, -1, -1]);

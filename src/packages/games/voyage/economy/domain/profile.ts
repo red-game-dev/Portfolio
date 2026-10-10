@@ -13,6 +13,13 @@ export interface BoostRecord {
 // What a slot of the ability bar holds: a boost, or a consumable from the hold.
 export type BarSlot = { kind: "boost"; id: BoostId } | { kind: "item"; id: string };
 
+// A slot as kept in a profile, by name: a boost a later release no longer knows is dropped as the bar is read back,
+// rather than the profile being refused.
+export interface KeptSlot {
+  kind: "boost" | "item";
+  id: string;
+}
+
 // What a pilot has done across every run, kept for the records the HUD and the codex show.
 export interface PilotRecords {
   runs: number;
@@ -33,9 +40,9 @@ export interface EconomyProfile {
   blueprints: string[];
   ledger: LedgerSnapshot;
   records: PilotRecords;
-  // Each boost found, and what sits in each slot of the ability bar.
-  boosts: Partial<Record<BoostId, BoostRecord>>;
-  bar: Array<BarSlot | null>;
+  // Each boost found, by name, and what sits in each slot of the ability bar.
+  boosts: Record<string, BoostRecord>;
+  bar: Array<KeptSlot | null>;
 }
 
 // Everything a pilot keeps between runs: the hangar's part and the career's.

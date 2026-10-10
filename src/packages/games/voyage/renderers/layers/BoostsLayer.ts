@@ -1,10 +1,9 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
+import { clamp } from "@/packages/math/clamp";
 
 import { BOOST_COLOURS } from "../../config/boosts";
-import { BoostId } from "../../domain/boosts";
-import { VoyageState } from "../../domain/state";
-import { boostStrength } from "../../utils/boosts";
+import { activeLevel, boostStrength } from "../../utils/boosts";
 import { lerpX, lerpY, VoyageFrame } from "../frame";
 import { paintShieldRing } from "../paint/damage";
 import { paintGlow } from "../paint/space";
@@ -20,19 +19,8 @@ const WELL_TURN = 0.003;
 const BLOCK_ORBIT = 2.5;
 const WINGMAN_SIDE = 2.4;
 const SAIL_AHEAD = 2.2;
-
-// The level a boost is at work at, or 0: a plain loop, as it is asked several times a frame.
-const levelOn = (state: Readonly<VoyageState>, id: BoostId): number => {
-  let level = 0;
-
-  for (const active of state.boosts) {
-    if (active.id === id && active.until > state.elapsedMs && active.level > level) {
-      level = active.level;
-    }
-  }
-
-  return level;
-};
+// A gravity well's dark heart, in world units: small beside a world, so it never reads as a black hole.
+const WELL_SIZE = 0.04;
 
 // What the boosts at work look like, round the ship and where they act: a gravity well's dark mass with arms of
 // light turning into it, a decoy's flare, a block shield's blocks circling, the wingman's drone alongside, a
@@ -55,7 +43,7 @@ export class BoostsLayer implements RenderLayer<VoyageFrame> {
     const context = front.context;
 
     if (state.well && camera.sees(state.well.x, state.well.y, 1)) {
-      this.drawWell(camera.toScreenX(state.well.x), camera.toScreenY(state.well.y), Math.max(10, camera.scale * 0.32), now);
+      this.drawWell(camera.toScreenX(state.well.x), camera.toScreenY(state.well.y), clamp(camera.scale * WELL_SIZE, 8, 22), now);
     }
 
     const decoy = state.decoy !== null ? world.stores.body.get(state.decoy) : undefined;
@@ -82,31 +70,31 @@ export class BoostsLayer implements RenderLayer<VoyageFrame> {
     const r = body.radius * camera.scale;
     const angle = ship.angle;
 
-    if (levelOn(state, "bulletTime") > 0) {
+    if (activeLevel(state, "bulletTime") > 0) {
       context.fillStyle = "rgba(75, 255, 165, 0.06)";
       context.fillRect(0, 0, front.width, front.height);
     }
 
-    const tractor = levelOn(state, "tractor");
+    const tractor = activeLevel(state, "tractor");
 
     if (tractor > 0) {
       this.drawBeams(frame, x, y, config.pickups.magnet * boostStrength("tractor", tractor));
     }
 
-    if (levelOn(state, "solarSail") > 0) {
+    if (activeLevel(state, "solarSail") > 0) {
       this.drawSail(x, y, r, Math.atan2(body.y - state.system.star.y, body.x - state.system.star.x));
     }
 
     context.globalCompositeOperation = "lighter";
 
-    if (levelOn(state, "overcharge") > 0) {
+    if (activeLevel(state, "overcharge") > 0) {
       const ring = this.kit.cache.get(`shield:${this.kit.theme.shield}`, 128, 128, paintShieldRing(this.kit.theme.shield));
 
       context.globalAlpha = 0.4 + Math.sin(now * 0.012) * 0.12;
       front.blit(ring, x, y, r * 4.8, r * 4.8);
     }
 
-    if (levelOn(state, "heatSink") > 0) {
+    if (activeLevel(state, "heatSink") > 0) {
       const frost = this.kit.cache.get(`glow:${FROST}`, 64, 64, paintGlow(FROST));
 
       context.globalAlpha = 0.22;
@@ -116,7 +104,7 @@ export class BoostsLayer implements RenderLayer<VoyageFrame> {
     context.globalAlpha = 1;
     context.globalCompositeOperation = "source-over";
 
-    if (levelOn(state, "magneticShield") > 0) {
+    if (activeLevel(state, "magneticShield") > 0) {
       context.strokeStyle = BOOST_COLOURS.solar;
       context.lineWidth = 1.2;
       context.globalAlpha = 0.45;
@@ -134,12 +122,12 @@ export class BoostsLayer implements RenderLayer<VoyageFrame> {
       this.drawBlocks(x, y, r, state.blocks, now);
     }
 
-    if (levelOn(state, "wingman") > 0) {
+    if (activeLevel(state, "wingman") > 0) {
       this.drawWingman(x, y, r, angle, now);
     }
   }
 
-  // A faint beam to each coin and core the tractor is drawing in, within its reach (world units).
+  // A faint beam to each coin and core on screen that the tractor is drawing in, within its reach (world units).
   private drawBeams({ state, world, camera, alpha, now }: VoyageFrame, x: number, y: number, reach: number): void {
     const context = this.kit.front.context;
     const ship = world.stores.body.get(state.ship);
@@ -154,14 +142,16 @@ export class BoostsLayer implements RenderLayer<VoyageFrame> {
     context.globalAlpha = 0.3 + Math.sin(now * 0.01) * 0.1;
     context.beginPath();
 
-    for (const entity of pickups.entities) {
+    pickups.entities.forEach((entity, index) => {
+      const { kind } = pickups.values[index];
       const body = world.stores.body.get(entity);
 
-      if (body && Math.hypot(body.x - ship.x, body.y - ship.y) <= reach) {
+      // Only coins and cores are drawn in; the other pickups wait to be flown through.
+      if ((kind === "coin" || kind === "boost") && body && camera.sees(body.x, body.y, body.radius) && Math.hypot(body.x - ship.x, body.y - ship.y) <= reach) {
         context.moveTo(x, y);
         context.lineTo(camera.toScreenX(lerpX(body, alpha)), camera.toScreenY(lerpY(body, alpha)));
       }
-    }
+    });
 
     context.stroke();
     context.globalAlpha = 1;

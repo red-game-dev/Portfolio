@@ -108,7 +108,7 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
     case "flare":
       return fill(notice.isHeading ? content.flareHeading : content.flare, { class: notice.flareClass });
     case "storm":
-      return content.storm;
+      return notice.isTurned ? content.stormTurned : content.storm;
     case "failing":
       return fill(notice.isGone ? content.gone : content.failing, { system: content.systems.names[notice.module] ?? notice.module });
     case "melting":

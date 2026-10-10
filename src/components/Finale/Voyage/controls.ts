@@ -52,6 +52,8 @@ export const VOYAGE_ZOOM: ZoomInputOptions = { wheel: 0.0015, step: 1.25 };
 // What the voyage is doing, as far as its keys care.
 export interface VoyageKeyState {
   isFlying: boolean;
+  // A run held still by the pause key, under its card.
+  isPaused: boolean;
   // A run has begun (it is flying or over), so the map and photo mode have something to show.
   hasRun: boolean;
   isHangarOpen: boolean;
@@ -101,7 +103,7 @@ export const voyageKeyAction = (command: VoyageCommand, state: VoyageKeyState): 
     case "slot2":
     case "slot3":
     case "slot4":
-      return state.isFlying && state.hasHangar ? command : null;
+      return state.isFlying && !state.isPaused && state.hasHangar ? command : null;
     case "back":
       if (state.isHangarOpen) {
         return "closeHangar";

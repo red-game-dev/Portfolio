@@ -18,9 +18,18 @@ export const boostStrength = (id: BoostId, level: number): number => BOOSTS[id].
 
 export const boostDuration = (id: BoostId, level: number): number => BOOSTS[id].durationS * (1 + DURATION_PER_LEVEL * (Math.max(1, level) - 1)) * 1000;
 
-// The level a boost is at work at now, or 0 when it is not.
-export const activeLevel = (state: Readonly<VoyageState>, id: BoostId): number =>
-  state.boosts.reduce((level, active) => (active.id === id && active.until > state.elapsedMs ? Math.max(level, active.level) : level), 0);
+// The level a boost is at work at now, or 0 when it is not: a plain loop, as systems ask it every step.
+export const activeLevel = (state: Readonly<VoyageState>, id: BoostId): number => {
+  let level = 0;
+
+  for (const active of state.boosts) {
+    if (active.id === id && active.until > state.elapsedMs && active.level > level) {
+      level = active.level;
+    }
+  }
+
+  return level;
+};
 
 // A boost's core to set drifting where the ship is: one of the place's own (our solar system's, or the universe's
 // style's) more often than not, else one found anywhere, and now and then in the deep one of another deep style's.

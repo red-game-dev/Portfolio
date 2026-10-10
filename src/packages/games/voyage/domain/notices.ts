@@ -23,7 +23,8 @@ export type VoyageNotice =
   | { kind: "captured"; isSingularity: boolean }
   | { kind: "destroyed" }
   | { kind: "flare"; flareClass: FlareClass; isHeading: boolean }
-  | { kind: "storm" }
+  // A storm reaching the ship, or turned aside by a magnetic shield.
+  | { kind: "storm"; isTurned: boolean }
   | { kind: "failing"; module: ModuleId; isGone: boolean }
   | { kind: "melting"; temperatureC: number }
   | { kind: "impactAlert"; target: string; diameterKm: number; seconds: number }

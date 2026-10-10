@@ -2,7 +2,7 @@ import type { System } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
 
-import { boostToFind } from "../utils/boosts";
+import { activeLevel, boostToFind } from "../utils/boosts";
 import { VoyageContext } from "./context";
 import { isInSystem, shipOf, viewRadius } from "./queries";
 
@@ -15,16 +15,22 @@ export class BoostSystem implements System<VoyageContext> {
   public update(context: VoyageContext): void {
     const { state, world } = context;
     const now = state.elapsedMs;
+    let isExpired = false;
 
-    if (state.boosts.some((active) => active.until <= now)) {
+    for (const active of state.boosts) {
+      isExpired = isExpired || active.until <= now;
+    }
+
+    // Only when one has run out, which is seldom, is a new list made.
+    if (isExpired) {
       state.boosts = state.boosts.filter((active) => active.until > now);
     }
 
-    if (state.blocks > 0 && !state.boosts.some((active) => active.id === "blockShield")) {
+    if (state.blocks > 0 && activeLevel(state, "blockShield") === 0) {
       state.blocks = 0;
     }
 
-    if (state.decoy !== null && !state.boosts.some((active) => active.id === "decoy")) {
+    if (state.decoy !== null && activeLevel(state, "decoy") === 0) {
       world.despawn(state.decoy);
       state.decoy = null;
     }

@@ -400,8 +400,9 @@ export class VoyageGame extends FrameLoop {
 
         return isFlying && fault !== undefined && this.applyEffects(hangar.repair(fault));
       }
+      // The bar works only while the run moves: not held still under the pause card, the map or the hangar.
       case "slot":
-        return isFlying && this.useSlot(action.index);
+        return isFlying && this.isRunning && this.useSlot(action.index);
       case "setSlot":
         return hangar.setSlot(action.index, action.slot);
       case "reset":
@@ -808,7 +809,7 @@ export class VoyageGame extends FrameLoop {
       tell("captured", ({ isSingularity }) => ({ kind: "captured", isSingularity })),
       tell("destroyed", () => ({ kind: "destroyed" })),
       tell("flare", ({ class: flareClass, isHeading }) => ({ kind: "flare", flareClass, isHeading })),
-      tell("storm", () => ({ kind: "storm" })),
+      tell("storm", ({ isTurned }) => ({ kind: "storm", isTurned })),
       tell("failing", ({ module, isGone }) => ({ kind: "failing", module, isGone })),
       tell("melting", ({ temperatureC }) => ({ kind: "melting", temperatureC })),
       tell("impactAlert", ({ target, diameterKm, seconds }) => ({ kind: "impactAlert", target: this.nameOf(target), diameterKm, seconds })),

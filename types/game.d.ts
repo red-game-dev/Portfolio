@@ -428,6 +428,8 @@ export interface FinaleVoyage {
   flare: string;
   flareHeading: string;
   storm: string;
+  // A storm turned aside by the magnetic shield boost.
+  stormTurned: string;
   // "{system}" is replaced.
   failing: string;
   gone: string;

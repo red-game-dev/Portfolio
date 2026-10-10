@@ -125,7 +125,6 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
     return gate && state.network ? state.network.nodes[Number(gate[1])]?.name ?? null : state.cosmos?.names[id] ?? null;
   }
 
-  // The way down while it is coming down, in real units rounded for reading.
   // Each boost at work with the share of it still to run, each used one's seconds to wait, and the blocks standing.
   private boosts(state: Readonly<VoyageState>): VoyageSnapshot["boosts"] {
     const now = state.elapsedMs;
@@ -148,6 +147,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
     };
   }
 
+  // The way down while it is coming down, in real units rounded for reading.
   private descent({ descent }: VoyageState): DescentView | null {
     if (!descent || descent.downAt !== null) {
       return null;

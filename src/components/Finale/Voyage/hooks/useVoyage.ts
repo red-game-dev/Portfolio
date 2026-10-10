@@ -293,6 +293,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
     const action = voyageKeyAction(command, {
       isFlying,
+      isPaused,
       hasRun: snapshot !== null && snapshot.status !== "ready",
       isHangarOpen,
       isPhoto,
@@ -345,7 +346,10 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
           return false;
         }
 
-        act({ kind: "slot", index: slotOf(action) });
+        // A held key uses its slot once, not again on every repeat.
+        if (!event.repeat) {
+          act({ kind: "slot", index: slotOf(action) });
+        }
     }
 
     return true;

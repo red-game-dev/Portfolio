@@ -10,7 +10,8 @@ const MAX_DECALS = 16;
 // The hull share the warm up never lets the hull drop below: heavily damaged, smoking, but flying.
 const SAFE_FLOOR = 0.12;
 
-// Kinds of damage that come as one hit, which a block shield's block can take whole.
+// Kinds of damage that come as one hit, which a block shield's block can take whole. Fire from the ground comes as a
+// steady stream instead, a little every step, so it is not among them: it would spend every block in a moment.
 const BLOCKED: readonly DamageKind[] = ["weapon", "impact", "crash"];
 
 // Kinds of damage that strike a part of the ship, and so the system under it.

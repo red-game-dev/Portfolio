@@ -253,6 +253,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       flare: "Solar flare, class {class}",
       flareHeading: "Solar flare, class {class}: the storm is heading your way",
       storm: "The storm hits: shields drained, radiation spiking",
+      stormTurned: "The magnetic shield turns the storm aside",
       failing: "{system} failing",
       gone: "{system} lost",
       melting: "The hull is melting at {temperature} \u00b0C. Turn back.",

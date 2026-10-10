@@ -98,7 +98,7 @@ export type {
   Suggestion,
 } from "./economy/domain/economy";
 export type { ItemKind, ItemSpec, ItemUse, Rarity } from "./economy/domain/items";
-export type { BarSlot, BoostRecord, EconomyProfile, PilotProfile, PilotRecords } from "./economy/domain/profile";
+export type { BarSlot, BoostRecord, EconomyProfile, KeptSlot, PilotProfile, PilotRecords } from "./economy/domain/profile";
 export type {
   CareerEvent,
   CareerProfile,

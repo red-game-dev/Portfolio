@@ -107,7 +107,7 @@ export class WeatherSystem implements System<VoyageContext> {
 
     // A magnetic shield turns the storm's particles aside, as Earth's field does.
     if (levelOf(context, "magneticShield") > 0) {
-      events.emit("storm", { strength: 0 });
+      events.emit("storm", { strength: 0, isTurned: true });
 
       return;
     }
@@ -121,6 +121,6 @@ export class WeatherSystem implements System<VoyageContext> {
     health.shields = Math.max(0, health.shields - drain);
     health.rechargeIn = config.ship.shieldDelayMs;
     modules.sensors = Math.max(0, modules.sensors - config.weather.sensors * strength * reach * (0.3 + 0.7 * unshielded));
-    events.emit("storm", { strength: strength * reach });
+    events.emit("storm", { strength: strength * reach, isTurned: false });
   }
 }

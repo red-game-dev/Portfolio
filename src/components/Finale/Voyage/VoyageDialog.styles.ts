@@ -235,17 +235,41 @@ export const Message = styled.p(() => [
   `,
 ]);
 
-export const Overlay = tw.div`absolute inset-0 flex items-center justify-center p-[16px] pointer-events-none`;
-
-// Never taller than the screen: on a short phone it scrolls within itself rather than being cut off.
-export const Card = styled.section(() => [
-  tw`flex flex-col gap-[12px] w-full max-w-[460px] p-[22px] md:p-[28px] pointer-events-auto`,
+// Under the HUD's buttons (so they still answer while a card is up), the card's own scrolling area: the whole of it
+// scrolls as one, so a card taller than a short phone is read to the end. Some phones will not scroll a box nested
+// inside a layer that lets touches through to the canvas, so this layer takes the touches itself.
+export const Overlay = styled.div(() => [
+  tw`absolute left-0 right-0 bottom-0 top-[58px] md:top-[72px] flex flex-col items-center px-[16px] pt-[6px] pb-[16px] pointer-events-auto`,
   css`
-    max-height: calc(100vh - 32px);
-    max-height: calc(100dvh - 32px);
     overflow-y: auto;
     overscroll-behavior: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  `,
+]);
+
+// Centred where it fits, from the top where it does not; it never scrolls inside itself.
+export const Card = styled.section(() => [
+  tw`flex flex-col gap-[12px] w-full max-w-[460px] p-[22px] md:p-[28px]`,
+  css`
+    margin: auto 0;
+    flex-shrink: 0;
     ${voyagePanel(0.86, 0.4)}
+  `,
+]);
+
+// A card's actions, held at the bottom of the screen while the rest of a long card scrolls under them.
+export const CardButtons = styled.div(() => [
+  tw`flex flex-row flex-wrap gap-[10px] mt-[6px] px-[22px] pt-[12px] pb-[18px] md:px-[28px] md:pb-[24px]`,
+  css`
+    position: sticky;
+    bottom: -16px;
+    margin: 6px -22px -22px;
+    background: linear-gradient(to bottom, rgba(5, 8, 18, 0), rgba(5, 8, 18, 0.96) 28%);
+
+    ${media.md} {
+      margin: 6px -28px -28px;
+    }
   `,
 ]);
 

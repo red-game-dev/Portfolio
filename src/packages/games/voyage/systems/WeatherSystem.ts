@@ -4,6 +4,7 @@ import { randomBetween } from "@/packages/math/random";
 
 import { HOME_WORLD } from "../domain/content";
 import { FlareClass } from "../domain/events";
+import { levelOf } from "./boosts";
 import { VoyageContext } from "./context";
 import { bodyById, distanceFromStar, isInSystem, shipOf } from "./queries";
 
@@ -103,6 +104,14 @@ export class WeatherSystem implements System<VoyageContext> {
     }
 
     const { health, modules } = parts;
+
+    // A magnetic shield turns the storm's particles aside, as Earth's field does.
+    if (levelOf(context, "magneticShield") > 0) {
+      events.emit("storm", { strength: 0 });
+
+      return;
+    }
+
     // Weaker the further out the storm has spread.
     const reach = Math.min(1, (state.system.scale.unitsPerRootAu * 1.5) / Math.max(1, distanceFromStar(context, parts.body)));
     const drain = config.weather.drain * (0.4 + strength) * reach;

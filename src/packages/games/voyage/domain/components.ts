@@ -1,3 +1,4 @@
+import { BoostId } from "./boosts";
 import { Loot } from "./loot";
 
 // Position, velocity and size: everything that moves and collides. `prevX` and `prevY` hold the position one
@@ -71,10 +72,12 @@ export interface Hazard {
   isComet: boolean;
 }
 
-export type PickupKind = "coin" | "shield" | "fuel" | "repair";
+export type PickupKind = "coin" | "shield" | "fuel" | "repair" | "boost";
 
+// Something to pick up, and for a boost core, which boost.
 export interface Pickup {
   kind: PickupKind;
+  boost?: BoostId;
 }
 
 // Someone who lives in a universe: which faction, what part they play, what they are doing, where home is, how

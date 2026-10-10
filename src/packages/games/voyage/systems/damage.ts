@@ -10,6 +10,9 @@ const MAX_DECALS = 16;
 // The hull share the warm up never lets the hull drop below: heavily damaged, smoking, but flying.
 const SAFE_FLOOR = 0.12;
 
+// Kinds of damage that come as one hit, which a block shield's block can take whole.
+const BLOCKED: readonly DamageKind[] = ["weapon", "impact", "crash"];
+
 // Kinds of damage that strike a part of the ship, and so the system under it.
 const STRIKES: readonly DamageKind[] = ["impact", "crash", "crush"];
 
@@ -60,6 +63,15 @@ export const applyDamage = (context: VoyageContext, amount: number, worldAngle: 
   }
 
   const { body, ship, health, modules } = parts;
+
+  // A block shield takes a whole hit on each block, one block a hit.
+  if (state.blocks > 0 && BLOCKED.includes(kind)) {
+    state.blocks -= 1;
+    events.emit("blocked", { left: state.blocks });
+
+    return;
+  }
+
   const toShields = Math.min(health.shields, amount);
   const isSafe = config.isSolarSafe && state.phase !== "universe" && kind !== "melt";
   const floor = isSafe ? health.maxHull * SAFE_FLOOR : 0;

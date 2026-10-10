@@ -3,6 +3,8 @@ import { angleBetween } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
 
 import { Body } from "../domain/components";
+import { boostStrength } from "../utils/boosts";
+import { levelOf, PRISM_SPREAD } from "./boosts";
 import { fire, leadDirection } from "./combat";
 import { VoyageContext } from "./context";
 import { faultSeverity } from "./faults";
@@ -51,7 +53,10 @@ export class WeaponSystem implements System<VoyageContext> {
     const parts = shipOf(context);
     const weapon = world.stores.weapon.get(state.ship);
 
-    if (!parts || !weapon || state.status !== "flying" || state.capture || state.phase === "lost" || weapon.cooldown > 0 || this.restFor > 0) {
+    // Cloaked, the gun holds its fire, or it would give the ship away.
+    const isCloaked = levelOf(context, "cloak") > 0;
+
+    if (!parts || !weapon || state.status !== "flying" || state.capture || state.phase === "lost" || weapon.cooldown > 0 || this.restFor > 0 || isCloaked) {
       return;
     }
 
@@ -69,6 +74,19 @@ export class WeaponSystem implements System<VoyageContext> {
       const angle = Math.atan2(aim.y, aim.x) + wide;
 
       fire(context, state.ship, weapon, Math.cos(angle), Math.sin(angle), "ship", target);
+
+      // A prism splits each shot into more, fanned out either side; a wingman fires alongside, so the gun is ready
+      // again sooner.
+      const prism = levelOf(context, "prism");
+      const wingman = levelOf(context, "wingman");
+
+      for (let split = 1; prism > 0 && split <= boostStrength("prism", prism); split += 1) {
+        const side = (split % 2 === 0 ? 1 : -1) * Math.ceil(split / 2) * PRISM_SPREAD;
+
+        fire(context, state.ship, weapon, Math.cos(angle + side), Math.sin(angle + side), "ship", target);
+      }
+
+      weapon.cooldown /= wingman > 0 ? boostStrength("wingman", wingman) : 1;
       parts.ship.temperatureC += weapon.heat;
       state.signature += SHOT_NOISE;
     }

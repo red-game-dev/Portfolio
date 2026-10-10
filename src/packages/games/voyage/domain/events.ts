@@ -1,4 +1,5 @@
 import type { LandingPhase } from "../landing";
+import { BoostId } from "./boosts";
 import { AlienRole, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
 import { FaultKind } from "./faults";
 import { Loot } from "./loot";
@@ -27,6 +28,11 @@ export interface VoyageEvents {
   hardLanding: { body: string; speed: number; safe: number };
   // Home safely: the crew picked up, and days later a new rocket ready on the pad.
   recovered: { body: string; days: number };
+  // A boost core picked up where it drifted, and a boost set to work at a level.
+  boostFound: { boost: BoostId; x: number; y: number };
+  boosted: { boost: BoostId; level: number };
+  // A block of a block shield took a hit whole, and how many stand.
+  blocked: { left: number };
   // No fuel to leave where it is (on a world, or null adrift): the countdown begun, with how long it has, whether a
   // rescue ends it or the run does, and when it has run out in the universes, the run over.
   stranded: { body: string | null; seconds: number; isRescue: boolean; isOver: boolean };

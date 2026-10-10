@@ -5,10 +5,12 @@ import type { Vec3 } from "@/packages/physics/kepler";
 
 import { VoyageConfig } from "../config";
 import { VoyageWorld } from "../core/world";
+import { BoostId } from "../domain/boosts";
 import { MODULE_IDS, Modules } from "../domain/components";
 import { DescentView, Frame, IncomingRock, VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState } from "../domain/state";
 import { safeSpeedOf } from "../landing";
+import { boostDuration, isBoostId } from "../utils/boosts";
 import { auForRadius } from "../utils/scale";
 import { TelemetryMapper } from "./TelemetryMapper";
 
@@ -59,6 +61,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       surface: null,
       descent: this.descent(state),
       homecoming: state.homecoming ? { stage: state.homecoming.stage, days: state.homecoming.days, isSea: state.homecoming.isSea } : null,
+      boosts: this.boosts(state),
       stranded: state.stranded
         ? {
           secondsLeft: Math.max(0, Math.ceil(this.config.descent.strandedSeconds - (state.elapsedMs - state.stranded.since) / 1000)),
@@ -123,6 +126,28 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
   }
 
   // The way down while it is coming down, in real units rounded for reading.
+  // Each boost at work with the share of it still to run, each used one's seconds to wait, and the blocks standing.
+  private boosts(state: Readonly<VoyageState>): VoyageSnapshot["boosts"] {
+    const now = state.elapsedMs;
+    const cooldowns: Partial<Record<BoostId, number>> = {};
+
+    Object.entries(state.boostReady).forEach(([id, readyAt]) => {
+      if (readyAt !== undefined && readyAt > now && isBoostId(id)) {
+        cooldowns[id] = Math.ceil((readyAt - now) / 1000);
+      }
+    });
+
+    return {
+      active: state.boosts.filter((active) => active.until > now).map(({ id, level, until }) => ({
+        id,
+        level,
+        left: Math.min(1, (until - now) / boostDuration(id, level)),
+      })),
+      cooldowns,
+      blocks: state.blocks,
+    };
+  }
+
   private descent({ descent }: VoyageState): DescentView | null {
     if (!descent || descent.downAt !== null) {
       return null;

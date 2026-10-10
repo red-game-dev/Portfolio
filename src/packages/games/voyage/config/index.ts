@@ -186,6 +186,16 @@ export interface MediumConfig {
   easing: number;
 }
 
+// Boost cores: one drifts in every so often (seconds; sooner in the universes), drawn this big (world units); a
+// core is one of the place's own this share of the time, and in the deep one of another deep style's this share.
+export interface BoostConfig {
+  every: [number, number];
+  universeEvery: [number, number];
+  radius: number;
+  own: number;
+  away: number;
+}
+
 export interface HoleConfig {
   singularityMu: number;
   // How fast the singularity's pull grows once Pluto is behind, as a share of itself per second.
@@ -249,6 +259,7 @@ export interface VoyageConfig {
   spawn: SpawnConfig;
   holes: HoleConfig;
   medium: MediumConfig;
+  boosts: BoostConfig;
   pickups: PickupConfig;
   scoring: ScoringConfig;
   units: UnitsConfig;
@@ -338,6 +349,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     jumpMs: 1600,
   },
   medium: { speeds: { void: 1.4, open: 1, haze: 0.85, belt: 0.75, nebula: 0.65, ring: 0.6 }, easing: 1.5 },
+  boosts: { every: [40, 80], universeEvery: [28, 60], radius: 0.07, own: 0.6, away: 0.1 },
   pickups: { magnet: 1.1, repair: 150, shield: 200, fuel: 35 },
   scoring: { perUnit: 6, pickup: 25, universe: 500, landing: 150, discovery: 100 },
   units: { kmPerSecond: 7, kmPerAu: 149597870.7 },

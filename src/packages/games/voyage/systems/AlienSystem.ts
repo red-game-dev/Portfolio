@@ -4,6 +4,7 @@ import { pick, randomBetween } from "@/packages/math/random";
 
 import { Alien, AlienRole, Weapon } from "../domain/components";
 import { FactionSpec } from "../domain/universe";
+import { levelOf, wellPull } from "./boosts";
 import { damageAlien, fire, leadDirection } from "./combat";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
@@ -225,9 +226,12 @@ export class AlienSystem implements System<VoyageContext> {
       health.shields = Math.min(health.maxShields, health.shields + health.maxShields * 0.15 * dt);
     }
 
+    // Cloaked, the ship is not seen at all.
+    const isCloaked = levelOf(context, "cloak") > 0;
+
     if (alien.mode !== "evade" && !isPeaceful) {
-      const sees = isBoss ? distance < 14 : faction.disposition === "hostile" ? distance < aggro : faction.disposition === "territorial"
-        ? Math.hypot(ship.x - alien.homeX, ship.y - alien.homeY) < aggro * 1.5 : false;
+      const sees = !isCloaked && (isBoss ? distance < 14 : faction.disposition === "hostile" ? distance < aggro : faction.disposition === "territorial"
+        ? Math.hypot(ship.x - alien.homeX, ship.y - alien.homeY) < aggro * 1.5 : false);
 
       if (sees) {
         alien.threat = Math.max(alien.threat, 1);
@@ -250,20 +254,26 @@ export class AlienSystem implements System<VoyageContext> {
     let wantY = 0;
 
     if (alien.mode === "chase") {
+      // A decoy flare draws the chase and the fire away from the ship.
+      const decoy = state.decoy !== null ? world.stores.body.get(state.decoy) : undefined;
+      const quarry = decoy ?? ship;
+      const qx = quarry.x - body.x;
+      const qy = quarry.y - body.y;
+      const apart = Math.hypot(qx, qy) || 1e-6;
       const weapon = world.stores.weapon.get(entity);
       const range = Math.min(FIGHT_RANGE, (weapon?.range ?? 3) * 0.7);
-      const closing = distance > range + 0.8 ? 1 : distance < range - 0.8 ? -1 : 0;
+      const closing = apart > range + 0.8 ? 1 : apart < range - 0.8 ? -1 : 0;
       const circle = entity % 2 === 0 ? 1 : -1;
 
-      wantX = (dx / distance) * closing * speed - (dy / distance) * circle * speed * 0.6;
-      wantY = (dy / distance) * closing * speed + (dx / distance) * circle * speed * 0.6;
-      alien.angle = Math.atan2(dy, dx);
+      wantX = (qx / apart) * closing * speed - (qy / apart) * circle * speed * 0.6;
+      wantY = (qy / apart) * closing * speed + (qx / apart) * circle * speed * 0.6;
+      alien.angle = Math.atan2(qy, qx);
 
-      if (weapon && weapon.cooldown <= 0 && distance < weapon.range) {
-        const aim = leadDirection(body, ship, weapon.speed);
+      if (weapon && weapon.cooldown <= 0 && apart < weapon.range) {
+        const aim = leadDirection(body, quarry, weapon.speed);
 
         if (aim) {
-          fire(context, entity, weapon, aim.x, aim.y, "aliens", state.ship);
+          fire(context, entity, weapon, aim.x, aim.y, "aliens", decoy && state.decoy !== null ? state.decoy : state.ship);
         }
       }
 
@@ -311,6 +321,14 @@ export class AlienSystem implements System<VoyageContext> {
 
     body.vx += change > accel ? (ax / change) * accel : ax;
     body.vy += change > accel ? (ay / change) * accel : ay;
+
+    // A gravity well the pilot set down pulls them in, whatever they want.
+    const well = wellPull(context, body.x, body.y);
+
+    if (well) {
+      body.vx += well.ax * dt;
+      body.vy += well.ay * dt;
+    }
 
     if (alien.mode !== "chase" && Math.hypot(body.vx, body.vy) > 0.05) {
       alien.angle = Math.atan2(body.vy, body.vx);

@@ -42,7 +42,10 @@ export class SpawnSystem implements System<VoyageContext> {
       this.spawnRock(context, reach, isIcy);
     }
 
-    for (let count = world.stores.pickup.size; count < context.config.spawn.pickups; count += 1) {
+    // Boost cores drift in on a time of their own (the boost system's) and are not counted here.
+    const cores = world.stores.pickup.values.reduce((count, pickup) => count + (pickup.kind === "boost" ? 1 : 0), 0);
+
+    for (let count = world.stores.pickup.size - cores; count < context.config.spawn.pickups; count += 1) {
       this.spawnPickup(context, reach);
     }
 

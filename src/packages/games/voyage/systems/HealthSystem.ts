@@ -1,5 +1,7 @@
 import type { System } from "@/packages/games/engine";
 
+import { boostStrength } from "../utils/boosts";
+import { levelOf } from "./boosts";
 import { VoyageContext } from "./context";
 import { faultSeverity } from "./faults";
 import { shipOf } from "./queries";
@@ -18,7 +20,9 @@ export class HealthSystem implements System<VoyageContext> {
     }
 
     const { body, ship, health, modules } = parts;
-    const ceiling = health.maxShields * modules.shields;
+    // An overcharge holds the shields past their most while it lasts.
+    const overcharge = levelOf(context, "overcharge");
+    const ceiling = health.maxShields * modules.shields * (overcharge > 0 ? boostStrength("overcharge", overcharge) : 1);
 
     health.rechargeIn = Math.max(0, health.rechargeIn - dt * 1000);
 

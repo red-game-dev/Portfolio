@@ -3,6 +3,7 @@ import { tidalAcceleration } from "@/packages/physics/newtonian";
 
 import { SystemStar } from "../domain/content";
 import { auForRadius } from "../utils/scale";
+import { wellPull } from "./boosts";
 import { VoyageContext } from "./context";
 import { tear } from "./damage";
 import { isInSystem, shipOf } from "./queries";
@@ -71,6 +72,14 @@ export class GravitySystem implements System<VoyageContext> {
         field.sample(body.x, body.y, sample);
         body.vx += sample.ax * dt;
         body.vy += sample.ay * dt;
+
+        // A gravity well the pilot set down pulls them too.
+        const well = wellPull(context, body.x, body.y);
+
+        if (well) {
+          body.vx += well.ax * dt;
+          body.vy += well.ay * dt;
+        }
       }
     }));
 

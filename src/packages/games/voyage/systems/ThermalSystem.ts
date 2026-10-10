@@ -1,6 +1,8 @@
 import type { System } from "@/packages/games/engine";
 
 import { MODULE_IDS, ModuleId } from "../domain/components";
+import { boostStrength } from "../utils/boosts";
+import { levelOf } from "./boosts";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
 import { environmentAt } from "./environment";
@@ -8,6 +10,8 @@ import { shipOf } from "./queries";
 
 // Sensors take radiation this hard (integrity per second per million uSv/h) without shields, a fifth of it with.
 const RADIATION_WEAR = 1;
+// A heat sink draws the hull down to its temperature this many times as fast as it would cool on its own.
+const SINK_SPEED = 0.15;
 
 // Heat and what it does: the hull drifts towards the temperature of its surroundings (cooling slower as its
 // radiators fail), each system past the temperature it was built for wears out (the sensors first, then the
@@ -34,27 +38,35 @@ export class ThermalSystem implements System<VoyageContext> {
     const { body, ship, health, modules } = parts;
     const environment = environmentAt(context, body, ship);
     const { ratings } = config.thermal;
+    // A heat sink holds the hull no warmer than its own temperature, and nothing wears from heat while it lasts.
+    const heatSink = levelOf(context, "heatSink");
+    const isSunk = heatSink > 0;
+    const around = isSunk ? Math.min(environment.temperatureC, boostStrength("heatSink", heatSink)) : environment.temperatureC;
+    // A magnetic shield keeps radiation off the sensors.
+    const isShielded = levelOf(context, "magneticShield") > 0;
 
     state.readings.environmentC = environment.temperatureC;
     state.readings.sunlight = environment.sunlight;
     state.readings.radiation = environment.radiation;
 
-    const isCooling = ship.temperatureC > environment.temperatureC;
-    const timeConstant = config.thermal.timeConstant * (isCooling ? 1 / (0.3 + 0.7 * modules.radiators) : 1);
+    const isCooling = ship.temperatureC > around;
+    const timeConstant = config.thermal.timeConstant * (isCooling ? 1 / (0.3 + 0.7 * modules.radiators) : 1) * (isSunk ? SINK_SPEED : 1);
 
-    ship.temperatureC += (environment.temperatureC - ship.temperatureC) * (1 - Math.exp(-dt / timeConstant));
+    ship.temperatureC += (around - ship.temperatureC) * (1 - Math.exp(-dt / timeConstant));
 
     MODULE_IDS.forEach((id) => {
       const over = (ship.temperatureC - ratings[id]) / Math.max(100, ratings[id]);
 
-      if (over > 0) {
+      if (over > 0 && !isSunk) {
         this.wear(context, id, config.thermal.wear * over * dt);
       }
     });
 
     const shielded = health.shields > 0 ? 0.2 : 1;
 
-    this.wear(context, "sensors", (environment.radiation / 1e6) * RADIATION_WEAR * shielded * dt);
+    if (!isShielded) {
+      this.wear(context, "sensors", (environment.radiation / 1e6) * RADIATION_WEAR * shielded * dt);
+    }
 
     if (ship.temperatureC > config.thermal.boilOffC) {
       ship.fuel = Math.max(0, ship.fuel - config.thermal.boilOff * ((ship.temperatureC - config.thermal.boilOffC) / 100) * dt);

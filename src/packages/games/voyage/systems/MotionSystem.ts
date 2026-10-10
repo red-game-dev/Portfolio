@@ -1,6 +1,8 @@
 import type { System } from "@/packages/games/engine";
 import { damp } from "@/packages/physics/newtonian";
 
+import { boostStrength } from "../utils/boosts";
+import { levelOf } from "./boosts";
 import { VoyageContext } from "./context";
 import { mediumAt } from "./medium";
 import { bodyById, shipOf } from "./queries";
@@ -38,7 +40,9 @@ export class MotionSystem implements System<VoyageContext> {
         // eases from one kind of space to the next, so entering denser space slows the ship rather than stopping it
         // dead, and leaving it lets it speed up again.
         const medium = mediumAt(context, body.x, body.y);
-        const top = config.ship.maxSpeed * (context.spaceDrag === "felt" ? config.medium.speeds[medium] : 1);
+        const afterburner = levelOf(context, "afterburner");
+        const top = config.ship.maxSpeed * (context.spaceDrag === "felt" ? config.medium.speeds[medium] : 1) *
+          (afterburner > 0 ? boostStrength("afterburner", afterburner) : 1);
         const speed = Math.hypot(body.vx, body.vy);
 
         state.readings.medium = medium;
@@ -56,9 +60,18 @@ export class MotionSystem implements System<VoyageContext> {
       }
     }
 
-    for (const body of bodies) {
-      body.x += body.vx * dt;
-      body.y += body.vy * dt;
+    // Under bullet time everything but the ship moves at a share of its speed.
+    const bulletTime = levelOf(context, "bulletTime");
+    const others = bulletTime > 0 ? boostStrength("bulletTime", bulletTime) : 1;
+
+    const { entities } = world.stores.body;
+
+    for (let index = 0; index < bodies.length; index += 1) {
+      const body = bodies[index];
+      const step = entities[index] === state.ship ? dt : dt * others;
+
+      body.x += body.vx * step;
+      body.y += body.vy * step;
     }
 
     // A landed ship stays where it set down on its world, wherever the world has moved.

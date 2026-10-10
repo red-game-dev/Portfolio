@@ -1,4 +1,5 @@
 import type { LandingMethod, LandingPhase } from "../landing";
+import type { BoostId } from "./boosts";
 import { AlienRole, Modules, WreckKind } from "./components";
 import { VoyagePhase } from "./events";
 import { FaultKind } from "./faults";
@@ -103,6 +104,13 @@ export interface VoyageSnapshot {
   homecoming: { stage: "recovery" | "pad"; days: number; isSea: boolean } | null;
   // With no fuel to leave: the whole seconds before a rescue (in our solar system) or the end of the run.
   stranded: { secondsLeft: number; isRescue: boolean } | null;
+  // The boosts at work (the share of each still to run, 1 to 0), the seconds before each used one is ready again,
+  // and a block shield's blocks still standing.
+  boosts: {
+    active: Array<{ id: BoostId; level: number; left: number }>;
+    cooldowns: Partial<Record<BoostId, number>>;
+    blocks: number;
+  };
   // Who lives on the world the ship is coming down to or stands on, and how they meet visitors.
   people: { name: string; disposition: Disposition } | null;
   // A maze universe: the system the ship is in, how many there are and have been reached, and whether this one holds

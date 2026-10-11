@@ -86,7 +86,7 @@ const SwitchSlot = styled.div(({ isScrolled }: HeaderContainerProps) => [
 ]);
 
 // The quickest way to get in touch, beside the view switch on large screens; the phone menu has its own.
-const EmailLink = styled.a(() => [
+const EmailLink = styled.a(({ isScrolled }: HeaderContainerProps) => [
   tw`hidden lg:flex flex-row items-center gap-[8px] h-[32px] px-[10px] text-xs font-semibold text-white no-underline
      bg-[rgba(16, 16, 16, 0.85)] border-[1px] border-solid border-[#2a2a2a] rounded-[2px]`,
   css`
@@ -102,6 +102,9 @@ const EmailLink = styled.a(() => [
     }
   `,
   focusRing("var(--accent)", 2),
+  // On the slim bar the switch shares the menu's row, which has no room left for it; it shows again at the top of
+  // the page, and the phone menu always has it.
+  isScrolled && tw`lg:hidden`,
 ]);
 
 // How far down, as a share of the viewport, the header turns into a bar.
@@ -148,7 +151,7 @@ const Header: FC<HeaderProps> = ({ title = "", lens, menu, contact }: HeaderProp
         </LogoContainer>
         <SwitchSlot isScrolled={isScrolled}>
           <LensSwitch content={lens} />
-          <EmailLink href={`mailto:${contact.email}`}>
+          <EmailLink href={`mailto:${contact.email}`} isScrolled={isScrolled}>
             <FontAwesomeIcon icon={faEnvelope} aria-hidden="true" />
             {menu.email}
           </EmailLink>

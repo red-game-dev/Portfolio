@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import tw, { css, styled } from "twin.macro";
 
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
@@ -5,7 +7,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 
 import { progressOf } from "@/components/Menu/config";
-import { JOURNEY_STOPS } from "@/config/journey";
+import { JOURNEY_STOPS, StopPart } from "@/config/journey";
+import useFocusLeave from "@/hooks/useFocusLeave";
 import { fill } from "@/packages/text/format";
 import { focusRing, noTransitionWhenReduced, progressText } from "@/styles/mixins";
 import { MenuContent } from "@/types/menu";
@@ -47,15 +50,22 @@ const Label = styled.span(() => [progressText("right", "--nav-progress", "#fffff
 const Caret = tw.span`ml-[6px] text-[10px] align-middle`;
 
 // A stop with parts keeps them in a list that opens under it on hover or keyboard focus, so a reader can
-// go straight to Projects without knowing it lives in the game world. Hidden lists take no focus.
+// go straight to Projects without knowing it lives in the game world. Hidden lists take no focus. Focus from a
+// click does not open it (only focus a keyboard shows), and Escape puts it away until the pointer or focus leaves.
 const Group = styled.div(() => [
-  tw`relative inline-block align-top`,
+  tw`relative flex`,
   css`
     &:hover > ul,
-    &:focus-within > ul {
+    &:has(:focus-visible) > ul {
       visibility: visible;
       opacity: 1;
       transform: none;
+    }
+
+    &[data-dismissed] > ul {
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(-4px);
     }
   `,
 ]);
@@ -95,6 +105,48 @@ const PartLink = styled(Link)(() => [
   focusRing("var(--accent)", -2),
 ]);
 
+interface StopWithPartsProps {
+  link: JSX.Element;
+  label: string;
+  parts: StopPart[];
+  names: MenuContent["parts"];
+}
+
+const StopWithParts = ({ link, label, parts, names }: StopWithPartsProps) => {
+  const [isDismissed, setIsDismissed] = useState(false);
+  const show = () => setIsDismissed(false);
+  const onBlur = useFocusLeave(show);
+
+  useEffect(() => {
+    if (isDismissed) {
+      return undefined;
+    }
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsDismissed(true);
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isDismissed]);
+
+  return (
+    <Group data-dismissed={isDismissed || undefined} onMouseEnter={show} onMouseLeave={show} onFocus={show} onBlur={onBlur}>
+      {link}
+      <Parts aria-label={label}>
+        {parts.map((part) => (
+          <Part key={part.key}>
+            <PartLink href={part.href}>{names[part.key]}</PartLink>
+          </Part>
+        ))}
+      </Parts>
+    </Group>
+  );
+};
+
 export const Menu = ({ selected, content }: MenuProps) => (
     <MenuContainer>
       <MenuList aria-label={content.label}>
@@ -113,16 +165,13 @@ export const Menu = ({ selected, content }: MenuProps) => (
           );
 
           return item.parts ? (
-            <Group key={item.key}>
-              {link}
-              <Parts aria-label={fill(content.partsLabel, { stop: content.stops[item.key] })}>
-                {item.parts.map((part) => (
-                  <Part key={part.key}>
-                    <PartLink href={part.href}>{content.parts[part.key]}</PartLink>
-                  </Part>
-                ))}
-              </Parts>
-            </Group>
+            <StopWithParts
+              key={item.key}
+              link={link}
+              label={fill(content.partsLabel, { stop: content.stops[item.key] })}
+              parts={item.parts}
+              names={content.parts}
+            />
           ) : link;
         })}
       </MenuList>

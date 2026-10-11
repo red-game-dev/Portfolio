@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef } from "react";
 
 import tw, { styled } from "twin.macro";
 
@@ -11,6 +11,7 @@ import { Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { SOCIAL_URLS } from "@/config/social";
+import { useHashValue } from "@/hooks/useHashState";
 import useTabs from "@/hooks/useTabs";
 import { honourHidden } from "@/styles/mixins";
 import { SectionIntros } from "@/types/sections-intros";
@@ -34,18 +35,31 @@ const Group = styled(Panel)(() => [honourHidden]);
 
 const Cards = tw.div`grid gap-[18px] lg:grid-cols-2`;
 
+const isProductHash = (hash: string): true | null => (hash === `#${ROLE_ANCHORS.product}` ? true : null);
+
 // Grouped panels in the same language as the AI section: the group names the area, the cards inside are the offers.
 // One group is open at a time, so the offer reads in a screen or two; every group stays in the page, the closed ones
 // hidden, so search engines and find in page still reach every offer.
 export const Services: FC<ServicesProps> = ({ intro, groups, actions, email, linkedInUsername, productGroup }: ServicesProps) => {
   const { lens } = useLensStateHook();
-  const ordered = lens === "product"
+  const ordered = useMemo(() => (lens === "product"
     ? [...groups].sort((first, second) => Number(second.label === productGroup) - Number(first.label === productGroup))
-    : groups;
+    : groups), [groups, lens, productGroup]);
   const switcher = useSwitch();
   const { play } = switcher;
   const onSelect = useCallback((next: number, previous: number) => play(next > previous ? 1 : -1), [play]);
-  const { active, listProps, tabProps, panelProps } = useTabs({ count: ordered.length, onSelect });
+  const { active, select, listProps, tabProps, panelProps } = useTabs({ count: ordered.length, onSelect });
+  // The first screen's product engineering link lands here open on the product group.
+  const isProductLink = useHashValue(isProductHash);
+  const selectRef = useRef(select);
+
+  selectRef.current = select;
+
+  useEffect(() => {
+    if (isProductLink) {
+      selectRef.current(Math.max(0, ordered.findIndex((group) => group.label === productGroup)));
+    }
+  }, [isProductLink, ordered, productGroup]);
 
   return (
     <Section id={SECTION_IDS.services}>

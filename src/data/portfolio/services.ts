@@ -183,7 +183,7 @@ export const servicesContent: Pick<PortfolioData, "serviceActions" | "serviceGro
             "CLI tools, scaffolders and internal documentation",
             "A developer portal for game studios",
             "Design systems documented in Storybook, with interaction tests",
-            "Test Driven Development brought in org wide, reaching 95%+ coverage",
+            "Test Driven Development brought in org wide, reaching 95%+ coverage on the front end and mobile code",
           ],
           emailSubject: "Developer experience",
         },
@@ -253,7 +253,7 @@ export const servicesContent: Pick<PortfolioData, "serviceActions" | "serviceGro
           points: [
             "A game store and launcher with a portal for studios, on web, desktop and mobile",
             "A low code builder that let anyone build, host and update a whole game",
-            "Live patching, moderation and analytics for an MMORPG run for five years",
+            "Live patching, moderation and analytics for an MMORPG run for over five years",
             "In game purchases and subscriptions through Stripe and PayPal",
             "Communities grown on Facebook, YouTube, Twitch, Reddit and Instagram",
           ],

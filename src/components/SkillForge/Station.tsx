@@ -54,7 +54,8 @@ const Refining = styled.div(({ isActive }: RefiningProps) => [
 // Items are plain list items styled from here by their rarity, so a station of fifty skills is one styled
 // element rather than fifty while the page hydrates.
 const Items = styled.ul(({ isActive }: RefiningProps) => [
-  tw`list-none m-0 p-0 grid gap-[10px] grid-cols-2 md:grid-cols-3 xl:grid-cols-4`,
+  // Beside the stations' tabs on a desktop the panel is narrower, so it holds three cards a row there, not four.
+  tw`list-none m-0 p-0 grid gap-[10px] grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3`,
   css`
     & > li {
       --rarity: #9aa0a6;
@@ -96,8 +97,9 @@ const Items = styled.ul(({ isActive }: RefiningProps) => [
 
     & .tier {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
-      gap: 6px;
+      gap: 2px 6px;
       font-size: 11px;
       font-weight: 600;
       color: var(--rarity);

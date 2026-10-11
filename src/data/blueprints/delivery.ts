@@ -224,7 +224,6 @@ const blueprints: Blueprint[] = [
           nodes: [
             { id: "cd-ssr", label: "Storefront, SSR" },
             { id: "cd-adapter", label: "Content adapter" },
-            { id: "cd-flags", label: "Runtime flags", detail: "OpenFeature on GO Feature Flag" },
           ],
         },
         {
@@ -241,17 +240,29 @@ const blueprints: Blueprint[] = [
           nodes: [
             { id: "cd-pilot", label: "Pilot markets", detail: "First to move" },
             { id: "cd-monitor", label: "Monitoring", detail: "Errors and speed per market" },
-            { id: "cd-back", label: "Rollback", detail: "A routing or flag change, no redeploy" },
+            { id: "cd-back", label: "Rollback", detail: "Flag off, back to the legacy CMS, no redeploy" },
+          ],
+        },
+        {
+          id: "cd-flags",
+          label: "Flags, three layers on one OpenFeature relay",
+          columns: 4,
+          place: { col: 1, row: 3, colSpan: 4 },
+          nodes: [
+            { id: "cd-flag-provider", label: "Content provider", detail: "Per country, read at routing; the kill switch" },
+            { id: "cd-flag-schema", label: "Schema soft launch", detail: "Built and hidden until switched on" },
+            { id: "cd-flag-pipeline", label: "Pipeline experiments", detail: "Internal, such as a cache strategy" },
+            { id: "cd-flag-closed", label: "Fails closed", detail: "Relay down: the legacy CMS serves", kind: "note" },
           ],
         },
         {
           id: "cd-ground",
           label: "Underneath",
           columns: 4,
-          place: { col: 1, row: 3, colSpan: 4 },
+          place: { col: 1, row: 4, colSpan: 4 },
           nodes: [
             { id: "cd-db", label: "Managed PostgreSQL", kind: "store" },
-            { id: "cd-env", label: "Environment flag", detail: "Content provider, one switch" },
+            { id: "cd-trunk-config", label: "Trunk based config", detail: "Safe because schemas ship dark" },
             { id: "cd-adr", label: "Decision records", detail: "Numbered ADRs, C4 set", kind: "note" },
             { id: "cd-roadmap", label: "Migration roadmap", detail: "Timeline and handover guide", kind: "note" },
           ],
@@ -269,10 +280,10 @@ const blueprints: Blueprint[] = [
         { from: "cd-routes", to: "cd-pick" },
         { from: "cd-pick", to: "cd-ssr", label: "moved" },
         { from: "cd-pick", to: "cd-old", label: "not yet" },
-        { from: "cd-flags", to: "cd-adapter" },
+        { from: "cd-flag-provider", to: "cd-pick", style: "dashed" },
+        { from: "cd-flag-schema", to: "cd-adapter", style: "dashed" },
         { from: "cd-new", to: "cd-monitor", style: "dashed" },
-        { from: "cd-back", to: "cd-mesh", style: "dashed", label: "forward or back" },
-        { from: "cd-new", to: "cd-ground", style: "dashed" },
+        { from: "cd-back", to: "cd-flag-provider", style: "dashed" },
       ],
     },
     wireframe: {
@@ -295,8 +306,8 @@ const blueprints: Blueprint[] = [
           ],
         },
       ],
-      decision: "Each market is routed on its own in the mesh, and features and the content source sit behind flags, so moving a " +
-        "market or undoing it is a routing or flag change, not a release.",
+      decision: "The content source is a flag read per country as the mesh routes, new schemas ship dark behind flags of their " +
+        "own, and the relay fails closed, so moving one market, or every market, back is a flag change, not a release.",
       outcome: "Markets migrate one at a time under monitoring, pilot markets go first, and the analytics are designed to inform " +
         "whether the next one goes or the last one rolls back.",
     },
@@ -312,7 +323,7 @@ const blueprints: Blueprint[] = [
       {
         title: "A pilot market moves",
         steps: [
-          "Its rule in the mesh points it at the new stack",
+          "Its content provider flag turns on for that country, read as the mesh routes",
           "Monitoring and analytics watch it against the old path",
           "The next market follows, or this one goes back with one change",
         ],
@@ -321,7 +332,7 @@ const blueprints: Blueprint[] = [
   },
   {
     id: "commerce-observability",
-    tab: "Observability",
+    tab: "Telemetry",
     zone: "matrix",
     title: "Seeing the storefront, with the shopper's consent",
     caption: "Traces, profiles and front end signals on one side, analytics collected first party and only with consent on the " +

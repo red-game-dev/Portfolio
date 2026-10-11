@@ -6,13 +6,14 @@ import { media } from "@/styles/mixins";
 // The look shared by every row of tabs on the page. Pair with useTabs for the behaviour.
 
 interface TabListProps {
-  // "row" scrolls sideways at every width; "column" scrolls sideways on a phone and stacks beside its panel
-  // on a desktop.
-  layout?: "row" | "column";
+  // "row" scrolls sideways at every width; "wrap" scrolls sideways on a phone and wraps onto more lines on a
+  // desktop, so no tab is cut off; "column" scrolls sideways on a phone and stacks beside its panel on a desktop.
+  layout?: "row" | "wrap" | "column";
 }
 
 export const TabList = styled.div(({ layout = "row" }: TabListProps) => [
   tw`flex flex-row gap-[6px] overflow-x-auto pb-[4px]`,
+  layout === "wrap" && tw`lg:flex-wrap lg:overflow-visible`,
   layout === "column" && tw`lg:flex-col lg:overflow-visible lg:pb-0 lg:w-[240px] flex-shrink-0`,
   css`
     scrollbar-width: thin;

@@ -25,6 +25,32 @@ const Container = styled.div(() => [
   `,
 ]);
 
+// Where the skip link lands: past the header and its menus, at the start of the page's own content.
+const MAIN_ID = "main-content";
+
+// The first thing a keyboard reaches, out of sight until it is focused.
+const SkipLink = styled.a(() => [
+  tw`fixed top-[12px] left-[12px] z-[100] px-[14px] py-[10px] text-sm font-semibold text-[#09090b] no-underline bg-[var(--accent)] rounded-[2px]`,
+  css`
+    transform: translateY(-200%);
+
+    &:focus,
+    &:focus-visible {
+      transform: none;
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+  `,
+]);
+
+const Main = styled.main(() => [
+  css`
+    &:focus {
+      outline: none;
+    }
+  `,
+]);
+
 interface LayoutProps {
   title: string;
   children: React.ReactNode;
@@ -53,6 +79,7 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
 
   return (
     <>
+      <SkipLink href={`#${MAIN_ID}`}>{portfolioData.menu.skip}</SkipLink>
       <AppLoader />
       <LensGate content={portfolioData.lens} counts={LENS_COUNTS} candidate={LENS_CANDIDATE} />
       <Container>
@@ -62,7 +89,9 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
           menu={portfolioData.menu}
           contact={{ cv: portfolioData.cv, email: portfolioData.details.email, linkedIn: portfolioData.socialMedia.byUsername.linkedIn }}
         />
+        <Main id={MAIN_ID} tabIndex={-1}>
           {children}
+        </Main>
         <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
       </Container>
       <AppLoadingLines />

@@ -1,10 +1,16 @@
+import { useEffect, useState } from "react";
+
 import tw, { css, styled } from "twin.macro";
 
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 
 import { progressOf } from "@/components/Menu/config";
-import { JOURNEY_STOPS } from "@/config/journey";
-import { progressText } from "@/styles/mixins";
+import { JOURNEY_STOPS, StopPart } from "@/config/journey";
+import useFocusLeave from "@/hooks/useFocusLeave";
+import { fill } from "@/packages/text/format";
+import { focusRing, noTransitionWhenReduced, progressText } from "@/styles/mixins";
 import { MenuContent } from "@/types/menu";
 
 interface MenuProps {
@@ -41,20 +47,133 @@ const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
 // as the same progress bar as the trail on the left.
 const Label = styled.span(() => [progressText("right", "--nav-progress", "#ffffff")]);
 
+const Caret = tw.span`ml-[6px] text-[10px] align-middle`;
+
+// A stop with parts keeps them in a list that opens under it on hover or keyboard focus, so a reader can
+// go straight to Projects without knowing it lives in the game world. Hidden lists take no focus. Focus from a
+// click does not open it (only focus a keyboard shows), and Escape puts it away until the pointer or focus leaves.
+const Group = styled.div(() => [
+  tw`relative flex`,
+  css`
+    &:hover > ul,
+    &:has(:focus-visible) > ul {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+    }
+
+    &[data-dismissed] > ul {
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  `,
+]);
+
+// Padded at the top rather than spaced, so the pointer never crosses a gap that would close it.
+const Parts = styled.ul(() => [
+  tw`absolute right-0 top-full z-[12] m-0 pt-[10px] px-0 pb-0 list-none text-left`,
+  css`
+    min-width: 210px;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  `,
+  noTransitionWhenReduced,
+]);
+
+const Part = styled.li(() => [
+  tw`m-0`,
+  css`
+    background: rgba(16, 16, 16, 0.97);
+    border: 1px solid rgba(var(--accent-rgb), 0.25);
+
+    & + & {
+      border-top: 0;
+    }
+  `,
+]);
+
+const PartLink = styled(Link)(() => [
+  tw`block px-[16px] py-[10px] text-sm font-semibold text-[#ccc] no-underline hover:text-white`,
+  css`
+    &:hover {
+      background: rgba(var(--accent-rgb), 0.12);
+    }
+  `,
+  focusRing("var(--accent)", -2),
+]);
+
+interface StopWithPartsProps {
+  link: JSX.Element;
+  label: string;
+  parts: StopPart[];
+  names: MenuContent["parts"];
+}
+
+const StopWithParts = ({ link, label, parts, names }: StopWithPartsProps) => {
+  const [isDismissed, setIsDismissed] = useState(false);
+  const show = () => setIsDismissed(false);
+  const onBlur = useFocusLeave(show);
+
+  useEffect(() => {
+    if (isDismissed) {
+      return undefined;
+    }
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsDismissed(true);
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isDismissed]);
+
+  return (
+    <Group data-dismissed={isDismissed || undefined} onMouseEnter={show} onMouseLeave={show} onFocus={show} onBlur={onBlur}>
+      {link}
+      <Parts aria-label={label}>
+        {parts.map((part) => (
+          <Part key={part.key}>
+            <PartLink href={part.href}>{names[part.key]}</PartLink>
+          </Part>
+        ))}
+      </Parts>
+    </Group>
+  );
+};
+
 export const Menu = ({ selected, content }: MenuProps) => (
     <MenuContainer>
       <MenuList aria-label={content.label}>
-        {JOURNEY_STOPS.map((item, index) => (
-          <MenuItem
-            key={item.key}
-            href={item.href}
-            style={progressOf(index)}
-            selected={selected[index]}
-            aria-current={selected[index] ? "location" : undefined}
-          >
-            <Label>{content.stops[item.key]}</Label>
-          </MenuItem>
-        ))}
+        {JOURNEY_STOPS.map((item, index) => {
+          const link = (
+            <MenuItem
+              key={item.key}
+              href={item.href}
+              style={progressOf(index)}
+              selected={selected[index]}
+              aria-current={selected[index] ? "location" : undefined}
+            >
+              <Label>{content.stops[item.key]}</Label>
+              {item.parts && <Caret aria-hidden="true"><FontAwesomeIcon icon={faChevronDown} /></Caret>}
+            </MenuItem>
+          );
+
+          return item.parts ? (
+            <StopWithParts
+              key={item.key}
+              link={link}
+              label={fill(content.partsLabel, { stop: content.stops[item.key] })}
+              parts={item.parts}
+              names={content.parts}
+            />
+          ) : link;
+        })}
       </MenuList>
     </MenuContainer>
 );

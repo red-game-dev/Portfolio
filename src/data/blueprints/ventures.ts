@@ -1,6 +1,6 @@
 import { Blueprint, VentureBlueprintId } from "@/types/blueprints";
 
-// My own ventures, named in their map dialogs. Every drawing is a glance, not the full design.
+// My own ventures and projects, named in their map dialogs. Every drawing is a glance, not the full design.
 
 export const GOZ_BLUEPRINT: Blueprint = {
   id: "goz-engine",
@@ -802,6 +802,152 @@ export const CRYPTO_CASINO_BLUEPRINT: Blueprint = {
   ],
 };
 
+// An open source service of mine, drawn from its public code.
+export const FREIGHT_BLUEPRINT: Blueprint = {
+  id: "freight-workflows",
+  zone: "matrix",
+  title: "Durable workflows that warn before a delay",
+  caption: "Each delivery is watched by a workflow that survives restarts: it checks traffic, weighs the delay against the " +
+    "customer's threshold, has an AI write the message and sends it, each step retried on its own.",
+  summary: {
+    role: "Designed and built it end to end: the workflows, the provider adapters, the dashboard and the deployment",
+    scale: "Open source, with 43+ routes worldwide checked every ten minutes",
+    stack: ["Temporal", "TypeScript", "Next.js", "PostgreSQL", "Supabase", "React Query", "OpenAI", "SendGrid", "Twilio", "Railway", "Vercel"],
+  },
+  architecture: {
+    columns: 4,
+    groups: [
+      {
+        id: "fw-start",
+        label: "What comes in",
+        place: { col: 1, row: 1, rowSpan: 2 },
+        nodes: [
+          { id: "fw-dispatcher", label: "Dispatcher", detail: "Creates a delivery and its threshold", kind: "actor" },
+          { id: "fw-schedule", label: "Traffic monitor", detail: "Every ten minutes, 43+ routes" },
+          { id: "fw-dashboard", label: "Dashboard", detail: "Live traffic map, workflow timeline" },
+        ],
+      },
+      {
+        id: "fw-api",
+        label: "App and API",
+        place: { col: 2, row: 1 },
+        nodes: [
+          { id: "fw-routes", label: "API routes", detail: "Start, query, cancel" },
+          { id: "fw-poll", label: "Live status", detail: "Refetched while a workflow runs" },
+        ],
+      },
+      {
+        id: "fw-engine",
+        label: "Temporal",
+        place: { col: 2, row: 2 },
+        nodes: [
+          { id: "fw-once", label: "One time check", detail: "Four steps, then done" },
+          { id: "fw-recurring", label: "Recurring watch", detail: "Sleeps between checks, stops on four conditions" },
+          { id: "fw-signals", label: "Signals and queries", detail: "Cancel, change the threshold, read status" },
+        ],
+      },
+      {
+        id: "fw-workers",
+        label: "Workers",
+        place: { col: 3, row: 1, rowSpan: 2 },
+        nodes: [
+          { id: "fw-traffic", label: "Fetch traffic", detail: "Delay in minutes" },
+          { id: "fw-threshold", label: "Over the threshold?", kind: "decision" },
+          { id: "fw-write", label: "Write the message", detail: "Email and SMS prompts" },
+          { id: "fw-send", label: "Send it", detail: "Email or SMS, confirmed" },
+          { id: "fw-retry", label: "Retries", detail: "Timeout and backoff per step", kind: "note" },
+        ],
+      },
+      {
+        id: "fw-providers",
+        label: "Providers, behind adapters",
+        isExternal: true,
+        place: { col: 4, row: 1, rowSpan: 2 },
+        nodes: [
+          { id: "fw-maps", label: "Traffic", detail: "Google Maps, then Mapbox" },
+          { id: "fw-ai", label: "Language model", detail: "Template if it fails" },
+          { id: "fw-notify", label: "Email and SMS", detail: "SendGrid and Twilio" },
+        ],
+      },
+      {
+        id: "fw-data",
+        label: "PostgreSQL, row level security",
+        columns: 4,
+        place: { col: 1, row: 3, colSpan: 4 },
+        nodes: [
+          { id: "fw-snapshots", label: "Traffic snapshots", detail: "Per route, for the live map", kind: "store" },
+          { id: "fw-deliveries", label: "Deliveries and thresholds", kind: "store" },
+          { id: "fw-steps", label: "Workflow steps", detail: "Every step recorded", kind: "store" },
+          { id: "fw-sent", label: "Notifications", detail: "As sent, per channel", kind: "store" },
+        ],
+      },
+    ],
+    edges: [
+      { from: "fw-dispatcher", to: "fw-dashboard" },
+      { from: "fw-dashboard", to: "fw-routes" },
+      { from: "fw-schedule", to: "fw-snapshots" },
+      { from: "fw-routes", to: "fw-engine", label: "start" },
+      { from: "fw-engine", to: "fw-workers", label: "activities" },
+      { from: "fw-traffic", to: "fw-threshold" },
+      { from: "fw-threshold", to: "fw-write" },
+      { from: "fw-write", to: "fw-send" },
+      { from: "fw-traffic", to: "fw-maps" },
+      { from: "fw-write", to: "fw-ai" },
+      { from: "fw-send", to: "fw-notify" },
+      { from: "fw-workers", to: "fw-steps" },
+      { from: "fw-send", to: "fw-sent" },
+      { from: "fw-api", to: "fw-deliveries", style: "dashed" },
+    ],
+  },
+  wireframe: {
+    device: "desktop",
+    screens: [
+      {
+        title: "A delivery under watch",
+        regions: [
+          { kind: "bar", label: "Delivery, route and threshold", area: "header" },
+          { kind: "list", label: "Deliveries and their status", area: "left" },
+          { kind: "canvas", label: "The route on the live traffic map", area: "main" },
+          { kind: "steps", label: "Workflow timeline: each step, retry and result", area: "right" },
+          { kind: "actions", label: "Stop the watch, change the threshold", area: "footer" },
+        ],
+      },
+      {
+        title: "The customer is told",
+        regions: [
+          { kind: "card", label: "The message as sent, its channel and time", size: 1.6 },
+          { kind: "list", label: "Earlier checks for this delivery", size: 1.6 },
+        ],
+      },
+    ],
+    decision: "Every step is an activity with its own timeout and retries, and every provider sits behind an adapter with a " +
+      "fallback, so a slow or failing service delays a message rather than losing it.",
+    outcome: "Customers hear of a delay before they ask, a restarted worker picks the workflow up where it was, and workers " +
+      "can deploy by build id with no downtime.",
+  },
+  journeys: [
+    {
+      title: "A delivery is watched",
+      steps: [
+        "The dispatcher creates a delivery with a delay threshold",
+        "A workflow checks traffic on its route",
+        "Over the threshold, the language model writes the message",
+        "The customer gets an email or an SMS",
+        "A recurring watch sleeps, then checks again until the delivery ends",
+      ],
+    },
+    {
+      title: "A provider fails",
+      steps: [
+        "The step retries with backoff",
+        "Traffic falls back from one map provider to the other",
+        "The message falls back to a template",
+        "The workflow carries on",
+      ],
+    },
+  ],
+};
+
 export const VENTURE_BLUEPRINTS: Record<VentureBlueprintId, Blueprint> = {
   goz: GOZ_BLUEPRINT,
   amw: AMW_BLUEPRINT,
@@ -809,4 +955,5 @@ export const VENTURE_BLUEPRINTS: Record<VentureBlueprintId, Blueprint> = {
   adotta: ADOTTA_BLUEPRINT,
   punti: PUNTI_BLUEPRINT,
   casino: CRYPTO_CASINO_BLUEPRINT,
+  freight: FREIGHT_BLUEPRINT,
 };

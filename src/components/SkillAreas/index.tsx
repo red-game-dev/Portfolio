@@ -2,7 +2,9 @@ import { FC, useCallback } from "react";
 
 import tw, { styled } from "twin.macro";
 
+import { BlueprintSection } from "@/components/Blueprint";
 import { Tag } from "@/components/Controls";
+import { Panel as Intro, PanelText, PanelTitle } from "@/components/Panel";
 import { Section } from "@/components/Section";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { Tab, TabCount, TabList } from "@/components/Tabs";
@@ -10,12 +12,16 @@ import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
 import useTabs from "@/hooks/useTabs";
 import { honourHidden } from "@/styles/mixins";
+import { BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
 import { SectionIntros } from "@/types/sections-intros";
-import { SkillArea } from "@/types/skills";
+import { SkillArea, SkillAreaExamples } from "@/types/skills";
 
 interface SkillAreasProps {
   intro: SectionIntros;
   areas: SkillArea[];
+  examples: SkillAreaExamples;
+  // Which drawings follow the areas, fetched as they near the screen.
+  blueprintSection: BlueprintSectionId;
 }
 
 const Content = tw.div`relative text-base ml-[-1px] p-[25px] lg:p-[35px] bg-[#101010] border-[1px] border-r-[0px] border-solid
@@ -32,10 +38,17 @@ const AreaTitle = tw.h3`m-[0 0 12px 0] text-base font-semibold text-white`;
 
 const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-2`;
 
+const Examples = tw.div`mt-[25px]`;
+
+// Lined up with the areas' frame above it.
+const ExamplesIntro = styled(Intro)(() => [tw`ml-[-1px] border-r-[0px]`]);
+
+const Drawings = tw.div`mt-[22px]`;
 
 // Too many areas to read as one wall of tags, so one area is open at a time. Every area stays in the page,
-// the closed ones hidden, so search engines and find in page still reach them.
-export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas }: SkillAreasProps) => {
+// the closed ones hidden, so search engines and find in page still reach them. The drawings after them show
+// several areas at work together in one platform.
+export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas, examples, blueprintSection }: SkillAreasProps) => {
   const switcher = useSwitch();
   const { play } = switcher;
   const onSelect = useCallback((next: number, previous: number) => play(next > previous ? 1 : -1), [play]);
@@ -66,6 +79,15 @@ export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas }: SkillAreasProp
           </Panels>
         </Layout>
       </Content>
+      <Examples>
+        <ExamplesIntro>
+          <PanelTitle>{examples.title}</PanelTitle>
+          <PanelText>{examples.description}</PanelText>
+        </ExamplesIntro>
+        <Drawings>
+          <BlueprintSection section={blueprintSection} />
+        </Drawings>
+      </Examples>
     </Section>
   );
 };

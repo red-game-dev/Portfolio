@@ -124,8 +124,8 @@ export interface BlueprintLabels {
   panHint: string;
 }
 
-// The ventures of my own that carry a blueprint in their project map dialog.
-export type VentureBlueprintId = "goz" | "amw" | "arcavium" | "adotta" | "punti" | "casino";
+// The ventures and projects of my own that carry a blueprint in their project map dialog.
+export type VentureBlueprintId = "goz" | "amw" | "arcavium" | "adotta" | "punti" | "casino" | "freight";
 
 // The page sections that carry blueprints, each loaded on demand.
-export type BlueprintSection = "ai" | "chain" | "platform" | "casino" | "mmo";
+export type BlueprintSection = "ai" | "chain" | "delivery" | "platform" | "casino" | "mmo";

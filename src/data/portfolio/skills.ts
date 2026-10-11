@@ -1,7 +1,7 @@
 import { PortfolioData } from "@/types/portfolio";
 
 // Skills by group, the forge and talents, the areas of expertise and how I work.
-export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" | "skillAreas" | "expertise"> = {
+export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" | "skillAreas" | "skillAreaExamples" | "expertise"> = {
   skills: {
     design: [
       "Photoshop",
@@ -514,6 +514,11 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
       ],
     },
   ],
+  skillAreaExamples: {
+    title: "The areas at work together",
+    description: `Three systems from the multi market commerce platform I work on now: how it meets outside systems, how it ships market
+    by market, and how it is watched with the shopper's consent. Each is a glance, not the full design.`,
+  },
   expertise: {
     tileGroups: [
       {
@@ -717,7 +722,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
       "Machine learning pipelines",
     ],
     exampleTitle: "Worked examples",
-    exampleDescription: `A full financial system end to end, multi market commerce, my own platform's core and one payment through it, and a ranking
-    pipeline. Each is a glance, not the full design.`,
+    exampleDescription: `A full financial system end to end, multi market commerce, my own platform's core and one payment through it, a ranking
+    pipeline and an ads engine. Each is a glance, not the full design.`,
   },
 };

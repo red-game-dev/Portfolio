@@ -10,3 +10,9 @@ export interface SkillArea {
   label: string;
   items: string[];
 }
+
+// The drawings under the areas: several of them at work together in one platform.
+export interface SkillAreaExamples {
+  title: string;
+  description: string;
+}

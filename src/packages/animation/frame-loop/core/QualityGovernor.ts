@@ -16,8 +16,9 @@ export interface QualityGovernorOptions {
   maxRecoveries?: number;
 }
 
-// Frames longer than this are a pause (a hidden tab, a dialog), not a slow device.
-const PAUSE_MS = 250;
+// Frames longer than this are a pause (a hidden tab, a dialog), not a slow device. It is well over the slowest frame a
+// struggling device draws, since a device drawing every frame slower than the pause would never be judged at all.
+const PAUSE_MS = 1000;
 
 // Keeps a renderer as fine as the device can draw smoothly. It reads the time between frames, judges a window at
 // a time by its median (one slow frame while something loads does not count), steps down a level when frames

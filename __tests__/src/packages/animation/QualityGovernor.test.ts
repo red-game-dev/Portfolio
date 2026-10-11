@@ -39,4 +39,15 @@ describe("QualityGovernor", () => {
     expect(run(governor, 8, 20000, 7000)).toEqual([]);
     expect(governor.level).toBe(1);
   });
+
+  test("a device drawing every frame very slowly is still judged slow, so it steps down rather than staying stuck", () => {
+    const governor = new QualityGovernor({ levels: 4 });
+    let level: number | null = null;
+
+    for (let now = 0; now <= 4000 && level === null; now += 400) {
+      level = governor.sample(400, now);
+    }
+
+    expect(level).toBe(1);
+  });
 });

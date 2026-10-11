@@ -1,7 +1,7 @@
 import type { RenderLayer } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
 
-import { VoyageFrame } from "../frame";
+import { sizeBucket, VoyageFrame } from "../frame";
 import { paintStation } from "../paint/stations";
 import { RenderKit } from "./kit";
 
@@ -29,7 +29,8 @@ export class StationsLayer implements RenderLayer<VoyageFrame> {
 
       const colours = state.cosmos?.factions[port.faction]?.colours ?? FREE_PORT;
       const drawn = Math.max(SMALLEST, port.radius * 2 * camera.scale);
-      const size = Math.max(32, Math.round(drawn / 16) * 16);
+      // Painted at zoom 1 and only scaled as the camera zooms, so easing the zoom never paints it again.
+      const size = Math.max(32, sizeBucket(port.radius * 2 * (camera.scale / camera.zoom)));
       const sprite = this.kit.sprite(`station:${colours.join()}:${size}`, size, size, paintStation(colours[0], colours[1], colours[2]));
 
       front.blit(sprite, camera.toScreenX(port.x), camera.toScreenY(port.y), drawn, drawn, now * SPIN + port.seed);

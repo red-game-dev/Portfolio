@@ -1,6 +1,8 @@
 import type { ZoneId } from "@/config/zones";
 import type { LaunchLand, LaunchMilestone, LaunchVehicle } from "@/packages/games/launch";
-import type { BoostId, LandingMethod, LandingPhase, SlotRefusal, SurfaceBiome } from "@/packages/games/voyage";
+import type {
+  AmmoType, BoostId, BossMoveKind, GearSlot, GearStat, LandingMethod, LandingPhase, PerkId, ServiceId, ShipWeaponKind, SlotRefusal, SurfaceBiome,
+} from "@/packages/games/voyage";
 
 export interface DuelRound {
   agent: string;
@@ -115,7 +117,7 @@ export interface FinaleLaunch {
 }
 
 // The voyage past orbit: out of the solar system, through a black hole, and from universe to universe.
-type HullTierKey = "rocket" | "shuttle" | "corvette" | "starship" | "intergalactic";
+type HullTierKey = "rocket" | "shuttle" | "corvette" | "starship" | "intergalactic" | "titan";
 type FaultKey = "misfire" | "fuelLeak" | "coolantLeak" | "glitch" | "emitter" | "breach";
 type CurrencyKey = "RED" | "VOID";
 
@@ -184,11 +186,21 @@ export interface VoyageEconomyCopy {
     nothing: string;
     holdFull: string;
     blueprint: string;
+    // A hulk drifted in from an earlier universe ("{origin}").
+    hulk: string;
   };
   // "{action}" is replaced with what the one click does.
-  suggestion: { title: string; hint: string; upgrade: string; repair: string; craftFault: string; craftUpgrade: string; use: Record<"hull" | "fuel" | "shields" | "heat", string> };
+  suggestion: {
+    title: string;
+    hint: string;
+    upgrade: string;
+    repair: string;
+    craftFault: string;
+    craftUpgrade: string;
+    use: Record<"hull" | "fuel" | "shields" | "heat", string>;
+  };
   // "{red}" and "{void}" are replaced.
-  earned: Record<"boss" | "universe" | "rescue" | "hosted", string>;
+  earned: Record<"boss" | "universe" | "rescue" | "hosted" | "distress", string>;
   upgraded: string;
   records: { title: string; runs: string; best: string; universes: string; bosses: string; rescues: string; salvaged: string };
   reset: { button: string; confirm: string; yes: string; no: string };
@@ -271,6 +283,99 @@ export interface VoyageBoostCopy {
     top: string;
     charges: string;
   };
+}
+
+// The armoury: a piece's name ("{grade} {piece}", a grade for each hull), each slot and what it does, each weapon,
+// each kind of ammunition, what each stat is called, the enhancement tiers ("+{count} {tier}"), and everything the
+// ship's sheet and the forge say ("{name}", "{level}", "{chance}" and the like replaced).
+export interface VoyageGearCopy {
+  tabs: { profile: string; forge: string; badges: string; style: string };
+  pieceName: string;
+  grades: string[];
+  slots: Record<GearSlot, string>;
+  slotNotes: Record<GearSlot, string>;
+  weapons: Record<ShipWeaponKind, NamedNote>;
+  ammo: Record<AmmoType, string>;
+  stats: Record<GearStat, string>;
+  tiers: Record<string, { one: string; many: string }>;
+  form: string;
+  noForm: string;
+  level: string;
+  fitted: string;
+  onBar: string;
+  fit: string;
+  unfit: string;
+  dismantle: string;
+  empty: string;
+  locked: string;
+  needsLevel: string;
+  pieces: string;
+  noPieces: string;
+  armed: { damage: string; rate: string; range: string; ammo: string };
+  ammoTitle: string;
+  rack: string;
+  aimWarning: string;
+  enhance: {
+    title: string;
+    note: string;
+    button: string;
+    chance: string;
+    fall: string;
+    cost: string;
+    protect: string;
+    top: string;
+    success: string;
+    fell: string;
+    kept: string;
+    short: string;
+  };
+  forge: { title: string; note: string; locked: string; make: string; grade: string; needsLevel: string };
+  notices: { found: string; foundAmmo: string; chest: string; cache: string; streak: string };
+}
+
+// The pilot's progress: their level and experience, stars, every achievement's name and what it asks, each paint
+// and trail, the card at a run's end, and the guided first flight's steps.
+export interface VoyageProgressCopy {
+  level: string;
+  exp: string;
+  capped: string;
+  stars: string;
+  starsWon: string;
+  levelUp: string;
+  achievementsTitle: string;
+  achievementsFound: string;
+  achievement: string;
+  progress: string;
+  achievements: Record<string, NamedNote>;
+  styleTitle: string;
+  paintsTitle: string;
+  trailsTitle: string;
+  paints: Record<string, string>;
+  trails: Record<string, string>;
+  wear: string;
+  worn: string;
+  byStars: string;
+  byAchievement: string;
+  cosmetic: string;
+  summary: {
+    title: string;
+    time: string;
+    score: string;
+    places: string;
+    landings: string;
+    kills: string;
+    streak: string;
+    coin: string;
+    exp: string;
+    levels: string;
+    universes: string;
+    stars: string;
+    gear: string;
+    achievements: string;
+  };
+  guide: { title: string; steps: string[]; touchSteps: string[]; next: string; skip: string; done: string };
+  universe: string;
+  daily: string;
 }
 
 // The view from a world's surface: which world ("{body}"), the local time ("{time}"), what each kind of ground is
@@ -406,7 +511,20 @@ export interface FinaleVoyage {
   landed: string;
   tookOff: string;
   // The map's marks ("{mass}" is a black hole's in Suns) and its key.
-  mapMarks: { mission: string; holeMass: string; keyMission: string; keyPull: string; keyHostile: string; keyRock: string; keyHazard: string };
+  // The map's marks, and the arrow on the screen towards the black hole that leads to the next universe.
+  mapMarks: {
+    mission: string;
+    holeMass: string;
+    keyMission: string;
+    keyPull: string;
+    keyHostile: string;
+    keyRock: string;
+    keyHazard: string;
+    wayOn: string;
+    station: string;
+    keyPort: string;
+    keyDistress: string;
+  };
   // Home safely, met and given a new rocket.
   recovered: string;
   // No fuel to leave ("{body}", "{seconds}", "{days}"): a rescue on its way in our solar system or the run ending in
@@ -512,6 +630,72 @@ export interface FinaleVoyage {
   economy: VoyageEconomyCopy;
   career: VoyageCareerCopy;
   boosts: VoyageBoostCopy;
+  gear: VoyageGearCopy;
+  progress: VoyageProgressCopy;
+  encounters: VoyageEncountersCopy;
+}
+
+// What the voyage says of its encounters: the perks a run picks from, the ports it docks at to trade, calls for help,
+// a boss's great attacks, and guns running dry.
+export interface VoyageEncountersCopy {
+  perks: {
+    title: string;
+    note: string;
+    // "{count}" and "{max}" are replaced.
+    taken: string;
+    skip: string;
+    // "{perks}" is replaced with those taken this run.
+    owned: string;
+    names: Record<PerkId, { name: string; note: string }>;
+  };
+  station: {
+    // Drawn round a port the ship can dock at.
+    dockHere: string;
+    // "{port}" is replaced.
+    dockAt: string;
+    castOff: string;
+    // "{world}" and "{faction}" are replaced.
+    station: string;
+    freePort: string;
+    keptBy: string;
+    trader: string;
+    traderAlone: string;
+    // "{coin}" is replaced.
+    coin: string;
+    crew: string;
+    services: Record<ServiceId, string>;
+    notNeeded: string;
+    ammo: string;
+    // "{count}", "{ammo}", "{aboard}" and "{rack}" are replaced.
+    pack: string;
+    aboard: string;
+    racksFull: string;
+    goods: string;
+    sales: string;
+    nothingToSell: string;
+    // "{price}" is replaced.
+    buy: string;
+    sellOne: string;
+    sellAll: string;
+    each: string;
+    tooPoor: string;
+  };
+  distress: {
+    label: string;
+    // "{seconds}" is replaced.
+    frame: string;
+    hold: string;
+    boarding: string;
+    call: string;
+    rescued: string;
+    ambush: string;
+    cargo: string;
+    lost: string;
+  };
+  bossMoves: Record<BossMoveKind, string>;
+  bossTells: Record<BossMoveKind, string>;
+  // "{ammo}" and "{weapon}" are replaced.
+  dry: { backup: string; silent: string; weapon: string };
 }
 
 export interface FinaleContent {

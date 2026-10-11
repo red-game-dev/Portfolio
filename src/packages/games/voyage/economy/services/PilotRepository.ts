@@ -1,31 +1,63 @@
 import { Repository, StoreAdapter } from "@/packages/browser/store";
 
+import { isCareerProfile } from "../../career/guards/isCareerProfile";
 import { newCareer } from "../../career/services/Career";
 import { GhostRun } from "../../domain/ghost";
+import { isArmoryProfile } from "../../gear/guards/isArmoryProfile";
+import { newArmoryProfile } from "../../gear/services/Armory";
 import { isGhostRun } from "../../guards/isGhostRun";
+import { isProgressProfile } from "../../progress/guards/isProgressProfile";
+import { newProgressProfile } from "../../progress/services/Progress";
 import { newBar } from "../config/bar";
 import { PilotProfile } from "../domain/profile";
 import { isPilotProfile } from "../guards/isPilotProfile";
 import { newEconomyProfile } from "./Hangar";
 
-// The shape version this code writes: 2 added the career, 3 the boosts and the ability bar.
-const VERSION = 3;
+// The shape version this code writes: 2 added the career, 3 the boosts and the ability bar, 4 the armoury and
+// the pilot's progress.
+const VERSION = 4;
 
 // A pilot who has never flown.
-export const newProfile = (): PilotProfile => ({ ...newEconomyProfile(), career: newCareer() });
+export const newProfile = (): PilotProfile => ({ ...newEconomyProfile(), career: newCareer(), armory: newArmoryProfile(), progress: newProgressProfile() });
 
 const isGhostOrNone = (value: unknown): value is GhostRun | null => value === null || isGhostRun(value);
 
 // A profile from before careers keeps its hangar and starts its career; one from before boosts starts with none
-// found and the ability bar laid out as a new pilot's.
+// found and the ability bar laid out as a new pilot's; one from before the armoury is fitted as a new pilot's
+// rocket, with no levels or stars yet (its bar grows to six slots as it is read).
 const migrate = (data: unknown, from: number): unknown => {
   if (typeof data !== "object" || data === null) {
     return data;
   }
 
   const withCareer = from < 2 ? { ...data, career: newCareer() } : data;
+  const withBoosts = from < 3 ? { ...withCareer, boosts: {}, bar: newBar() } : withCareer;
 
-  return from < 3 ? { ...withCareer, boosts: {}, bar: newBar() } : withCareer;
+  return from < 4 ? { ...withBoosts, armory: newArmoryProfile(), progress: newProgressProfile() } : withBoosts;
+};
+
+// A career, armoury or progress that no longer checks out is started again on its own, so the hangar's ship, hold and
+// money (and every other part) are kept; only a broken hangar part loses the whole pilot.
+const repair = (data: unknown): unknown => {
+  if (typeof data !== "object" || data === null) {
+    return data;
+  }
+
+  const record: Record<string, unknown> = { ...data };
+
+  if (!isCareerProfile(record.career)) {
+    record.career = newCareer();
+  }
+
+  if (!isArmoryProfile(record.armory)) {
+    record.armory = newArmoryProfile();
+  }
+
+  if (!isProgressProfile(record.progress)) {
+    record.progress = newProgressProfile();
+  }
+
+  return record;
 };
 
 const KEY = "pilot";
@@ -41,7 +73,7 @@ export class PilotRepository {
 
   constructor(adapter: StoreAdapter) {
     this.ghost = new Repository<GhostRun | null>(adapter, GHOST_KEY, { version: 1, isValid: isGhostOrNone, fallback: () => null });
-    this.repository = new Repository(adapter, KEY, { version: VERSION, isValid: isPilotProfile, fallback: newProfile, migrate });
+    this.repository = new Repository(adapter, KEY, { version: VERSION, isValid: isPilotProfile, fallback: newProfile, migrate, repair });
   }
 
   public load(): Promise<PilotProfile> {

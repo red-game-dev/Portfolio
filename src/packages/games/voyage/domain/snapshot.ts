@@ -1,8 +1,11 @@
+import type { AmmoStock } from "../gear/domain/gear";
 import type { LandingMethod, LandingPhase } from "../landing";
+import type { PortKind } from "../stations/domain/station";
 import type { BoostId } from "./boosts";
-import { AlienRole, Modules, WreckKind } from "./components";
+import { AlienRole, BossMoveKind, Modules, WreckKind } from "./components";
 import { VoyagePhase } from "./events";
 import { FaultKind } from "./faults";
+import type { PerkId } from "./perks";
 import type { Medium } from "./state";
 import { VoyageStatus } from "./state";
 import { SurfaceInfo } from "./surface";
@@ -19,6 +22,15 @@ export interface Frame {
   maxHull: number;
   shields: number;
   maxShields: number;
+}
+
+// A port as the UI shows it: a station or a trader, the world a station circles (its id, and its name where a universe
+// made one up), and the people who keep it (null for a free port, or at home).
+export interface PortView {
+  kind: PortKind;
+  anchor: string | null;
+  anchorName: string | null;
+  faction: string | null;
 }
 
 // A rock on its way to a world: which (its name), how big (km), how long until it hits, how strong it still is.
@@ -106,6 +118,15 @@ export interface VoyageSnapshot {
   stranded: { secondsLeft: number; isRescue: boolean } | null;
   // The boosts at work (the share of each still to run, 1 to 0), the whole seconds before each used one is ready
   // again and the share of its cooldown still to run, and a block shield's blocks still standing.
+  // The ammunition aboard, and each weapon on the bar's wait before it fires again (whole seconds, and the share of
+  // its cooldown still to run), with the best streak of kills this run.
+  weapons: {
+    ammo: AmmoStock;
+    ready: Record<string, { seconds: number; share: number }>;
+    // Each weapon's shots left in the ammunition aboard.
+    shots: Record<string, number>;
+    streak: number;
+  };
   boosts: {
     active: Array<{ id: BoostId; level: number; left: number }>;
     cooldowns: Partial<Record<BoostId, { seconds: number; share: number }>>;
@@ -129,6 +150,17 @@ export interface VoyageSnapshot {
   // The ship's level; the faults on board, oldest first; the wreck being salvaged and how far (0 to 1).
   level: number;
   faults: Array<{ id: number; kind: FaultKind }>;
-  salvage: { kind: WreckKind; progress: number } | null;
+  salvage: { kind: WreckKind; progress: number; origin: string | null } | null;
+  // The run's perks, and the three offered while the pilot chooses (the run held still till then).
+  perks: PerkId[];
+  perkOffer: PerkId[] | null;
+  // The port the ship is alongside slowly enough to dock at, and the one it is docked at (the run held still).
+  dockable: PortView | null;
+  docked: PortView | null;
+  // A call for help: the whole seconds before it goes quiet, how far the survivors are aboard (0 to 1), and whether
+  // the ship is close enough to answer it.
+  distress: { seconds: number; progress: number; isNear: boolean } | null;
+  // The boss's great attack winding up, to be got clear of.
+  bossMove: BossMoveKind | null;
   telemetry: Telemetry;
 }

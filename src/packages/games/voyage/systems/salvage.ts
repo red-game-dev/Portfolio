@@ -1,7 +1,7 @@
 import { TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
 
-import { WreckKind } from "../domain/components";
+import { Wreck, WreckKind } from "../domain/components";
 import { LootSource } from "../domain/loot";
 import { VoyageContext } from "./context";
 
@@ -20,11 +20,15 @@ export interface WreckOrigin {
   faction?: number;
   level?: number;
   isBoss?: boolean;
+  // A hulk from an earlier universe of the run: how it looks, and where it came from.
+  look?: Wreck["look"];
+  origin?: string;
 }
 
 // Leaves a wreck drifting where something died or was found: what it holds rolled now from the loot table, for
 // where the ship is and how strong the fallen was; tumbling slowly.
-export const leaveWreck = (context: VoyageContext, kind: WreckKind, { x, y, vx, vy, radius, faction = -1, level = 1, isBoss = false }: WreckOrigin): number => {
+export const leaveWreck = (context: VoyageContext, kind: WreckKind, { x, y, vx, vy, radius, faction = -1, level = 1, isBoss = false, look, origin }: WreckOrigin):
+  number => {
   const { world, state, config, random, loot } = context;
   const wreck = world.spawn();
   const size = radius ?? RADIUS[kind];
@@ -40,6 +44,7 @@ export const leaveWreck = (context: VoyageContext, kind: WreckKind, { x, y, vx, 
     isEmpty: false,
     seed: random(),
     faction,
+    ...(look ? { look, origin } : {}),
   });
 
   return wreck;

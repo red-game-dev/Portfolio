@@ -22,6 +22,7 @@ const CALM: Partial<VoyageConfig> = {
   spawn: { ...defaults.spawn, open: 0, belt: 0, universe: 0, universeGrowth: 0, pickups: 0, cometEvery: [1e6, 1e6] },
   weather: { ...defaults.weather, every: [1e6, 1e6] },
   faults: { ...defaults.faults, rate: 0 },
+  distress: { ...defaults.distress, first: 1e6, every: [1e6, 1e6] },
 };
 
 // A run already flying from Earth in a calm sky.

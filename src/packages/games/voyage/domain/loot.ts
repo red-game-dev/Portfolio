@@ -1,20 +1,24 @@
 import type { RandomSource } from "@/packages/math/random";
 
+import type { AmmoStock, GearDrop } from "../gear/domain/gear";
 import { VoyageStyle } from "./theme";
 
-// Where something can be found: drifting wrecks, rocks shot apart, comets, those who live in the universes, and
-// their bosses.
-export type LootSource = "wreck" | "rock" | "comet" | "alien" | "boss";
+// Where something can be found: drifting wrecks, rocks shot apart, comets, those who live in the universes, their
+// bosses, caches drifting in space and the chests bosses leave.
+export type LootSource = "wreck" | "rock" | "comet" | "alien" | "boss" | "cache" | "chest";
 
 export interface ItemStack {
   id: string;
   count: number;
 }
 
-// What a wreck, a rock or the fallen give up: things, and now and then the plans to make something.
+// What a wreck, a rock or the fallen give up: things, now and then the plans to make something, pieces of gear and
+// ammunition.
 export interface Loot {
   items: ItemStack[];
   blueprints: string[];
+  gear?: GearDrop[];
+  ammo?: Partial<AmmoStock>;
 }
 
 // Where it was found: what from, in which kind of universe (null at home), how deep, and how strong the one it

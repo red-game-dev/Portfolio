@@ -25,6 +25,8 @@ export interface ShipConfig {
   // Inertial dampers: velocity bled per second, so the ship stays flyable. Space itself has no drag.
   dampers: number;
   maxSpeed: number;
+  // The share of every hit the ship's fittings turn away.
+  resist: number;
 }
 
 export interface FlightConfig {
@@ -103,6 +105,8 @@ export interface ArmsConfig {
   heat: number;
   // A rock is shot down when it would hit within this many seconds.
   threatSeconds: number;
+  // The chance a shot does double.
+  crit: number;
 }
 
 // Who lives in the universes: how many groups round the ship (more as danger grows), how far out they appear,
@@ -137,6 +141,25 @@ export interface SalvageConfig {
   match: number;
   seconds: Record<"probe" | "rocket" | "starship" | "alien" | "ore" | "ice", number>;
   debris: number;
+  // In the universes, where far more ships fight and fall: how often (seconds) and how many at once, and the share
+  // of the fallen that are hulks drifted in from an earlier universe of the run, once there are any.
+  away: { every: [number, number]; max: number; foreign: number };
+}
+
+// Calls for help: the first after so many seconds, then one every so often (seconds), each calling for so long,
+// sent from so far off (world units); reached within `reach`, survivors are taken aboard by holding no faster than
+// `holdSpeed` against the beacon for `hold` seconds; an ambush rouses a pack this much bigger than the faction's, and
+// a spilled cargo leaves so many caches.
+export interface DistressConfig {
+  first: number;
+  every: [number, number];
+  seconds: number;
+  distance: [number, number];
+  reach: number;
+  hold: number;
+  holdSpeed: number;
+  ambush: number;
+  caches: [number, number];
 }
 
 // Breakdowns: the chance a second of each system breaking down when sound, how much likelier as it wears, runs
@@ -194,6 +217,8 @@ export interface BoostConfig {
   radius: number;
   own: number;
   away: number;
+  // The share of what drifts in that is a cache of ammunition and gear rather than a boost's core.
+  caches: number;
 }
 
 export interface HoleConfig {
@@ -255,6 +280,7 @@ export interface VoyageConfig {
   // Seconds between ships passing.
   traffic: [number, number];
   salvage: SalvageConfig;
+  distress: DistressConfig;
   faults: FaultConfig;
   spawn: SpawnConfig;
   holes: HoleConfig;
@@ -291,6 +317,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     turnRate: 5.5,
     dampers: 0.22,
     maxSpeed: 3.2,
+    resist: 0,
   },
   flight: { safeLanding: 0.42, crash: 520, drag: 0.8, crush: 600, skim: 12, impact: 70 },
   descent: {
@@ -307,7 +334,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     pressureBar: 50,
   },
   weather: { every: [55, 120], speed: [0.45, 1.2], width: [0.6, 1.5], heading: 0.45, drain: 280, sensors: 0.2, radiation: 60000, auroraFade: 0.05 },
-  arms: { kind: "cannon", damage: 32, rate: 3.2, range: 6.5, speed: 7, heat: 3, threatSeconds: 1.6 },
+  arms: { kind: "cannon", damage: 32, rate: 3.2, range: 6.5, speed: 7, heat: 3, threatSeconds: 1.6, crit: 0 },
   life: { packs: 2, packsPerDanger: 1, spawnDistance: [9, 16], bossAfter: 45 },
   impacts: { every: [70, 150], speed: [0.7, 1.2], solarKm: [0.5, 15], universeKm: [200, 3500], planetoid: 0.3 },
   traffic: [25, 60],
@@ -320,7 +347,9 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     match: 0.22,
     seconds: { probe: 1.6, rocket: 2.2, starship: 3.2, alien: 2, ore: 0.5, ice: 0.6 },
     debris: 0.3,
+    away: { every: [14, 32], max: 6, foreign: 0.35 },
   },
+  distress: { first: 50, every: [70, 140], seconds: 80, distance: [9, 15], reach: 0.8, hold: 2.5, holdSpeed: 0.5, ambush: 2, caches: [2, 3] },
   faults: {
     rate: 1 / 900,
     wearFactor: 5,
@@ -349,7 +378,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     jumpMs: 1600,
   },
   medium: { speeds: { void: 1.4, open: 1, haze: 0.85, belt: 0.75, nebula: 0.65, ring: 0.6 }, easing: 1.5 },
-  boosts: { every: [40, 80], universeEvery: [28, 60], radius: 0.07, own: 0.6, away: 0.1 },
+  boosts: { every: [40, 80], universeEvery: [28, 60], radius: 0.07, own: 0.6, away: 0.1, caches: 0.3 },
   pickups: { magnet: 1.1, repair: 150, shield: 200, fuel: 35 },
   scoring: { perUnit: 6, pickup: 25, universe: 500, landing: 150, discovery: 100 },
   units: { kmPerSecond: 7, kmPerAu: 149597870.7 },

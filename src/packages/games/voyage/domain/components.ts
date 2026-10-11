@@ -1,5 +1,6 @@
 import { BoostId } from "./boosts";
 import { Loot } from "./loot";
+import { HullShape } from "./universe";
 
 // Position, velocity and size: everything that moves and collides. `prevX` and `prevY` hold the position one
 // step back, so the renderer can draw between steps.
@@ -72,7 +73,7 @@ export interface Hazard {
   isComet: boolean;
 }
 
-export type PickupKind = "coin" | "shield" | "fuel" | "repair" | "boost";
+export type PickupKind = "coin" | "shield" | "fuel" | "repair" | "boost" | "cache" | "chest";
 
 // Something to pick up, and for a boost core, which boost.
 export interface Pickup {
@@ -87,6 +88,19 @@ export type AlienRole = "fighter" | "boss" | "trader" | "whale";
 
 export type AlienMode = "idle" | "chase" | "flee" | "evade";
 
+// A boss's great attacks, each shown before it lands: a ring of shots thrown out all round it, a charge along a line
+// it marks, and a volley of missiles at where the ship is.
+export type BossMoveKind = "nova" | "charge" | "volley";
+
+// A great attack winding up: which, when it lands (ms on the run's clock), and the way and the point it was aimed at.
+export interface BossMove {
+  kind: BossMoveKind;
+  at: number;
+  angle: number;
+  x: number;
+  y: number;
+}
+
 export interface Alien {
   faction: number;
   role: AlienRole;
@@ -97,12 +111,18 @@ export interface Alien {
   angle: number;
   level: number;
   phase: number;
+  // Until when an EMP holds it still and silent (ms on the run's clock).
+  stunnedUntil?: number;
+  // A boss: the great attack winding up, when it may begin the next, and until when it charges.
+  move?: BossMove | null;
+  nextMoveAt?: number;
+  chargeUntil?: number;
 }
 
 // A gun: what it fires, how hard, how often (shots a second), how far, how fast its shots fly, how much heat each
 // shot adds to the hull, and how long until it can fire again (seconds).
 export interface Weapon {
-  kind: "cannon" | "laser" | "missile" | "spit" | "photoid";
+  kind: "cannon" | "laser" | "missile" | "spit" | "photoid" | "mine" | "flak" | "backup" | "rail" | "emp";
   damage: number;
   rate: number;
   range: number;
@@ -118,6 +138,13 @@ export interface Projectile {
   team: "ship" | "aliens";
   kind: Weapon["kind"];
   damage: number;
+  // The ship's shots: the piece that fired it (null for the main gun), whether it is a critical hit, a burst's
+  // radius on impact, and for a mine when it arms (ms on the run's clock) and how near something must come.
+  source?: string | null;
+  isCrit?: boolean;
+  blast?: number;
+  armAt?: number;
+  trigger?: number;
   ttl: number;
   target: number | null;
 }
@@ -153,6 +180,9 @@ export interface Wreck {
   isEmpty: boolean;
   seed: number;
   faction: number;
+  // A hulk that drifted in from an earlier universe of the run: how it looks, and the universe it came from.
+  look?: { shape: HullShape; colours: [string, string, string] };
+  origin?: string;
 }
 
 // A gate between the star systems of a maze universe: the system (by its place in the network) it leads to.

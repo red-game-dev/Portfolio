@@ -8,6 +8,7 @@ import { RandomSource } from "@/packages/math/random";
 import { CareerView } from "../career/domain/career";
 import { Career } from "../career/services/Career";
 import { DEFAULT_VOYAGE_THEME, resolveVoyageConfig, VoyageConfigOverrides, VoyageTheme } from "../config";
+import { MODULE_IDS } from "../domain/components";
 import { StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
 import { ShipEffect } from "../domain/faults";
@@ -15,23 +16,48 @@ import { GhostRun } from "../domain/ghost";
 import { LandingOptions, SpaceDrag, VoyageInput } from "../domain/input";
 import { VoyageAction, VoyageNotice } from "../domain/notices";
 import { VoyageSnapshot } from "../domain/snapshot";
+import { AimMode, Difficulty } from "../domain/state";
 import { HomePad } from "../domain/surface";
 import { UniverseNames } from "../domain/universe";
-import { markOf, tierOf } from "../economy/config/tiers";
+import { ITEMS } from "../economy/config/catalog";
+import { markOf, TIERS, tierOf } from "../economy/config/tiers";
 import { CatalogLootTable } from "../economy/core/CatalogLootTable";
 import { EconomyView, ShipStatus, Suggestion } from "../economy/domain/economy";
 import { Hangar } from "../economy/services/Hangar";
+import { dismantleValue, forgeCost, weaponPlan } from "../gear/config/forge";
+import { GRADE_LEVEL } from "../gear/config/slots";
+import { ArmoryView, ProgressView } from "../gear/domain/view";
+import { Armory, newArmoryProfile } from "../gear/services/Armory";
+import { baseOf, ENHANCE_LADDER, rackFor, weaponBaseId } from "../gear/utils/gear";
+import { configForShip } from "../gear/utils/ship";
+import { armoryView, progressView } from "../gear/utils/view";
+import { DEFAULT_PAINT, DEFAULT_TRAIL, PAINTS, TRAILS } from "../progress/config/cosmetics";
+import { newProgressProfile, Progress } from "../progress/services/Progress";
 import { CanvasVoyageRenderer, VoyageRenderer } from "../renderers/CanvasVoyageRenderer";
 import { lerpX, lerpY, universeOf } from "../renderers/frame";
+import { ShipLook } from "../renderers/look";
+import { paintHull } from "../renderers/paint/ships";
+import { SHIP_HEIGHT, SHIP_WIDTH } from "../renderers/paint/space";
 import { PilotLink } from "../services/PilotLink";
+import { ProgressLink, RunSummary } from "../services/ProgressLink";
 import { SystemService } from "../services/SystemService";
 import { SolarSystemSource } from "../sources/SolarSystemSource";
+import { ServiceId, StationView } from "../stations/domain/station";
+import { stationView } from "../stations/utils/view";
 import { dailyEpoch, dailySeed, dayKey } from "../utils/daily";
 import { missionMarks } from "../utils/missions";
+import { addStats, perkStats } from "../utils/perks";
 import { GhostRecorder, placeCode } from "./GhostRecorder";
+import { PadControl, PadIntent, PadPort } from "./PadControl";
+import { SoundPort, Vibrate, VoyageFeedback } from "./VoyageFeedback";
 import { VoyageSimulation } from "./VoyageSimulation";
 
 export type { VoyageAction, VoyageNotice } from "../domain/notices";
+
+// How long a kill holds the world still (ms): a moment for anyone, longer for a boss.
+const HIT_STOP = { kill: 45, boss: 180 };
+// Running dry is said at most this often for each weapon (ms of the run), not every time a gun clicks.
+const DRY_EVERY_MS = 20000;
 
 export interface VoyageOptions {
   config?: VoyageConfigOverrides;
@@ -53,6 +79,17 @@ export interface VoyageOptions {
   // wrecks hold nothing.
   hangar?: Hangar;
   onEconomy?: (view: EconomyView) => void;
+  // The pilot's armoury and progress: their gear, its levels and enhancement, the ammunition, the pilot's level,
+  // stars, achievements and cosmetics; and where their views go as they change.
+  armory?: Armory;
+  progress?: Progress;
+  onGear?: (view: ArmoryView) => void;
+  onProgress?: (view: ProgressView) => void;
+  // Sound and music, a buzz on a phone, and a controller (with where the buttons that work the page go).
+  sound?: SoundPort | null;
+  vibrate?: Vibrate | null;
+  gamepad?: PadPort | null;
+  onPadIntent?: (intent: PadIntent) => void;
   // The pilot's career: missions, rank, the codex and the daily voyage.
   career?: Career;
   onCareer?: (view: CareerView) => void;
@@ -120,6 +157,8 @@ interface Moment {
   isOnSurface: boolean;
   // The phase of a way down, and whether a pilot flies it.
   descent: string | null;
+  // A perk offered, the port docked at or alongside, and a call for help.
+  held: string;
 }
 
 // Hosts a voyage on the shared frame loop: steps the simulation in fixed steps, flies the camera after the ship,
@@ -143,6 +182,20 @@ export class VoyageGame extends FrameLoop {
   // A phone or tablet tilted to steer: the way to fly on screen (x right, y down) and how hard, 0 to 1; null when
   // tilting does not steer.
   private tilt: { x: number; y: number } | null = null;
+  // With the guns aimed by hand: a thumb stick's lean (a phone's left thumb), and the point on the screen the guns
+  // aim at (the mouse, or a phone's right thumb).
+  private stick: { x: number; y: number } | null = null;
+  private aimPoint: { x: number; y: number } | null = null;
+  // How long the world is held still after a kill (ms), and whether the reader asked for less motion.
+  private hitStopMs = 0;
+  private isReducedMotion = false;
+  private readonly feedback: VoyageFeedback;
+  private readonly pad: PadControl | null;
+  private readonly onPadIntent: (intent: PadIntent) => void;
+  // A controller's left stick, whether its trigger fires and its left trigger brakes, this frame.
+  private padLean: { x: number; y: number } | null = null;
+  private isPadFiring = false;
+  private isPadBraking = false;
   private lastSnapshot: VoyageSnapshot;
   private lastTickAt = 0;
   private lastFrameAt = 0;
@@ -152,6 +205,11 @@ export class VoyageGame extends FrameLoop {
   private readonly career: Career | null;
   private readonly link: PilotLink | null;
   private readonly onEconomy: (view: EconomyView) => void;
+  private readonly armory: Armory | null;
+  private readonly progress: Progress | null;
+  private readonly progressLink: ProgressLink | null;
+  private readonly onGear: (view: ArmoryView) => void;
+  private readonly onProgress: (view: ProgressView) => void;
   private readonly onCareer: (view: CareerView) => void;
   private readonly onGhost: (run: GhostRun) => void;
   private readonly recorder = new GhostRecorder();
@@ -165,6 +223,9 @@ export class VoyageGame extends FrameLoop {
   private devicePixelRatio = 1;
   private readonly governor: QualityGovernor;
   private moment: Moment | null = null;
+  // When each weapon last ran dry (ms of the run), and the boss's attacks already told this fight.
+  private dryAt = new Map<string, number>();
+  private toldMoves = new Set<string>();
 
   constructor(simulation: VoyageSimulation, renderer: VoyageRenderer, presenter: LensingPresenter | null, backCanvas: TexImageSource | null, theme: VoyageTheme,
     options: VoyageOptions = {}, canvases: { front: CanvasImageSource | null; lens: HTMLCanvasElement | OffscreenCanvas | null } = { front: null, lens: null }) {
@@ -176,23 +237,56 @@ export class VoyageGame extends FrameLoop {
     this.backCanvas = backCanvas;
     this.theme = theme;
     this.onChange = options.onChange ?? (() => undefined);
-    this.onNotice = options.onNotice ?? (() => undefined);
+    const onNotice = options.onNotice ?? (() => undefined);
+
+    // Every notice is heard too: a level, an achievement, stars, an enhancement each have their sound.
+    this.onNotice = (notice) => {
+      this.feedback.notice(notice);
+      onNotice(notice);
+    };
     this.now = options.now ?? (() => Date.now());
     this.hangar = options.hangar ?? null;
     this.career = options.career ?? null;
     this.onEconomy = options.onEconomy ?? (() => undefined);
+    this.armory = options.armory ?? null;
+    this.progress = options.progress ?? null;
+    this.onGear = options.onGear ?? (() => undefined);
+    this.onProgress = options.onProgress ?? (() => undefined);
+    this.feedback = new VoyageFeedback(simulation, options.sound ?? null, options.vibrate ?? null);
+    this.pad = options.gamepad ? new PadControl(options.gamepad) : null;
+    this.onPadIntent = options.onPadIntent ?? (() => undefined);
     this.onCareer = options.onCareer ?? (() => undefined);
     this.onGhost = options.onGhost ?? (() => undefined);
     this.ghost = options.ghost ?? null;
     this.frontCanvas = canvases.front;
     this.lensCanvas = canvases.lens;
-    this.link = this.hangar ? new PilotLink({
+    const { armory, progress } = this;
+    const hangar = this.hangar;
+    const progressLink = hangar && armory && progress ? new ProgressLink({
       simulation,
-      hangar: this.hangar,
+      hangar,
+      armory,
+      progress,
+      notify: (notice) => this.onNotice(notice),
+      refresh: () => this.publishEconomy(true),
+      refit: () => this.link?.refitShip(),
+    }) : null;
+
+    this.progressLink = progressLink;
+    this.link = hangar ? new PilotLink({
+      simulation,
+      hangar,
       career: this.career,
       nameOf: (id) => this.nameOf(id),
       notify: (notice) => this.onNotice(notice),
       refresh: () => this.publishEconomy(true),
+      // With an armoury and a pilot's level, the ship flies with its fittings and grows with its pilot.
+      // The run's perks add to the ship as fitted pieces do.
+      shipConfig: armory && progress
+        ? (base, level) => configForShip(base, level, addStats(armory.stats(), perkStats(simulation.state.perks)), progress.level)
+        : undefined,
+      onDeed: (deed) => progressLink?.deed(deed),
+      onMission: (xp) => progressLink?.mission(xp),
     }) : null;
     this.lastSnapshot = simulation.snapshot;
     this.detach = this.listen(simulation.events);
@@ -216,6 +310,40 @@ export class VoyageGame extends FrameLoop {
 
   public get careerView(): CareerView | null {
     return this.career?.view() ?? null;
+  }
+
+  public get gearView(): ArmoryView | null {
+    return this.hangar && this.armory && this.progress ? armoryView(this.armory, this.hangar, this.progress) : null;
+  }
+
+  public get progressView(): ProgressView | null {
+    return this.progress ? progressView(this.progress) : null;
+  }
+
+  // What the last run came to, once it is over.
+  // The port the ship is docked at and everything it offers the pilot now; null when not docked, or with no hangar.
+  public get stationView(): StationView | null {
+    const { hangar, armory, simulation } = this;
+    const port = simulation.state.docked;
+    const status = this.shipStatus();
+
+    if (!port || !hangar || !armory || !status) {
+      return null;
+    }
+
+    const hull = TIERS.indexOf(tierOf(hangar.level));
+
+    return stationView(port, {
+      cargo: hangar.view().cargo,
+      coin: hangar.purse.RED,
+      ammo: armory.stock,
+      rack: (type) => rackFor(type, hull),
+      missing: { repair: this.repairNeed(), refuel: 1 - status.fuel, recharge: this.shieldNeed() },
+    }, ITEMS);
+  }
+
+  public get runSummary(): RunSummary | null {
+    return this.progressLink?.summary ?? null;
   }
 
   // Whether the view is held still to be looked round and saved as a picture.
@@ -242,6 +370,30 @@ export class VoyageGame extends FrameLoop {
       front: front.canvas,
       lens: lens ?? null,
     });
+  }
+
+  // The guided first flight sets a coin or a boost's core just ahead of the ship to show the pilot.
+  public guideSpawn(kind: "coin" | "boost"): void {
+    if (this.simulation.state.status === "flying") {
+      this.simulation.spawnAhead(kind);
+    }
+  }
+
+  // The ship as it looks now (its hull and mark, paint and fitted pieces), drawn nose up to fill a canvas, for the
+  // ship's sheet.
+  public drawShipPreview(context: Canvas2DContext, width: number, height: number): void {
+    const level = this.hangar?.level ?? 0;
+    const { paint, extras } = this.look();
+    const accent = this.theme.danger;
+    const colours = paint ? { hull: paint.hull, hullShade: paint.hullShade, window: paint.window, fin: paint.fin, accent: paint.accent ?? accent }
+      : { ...this.theme, accent };
+    const size = Math.min(width / SHIP_WIDTH, height / SHIP_HEIGHT);
+
+    context.clearRect(0, 0, width, height);
+    context.save();
+    context.translate((width - size * SHIP_WIDTH) / 2, (height - size * SHIP_HEIGHT) / 2);
+    paintHull(tierOf(level), markOf(level), colours, extras)(context, size * SHIP_WIDTH, size * SHIP_HEIGHT);
+    context.restore();
   }
 
   // A real map for a body's surface (an id from `TEXTURE_IDS`), as it arrives.
@@ -292,7 +444,12 @@ export class VoyageGame extends FrameLoop {
     const isDaily = mode === "daily";
 
     this.simulation.start(isDaily ? dailyEpoch(day) : this.now(), isDaily ? { day, seed: dailySeed(day) } : null);
+    // A new run has no perks yet: the ship is refitted without the last run's.
+    this.link?.refitShip();
     this.link?.startRun();
+    this.dryAt.clear();
+    this.toldMoves.clear();
+    this.progressLink?.startRun();
     this.recorder.reset();
     this.isGhostKept = false;
     this.renderer.setGhost(isDaily && this.ghost?.day === day ? this.ghost : null);
@@ -305,6 +462,7 @@ export class VoyageGame extends FrameLoop {
 
   public pause(): void {
     this.stop();
+    this.feedback.pause();
   }
 
   public resume(): void {
@@ -318,18 +476,59 @@ export class VoyageGame extends FrameLoop {
     if (this.simulation.state.status === "flying") {
       this.lastFrameAt = 0;
       this.start();
+      this.feedback.resume();
     }
   }
 
   // Pointer at x, y on the canvas (CSS pixels), or null when it leaves or the finger lifts.
+  // The pointer on the screen (CSS pixels), or null when it leaves or the finger lifts: where to fly, or with the
+  // guns aimed by hand, where they aim.
   public point(position: { x: number; y: number } | null): void {
-    this.pointer = position;
+    if (this.simulation.state.aimMode === "manual") {
+      this.aimPoint = position;
+    } else {
+      this.pointer = position;
+    }
   }
 
   // A mouse button or a finger held down: while coming down, the burn (the pilot's on the landing engine, or one
-  // that aborts the landing under fire).
+  // that aborts the landing under fire); with the guns aimed by hand, the trigger too.
   public press(isDown: boolean): void {
     this.isPressing = isDown;
+  }
+
+  // A thumb stick's lean, each axis -1 to 1 (down is positive y), or null when no thumb is on it.
+  public setStick(stick: { x: number; y: number } | null): void {
+    this.stick = stick;
+  }
+
+  // How the guns aim: by themselves, or by hand (the pointer aims, a press fires, and keys, a thumb stick or a tilt
+  // fly the ship).
+  public setAimMode(mode: AimMode): void {
+    this.simulation.setAimMode(mode);
+    this.pointer = null;
+    this.aimPoint = null;
+    this.stick = null;
+  }
+
+  public setDifficulty(difficulty: Difficulty): void {
+    this.simulation.setDifficulty(difficulty);
+  }
+
+  // Sound and a buzz, given once the reader has touched the page (a browser plays nothing before) or changed in
+  // their settings.
+  public setSound(sound: SoundPort | null): void {
+    this.feedback.setSound(sound);
+  }
+
+  public setVibrate(vibrate: Vibrate | null): void {
+    this.feedback.setVibrate(vibrate);
+  }
+
+  // For a reader who asked for less motion: small shakes and no hit-stop.
+  public setReducedMotion(isReduced: boolean): void {
+    this.isReducedMotion = isReduced;
+    this.renderer.setReducedMotion(isReduced);
   }
 
   // How the device is tilted, as the hook reads it, or null when tilting does not steer.
@@ -349,6 +548,7 @@ export class VoyageGame extends FrameLoop {
   // Stops for good and gives back everything it holds on the GPU.
   public dispose(): void {
     this.stop();
+    this.feedback.dispose();
     this.detach();
     this.renderer.dispose();
     this.presenter?.dispose();
@@ -375,6 +575,7 @@ export class VoyageGame extends FrameLoop {
         // The hangar's change has already refitted the ship.
         this.onNotice({ kind: "upgraded", level, tier: tierOf(level), mark: markOf(level) });
         this.link?.upgraded(level);
+        this.progressLink?.upgraded(level);
         this.redraw();
 
         return true;
@@ -384,6 +585,7 @@ export class VoyageGame extends FrameLoop {
 
         if (isMade) {
           this.link?.crafted();
+          this.progressLink?.crafted();
         }
 
         return isMade;
@@ -401,8 +603,25 @@ export class VoyageGame extends FrameLoop {
         return isFlying && fault !== undefined && this.applyEffects(hangar.repair(fault));
       }
       // The bar works only while the run moves: not held still under the pause card, the map or the hangar.
+      case "equip":
+      case "unequip":
+      case "enhance":
+      case "dismantle":
+      case "forge":
+      case "wear":
+      case "guide":
+      case "skipGuide":
+        return this.actOnPilot(action);
+      case "perk":
+      case "dock":
+      case "undock":
+      case "buy":
+      case "sell":
+      case "buyAmmo":
+      case "service":
+        return this.actAtPort(action);
       case "slot":
-        return isFlying && this.isRunning && this.useSlot(action.index);
+        return isFlying && this.isRunning && !simulation.isHeld && this.useSlot(action.index);
       case "setSlot":
         return hangar.setSlot(action.index, action.slot);
       case "reset":
@@ -410,8 +629,13 @@ export class VoyageGame extends FrameLoop {
           return false;
         }
 
+        // Everything the pilot built up goes: the hangar, the career, every piece of gear and its ammunition, and the
+        // pilot's levels, stars, achievements and styles.
         hangar.reset();
         this.career?.replace({ xp: 0, active: [], done: [], contracts: 0, codex: [], daily: null });
+        this.armory?.replace(newArmoryProfile());
+        this.progress?.replace(newProgressProfile());
+        this.link?.refitShip();
         // A pilot starting over has no best run of the day to fly beside.
         this.ghost = null;
         this.renderer.setGhost(null);
@@ -529,7 +753,17 @@ export class VoyageGame extends FrameLoop {
 
 
   protected update(deltaMs: number): void {
+    // A kill holds the world still for a few frames, so the hit is felt; the view keeps drawing.
+    if (this.hitStopMs > 0) {
+      this.hitStopMs = Math.max(0, this.hitStopMs - deltaMs);
+      this.followShip(deltaMs / 1000, false);
+
+      return;
+    }
+
+    this.readPad();
     this.simulation.advance(deltaMs, this.input());
+    this.feedback.frame();
     this.readGround();
     this.recordGhost();
     this.followShip(deltaMs / 1000, false);
@@ -566,6 +800,10 @@ export class VoyageGame extends FrameLoop {
       return false;
     }
 
+    if (slot.kind === "weapon") {
+      return this.fireSlot(slot);
+    }
+
     if (slot.kind === "item") {
       const isUsed = this.act({ kind: "use", item: slot.id });
 
@@ -591,6 +829,278 @@ export class VoyageGame extends FrameLoop {
     this.publish(true);
 
     return true;
+  }
+
+  // A controller, read once a frame: its left stick flies (as a thumb stick does), its right stick aims by hand,
+  // its trigger fires, its left trigger brakes; the face buttons and shoulders use the bar, and the rest go to the
+  // page (pause, the map, the hangar, a photo, holding fire).
+  private readPad(): void {
+    const reading = this.pad?.read(this.shipScreen()) ?? null;
+
+    this.padLean = reading?.lean ? { ...reading.lean } : null;
+    this.isPadFiring = reading?.isFiring ?? false;
+    this.isPadBraking = reading?.isBraking ?? false;
+
+    if (!reading) {
+      return;
+    }
+
+    if (reading.aim && this.simulation.state.aimMode === "manual") {
+      this.aimPoint = { ...reading.aim };
+    }
+
+    reading.pressed.forEach((intent) => {
+      const slot = ["slot1", "slot2", "slot3", "slot4", "slot5", "slot6"].indexOf(intent);
+
+      if (slot >= 0) {
+        this.act({ kind: "slot", index: slot });
+      } else {
+        this.onPadIntent(intent);
+      }
+    });
+  }
+
+  // How the pilot's ship looks: the paint and trail they wear (the first of each keeps the theme's look) and the
+  // pieces fitted that show on the hull.
+  private look(): ShipLook {
+    const { armory, progress } = this;
+    const paint = progress && progress.paint !== DEFAULT_PAINT ? PAINTS.find((spec) => spec.id === progress.paint) ?? null : null;
+    const trail = progress && progress.trail !== DEFAULT_TRAIL ? TRAILS.find((spec) => spec.id === progress.trail) ?? null : null;
+
+    return {
+      paint,
+      trail,
+      extras: {
+        pods: Boolean(armory?.fitted("pods")),
+        reactor: Boolean(armory?.fitted("reactor")),
+        drive: Boolean(armory?.fitted("drive")),
+        halo: Boolean(armory?.fitted("halo")),
+      },
+    };
+  }
+
+  // What the pilot asks of the armoury and their progress: fitting, enhancing, breaking down, forging, wearing a
+  // cosmetic, and the guided first flight.
+  private actOnPilot(action: VoyageAction): boolean {
+    const { hangar, armory, progress } = this;
+
+    if (!hangar || !armory || !progress) {
+      return false;
+    }
+
+    switch (action.kind) {
+      case "equip":
+        return armory.equip(action.uid, hangar.level, progress.level, (grade) => GRADE_LEVEL[grade] ?? 1);
+      case "unequip":
+        return armory.unequip(action.slot);
+      case "enhance": {
+        const piece = armory.piece(action.uid);
+        const result = piece ? armory.enhance(action.uid, (cost) => hangar.pay(cost, "enhance", piece.base), Math.random, action.isProtected) : null;
+
+        if (!piece || !result || result.outcome === "top") {
+          return false;
+        }
+
+        this.onNotice({ kind: "enhanced", uid: piece.uid, base: piece.base, outcome: result.outcome, step: result.to, form: ENHANCE_LADDER.formOf(result.to) });
+        this.progressLink?.enhanced(result.to);
+
+        return true;
+      }
+      case "dismantle": {
+        const index = hangar.view().bar.findIndex((row) => row.slot?.kind === "weapon" && row.slot.id === action.uid);
+        const piece = armory.dismantle(action.uid);
+        const base = piece ? baseOf(piece.base) : null;
+
+        if (!piece || !base) {
+          return false;
+        }
+
+        if (index >= 0) {
+          hangar.setSlot(index, null);
+        }
+
+        hangar.credit(dismantleValue(base.grade, piece.rarity, piece.enhance), piece.base);
+
+        return true;
+      }
+      case "forge": {
+        const cost = forgeCost(action.grade);
+        const isAllowed = hangar.knows(weaponPlan(action.weapon)) && progress.level >= cost.pilotLevel && action.grade <= TIERS.indexOf(tierOf(hangar.level));
+        const base = weaponBaseId(action.weapon, action.grade);
+
+        if (!isAllowed || !hangar.pay(cost, "forge", base)) {
+          return false;
+        }
+
+        const piece = armory.add({ base, rarity: "common" });
+
+        this.onNotice({ kind: "loot", gear: piece ? [{ base, rarity: "common" }] : [], ammo: {} });
+
+        return piece !== null;
+      }
+      case "wear":
+        return progress.choose(action.cosmetic, action.id);
+      case "guide":
+        progress.guideTo(action.step);
+
+        return true;
+      case "skipGuide":
+        progress.finishGuide();
+
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  // A perk chosen, and what the pilot does at a port: docking and casting off, buying and selling, ammunition, and the
+  // station's crews mending, refuelling and charging the ship.
+  private actAtPort(action: VoyageAction): boolean {
+    const { simulation, hangar, armory } = this;
+
+    switch (action.kind) {
+      case "perk": {
+        const isTaken = simulation.choosePerk(action.id);
+
+        if (isTaken && action.id !== null) {
+          this.link?.refitShip();
+        }
+
+        this.publish(true);
+
+        return isTaken;
+      }
+      case "dock": {
+        const isDocked = simulation.dock();
+
+        this.publish(true);
+
+        return isDocked;
+      }
+      case "undock": {
+        const isAway = simulation.undock();
+
+        this.publish(true);
+
+        return isAway;
+      }
+      default:
+        break;
+    }
+
+    const view = this.stationView;
+
+    if (!view || !hangar || !armory) {
+      return false;
+    }
+
+    switch (action.kind) {
+      case "buy": {
+        const good = view.goods.find((entry) => entry.id === action.item);
+
+        return good !== undefined && hangar.buy(good.id, action.count, good.price);
+      }
+      case "sell": {
+        const sale = view.sales.find((entry) => entry.id === action.item);
+
+        return sale !== undefined && hangar.sell(sale.id, action.count, sale.price) > 0;
+      }
+      case "buyAmmo": {
+        const pack = view.ammo.find((entry) => entry.type === action.ammo);
+        const count = pack ? Math.min(pack.count, pack.rack - pack.aboard) : 0;
+
+        if (!pack || count <= 0 || !hangar.pay({ coin: Math.ceil((pack.price * count) / pack.count), items: [] }, "trade", pack.type)) {
+          return false;
+        }
+
+        simulation.addAmmo(armory.addAmmo({ [pack.type]: count }, () => pack.rack));
+        this.publish(true);
+
+        return true;
+      }
+      case "service": {
+        const service = view.services.find((entry) => entry.id === action.service);
+
+        if (!service?.isNeeded || !hangar.pay({ coin: service.price, items: [] }, service.id === "repair" ? "repair" : "trade", service.id)) {
+          return false;
+        }
+
+        return this.applyEffects(this.serviceEffects(service.id));
+      }
+      default:
+        return false;
+    }
+  }
+
+  // What a station's crews do to the ship: mend the hull, every system and every fault; fill the tank; charge the
+  // shields.
+  private serviceEffects(service: ServiceId): ShipEffect[] {
+    switch (service) {
+      case "repair":
+        return [
+          { kind: "hull", share: 1 },
+          ...MODULE_IDS.map((module): ShipEffect => ({ kind: "module", module, amount: 1 })),
+          ...this.simulation.state.faults.map(({ id }): ShipEffect => ({ kind: "fix", fault: id })),
+        ];
+      case "refuel":
+        return [{ kind: "fuel", share: 1 }];
+      default:
+        return [{ kind: "shields", share: 1 }];
+    }
+  }
+
+  // How much mending the ship needs, 0 to 1: the hull missing, or the worst worn system, and something for any fault.
+  private repairNeed(): number {
+    const { state, world } = this.simulation;
+    const health = world.stores.health.get(state.ship);
+    const modules = world.stores.modules.get(state.ship);
+
+    if (!health || !modules) {
+      return 0;
+    }
+
+    const hull = health.maxHull > 0 ? 1 - health.hull / health.maxHull : 0;
+    const worn = 1 - Math.min(...MODULE_IDS.map((id) => modules[id]));
+
+    return Math.min(1, Math.max(hull, worn, state.faults.length > 0 ? 0.1 : 0));
+  }
+
+  // How much charge the shields lack against the most a worn generator holds (charging past it would buy nothing).
+  private shieldNeed(): number {
+    const { state, world } = this.simulation;
+    const health = world.stores.health.get(state.ship);
+    const modules = world.stores.modules.get(state.ship);
+    const ceiling = health && modules ? health.maxShields * modules.shields : 0;
+
+    return health && ceiling > 0 ? Math.max(0, 1 - health.shields / ceiling) : 0;
+  }
+
+  // Perks offered (the run held still till one is chosen): on reaching a universe and after each boss.
+  private offerPerks(): void {
+    if (this.simulation.offerPerks()) {
+      this.feedback.cue("perk");
+      this.publish(true);
+    }
+  }
+
+  // A weapon on the bar fired: where the pointer aims, by hand, or at what the guns choose; when it does not fire,
+  // the pilot is told why.
+  private fireSlot(slot: { kind: "weapon"; id: string }): boolean {
+    const { simulation } = this;
+    const point = simulation.state.aimMode === "manual" && this.aimPoint
+      ? { x: this.camera.toWorldX(this.aimPoint.x), y: this.camera.toWorldY(this.aimPoint.y) }
+      : null;
+    const outcome = simulation.fireWeapon(slot.id, point);
+
+    if (outcome === "fired") {
+      return true;
+    }
+
+    const seconds = Math.max(0, ((simulation.state.weaponReady[slot.id] ?? 0) - simulation.state.elapsedMs) / 1000);
+
+    this.onNotice({ kind: "slotRefused", slot, reason: outcome, seconds, base: this.armory?.piece(slot.id)?.base ?? null });
+
+    return false;
   }
 
   private applyEffects(effects: ShipEffect[] | null): boolean {
@@ -669,32 +1179,39 @@ export class VoyageGame extends FrameLoop {
 
   private input(): VoyageInput {
     const descent = this.simulation.state.descent;
+    const isManual = this.simulation.state.aimMode === "manual";
+    // By hand, the guns aim where the pointer is and fire while it is pressed.
+    const target = isManual && this.aimPoint ? { x: this.camera.toWorldX(this.aimPoint.x), y: this.camera.toWorldY(this.aimPoint.y) } : null;
+    const fire = isManual && (this.isPressing || this.isPadFiring) && target !== null;
 
     // Coming down, a burn (the pilot's on the landing engine, or one that aborts the landing under fire) is the burn
     // key or a held press, never where a mouse happens to rest or a phone happens to lean; so is the burn that
     // launches the new rocket from the pad after a homecoming, which also stays pointed straight up.
     if (descent?.downAt === null || this.simulation.state.homecoming) {
-      return { aim: null, thrust: Math.max(this.keys.thrust, this.isPressing ? 1 : 0), turn: 0, brake: false };
+      return { aim: null, thrust: Math.max(this.keys.thrust, this.isPressing ? 1 : 0), turn: 0, brake: false, target: null, fire: false };
     }
 
     const parts = this.shipScreen();
     const isKeyed = this.keys.turn !== 0 || this.keys.thrust !== 0 || this.keys.brake;
+    const lean = !isKeyed ? this.stick ?? this.padLean ?? this.tilt : null;
 
-    // Tilted to steer: towards the way it leans, as hard as it leans, unless keys are flying it. A finger on the
-    // screen still locks the guns but no longer steers.
-    if (this.tilt && !isKeyed) {
-      const strength = Math.min(1, Math.hypot(this.tilt.x, this.tilt.y));
+    // A thumb stick or a tilt steers: towards the way it leans, as hard as it leans, unless keys are flying it. A
+    // finger on the screen still locks the guns (or aims them, by hand) but no longer steers.
+    if (lean) {
+      const strength = Math.min(1, Math.hypot(lean.x, lean.y));
       const body = this.simulation.world.stores.body.get(this.simulation.state.ship);
 
       return {
-        aim: body && strength > 0 ? { x: body.x + (this.tilt.x / strength) * TILT_REACH, y: body.y + (this.tilt.y / strength) * TILT_REACH } : null,
+        aim: body && strength > 0 ? { x: body.x + (lean.x / strength) * TILT_REACH, y: body.y + (lean.y / strength) * TILT_REACH } : null,
         thrust: strength,
         turn: 0,
-        brake: false,
+        brake: this.isPadBraking,
+        target,
+        fire,
       };
     }
 
-    if (this.pointer && parts) {
+    if (!isManual && this.pointer && parts) {
       const distance = Math.hypot(this.pointer.x - parts.x, this.pointer.y - parts.y);
       const full = Math.min(this.size.width, this.size.height) * FULL_THRUST_SHARE;
 
@@ -703,10 +1220,12 @@ export class VoyageGame extends FrameLoop {
         thrust: Math.max(0, Math.min(1, (distance - DEADZONE) / full)),
         turn: 0,
         brake: false,
+        target: null,
+        fire: false,
       };
     }
 
-    return { aim: null, thrust: this.keys.thrust, turn: this.keys.turn, brake: this.keys.brake };
+    return { aim: null, thrust: this.keys.thrust, turn: this.keys.turn, brake: this.keys.brake, target, fire };
   }
 
   private shipScreen(): { x: number; y: number } | null {
@@ -826,10 +1345,65 @@ export class VoyageGame extends FrameLoop {
       tell("burst", ({ seconds, isFired }) => ({ kind: "burst", seconds, isFired })),
       tell("fault", ({ kind }) => ({ kind: "fault", fault: kind })),
       tell("fixed", ({ kind }) => ({ kind: "fixed", fault: kind })),
+      tell("distress", ({ stage, kind }) => ({ kind: "distress", stage, distress: kind })),
+      events.on("phase", ({ phase }) => {
+        if (phase === "universe") {
+          this.offerPerks();
+        }
+      }),
+      events.on("boss", ({ isFallen }) => {
+        this.toldMoves.clear();
+
+        if (isFallen) {
+          this.offerPerks();
+        }
+      }),
+      // A boss's attacks are told the first time each is seen in a fight; running dry, at most every so often.
+      events.on("bossMove", ({ kind, isWindup }) => {
+        if (isWindup && !this.toldMoves.has(kind)) {
+          this.toldMoves.add(kind);
+          this.onNotice({ kind: "bossMove", move: kind });
+        }
+      }),
+      events.on("dry", ({ kind }) => {
+        const { state } = this.simulation;
+        const last = this.dryAt.get(kind);
+
+        if (last === undefined || state.elapsedMs - last > DRY_EVERY_MS) {
+          this.dryAt.set(kind, state.elapsedMs);
+          this.onNotice({ kind: "dry", weapon: kind, isSilent: kind !== "primary" || state.difficulty === "hard" });
+        }
+      }),
     ];
 
     if (this.link) {
       offs.push(this.link.attach());
+    }
+
+    if (this.progressLink) {
+      offs.push(this.progressLink.attach());
+    }
+
+    // A kill is felt: the world holds still for a few frames, longer for a boss, and a controller rumbles.
+    offs.push(events.on("downed", ({ role }) => {
+      if (!this.isReducedMotion) {
+        this.hitStopMs = Math.max(this.hitStopMs, role === "boss" ? HIT_STOP.boss : HIT_STOP.kill);
+      }
+
+      this.pad?.rumble(role === "boss" ? 0.9 : 0.35, role === "boss" ? 420 : 120);
+    }));
+    offs.push(events.on("hit", ({ amount }) => this.pad?.rumble(Math.min(1, 0.25 + amount / 400), 140)));
+    offs.push(this.feedback.attach());
+
+    // The ship wears the pilot's paint, trail and fitted pieces, and changes with them.
+    this.renderer.setLook(this.look());
+
+    if (this.armory) {
+      offs.push(this.armory.subscribe(() => this.renderer.setLook(this.look())));
+    }
+
+    if (this.progress) {
+      offs.push(this.progress.subscribe(() => this.renderer.setLook(this.look())));
     }
 
     const { career } = this;
@@ -863,6 +1437,20 @@ export class VoyageGame extends FrameLoop {
       this.lastSuggestion = suggestion;
       this.onEconomy(this.hangar.view(status));
     }
+
+    // The armoury and the pilot's progress go with the economy whenever anything changed.
+    if (force) {
+      const gear = this.gearView;
+      const progress = this.progressView;
+
+      if (gear) {
+        this.onGear(gear);
+      }
+
+      if (progress) {
+        this.onProgress(progress);
+      }
+    }
   }
 
   // Sizes the canvases at the device's pixel ratio, as far as the quality level allows.
@@ -882,6 +1470,7 @@ export class VoyageGame extends FrameLoop {
       this.lastTickAt = now;
       this.onChange(this.lastSnapshot);
       this.link?.tick(this.lastSnapshot);
+      this.progressLink?.tick(this.lastSnapshot);
       this.keepGhost(this.lastSnapshot);
       this.publishEconomy(force);
     }
@@ -935,12 +1524,13 @@ export class VoyageGame extends FrameLoop {
     const isOnSurface = this.renderer.surface !== null;
     const craft = state.descent && state.descent.downAt === null ? state.descent.craft : null;
     const descent = craft ? `${craft.phase}:${craft.isPilot}` : null;
+    const held = `${state.perkOffer ? "perk" : ""}|${state.docked?.id ?? ""}|${state.dockable?.id ?? ""}|${state.distress ? state.distress.kind : ""}`;
 
     if (last && last.descent === descent && last.isOnSurface === isOnSurface && last.status === state.status && last.phase === state.phase &&
       last.universe === state.universe &&
       last.universes === state.universes &&
       last.passing === state.passing && last.landedOn === landedOn && last.waypoint === waypoint && last.level === state.level &&
-      last.faults === state.faults.length && last.isSalvaging === isSalvaging) {
+      last.faults === state.faults.length && last.isSalvaging === isSalvaging && last.held === held) {
       return false;
     }
 
@@ -957,6 +1547,7 @@ export class VoyageGame extends FrameLoop {
       isSalvaging,
       isOnSurface,
       descent,
+      held,
     };
 
     return true;

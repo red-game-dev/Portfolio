@@ -5,9 +5,9 @@ import { portfolioData } from "@/data/resume";
 import { BarRow, BOOST_IDS, CODEX, VoyageSnapshot } from "@/packages/games/voyage";
 
 const { voyage } = portfolioData.finale;
-const burner: BarRow = { slot: { kind: "boost", id: "afterburner" }, count: 3, level: 2, colour: "#f4f0ff" };
-const kit: BarRow = { slot: { kind: "item", id: "repairKit" }, count: 0, level: 0, colour: null };
-const empty: BarRow = { slot: null, count: 0, level: 0, colour: null };
+const burner: BarRow = { slot: { kind: "boost", id: "afterburner" }, count: 3, level: 2, colour: "#f4f0ff", base: null };
+const kit: BarRow = { slot: { kind: "item", id: "repairKit" }, count: 0, level: 0, colour: null, base: null };
+const empty: BarRow = { slot: null, count: 0, level: 0, colour: null, base: null };
 const quiet: VoyageSnapshot["boosts"] = { active: [], cooldowns: {}, blocks: 0 };
 
 describe("the ability bar's words", () => {
@@ -32,15 +32,15 @@ describe("the ability bar's words", () => {
   });
 
   test("a slot reads as on, cooling down or spent from the run's boosts", () => {
-    expect(slotState(burner, quiet)).toEqual({ isOn: false, left: 0, cooldown: null, isSpent: false });
+    expect(slotState(burner, quiet)).toEqual({ isOn: false, left: 0, cooldown: null, isSpent: false, count: 3 });
     expect(slotState(burner, { active: [{ id: "afterburner", level: 2, left: 0.5 }], cooldowns: { afterburner: { seconds: 12, share: 0.9 } }, blocks: 0 }))
-      .toEqual({ isOn: true, left: 0.5, cooldown: { seconds: 12, share: 0.9 }, isSpent: false });
+      .toEqual({ isOn: true, left: 0.5, cooldown: { seconds: 12, share: 0.9 }, isSpent: false, count: 3 });
     expect(slotState(kit, quiet).isSpent).toBe(true);
-    expect(slotState(empty, null)).toEqual({ isOn: false, left: 0, cooldown: null, isSpent: false });
+    expect(slotState(empty, null)).toEqual({ isOn: false, left: 0, cooldown: null, isSpent: false, count: 0 });
   });
 
   test("a screen reader hears each slot's key, what it holds, its level, what is left and whether it is on or cooling down", () => {
-    const cooling = { isOn: false, left: 0, cooldown: { seconds: 7, share: 0.5 }, isSpent: false };
+    const cooling = { isOn: false, left: 0, cooldown: { seconds: 7, share: 0.5 }, isSpent: false, count: 3 };
 
     expect(slotName(voyage, { kind: "boost", id: "afterburner" })).toBe("Afterburner");
     expect(slotLabel(voyage, burner, 2, cooling)).toBe("Slot 3: Afterburner, level 2, 3 left, cooling down, 7 s");

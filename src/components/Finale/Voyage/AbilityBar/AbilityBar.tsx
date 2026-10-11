@@ -13,6 +13,7 @@ interface AbilityBarProps {
   content: FinaleVoyage;
   rows: BarRow[];
   boosts: VoyageSnapshot["boosts"] | null;
+  weapons: VoyageSnapshot["weapons"] | null;
   // A slot pressed: what it holds used, or the hangar's Loadout opened for an empty one.
   onUse: (index: number) => void;
   onFill: () => void;
@@ -26,10 +27,10 @@ const ITEM_COLOUR = "#c9cfdf";
 // The ability bar: four slots of boosts and things from the hold, each with its key, what is left, a boost's
 // level, a glow while it is on and a sweep while it cools down. A press of a spent slot still says why nothing
 // happened; an empty one opens the Loadout.
-export const AbilityBar: FC<AbilityBarProps> = ({ content, rows, boosts, onUse, onFill }: AbilityBarProps) => (
+export const AbilityBar: FC<AbilityBarProps> = ({ content, rows, boosts, weapons, onUse, onFill }: AbilityBarProps) => (
   <Bar role="group" aria-label={content.boosts.bar.label}>
     {rows.map((row, index) => {
-      const state = slotState(row, boosts);
+      const state = slotState(row, boosts, weapons);
       const colour = row.colour ?? ITEM_COLOUR;
       const key = row.slot ? `${row.slot.kind}:${row.slot.id}` : `empty:${index}`;
 
@@ -47,14 +48,14 @@ export const AbilityBar: FC<AbilityBarProps> = ({ content, rows, boosts, onUse, 
           {row.slot ? (
             <>
               <SlotIcon isSpent={state.isSpent} aria-hidden="true">
-                <FontAwesomeIcon icon={slotIcon(row.slot)} />
+                <FontAwesomeIcon icon={slotIcon(row.slot, row.base)} />
               </SlotIcon>
-              {row.slot.kind === "boost" && (
+              {row.slot.kind !== "item" && (
                 <Pips aria-hidden="true">
                   {Array.from({ length: LEVELS }, (_, level) => <Pip key={level} isLit={level < row.level} />)}
                 </Pips>
               )}
-              <SlotCount aria-hidden="true">{row.count}</SlotCount>
+              <SlotCount aria-hidden="true">{state.count}</SlotCount>
               {state.cooldown && (
                 <Cooldown aria-hidden="true" style={{ "--cool": state.cooldown.share } as CSSProperties}>{state.cooldown.seconds}</Cooldown>
               )}

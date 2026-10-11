@@ -7,9 +7,12 @@ export interface VoyageInput {
   // -1 to 1 from keys, to turn without a pointer.
   turn: number;
   brake: boolean;
+  // With the guns aimed by hand: the world point they aim at, and whether the pilot is firing.
+  target: { x: number; y: number } | null;
+  fire: boolean;
 }
 
-export const NO_INPUT: VoyageInput = { aim: null, thrust: 0, turn: 0, brake: false };
+export const NO_INPUT: VoyageInput = { aim: null, thrust: 0, turn: 0, brake: false, target: null, fire: false };
 
 // How the pilot likes their landings: the way down sped up the same for every world (never longer than the config
 // allows) or as long as the real thing, and flown by the guidance or, where there is an engine to fly, by hand

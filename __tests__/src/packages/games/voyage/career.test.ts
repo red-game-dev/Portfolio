@@ -240,10 +240,10 @@ describe("voyage career", () => {
     link.attach();
     simulation.start(EPOCH);
     link.startRun();
-    simulation.events.emit("salvaged", { wreck: 0, x: 0, y: 0, kind: "rocket", loot: { items: [{ id: "titanium", count: 2 }], blueprints: [] } });
+    simulation.events.emit("salvaged", { wreck: 0, x: 0, y: 0, kind: "rocket", loot: { items: [{ id: "titanium", count: 2 }], blueprints: [] }, origin: null });
     expect(career.view().missions.find(({ mission }) => mission.id === "salvageOne")?.progress).toBe(0);
 
-    simulation.events.emit("salvaged", { wreck: 0, x: 0, y: 0, kind: "rocket", loot: { items: [], blueprints: [] } });
+    simulation.events.emit("salvaged", { wreck: 0, x: 0, y: 0, kind: "rocket", loot: { items: [], blueprints: [] }, origin: null });
     expect(career.view().missions.some(({ mission }) => mission.id === "salvageOne")).toBe(false);
 
     const entries = hangar.view().history.length;

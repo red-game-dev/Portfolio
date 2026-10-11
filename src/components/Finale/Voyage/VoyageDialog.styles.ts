@@ -181,11 +181,12 @@ export const FrameMeta = tw.span`text-[10px] md:text-[11px] font-normal text-[#9
 
 export const FrameTrack = tw.div`relative h-[5px] overflow-hidden bg-[rgba(255,255,255,0.12)]`;
 
-// On a phone narrow enough to clear the ability bar down the right edge; above the bar where there is room.
+// On a phone, above the radar and the telemetry, narrow enough to clear the ability bar down the right edge and
+// clear of the HUD's bars at the top; above the bar along the bottom where there is room.
 export const Frames = styled.div(() => [
-  tw`absolute left-1/2 top-[150px] md:top-auto md:bottom-[82px] flex flex-col gap-[6px] pointer-events-none`,
+  tw`absolute left-1/2 bottom-[150px] md:bottom-[82px] flex flex-col gap-[6px] pointer-events-none`,
   css`
-    width: min(72vw, 420px);
+    width: min(66vw, 420px);
     transform: translateX(-50%);
 
     ${media.md} {
@@ -380,3 +381,93 @@ export const PhotoBar = styled.section(() => [
 ]);
 
 export const PhotoHint = tw.p`m-0 w-full text-center text-xs md:text-sm text-[#c9cfdf]`;
+
+// The guided first flight's card: a step at a time, among the frames.
+export const GuideCard = styled.section(() => [
+  tw`flex flex-col gap-[6px] p-[10px] text-xs md:text-sm text-white pointer-events-auto`,
+  css`
+    ${voyagePanel(0.88, 0.5)}
+    border-color: rgba(125, 255, 207, 0.6);
+  `,
+]);
+
+export const GuideStep = tw.p`m-0 text-[10px] md:text-[11px] font-semibold text-[#7dffcf]`;
+
+export const GuideText = tw.p`m-0 leading-snug`;
+
+export const GuideActions = styled.div(() => [
+  tw`flex flex-row gap-[8px]`,
+  css`
+    & > button {
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #101010;
+      background: #7dffcf;
+      border: 0;
+      ${focusRing("#ffffff", 2)}
+    }
+
+    & > button + button {
+      color: #c9cfdf;
+      background: transparent;
+      border: 1px solid #3a4566;
+    }
+  `,
+]);
+
+// The run's summary on the card at its end: each figure on a line of its own.
+export const Summary = styled.dl(() => [
+  tw`m-0 grid gap-x-[12px] gap-y-[3px] text-xs md:text-sm tabular-nums`,
+  css`
+    grid-template-columns: 1fr auto;
+
+    & dt {
+      color: #9aa3bb;
+    }
+
+    & dd {
+      margin: 0;
+      text-align: right;
+      color: #ffffff;
+    }
+  `,
+]);
+
+// The thumb stick a touch screen steers with when aiming by hand: drawn where the thumb went down, its knob moved
+// by the hook through a variable, never by a render.
+export const TouchStick = styled.div(() => [
+  tw`absolute left-0 top-0 pointer-events-none`,
+  css`
+    width: 0;
+    height: 0;
+    opacity: 0;
+    transition: opacity 0.15s linear;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    &::before {
+      width: 112px;
+      height: 112px;
+      left: -56px;
+      top: -56px;
+      border: 2px solid rgba(196, 210, 255, 0.45);
+      background: rgba(5, 8, 18, 0.25);
+    }
+
+    &::after {
+      width: 44px;
+      height: 44px;
+      left: -22px;
+      top: -22px;
+      background: rgba(196, 210, 255, 0.55);
+      transform: var(--knob, translate(0px, 0px));
+    }
+  `,
+]);

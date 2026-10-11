@@ -53,6 +53,20 @@ describe("browser/store", () => {
     expect(await repository.load()).toEqual({ count: 0 });
   });
 
+  test("a repository repairs what it reads before checking it, so one broken part need not lose the rest", async () => {
+    const adapter = new MemoryAdapter();
+    const isSave = (value: unknown): value is { count: number; extra: number } => isCount(value) && "extra" in value && typeof value.extra === "number";
+    const repository = new Repository(adapter, "save", {
+      version: 1,
+      isValid: isSave,
+      fallback: () => ({ count: 0, extra: 0 }),
+      repair: (data) => (typeof data === "object" && data !== null ? { extra: 0, ...data } : data),
+    });
+
+    await adapter.set("save", { version: 1, data: { count: 5 } });
+    expect(await repository.load()).toEqual({ count: 5, extra: 0 });
+  });
+
   test("gives up on an IndexedDB that never answers, so nothing waits on it", async () => {
     const silent: Pick<IDBFactory, "open"> = { open: () => ({}) as IDBOpenDBRequest };
     const started = Date.now();

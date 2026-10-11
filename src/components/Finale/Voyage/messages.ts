@@ -1,6 +1,9 @@
 import { boostNotice } from "@/components/Finale/Voyage/abilities";
 import { careerNotice } from "@/components/Finale/Voyage/career";
 import { economyNotice } from "@/components/Finale/Voyage/economy";
+import { encounterNotice } from "@/components/Finale/Voyage/encounters";
+import { gearNotice } from "@/components/Finale/Voyage/gear";
+import { placeName } from "@/components/Finale/Voyage/names";
 import type { VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
@@ -10,9 +13,7 @@ const formatKm = (km: number) => formatNumber(km, km < 10 ? 1 : 0);
 // A universe's name: its own, or the zone it is named for.
 const universeName = (snapshot: VoyageSnapshot, universes: string[]) => snapshot.universeName ?? universes[snapshot.universe] ?? "";
 
-// A place's name: the content's for the solar system, its own made up one in a universe.
-// A place's name: ours from the content, a made one as the universe named it.
-export const placeName = (content: FinaleVoyage, id: string, madeName?: string | null) => content.stops[id] ?? madeName ?? id;
+export { placeName };
 
 // The suns a universe is lit by, named together: one, a pair, or three.
 const sunsPhrase = (content: FinaleVoyage, star: string | null, companions: readonly string[]): string => {
@@ -159,6 +160,7 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
     case "emergency":
       return fill(notice.kind === "tookOff" ? content.tookOff : content.emergency, { body: placeName(content, notice.body) });
     default:
-      return economyNotice(content, notice) ?? careerNotice(content, notice) ?? boostNotice(content, notice);
+      return economyNotice(content, notice) ?? careerNotice(content, notice) ?? boostNotice(content, notice) ?? gearNotice(content, notice) ??
+        encounterNotice(content, notice);
   }
 };

@@ -1,4 +1,5 @@
 import type { RenderLayer } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
 
 import { lerpX, lerpY, VoyageFrame } from "../frame";
 import { paintGlow } from "../paint/space";
@@ -12,6 +13,11 @@ const LOOKS = {
   missile: { ship: "rgba(255, 240, 200, 1)", aliens: "rgba(255, 150, 70, 1)", length: 0.1, glow: 0.09 },
   spit: { ship: "rgba(170, 255, 120, 1)", aliens: "rgba(150, 255, 90, 1)", length: 0.06, glow: 0.1 },
   photoid: { ship: "rgba(255, 255, 255, 1)", aliens: "rgba(255, 255, 255, 1)", length: 2.4, glow: 0.18 },
+  mine: { ship: "rgba(255, 90, 80, 1)", aliens: "rgba(255, 90, 80, 1)", length: 0, glow: 0.08 },
+  flak: { ship: "rgba(255, 210, 120, 1)", aliens: "rgba(255, 210, 120, 1)", length: 0.07, glow: 0.035 },
+  backup: { ship: "rgba(200, 200, 210, 1)", aliens: "rgba(200, 200, 210, 1)", length: 0.08, glow: 0.035 },
+  rail: { ship: "rgba(160, 240, 255, 1)", aliens: "rgba(160, 240, 255, 1)", length: 0.5, glow: 0.06 },
+  emp: { ship: "rgba(120, 200, 255, 1)", aliens: "rgba(120, 200, 255, 1)", length: 0, glow: 0.1 },
 };
 
 // Shots in flight: bolts and beams streaked along their path, missiles trailing smoke, organic spit as glowing
@@ -21,7 +27,9 @@ export class ProjectilesLayer implements RenderLayer<VoyageFrame> {
 
   constructor(private readonly kit: RenderKit) {}
 
-  public draw({ world, camera, alpha }: VoyageFrame): void {
+  public draw(frame: VoyageFrame): void {
+    const { world, camera, alpha } = frame;
+
     if (world.stores.projectile.size === 0) {
       return;
     }
@@ -41,6 +49,30 @@ export class ProjectilesLayer implements RenderLayer<VoyageFrame> {
       }
 
       const colour = shot.team === "ship" ? look.ship : look.aliens;
+
+      // A mine: a dark disc that blinks red, faster once it is armed.
+      if (shot.kind === "mine") {
+        const mx = camera.toScreenX(lerpX(body, alpha));
+        const my = camera.toScreenY(lerpY(body, alpha));
+        const isArmed = shot.armAt !== undefined && frame.state.elapsedMs >= shot.armAt;
+        const blink = Math.sin(frame.now * (isArmed ? 0.02 : 0.006)) > 0;
+        const radius = Math.max(3, body.radius * 2.2 * camera.scale);
+
+        context.globalCompositeOperation = "source-over";
+        context.fillStyle = "#2a2f3a";
+        context.beginPath();
+        context.arc(mx, my, radius, 0, TAU);
+        context.fill();
+        context.globalCompositeOperation = "lighter";
+
+        if (blink) {
+          const red = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
+
+          front.blit(red, mx, my, radius * 3, radius * 3);
+        }
+
+        return;
+      }
       const speed = Math.hypot(body.vx, body.vy) || 1;
       const x = lerpX(body, alpha);
       const y = lerpY(body, alpha);

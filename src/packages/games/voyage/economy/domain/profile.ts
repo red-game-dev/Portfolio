@@ -2,6 +2,8 @@ import type { LedgerSnapshot } from "@/packages/finance/ledger";
 
 import { CareerProfile } from "../../career/domain/career";
 import { BoostId } from "../../domain/boosts";
+import { ArmoryProfile } from "../../gear/domain/gear";
+import { ProgressProfile } from "../../progress/domain/progress";
 import { ItemStack } from "./items";
 
 // A boost's charges kept between runs, and how many of its cores have been found, which sets its level.
@@ -10,13 +12,14 @@ export interface BoostRecord {
   finds: number;
 }
 
-// What a slot of the ability bar holds: a boost, or a consumable from the hold.
-export type BarSlot = { kind: "boost"; id: BoostId } | { kind: "item"; id: string };
+// What a slot of the ability bar holds: a boost, a consumable from the hold, or a weapon from the armoury (by its
+// piece's number).
+export type BarSlot = { kind: "boost"; id: BoostId } | { kind: "item"; id: string } | { kind: "weapon"; id: string };
 
 // A slot as kept in a profile, by name: a boost a later release no longer knows is dropped as the bar is read back,
 // rather than the profile being refused.
 export interface KeptSlot {
-  kind: "boost" | "item";
+  kind: "boost" | "item" | "weapon";
   id: string;
 }
 
@@ -45,7 +48,9 @@ export interface EconomyProfile {
   bar: Array<KeptSlot | null>;
 }
 
-// Everything a pilot keeps between runs: the hangar's part and the career's.
+// Everything a pilot keeps between runs: the hangar's part, the career's, the armoury's and their progress.
 export interface PilotProfile extends EconomyProfile {
   career: CareerProfile;
+  armory: ArmoryProfile;
+  progress: ProgressProfile;
 }

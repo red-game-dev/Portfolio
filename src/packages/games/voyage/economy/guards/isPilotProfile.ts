@@ -2,6 +2,8 @@ import { Guard, isArrayOf, isCount, isRecord, isText, isTextArray } from "@/pack
 import { isLedgerSnapshot } from "@/packages/finance/ledger";
 
 import { isCareerProfile } from "../../career/guards/isCareerProfile";
+import { isArmoryProfile } from "../../gear/guards/isArmoryProfile";
+import { isProgressProfile } from "../../progress/guards/isProgressProfile";
 import { ItemStack } from "../domain/items";
 import { BoostRecord, EconomyProfile, KeptSlot, PilotProfile, PilotRecords } from "../domain/profile";
 
@@ -20,7 +22,7 @@ const isBoostRecord: Guard<BoostRecord> = (value): value is BoostRecord => isRec
 const isBoosts = (value: unknown): boolean => isRecord(value) && Object.values(value).every(isBoostRecord);
 
 const isSlot: Guard<KeptSlot | null> = (value): value is KeptSlot | null => value === null ||
-  (isRecord(value) && isText(value.id) && (value.kind === "item" || value.kind === "boost"));
+  (isRecord(value) && isText(value.id) && (value.kind === "item" || value.kind === "boost" || value.kind === "weapon"));
 
 // Whether something read back from the browser is the hangar's part of a profile: when it was saved, a whole
 // level, a hold of stacks, plans by name, a ledger, and records in whole numbers. What is in it is checked again as
@@ -29,5 +31,6 @@ export const isEconomyProfile: Guard<EconomyProfile> = (value): value is Economy
   isArrayOf(isStack)(value.cargo) && isTextArray(value.blueprints) && isLedgerSnapshot(value.ledger) && isRecords(value.records) &&
   isBoosts(value.boosts) && isArrayOf(isSlot)(value.bar);
 
-// Whether something read back is a whole pilot's profile: the hangar's part and a career.
-export const isPilotProfile: Guard<PilotProfile> = (value): value is PilotProfile => isEconomyProfile(value) && isRecord(value) && isCareerProfile(value.career);
+// Whether something read back is a whole pilot's profile: the hangar's part, a career, an armoury and progress.
+export const isPilotProfile: Guard<PilotProfile> = (value): value is PilotProfile => isEconomyProfile(value) && isRecord(value) && isCareerProfile(value.career) &&
+  isArmoryProfile(value.armory) && isProgressProfile(value.progress);

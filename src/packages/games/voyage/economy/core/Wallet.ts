@@ -25,6 +25,9 @@ export const INCOME: Readonly<Record<EarningReason, string>> = {
   salvage: "income:salvage",
   flight: "income:flight",
   recycling: "income:recycling",
+  streak: "income:streaks",
+  distress: "income:distress",
+  trade: "income:trade",
 };
 
 export const EXPENSE: Readonly<Record<SpendingReason, string>> = {
@@ -32,6 +35,9 @@ export const EXPENSE: Readonly<Record<SpendingReason, string>> = {
   crafting: "expense:crafting",
   repair: "expense:repairs",
   exchange: "expense:exchange",
+  enhance: "expense:enhancement",
+  forge: "expense:forging",
+  trade: "expense:trade",
 };
 
 // Past this many entries the oldest are closed into an opening balance, keeping this many.

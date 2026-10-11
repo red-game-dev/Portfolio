@@ -254,5 +254,20 @@ export const paintPickup = (kind: PickupKind, colour: string) => (context: Canva
     });
     context.closePath();
     context.fill();
+  } else if (kind === "cache" || kind === "chest") {
+    // A cache: a crate banded in its colour; a boss's chest: a gold chest with its lid's seam lit.
+    const half = r * (kind === "chest" ? 0.42 : 0.34);
+
+    context.fillStyle = kind === "chest" ? "#6b3e12" : "#2a3142";
+    context.fillRect(c - half, c - half * 0.8, half * 2, half * 1.6);
+    context.strokeStyle = colour;
+    context.lineWidth = Math.max(1.5, r * 0.08);
+    context.strokeRect(c - half, c - half * 0.8, half * 2, half * 1.6);
+    context.beginPath();
+    context.moveTo(c - half, c - half * 0.2);
+    context.lineTo(c + half, c - half * 0.2);
+    context.stroke();
+    context.fillStyle = colour;
+    context.fillRect(c - r * 0.07, c - half * 0.35, r * 0.14, r * 0.2);
   }
 };

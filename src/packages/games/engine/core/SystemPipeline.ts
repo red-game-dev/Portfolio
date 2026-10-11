@@ -30,7 +30,9 @@ export class SystemPipeline<TContext> {
   }
 
   // Spends `frameMs` in fixed steps and returns how many ran.
-  public advance(context: TContext, frameMs: number, afterStep?: () => void): number {
+  // Spends real time in fixed steps; `shouldStop`, asked after each, ends the frame early (time owed is dropped), for a
+  // host that holds the world still in the middle of one.
+  public advance(context: TContext, frameMs: number, afterStep?: () => void, shouldStop?: () => boolean): number {
     this.accumulated += frameMs;
 
     let steps = 0;
@@ -40,6 +42,12 @@ export class SystemPipeline<TContext> {
       afterStep?.();
       this.accumulated -= this.stepMs;
       steps += 1;
+
+      if (shouldStop?.()) {
+        this.accumulated = 0;
+
+        return steps;
+      }
     }
 
     // Too far behind: drop the backlog rather than spiral.

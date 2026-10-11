@@ -4,7 +4,9 @@ import { clamp } from "@/packages/math/clamp";
 
 import { MissionMarks, NO_MISSION_MARKS } from "../../utils/missions";
 import { lerpX, lerpY, VoyageFrame } from "../frame";
-import { MapSeen, MapView, paintHoles, paintHostiles, paintKey, paintMissions, paintPeoples, paintPhenomena, paintRocks } from "../paint/mapMarks";
+import {
+  MapSeen, MapView, paintDistress, paintHoles, paintHostiles, paintKey, paintMissions, paintPeoples, paintPhenomena, paintPorts, paintRocks,
+} from "../paint/mapMarks";
 import { Surface } from "../Surface";
 import { RenderKit } from "./kit";
 
@@ -191,7 +193,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
 
     const view: MapView = { context, toX, toY, scale, labels };
     const isSensing = (world.stores.modules.get(state.ship)?.sensors ?? 1) > 0;
-    const seen: MapSeen = { mission: false, pull: false, hostile: false, rock: false, hazard: false };
+    const seen: MapSeen = { mission: false, pull: false, hostile: false, rock: false, hazard: false, port: false, distress: false };
 
     if (inSystem) {
       paintPeoples(view, frame);
@@ -202,6 +204,8 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     seen.pull = paintHoles(view, frame, this.missions.wayOn);
     seen.hostile = isSensing && paintHostiles(view, frame, this.missions.hostiles);
     seen.mission = paintMissions(view, frame, this.missions);
+    seen.port = paintPorts(view, frame);
+    seen.distress = paintDistress(view, frame);
 
     if (state.waypoint) {
       context.setLineDash([3, 5]);
@@ -353,6 +357,13 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
         plot(hole.x, hole.y, 3.5, theme.disk);
       }
     });
+
+    // The ports, and a call for help.
+    state.stations.forEach((port) => plot(port.x, port.y, 2.6, "#7dffb0"));
+
+    if (state.distress) {
+      plot(state.distress.x, state.distress.y, 3, "#ffb347");
+    }
 
     // Who lives here, coloured as their nameplates are: red once coming for the ship.
     world.stores.alien.entities.forEach((entity, index) => {

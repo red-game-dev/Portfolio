@@ -11,12 +11,18 @@ import { VoyageEvents } from "../domain/events";
 import { ShipEffect } from "../domain/faults";
 import { DEFAULT_LANDING, LandingOptions, NO_INPUT, SpaceDrag, VoyageInput } from "../domain/input";
 import { Loot, LootTable, NO_LOOT_TABLE } from "../domain/loot";
+import { PerkId } from "../domain/perks";
 import { VoyageSnapshot } from "../domain/snapshot";
-import { VoyageState, VoyageStatus } from "../domain/state";
+import { AimMode, Difficulty, VoyageState, VoyageStatus } from "../domain/state";
 import { UniverseNames } from "../domain/universe";
+import { AMMO_TYPES, STARTER_AMMO } from "../gear/config/slots";
+import { AmmoStock, ArmedWeapon } from "../gear/domain/gear";
 import { UniverseGenerator, UniverseTheme } from "../generators/UniverseGenerator";
 import { SnapshotMapper } from "../mappers/SnapshotMapper";
+import { DOCKING } from "../stations/config/market";
+import { Port } from "../stations/domain/station";
 import { AlienSystem } from "../systems/AlienSystem";
+import { fireWeapon, FireOutcome } from "../systems/arsenal";
 import { AtmosphereSystem } from "../systems/AtmosphereSystem";
 import { activateBoost } from "../systems/boosts";
 import { BoostSystem } from "../systems/BoostSystem";
@@ -25,6 +31,7 @@ import { CollisionSystem } from "../systems/CollisionSystem";
 import { VoyageContext } from "../systems/context";
 import { ControlSystem } from "../systems/ControlSystem";
 import { DescentSystem } from "../systems/DescentSystem";
+import { DistressSystem } from "../systems/DistressSystem";
 import { GateSystem } from "../systems/GateSystem";
 import { GravitySystem } from "../systems/GravitySystem";
 import { HealthSystem } from "../systems/HealthSystem";
@@ -40,6 +47,7 @@ import { ProjectileSystem } from "../systems/ProjectileSystem";
 import { shipOf } from "../systems/queries";
 import { SalvageSystem } from "../systems/SalvageSystem";
 import { SpawnSystem } from "../systems/SpawnSystem";
+import { StationSystem } from "../systems/StationSystem";
 import { StrandedSystem } from "../systems/StrandedSystem";
 import { SurfaceSystem } from "../systems/SurfaceSystem";
 import { ThermalSystem } from "../systems/ThermalSystem";
@@ -47,6 +55,7 @@ import { TrafficSystem } from "../systems/TrafficSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 import { AURORA_BASE, WeatherSystem } from "../systems/WeatherSystem";
 import { WreckSystem } from "../systems/WreckSystem";
+import { drawPerks } from "../utils/perks";
 import { StepRandom } from "../utils/stepRandom";
 import { cloneSystem } from "../utils/system";
 import { createVoyageStores, VoyageWorld } from "./world";
@@ -136,6 +145,7 @@ export class VoyageSimulation {
       new StrandedSystem(),
       new CollisionSystem(),
       new SalvageSystem(),
+      new StationSystem(),
       new ProjectileSystem(),
       new ImpactSystem(),
       new CaptureSystem(),
@@ -144,6 +154,7 @@ export class VoyageSimulation {
       new WeatherSystem(),
       new TrafficSystem(),
       new WreckSystem(),
+      new DistressSystem(),
       new SpawnSystem(),
     ], { stepMs: config.stepMs, maxSteps: config.maxSteps });
     this.placeShip();
@@ -160,6 +171,13 @@ export class VoyageSimulation {
   // How far between the last two steps the present is, for drawing.
   public get alpha(): number {
     return this.pipeline.alpha;
+  }
+
+  // Whether the run is held still while the pilot chooses a perk or trades at a port: nothing moves until they are done.
+  public get isHeld(): boolean {
+    const { state } = this.context;
+
+    return state.status === "flying" && (state.docked !== null || state.perkOffer !== null);
   }
 
   public get snapshot(): VoyageSnapshot {
@@ -189,6 +207,137 @@ export class VoyageSimulation {
   }
 
   // Sets a boost to work at a level, if it is ready and the ship can use one now; says whether it did.
+  // The weapons on the bar, armed as the armoury makes them; and the ammunition aboard, set or added to.
+  public setArsenal(weapons: readonly ArmedWeapon[]): void {
+    this.context.state.arsenal = weapons.map((weapon) => ({ ...weapon }));
+  }
+
+  public setAmmo(stock: AmmoStock): void {
+    this.context.state.ammo = { ...stock };
+  }
+
+  public addAmmo(found: Partial<AmmoStock>): void {
+    const { ammo } = this.context.state;
+
+    AMMO_TYPES.forEach((type) => {
+      ammo[type] += found[type] ?? 0;
+    });
+  }
+
+  public setDifficulty(difficulty: Difficulty): void {
+    this.context.state.difficulty = difficulty;
+  }
+
+  public setAimMode(mode: AimMode): void {
+    this.context.state.aimMode = mode;
+  }
+
+  // Offers up to three perks the run can still take, holding the run still until one is chosen; says whether any could
+  // be offered (none while another offer waits, or once every perk is at its most).
+  public offerPerks(): boolean {
+    const { state, random } = this.context;
+
+    if (state.status !== "flying" || state.perkOffer) {
+      return false;
+    }
+
+    const offer = drawPerks(random, state.perks);
+
+    state.perkOffer = offer.length > 0 ? offer : null;
+
+    return offer.length > 0;
+  }
+
+  // Takes one of the perks offered (null for none) and lets the run go on; says whether the choice was open.
+  public choosePerk(id: PerkId | null): boolean {
+    const { state } = this.context;
+
+    if (!state.perkOffer || (id !== null && !state.perkOffer.includes(id))) {
+      return false;
+    }
+
+    if (id !== null) {
+      state.perks.push(id);
+    }
+
+    state.perkOffer = null;
+
+    return true;
+  }
+
+  // Docks at the port the ship is alongside, its speed matched to the port's, holding the run still while the pilot
+  // trades; says whether it did.
+  public dock(): boolean {
+    const { state, events } = this.context;
+    const port = state.dockable;
+    const parts = shipOf(this.context);
+    const berth = port ? this.portBody(port) : null;
+
+    if (!port || !parts || !berth || state.docked || state.status !== "flying") {
+      return false;
+    }
+
+    parts.body.vx = berth.vx;
+    parts.body.vy = berth.vy;
+    parts.ship.thrust = 0;
+    state.docked = port;
+    events.emit("docked", { kind: port.kind, id: port.id });
+
+    return true;
+  }
+
+  // Casts off from the port, pushed gently clear of it, and the run goes on; the same port cannot be docked at again
+  // for a few seconds.
+  public undock(): boolean {
+    const { state, events } = this.context;
+    const port = state.docked;
+
+    if (!port) {
+      return false;
+    }
+
+    const parts = shipOf(this.context);
+    const berth = this.portBody(port);
+
+    if (parts && berth) {
+      const dx = parts.body.x - berth.x;
+      const dy = parts.body.y - berth.y;
+      const apart = Math.hypot(dx, dy) || 1;
+
+      parts.body.vx = berth.vx + (dx / apart) * DOCKING.push;
+      parts.body.vy = berth.vy + (dy / apart) * DOCKING.push;
+    }
+
+    state.docked = null;
+    state.dockable = null;
+    state.undockedAt = state.elapsedMs;
+    events.emit("undocked", { kind: port.kind, id: port.id });
+
+    return true;
+  }
+
+  // A coin or a boost's core set just ahead of the ship, for the guided first flight to point at.
+  public spawnAhead(kind: "coin" | "boost"): void {
+    const parts = shipOf(this.context);
+
+    if (!parts) {
+      return;
+    }
+
+    const { body, ship } = parts;
+    const x = body.x + Math.cos(ship.angle) * 1.2;
+    const y = body.y + Math.sin(ship.angle) * 1.2;
+    const entity = this.world.spawn();
+
+    this.world.stores.body.set(entity, { x, y, vx: body.vx, vy: body.vy, prevX: x, prevY: y, radius: kind === "boost" ? this.config.boosts.radius : 0.045, mass: 0.01 });
+    this.world.stores.pickup.set(entity, kind === "boost" ? { kind: "boost", boost: "afterburner" } : { kind: "coin" });
+  }
+
+  // Fires a weapon from the bar, aimed at a world point (by hand) or by itself.
+  public fireWeapon(uid: string, point: { x: number; y: number } | null = null): FireOutcome {
+    return fireWeapon(this.context, uid, point);
+  }
+
   public boost(id: BoostId, level: number): boolean {
     return activateBoost(this.context, id, level);
   }
@@ -344,14 +493,19 @@ export class VoyageSimulation {
   public advance(frameMs: number, input: VoyageInput = NO_INPUT): number {
     this.context.input = input;
 
-    return this.pipeline.advance(this.context, frameMs, () => this.afterStep());
+    if (this.isHeld) {
+      return 0;
+    }
+
+    // A perk offered in the middle of a frame holds the run from that step, not after the frame's other steps.
+    return this.pipeline.advance(this.context, frameMs, () => this.afterStep(), () => this.isHeld);
   }
 
   // Exactly `ms` of game time, for tests.
   public step(ms: number, input: VoyageInput = NO_INPUT): void {
     this.context.input = input;
 
-    for (let elapsed = 0; elapsed < ms; elapsed += this.context.config.stepMs) {
+    for (let elapsed = 0; elapsed < ms && !this.isHeld; elapsed += this.context.config.stepMs) {
       this.pipeline.runOnce(this.context);
       this.afterStep();
     }
@@ -362,6 +516,17 @@ export class VoyageSimulation {
     this.world.flush();
     this.stepIndex += 1;
     this.daily?.reseed(this.stepIndex);
+  }
+
+  // Where a port is and how it moves: a station on its orbit, or a trader where it flies.
+  private portBody(port: Port): { x: number; y: number; vx: number; vy: number } | null {
+    const { state } = this.context;
+
+    if (port.kind === "station") {
+      return state.stations.find((station) => station.id === port.id) ?? null;
+    }
+
+    return this.world.stores.body.get(Number(port.id.slice("trader:".length))) ?? null;
   }
 
   private placeShip(): void {
@@ -491,6 +656,22 @@ export class VoyageSimulation {
       well: null,
       decoy: null,
       nextBoostAt: null,
+      arsenal: this.context?.state.arsenal ?? [],
+      weaponReady: {},
+      ammo: this.context?.state.ammo ?? { ...STARTER_AMMO },
+      difficulty: this.context?.state.difficulty ?? "normal",
+      aimMode: this.context?.state.aimMode ?? "auto",
+      streak: { count: 0, lastAt: 0, best: 0 },
+      perks: [],
+      perkOffer: null,
+      stations: [],
+      stationsOf: null,
+      dockable: null,
+      docked: null,
+      undockedAt: -1e9,
+      distress: null,
+      nextDistressAt: null,
+      hulks: [],
       view: this.context?.state.view ?? { halfWidth: 2, halfHeight: 2 },
     };
   }

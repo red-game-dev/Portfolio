@@ -8,7 +8,7 @@ import { isInSystem, shipOf, viewRadius } from "./queries";
 
 // Boosts over time: each at work runs out when its time is up (a block shield's blocks and a decoy with it, a
 // gravity well when its own time is up), and now and then a boost core drifts in near the ship, just inside the
-// view, one of the place's own more often than not.
+// view, one of the place's own more often than not, or a cache of ammunition and gear.
 export class BoostSystem implements System<VoyageContext> {
   public readonly name = "boosts";
 
@@ -66,9 +66,10 @@ export class BoostSystem implements System<VoyageContext> {
     state.nextBoostAt = state.elapsedMs + randomBetween(random, soonest, latest) * 1000;
 
     const place = state.phase === "solar" ? "solar" : state.cosmos?.style ?? null;
-    const boost = boostToFind(random, place, config.boosts.own, config.boosts.away);
+    const isCache = random() < config.boosts.caches;
+    const boost = isCache ? null : boostToFind(random, place, config.boosts.own, config.boosts.away);
 
-    if (!boost) {
+    if (!isCache && !boost) {
       return;
     }
 
@@ -79,6 +80,6 @@ export class BoostSystem implements System<VoyageContext> {
     const core = world.spawn();
 
     world.stores.body.set(core, { x, y, vx: parts.body.vx * 0.5, vy: parts.body.vy * 0.5, prevX: x, prevY: y, radius: config.boosts.radius, mass: 0.01 });
-    world.stores.pickup.set(core, { kind: "boost", boost });
+    world.stores.pickup.set(core, boost ? { kind: "boost", boost } : { kind: "cache" });
   }
 }

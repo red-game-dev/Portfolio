@@ -9,16 +9,19 @@ export interface RepositoryOptions<T> {
   fallback: () => T;
   // Brings data written in an older version up to this one.
   migrate?: (data: unknown, from: number) => unknown;
+  // Mends data of this version before it is checked, on every read: a part that fails its own check can be put back
+  // to its start, so one broken part is not the whole record lost.
+  repair?: (data: unknown) => unknown;
 }
 
-// One typed record in a store: read back, migrated from older versions, validated, and replaced by the fallback
+// One typed record in a store: read back, migrated from older versions, repaired, validated, and replaced by the fallback
 // when it is missing, broken or from a newer version this code cannot read; written with its version. Failures
 // to read are nothing kept, failures to write are reported, never thrown.
 export class Repository<T> {
   constructor(private readonly adapter: StoreAdapter, private readonly key: string, private readonly options: RepositoryOptions<T>) {}
 
   public async load(): Promise<T> {
-    const { version, isValid, fallback, migrate } = this.options;
+    const { version, isValid, fallback, migrate, repair } = this.options;
 
     try {
       const stored = await this.adapter.get(this.key);
@@ -27,7 +30,8 @@ export class Repository<T> {
         return fallback();
       }
 
-      const data = stored.version < version && migrate ? migrate(stored.data, stored.version) : stored.data;
+      const migrated = stored.version < version && migrate ? migrate(stored.data, stored.version) : stored.data;
+      const data = repair ? repair(migrated) : migrated;
 
       return isValid(data) ? data : fallback();
     } catch {

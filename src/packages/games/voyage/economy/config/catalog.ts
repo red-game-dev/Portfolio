@@ -48,19 +48,56 @@ export const ITEMS: Readonly<Record<string, ItemSpec>> = Object.fromEntries([
   item("fuelCell", "consumable", "common", 1, 8, ["wreck"], { use: { kind: "fuel", share: 0.45 } }),
   item("shieldCell", "consumable", "uncommon", 1, 18, ["wreck", "alien"], { use: { kind: "shields", share: 1 } }),
   item("coolantFlask", "consumable", "uncommon", 1, 14, ["wreck", "comet"], { use: { kind: "coolant", degrees: 250 } }),
+  item("moonstone", "material", "uncommon", 1, 15, ["wreck", "alien", "rock"]),
+  item("starShard", "material", "rare", 1, 45, ["alien", "boss", "wreck"], { minUniverse: 0 }),
+  item("galaxyCore", "material", "epic", 1, 140, ["boss"], { minUniverse: 3 }),
+  item("stabiliser", "material", "epic", 1, 120, ["boss"]),
 ].map((spec) => [spec.id, spec]));
 
 // How likely each rarity is to turn up, by weight, and how a boss's hoard leans to the rare.
 export const RARITY_WEIGHTS: Readonly<Record<Rarity, number>> = { common: 50, uncommon: 30, rare: 13, epic: 5, legendary: 1.2 };
 export const BOSS_WEIGHTS: Readonly<Record<Rarity, number>> = { common: 10, uncommon: 25, rare: 35, epic: 22, legendary: 6 };
 
-// Each source: how many things it can hold, and how often it holds nothing worth taking.
+// Each source: how many things it can hold, and how often it holds nothing worth taking. A cache holds what a
+// wreck does, and a chest what a boss does.
 export const SOURCE_ROLLS: Readonly<Record<LootSource, { rolls: [number, number]; empty: number }>> = {
   wreck: { rolls: [1, 3], empty: 0.3 },
   rock: { rolls: [1, 1], empty: 0.55 },
   comet: { rolls: [1, 2], empty: 0.2 },
   alien: { rolls: [1, 2], empty: 0.35 },
   boss: { rolls: [4, 6], empty: 0 },
+  cache: { rolls: [1, 2], empty: 0.1 },
+  chest: { rolls: [2, 4], empty: 0 },
+};
+
+// Where a cache's and a chest's things come from among the sources things are listed for.
+export const ITEM_SOURCE: Readonly<Record<LootSource, LootSource>> = {
+  wreck: "wreck", rock: "rock", comet: "comet", alien: "alien", boss: "boss", cache: "wreck", chest: "boss",
+};
+
+// How likely each source is to hold a piece of gear, and how many at most; a weapon's share of the pieces found.
+export const GEAR_DROPS: Readonly<Record<LootSource, { chance: number; most: number }>> = {
+  wreck: { chance: 0.12, most: 1 },
+  rock: { chance: 0, most: 0 },
+  comet: { chance: 0, most: 0 },
+  alien: { chance: 0.1, most: 1 },
+  boss: { chance: 0.9, most: 2 },
+  cache: { chance: 0.35, most: 1 },
+  chest: { chance: 1, most: 2 },
+};
+
+export const WEAPON_SHARE = 0.3;
+
+// The ammunition each source holds: rounds for the main gun always, and how likely, and how many, of one kind for a
+// weapon (every kind for a boss's hoard or a chest).
+export const AMMO_DROPS: Readonly<Record<LootSource, { rounds: [number, number]; chance: number; other: [number, number]; isEveryKind: boolean }>> = {
+  wreck: { rounds: [40, 120], chance: 0.35, other: [1, 4], isEveryKind: false },
+  rock: { rounds: [0, 0], chance: 0, other: [0, 0], isEveryKind: false },
+  comet: { rounds: [0, 0], chance: 0, other: [0, 0], isEveryKind: false },
+  alien: { rounds: [20, 60], chance: 0.2, other: [1, 3], isEveryKind: false },
+  boss: { rounds: [150, 300], chance: 1, other: [2, 6], isEveryKind: true },
+  cache: { rounds: [60, 160], chance: 0.7, other: [2, 6], isEveryKind: false },
+  chest: { rounds: [150, 300], chance: 1, other: [2, 6], isEveryKind: true },
 };
 
 // A universe's own material turns up elsewhere in the deep this much less often.
@@ -80,4 +117,10 @@ export const BLUEPRINT_DROPS: ReadonlyArray<{ id: string; sources: readonly Loot
   { id: "hull:corvette", sources: ["boss"], chance: 0.7, minUniverse: 0 },
   { id: "hull:starship", sources: ["boss"], chance: 0.5, minUniverse: 3 },
   { id: "hull:intergalactic", sources: ["boss"], chance: 0.4, minUniverse: 6 },
+  { id: "hull:titan", sources: ["boss"], chance: 0.3, minUniverse: 9 },
+  { id: "weapon:missile", sources: ["wreck", "cache"], chance: 0.06, minUniverse: -1 },
+  { id: "weapon:flak", sources: ["wreck", "cache"], chance: 0.06, minUniverse: -1 },
+  { id: "weapon:mine", sources: ["alien", "cache"], chance: 0.05, minUniverse: 0 },
+  { id: "weapon:railgun", sources: ["boss", "chest"], chance: 0.35, minUniverse: 1 },
+  { id: "weapon:emp", sources: ["boss", "chest"], chance: 0.3, minUniverse: 2 },
 ];

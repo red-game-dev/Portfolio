@@ -1,8 +1,11 @@
+import { AmmoType, WeaponKind } from "../gear/domain/gear";
 import type { LandingPhase } from "../landing";
+import type { PortKind } from "../stations/domain/station";
 import { BoostId } from "./boosts";
-import { AlienRole, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
+import { AlienRole, BossMoveKind, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
 import { FaultKind } from "./faults";
 import { Loot } from "./loot";
+import type { DistressKind } from "./state";
 
 export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "groundFire" | "tidal" | "breach";
 
@@ -30,6 +33,8 @@ export interface VoyageEvents {
   recovered: { body: string; days: number };
   // A boost core picked up where it drifted, and a boost set to work at a level.
   boostFound: { boost: BoostId; x: number; y: number };
+  // A cache drifting in space, or the chest a boss left, flown through and opened: what was inside.
+  opened: { kind: "cache" | "chest"; loot: Loot; x: number; y: number };
   boosted: { boost: BoostId; level: number };
   // A block of a block shield took a hit whole, and how many stand.
   blocked: { left: number };
@@ -53,11 +58,28 @@ export interface VoyageEvents {
   failing: { module: ModuleId; isGone: boolean };
   // The hull has passed the temperature it was built for.
   melting: { temperatureC: number };
-  fired: { x: number; y: number; angle: number; kind: Weapon["kind"]; team: "ship" | "aliens" };
+  // A shot fired: what with, for which side, the ammunition it took (null for none) and the piece that fired it.
+  fired: { x: number; y: number; angle: number; kind: Weapon["kind"]; team: "ship" | "aliens"; ammo: AmmoType | null; source: string | null };
+  // A weapon from the bar: a railgun's line, an EMP's pulse, a burst from a missile, a mine or a blast; and a gun
+  // that clicks with nothing left to fire.
+  railed: { x0: number; y0: number; x1: number; y1: number; hits: number };
+  pulsed: { x: number; y: number; radius: number; stunned: number };
+  blast: { x: number; y: number; radius: number };
+  dry: { kind: WeaponKind | "primary" };
+  // Kills in quick succession, at each milestone.
+  streak: { count: number };
   // Someone who lives here was struck, or destroyed; the boss shows itself, or falls.
-  struck: { x: number; y: number; toShields: number };
-  downed: { x: number; y: number; role: AlienRole; faction: number; level: number };
+  struck: { x: number; y: number; toShields: number; amount: number; entity: number; isCrit: boolean; source: string | null };
+  downed: { x: number; y: number; role: AlienRole; faction: number; level: number; source: string | null };
   boss: { name: string; isFallen: boolean };
+  // A boss's great attack winding up (to be seen and got clear of), and landing.
+  bossMove: { kind: BossMoveKind; isWindup: boolean; x: number; y: number };
+  // A call for help: heard, and once reached what it was (survivors taken aboard, an ambush, a spilled cargo), or
+  // gone quiet unanswered.
+  distress: { stage: "call" | "rescued" | "ambush" | "cargo" | "lost"; kind: DistressKind; x: number; y: number };
+  // Docked at a port (the run held still while the pilot trades), and away again.
+  docked: { kind: PortKind; id: string };
+  undocked: { kind: PortKind; id: string };
   // A drifting rock shot to pieces.
   shattered: { x: number; y: number; radius: number };
   // A rock is on its way to a world: which, how big (km), how long until it hits (seconds).
@@ -75,7 +97,7 @@ export interface VoyageEvents {
   burst: { seconds: number; isFired: boolean };
   wormhole: { x: number; y: number };
   // A wreck stripped of what it held (perhaps nothing), something on board breaking down, and a fault fixed.
-  salvaged: { wreck: number; x: number; y: number; kind: WreckKind; loot: Loot };
+  salvaged: { wreck: number; x: number; y: number; kind: WreckKind; loot: Loot; origin: string | null };
   fault: { kind: FaultKind; module: ModuleId };
   fixed: { kind: FaultKind };
   // The ship skimmed a giant's air for fuel, the first time this run for that giant; it took the full force of a

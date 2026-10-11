@@ -7,7 +7,10 @@ import { VoyageFrame } from "../frame";
 import { paintDarkness, paintVignette } from "../paint/overlay";
 import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
+import { drawEdgeArrow, isWellInView } from "./pointer";
 
+// The colour of the way on: a black hole's violet.
+const WAY_ON = "#b48cff";
 // The compass ring round a stop in sight, in CSS pixels; a stop drawn bigger than this needs no ring.
 const RING_RADIUS = 18;
 // Sunlight (W/m^2) where the glare begins (inside Mercury's orbit), how many orders of magnitude more it takes
@@ -69,6 +72,7 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
 
       if (this.showsGuides) {
         this.drawCompass(frame);
+        this.drawWayOn(frame);
         this.drawAttackers(frame);
       }
     }
@@ -277,5 +281,61 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
     front.context.closePath();
     front.context.fill();
     front.reset();
+  }
+
+  // In a universe, the black hole that leads on: a violet arrow at the edge of the screen while it is out of sight, a
+  // slow ring round it once it is in sight, each named, so the way to the next universe is never lost.
+  private drawWayOn({ state, world, camera, now }: VoyageFrame): void {
+    if (state.phase !== "universe" || state.capture || world.stores.hole.size === 0) {
+      return;
+    }
+
+    const ship = world.stores.body.get(state.ship);
+    let nearest: { x: number; y: number; radius: number } | null = null;
+    let best = Infinity;
+
+    for (const entity of world.stores.hole.entities) {
+      const at = world.stores.body.get(entity);
+      const distance = at && ship ? Math.hypot(at.x - ship.x, at.y - ship.y) : Infinity;
+
+      if (at && distance < best) {
+        best = distance;
+        nearest = at;
+      }
+    }
+
+    if (!nearest) {
+      return;
+    }
+
+    const { front } = this.kit;
+    const context = front.context;
+    const label = this.kit.labels.wayOn ?? "";
+    const x = camera.toScreenX(nearest.x);
+    const y = camera.toScreenY(nearest.y);
+    const isVisible = isWellInView(front, x, y);
+
+    context.strokeStyle = WAY_ON;
+    context.fillStyle = WAY_ON;
+    context.font = "600 11px Roboto, Arial, sans-serif";
+    context.textAlign = "center";
+
+    if (isVisible) {
+      const ring = Math.max(RING_RADIUS, nearest.radius * camera.scale * 2.2) + Math.sin(now * 0.003) * 4;
+
+      context.globalAlpha = 0.5;
+      context.lineWidth = 1.5;
+      context.beginPath();
+      context.arc(x, y, ring, 0, TAU);
+      context.stroke();
+      context.globalAlpha = 0.9;
+      context.fillText(label, x, y - ring - 6);
+      context.globalAlpha = 1;
+      context.textAlign = "start";
+
+      return;
+    }
+
+    drawEdgeArrow(front, x, y, WAY_ON, label, now);
   }
 }

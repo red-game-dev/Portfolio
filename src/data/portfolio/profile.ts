@@ -125,9 +125,8 @@ export const profileContent: ProfileContent = {
     ],
     facts: [
       "Maltese citizen with EU work rights",
-      "Offers from Google and AWS, declined to care for family",
       "Open to relocation",
-      "Remote, hybrid or on site",
+      "Remote, hybrid or on site, based on location",
       "Speaks Maltese, English and Italian",
       "Available now",
     ],

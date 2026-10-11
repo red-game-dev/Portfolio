@@ -392,10 +392,10 @@ const blueprints: Blueprint[] = [
       ],
       edges: [
         { from: "ob-shopper", to: "ob-consent" },
-        { from: "ob-consent", to: "ob-tags", label: "choices" },
+        { from: "ob-consent", to: "ob-tags" },
         { from: "ob-tags", to: "ob-sgtm", label: "first party" },
         { from: "ob-sgtm", to: "ob-ga" },
-        { from: "ob-ga", to: "ob-bq", label: "export" },
+        { from: "ob-ga", to: "ob-bq" },
         { from: "ob-bq", to: "ob-looker" },
         { from: "ob-looker", to: "ob-review" },
         { from: "ob-teams", to: "ob-review" },

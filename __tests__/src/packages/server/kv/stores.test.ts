@@ -15,6 +15,7 @@ const fakeRedis = (answers: unknown[], commands: Command[] = []) => {
 
   Object.assign(pipeline, {
     set: record("SET", pipeline), incrby: record("INCRBY", pipeline), get: record("GET", pipeline), zadd: record("ZADD", pipeline), pexpire: record("PEXPIRE", pipeline),
+    zremrangebyrank: record("ZREMRANGEBYRANK", pipeline),
   });
 
   return {
@@ -86,6 +87,21 @@ describe("ranked lists", () => {
 
     now = 1001;
     expect(await store.top("board", 10)).toEqual([]);
+  });
+
+  test("a list kept to its best few drops the rest as better ones come, in memory and on Upstash", async () => {
+    const store = new MemoryStore();
+
+    for (let run = 1; run <= 5; run += 1) {
+      await store.rank("board", `R${run}`, run * 10, 1000, 3);
+    }
+
+    expect((await store.top("board", 10)).map(({ member }) => member)).toEqual(["R5", "R4", "R3"]);
+
+    const commands: Command[] = [];
+
+    await new UpstashStore(fakeRedis([1, 1, 0], commands)).rank("board", "R6", 60, 5000, 100);
+    expect(commands[2]).toEqual(["ZREMRANGEBYRANK", "board", 0, -101]);
   });
 
   test("on Upstash, a member keeps its best (ZADD GT), the list's time is set once, and pairs are read back", async () => {

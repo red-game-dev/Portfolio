@@ -1165,8 +1165,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         busy: "That is enough runs on the board for now. Try again later.",
         failed: "The board could not be reached. Your run is still yours.",
         invalid: "Use one to three letters",
-        privacy: "Only the initials you type and your score are kept, for a week. No account and no cookies. Your connection's " +
-          "address is only used, scrambled, to stop spam, and is forgotten within two hours.",
+        privacy: "Only the initials you type and your score are kept, for up to a week. No account and no cookies. Your " +
+          "connection's address is only used, scrambled, to stop spam, and is forgotten within two hours.",
       },
       share: {
         button: "Share your run",

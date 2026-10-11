@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { readBoard, submitRun } from "@/services/voyage/board/server";
+import { networkOf, readBoard, submitRun } from "@/services/voyage/board/server";
 
 const NOON = Date.parse("2026-10-11T12:00:00Z");
 
@@ -27,5 +27,13 @@ describe("the board's service", () => {
     }
 
     expect(results.some((result) => "error" in result && result.error === "busy")).toBe(true);
+  });
+
+  test("an IPv6 connection is counted by its /64, so a phone cannot post from a fresh address each time", () => {
+    expect(networkOf("2001:db8:1:2:3:4:5:6")).toBe("2001:db8:1:2::/64");
+    expect(networkOf("2001:db8:1:2::9")).toBe("2001:db8:1:2::/64");
+    expect(networkOf("2001:db8::1")).toBe("2001:db8:0:0::/64");
+    expect(networkOf("203.0.113.7")).toBe("203.0.113.7");
+    expect(networkOf("::ffff:203.0.113.7")).toBe("::ffff:203.0.113.7");
   });
 });

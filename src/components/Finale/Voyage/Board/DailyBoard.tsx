@@ -1,4 +1,4 @@
-import { FC, FormEvent, useEffect, useState } from "react";
+import { FC, FormEvent, useEffect, useRef, useState } from "react";
 
 import { ActionButton } from "@/components/Controls";
 import {
@@ -33,6 +33,8 @@ export const DailyBoard: FC<DailyBoardProps> = ({ content, day, score }) => {
   const [rank, setRank] = useState<number | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [sentScore, setSentScore] = useState(0);
+  // Where focus goes once the run is on the board and the form is gone: the board itself.
+  const listRef = useRef<HTMLOListElement>(null);
 
   useEffect(() => {
     let isLive = true;
@@ -78,6 +80,7 @@ export const DailyBoard: FC<DailyBoardProps> = ({ content, day, score }) => {
     setSentScore(score);
     writeStored(SENT_KEY, { day, score });
     setMessage(result.rank ? fill(copy.sent, { rank: result.rank }) : fill(copy.sentOff, { size: BOARD.size }));
+    window.requestAnimationFrame(() => listRef.current?.focus());
   };
 
   const canSend = score > 0 && score > sentScore && rank === null;
@@ -88,7 +91,7 @@ export const DailyBoard: FC<DailyBoardProps> = ({ content, day, score }) => {
       {board === "loading" && <BoardNote>{copy.loading}</BoardNote>}
       {board === null && <BoardNote>{copy.resting}</BoardNote>}
       {board !== "loading" && board !== null && (board.entries.length === 0 ? <BoardNote>{copy.empty}</BoardNote> : (
-        <BoardList>
+        <BoardList ref={listRef} tabIndex={-1} aria-label={copy.title}>
           {board.entries.map((entry, index) => (
             <BoardRow key={`${entry.initials}-${index}`} isMine={rank === index + 1}>
               <span>{`${index + 1}. ${entry.initials}`}</span>
@@ -113,7 +116,7 @@ export const DailyBoard: FC<DailyBoardProps> = ({ content, day, score }) => {
           <ActionButton type="submit" isPrimary disabled={isSending || initials.length === 0}>{copy.submit}</ActionButton>
         </BoardForm>
       )}
-      {message && <BoardNote role="status">{message}</BoardNote>}
+      <BoardNote role="status">{message ?? ""}</BoardNote>
       {canSend && board !== null && <BoardNote>{copy.privacy}</BoardNote>}
     </BoardBlock>
   );

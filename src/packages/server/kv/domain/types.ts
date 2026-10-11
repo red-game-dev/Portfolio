@@ -12,9 +12,10 @@ export interface CacheStore {
 }
 
 // A ranked list with a time to live: each member keeps its best score (a lower one never replaces it), and the top
-// few are read back best first. `rank` sets the time to live when it creates the list.
+// few are read back best first. `rank` sets the time to live when it creates the list, and with `keep`, trims the list
+// to its best that many, so it can never grow without bound.
 export interface RankStore {
-  rank(key: string, member: string, score: number, ttlMs: number): Promise<void>;
+  rank(key: string, member: string, score: number, ttlMs: number, keep?: number): Promise<void>;
   top(key: string, count: number): Promise<RankedMember[]>;
 }
 

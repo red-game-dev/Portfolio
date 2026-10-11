@@ -10,7 +10,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const dayOf = (year: number, [month, day]: [number, number]): number => Date.UTC(year, month - 1, day, 12);
 
 // The meteor showers active at a moment, a window that runs across the new year (December into January) read either
-// side of it; a shower is at its peak within a day of its peak night.
+// side of it; a shower is at its peak within a day and a half of its peak night.
 export const showersOn = (moment: number): SkyEvent[] => {
   const year = new Date(moment).getUTCFullYear();
 

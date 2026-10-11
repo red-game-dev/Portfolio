@@ -48,10 +48,17 @@ export class MemoryStore implements KeyValueStore {
     return Promise.resolve(true);
   }
 
-  public async rank(key: string, member: string, score: number, ttlMs: number): Promise<void> {
+  public async rank(key: string, member: string, score: number, ttlMs: number, keep?: number): Promise<void> {
     const list = this.liveRank(key) ?? { scores: new Map<string, number>(), expiresAt: this.now() + ttlMs };
 
     list.scores.set(member, Math.max(score, list.scores.get(member) ?? -Infinity));
+
+    if (keep !== undefined && list.scores.size > keep) {
+      const kept = [...list.scores].sort((first, second) => second[1] - first[1]).slice(0, Math.max(0, keep));
+
+      list.scores = new Map(kept);
+    }
+
     this.ranks.set(key, list);
 
     return Promise.resolve();

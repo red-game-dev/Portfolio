@@ -40,8 +40,8 @@ export class ResilientStore implements KeyValueStore {
     return this.call((store) => store.claim(key, ttlMs));
   }
 
-  public rank(key: string, member: string, score: number, ttlMs: number) {
-    return this.call((store) => store.rank(key, member, score, ttlMs));
+  public rank(key: string, member: string, score: number, ttlMs: number, keep?: number) {
+    return this.call((store) => store.rank(key, member, score, ttlMs, keep));
   }
 
   public top(key: string, count: number) {

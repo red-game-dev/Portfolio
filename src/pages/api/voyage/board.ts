@@ -26,14 +26,18 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
 // The daily voyage's board: GET a day's best runs, POST a run to it. Only initials and a score are ever kept; the
 // route only speaks HTTP, and the rules are the board's.
 const handler = async (request: NextApiRequest, response: NextApiResponse) => {
-  response.setHeader("Cache-Control", "no-store");
-
   try {
+    // Everyone sees the same board for a day, so a read is cached at the edge for a few seconds: a burst of reads
+    // costs the shared store one, and the pilot who posts gets the fresh board back from the post itself.
     if (request.method === "GET") {
       const day = typeof request.query.day === "string" ? request.query.day : "";
 
+      response.setHeader("Cache-Control", "public, s-maxage=15, stale-while-revalidate=60");
+
       return DAY.test(day) ? response.status(200).json(await readBoard(day)) : response.status(400).json({ error: "invalid" });
     }
+
+    response.setHeader("Cache-Control", "no-store");
 
     if (request.method === "POST") {
       if (!isSameOrigin(request)) {

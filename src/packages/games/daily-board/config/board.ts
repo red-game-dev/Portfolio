@@ -1,9 +1,11 @@
-// How many runs a day's board shows, how long a day's board is kept (the week after it, then gone), the highest score
-// it believes, and the letters a pilot may type: one to three, A to Z.
+// How many runs a day's board shows and how many it keeps behind them (the rest are dropped as better ones come), how
+// long a day's board is kept (a week from its first run, then gone), the highest score it believes, and the letters a
+// pilot may type: one to three, A to Z.
 export const BOARD = {
   size: 10,
-  keepMs: 8 * 24 * 60 * 60 * 1000,
-  maxScore: 100_000_000,
+  keep: 100,
+  keepMs: 7 * 24 * 60 * 60 * 1000,
+  maxScore: 10_000_000,
   initials: /^[A-Z]{1,3}$/,
 };
 

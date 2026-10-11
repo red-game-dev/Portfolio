@@ -821,7 +821,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 )}
                 {daily?.isBest && <Badge>{content.career.daily.newBest}</Badge>}
                 {daily && <DailyBoard content={content} day={daily.day} score={daily.score} />}
-                {shareNote && <Text role="status">{shareNote}</Text>}
+                <Text role="status">{shareNote ?? ""}</Text>
                 <Text>{voyagePlace(content, snapshot, universes)}</Text>
                 <Text>{content.kept}</Text>
                 <CardButtons>

@@ -41,11 +41,16 @@ export class UpstashStore implements KeyValueStore {
   }
 
   // ZADD GT keeps a member's best score; the time to live is set only if the list has none yet (PEXPIRE NX), so a
-  // list lasts from its first entry, not its last.
-  public async rank(key: string, member: string, score: number, ttlMs: number): Promise<void> {
-    await this.run(() => this.redis.pipeline().zadd(key, { gt: true }, { score, member })
-      .pexpire(key, ttlMs, "NX")
-      .exec());
+  // list lasts from its first entry, not its last; with `keep`, ZREMRANGEBYRANK drops all but the best that many.
+  public async rank(key: string, member: string, score: number, ttlMs: number, keep?: number): Promise<void> {
+    const pipeline = this.redis.pipeline().zadd(key, { gt: true }, { score, member })
+      .pexpire(key, ttlMs, "NX");
+
+    if (keep !== undefined) {
+      pipeline.zremrangebyrank(key, 0, -(Math.max(0, keep) + 1));
+    }
+
+    await this.run(() => pipeline.exec());
   }
 
   // The best first, as member and score pairs.

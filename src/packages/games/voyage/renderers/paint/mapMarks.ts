@@ -277,8 +277,9 @@ export const paintHostiles = ({ context, toX, toY }: MapView, { state, world, al
 };
 
 // Where the missions send the pilot: a gold diamond on each world to land on or reach, a gold ring at the distance
-// from the Sun to come within, wrecks to salvage, and the edge where the black hole waits.
-export const paintMissions = ({ context, toX, toY, scale, labels }: MapView, { state, world, alpha }: VoyageFrame, marks: MissionMarks): boolean => {
+// from the Sun to come within, wrecks to salvage, and the edge where the black hole waits. The marks carry no words:
+// beside a world's own name they piled up, and the key says what each one means.
+export const paintMissions = ({ context, toX, toY, scale }: MapView, { state, world, alpha }: VoyageFrame, marks: MissionMarks): boolean => {
   const { system } = state;
   const isSolar = state.phase === "solar";
   let isShown = false;
@@ -300,12 +301,6 @@ export const paintMissions = ({ context, toX, toY, scale, labels }: MapView, { s
     const size = Math.max(5, body.radius * scale) + 6;
 
     diamond(context, x, y, size);
-
-    if (labels.mapMission) {
-      context.textBaseline = "bottom";
-      context.fillText(labels.mapMission, x, y - size - 2);
-      context.textBaseline = "top";
-    }
 
     isShown = true;
   });
@@ -346,23 +341,14 @@ export const paintMissions = ({ context, toX, toY, scale, labels }: MapView, { s
   return isShown;
 };
 
-// The ports, each a green square where its station circles its world; returns whether any were shown.
-export const paintPorts = ({ context, toX, toY, labels }: MapView, { state }: VoyageFrame): boolean => {
+// The ports, each a green square where its station circles its world, with no word under it (the world's own name
+// sits there, and the key says what the square is); returns whether any were shown.
+export const paintPorts = ({ context, toX, toY }: MapView, { state }: VoyageFrame): boolean => {
   context.save();
   context.strokeStyle = PORT;
-  context.fillStyle = PORT;
   context.lineWidth = 2;
-  context.textAlign = "center";
-  context.textBaseline = "top";
   state.stations.forEach((port) => {
-    const x = toX(port.x);
-    const y = toY(port.y);
-
-    context.strokeRect(x - 4, y - 4, 8, 8);
-
-    if (labels.mapStation) {
-      context.fillText(labels.mapStation, x, y + 7);
-    }
+    context.strokeRect(toX(port.x) - 4, toY(port.y) - 4, 8, 8);
   });
   context.restore();
 

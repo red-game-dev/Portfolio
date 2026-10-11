@@ -61,6 +61,7 @@ export interface VoyageKeyState {
   hasRun: boolean;
   isHangarOpen: boolean;
   isPhoto: boolean;
+  isMapOpen: boolean;
   // The pilot's hangar has loaded.
   hasHangar: boolean;
   hasSuggestion: boolean;
@@ -72,7 +73,7 @@ export interface VoyageKeyState {
 
 // What a key does: steer (held until it comes up), or one of the voyage's own actions.
 export type VoyageKeyAction =
-  "steer" | "pause" | "map" | "guns" | "hangar" | "closeHangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | "dock" | "undock" | SlotCommand;
+  "steer" | "pause" | "map" | "guns" | "hangar" | "closeHangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | "dock" | "undock" | "leave" | SlotCommand;
 
 // Which slot of the bar a key action uses, or -1 for any other.
 export const slotOf = (action: VoyageKeyAction | null): number => SLOT_COMMANDS.findIndex((command) => command === action);
@@ -83,7 +84,7 @@ const PHOTO_KEYS: ReadonlySet<VoyageCommand> = new Set<VoyageCommand>(["photo", 
 
 // What a command does in the voyage's present state, or null when it means nothing now and the browser keeps the
 // key. With the hangar open only its own keys work, and in photo mode only its own; Escape steps out of the hangar
-// first, and only then out of photo mode.
+// first, then a port, then photo mode, then the map, and only then asks to leave the run.
 export const voyageKeyAction = (command: VoyageCommand, state: VoyageKeyState): VoyageKeyAction | null => {
   if ((state.isHangarOpen && !HANGAR_KEYS.has(command)) || (state.isPhoto && !PHOTO_KEYS.has(command))) {
     return null;
@@ -124,7 +125,18 @@ export const voyageKeyAction = (command: VoyageCommand, state: VoyageKeyState): 
         return "undock";
       }
 
-      return state.isPhoto ? "photo" : null;
+      if (state.isPhoto) {
+        return "photo";
+      }
+
+      // Escape on the map closes the map, not the voyage.
+      if (state.isMapOpen) {
+        return "map";
+      }
+
+      // With nothing open, during a run Escape asks before leaving it, here rather than as the dialog's close request,
+      // which a browser may refuse to hold back a second time.
+      return state.isFlying ? "leave" : null;
     default:
       return state.hasGame ? command : null;
   }

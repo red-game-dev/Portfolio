@@ -454,6 +454,8 @@ export interface FinaleVoyage {
   // Wheel, pinch and keys zoom; the map shows the whole system.
   map: string;
   closeMap: string;
+  // Asked before a run in progress is left: the run ends, what the pilot owns stays.
+  leave: { title: string; text: string; stay: string; confirm: string };
   // Where the planet maps come from.
   credits: string;
   // The live readings in the corner, and the units each is shown in ("{value}" is replaced). Readings go dark
@@ -513,7 +515,6 @@ export interface FinaleVoyage {
   // The map's marks ("{mass}" is a black hole's in Suns) and its key.
   // The map's marks, and the arrow on the screen towards the black hole that leads to the next universe.
   mapMarks: {
-    mission: string;
     holeMass: string;
     keyMission: string;
     keyPull: string;
@@ -521,7 +522,6 @@ export interface FinaleVoyage {
     keyRock: string;
     keyHazard: string;
     wayOn: string;
-    station: string;
     keyPort: string;
     keyDistress: string;
   };

@@ -73,9 +73,11 @@ export interface VoyageNames {
   home?: HomePad | null;
   // How a run starts from a controller's Start between runs: as the card's own button does.
   onStart?: () => void;
+  // Escape during a run with nothing open: the dialog asks before the run is left, or puts the question away.
+  onLeave?: () => void;
 }
 
-export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labels, universes, syllables, home = null, onStart }: VoyageNames) => {
+export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labels, universes, syllables, home = null, onStart, onLeave }: VoyageNames) => {
   const [snapshot, setSnapshot] = useState<VoyageSnapshot | null>(null);
   // Notices queue up: several can come in the same moment (a run paid, a mission done, a promotion), and each
   // must be heard.
@@ -248,17 +250,30 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const play = useCallback((mode: "free" | "daily" = "free") => {
     unlockSound();
     held.clear();
+
+    // A run started from the card over an open map flies with its HUD, not hidden under the map.
+    if (isMapOpen) {
+      game?.setMap(false);
+      holds.release("map");
+      setIsMapOpen(false);
+    }
+
     game?.setKeys({ turn: 0, thrust: 0, brake: false });
     game?.play(mode);
     setIsPaused(false);
     stage.current?.focus();
-  }, [game, held, stage, unlockSound]);
+  }, [game, held, holds, isMapOpen, stage, unlockSound]);
 
-  const pause = useCallback(() => {
+  // Whether the run was paused by this call: not when it is already held still by something else.
+  const pause = useCallback((): boolean => {
     if (game?.isRunning && isFlying) {
       game.pause();
       setIsPaused(true);
+
+      return true;
     }
+
+    return false;
   }, [game, isFlying]);
 
   const resume = useCallback(() => {
@@ -396,7 +411,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
 
     setIsMapOpen(isOpen);
-  }, [game, holds, isFlying, isMapOpen]);
+    // The button that opened or closed it is gone from view, so the keys go back to the flight.
+    stage.current?.focus();
+  }, [game, holds, isFlying, isMapOpen, stage]);
 
   useEffect(() => {
     const onVisibility = () => {
@@ -415,7 +432,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   }, [game, held]);
 
   // What each key does is the voyage's key map and `voyageKeyAction`; carrying it out is here. A key that means
-  // nothing right now is left to the browser, so Escape with nothing open still closes the voyage.
+  // nothing right now is left to the browser, so Escape with nothing open reaches the dialog, which asks before a run is left.
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => VOYAGE_KEYS.offer(event, (command) => {
     unlockSound();
 
@@ -434,6 +451,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       hasRun: snapshot !== null && snapshot.status !== "ready",
       isHangarOpen,
       isPhoto,
+      isMapOpen,
       // The view kept from the game, not `game.economy`, which builds a fresh one on every read.
       hasHangar: economy !== null,
       hasSuggestion: Boolean(economy?.suggestion),
@@ -470,6 +488,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       case "photo":
         togglePhoto();
         break;
+      case "leave":
+        onLeave?.();
+        break;
       case "follow":
         if (economy?.suggestion) {
           follow(economy.suggestion);
@@ -499,8 +520,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
     return true;
   }), [
-    act, applyKeys, castOff, economy, follow, game, held, isFlying, isHangarOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns, toggleMap,
-    togglePhoto, unlockSound, zoom,
+    act, applyKeys, castOff, economy, follow, game, held, isFlying, isHangarOpen, isMapOpen, isPaused, isPhoto, onLeave, pause, resume, setHangar, snapshot,
+    toggleGuns, toggleMap, togglePhoto, unlockSound, zoom,
   ]);
 
   const onKeyUp = useCallback((event: KeyboardEvent<HTMLElement>) => {
@@ -683,6 +704,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       hasRun: snapshot !== null && snapshot.status !== "ready",
       isHangarOpen,
       isPhoto,
+      isMapOpen,
       hasHangar: economy !== null,
       hasSuggestion: Boolean(economy?.suggestion),
       hasGame: game !== null,
@@ -707,6 +729,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
         break;
       case "photo":
         togglePhoto();
+        break;
+      case "leave":
+        onLeave?.();
         break;
       case "guns":
         toggleGuns();

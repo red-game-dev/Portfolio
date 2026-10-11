@@ -382,6 +382,16 @@ export const PhotoBar = styled.section(() => [
 
 export const PhotoHint = tw.p`m-0 w-full text-center text-xs md:text-sm text-[#c9cfdf]`;
 
+// The map's own bar in place of the HUD: its name, and the way back to flying.
+export const MapBar = styled.header(() => [
+  tw`absolute top-0 left-0 right-0 flex flex-row items-center justify-between gap-[12px] p-[14px] md:p-[18px]`,
+  css`
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+  `,
+]);
+
+export const MapTitle = tw.h2`m-0 text-base md:text-lg font-semibold text-white`;
+
 // The guided first flight's card: a step at a time, among the frames.
 export const GuideCard = styled.section(() => [
   tw`flex flex-col gap-[6px] p-[10px] text-xs md:text-sm text-white pointer-events-auto`,

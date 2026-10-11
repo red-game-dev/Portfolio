@@ -66,7 +66,7 @@ export const Services: FC<ServicesProps> = ({ intro, groups, actions, email, lin
       <Anchor id={ROLE_ANCHORS.product} aria-hidden="true" />
       <SectionText intro={intro} />
       <Tabs>
-        <TabList {...listProps} aria-label={intro.title} data-scroll-x>
+        <TabList {...listProps} layout="wrap" aria-label={intro.title} data-scroll-x>
           {ordered.map((group, index) => (
             <Tab key={group.label} {...tabProps(index)} isOn={index === active}>
               <span>{group.label}</span>

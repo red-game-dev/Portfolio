@@ -177,6 +177,7 @@ const blueprints: Blueprint[] = [
             { id: "rag-chunk", label: "Chunking", detail: "By headings and tables, small chunks inside their section" },
             { id: "rag-meta", label: "Metadata", detail: "Market, language, date, who may see it" },
             { id: "rag-embed", label: "Embeddings" },
+            { id: "rag-entities", label: "Entities and links", detail: "Pulled from each chunk by a model" },
           ],
         },
         {
@@ -205,8 +206,8 @@ const blueprints: Blueprint[] = [
           place: { col: 2, row: 2, colSpan: 2 },
           columns: 2,
           nodes: [
-            { id: "rag-bm25", label: "Keyword search" },
-            { id: "rag-knn", label: "Vector search", detail: "Filtered by access and market first" },
+            { id: "rag-bm25", label: "Keyword search", detail: "Filtered by access and market first" },
+            { id: "rag-knn", label: "Vector search", detail: "The question embedded alike, filtered the same way" },
             { id: "rag-fuse", label: "Fusion", detail: "Reciprocal rank fusion of both lists" },
             { id: "rag-rerank", label: "Reranker", detail: "A cross-encoder orders the top 50 down to the best few" },
             { id: "rag-agent", label: "Agent route", detail: "Picks tools and sources, walks the graph, loops until it has enough", span: 2 },
@@ -236,16 +237,19 @@ const blueprints: Blueprint[] = [
         { from: "rag-sources", to: "rag-chunk" },
         { from: "rag-chunk", to: "rag-meta" },
         { from: "rag-meta", to: "rag-embed" },
-        { from: "rag-chunk", to: "rag-keyword" },
+        { from: "rag-meta", to: "rag-keyword" },
         { from: "rag-embed", to: "rag-vectors" },
-        { from: "rag-meta", to: "rag-graph" },
+        { from: "rag-chunk", to: "rag-entities" },
+        { from: "rag-entities", to: "rag-graph" },
         { from: "rag-ask", to: "rag-rewrite" },
         { from: "rag-rewrite", to: "rag-route" },
         { from: "rag-route", to: "rag-bm25", label: "lookup" },
+        { from: "rag-route", to: "rag-knn" },
         { from: "rag-route", to: "rag-agent", label: "several facts" },
         { from: "rag-keyword", to: "rag-bm25", style: "dashed" },
         { from: "rag-vectors", to: "rag-knn", style: "dashed" },
         { from: "rag-graph", to: "rag-agent", style: "dashed" },
+        { from: "rag-agent", to: "rag-fuse", label: "search as a tool", style: "dashed" },
         { from: "rag-bm25", to: "rag-fuse" },
         { from: "rag-knn", to: "rag-fuse" },
         { from: "rag-fuse", to: "rag-rerank" },
@@ -280,8 +284,8 @@ const blueprints: Blueprint[] = [
       decision: "Search twice and rerank: words catch the exact names, codes and numbers that embeddings blur, meaning catches " +
         "the paraphrase, and a reranker orders the fused list against the question. Anything that needs several facts goes " +
         "to an agent or the graph.",
-      outcome: "Answers stay grounded in the sources and cite them, exact matches are never lost to a vague neighbour, and the " +
-        "assistant says so when nothing was found.",
+      outcome: "Answers stay grounded in the sources and cite them, exact names and codes are kept rather than lost to a " +
+        "vague neighbour, and the assistant says so when nothing was found.",
     },
     journeys: [
       {
@@ -324,7 +328,7 @@ const blueprints: Blueprint[] = [
           label: "Ask of the data",
           place: { col: 1, row: 1, rowSpan: 2 },
           nodes: [
-            { id: "pick-fits", label: "Fits in the context window?", kind: "decision" },
+            { id: "pick-fits", label: "Small enough to send with every question?", kind: "decision" },
             { id: "pick-exact", label: "Exact codes, names or numbers?", kind: "decision" },
             { id: "pick-sections", label: "Long documents in sections?", kind: "decision" },
             { id: "pick-hops", label: "Questions across several facts?", kind: "decision" },
@@ -392,7 +396,7 @@ const blueprints: Blueprint[] = [
         {
           title: "Choosing, one question at a time",
           regions: [
-            { kind: "steps", label: "Fits the window, exact terms, sections, several facts, live data", size: 1.4 },
+            { kind: "steps", label: "Small enough, exact terms, sections, several facts, live data", size: 1.4 },
             { kind: "card", label: "The simplest approach that answers these questions", size: 1.6 },
             { kind: "list", label: "What it costs: tokens, latency, an index to keep fresh" },
           ],
@@ -415,7 +419,7 @@ const blueprints: Blueprint[] = [
       {
         title: "A help centre of a few hundred pages",
         steps: [
-          "Too large for one prompt, so it is indexed",
+          "Too much to send with every question, in cost and in time, so it is indexed",
           "Product names and error codes matter, so search is hybrid",
           "Answers must be right first time, so a reranker orders the top results",
           "The eval set shows the gain before it ships",

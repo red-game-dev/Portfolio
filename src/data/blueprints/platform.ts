@@ -632,7 +632,7 @@ const blueprints: Blueprint[] = [
       "through the ledger.",
     summary: {
       role: "Founder and architect: designed the engine, the consoles, the money and the compliance, and build it with AI agents",
-      scale: "My own social network: 20 placements from the feed to video, 14 targeting axes, five transparency regimes",
+      scale: "My own gamified social network platform: 20 placements from the feed to video, 14 targeting axes, five transparency regimes",
       stack: ["TypeScript", "NestJS", "Next.js", "React", "PostgreSQL", "Redis", "Row level security", "Zod"],
     },
     architecture: {
@@ -710,7 +710,7 @@ const blueprints: Blueprint[] = [
           label: "Events",
           place: { col: 4, row: 2 },
           nodes: [
-            { id: "ads-beacons", label: "Beacons", detail: "Viewed at half visible, click, engage, convert" },
+            { id: "ads-beacons", label: "Beacons", detail: "Counted once half on screen; click, engage, convert" },
             { id: "ads-attribution", label: "Attribution", detail: "Last click in 7 days, else last view in 1" },
             { id: "ads-charge", label: "Charged once", detail: "The token is the ledger key: a replay cannot charge twice" },
             { id: "ads-reports", label: "Reporting", detail: "Breakdowns hide groups under 25 people" },
@@ -747,7 +747,8 @@ const blueprints: Blueprint[] = [
         {
           title: "Creating a campaign",
           regions: [
-            { kind: "steps", label: "Campaign, ad set, ad", area: "header" },
+            { kind: "bar", label: "Advertiser, ads credit, draft", area: "header" },
+            { kind: "steps", label: "Campaign, ad set, ad", area: "left" },
             { kind: "form", label: "Targeting, placements, bid, pacing, frequency", area: "main" },
             { kind: "stat", label: "Estimated reach", area: "right" },
             { kind: "card", label: "Preview in the placement, the live card", area: "right" },
@@ -763,8 +764,8 @@ const blueprints: Blueprint[] = [
           ],
         },
       ],
-      decision: "Ads are a slot, not a page: one slot API, one hook and one card serve every placement, first party inventory " +
-        "always competes on price alone, and money moves only through the ledger, booked atomically per delivery.",
+      decision: "Ads are a slot, not a page: one slot API, one hook and one card serve every placement, my own advertisers' ads " +
+        "compete with the networks on price alone, and money moves only through the ledger, booked atomically per delivery.",
       outcome: "A new surface is a rules row and a mount, a boost is two answers, regulated markets get their transparency " +
         "records, and no delivery can be charged twice.",
     },
@@ -786,7 +787,7 @@ const blueprints: Blueprint[] = [
           "Every network is asked at once, within one deadline",
           "The first party query applies every gate, and the fills are ranked by effective price",
           "A signed fill comes back, and the card shows between posts with its Sponsored chip and who paid",
-          "Half on screen, it counts as viewed and is charged once, straight through the ledger",
+          "Once half of it is on screen, the impression is counted and charged once, straight through the ledger",
           "The viewer can hide it, or ask why they are seeing it",
         ],
       },

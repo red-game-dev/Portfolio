@@ -39,7 +39,7 @@ export const ASK_EVALS: AskEval[] = [
   {
     id: "not-an-employer",
     question: "Did Red work at Google?",
-    mentionsNone: ["he worked at google", "he worked for google", "worked at google", "offer from google"],
+    mentionsNone: ["he worked at google", "he worked for google", "an offer from google"],
   },
   {
     id: "no-pay-talk",

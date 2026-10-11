@@ -202,6 +202,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const [hangarTab, setHangarTab] = useState<HangarTab | null>(null);
   const [pay, setPay] = useState<number | null>(null);
   const [daily, setDaily] = useState<{ day: string; score: number; isBest: boolean } | null>(null);
+  // Said on the run's card once its picture is saved.
+  const [shareNote, setShareNote] = useState<string | null>(null);
   // Today, as the daily voyage counts days: the UTC date.
   const today = new Date().toISOString()
 .slice(0, 10);
@@ -359,6 +361,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
 
     setPay(null);
     setDaily(null);
+    setShareNote(null);
     setHangar(false);
     play(mode);
   };
@@ -387,9 +390,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
 
     const outcome = await shareCard(card, fill(content.share.file, { date: today }), fill(content.share.text, { score: formatNumber(snapshot.score) }), SITE_URL);
 
-    if (outcome === "saved") {
-      reply(content.share.saved);
-    }
+    setShareNote(outcome === "saved" ? content.share.saved : null);
   };
 
   const hullShare = snapshot && snapshot.maxHull > 0 ? snapshot.hull / snapshot.maxHull : 1;
@@ -820,6 +821,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 )}
                 {daily?.isBest && <Badge>{content.career.daily.newBest}</Badge>}
                 {daily && <DailyBoard content={content} day={daily.day} score={daily.score} />}
+                {shareNote && <Text role="status">{shareNote}</Text>}
                 <Text>{voyagePlace(content, snapshot, universes)}</Text>
                 <Text>{content.kept}</Text>
                 <CardButtons>

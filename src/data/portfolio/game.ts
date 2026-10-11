@@ -238,6 +238,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         keyHostile: "Hostile ships",
         keyRock: "Rock headed for a world",
         keyHazard: "Danger zone",
+        wayOn: "Way on",
       },
       recovered: "{days} days later, a new rocket stands on the pad",
       stranded: {

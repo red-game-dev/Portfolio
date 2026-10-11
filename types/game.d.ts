@@ -501,7 +501,8 @@ export interface FinaleVoyage {
   landed: string;
   tookOff: string;
   // The map's marks ("{mass}" is a black hole's in Suns) and its key.
-  mapMarks: { mission: string; holeMass: string; keyMission: string; keyPull: string; keyHostile: string; keyRock: string; keyHazard: string };
+  // The map's marks, and the arrow on the screen towards the black hole that leads to the next universe.
+  mapMarks: { mission: string; holeMass: string; keyMission: string; keyPull: string; keyHostile: string; keyRock: string; keyHazard: string; wayOn: string };
   // Home safely, met and given a new rocket.
   recovered: string;
   // No fuel to leave ("{body}", "{seconds}", "{days}"): a rescue on its way in our solar system or the run ending in

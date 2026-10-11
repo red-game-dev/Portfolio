@@ -23,8 +23,15 @@ const OURS: [string, string, string] = ["#9aa3bb", "#2a3350", "rgba(255, 200, 12
 // hit with its strength, and the reticle on whatever the guns are locked onto.
 export class AliensLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "aliens";
+  // Who was just hit, and until when (frame clock ms) they flash white.
+  private readonly flashes = new Map<number, number>();
 
   constructor(private readonly kit: RenderKit) {}
+
+  // Someone hit flashes white for a moment, as a game shows a hit landing.
+  public flash(entity: number, now: number): void {
+    this.flashes.set(entity, now + 70);
+  }
 
   public draw(frame: VoyageFrame): void {
     const { state, world } = frame;
@@ -64,6 +71,33 @@ export class AliensLayer implements RenderLayer<VoyageFrame> {
     const bob = alien.role === "whale" ? Math.sin(now * 0.0012 + entity) * drawn * 0.03 : 0;
 
     front.blit(sprite, x, y + bob, drawn, drawn, alien.angle);
+
+    const flashUntil = this.flashes.get(entity);
+
+    if (flashUntil !== undefined) {
+      if (flashUntil < now) {
+        this.flashes.delete(entity);
+      } else {
+        const white = this.kit.cache.get("glow:#ffffff", 64, 64, paintGlow("#ffffff"));
+
+        front.context.globalCompositeOperation = "lighter";
+        front.context.globalAlpha = 0.85;
+        front.blit(white, x, y + bob, drawn * 1.3, drawn * 1.3);
+        front.context.globalAlpha = 1;
+        front.context.globalCompositeOperation = "source-over";
+      }
+    }
+
+    // Held still by an EMP, crackling blue.
+    if ((alien.stunnedUntil ?? 0) > state.elapsedMs && Math.random() < 0.6) {
+      const blue = this.kit.cache.get("glow:rgba(120, 200, 255, 1)", 64, 64, paintGlow("rgba(120, 200, 255, 1)"));
+
+      front.context.globalCompositeOperation = "lighter";
+      front.context.globalAlpha = 0.5;
+      front.blit(blue, x + (Math.random() - 0.5) * drawn * 0.6, y + (Math.random() - 0.5) * drawn * 0.6, drawn * 0.5, drawn * 0.5);
+      front.context.globalAlpha = 1;
+      front.context.globalCompositeOperation = "source-over";
+    }
 
     if (alien.mode === "evade") {
       front.context.globalAlpha = 0.35;

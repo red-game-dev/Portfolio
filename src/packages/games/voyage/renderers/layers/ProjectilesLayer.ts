@@ -1,4 +1,5 @@
 import type { RenderLayer } from "@/packages/games/engine";
+import { TAU } from "@/packages/math/angles";
 
 import { lerpX, lerpY, VoyageFrame } from "../frame";
 import { paintGlow } from "../paint/space";
@@ -26,7 +27,9 @@ export class ProjectilesLayer implements RenderLayer<VoyageFrame> {
 
   constructor(private readonly kit: RenderKit) {}
 
-  public draw({ world, camera, alpha }: VoyageFrame): void {
+  public draw(frame: VoyageFrame): void {
+    const { world, camera, alpha } = frame;
+
     if (world.stores.projectile.size === 0) {
       return;
     }
@@ -46,6 +49,30 @@ export class ProjectilesLayer implements RenderLayer<VoyageFrame> {
       }
 
       const colour = shot.team === "ship" ? look.ship : look.aliens;
+
+      // A mine: a dark disc that blinks red, faster once it is armed.
+      if (shot.kind === "mine") {
+        const mx = camera.toScreenX(lerpX(body, alpha));
+        const my = camera.toScreenY(lerpY(body, alpha));
+        const isArmed = shot.armAt !== undefined && frame.state.elapsedMs >= shot.armAt;
+        const blink = Math.sin(frame.now * (isArmed ? 0.02 : 0.006)) > 0;
+        const radius = Math.max(3, body.radius * 2.2 * camera.scale);
+
+        context.globalCompositeOperation = "source-over";
+        context.fillStyle = "#2a2f3a";
+        context.beginPath();
+        context.arc(mx, my, radius, 0, TAU);
+        context.fill();
+        context.globalCompositeOperation = "lighter";
+
+        if (blink) {
+          const red = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
+
+          front.blit(red, mx, my, radius * 3, radius * 3);
+        }
+
+        return;
+      }
       const speed = Math.hypot(body.vx, body.vy) || 1;
       const x = lerpX(body, alpha);
       const y = lerpY(body, alpha);

@@ -8,6 +8,8 @@ import { paintDarkness, paintVignette } from "../paint/overlay";
 import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
 
+// The colour of the way on: a black hole's violet.
+const WAY_ON = "#b48cff";
 // The compass ring round a stop in sight, in CSS pixels; a stop drawn bigger than this needs no ring.
 const RING_RADIUS = 18;
 // Sunlight (W/m^2) where the glare begins (inside Mercury's orbit), how many orders of magnitude more it takes
@@ -69,6 +71,7 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
 
       if (this.showsGuides) {
         this.drawCompass(frame);
+        this.drawWayOn(frame);
         this.drawAttackers(frame);
       }
     }
@@ -277,5 +280,87 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
     front.context.closePath();
     front.context.fill();
     front.reset();
+  }
+
+  // In a universe, the black hole that leads on: a violet arrow at the edge of the screen while it is out of sight, a
+  // slow ring round it once it is in sight, each named, so the way to the next universe is never lost.
+  private drawWayOn({ state, world, camera, now }: VoyageFrame): void {
+    if (state.phase !== "universe" || state.capture || world.stores.hole.size === 0) {
+      return;
+    }
+
+    const ship = world.stores.body.get(state.ship);
+    let nearest: { x: number; y: number; radius: number } | null = null;
+    let best = Infinity;
+
+    for (const entity of world.stores.hole.entities) {
+      const at = world.stores.body.get(entity);
+      const distance = at && ship ? Math.hypot(at.x - ship.x, at.y - ship.y) : Infinity;
+
+      if (at && distance < best) {
+        best = distance;
+        nearest = at;
+      }
+    }
+
+    if (!nearest) {
+      return;
+    }
+
+    const { front } = this.kit;
+    const context = front.context;
+    const label = this.kit.labels.wayOn ?? "";
+    const x = camera.toScreenX(nearest.x);
+    const y = camera.toScreenY(nearest.y);
+    const margin = 46;
+    const isVisible = x > margin && x < front.width - margin && y > margin && y < front.height - margin;
+
+    context.strokeStyle = WAY_ON;
+    context.fillStyle = WAY_ON;
+    context.font = "600 11px Roboto, Arial, sans-serif";
+    context.textAlign = "center";
+
+    if (isVisible) {
+      const ring = Math.max(RING_RADIUS, nearest.radius * camera.scale * 2.2) + Math.sin(now * 0.003) * 4;
+
+      context.globalAlpha = 0.5;
+      context.lineWidth = 1.5;
+      context.beginPath();
+      context.arc(x, y, ring, 0, TAU);
+      context.stroke();
+      context.globalAlpha = 0.9;
+      context.fillText(label, x, y - ring - 6);
+      context.globalAlpha = 1;
+
+      return;
+    }
+
+    const cx = front.width / 2;
+    const cy = front.height / 2;
+    const angle = Math.atan2(y - cy, x - cx);
+    const edge = Math.min((front.width / 2 - margin) / Math.abs(Math.cos(angle) || 1e-6), (front.height / 2 - margin) / Math.abs(Math.sin(angle) || 1e-6));
+    const ax = cx + Math.cos(angle) * edge;
+    const ay = cy + Math.sin(angle) * edge;
+
+    front.frame(ax, ay, angle);
+    context.globalAlpha = 0.6 + Math.sin(now * 0.006) * 0.3;
+    context.beginPath();
+    context.arc(-2, 0, 7, 0, TAU);
+    context.fill();
+    context.fillStyle = "#05060c";
+    context.beginPath();
+    context.arc(-2, 0, 3.5, 0, TAU);
+    context.fill();
+    context.fillStyle = WAY_ON;
+    context.beginPath();
+    context.moveTo(16, 0);
+    context.lineTo(7, -6);
+    context.lineTo(7, 6);
+    context.closePath();
+    context.fill();
+    front.reset();
+    context.globalAlpha = 0.9;
+    context.fillText(label, ax - Math.cos(angle) * 22, ay - Math.sin(angle) * 22 + 4);
+    context.globalAlpha = 1;
   }
 }

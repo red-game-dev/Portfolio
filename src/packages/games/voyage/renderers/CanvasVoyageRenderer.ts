@@ -17,6 +17,7 @@ import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
 import { BoostsLayer } from "./layers/BoostsLayer";
+import { NumbersLayer } from "./layers/NumbersLayer";
 import { EffectsLayer } from "./layers/EffectsLayer";
 import { GatesLayer } from "./layers/GatesLayer";
 import { GhostLayer } from "./layers/GhostLayer";
@@ -62,6 +63,8 @@ export interface VoyageRenderer {
   setMissions(marks: MissionMarks): void;
   // How the pilot's ship looks: its paint, its engine trail and the pieces that show on its hull.
   setLook(look: ShipLook): void;
+  // Less motion: the camera's shakes kept small.
+  setReducedMotion(isReduced: boolean): void;
   dispose(): void;
 }
 
@@ -96,6 +99,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   private readonly ship: ShipLayer;
   private readonly effects: EffectsLayer;
   private readonly light: EffectsLayer;
+  private readonly aliens: AliensLayer;
+  private readonly numbers: NumbersLayer;
+  // Shake only so far, for a reader who asked for less motion.
+  private shake = 1;
   private readonly overlay: OverlayLayer;
   private readonly map: MapLayer;
   private readonly ghost: GhostLayer;
@@ -116,6 +123,8 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.overlay = new OverlayLayer(this.kit);
     this.map = new MapLayer(this.kit);
     this.ghost = new GhostLayer(this.kit);
+    this.aliens = new AliensLayer(this.kit);
+    this.numbers = new NumbersLayer(this.kit);
     this.globesLayer = new GlobesLayer(this.kit);
     this.surfaceLayer = new SurfaceLayer(this.kit, this.globesLayer, (texture, longitude, latitude, centre) => this.sampleMap(texture, longitude, latitude, centre));
     this.backLayers = new RenderPipeline([
@@ -130,13 +139,14 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       new GatesLayer(this.kit),
       new ThingsLayer(this.kit),
       new WrecksLayer(this.kit),
-      new AliensLayer(this.kit),
+      this.aliens,
       new ProjectilesLayer(this.kit),
       this.effects,
       this.ghost,
       this.ship,
       new BoostsLayer(this.kit),
       this.light,
+      this.numbers,
       this.surfaceLayer,
       this.overlay,
       this.map,
@@ -266,7 +276,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
           this.ship.flashShield(angle);
         }
 
-        camera.addTrauma(Math.min(0.6, amount / 500));
+        camera.addTrauma(Math.min(0.6, amount / 500) * this.shake);
       }),
       events.on("destroyed", ({ x, y, vx, vy, angle }) => this.breakUp(x, y, vx, vy, angle, camera)),
       events.on("collected", ({ x, y, kind }) => {
@@ -279,16 +289,16 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
           particles.emit("glow", x, y, Math.cos(spread) * 0.9, Math.sin(spread) * 0.9, 0.45, 0.05, glow, { drag: 3 });
         }
       }),
-      events.on("landed", () => camera.addTrauma(0.15)),
+      events.on("landed", () => camera.addTrauma(0.15 * this.shake)),
       events.on("emergency", () => {
         this.overlay.flashScreen("#ffffff", 0.8);
-        camera.addTrauma(0.7);
+        camera.addTrauma(0.7 * this.shake);
       }),
-      events.on("captured", () => camera.addTrauma(0.3)),
+      events.on("captured", () => camera.addTrauma(0.3 * this.shake)),
       events.on("storm", ({ strength }) => {
         this.ship.flashShield(Math.random() * TAU);
         this.overlay.flashScreen("#ffb070", 0.25 + strength * 0.5);
-        camera.addTrauma(0.15 + strength * 0.3);
+        camera.addTrauma((0.15 + strength * 0.3) * this.shake);
       }),
       events.on("fired", ({ x, y, angle, team }) => {
         const colour = team === "ship" ? "rgba(255, 220, 140, 1)" : "rgba(255, 120, 100, 1)";
@@ -296,7 +306,38 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
         particles.emit("glow", x, y, Math.cos(angle) * 0.3, Math.sin(angle) * 0.3, 0.08, 0.05, flash, { drag: 4 });
       }),
-      events.on("struck", ({ x, y, toShields }) => this.sparks(x, y, toShields > 0 ? 5 : 8, toShields > 0 ? theme.shield : theme.flameEdge)),
+      events.on("struck", ({ x, y, toShields, amount, entity, isCrit }) => {
+        this.sparks(x, y, toShields > 0 ? 5 : 8, toShields > 0 ? theme.shield : theme.flameEdge);
+        this.aliens.flash(entity, performance.now());
+        this.numbers.float(x, y, String(Math.max(1, Math.round(amount))), isCrit ? "#ffd76a" : toShields > 0 ? "#9fe8ff" : "#ffffff", isCrit ? 18 : 13);
+      }),
+      // The bar's weapons: a railgun's line, an EMP's pulse, the burst of a missile or a mine.
+      events.on("railed", ({ x0, y0, x1, y1 }) => {
+        this.light.beam(x0, y0, x1, y1);
+        this.sparks(x1, y1, 6, "rgba(125, 249, 255, 1)");
+        camera.addTrauma(0.2 * this.shake);
+      }),
+      events.on("pulsed", ({ x, y, radius }) => {
+        this.light.shockwave(x, y, radius, 0.6, "rgba(120, 200, 255, 1)");
+        this.light.shockwave(x, y, radius * 0.6, 0.45, "#ffffff");
+        this.overlay.flashScreen("#9fd8ff", 0.25);
+        camera.addTrauma(0.25 * this.shake);
+      }),
+      events.on("blast", ({ x, y, radius }) => this.blast(x, y, Math.max(0.04, radius * 0.3), camera, 0.25 * this.shake)),
+      events.on("streak", ({ count }) => {
+        const ship = this.lastWorld?.stores.body.get(this.lastState?.ship ?? -1);
+
+        if (ship) {
+          this.numbers.float(ship.x, ship.y - ship.radius * 3, `${count}x`, "#ffd76a", 22, 1.4);
+        }
+      }),
+      events.on("dry", () => {
+        const ship = this.lastWorld?.stores.body.get(this.lastState?.ship ?? -1);
+
+        if (ship) {
+          this.sparks(ship.x, ship.y, 3, "rgba(150, 150, 160, 1)");
+        }
+      }),
       events.on("downed", ({ x, y, role }) => {
         const big = role === "boss" ? 3 : role === "whale" ? 2.4 : 1;
 
@@ -320,21 +361,21 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       events.on("supernova", ({ isBlown }) => {
         if (isBlown) {
           this.overlay.flashScreen("#ffffff", 1);
-          camera.addTrauma(0.8);
+          camera.addTrauma(0.8 * this.shake);
         }
       }),
       events.on("burst", ({ isFired }) => {
         if (isFired) {
           this.overlay.flashScreen("#e8d8ff", 0.9);
-          camera.addTrauma(0.5);
+          camera.addTrauma(0.5 * this.shake);
         }
       }),
       events.on("heard", () => this.overlay.flashScreen("#ff2030", 0.35)),
       events.on("wormhole", () => {
         this.overlay.flashScreen("#9ad8ff", 0.8);
-        camera.addTrauma(0.4);
+        camera.addTrauma(0.4 * this.shake);
       }),
-      events.on("boss", ({ isFallen }) => camera.addTrauma(isFallen ? 0.9 : 0.4)),
+      events.on("boss", ({ isFallen }) => camera.addTrauma((isFallen ? 0.9 : 0.4) * this.shake)),
       events.on("salvaged", ({ x, y, loot }) => {
         const colour = loot.items.length > 0 || loot.blueprints.length > 0 ? "#ffd76a" : "#8a92a8";
         const glow = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
@@ -353,7 +394,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
           this.sparks(body.x, body.y, 14);
         }
 
-        camera.addTrauma(0.2);
+        camera.addTrauma(0.2 * this.shake);
       }),
       events.on("failing", ({ isGone }) => {
         const state = this.lastState;
@@ -363,7 +404,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
           this.sparks(body.x, body.y, isGone ? 24 : 12);
         }
 
-        camera.addTrauma(isGone ? 0.35 : 0.15);
+        camera.addTrauma((isGone ? 0.35 : 0.15) * this.shake);
       }),
     ];
 
@@ -373,6 +414,12 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   public reset(): void {
     this.effects.clear();
     this.light.clear();
+    this.numbers.clear();
+  }
+
+  // For a reader who asked for less motion: the camera shakes a little, not hard.
+  public setReducedMotion(isReduced: boolean): void {
+    this.shake = isReduced ? 0.25 : 1;
   }
 
   // The colour of a map at a spot (degrees), averaged over a few of its pixels, or null with no map yet: drawn
@@ -433,7 +480,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       particles.emit("smoke", x, y, vx * 0.3, vy * 0.3, 1 + Math.random(), radius * 1.2, smoke, { drag: 0.9, grow: radius * 2 });
     }
 
-    camera.addTrauma(trauma);
+    camera.addTrauma(trauma * this.shake);
   }
 
   // Rock flung out in pieces.
@@ -479,7 +526,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     const smoke = this.kit.cache.get("smoke", 64, 64, paintGlow("rgba(70, 70, 78, 0.9)"));
 
     this.overlay.flashScreen("#fff3dc", 1);
-    camera.addTrauma(1);
+    camera.addTrauma(1 * this.shake);
     this.light.shockwave(x, y, radius * 40, 1.2);
     particles.emit("glow", x, y, vx, vy, 0.9, radius * 14, white, { grow: -radius * 10, drag: 1 });
 

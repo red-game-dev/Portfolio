@@ -172,6 +172,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     mapKeyHostile: content.mapMarks.keyHostile,
     mapKeyRock: content.mapMarks.keyRock,
     mapKeyHazard: content.mapMarks.keyHazard,
+    wayOn: content.mapMarks.wayOn,
   }), [content]);
   const canvases = { stage: stageRef, back: backRef, front: frontRef, lens: lensRef };
   const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames, home });

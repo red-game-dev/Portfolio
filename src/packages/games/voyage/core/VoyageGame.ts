@@ -34,6 +34,8 @@ import { Progress } from "../progress/services/Progress";
 import { CanvasVoyageRenderer, VoyageRenderer } from "../renderers/CanvasVoyageRenderer";
 import { lerpX, lerpY, universeOf } from "../renderers/frame";
 import { ShipLook } from "../renderers/look";
+import { PadControl, PadIntent, PadPort } from "./PadControl";
+import { SoundPort, Vibrate, VoyageFeedback } from "./VoyageFeedback";
 import { paintHull } from "../renderers/paint/ships";
 import { SHIP_HEIGHT, SHIP_WIDTH } from "../renderers/paint/space";
 import { PilotLink } from "../services/PilotLink";
@@ -46,6 +48,9 @@ import { GhostRecorder, placeCode } from "./GhostRecorder";
 import { VoyageSimulation } from "./VoyageSimulation";
 
 export type { VoyageAction, VoyageNotice } from "../domain/notices";
+
+// How long a kill holds the world still (ms): a moment for anyone, longer for a boss.
+const HIT_STOP = { kill: 45, boss: 180 };
 
 export interface VoyageOptions {
   config?: VoyageConfigOverrides;
@@ -73,6 +78,11 @@ export interface VoyageOptions {
   progress?: Progress;
   onGear?: (view: ArmoryView) => void;
   onProgress?: (view: ProgressView) => void;
+  // Sound and music, a buzz on a phone, and a controller (with where the buttons that work the page go).
+  sound?: SoundPort | null;
+  vibrate?: Vibrate | null;
+  gamepad?: PadPort | null;
+  onPadIntent?: (intent: PadIntent) => void;
   // The pilot's career: missions, rank, the codex and the daily voyage.
   career?: Career;
   onCareer?: (view: CareerView) => void;
@@ -167,6 +177,16 @@ export class VoyageGame extends FrameLoop {
   // aim at (the mouse, or a phone's right thumb).
   private stick: { x: number; y: number } | null = null;
   private aimPoint: { x: number; y: number } | null = null;
+  // How long the world is held still after a kill (ms), and whether the reader asked for less motion.
+  private hitStopMs = 0;
+  private isReducedMotion = false;
+  private readonly feedback: VoyageFeedback;
+  private readonly pad: PadControl | null;
+  private readonly onPadIntent: (intent: PadIntent) => void;
+  // A controller's left stick, whether its trigger fires and its left trigger brakes, this frame.
+  private padLean: { x: number; y: number } | null = null;
+  private isPadFiring = false;
+  private isPadBraking = false;
   private lastSnapshot: VoyageSnapshot;
   private lastTickAt = 0;
   private lastFrameAt = 0;
@@ -205,7 +225,13 @@ export class VoyageGame extends FrameLoop {
     this.backCanvas = backCanvas;
     this.theme = theme;
     this.onChange = options.onChange ?? (() => undefined);
-    this.onNotice = options.onNotice ?? (() => undefined);
+    const onNotice = options.onNotice ?? (() => undefined);
+
+    // Every notice is heard too: a level, an achievement, stars, an enhancement each have their sound.
+    this.onNotice = (notice) => {
+      this.feedback.notice(notice);
+      onNotice(notice);
+    };
     this.now = options.now ?? (() => Date.now());
     this.hangar = options.hangar ?? null;
     this.career = options.career ?? null;
@@ -214,6 +240,9 @@ export class VoyageGame extends FrameLoop {
     this.progress = options.progress ?? null;
     this.onGear = options.onGear ?? (() => undefined);
     this.onProgress = options.onProgress ?? (() => undefined);
+    this.feedback = new VoyageFeedback(simulation, options.sound ?? null, options.vibrate ?? null);
+    this.pad = options.gamepad ? new PadControl(options.gamepad) : null;
+    this.onPadIntent = options.onPadIntent ?? (() => undefined);
     this.onCareer = options.onCareer ?? (() => undefined);
     this.onGhost = options.onGhost ?? (() => undefined);
     this.ghost = options.ghost ?? null;
@@ -393,6 +422,7 @@ export class VoyageGame extends FrameLoop {
 
   public pause(): void {
     this.stop();
+    this.feedback.pause();
   }
 
   public resume(): void {
@@ -406,6 +436,7 @@ export class VoyageGame extends FrameLoop {
     if (this.simulation.state.status === "flying") {
       this.lastFrameAt = 0;
       this.start();
+      this.feedback.resume();
     }
   }
 
@@ -444,6 +475,22 @@ export class VoyageGame extends FrameLoop {
     this.simulation.setDifficulty(difficulty);
   }
 
+  // Sound and a buzz, given once the reader has touched the page (a browser plays nothing before) or changed in
+  // their settings.
+  public setSound(sound: SoundPort | null): void {
+    this.feedback.setSound(sound);
+  }
+
+  public setVibrate(vibrate: Vibrate | null): void {
+    this.feedback.setVibrate(vibrate);
+  }
+
+  // For a reader who asked for less motion: small shakes and no hit-stop.
+  public setReducedMotion(isReduced: boolean): void {
+    this.isReducedMotion = isReduced;
+    this.renderer.setReducedMotion(isReduced);
+  }
+
   // How the device is tilted, as the hook reads it, or null when tilting does not steer.
   public setTilt(tilt: { x: number; y: number } | null): void {
     this.tilt = tilt;
@@ -461,6 +508,7 @@ export class VoyageGame extends FrameLoop {
   // Stops for good and gives back everything it holds on the GPU.
   public dispose(): void {
     this.stop();
+    this.feedback.dispose();
     this.detach();
     this.renderer.dispose();
     this.presenter?.dispose();
@@ -652,7 +700,17 @@ export class VoyageGame extends FrameLoop {
 
 
   protected update(deltaMs: number): void {
+    // A kill holds the world still for a few frames, so the hit is felt; the view keeps drawing.
+    if (this.hitStopMs > 0) {
+      this.hitStopMs = Math.max(0, this.hitStopMs - deltaMs);
+      this.followShip(deltaMs / 1000, false);
+
+      return;
+    }
+
+    this.readPad();
     this.simulation.advance(deltaMs, this.input());
+    this.feedback.frame();
     this.readGround();
     this.recordGhost();
     this.followShip(deltaMs / 1000, false);
@@ -718,6 +776,35 @@ export class VoyageGame extends FrameLoop {
     this.publish(true);
 
     return true;
+  }
+
+  // A controller, read once a frame: its left stick flies (as a thumb stick does), its right stick aims by hand,
+  // its trigger fires, its left trigger brakes; the face buttons and shoulders use the bar, and the rest go to the
+  // page (pause, the map, the hangar, a photo, holding fire).
+  private readPad(): void {
+    const reading = this.pad?.read(this.shipScreen()) ?? null;
+
+    this.padLean = reading?.lean ? { ...reading.lean } : null;
+    this.isPadFiring = reading?.isFiring ?? false;
+    this.isPadBraking = reading?.isBraking ?? false;
+
+    if (!reading) {
+      return;
+    }
+
+    if (reading.aim && this.simulation.state.aimMode === "manual") {
+      this.aimPoint = { ...reading.aim };
+    }
+
+    reading.pressed.forEach((intent) => {
+      const slot = ["slot1", "slot2", "slot3", "slot4", "slot5", "slot6"].indexOf(intent);
+
+      if (slot >= 0) {
+        this.act({ kind: "slot", index: slot });
+      } else {
+        this.onPadIntent(intent);
+      }
+    });
   }
 
   // How the pilot's ship looks: the paint and trail they wear (the first of each keeps the theme's look) and the
@@ -912,7 +999,7 @@ export class VoyageGame extends FrameLoop {
     const isManual = this.simulation.state.aimMode === "manual";
     // By hand, the guns aim where the pointer is and fire while it is pressed.
     const target = isManual && this.aimPoint ? { x: this.camera.toWorldX(this.aimPoint.x), y: this.camera.toWorldY(this.aimPoint.y) } : null;
-    const fire = isManual && this.isPressing && target !== null;
+    const fire = isManual && (this.isPressing || this.isPadFiring) && target !== null;
 
     // Coming down, a burn (the pilot's on the landing engine, or one that aborts the landing under fire) is the burn
     // key or a held press, never where a mouse happens to rest or a phone happens to lean; so is the burn that
@@ -923,7 +1010,7 @@ export class VoyageGame extends FrameLoop {
 
     const parts = this.shipScreen();
     const isKeyed = this.keys.turn !== 0 || this.keys.thrust !== 0 || this.keys.brake;
-    const lean = !isKeyed ? this.stick ?? this.tilt : null;
+    const lean = !isKeyed ? this.stick ?? this.padLean ?? this.tilt : null;
 
     // A thumb stick or a tilt steers: towards the way it leans, as hard as it leans, unless keys are flying it. A
     // finger on the screen still locks the guns (or aims them, by hand) but no longer steers.
@@ -935,7 +1022,7 @@ export class VoyageGame extends FrameLoop {
         aim: body && strength > 0 ? { x: body.x + (lean.x / strength) * TILT_REACH, y: body.y + (lean.y / strength) * TILT_REACH } : null,
         thrust: strength,
         turn: 0,
-        brake: false,
+        brake: this.isPadBraking,
         target,
         fire,
       };
@@ -1084,6 +1171,17 @@ export class VoyageGame extends FrameLoop {
     if (this.progressLink) {
       offs.push(this.progressLink.attach());
     }
+
+    // A kill is felt: the world holds still for a few frames, longer for a boss, and a controller rumbles.
+    offs.push(events.on("downed", ({ role }) => {
+      if (!this.isReducedMotion) {
+        this.hitStopMs = Math.max(this.hitStopMs, role === "boss" ? HIT_STOP.boss : HIT_STOP.kill);
+      }
+
+      this.pad?.rumble(role === "boss" ? 0.9 : 0.35, role === "boss" ? 420 : 120);
+    }));
+    offs.push(events.on("hit", ({ amount }) => this.pad?.rumble(Math.min(1, 0.25 + amount / 400), 140)));
+    offs.push(this.feedback.attach());
 
     // The ship wears the pilot's paint, trail and fitted pieces, and changes with them.
     this.renderer.setLook(this.look());

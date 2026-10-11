@@ -49,6 +49,8 @@ export type {
 export type { ArmoryView, ForgeView, PieceView, ProgressView, SlotView } from "./gear/domain/view";
 export type { AchievementSpec, PaintSpec, ProgressOutcome, ProgressProfile, TrailSpec } from "./progress/domain/progress";
 export type { RunSummary } from "./services/ProgressLink";
+export type { PadIntent, PadPort } from "./core/PadControl";
+export type { SoundPort, Vibrate } from "./core/VoyageFeedback";
 export type { FireOutcome } from "./systems/arsenal";
 export type { WeaponPort } from "./economy/services/Hangar";
 export type { ActiveBoost, BoostId, BoostOrigin, BoostSpec } from "./domain/boosts";

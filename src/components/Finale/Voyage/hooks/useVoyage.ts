@@ -7,16 +7,23 @@ import { canTilt } from "@/components/Finale/Voyage/tilt";
 import { usePreferencesStateHook } from "@/components/Preferences/hooks/usePreferencesStateHook";
 import { VOYAGE_TEXTURES, VOYAGE_THEME } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import useMediaQuery from "@/hooks/useMediaQuery";
 import { PauseHolds } from "@/packages/animation/frame-loop";
+import type { SoundEngine } from "@/packages/audio/synth";
+import type { HapticName } from "@/packages/browser/haptics";
 import { decodeImage } from "@/packages/browser/images";
 import type {
-  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, ProgressView, RunSummary, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice,
-  VoyageSnapshot,
+  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, PadIntent, ProgressView, RunSummary, Suggestion, UniverseNames, VoyageAction, VoyageGame,
+  VoyageNotice, VoyageSnapshot,
 } from "@/packages/games/voyage";
+import type { GamepadInput } from "@/packages/interaction/gamepad";
 import { DragTracker, localPoint } from "@/packages/interaction/gestures";
 import { HeldKeys } from "@/packages/interaction/keys";
 import { ZoomInput } from "@/packages/interaction/zoom";
 import type { Pilot } from "@/services/voyage/pilot";
+
+// How loud each setting of the sound and the music plays.
+const VOLUME = { off: 0, low: 0.35, medium: 0.6, high: 0.9 };
 
 // A thumb stick reaches full burn this far from where the thumb went down (CSS pixels), and rests within this
 // share of it.
@@ -87,6 +94,12 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const [zoom] = useState(() => new ZoomInput(VOYAGE_ZOOM));
   const [drag] = useState(() => new DragTracker());
   const pilot = useRef<Pilot | null>(null);
+  // The sound engine, the controller and the buzz, made with the game; and what the controller's page buttons do,
+  // kept current every render.
+  const sound = useRef<SoundEngine | null>(null);
+  const pad = useRef<GamepadInput | null>(null);
+  const buzz = useRef<((name: HapticName) => void) | null>(null);
+  const padIntent = useRef<(intent: PadIntent) => void>(() => undefined);
   const scheduleSave = usePilotSync(pilot);
   // The map and the hangar each hold the run still while open, together: it goes on only once both are closed.
   const [holds] = useState(() => new PauseHolds());
@@ -95,7 +108,13 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     contextOptions: { alpha: false },
     nearMargin: "0px",
     create: async (context) => {
-      const [{ VoyageGame: Game }, { openPilot }] = await Promise.all([import("@/packages/games/voyage"), import("@/services/voyage/pilot")]);
+      const [{ VoyageGame: Game }, { openPilot }, synth, gamepad, haptics] = await Promise.all([
+        import("@/packages/games/voyage"),
+        import("@/services/voyage/pilot"),
+        import("@/packages/audio/synth"),
+        import("@/packages/interaction/gamepad"),
+        import("@/packages/browser/haptics"),
+      ]);
       const frontContext = front.current?.getContext("2d");
 
       if (!frontContext) {
@@ -111,6 +130,12 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       opened.progress.subscribe(scheduleSave);
 
       const ghost = await opened.repository.loadGhost();
+
+      // Sound made in the browser (nothing plays until the reader first touches the page), a controller, and a
+      // buzz on a phone that can.
+      sound.current = synth.SoundEngine.create();
+      pad.current = new gamepad.GamepadInput();
+      buzz.current = (name) => haptics.vibrate(haptics.HAPTIC_PATTERNS[name]);
 
       const voyage = Game.forCanvas(
         { back: context, front: frontContext, lens: lens.current, globe: document.createElement("canvas") },
@@ -134,6 +159,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
           onCareer: setCareer,
           // A better run of today's daily voyage is kept as the ghost to fly beside next time.
           onGhost: (run) => void opened.repository.saveGhost(run),
+          sound: sound.current,
+          gamepad: pad.current,
+          onPadIntent: (intent) => padIntent.current(intent),
         },
       );
 
@@ -171,6 +199,35 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     game?.setDifficulty(preferences["voyage-difficulty"]);
   }, [game, preferences]);
 
+  // How loud the sounds and the score are, and whether a phone buzzes, from the reader's settings.
+  useEffect(() => {
+    const engine = sound.current;
+
+    if (engine) {
+      engine.setVolume("sfx", VOLUME[preferences["voyage-sound"]]);
+      engine.setVolume("music", VOLUME[preferences["voyage-music"]]);
+    }
+
+    game?.setVibrate(preferences["voyage-haptics"] ? buzz.current : null);
+  }, [game, preferences]);
+
+  // Less motion asked for: small shakes and no hit-stop.
+  const isReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+
+  useEffect(() => {
+    game?.setReducedMotion(isReducedMotion);
+  }, [game, isReducedMotion]);
+
+  // A browser plays nothing until the reader touches the page, so the first touch, click or key wakes the sound.
+  const unlockSound = useCallback(() => {
+    void sound.current?.unlock();
+  }, []);
+
+  useEffect(() => () => {
+    sound.current?.dispose();
+    pad.current?.dispose();
+  }, []);
+
   // The run's summary reaches the card at its end.
   useEffect(() => {
     if (snapshot?.status === "over") {
@@ -183,12 +240,13 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   useTiltSteering(game, preferences["tilt-steering"] && canTilt(), isFlying);
 
   const play = useCallback((mode: "free" | "daily" = "free") => {
+    unlockSound();
     held.clear();
     game?.setKeys({ turn: 0, thrust: 0, brake: false });
     game?.play(mode);
     setIsPaused(false);
     stage.current?.focus();
-  }, [game, held, stage]);
+  }, [game, held, stage, unlockSound]);
 
   const pause = useCallback(() => {
     if (game?.isRunning && isFlying) {
@@ -329,6 +387,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   // What each key does is the voyage's key map and `voyageKeyAction`; carrying it out is here. A key that means
   // nothing right now is left to the browser, so Escape with nothing open still closes the voyage.
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => VOYAGE_KEYS.offer(event, (command) => {
+    unlockSound();
+
     // Photo mode is looked round with the arrows too, not only by dragging.
     const pan = isPhoto && !isHangarOpen ? PHOTO_PAN.intentOf(event) : null;
 
@@ -401,7 +461,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
     return true;
   }), [
-    act, applyKeys, economy, follow, game, held, isFlying, isHangarOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns, toggleMap, togglePhoto, zoom,
+    act, applyKeys, economy, follow, game, held, isFlying, isHangarOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns, toggleMap, togglePhoto,
+    unlockSound, zoom,
   ]);
 
   const onKeyUp = useCallback((event: KeyboardEvent<HTMLElement>) => {
@@ -491,6 +552,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   }, [game]);
 
   const onPointerDown = useCallback((event: PointerEvent<HTMLElement>) => {
+    unlockSound();
+
     if (isPhoto) {
       dragPhoto(event, true);
 
@@ -517,7 +580,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
 
     pointAt(event);
-  }, [dragPhoto, game, isManual, isPhoto, moveStick, pointAt, trackTouch]);
+  }, [dragPhoto, game, isManual, isPhoto, moveStick, pointAt, trackTouch, unlockSound]);
 
   const onPointerMove = useCallback((event: PointerEvent<HTMLElement>) => {
     if (isPhoto) {
@@ -563,6 +626,67 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       game?.point(null);
     }
   }, [drag, game, zoom]);
+
+  // What a controller's page buttons do, kept current with this render's state.
+  padIntent.current = (intent: PadIntent) => {
+    switch (intent) {
+      case "pause":
+        if (!isFlying) {
+          play();
+        } else if (isPaused) {
+          resume();
+        } else {
+          pause();
+        }
+
+        break;
+      case "map":
+        toggleMap();
+        break;
+      case "hangar":
+        setHangar(!isHangarOpen);
+        break;
+      case "photo":
+        togglePhoto();
+        break;
+      case "guns":
+        toggleGuns();
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Held still (paused, the map or the hangar open, or between runs), the game reads no controller, so Start, Back
+  // and up are read here until it moves again.
+  const isHeld = isPaused || isMapOpen || isHangarOpen || !isFlying;
+
+  useEffect(() => {
+    const input = pad.current;
+
+    if (!game || !input || !isHeld) {
+      return undefined;
+    }
+
+    let frame = 0;
+    const poll = () => {
+      const state = input.poll();
+
+      if (state?.buttons.start.wentDown) {
+        padIntent.current("pause");
+      } else if (state?.buttons.back.wentDown) {
+        padIntent.current("map");
+      } else if (state?.buttons.up.wentDown) {
+        padIntent.current("hangar");
+      }
+
+      frame = window.requestAnimationFrame(poll);
+    };
+
+    frame = window.requestAnimationFrame(poll);
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [game, isHeld]);
 
   return {
     snapshot,

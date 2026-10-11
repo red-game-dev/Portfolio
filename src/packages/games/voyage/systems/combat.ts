@@ -271,7 +271,9 @@ export const damageAlien = (context: VoyageContext, entity: Entity, amount: numb
   const health = world.stores.health.get(entity);
   const body = world.stores.body.get(entity);
 
-  if (!alien || !health || !body || alien.mode === "evade") {
+  // Someone already brought down this step (a burst, a rail or a second mine reaching them after the shot that
+  // killed them) is not brought down again: no second bounty, wreck or boss.
+  if (!alien || !health || !body || alien.mode === "evade" || !world.isAlive(entity) || health.hull <= 0) {
     return;
   }
 

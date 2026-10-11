@@ -1,3 +1,4 @@
+import { MemoryAdapter } from "@/packages/browser/store";
 import {
   addStats,
   ammoFor,
@@ -9,6 +10,8 @@ import {
   drawPerks,
   goodsFor,
   Hangar,
+  isArmoryProfile,
+  isProgressProfile,
   ITEMS,
   newProfile,
   novaDirections,
@@ -17,8 +20,10 @@ import {
   perkCount,
   perkStats,
   Port,
+  PilotRepository,
   priceFactor,
   Progress,
+  salePrice,
   salesFor,
   servicesFor,
   STARTER_AMMO,
@@ -478,6 +483,137 @@ describe("docked at a port, through the host", () => {
 
     game.play();
     expect(simulation.config.ship.hull).toBe(hull);
+    game.dispose();
+  });
+});
+
+describe("fixes from review", () => {
+  test("a piece's experience stays whole however small what each hit adds, so the pilot's profile always reads back", async () => {
+    const armory = new Armory();
+    const armor = armory.fitted("armor")?.uid ?? "";
+
+    armory.gainExp(armor, 2.22);
+    armory.gainFittedExp(6.25);
+    armory.gainExp(armor, 0.4);
+
+    expect(armory.pieces.every(({ exp }) => Number.isInteger(exp))).toBe(true);
+    expect(armory.fitted("armor")?.exp).toBe(8);
+    expect(isArmoryProfile(armory.toProfile())).toBe(true);
+
+    const adapter = new MemoryAdapter();
+    const repository = new PilotRepository(adapter);
+    const profile = { ...newProfile(), level: 3, armory: armory.toProfile() };
+
+    await repository.save(profile);
+    expect((await repository.load()).level).toBe(3);
+  });
+
+  test("a part of the profile that no longer checks out starts again on its own, and the hangar is kept", async () => {
+    const adapter = new MemoryAdapter();
+    const repository = new PilotRepository(adapter);
+    const kept = { ...newProfile(), level: 4 };
+    const fractional = { ...kept.armory, gear: kept.armory.gear.map((piece) => ({ ...piece, exp: 6.25 })) };
+
+    await adapter.set("pilot", { version: 4, data: { ...kept, armory: fractional, progress: { broken: true }, career: null } });
+
+    const loaded = await repository.load();
+
+    expect(loaded.level).toBe(4);
+    expect(new Armory(loaded.armory).pieces.every(({ exp }) => exp === 6)).toBe(true);
+    expect(isProgressProfile(loaded.progress)).toBe(true);
+    expect(loaded.career).toEqual(newProfile().career);
+  });
+
+  test("someone brought down is not brought down again in the same step, however many bursts reach them", () => {
+    const simulation = createFlying();
+
+    intoUniverse(simulation);
+
+    const { world } = simulation;
+    const { body } = partsOf(simulation);
+    const foe = world.spawn();
+
+    world.stores.body.set(foe, { x: body.x + 1, y: body.y, vx: 0, vy: 0, prevX: body.x + 1, prevY: body.y, radius: 0.1, mass: 1 });
+    world.stores.health.set(foe, { hull: 1, maxHull: 1, shields: 0, maxShields: 0, rechargeIn: 0, decals: [] });
+    world.stores.alien.set(foe, { faction: 0, role: "fighter", mode: "idle", homeX: body.x + 1, homeY: body.y, threat: 0, angle: 0, level: 3, phase: 0 });
+
+    const downed = heard(simulation, "downed", () => {
+      [0, 1, 2].forEach(() => {
+        const mine = world.spawn();
+
+        world.stores.body.set(mine, { x: body.x + 1, y: body.y, vx: 0, vy: 0, prevX: body.x + 1, prevY: body.y, radius: 0.02, mass: 0.001 });
+        world.stores.projectile.set(mine, {
+          owner: simulation.state.ship, team: "ship", kind: "mine", damage: 50, ttl: 10, target: null, blast: 0.5, armAt: 0, trigger: 0.5,
+        });
+      });
+      simulation.step(defaults.stepMs);
+    });
+
+    expect(downed).toHaveLength(1);
+  });
+
+  test("a port charges for shields only up to what a worn generator holds", () => {
+    const simulation = createFlying();
+    const { game } = (() => {
+      const armory = new Armory();
+      const hangar = new Hangar(newProfile(), { weapons: armory.port() });
+      const scheduler = { request: () => 0, cancel: () => undefined };
+      const silent = new Proxy({}, { get: (_, key) => (key === "surface" ? null : () => () => undefined) }) as unknown as VoyageRenderer;
+
+      hangar.reward({ kind: "mission", id: "test", coin: 2000 });
+
+      return {
+        game: new VoyageGame(simulation, silent, null, null, DEFAULT_VOYAGE_THEME, { hangar, armory, progress: new Progress(), scheduler }),
+      };
+    })();
+
+    simulation.step(defaults.stepMs);
+
+    const station = simulation.state.stations[0];
+    const { body, health } = partsOf(simulation);
+    const modules = simulation.world.stores.modules.get(simulation.state.ship);
+
+    Object.assign(body, { x: station.x + 0.2, y: station.y, prevX: station.x + 0.2, prevY: station.y, vx: station.vx, vy: station.vy });
+    simulation.step(defaults.stepMs);
+
+    if (modules) {
+      modules.shields = 0.6;
+    }
+
+    health.shields = health.maxShields * 0.6;
+    game.act({ kind: "dock" });
+
+    expect(game.stationView?.services.find(({ id }) => id === "recharge")?.isNeeded).toBe(false);
+    expect(game.act({ kind: "service", service: "recharge" })).toBe(false);
+    game.dispose();
+  });
+
+  test("nothing bought at one port sells at a profit at another, however deep", () => {
+    const deep = port({ depth: 12 });
+
+    Object.values(ITEMS).forEach((spec) => {
+      const cheapest = Math.ceil(spec.value * 4 * 0.85);
+
+      expect(salePrice(deep, spec)).toBeLessThan(Math.max(2, cheapest));
+    });
+  });
+
+  test("starting over erases the gear and the pilot's levels too", () => {
+    const simulation = createFlying();
+    const armory = new Armory();
+    const progress = new Progress();
+    const hangar = new Hangar(newProfile(), { weapons: armory.port() });
+    const scheduler = { request: () => 0, cancel: () => undefined };
+    const silent = new Proxy({}, { get: (_, key) => (key === "surface" ? null : () => () => undefined) }) as unknown as VoyageRenderer;
+    const game = new VoyageGame(simulation, silent, null, null, DEFAULT_VOYAGE_THEME, { hangar, armory, progress, scheduler });
+
+    armory.add({ base: "weapon:missile:0", rarity: "rare" });
+    progress.gainExp(5000);
+    (simulation.state as VoyageState).status = "over";
+
+    expect(game.act({ kind: "reset" })).toBe(true);
+    expect(armory.pieces).toHaveLength(7);
+    expect(progress.level).toBe(1);
     game.dispose();
   });
 });

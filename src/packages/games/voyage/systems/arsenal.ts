@@ -66,12 +66,15 @@ const rail = (context: VoyageContext, ship: Body, dx: number, dy: number, weapon
     return along < 0 || along > weapon.range ? Infinity : Math.abs((at.x - ship.x) * dy - (at.y - ship.y) * dx) - at.radius;
   };
 
+  let hits = 0;
+
   world.stores.alien.entities.forEach((entity, index) => {
     const alien = world.stores.alien.values[index];
-    const at = world.stores.body.get(entity);
+    const at = world.isAlive(entity) ? world.stores.body.get(entity) : undefined;
     const disposition = alien.faction >= 0 ? state.cosmos?.factions[alien.faction]?.disposition : "peaceful";
 
     if (at && across(at) < 0.06 && (disposition !== "peaceful" || state.lockedTarget === entity)) {
+      hits += 1;
       damageAlien(context, entity, weapon.damage, weapon.uid);
     }
   });
@@ -90,21 +93,23 @@ const rail = (context: VoyageContext, ship: Body, dx: number, dy: number, weapon
       world.despawn(entity);
     }
   });
-  events.emit("railed", { x0: ship.x, y0: ship.y, x1, y1 });
+  events.emit("railed", { x0: ship.x, y0: ship.y, x1, y1, hits });
 };
 
 // An EMP: everyone hostile in reach has their shields stripped and is held still for a while, and every missile in
 // flight against the ship within reach dies.
 const pulse = (context: VoyageContext, ship: Body, weapon: ArmedWeapon): void => {
   const { world, state, events } = context;
+  let stunned = 0;
 
   world.stores.alien.entities.forEach((entity, index) => {
     const alien = world.stores.alien.values[index];
-    const at = world.stores.body.get(entity);
+    const at = world.isAlive(entity) ? world.stores.body.get(entity) : undefined;
     const health = world.stores.health.get(entity);
     const disposition = alien.faction >= 0 ? state.cosmos?.factions[alien.faction]?.disposition : "peaceful";
 
     if (at && health && Math.hypot(at.x - ship.x, at.y - ship.y) < weapon.range && disposition !== "peaceful") {
+      stunned += 1;
       health.shields = 0;
       alien.stunnedUntil = state.elapsedMs + weapon.stun * 1000;
       damageAlien(context, entity, weapon.damage, weapon.uid);
@@ -118,7 +123,7 @@ const pulse = (context: VoyageContext, ship: Body, weapon: ArmedWeapon): void =>
       world.despawn(entity);
     }
   });
-  events.emit("pulsed", { x: ship.x, y: ship.y, radius: weapon.range });
+  events.emit("pulsed", { x: ship.x, y: ship.y, radius: weapon.range, stunned });
 };
 
 // Fires a weapon from the bar, if it is armed, ready and there is the ammunition: aimed where the pilot points (by

@@ -27,12 +27,12 @@ import { Hangar } from "../economy/services/Hangar";
 import { dismantleValue, forgeCost, weaponPlan } from "../gear/config/forge";
 import { GRADE_LEVEL } from "../gear/config/slots";
 import { ArmoryView, ProgressView } from "../gear/domain/view";
-import { Armory } from "../gear/services/Armory";
+import { Armory, newArmoryProfile } from "../gear/services/Armory";
 import { baseOf, ENHANCE_LADDER, rackFor, weaponBaseId } from "../gear/utils/gear";
 import { configForShip } from "../gear/utils/ship";
 import { armoryView, progressView } from "../gear/utils/view";
 import { DEFAULT_PAINT, DEFAULT_TRAIL, PAINTS, TRAILS } from "../progress/config/cosmetics";
-import { Progress } from "../progress/services/Progress";
+import { newProgressProfile, Progress } from "../progress/services/Progress";
 import { CanvasVoyageRenderer, VoyageRenderer } from "../renderers/CanvasVoyageRenderer";
 import { lerpX, lerpY, universeOf } from "../renderers/frame";
 import { ShipLook } from "../renderers/look";
@@ -338,7 +338,7 @@ export class VoyageGame extends FrameLoop {
       coin: hangar.purse.RED,
       ammo: armory.stock,
       rack: (type) => rackFor(type, hull),
-      missing: { repair: this.repairNeed(), refuel: 1 - status.fuel, recharge: 1 - status.shields },
+      missing: { repair: this.repairNeed(), refuel: 1 - status.fuel, recharge: this.shieldNeed() },
     }, ITEMS);
   }
 
@@ -629,8 +629,13 @@ export class VoyageGame extends FrameLoop {
           return false;
         }
 
+        // Everything the pilot built up goes: the hangar, the career, every piece of gear and its ammunition, and the
+        // pilot's levels, stars, achievements and styles.
         hangar.reset();
         this.career?.replace({ xp: 0, active: [], done: [], contracts: 0, codex: [], daily: null });
+        this.armory?.replace(newArmoryProfile());
+        this.progress?.replace(newProgressProfile());
+        this.link?.refitShip();
         // A pilot starting over has no best run of the day to fly beside.
         this.ghost = null;
         this.renderer.setGhost(null);
@@ -1058,6 +1063,16 @@ export class VoyageGame extends FrameLoop {
     const worn = 1 - Math.min(...MODULE_IDS.map((id) => modules[id]));
 
     return Math.min(1, Math.max(hull, worn, state.faults.length > 0 ? 0.1 : 0));
+  }
+
+  // How much charge the shields lack against the most a worn generator holds (charging past it would buy nothing).
+  private shieldNeed(): number {
+    const { state, world } = this.simulation;
+    const health = world.stores.health.get(state.ship);
+    const modules = world.stores.modules.get(state.ship);
+    const ceiling = health && modules ? health.maxShields * modules.shields : 0;
+
+    return health && ceiling > 0 ? Math.max(0, 1 - health.shields / ceiling) : 0;
   }
 
   // Perks offered (the run held still till one is chosen): on reaching a universe and after each boss.

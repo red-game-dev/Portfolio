@@ -556,7 +556,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           rescues: "Worlds saved",
           salvaged: "Wrecks salvaged",
         },
-        reset: { button: "Reset progress", confirm: "Erase your ship, hold and Red Coin from this browser?", yes: "Erase", no: "Keep" },
+        reset: { button: "Reset progress", confirm: "Erase your ship, gear, hold, Red Coin, levels and badges from this browser?", yes: "Erase", no: "Keep" },
       },
       career: {
         tabs: { pilot: "Pilot", codex: "Codex" },

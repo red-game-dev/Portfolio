@@ -69,9 +69,11 @@ export interface VoyageNames {
   syllables: UniverseNames;
   // The pad at home a new rocket waits on once a crew is back.
   home?: HomePad | null;
+  // How a run starts from a controller's Start between runs: as the card's own button does.
+  onStart?: () => void;
 }
 
-export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labels, universes, syllables, home = null }: VoyageNames) => {
+export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labels, universes, syllables, home = null, onStart }: VoyageNames) => {
   const [snapshot, setSnapshot] = useState<VoyageSnapshot | null>(null);
   // Notices queue up: several can come in the same moment (a run paid, a mission done, a promotion), and each
   // must be heard.
@@ -134,7 +136,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       // Sound made in the browser (nothing plays until the reader first touches the page), a controller, and a
       // buzz on a phone that can.
       sound.current = synth.SoundEngine.create();
-      pad.current = new gamepad.GamepadInput();
+      // The d-pad opens the hangar and docks rather than flying, and only the right trigger fires: the shoulders are
+      // the bar's last two slots.
+      pad.current = new gamepad.GamepadInput({ isDpadMove: false, fireButtons: ["rt"] });
       buzz.current = (name) => haptics.vibrate(haptics.HAPTIC_PATTERNS[name]);
 
       const voyage = Game.forCanvas(
@@ -654,13 +658,34 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
   }, [drag, game, zoom]);
 
-  // What a controller's page buttons do, kept current with this render's state.
+  // What a controller's page buttons do, kept current with this render's state, through the same checks as the keys:
+  // nothing but the hangar's own buttons with the hangar open, nothing but photo mode's in photo mode, and Start
+  // between runs starting one as the card's button does.
   padIntent.current = (intent: PadIntent) => {
-    switch (intent) {
+    if (intent === "pause" && !isFlying) {
+      if (!isHangarOpen && !isPhoto && snapshot?.status !== "flying") {
+        onStart?.();
+      }
+
+      return;
+    }
+
+    const action = voyageKeyAction(intent, {
+      isFlying,
+      isPaused,
+      hasRun: snapshot !== null && snapshot.status !== "ready",
+      isHangarOpen,
+      isPhoto,
+      hasHangar: economy !== null,
+      hasSuggestion: Boolean(economy?.suggestion),
+      hasGame: game !== null,
+      canDock: Boolean(snapshot?.dockable),
+      isDocked: Boolean(snapshot?.docked),
+    });
+
+    switch (action) {
       case "pause":
-        if (!isFlying) {
-          play();
-        } else if (isPaused) {
+        if (isPaused) {
           resume();
         } else {
           pause();
@@ -680,12 +705,10 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
         toggleGuns();
         break;
       case "dock":
-        if (snapshot?.docked) {
-          castOff();
-        } else if (snapshot?.dockable) {
-          act({ kind: "dock" });
-        }
-
+        act({ kind: "dock" });
+        break;
+      case "undock":
+        castOff();
         break;
       default:
         break;

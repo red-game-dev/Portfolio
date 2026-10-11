@@ -337,4 +337,22 @@ describe("navigatorGamepads", () => {
 
     Reflect.deleteProperty(window.navigator, "getGamepads");
   });
+
+  test("a host can keep the d-pad off the left stick and choose which buttons fire", () => {
+    const pad = fakePad();
+    const { source } = padList(pad);
+    const input = new GamepadInput({ source, target: null, isDpadMove: false, fireButtons: ["rt"] });
+
+    press(pad, "up");
+    press(pad, "rb");
+
+    const state = input.poll();
+
+    expect(state?.move).toEqual({ x: 0, y: 0 });
+    expect(state?.buttons.up.isDown).toBe(true);
+    expect(state?.fire).toBe(false);
+
+    press(pad, "rt");
+    expect(input.poll()?.fire).toBe(true);
+  });
 });

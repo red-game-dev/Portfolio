@@ -62,8 +62,8 @@ export interface VoyageEvents {
   fired: { x: number; y: number; angle: number; kind: Weapon["kind"]; team: "ship" | "aliens"; ammo: AmmoType | null; source: string | null };
   // A weapon from the bar: a railgun's line, an EMP's pulse, a burst from a missile, a mine or a blast; and a gun
   // that clicks with nothing left to fire.
-  railed: { x0: number; y0: number; x1: number; y1: number };
-  pulsed: { x: number; y: number; radius: number };
+  railed: { x0: number; y0: number; x1: number; y1: number; hits: number };
+  pulsed: { x: number; y: number; radius: number; stunned: number };
   blast: { x: number; y: number; radius: number };
   dry: { kind: WeaponKind | "primary" };
   // Kills in quick succession, at each milestone.

@@ -127,6 +127,17 @@ export class ProgressLink {
         }
       }),
       events.on("docked", () => this.settle(progress.record("docked"))),
+      // A railgun through several at once, and everyone an EMP holds still.
+      events.on("railed", ({ hits }) => {
+        if (hits > 0) {
+          this.settle(progress.record("railMulti", hits));
+        }
+      }),
+      events.on("pulsed", ({ stunned }) => {
+        if (stunned > 0) {
+          this.settle(progress.record("empStunned", stunned));
+        }
+      }),
       events.on("struck", ({ source }) => {
         const uid = source ?? armory.fitted("primary")?.uid;
 
@@ -164,9 +175,14 @@ export class ProgressLink {
           }
         });
       }),
-      events.on("salvaged", ({ loot }) => {
+      events.on("salvaged", ({ wreck, loot }) => {
         this.take(loot.gear ?? [], loot.ammo ?? {});
-        this.settle(progress.record("salvaged"));
+
+        // A wreck counts once it is stripped: one handed back some of its finds for want of room counts when it is
+        // salvaged again and emptied, as the hangar's records count it.
+        if (simulation.world.stores.wreck.get(wreck)?.isEmpty ?? true) {
+          this.settle(progress.record("salvaged"));
+        }
       }),
       events.on("opened", ({ kind, loot }) => {
         // A cache's or a chest's things go in the hold, as a wreck's do, through the hangar.

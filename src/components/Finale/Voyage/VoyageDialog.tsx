@@ -185,7 +185,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     distress: content.encounters.distress.label,
   }), [content]);
   const canvases = { stage: stageRef, back: backRef, front: frontRef, lens: lensRef };
-  const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames, home });
+  // A controller's Start between runs starts one as the card's button does (defined below, so read through a ref).
+  const startRef = useRef<() => void>(() => undefined);
+  const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames, home, onStart: () => startRef.current() });
   const { snapshot, notices, takeNotices, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;
   const { economy, isHangarOpen, setHangar, act, follow } = voyage;
   const { career, isPhoto, togglePhoto, savePhoto, landing } = voyage;
@@ -209,6 +211,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const messageId = useRef(0);
   const message = messages[0] ?? null;
   const previous = useRef<VoyageSnapshot | null>(null);
+  // The guided step whose coin or core has been set out this run, so pausing or the hangar never sets out another.
+  const guideSpawned = useRef<number | null>(null);
   const bestBefore = useRef(best);
   const status = snapshot?.status ?? "ready";
   // A perk offered or a port's trade open holds the run still, and the bar with it.
@@ -270,6 +274,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
 
     if (snapshot.status === "flying" && previous.current?.status !== "flying") {
       bestBefore.current = best;
+      guideSpawned.current = null;
     }
 
     if (snapshot.status === "over" && previous.current?.status !== "over") {
@@ -294,10 +299,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       return undefined;
     }
 
-    if (guideStep === GUIDE.coin) {
-      guideSpawn("coin");
-    } else if (guideStep === GUIDE.boost) {
-      guideSpawn("boost");
+    if (guideSpawned.current !== guideStep && (guideStep === GUIDE.coin || guideStep === GUIDE.boost)) {
+      guideSpawned.current = guideStep;
+      guideSpawn(guideStep === GUIDE.coin ? "coin" : "boost");
     }
 
     const timer = guideStep === GUIDE.fly || guideStep === GUIDE.guns ? window.setTimeout(() => guideNext.current(), GUIDE_WAIT_MS) : null;
@@ -353,6 +357,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     setHangar(false);
     play(mode);
   };
+
+  startRef.current = () => start();
 
   const hullShare = snapshot && snapshot.maxHull > 0 ? snapshot.hull / snapshot.maxHull : 1;
   // The main gun's rounds, against what the racks hold.

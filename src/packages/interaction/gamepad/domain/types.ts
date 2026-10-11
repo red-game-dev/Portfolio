@@ -115,6 +115,10 @@ export interface GamepadConfig {
   edge: number;
   // How far a trigger is squeezed before it counts as down.
   triggerThreshold: number;
+  // Whether the d-pad moves as the left stick does (off for a host that binds the d-pad to actions of its own), and
+  // which buttons fire.
+  isDpadMove: boolean;
+  fireButtons: readonly GamepadButtonName[];
 }
 
 export interface GamepadInputOptions extends Partial<GamepadConfig> {

@@ -57,6 +57,15 @@ describe("games/engine", () => {
     expect(pipeline.alpha).toBeLessThanOrEqual(1);
   });
 
+  test("a host can end a frame early once the world is held still, owing nothing after", () => {
+    const ran: number[] = [];
+    const pipeline = new SystemPipeline([{ name: "count", update: (_: null, dt: number) => ran.push(dt) }], { stepMs: 10, maxSteps: 8 });
+
+    expect(pipeline.advance(null, 60, undefined, () => ran.length >= 2)).toBe(2);
+    expect(pipeline.alpha).toBe(0);
+    expect(pipeline.advance(null, 10)).toBe(1);
+  });
+
   test("the camera settles on its target without overshoot, and converts between world and screen", () => {
     const camera = new Camera({ pixelsPerUnit: 100, stiffness: 8 });
     let farthest = 0;

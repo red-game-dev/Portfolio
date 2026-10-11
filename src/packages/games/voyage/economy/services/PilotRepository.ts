@@ -1,9 +1,12 @@
 import { Repository, StoreAdapter } from "@/packages/browser/store";
 
+import { isCareerProfile } from "../../career/guards/isCareerProfile";
 import { newCareer } from "../../career/services/Career";
 import { GhostRun } from "../../domain/ghost";
+import { isArmoryProfile } from "../../gear/guards/isArmoryProfile";
 import { newArmoryProfile } from "../../gear/services/Armory";
 import { isGhostRun } from "../../guards/isGhostRun";
+import { isProgressProfile } from "../../progress/guards/isProgressProfile";
 import { newProgressProfile } from "../../progress/services/Progress";
 import { newBar } from "../config/bar";
 import { PilotProfile } from "../domain/profile";
@@ -33,6 +36,30 @@ const migrate = (data: unknown, from: number): unknown => {
   return from < 4 ? { ...withBoosts, armory: newArmoryProfile(), progress: newProgressProfile() } : withBoosts;
 };
 
+// A career, armoury or progress that no longer checks out is started again on its own, so the hangar's ship, hold and
+// money (and every other part) are kept; only a broken hangar part loses the whole pilot.
+const repair = (data: unknown): unknown => {
+  if (typeof data !== "object" || data === null) {
+    return data;
+  }
+
+  const record: Record<string, unknown> = { ...data };
+
+  if (!isCareerProfile(record.career)) {
+    record.career = newCareer();
+  }
+
+  if (!isArmoryProfile(record.armory)) {
+    record.armory = newArmoryProfile();
+  }
+
+  if (!isProgressProfile(record.progress)) {
+    record.progress = newProgressProfile();
+  }
+
+  return record;
+};
+
 const KEY = "pilot";
 const GHOST_KEY = "ghost";
 
@@ -46,7 +73,7 @@ export class PilotRepository {
 
   constructor(adapter: StoreAdapter) {
     this.ghost = new Repository<GhostRun | null>(adapter, GHOST_KEY, { version: 1, isValid: isGhostOrNone, fallback: () => null });
-    this.repository = new Repository(adapter, KEY, { version: VERSION, isValid: isPilotProfile, fallback: newProfile, migrate });
+    this.repository = new Repository(adapter, KEY, { version: VERSION, isValid: isPilotProfile, fallback: newProfile, migrate, repair });
   }
 
   public load(): Promise<PilotProfile> {

@@ -34,6 +34,8 @@ export class Armory {
   private ammo: AmmoStock;
   private nextUid: number;
   private readonly listeners = new Set<() => void>();
+  // Each piece's experience short of a whole point, by its number.
+  private readonly spare = new Map<string, number>();
   // What the fittings add, worked out once per change.
   private cached: GearStats | null = null;
 
@@ -142,7 +144,17 @@ export class Armory {
 
     const before = pieceLevel(piece);
 
-    piece.exp = Math.min(GEAR_LEVELS.startOf(GEAR_LEVELS.cap), piece.exp + amount);
+    // Experience is kept whole: what a hit adds is often a fraction, carried here (never saved) until it makes a point.
+    const total = amount + (this.spare.get(uid) ?? 0);
+    const whole = Math.floor(total);
+
+    this.spare.set(uid, total - whole);
+
+    if (whole <= 0) {
+      return 0;
+    }
+
+    piece.exp = Math.min(GEAR_LEVELS.startOf(GEAR_LEVELS.cap), piece.exp + whole);
 
     const gained = pieceLevel(piece) - before;
 
@@ -267,7 +279,8 @@ export class Armory {
   // Reads a profile in, leaving out any piece of a kind there is no longer such a thing as, and any fitting of a
   // piece not owned or in the wrong slot.
   private take(profile: ArmoryProfile): void {
-    this.gear = new Map(profile.gear.filter((piece) => baseOf(piece.base) !== null).map((piece) => [piece.uid, { ...piece }]));
+    this.gear = new Map(profile.gear.filter((piece) => baseOf(piece.base) !== null).map((piece) => [piece.uid, { ...piece, exp: Math.floor(piece.exp) }]));
+    this.spare.clear();
     this.equipped = {};
     GEAR_SLOTS.forEach((slot) => {
       const uid = profile.equipped[slot];

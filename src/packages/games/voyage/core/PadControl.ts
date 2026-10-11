@@ -13,7 +13,8 @@ export type PadIntent = "slot1" | "slot2" | "slot3" | "slot4" | "slot5" | "slot6
 
 // The face buttons and shoulders are the bar's six slots; Start pauses, Back opens the map, the d-pad's up the
 // hangar and its down docks at the port alongside (or casts off), a stick pressed in takes a photo, the right stick
-// pressed holds fire.
+// pressed holds fire. The host reads the controller with the d-pad kept off the left stick, so flying never opens
+// the hangar, and with only the right trigger firing.
 const BINDINGS = new GamepadMap<PadIntent>({
   a: "slot1",
   b: "slot2",

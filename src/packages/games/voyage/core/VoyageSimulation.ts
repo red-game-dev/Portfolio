@@ -497,7 +497,8 @@ export class VoyageSimulation {
       return 0;
     }
 
-    return this.pipeline.advance(this.context, frameMs, () => this.afterStep());
+    // A perk offered in the middle of a frame holds the run from that step, not after the frame's other steps.
+    return this.pipeline.advance(this.context, frameMs, () => this.afterStep(), () => this.isHeld);
   }
 
   // Exactly `ms` of game time, for tests.

@@ -138,7 +138,7 @@ export class ProjectileSystem implements System<VoyageContext> {
     let isFound = false;
 
     grid.near(x, y, reach + REACH, (other) => {
-      const at = world.stores.body.get(other);
+      const at = world.isAlive(other) ? world.stores.body.get(other) : undefined;
       const alien = world.stores.alien.get(other);
       const isPeaceful = alien !== undefined && (alien.faction < 0 || state.cosmos?.factions[alien.faction]?.disposition === "peaceful");
 

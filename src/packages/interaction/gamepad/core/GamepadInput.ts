@@ -113,7 +113,7 @@ export class GamepadInput {
     const padX = (buttons.right.isDown ? 1 : 0) - (buttons.left.isDown ? 1 : 0);
     const padY = (buttons.down.isDown ? 1 : 0) - (buttons.up.isDown ? 1 : 0);
 
-    if (padX !== 0 || padY !== 0) {
+    if (this.config.isDpadMove && (padX !== 0 || padY !== 0)) {
       move.x += padX;
       move.y += padY;
       clampLength(move, 1);
@@ -121,7 +121,11 @@ export class GamepadInput {
 
     state.index = pad.index;
     state.isStandard = pad.mapping === "standard";
-    state.fire = buttons.rt.isDown || buttons.rb.isDown;
+    state.fire = false;
+
+    for (const name of this.config.fireButtons) {
+      state.fire = state.fire || buttons[name].isDown;
+    }
     state.brake = triggerTravel(buttons.lt.value, deadZone);
     state.isActive = isHolding || move.x !== 0 || move.y !== 0 || aim.x !== 0 || aim.y !== 0 || state.brake > 0;
 

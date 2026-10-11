@@ -9,6 +9,9 @@ export const MARKET = {
   depthGrowth: 1.15,
   traderMarkup: 1.2,
   jitter: 0.15,
+  // The most a port pays for a thing, in times its worth: below the cheapest any port sells it for, so nothing
+  // bought at one port sells at a profit at another, however deep.
+  sellCeiling: 2.5,
   repair: 260,
   refuel: 90,
   recharge: 60,

@@ -49,7 +49,8 @@ export const servicesFor = (port: Port, missing: Readonly<Record<ServiceId, numb
   : []);
 
 // What a port pays for each of a kind of thing in the hold: half as much again as breaking it down, more deeper in.
-export const salePrice = (port: Port, spec: ItemSpec): number => round(spec.value * MARKET.sellRate * MARKET.depthGrowth ** Math.max(0, port.depth + 1));
+export const salePrice = (port: Port, spec: ItemSpec): number =>
+  round(spec.value * Math.min(MARKET.sellCeiling, MARKET.sellRate * MARKET.depthGrowth ** Math.max(0, port.depth + 1)));
 
 // What the hold could sell at a port, the most valuable first.
 export const salesFor = (port: Port, cargo: ReadonlyArray<{ id: string; count: number }>, catalog: Readonly<Record<string, ItemSpec>>): MarketSale[] => cargo

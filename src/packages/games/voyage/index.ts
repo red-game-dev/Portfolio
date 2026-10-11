@@ -55,7 +55,7 @@ export type { FireOutcome } from "./systems/arsenal";
 export type { WeaponPort } from "./economy/services/Hangar";
 export { PERK_IDS, PERKS } from "./config/perks";
 export type { PerkId, PerkSpec } from "./domain/perks";
-export { drawPerks, isPerkId, perkCount, perkStats } from "./utils/perks";
+export { addStats, drawPerks, isPerkId, perkCount, perkStats } from "./utils/perks";
 export { AMMO_PACKS, MARKET, STATION_GOODS } from "./stations/config/market";
 export type { MarketAmmo, MarketGood, MarketSale, MarketService, Port, PortKind, ServiceId, Station, StationView } from "./stations/domain/station";
 export { ammoFor, goodsFor, priceFactor, salePrice, salesFor, servicesFor } from "./stations/utils/market";

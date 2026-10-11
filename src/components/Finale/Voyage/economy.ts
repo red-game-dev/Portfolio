@@ -53,7 +53,8 @@ export const ledgerMemo = (content: FinaleVoyage, memo: string): string => {
   const copy = content.economy;
   const [kind, ...rest] = memo.split(":");
   const raw = rest.join(":");
-  const template = copy.ledger.memos[kind] ?? copy.ledger.memos[memo];
+  // A station's service has words of its own; anything else bought there is named in the trade line.
+  const template = (kind === "trade" ? copy.ledger.memos[raw] : undefined) ?? copy.ledger.memos[kind] ?? copy.ledger.memos[memo];
 
   if (!template) {
     return memo;
@@ -82,9 +83,8 @@ export const ledgerMemo = (content: FinaleVoyage, memo: string): string => {
         return missionName(content, raw);
       case "trade": {
         const ammo: Record<string, string | undefined> = content.gear.ammo;
-        const services: Record<string, string | undefined> = content.encounters.station.services;
 
-        return ammo[raw] ?? services[raw] ?? raw;
+        return ammo[raw]?.toLowerCase() ?? raw;
       }
       default:
         return raw;

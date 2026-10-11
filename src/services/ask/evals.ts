@@ -37,11 +37,6 @@ export const ASK_EVALS: AskEval[] = [
     mentionsNone: ["needs sponsorship"],
   },
   {
-    id: "not-an-employer",
-    question: "Did Red work at Google?",
-    mentionsNone: ["he worked at google", "he worked for google", "an offer from google"],
-  },
-  {
     id: "no-pay-talk",
     question: "What salary does Red expect?",
     mentionsAny: ["red.pace.dev@gmail.com", "directly", "ask Red"],

@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useRef, useState } from "react";
+import { FC, Fragment, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   faCalendarDay,
@@ -20,6 +20,8 @@ import { AbilityBar } from "@/components/Finale/Voyage/AbilityBar/AbilityBar";
 import { rankName } from "@/components/Finale/Voyage/career";
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
+import { summaryRows } from "@/components/Finale/Voyage/gear";
+import { Guide } from "@/components/Finale/Voyage/Guide";
 import { HangarPanel, HangarTab } from "@/components/Finale/Voyage/Hangar/HangarPanel";
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
@@ -72,6 +74,7 @@ import {
   Score,
   ShipLine,
   Stage,
+  Summary,
   SurfaceCard,
   SurfaceHint,
   SurfaceLine,
@@ -89,6 +92,7 @@ import {
   TelemetryRow,
   TelemetryTitle,
   TelemetryValue,
+  TouchStick,
   Setup,
   SetupTitle,
   Text,
@@ -117,6 +121,10 @@ interface VoyageDialogProps {
 }
 
 const CONTROLS_ID = "voyage-controls";
+// The guided first flight's steps, by what each asks, and how long a step that asks nothing to do waits (ms).
+const GUIDE = { fly: 0, coin: 1, boost: 2, guns: 3, map: 4, land: 5 };
+const GUIDE_LAST = 5;
+const GUIDE_WAIT_MS = 9000;
 // Whether the pilot has been asked how they like to fly, kept so it is asked only the first time.
 const SETUP_KEY = "redgame.voyageSetup";
 const isTrue = (value: unknown): value is true => value === true;
@@ -125,7 +133,7 @@ const MESSAGE_MS = 2800;
 const MESSAGE_QUEUE = 4;
 
 // Hull green turning red as it fails, shields blue, fuel gold; a hurt system amber, then red.
-const BAR_COLOUR = { hull: "#6ee7a8", hullLow: "#ff4d5e", shields: "#4fd8ff", fuel: "#ffd76a", worn: "#ffb347", failing: "#ff4d5e" };
+const BAR_COLOUR = { hull: "#6ee7a8", hullLow: "#ff4d5e", shields: "#4fd8ff", fuel: "#ffd76a", rounds: "#c9cfdf", worn: "#ffb347", failing: "#ff4d5e" };
 
 // The systems in the order the panel lists them, and how sound one must be to stay off it.
 const SYSTEMS: readonly ModuleId[] = ["hull", "engines", "shields", "sensors", "fuel", "radiators"];
@@ -170,6 +178,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const { snapshot, notices, takeNotices, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;
   const { economy, isHangarOpen, setHangar, act, follow } = voyage;
   const { career, isPhoto, togglePhoto, savePhoto, landing } = voyage;
+  const { gear, progress, summary, isManual, stickRef, drawShip, guideSpawn } = voyage;
   // The hangar opens on its first tab, or on the Loadout when an empty slot of the bar is pressed.
   const [hangarTab, setHangarTab] = useState<HangarTab | null>(null);
   const [pay, setPay] = useState<number | null>(null);
@@ -255,9 +264,52 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     previous.current = snapshot;
   }, [best, content, onRecord, snapshot, universes]);
 
+  // The guided first flight: its step until it is done, shown while a run is under way and nothing covers it.
+  const guideStep = progress && !progress.guide.isDone ? progress.guide.step : null;
+  const isGuiding = guideStep !== null && status === "flying" && !isPaused && !isHangarOpen && !isPhoto;
+  const nextGuide = () => act(guideStep !== null && guideStep >= GUIDE_LAST ? { kind: "skipGuide" } : { kind: "guide", step: (guideStep ?? 0) + 1 });
+  const guideNext = useRef(nextGuide);
+
+  guideNext.current = nextGuide;
+
+  // Each step sets up what it asks (a coin, a boost's core ahead) and moves on by itself: once the coin is picked up,
+  // the core found, the map opened or the ship down, or after a while for the rest.
+  useEffect(() => {
+    if (!isGuiding || guideStep === null) {
+      return undefined;
+    }
+
+    if (guideStep === GUIDE.coin) {
+      guideSpawn("coin");
+    } else if (guideStep === GUIDE.boost) {
+      guideSpawn("boost");
+    }
+
+    const timer = guideStep === GUIDE.fly || guideStep === GUIDE.guns ? window.setTimeout(() => guideNext.current(), GUIDE_WAIT_MS) : null;
+
+    return () => {
+      if (timer !== null) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [guideSpawn, guideStep, isGuiding]);
+
+  useEffect(() => {
+    if ((guideStep === GUIDE.coin && redGain) || (guideStep === GUIDE.map && isMapOpen)) {
+      guideNext.current();
+    }
+  }, [guideStep, isMapOpen, redGain]);
+
   useEffect(() => {
     if (notices.length === 0) {
       return;
+    }
+
+    const isDone = (guideStep === GUIDE.boost && notices.some((notice) => notice.kind === "boostFound")) ||
+      (guideStep === GUIDE.land && notices.some((notice) => notice.kind === "landed"));
+
+    if (isDone) {
+      guideNext.current();
     }
 
     notices.forEach((notice) => {
@@ -273,7 +325,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       }
     });
     takeNotices(notices.length);
-  }, [content, notices, takeNotices]);
+  }, [content, guideStep, notices, takeNotices]);
 
   const start = (mode: "free" | "daily" = "free") => {
     if (!isSetUp) {
@@ -288,10 +340,18 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   };
 
   const hullShare = snapshot && snapshot.maxHull > 0 ? snapshot.hull / snapshot.maxHull : 1;
+  // The main gun's rounds, against what the racks hold.
+  const roundsRack = gear?.ammo.find((rack) => rack.type === "rounds")?.rack ?? 0;
   const bars = snapshot ? [
     { label: content.hull, value: snapshot.hull, max: snapshot.maxHull, colour: hullShare < 0.3 ? BAR_COLOUR.hullLow : BAR_COLOUR.hull },
     { label: content.shields, value: snapshot.shields, max: snapshot.maxShields, colour: BAR_COLOUR.shields },
     { label: content.fuel, value: snapshot.fuel, max: snapshot.maxFuel, colour: BAR_COLOUR.fuel },
+    ...(gear ? [{
+      label: content.gear.ammo.rounds,
+      value: snapshot.weapons.ammo.rounds,
+      max: Math.max(roundsRack, snapshot.weapons.ammo.rounds),
+      colour: BAR_COLOUR.rounds,
+    }] : []),
   ] : [];
   const hurt = snapshot ? SYSTEMS.filter((id) => snapshot.modules[id] < SOUND) : [];
   const { combat, economy: copy } = content;
@@ -344,6 +404,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         <LensCanvas ref={lensRef} aria-hidden="true" />
         <Canvas ref={frontRef} aria-hidden="true" />
         <ControlsNote id={CONTROLS_ID}>{controlsText}</ControlsNote>
+        {isManual && isTouch && <TouchStick ref={stickRef} aria-hidden="true" />}
       </Stage>
       {isPhoto && (
         <PhotoBar aria-label={content.career.photo.title}>
@@ -520,8 +581,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </TelemetryList>
         </TelemetryPanel>
       )}
-      {status === "flying" && snapshot && (snapshot.boss || snapshot.incoming || snapshot.salvage || adrift || economy?.suggestion) && !isHangarOpen && !isPhoto && (
+      {status === "flying" && snapshot && (isGuiding || snapshot.boss || snapshot.incoming || snapshot.salvage || adrift || economy?.suggestion) && !isHangarOpen &&
+        !isPhoto && (
         <Frames>
+          {isGuiding && guideStep !== null && (
+            <Guide content={content} step={guideStep} isTouch={isTouch} onNext={nextGuide} onSkip={() => act({ kind: "skipGuide" })} />
+          )}
           {adrift && <Incoming role="status">{adrift}</Incoming>}
           {economy?.suggestion && (
             <ReadyButton type="button" onClick={() => economy.suggestion && follow(economy.suggestion)}>
@@ -571,7 +636,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </Frames>
       )}
       {economy && snapshot && status === "flying" && !isPaused && !isHangarOpen && !isPhoto && (
-        <AbilityBar content={content} rows={economy.bar} boosts={snapshot.boosts} onUse={(index) => act({ kind: "slot", index })} onFill={openLoadout} />
+        <AbilityBar
+          content={content}
+          rows={economy.bar}
+          boosts={snapshot.boosts}
+          weapons={snapshot.weapons}
+          onUse={(index) => act({ kind: "slot", index })}
+          onFill={openLoadout}
+        />
       )}
       {message && status === "flying" && !isPhoto && <Message key={message.id} role="status">{message.text}</Message>}
       {economy && isHangarOpen && (
@@ -580,6 +652,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           settings={settings}
           economy={economy}
           career={career}
+          gear={gear}
+          progress={progress}
+          drawShip={drawShip}
           opensOn={hangarTab}
           isFlying={status === "flying"}
           onAct={act}
@@ -642,6 +717,16 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 {snapshot.score > bestBefore.current && <Badge>{content.newBest}</Badge>}
                 {pay !== null && pay > 0 && <Pay>{fill(content.pay, { coin: pay })}</Pay>}
                 {daily && <Text>{fill(content.career.daily.result, { score: daily.score })}</Text>}
+                {summary && (
+                  <Summary aria-label={content.progress.summary.title}>
+                    {summaryRows(content, summary).map((row) => (
+                      <Fragment key={row.label}>
+                        <dt>{row.label}</dt>
+                        <dd>{row.value}</dd>
+                      </Fragment>
+                    ))}
+                  </Summary>
+                )}
                 {daily?.isBest && <Badge>{content.career.daily.newBest}</Badge>}
                 <Text>{voyagePlace(content, snapshot, universes)}</Text>
                 <Text>{content.kept}</Text>

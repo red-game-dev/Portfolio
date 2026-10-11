@@ -1,6 +1,7 @@
 import { boostNotice } from "@/components/Finale/Voyage/abilities";
 import { careerNotice } from "@/components/Finale/Voyage/career";
 import { economyNotice } from "@/components/Finale/Voyage/economy";
+import { gearNotice } from "@/components/Finale/Voyage/gear";
 import type { VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
@@ -159,6 +160,6 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
     case "emergency":
       return fill(notice.kind === "tookOff" ? content.tookOff : content.emergency, { body: placeName(content, notice.body) });
     default:
-      return economyNotice(content, notice) ?? careerNotice(content, notice) ?? boostNotice(content, notice);
+      return economyNotice(content, notice) ?? careerNotice(content, notice) ?? boostNotice(content, notice) ?? gearNotice(content, notice);
   }
 };

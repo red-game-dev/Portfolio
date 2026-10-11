@@ -10,12 +10,18 @@ import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { PauseHolds } from "@/packages/animation/frame-loop";
 import { decodeImage } from "@/packages/browser/images";
 import type {
-  CareerView, EconomyView, HomePad, LandingOptions, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot,
+  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, ProgressView, RunSummary, Suggestion, UniverseNames, VoyageAction, VoyageGame, VoyageNotice,
+  VoyageSnapshot,
 } from "@/packages/games/voyage";
 import { DragTracker, localPoint } from "@/packages/interaction/gestures";
 import { HeldKeys } from "@/packages/interaction/keys";
 import { ZoomInput } from "@/packages/interaction/zoom";
 import type { Pilot } from "@/services/voyage/pilot";
+
+// A thumb stick reaches full burn this far from where the thumb went down (CSS pixels), and rests within this
+// share of it.
+const STICK_REACH = 56;
+const STICK_REST = 0.12;
 
 // Hands the game each real map as soon as it has loaded, in order, so Earth arrives first. A game already gone
 // takes none: its renderer ignores what comes after it is disposed.
@@ -68,6 +74,13 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const [economy, setEconomy] = useState<EconomyView | null>(null);
   const [isHangarOpen, setIsHangarOpen] = useState(false);
   const [career, setCareer] = useState<CareerView | null>(null);
+  const [gear, setGear] = useState<ArmoryView | null>(null);
+  const [progress, setProgress] = useState<ProgressView | null>(null);
+  const [summary, setSummary] = useState<RunSummary | null>(null);
+  // A thumb stick on a touch screen, aiming by hand: which finger holds it, where it went down, and the stick drawn
+  // under it (moved by its style, so steering never re-renders the dialog).
+  const stick = useRef<{ id: number; x: number; y: number } | null>(null);
+  const stickRef = useRef<HTMLDivElement>(null);
   const [isPhoto, setIsPhoto] = useState(false);
   // The steering keys held down, the fingers zooming, and a drag looking round photo mode.
   const [held] = useState(() => new HeldKeys(VOYAGE_KEYS));
@@ -94,6 +107,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       pilot.current = opened;
       opened.hangar.subscribe(scheduleSave);
       opened.career.subscribe(scheduleSave);
+      opened.armory.subscribe(scheduleSave);
+      opened.progress.subscribe(scheduleSave);
 
       const ghost = await opened.repository.loadGhost();
 
@@ -108,6 +123,10 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
           quality: startingQuality(),
           hangar: opened.hangar,
           career: opened.career,
+          armory: opened.armory,
+          progress: opened.progress,
+          onGear: setGear,
+          onProgress: setProgress,
           ghost,
           onChange: setSnapshot,
           onNotice: (next) => setNotices((queue) => [...queue, next]),
@@ -120,6 +139,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
       setEconomy(voyage.economy);
       setCareer(voyage.careerView);
+      setGear(voyage.gearView);
+      setProgress(voyage.progressView);
       loadTextures(voyage);
 
       return voyage;
@@ -138,6 +159,26 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   useEffect(() => {
     game?.setSpaceDrag(preferences["space-drag"]);
   }, [game, preferences]);
+
+  const aimMode = preferences["voyage-aim"];
+  const isManual = aimMode === "manual";
+
+  useEffect(() => {
+    game?.setAimMode(aimMode);
+  }, [aimMode, game]);
+
+  useEffect(() => {
+    game?.setDifficulty(preferences["voyage-difficulty"]);
+  }, [game, preferences]);
+
+  // The run's summary reaches the card at its end.
+  useEffect(() => {
+    if (snapshot?.status === "over") {
+      setSummary(game?.runSummary ?? null);
+    } else if (snapshot?.status === "flying") {
+      setSummary(null);
+    }
+  }, [game, snapshot?.status, gear]);
 
   useTiltSteering(game, preferences["tilt-steering"] && canTilt(), isFlying);
 
@@ -183,6 +224,12 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   }, [game]);
 
   const follow = useCallback((suggestion: Suggestion) => game?.follow(suggestion) ?? false, [game]);
+
+  // The guided first flight sets a coin or a boost's core ahead of the ship.
+  const guideSpawn = useCallback((kind: "coin" | "boost") => game?.guideSpawn(kind), [game]);
+
+  // The ship as it looks now, drawn for its sheet.
+  const drawShip = useCallback((context: CanvasRenderingContext2D, width: number, height: number) => game?.drawShipPreview(context, width, height), [game]);
 
   // The hangar holds a run still while it is open, and lets it go on when it closes.
   const setHangar = useCallback((isOpen: boolean) => {
@@ -410,9 +457,48 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
   }, [drag, game, trackTouch]);
 
+  // Aiming by hand on a touch screen, the left half is a thumb stick that steers and the right half aims and fires.
+  const moveStick = useCallback((event: PointerEvent<HTMLElement>, isStart: boolean) => {
+    const thumb = stick.current;
+    const point = localPoint(event, event.currentTarget);
+    const knob = stickRef.current;
+
+    if (isStart) {
+      stick.current = { id: event.pointerId, x: point.x, y: point.y };
+      event.currentTarget.setPointerCapture(event.pointerId);
+
+      if (knob) {
+        knob.style.opacity = "1";
+        knob.style.transform = `translate(${point.x}px, ${point.y}px)`;
+        knob.style.setProperty("--knob", "translate(0px, 0px)");
+      }
+
+      return;
+    }
+
+    if (!thumb) {
+      return;
+    }
+
+    const dx = point.x - thumb.x;
+    const dy = point.y - thumb.y;
+    const length = Math.hypot(dx, dy);
+    const share = Math.min(1, length / STICK_REACH);
+    const along = length > 0 ? share / length : 0;
+
+    game?.setStick(share > STICK_REST ? { x: dx * along, y: dy * along } : null);
+    knob?.style.setProperty("--knob", `translate(${dx * along * STICK_REACH}px, ${dy * along * STICK_REACH}px)`);
+  }, [game]);
+
   const onPointerDown = useCallback((event: PointerEvent<HTMLElement>) => {
     if (isPhoto) {
       dragPhoto(event, true);
+
+      return;
+    }
+
+    if (isManual && event.pointerType !== "mouse" && localPoint(event, event.currentTarget).x < event.currentTarget.clientWidth / 2 && !stick.current) {
+      moveStick(event, true);
 
       return;
     }
@@ -431,7 +517,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
 
     pointAt(event);
-  }, [dragPhoto, game, isPhoto, pointAt, trackTouch]);
+  }, [dragPhoto, game, isManual, isPhoto, moveStick, pointAt, trackTouch]);
 
   const onPointerMove = useCallback((event: PointerEvent<HTMLElement>) => {
     if (isPhoto) {
@@ -440,17 +526,35 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       return;
     }
 
-    if (event.pointerType !== "mouse" && trackTouch(event)) {
+    if (stick.current?.id === event.pointerId) {
+      moveStick(event, false);
+
+      return;
+    }
+
+    // Aiming by hand, two fingers are the stick and the trigger, not a pinch.
+    if (!isManual && event.pointerType !== "mouse" && trackTouch(event)) {
       return;
     }
 
     if (event.pointerType === "mouse" || event.currentTarget.hasPointerCapture(event.pointerId)) {
       pointAt(event);
     }
-  }, [dragPhoto, isPhoto, pointAt, trackTouch]);
+  }, [dragPhoto, isManual, isPhoto, moveStick, pointAt, trackTouch]);
 
   // A finger lifted, or the mouse gone from the stage: the ship coasts.
   const onPointerEnd = useCallback((event: PointerEvent<HTMLElement>) => {
+    if (stick.current?.id === event.pointerId) {
+      stick.current = null;
+      game?.setStick(null);
+
+      if (stickRef.current) {
+        stickRef.current.style.opacity = "0";
+      }
+
+      return;
+    }
+
     zoom.release(event.pointerId);
     drag.end();
     game?.press(false);
@@ -463,6 +567,13 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   return {
     snapshot,
     landing,
+    gear,
+    progress,
+    summary,
+    isManual,
+    stickRef,
+    drawShip,
+    guideSpawn,
     notices,
     takeNotices,
     economy,

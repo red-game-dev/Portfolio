@@ -2,7 +2,7 @@ import { BROWSER_SHORTCUTS, KeyMap, KeyStep } from "@/packages/interaction/keys"
 import type { ZoomInputOptions } from "@/packages/interaction/zoom";
 
 // The ability bar's slots, in order, as the keys 1 to 4 name them.
-export const SLOT_COMMANDS = ["slot1", "slot2", "slot3", "slot4"] as const;
+export const SLOT_COMMANDS = ["slot1", "slot2", "slot3", "slot4", "slot5", "slot6"] as const;
 
 export type SlotCommand = typeof SLOT_COMMANDS[number];
 
@@ -11,7 +11,7 @@ export type VoyageCommand =
   "left" | "right" | "burn" | "brake" | "pause" | "map" | "guns" | "hangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | "back" | SlotCommand;
 
 // Arrows and WASD turn and burn, down and S brake; P pauses, M opens the map, F holds fire, H opens the hangar, C photo
-// mode and U does what the hangar suggests; 1 to 4 use the ability bar; + and - zoom, and Escape steps back out of the
+// mode and U does what the hangar suggests; 1 to 6 use the ability bar; + and - zoom, and Escape steps back out of the
 // hangar or photo mode. The browser's own shortcuts (Ctrl+H, Cmd+U, Cmd+1) are left to the browser.
 export const VOYAGE_KEYS = new KeyMap<VoyageCommand>({
   "ArrowLeft": "left",
@@ -32,6 +32,8 @@ export const VOYAGE_KEYS = new KeyMap<VoyageCommand>({
   "2": "slot2",
   "3": "slot3",
   "4": "slot4",
+  "5": "slot5",
+  "6": "slot6",
   "+": "zoomIn",
   "=": "zoomIn",
   "-": "zoomOut",
@@ -103,6 +105,8 @@ export const voyageKeyAction = (command: VoyageCommand, state: VoyageKeyState): 
     case "slot2":
     case "slot3":
     case "slot4":
+    case "slot5":
+    case "slot6":
       return state.isFlying && !state.isPaused && state.hasHangar ? command : null;
     case "back":
       if (state.isHangarOpen) {

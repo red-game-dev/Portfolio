@@ -245,7 +245,12 @@ export class Armory {
           return null;
         }
 
-        return { count: Math.floor(this.ammo[WEAPON_SPECS[kind].ammo] / WEAPON_SPECS[kind].perShot), level: pieceLevel(piece), colour: WEAPON_COLOURS[kind] };
+        return {
+          count: Math.floor(this.ammo[WEAPON_SPECS[kind].ammo] / WEAPON_SPECS[kind].perShot),
+          level: pieceLevel(piece),
+          colour: WEAPON_COLOURS[kind],
+          base: piece.base,
+        };
       },
     };
   }

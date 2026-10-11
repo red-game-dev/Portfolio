@@ -217,6 +217,23 @@ export class VoyageSimulation {
     this.context.state.aimMode = mode;
   }
 
+  // A coin or a boost's core set just ahead of the ship, for the guided first flight to point at.
+  public spawnAhead(kind: "coin" | "boost"): void {
+    const parts = shipOf(this.context);
+
+    if (!parts) {
+      return;
+    }
+
+    const { body, ship } = parts;
+    const x = body.x + Math.cos(ship.angle) * 1.2;
+    const y = body.y + Math.sin(ship.angle) * 1.2;
+    const entity = this.world.spawn();
+
+    this.world.stores.body.set(entity, { x, y, vx: body.vx, vy: body.vy, prevX: x, prevY: y, radius: kind === "boost" ? this.config.boosts.radius : 0.045, mass: 0.01 });
+    this.world.stores.pickup.set(entity, kind === "boost" ? { kind: "boost", boost: "afterburner" } : { kind: "coin" });
+  }
+
   // Fires a weapon from the bar, aimed at a world point (by hand) or by itself.
   public fireWeapon(uid: string, point: { x: number; y: number } | null = null): FireOutcome {
     return fireWeapon(this.context, uid, point);

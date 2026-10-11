@@ -30,6 +30,7 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   homecoming: null,
   stranded: null,
   boosts: { active: [], cooldowns: {}, blocks: 0 },
+  weapons: { ammo: { rounds: 300, missiles: 0, mines: 0, slugs: 0, cells: 0, shells: 0 }, ready: {}, shots: {}, streak: 0 },
   people: null,
   maze: null,
   modules: { hull: 1, engines: 1, shields: 1, sensors: 1, fuel: 1, radiators: 1 },

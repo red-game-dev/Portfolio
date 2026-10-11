@@ -32,7 +32,8 @@ describe("the voyage's keys", () => {
     expect(VOYAGE_KEYS.intentOf(keyPress("Escape"))).toBe("back");
     expect(VOYAGE_KEYS.intentOf(keyPress("1"))).toBe("slot1");
     expect(VOYAGE_KEYS.intentOf(keyPress("4"))).toBe("slot4");
-    expect(VOYAGE_KEYS.intentOf(keyPress("5"))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress("6"))).toBe("slot6");
+    expect(VOYAGE_KEYS.intentOf(keyPress("7"))).toBeNull();
     expect(VOYAGE_KEYS.intentOf(keyPress("q"))).toBeNull();
   });
 

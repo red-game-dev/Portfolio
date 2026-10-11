@@ -1,3 +1,5 @@
+import type { EnhanceForm } from "@/packages/progression/enhancement";
+
 import { HullTier, Purse, Deed } from "../economy/domain/economy";
 import { BarSlot } from "../economy/domain/profile";
 import type { AmmoStock, GearDrop, GearSlot, WeaponKind } from "../gear/domain/gear";
@@ -43,7 +45,7 @@ export type VoyageNotice =
   | { kind: "boostFound"; boost: BoostId; level: number; charges: number; isFirst: boolean; isLevelUp: boolean }
   // A slot of the bar pressed for nothing: none left, still cooling down (for "{seconds}"), unable to work here, or
   // of no help now.
-  | { kind: "slotRefused"; slot: BarSlot; reason: SlotRefusal; seconds: number }
+  | { kind: "slotRefused"; slot: BarSlot; reason: SlotRefusal; seconds: number; base?: string | null }
   // A cache or a boss's chest opened (what went in the hold), gear and ammunition found, a streak of kills, a new
   // level, stars won in a universe ("u:3") or a daily voyage ("d:2026-10-11"), an achievement, a paint or a trail.
   | { kind: "opened"; chest: boolean; kept: ItemStack[]; lost: ItemStack[]; blueprints: string[] }
@@ -53,7 +55,7 @@ export type VoyageNotice =
   | { kind: "stars"; key: string; stars: number; gained: number }
   | { kind: "achievement" | "cosmetic"; id: string }
   // An attempt to enhance a piece: what became of it.
-  | { kind: "enhanced"; uid: string; base: string; outcome: "success" | "fell" | "kept"; step: number }
+  | { kind: "enhanced"; uid: string; base: string; outcome: "success" | "fell" | "kept"; step: number; form: EnhanceForm }
   | { kind: "upgraded"; level: number; tier: HullTier; mark: number }
   | { kind: "earned"; deed: Deed["kind"]; amounts: Purse }
   | { kind: "paid"; coin: number }

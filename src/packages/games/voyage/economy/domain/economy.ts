@@ -155,6 +155,8 @@ export interface BarRow {
   count: number;
   level: number;
   colour: string | null;
+  // A weapon's kind of piece ("weapon:missile:2"), for its name and icon; null for anything else.
+  base: string | null;
 }
 
 // A boost the pilot has found: its charges (and the most the ship carries), its level, and the finds the next level

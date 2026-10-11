@@ -1,3 +1,4 @@
+import type { AmmoStock } from "../gear/domain/gear";
 import type { LandingMethod, LandingPhase } from "../landing";
 import type { BoostId } from "./boosts";
 import { AlienRole, Modules, WreckKind } from "./components";
@@ -106,6 +107,15 @@ export interface VoyageSnapshot {
   stranded: { secondsLeft: number; isRescue: boolean } | null;
   // The boosts at work (the share of each still to run, 1 to 0), the whole seconds before each used one is ready
   // again and the share of its cooldown still to run, and a block shield's blocks still standing.
+  // The ammunition aboard, and each weapon on the bar's wait before it fires again (whole seconds, and the share of
+  // its cooldown still to run), with the best streak of kills this run.
+  weapons: {
+    ammo: AmmoStock;
+    ready: Record<string, { seconds: number; share: number }>;
+    // Each weapon's shots left in the ammunition aboard.
+    shots: Record<string, number>;
+    streak: number;
+  };
   boosts: {
     active: Array<{ id: BoostId; level: number; left: number }>;
     cooldowns: Partial<Record<BoostId, { seconds: number; share: number }>>;

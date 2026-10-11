@@ -5,6 +5,7 @@ import {
   faBatteryFull,
   faBolt,
   faBullseye,
+  faCrosshairs,
   faCubes,
   faDice,
   faEyeSlash,
@@ -24,6 +25,7 @@ import {
   faWrench,
 } from "@fortawesome/free-solid-svg-icons";
 
+import { WEAPON_ICONS } from "@/components/Finale/Voyage/Hangar/gearIcons";
 import type { BarSlot, BoostId } from "@/packages/games/voyage";
 
 // Each boost's icon on the bar and in the Loadout.
@@ -55,4 +57,18 @@ const ITEM_ICONS: Readonly<Record<string, IconDefinition>> = {
   coolantFlask: faFlask,
 };
 
-export const slotIcon = (slot: BarSlot): IconDefinition => (slot.kind === "boost" ? BOOST_ICONS[slot.id] : ITEM_ICONS[slot.id] ?? faWrench);
+// A weapon's icon by its kind, read from its kind of piece ("weapon:missile:2").
+const weaponIcon = (base: string | null): IconDefinition => {
+  const kind = base?.split(":")[1] ?? "";
+  const icons: Record<string, IconDefinition | undefined> = WEAPON_ICONS;
+
+  return icons[kind] ?? faCrosshairs;
+};
+
+export const slotIcon = (slot: BarSlot, base: string | null = null): IconDefinition => {
+  if (slot.kind === "weapon") {
+    return weaponIcon(base);
+  }
+
+  return slot.kind === "boost" ? BOOST_ICONS[slot.id] : ITEM_ICONS[slot.id] ?? faWrench;
+};

@@ -67,7 +67,7 @@ export const newEconomyProfile = (): EconomyProfile => ({
 // (the shots its ammunition has left, its level and its colour).
 export interface WeaponPort {
   has: (uid: string) => boolean;
-  describe: (uid: string) => { count: number; level: number; colour: string } | null;
+  describe: (uid: string) => { count: number; level: number; colour: string; base: string } | null;
 }
 
 export interface HangarOptions {
@@ -661,18 +661,18 @@ export class Hangar {
 
   private barRow(slot: BarSlot | null): BarRow {
     if (!slot) {
-      return { slot: null, count: 0, level: 0, colour: null };
+      return { slot: null, count: 0, level: 0, colour: null, base: null };
     }
 
     if (slot.kind === "weapon") {
       const weapon = this.weapons?.describe(slot.id) ?? null;
 
-      return { slot: { ...slot }, count: weapon?.count ?? 0, level: weapon?.level ?? 0, colour: weapon?.colour ?? null };
+      return { slot: { ...slot }, count: weapon?.count ?? 0, level: weapon?.level ?? 0, colour: weapon?.colour ?? null, base: weapon?.base ?? null };
     }
 
     return slot.kind === "boost"
-      ? { slot: { ...slot }, count: this.boostCharges(slot.id), level: this.boostLevel(slot.id), colour: boostColour(slot.id) }
-      : { slot: { ...slot }, count: this.backpack.count(slot.id), level: 0, colour: null };
+      ? { slot: { ...slot }, count: this.boostCharges(slot.id), level: this.boostLevel(slot.id), colour: boostColour(slot.id), base: null }
+      : { slot: { ...slot }, count: this.backpack.count(slot.id), level: 0, colour: null, base: null };
   }
 
   private row(id: string, count: number): CargoRow | null {

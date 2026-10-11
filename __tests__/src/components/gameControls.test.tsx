@@ -207,7 +207,8 @@ describe("the launch button", () => {
 
 const VOYAGE_METHODS = [
   "stop", "dispose", "resize", "setTexture", "setKeys", "play", "pause", "resume", "zoomBy", "point", "lockAt", "panBy", "setPhotoMode", "setMap",
-  "setAutoFire", "act", "follow", "photo", "setLanding", "setSpaceDrag", "setTilt", "press",
+  "setAutoFire", "act", "follow", "photo", "setLanding", "setSpaceDrag", "setTilt", "press", "setAimMode", "setDifficulty", "setStick", "guideSpawn",
+  "drawShipPreview",
 ] as const;
 
 const Voyage = () => {
@@ -251,6 +252,8 @@ describe("the voyage's controls", () => {
     const pilot = {
       hangar: { subscribe: jest.fn() },
       career: { subscribe: jest.fn() },
+      armory: { subscribe: jest.fn() },
+      progress: { subscribe: jest.fn() },
       repository: { loadGhost: jest.fn(async () => null), saveGhost: jest.fn(), clearGhost: jest.fn(), close: jest.fn() },
     };
 

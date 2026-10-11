@@ -9,6 +9,7 @@ import { markOf, tierOf } from "../../economy/config/tiers";
 import { HullTier } from "../../economy/domain/economy";
 import { activeLevel } from "../../utils/boosts";
 import { lerpX, lerpY, sizeBucket, VoyageFrame } from "../frame";
+import { NO_LOOK, ShipLook } from "../look";
 import { paintBreach, paintDent, paintScorch, paintShieldRing, tintRed } from "../paint/damage";
 import { ION_TIERS, NOZZLES, paintHull } from "../paint/ships";
 import { paintFlame, paintGlow, SHIP_HEIGHT, SHIP_WIDTH } from "../paint/space";
@@ -21,6 +22,8 @@ const DECAL_KEYS: Record<Decal["kind"], string> = { dent: "decal:dent", scorch: 
 // How much of the ship shows through a cloak, and how much longer an afterburner's flame is.
 const CLOAKED = 0.3;
 const BURNER = 1.6;
+// The colours a rainbow trail sweeps through.
+const RAINBOW = ["#ff4f6a", "#ffa94f", "#ffe14f", "#5fff8a", "#4fd8ff", "#7a6bff", "#e05bff"];
 // The blue white of an ion drive, for the great ships (and any ship on the ion drive boost).
 const ION = { core: "#eef8ff", edge: "#5fb8ff" };
 
@@ -40,10 +43,18 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
   private shieldFlash = 0;
   private shieldAngle = 0;
   private sputter = 0;
-  // The hull's painter, made again only when the hull, its mark or the universe's colour changes.
+  // The hull's painter, made again only when the hull, its mark, its look or the universe's colour changes.
   private painter: { key: string; paint: ReturnType<typeof paintHull> } | null = null;
+  private look: ShipLook = NO_LOOK;
+  // The sprite key for the look, so a change of paint or fitted pieces paints the hull afresh.
+  private lookKey = "";
 
   constructor(private readonly kit: RenderKit) {}
+
+  public setLook(look: ShipLook): void {
+    this.look = look;
+    this.lookKey = `${look.paint?.id ?? "theme"}:${look.extras.pods ? 1 : 0}${look.extras.reactor ? 1 : 0}${look.extras.drive ? 1 : 0}${look.extras.halo ? 1 : 0}`;
+  }
 
   public flashShield(angle: number): void {
     this.shieldFlash = 1;
@@ -67,7 +78,8 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const accent = universe?.accent ?? theme.danger;
     const tier = tierOf(state.level);
     const mark = markOf(state.level);
-    const sprite = this.kit.sprite(`ship:${tier}:${mark}:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, this.hullPainter(tier, mark, accent, theme));
+    const sprite = this.kit.sprite(`ship:${tier}:${mark}:${accent}:${this.lookKey}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT,
+      this.hullPainter(tier, mark, accent, theme));
     const worldX = lerpX(body, alpha);
     const worldY = lerpY(body, alpha);
     const x = camera.toScreenX(worldX);
@@ -85,7 +97,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const squeeze = 1 - fall * 0.7;
 
     this.sputter = hull < 0.25 && Math.random() < 0.08 ? 0.12 : Math.max(0, this.sputter - dt);
-    this.emitExhaust(worldX, worldY, angle, body.radius, ship.thrust, hull, isIon);
+    this.emitExhaust(worldX, worldY, angle, body.radius, ship.thrust, hull, isIon, now);
     this.emitDamage(worldX, worldY, angle, body.radius, health.decals, hull);
 
     if (ship.temperatureC > config.thermal.ratings.hull) {
@@ -95,8 +107,9 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     front.frame(x, y, angle + Math.PI / 2, squeeze, stretch);
 
     if ((ship.thrust > 0.02 || ship.isBraking) && this.sputter === 0 && !capture) {
-      const core = isIon ? ION.core : isBurner ? "#ffffff" : theme.flameCore;
-      const edge = isIon ? ION.edge : theme.flameEdge;
+      const trail = this.look.trail;
+      const core = isBurner ? "#ffffff" : trail && trail.id !== "standard" ? trail.core : isIon ? ION.core : theme.flameCore;
+      const edge = trail && trail.id !== "standard" ? this.trailEdge(now) : isIon ? ION.edge : theme.flameEdge;
       const flame = this.kit.sprite(`flame:${core}:${edge}:${size}`, size * 1.1, size * 2.8, paintFlame(core, edge));
       const length = r * 2.8 * (0.45 + ship.thrust * 0.75) * (0.88 + Math.sin(now * 0.05) * 0.12) * (isBurner ? BURNER : 1);
 
@@ -114,7 +127,7 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
       front.context.drawImage(sprite.surface, -r * SHIP_WIDTH / 2, -r * SHIP_HEIGHT / 2, r * SHIP_WIDTH, r * SHIP_HEIGHT);
 
       if (fall > 0) {
-        const red = this.kit.sprite(`ship-red:${tier}:${mark}:${accent}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, tintRed(sprite));
+        const red = this.kit.sprite(`ship-red:${tier}:${mark}:${accent}:${this.lookKey}:${size}`, size * SHIP_WIDTH, size * SHIP_HEIGHT, tintRed(sprite));
 
         front.context.globalAlpha = Math.min(1, fall * 1.4) * (1 - fall * 0.6);
 
@@ -166,13 +179,28 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
   }
 
   private hullPainter(tier: HullTier, mark: number, accent: string, theme: VoyageTheme): ReturnType<typeof paintHull> {
-    const key = `${tier}:${mark}:${accent}`;
+    const key = `${tier}:${mark}:${accent}:${this.lookKey}`;
+    const { paint, extras } = this.look;
 
     if (this.painter?.key !== key) {
-      this.painter = { key, paint: paintHull(tier, mark, { ...theme, accent }) };
+      const colours = paint ? { hull: paint.hull, hullShade: paint.hullShade, window: paint.window, fin: paint.fin, accent: paint.accent ?? accent } : { ...theme, accent };
+
+      this.painter = { key, paint: paintHull(tier, mark, colours, extras) };
     }
 
     return this.painter.paint;
+  }
+
+  // A trail's edge colour now: its own, or for a rainbow trail one sweeping round the colour wheel, a step at a time
+  // so each step's flame sprite is painted once.
+  private trailEdge(now: number): string {
+    const trail = this.look.trail;
+
+    if (!trail) {
+      return this.kit.theme.flameEdge;
+    }
+
+    return trail.style === "rainbow" ? RAINBOW[Math.floor(now / 120) % RAINBOW.length] : trail.edge;
   }
 
   private drawDecal(decal: Decal, r: number, now: number): void {
@@ -217,13 +245,22 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     front.context.globalCompositeOperation = "source-over";
   }
 
-  private emitExhaust(x: number, y: number, angle: number, radius: number, thrust: number, hull: number, isIon: boolean): void {
+  private emitExhaust(x: number, y: number, angle: number, radius: number, thrust: number, hull: number, isIon: boolean, now: number): void {
     if (thrust < 0.05 || this.sputter > 0) {
       return;
     }
 
     const { particles, theme } = this.kit;
-    const colour = isIon ? ION.edge : theme.flameEdge;
+    const trail = this.look.trail;
+    const colour = trail && trail.id !== "standard" ? this.trailEdge(now) : isIon ? ION.edge : theme.flameEdge;
+
+    // A sparkling trail leaves white sparks behind as well.
+    if (trail?.style === "sparkle" && Math.random() < 0.5) {
+      const spark = this.kit.cache.get("glow:rgba(255, 255, 255, 1)", 64, 64, paintGlow("rgba(255, 255, 255, 1)"));
+
+      particles.emit("glow", x - Math.cos(angle) * radius * 1.8, y - Math.sin(angle) * radius * 1.8, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6,
+        0.5 + Math.random() * 0.4, radius * 0.35, spark, { drag: 1 });
+    }
     const glow = this.kit.cache.get(`glow:${colour}`, 64, 64, paintGlow(colour));
     const backX = x - Math.cos(angle) * radius * 1.7;
     const backY = y - Math.sin(angle) * radius * 1.7;

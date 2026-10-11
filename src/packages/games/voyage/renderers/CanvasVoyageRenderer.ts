@@ -32,6 +32,7 @@ import { SurfaceLayer } from "./layers/SurfaceLayer";
 import { ThingsLayer } from "./layers/ThingsLayer";
 import { WeatherLayer } from "./layers/WeatherLayer";
 import { WrecksLayer } from "./layers/WrecksLayer";
+import { ShipLook } from "./look";
 import { cutShards } from "./paint/damage";
 import { paintGlow, paintShip, SHIP_HEIGHT, SHIP_WIDTH } from "./paint/space";
 import { ParticleSystem } from "./ParticleSystem";
@@ -59,6 +60,8 @@ export interface VoyageRenderer {
   setHome(pad: HomePad | null): void;
   // Where the missions on the board send the pilot, marked on the map.
   setMissions(marks: MissionMarks): void;
+  // How the pilot's ship looks: its paint, its engine trail and the pieces that show on its hull.
+  setLook(look: ShipLook): void;
   dispose(): void;
 }
 
@@ -167,6 +170,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
   public setMap(isOpen: boolean): void {
     this.map.isOpen = isOpen;
+  }
+
+  public setLook(look: ShipLook): void {
+    this.ship.setLook(look);
   }
 
   public setMissions(marks: MissionMarks): void {

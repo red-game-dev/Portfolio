@@ -26,12 +26,16 @@ import { dismantleValue, forgeCost, weaponPlan } from "../gear/config/forge";
 import { GRADE_LEVEL } from "../gear/config/slots";
 import { ArmoryView, ProgressView } from "../gear/domain/view";
 import { Armory } from "../gear/services/Armory";
-import { baseOf, weaponBaseId } from "../gear/utils/gear";
+import { baseOf, ENHANCE_LADDER, weaponBaseId } from "../gear/utils/gear";
 import { configForShip } from "../gear/utils/ship";
 import { armoryView, progressView } from "../gear/utils/view";
+import { DEFAULT_PAINT, DEFAULT_TRAIL, PAINTS, TRAILS } from "../progress/config/cosmetics";
 import { Progress } from "../progress/services/Progress";
 import { CanvasVoyageRenderer, VoyageRenderer } from "../renderers/CanvasVoyageRenderer";
 import { lerpX, lerpY, universeOf } from "../renderers/frame";
+import { ShipLook } from "../renderers/look";
+import { paintHull } from "../renderers/paint/ships";
+import { SHIP_HEIGHT, SHIP_WIDTH } from "../renderers/paint/space";
 import { PilotLink } from "../services/PilotLink";
 import { ProgressLink, RunSummary } from "../services/ProgressLink";
 import { SystemService } from "../services/SystemService";
@@ -275,6 +279,30 @@ export class VoyageGame extends FrameLoop {
   // What the last run came to, once it is over.
   public get runSummary(): RunSummary | null {
     return this.progressLink?.summary ?? null;
+  }
+
+  // The guided first flight sets a coin or a boost's core just ahead of the ship to show the pilot.
+  public guideSpawn(kind: "coin" | "boost"): void {
+    if (this.simulation.state.status === "flying") {
+      this.simulation.spawnAhead(kind);
+    }
+  }
+
+  // The ship as it looks now (its hull and mark, paint and fitted pieces), drawn nose up to fill a canvas, for the
+  // ship's sheet.
+  public drawShipPreview(context: Canvas2DContext, width: number, height: number): void {
+    const level = this.hangar?.level ?? 0;
+    const { paint, extras } = this.look();
+    const accent = this.theme.danger;
+    const colours = paint ? { hull: paint.hull, hullShade: paint.hullShade, window: paint.window, fin: paint.fin, accent: paint.accent ?? accent }
+      : { ...this.theme, accent };
+    const size = Math.min(width / SHIP_WIDTH, height / SHIP_HEIGHT);
+
+    context.clearRect(0, 0, width, height);
+    context.save();
+    context.translate((width - size * SHIP_WIDTH) / 2, (height - size * SHIP_HEIGHT) / 2);
+    paintHull(tierOf(level), markOf(level), colours, extras)(context, size * SHIP_WIDTH, size * SHIP_HEIGHT);
+    context.restore();
   }
 
   // Whether the view is held still to be looked round and saved as a picture.
@@ -692,6 +720,25 @@ export class VoyageGame extends FrameLoop {
     return true;
   }
 
+  // How the pilot's ship looks: the paint and trail they wear (the first of each keeps the theme's look) and the
+  // pieces fitted that show on the hull.
+  private look(): ShipLook {
+    const { armory, progress } = this;
+    const paint = progress && progress.paint !== DEFAULT_PAINT ? PAINTS.find((spec) => spec.id === progress.paint) ?? null : null;
+    const trail = progress && progress.trail !== DEFAULT_TRAIL ? TRAILS.find((spec) => spec.id === progress.trail) ?? null : null;
+
+    return {
+      paint,
+      trail,
+      extras: {
+        pods: Boolean(armory?.fitted("pods")),
+        reactor: Boolean(armory?.fitted("reactor")),
+        drive: Boolean(armory?.fitted("drive")),
+        halo: Boolean(armory?.fitted("halo")),
+      },
+    };
+  }
+
   // What the pilot asks of the armoury and their progress: fitting, enhancing, breaking down, forging, wearing a
   // cosmetic, and the guided first flight.
   private actOnPilot(action: VoyageAction): boolean {
@@ -714,7 +761,7 @@ export class VoyageGame extends FrameLoop {
           return false;
         }
 
-        this.onNotice({ kind: "enhanced", uid: piece.uid, base: piece.base, outcome: result.outcome, step: result.to });
+        this.onNotice({ kind: "enhanced", uid: piece.uid, base: piece.base, outcome: result.outcome, step: result.to, form: ENHANCE_LADDER.formOf(result.to) });
         this.progressLink?.enhanced(result.to);
 
         return true;
@@ -781,7 +828,7 @@ export class VoyageGame extends FrameLoop {
 
     const seconds = Math.max(0, ((simulation.state.weaponReady[slot.id] ?? 0) - simulation.state.elapsedMs) / 1000);
 
-    this.onNotice({ kind: "slotRefused", slot, reason: outcome, seconds });
+    this.onNotice({ kind: "slotRefused", slot, reason: outcome, seconds, base: this.armory?.piece(slot.id)?.base ?? null });
 
     return false;
   }
@@ -1036,6 +1083,17 @@ export class VoyageGame extends FrameLoop {
 
     if (this.progressLink) {
       offs.push(this.progressLink.attach());
+    }
+
+    // The ship wears the pilot's paint, trail and fitted pieces, and changes with them.
+    this.renderer.setLook(this.look());
+
+    if (this.armory) {
+      offs.push(this.armory.subscribe(() => this.renderer.setLook(this.look())));
+    }
+
+    if (this.progress) {
+      offs.push(this.progress.subscribe(() => this.renderer.setLook(this.look())));
     }
 
     const { career } = this;

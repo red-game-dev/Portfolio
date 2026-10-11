@@ -61,6 +61,7 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       surface: null,
       descent: this.descent(state),
       homecoming: state.homecoming ? { stage: state.homecoming.stage, days: state.homecoming.days, isSea: state.homecoming.isSea } : null,
+      weapons: this.weapons(state),
       boosts: this.boosts(state),
       stranded: state.stranded
         ? {
@@ -123,6 +124,23 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
     const gate = /^gate-(\d+)$/.exec(id);
 
     return gate && state.network ? state.network.nodes[Number(gate[1])]?.name ?? null : state.cosmos?.names[id] ?? null;
+  }
+
+  // The ammunition aboard and each weapon's cooldown.
+  private weapons(state: Readonly<VoyageState>): VoyageSnapshot["weapons"] {
+    const ready: VoyageSnapshot["weapons"]["ready"] = {};
+    const shots: VoyageSnapshot["weapons"]["shots"] = {};
+
+    state.arsenal.forEach((weapon) => {
+      shots[weapon.uid] = Math.floor(state.ammo[weapon.ammo] / weapon.perShot);
+      const at = state.weaponReady[weapon.uid] ?? 0;
+
+      if (at > state.elapsedMs) {
+        ready[weapon.uid] = { seconds: Math.ceil((at - state.elapsedMs) / 1000), share: Math.min(1, ((at - state.elapsedMs) / 1000) * weapon.rate) };
+      }
+    });
+
+    return { ammo: { ...state.ammo }, ready, shots, streak: state.streak.best };
   }
 
   // Each boost at work with the share of it still to run, each used one's seconds to wait, and the blocks standing.

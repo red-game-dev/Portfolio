@@ -31,7 +31,17 @@ export const Purse = tw.p`m-0 flex flex-row gap-[12px] text-sm font-semibold tab
 
 export const Shards = tw.span`text-[#c58bff]`;
 
-export const Tabs = tw.div`px-[16px]`;
+// The row of tabs, scrolling sideways where it does not fit.
+export const Tabs = styled.div(() => [
+  tw`px-[16px] overflow-x-auto`,
+  css`
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  `,
+]);
 
 export const Body = styled.div(() => [
   tw`flex-1 min-h-0 overflow-y-auto px-[16px] pt-[12px] pb-[18px]`,
@@ -135,6 +145,31 @@ export const LoadoutSlot = styled.li(({ colour }: { colour: string }) => [
     & > button {
       margin-left: auto;
     }
+  `,
+]);
+
+// An enhancement's badges: one icon for each step of its tier, in the tier's colour.
+export const BadgeRow = tw.span`flex flex-row flex-wrap gap-[2px]`;
+
+export const Badge = styled.span(({ colour }: { colour: string }) => [
+  tw`flex text-[10px]`,
+  css`
+    color: ${colour};
+    filter: drop-shadow(0 0 3px ${colour});
+  `,
+]);
+
+// What a piece adds or fires, line by line.
+export const StatList = tw.ul`m-0 p-0 list-none flex flex-row flex-wrap gap-x-[10px] gap-y-[2px]`;
+
+export const StatLine = tw.li`text-[11px] md:text-xs text-[#c9cfdf] tabular-nums`;
+
+// A colour a paint or a trail is made of.
+export const Swatch = styled.span(({ colour }: { colour: string }) => [
+  tw`inline-block w-[14px] h-[14px] ml-[3px] align-middle`,
+  css`
+    background: ${colour};
+    border: 1px solid rgba(255, 255, 255, 0.25);
   `,
 ]);
 

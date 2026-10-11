@@ -7,6 +7,9 @@ import { slotName } from "@/components/Finale/Voyage/abilities";
 import { slotIcon } from "@/components/Finale/Voyage/AbilityBar/icons";
 import { codexName, codexNotes, missionName, rankName } from "@/components/Finale/Voyage/career";
 import { blueprintName, formatPurse, itemName, ledgerMemo, shipName } from "@/components/Finale/Voyage/economy";
+import { pieceName } from "@/components/Finale/Voyage/gear";
+import { Badges } from "@/components/Finale/Voyage/Hangar/Badges";
+import { Forge } from "@/components/Finale/Voyage/Hangar/Forge";
 import {
   Actions,
   Amount,
@@ -43,24 +46,30 @@ import {
   TabPanel,
   Tabs,
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
+import { ShipSheet } from "@/components/Finale/Voyage/Hangar/ShipSheet";
+import { Style } from "@/components/Finale/Voyage/Hangar/Style";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
 import { BarFill, IconButton } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
 import { Tab, TabList } from "@/components/Tabs";
 import useTabs from "@/hooks/useTabs";
-import type { BarSlot, CareerView, CodexCategory, EconomyView, ShipStats, VoyageAction } from "@/packages/games/voyage";
+import type { ArmoryView, BarSlot, CareerView, CodexCategory, EconomyView, ProgressView, ShipStats, VoyageAction } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 import { PreferencesContent } from "@/types/preferences";
 
 // A tab the hangar can be opened on, other than its first.
-export type HangarTab = "loadout";
+export type HangarTab = "loadout" | "ship" | "forge" | "badges";
 
 interface HangarPanelProps {
   content: FinaleVoyage;
   settings: PreferencesContent;
   economy: EconomyView;
   career: CareerView | null;
+  gear: ArmoryView | null;
+  progress: ProgressView | null;
+  // Draws the ship as it looks now, for its sheet.
+  drawShip: (context: CanvasRenderingContext2D, width: number, height: number) => void;
   opensOn?: HangarTab | null;
   isFlying: boolean;
   onAct: (action: VoyageAction) => boolean;
@@ -69,7 +78,8 @@ interface HangarPanelProps {
 
 const CODEX_ORDER: readonly CodexCategory[] = ["worlds", "kinds", "universes", "galaxies", "stars", "phenomena", "life", "wrecks", "things", "boosts"];
 
-const LOADOUT_TAB = 2;
+// Each tab's place in the row.
+const TAB = { pilot: 0, ship: 1, loadout: 2, forge: 3, hold: 4, plans: 5, ledger: 6, codex: 7, badges: 8, style: 9, settings: 10 };
 // What a thing from the hold looks like in the Loadout, as on the bar.
 const ITEM_COLOUR = "#c9cfdf";
 
@@ -79,14 +89,18 @@ const STAT_KEYS: ReadonlyArray<keyof ShipStats> = ["hull", "shields", "fuel", "t
 // puts boosts and things from the hold on the ability bar; the hold, with
 // each thing's use and worth; the plans, made from the hold; and the ledger of every coin earned and spent. Its
 // own records, the Void Shard trade and the reset sit beside them. Opening it focuses its heading.
-export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, opensOn = null, isFlying, onAct, onClose }: HangarPanelProps) => {
+export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, gear, progress, drawShip, opensOn = null, isFlying, onAct, onClose }:
+  HangarPanelProps) => {
   const copy = content.economy;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const careerCopy = content.career;
   const loadout = content.boosts.loadout;
-  const tabs = [careerCopy.tabs.pilot, copy.tabs.ship, loadout.tab, copy.tabs.hold, copy.tabs.plans, copy.tabs.ledger, careerCopy.tabs.codex, settings.title];
-  const { active, listProps, tabProps, panelProps } = useTabs({ count: tabs.length, initial: opensOn === "loadout" ? LOADOUT_TAB : 0 });
+  const gearTabs = content.gear.tabs;
+  const tabs = [careerCopy.tabs.pilot, copy.tabs.ship, loadout.tab, gearTabs.forge, copy.tabs.hold, copy.tabs.plans, copy.tabs.ledger, careerCopy.tabs.codex,
+    gearTabs.badges,
+    gearTabs.style, settings.title];
+  const { active, listProps, tabProps, panelProps } = useTabs({ count: tabs.length, initial: opensOn ? TAB[opensOn] : 0 });
   const voyageSettings = useVoyageSettings();
   const { next, stats } = economy;
 
@@ -147,7 +161,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
           <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
         </IconButton>
       </Header>
-      <Tabs>
+      <Tabs data-scroll-x>
         <TabList {...listProps} aria-label={copy.hangar}>
           {tabs.map((label, index) => (
             <Tab key={label} {...tabProps(index)} isOn={index === active}>{label}</Tab>
@@ -155,7 +169,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
         </TabList>
       </Tabs>
       <Body>
-        <TabPanel {...panelProps(0)}>
+        <TabPanel {...panelProps(TAB.pilot)}>
           {career && (
             <>
               <div>
@@ -182,14 +196,14 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
               </div>
               <Subheading>{careerCopy.missionsTitle}</Subheading>
               <Items>
-                {career.missions.map(({ mission, progress, target }) => (
+                {career.missions.map(({ mission, progress: done, target }) => (
                   <Item key={mission.id}>
                     <ItemTop>
                       <ItemName colour="#ffffff">{missionName(content, mission.id)}</ItemName>
-                      <ItemCount>{fill(careerCopy.progress, { progress, target })}</ItemCount>
+                      <ItemCount>{fill(careerCopy.progress, { progress: done, target })}</ItemCount>
                     </ItemTop>
-                    <Meter role="meter" aria-label={missionName(content, mission.id)} aria-valuemin={0} aria-valuemax={target} aria-valuenow={progress}>
-                      <BarFill colour="#7dffcf" style={{ transform: `scaleX(${target > 0 ? progress / target : 0})` }} />
+                    <Meter role="meter" aria-label={missionName(content, mission.id)} aria-valuemin={0} aria-valuemax={target} aria-valuenow={done}>
+                      <BarFill colour="#7dffcf" style={{ transform: `scaleX(${target > 0 ? done / target : 0})` }} />
                     </Meter>
                     <Note>{fill(mission.coin > 0 ? careerCopy.reward : careerCopy.rewardXp, { xp: mission.xp, coin: mission.coin })}</Note>
                   </Item>
@@ -199,9 +213,10 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             </>
           )}
         </TabPanel>
-        <TabPanel {...panelProps(1)}>
+        <TabPanel {...panelProps(TAB.ship)}>
+          {gear && <ShipSheet content={content} economy={economy} gear={gear} progress={progress} drawShip={drawShip} onAct={onAct} />}
           <div>
-            <ShipName>{shipName(copy, economy.tier, economy.mark)}</ShipName>
+            {!gear && <ShipName>{shipName(copy, economy.tier, economy.mark)}</ShipName>}
             <Note>{copy.tierNotes[economy.tier]}</Note>
           </div>
           <Stats>
@@ -271,7 +286,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             </SmallButton>
           </Actions>
         </TabPanel>
-        <TabPanel {...panelProps(LOADOUT_TAB)}>
+        <TabPanel {...panelProps(TAB.loadout)}>
           <Note>{loadout.note}</Note>
           <Block aria-labelledby="loadout-slots">
             <Subheading id="loadout-slots">{loadout.slots}</Subheading>
@@ -282,7 +297,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
                   {row.slot ? (
                     <>
                       <FontAwesomeIcon icon={slotIcon(row.slot)} aria-hidden="true" />
-                      <span>{`${slotName(content, row.slot)}, x${row.count}`}</span>
+                      <span>{`${slotName(content, row.slot, row.base)}, x${row.count}`}</span>
                       <SmallButton type="button" onClick={() => onAct({ kind: "setSlot", index, slot: null })}>
                         {fill(loadout.clear, { n: index + 1 })}
                       </SmallButton>
@@ -323,6 +338,24 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
               })}
             </Items>
           </Block>
+          {gear && (
+            <Block aria-labelledby="loadout-weapons">
+              <Subheading id="loadout-weapons">{content.gear.forge.title}</Subheading>
+              <Note>{content.gear.aimWarning}</Note>
+              {gear.pieces.filter((piece) => piece.slot === "weapon").length === 0 && <Note>{content.gear.forge.note}</Note>}
+              <Items>
+                {gear.pieces.filter((piece) => piece.slot === "weapon").map((piece) => (
+                  <Item key={piece.uid}>
+                    <ItemTop>
+                      <ItemName colour={RARITY_COLOUR[piece.rarity]}>{pieceName(content, piece.base)}</ItemName>
+                      <ItemCount>{fill(content.gear.level, { level: piece.level })}</ItemCount>
+                    </ItemTop>
+                    {slotButtons({ kind: "weapon", id: piece.uid }, pieceName(content, piece.base))}
+                  </Item>
+                ))}
+              </Items>
+            </Block>
+          )}
           <Block aria-labelledby="loadout-things">
             <Subheading id="loadout-things">{loadout.things}</Subheading>
             <Items>
@@ -338,7 +371,10 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             </Items>
           </Block>
         </TabPanel>
-        <TabPanel {...panelProps(3)}>
+        <TabPanel {...panelProps(TAB.forge)}>
+          {gear && <Forge content={content} gear={gear} onAct={onAct} />}
+        </TabPanel>
+        <TabPanel {...panelProps(TAB.hold)}>
           <div>
             <Note>{fill(copy.hold, { used: economy.used, capacity: economy.capacity })}</Note>
             <Meter role="meter" aria-label={copy.tabs.hold} aria-valuemin={0} aria-valuemax={economy.capacity} aria-valuenow={economy.used}>
@@ -378,7 +414,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             ))}
           </Items>
         </TabPanel>
-        <TabPanel {...panelProps(4)}>
+        <TabPanel {...panelProps(TAB.plans)}>
           <Items>
             {economy.recipes.map(({ recipe, isKnown, shortfall }) => (
               <Item key={recipe.id}>
@@ -422,7 +458,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             </Block>
           )}
         </TabPanel>
-        <TabPanel {...panelProps(5)}>
+        <TabPanel {...panelProps(TAB.ledger)}>
           <Stats>
             <StatName>{copy.ledger.balance}</StatName>
             <StatValue>{formatPurse(copy, economy.purse)}</StatValue>
@@ -438,7 +474,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             ))}
           </Entries>
         </TabPanel>
-        <TabPanel {...panelProps(6)}>
+        <TabPanel {...panelProps(TAB.codex)}>
           {career && (
             <>
               <Note>{fill(careerCopy.codexFound, { found: career.found, total: career.codex.length })}</Note>
@@ -466,7 +502,13 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             </>
           )}
         </TabPanel>
-        <TabPanel {...panelProps(7)}>
+        <TabPanel {...panelProps(TAB.badges)}>
+          {progress && <Badges content={content} progress={progress} />}
+        </TabPanel>
+        <TabPanel {...panelProps(TAB.style)}>
+          {progress && <Style content={content} progress={progress} onAct={onAct} />}
+        </TabPanel>
+        <TabPanel {...panelProps(TAB.settings)}>
           <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
         </TabPanel>
       </Body>

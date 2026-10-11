@@ -1,6 +1,8 @@
 import type { ZoneId } from "@/config/zones";
 import type { LaunchLand, LaunchMilestone, LaunchVehicle } from "@/packages/games/launch";
-import type { BoostId, LandingMethod, LandingPhase, SlotRefusal, SurfaceBiome } from "@/packages/games/voyage";
+import type {
+  AmmoType, BoostId, GearSlot, GearStat, LandingMethod, LandingPhase, ShipWeaponKind, SlotRefusal, SurfaceBiome,
+} from "@/packages/games/voyage";
 
 export interface DuelRound {
   agent: string;
@@ -273,6 +275,99 @@ export interface VoyageBoostCopy {
   };
 }
 
+// The armoury: a piece's name ("{grade} {piece}", a grade for each hull), each slot and what it does, each weapon,
+// each kind of ammunition, what each stat is called, the enhancement tiers ("+{count} {tier}"), and everything the
+// ship's sheet and the forge say ("{name}", "{level}", "{chance}" and the like replaced).
+export interface VoyageGearCopy {
+  tabs: { profile: string; forge: string; badges: string; style: string };
+  pieceName: string;
+  grades: string[];
+  slots: Record<GearSlot, string>;
+  slotNotes: Record<GearSlot, string>;
+  weapons: Record<ShipWeaponKind, NamedNote>;
+  ammo: Record<AmmoType, string>;
+  stats: Record<GearStat, string>;
+  tiers: Record<string, { one: string; many: string }>;
+  form: string;
+  noForm: string;
+  level: string;
+  fitted: string;
+  onBar: string;
+  fit: string;
+  unfit: string;
+  dismantle: string;
+  empty: string;
+  locked: string;
+  needsLevel: string;
+  pieces: string;
+  noPieces: string;
+  armed: { damage: string; rate: string; range: string; ammo: string };
+  ammoTitle: string;
+  rack: string;
+  aimWarning: string;
+  enhance: {
+    title: string;
+    note: string;
+    button: string;
+    chance: string;
+    fall: string;
+    cost: string;
+    protect: string;
+    top: string;
+    success: string;
+    fell: string;
+    kept: string;
+    short: string;
+  };
+  forge: { title: string; note: string; locked: string; make: string; grade: string; needsLevel: string };
+  notices: { found: string; foundAmmo: string; chest: string; cache: string; streak: string };
+}
+
+// The pilot's progress: their level and experience, stars, every achievement's name and what it asks, each paint
+// and trail, the card at a run's end, and the guided first flight's steps.
+export interface VoyageProgressCopy {
+  level: string;
+  exp: string;
+  capped: string;
+  stars: string;
+  starsWon: string;
+  levelUp: string;
+  achievementsTitle: string;
+  achievementsFound: string;
+  achievement: string;
+  progress: string;
+  achievements: Record<string, NamedNote>;
+  styleTitle: string;
+  paintsTitle: string;
+  trailsTitle: string;
+  paints: Record<string, string>;
+  trails: Record<string, string>;
+  wear: string;
+  worn: string;
+  byStars: string;
+  byAchievement: string;
+  cosmetic: string;
+  summary: {
+    title: string;
+    time: string;
+    score: string;
+    places: string;
+    landings: string;
+    kills: string;
+    streak: string;
+    coin: string;
+    exp: string;
+    levels: string;
+    universes: string;
+    stars: string;
+    gear: string;
+    achievements: string;
+  };
+  guide: { title: string; steps: string[]; touchSteps: string[]; next: string; skip: string; done: string };
+  universe: string;
+  daily: string;
+}
+
 // The view from a world's surface: which world ("{body}"), the local time ("{time}"), what each kind of ground is
 // called, and how to leave.
 export interface FinaleSurface {
@@ -512,6 +607,8 @@ export interface FinaleVoyage {
   economy: VoyageEconomyCopy;
   career: VoyageCareerCopy;
   boosts: VoyageBoostCopy;
+  gear: VoyageGearCopy;
+  progress: VoyageProgressCopy;
 }
 
 export interface FinaleContent {

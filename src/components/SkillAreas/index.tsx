@@ -40,6 +40,9 @@ const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-2`;
 
 const Examples = tw.div`mt-[25px]`;
 
+// Lined up with the areas' frame above it.
+const ExamplesIntro = styled(Intro)(() => [tw`ml-[-1px] border-r-[0px]`]);
+
 const Drawings = tw.div`mt-[22px]`;
 
 // Too many areas to read as one wall of tags, so one area is open at a time. Every area stays in the page,
@@ -77,10 +80,10 @@ export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas, examples, bluepr
         </Layout>
       </Content>
       <Examples>
-        <Intro>
+        <ExamplesIntro>
           <PanelTitle>{examples.title}</PanelTitle>
           <PanelText>{examples.description}</PanelText>
-        </Intro>
+        </ExamplesIntro>
         <Drawings>
           <BlueprintSection section={blueprintSection} />
         </Drawings>

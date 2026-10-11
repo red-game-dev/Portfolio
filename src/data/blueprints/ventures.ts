@@ -819,11 +819,11 @@ export const FREIGHT_BLUEPRINT: Blueprint = {
     groups: [
       {
         id: "fw-start",
-        label: "What starts a check",
+        label: "What comes in",
         place: { col: 1, row: 1, rowSpan: 2 },
         nodes: [
           { id: "fw-dispatcher", label: "Dispatcher", detail: "Creates a delivery and its threshold", kind: "actor" },
-          { id: "fw-schedule", label: "Scheduled check", detail: "Every ten minutes" },
+          { id: "fw-schedule", label: "Traffic monitor", detail: "Every ten minutes, 43+ routes" },
           { id: "fw-dashboard", label: "Dashboard", detail: "Live traffic map, workflow timeline" },
         ],
       },
@@ -848,7 +848,7 @@ export const FREIGHT_BLUEPRINT: Blueprint = {
       },
       {
         id: "fw-workers",
-        label: "Workers, versioned",
+        label: "Workers",
         place: { col: 3, row: 1, rowSpan: 2 },
         nodes: [
           { id: "fw-traffic", label: "Fetch traffic", detail: "Delay in minutes" },
@@ -882,7 +882,7 @@ export const FREIGHT_BLUEPRINT: Blueprint = {
     edges: [
       { from: "fw-dispatcher", to: "fw-dashboard" },
       { from: "fw-dashboard", to: "fw-routes" },
-      { from: "fw-schedule", to: "fw-routes", label: "cron" },
+      { from: "fw-schedule", to: "fw-db", label: "traffic snapshots" },
       { from: "fw-routes", to: "fw-engine", label: "start" },
       { from: "fw-poll", to: "fw-signals", style: "dashed" },
       { from: "fw-engine", to: "fw-workers", label: "activities" },
@@ -920,7 +920,7 @@ export const FREIGHT_BLUEPRINT: Blueprint = {
     decision: "Every step is an activity with its own timeout and retries, and every provider sits behind an adapter with a " +
       "fallback, so a slow or failing service delays a message rather than losing it.",
     outcome: "Customers hear of a delay before they ask, a restarted worker picks the workflow up where it was, and workers " +
-      "deploy with versioning and no downtime.",
+      "can deploy by build id with no downtime.",
   },
   journeys: [
     {

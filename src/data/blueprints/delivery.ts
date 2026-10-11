@@ -8,8 +8,8 @@ const blueprints: Blueprint[] = [
     tab: "Integrations",
     zone: "matrix",
     title: "Integrations at the edge of a commerce platform",
-    caption: "Every outside system sits behind a boundary of its own, mapped one by one, and content reaches the storefront " +
-      "through one signed, versioned adapter, so a vendor can change without the storefront noticing.",
+    caption: "Each outside system's boundary is mapped one by one, and content reaches the storefront through one signed, " +
+      "versioned adapter, so a content source can change without the storefront noticing.",
     summary: {
       role: "Mapped the integration boundary across eight external systems, and designed and built the content adapter API at its centre",
       scale: "A multi market retailer: shoppers, business buyers, editors and the teams behind them",
@@ -138,7 +138,8 @@ const blueprints: Blueprint[] = [
           ],
         },
       ],
-      decision: "Every outside system gets its own boundary, mapped before it is built, so no vendor's model leaks into the storefront.",
+      decision: "Every outside system's boundary is mapped before anything is built against it, so the rules that keep a vendor's model " +
+        "out of the storefront are set up front.",
       outcome: "Eight external systems mapped at the boundary, content reaching the storefront through one signed, versioned " +
         "contract, and a content source that a flag can switch.",
     },
@@ -296,7 +297,7 @@ const blueprints: Blueprint[] = [
       ],
       decision: "Each market is routed on its own in the mesh, and features and the content source sit behind flags, so moving a " +
         "market or undoing it is a routing or flag change, not a release.",
-      outcome: "Markets migrate one at a time under monitoring, pilot markets go first, and the analytics behind each move decide " +
+      outcome: "Markets migrate one at a time under monitoring, pilot markets go first, and the analytics are designed to inform " +
         "whether the next one goes or the last one rolls back.",
     },
     journeys: [
@@ -426,9 +427,10 @@ const blueprints: Blueprint[] = [
           ],
         },
       ],
-      decision: "Analytics are collected first party and only with consent, kept apart from engineering telemetry, and the same " +
-        "dashboards decide whether a pilot market goes on or rolls back.",
-      outcome: "Pilot market and rollback decisions read from one warehouse, with analytics gated by the shopper's consent.",
+      decision: "Analytics are collected first party and only with consent, kept apart from engineering telemetry, and read " +
+        "beside it when a pilot market goes on or rolls back.",
+      outcome: "Designed so pilot market and rollback decisions read the warehouse's dashboards beside system health, with " +
+        "analytics gated by the shopper's consent.",
     },
     journeys: [
       {

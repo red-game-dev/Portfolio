@@ -415,7 +415,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   }, [game, held]);
 
   // What each key does is the voyage's key map and `voyageKeyAction`; carrying it out is here. A key that means
-  // nothing right now is left to the browser, so Escape with nothing open still closes the voyage.
+  // nothing right now is left to the browser, so Escape with nothing open reaches the dialog, which asks before a run is left.
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => VOYAGE_KEYS.offer(event, (command) => {
     unlockSound();
 
@@ -434,6 +434,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       hasRun: snapshot !== null && snapshot.status !== "ready",
       isHangarOpen,
       isPhoto,
+      isMapOpen,
       // The view kept from the game, not `game.economy`, which builds a fresh one on every read.
       hasHangar: economy !== null,
       hasSuggestion: Boolean(economy?.suggestion),
@@ -499,8 +500,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
     return true;
   }), [
-    act, applyKeys, castOff, economy, follow, game, held, isFlying, isHangarOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns, toggleMap,
-    togglePhoto, unlockSound, zoom,
+    act, applyKeys, castOff, economy, follow, game, held, isFlying, isHangarOpen, isMapOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns,
+    toggleMap, togglePhoto, unlockSound, zoom,
   ]);
 
   const onKeyUp = useCallback((event: KeyboardEvent<HTMLElement>) => {
@@ -683,6 +684,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       hasRun: snapshot !== null && snapshot.status !== "ready",
       isHangarOpen,
       isPhoto,
+      isMapOpen,
       hasHangar: economy !== null,
       hasSuggestion: Boolean(economy?.suggestion),
       hasGame: game !== null,

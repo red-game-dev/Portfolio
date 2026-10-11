@@ -61,6 +61,7 @@ export interface VoyageKeyState {
   hasRun: boolean;
   isHangarOpen: boolean;
   isPhoto: boolean;
+  isMapOpen: boolean;
   // The pilot's hangar has loaded.
   hasHangar: boolean;
   hasSuggestion: boolean;
@@ -83,7 +84,7 @@ const PHOTO_KEYS: ReadonlySet<VoyageCommand> = new Set<VoyageCommand>(["photo", 
 
 // What a command does in the voyage's present state, or null when it means nothing now and the browser keeps the
 // key. With the hangar open only its own keys work, and in photo mode only its own; Escape steps out of the hangar
-// first, and only then out of photo mode.
+// first, then a port, then photo mode, then the map.
 export const voyageKeyAction = (command: VoyageCommand, state: VoyageKeyState): VoyageKeyAction | null => {
   if ((state.isHangarOpen && !HANGAR_KEYS.has(command)) || (state.isPhoto && !PHOTO_KEYS.has(command))) {
     return null;
@@ -124,7 +125,12 @@ export const voyageKeyAction = (command: VoyageCommand, state: VoyageKeyState): 
         return "undock";
       }
 
-      return state.isPhoto ? "photo" : null;
+      if (state.isPhoto) {
+        return "photo";
+      }
+
+      // Escape on the map closes the map, not the voyage.
+      return state.isMapOpen ? "map" : null;
     default:
       return state.hasGame ? command : null;
   }

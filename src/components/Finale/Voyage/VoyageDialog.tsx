@@ -1,4 +1,4 @@
-import { FC, Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { FC, Fragment, SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   faAnchor,
@@ -68,6 +68,8 @@ import {
   IconButton,
   Incoming,
   LensCanvas,
+  MapBar,
+  MapTitle,
   Message,
   Overlay,
   Pay,
@@ -175,7 +177,6 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     edgeNote: content.career.edgeNote,
     gateWayOn: content.gate.markWayOn,
     gateVisited: content.gate.markVisited,
-    mapMission: content.mapMarks.mission,
     mapHoleMass: content.mapMarks.holeMass,
     mapKeyMission: content.mapMarks.keyMission,
     mapKeyPull: content.mapMarks.keyPull,
@@ -183,7 +184,6 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     mapKeyRock: content.mapMarks.keyRock,
     mapKeyHazard: content.mapMarks.keyHazard,
     wayOn: content.mapMarks.wayOn,
-    mapStation: content.mapMarks.station,
     mapKeyPort: content.mapMarks.keyPort,
     mapKeyDistress: content.mapMarks.keyDistress,
     dock: content.encounters.station.dockHere,
@@ -326,6 +326,62 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     }
   }, [guideStep, isMapOpen, redGain]);
 
+  // Leaving a run in progress asks first, over the run held still; between runs the voyage just closes. The question
+  // goes when the run moves again, however that happens, and a run it paused itself resumes if the pilot stays.
+  const [isLeaving, setIsLeaving] = useState(false);
+  const pausedToAsk = useRef(false);
+  const isAskingToLeave = isLeaving && isPaused && status === "flying";
+
+  useEffect(() => {
+    if (!isPaused) {
+      setIsLeaving(false);
+    }
+  }, [isPaused]);
+
+  const askToLeave = () => {
+    if (status !== "flying") {
+      onClose();
+
+      return;
+    }
+
+    pausedToAsk.current = !isPaused;
+
+    if (!isPaused) {
+      pause();
+    }
+
+    setIsLeaving(true);
+  };
+
+  const keepFlying = () => {
+    setIsLeaving(false);
+
+    if (pausedToAsk.current) {
+      pausedToAsk.current = false;
+      resume();
+    }
+  };
+
+  // Escape that nothing inside wanted (no hangar, port, photo or map open) would close the dialog: during a run it asks.
+  const onCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
+    if (status !== "flying") {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (isAskingToLeave) {
+      keepFlying();
+    } else {
+      askToLeave();
+    }
+  };
+
+  // The map is a view of its own: the HUD, the cards and the bar step aside for it, as they do for photo mode.
+  const isMapView = isMapOpen && !isPhoto && !isHangarOpen;
+  const isHudAside = isPhoto || isMapView;
+
   useEffect(() => {
     if (notices.length === 0) {
       return;
@@ -440,7 +496,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   );
 
   return (
-    <Dialog ref={dialogRef} onClose={onClose} onClick={onBackdropClick} onKeyDown={voyage.onKeyDown} onKeyUp={voyage.onKeyUp} aria-label={content.title}>
+    <Dialog
+      ref={dialogRef}
+      onClose={onClose}
+      onCancel={onCancel}
+      onClick={onBackdropClick}
+      onKeyDown={voyage.onKeyDown}
+      onKeyUp={voyage.onKeyUp}
+      aria-label={content.title}
+    >
       <Stage
         ref={stageRef}
         tabIndex={-1}
@@ -472,7 +536,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </ActionButton>
         </PhotoBar>
       )}
-      <Hud hidden={isPhoto}>
+      {isMapView && (
+        <MapBar aria-label={content.map}>
+          <MapTitle>{content.map}</MapTitle>
+          <IconButton type="button" onClick={toggleMap} aria-label={content.closeMap}>
+            <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
+          </IconButton>
+        </MapBar>
+      )}
+      <Hud hidden={isHudAside}>
         <Vitals>
           <Place>{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
           {economy && (
@@ -600,12 +672,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
               <FontAwesomeIcon icon={isPaused ? faPlay : faPause} aria-hidden="true" />
             </IconButton>
           )}
-          <IconButton type="button" onClick={onClose} aria-label={content.close}>
+          <IconButton type="button" onClick={askToLeave} aria-label={content.close}>
             <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
           </IconButton>
         </HudButtons>
       </Hud>
-      {snapshot?.descent && status === "flying" && !isHangarOpen && !isPhoto && (
+      {snapshot?.descent && status === "flying" && !isHangarOpen && !isHudAside && (
         <SurfaceCard aria-label={fill(content.descent.title, { body: comingDownOn })}>
           <SurfaceTitle>{fill(content.descent.title, { body: comingDownOn })}</SurfaceTitle>
           <SurfaceLine>{descentMethod(content, snapshot.descent, snapshot.surface?.isHome ?? false)}</SurfaceLine>
@@ -615,14 +687,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           {descentHint(content, snapshot.descent, landing.control === "manual").map((line) => <SurfaceHint key={line}>{line}</SurfaceHint>)}
         </SurfaceCard>
       )}
-      {!snapshot?.descent && snapshot?.surface && status === "flying" && !isHangarOpen && !isPhoto && (
+      {!snapshot?.descent && snapshot?.surface && status === "flying" && !isHangarOpen && !isHudAside && (
         <SurfaceCard aria-label={surfaceTitle}>
           <SurfaceTitle>{surfaceTitle}</SurfaceTitle>
           {surfaceLines(content, snapshot, home?.name ?? null).map((line) => <SurfaceLine key={line}>{line}</SurfaceLine>)}
           <SurfaceHint>{surfaceHint(content, snapshot, home?.name ?? null)}</SurfaceHint>
         </SurfaceCard>
       )}
-      {snapshot && status === "flying" && !isHangarOpen && !isPhoto && (
+      {snapshot && status === "flying" && !isHangarOpen && !isHudAside && (
         <TelemetryPanel aria-label={content.telemetry.title}>
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>
@@ -636,7 +708,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </TelemetryPanel>
       )}
       {status === "flying" && snapshot && !isChoosing && !isDocked && (isGuiding || snapshot.boss || snapshot.incoming || snapshot.salvage || adrift ||
-        economy?.suggestion || snapshot.dockable || snapshot.distress) && !isHangarOpen && !isPhoto && (
+        economy?.suggestion || snapshot.dockable || snapshot.distress) && !isHangarOpen && !isHudAside && (
         <Frames>
           {snapshot.dockable && (
             <DockButton type="button" onClick={() => act({ kind: "dock" })}>
@@ -715,7 +787,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           )}
         </Frames>
       )}
-      {economy && snapshot && status === "flying" && !isPaused && !isHangarOpen && !isPhoto && !isChoosing && !isDocked && (
+      {economy && snapshot && status === "flying" && !isPaused && !isHangarOpen && !isHudAside && !isChoosing && !isDocked && (
         <AbilityBar
           content={content}
           rows={economy.bar}
@@ -725,7 +797,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           onFill={openLoadout}
         />
       )}
-      {message && status === "flying" && !isPhoto && <Message key={message.id} role="status">{message.text}</Message>}
+      {message && status === "flying" && !isHudAside && <Message key={message.id} role="status">{message.text}</Message>}
       {isChoosing && snapshot?.perkOffer && !isHangarOpen && !isPhoto && (
         <PerkCard content={content} offer={snapshot.perkOffer} taken={snapshot.perks} onChoose={choosePerk} />
       )}
@@ -790,7 +862,22 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 </CardButtons>
               </>
             )}
-            {status === "flying" && isPaused && (
+            {isAskingToLeave && (
+              <>
+                <Title>{content.leave.title}</Title>
+                <Text>{content.leave.text}</Text>
+                <CardButtons>
+                  <ActionButton type="button" isPrimary onClick={keepFlying}>
+                    <FontAwesomeIcon icon={faPlay} aria-hidden="true" />
+                    {content.leave.stay}
+                  </ActionButton>
+                  <ActionButton type="button" isPrimary={false} onClick={onClose}>
+                    {content.leave.confirm}
+                  </ActionButton>
+                </CardButtons>
+              </>
+            )}
+            {status === "flying" && isPaused && !isAskingToLeave && (
               <>
                 <Title>{content.paused}</Title>
                 <Text>{controlsText}</Text>

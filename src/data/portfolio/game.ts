@@ -171,6 +171,12 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       fuel: "Fuel",
       map: "Map",
       closeMap: "Close the map",
+      leave: {
+        title: "Leave the voyage?",
+        text: "This run ends here. Your pilot, ship, hold and coin stay saved in this browser.",
+        stay: "Keep flying",
+        confirm: "Leave",
+      },
       credits: "Planet maps: NASA and USGS (Blue Marble, LRO, Viking, MESSENGER, Cassini, New Horizons). Positions: JPL.",
       telemetry: {
         title: "Telemetry",
@@ -231,7 +237,6 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       landed: "Landed on {body}",
       tookOff: "Lifting off {body}",
       mapMarks: {
-        mission: "Mission",
         holeMass: "{mass} Suns",
         keyMission: "Where your missions send you",
         keyPull: "Inside the ring, a black hole outpulls your engines",
@@ -239,7 +244,6 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         keyRock: "Rock headed for a world",
         keyHazard: "Danger zone",
         wayOn: "Way on",
-        station: "Station",
         keyPort: "Station: dock to trade, mend and refuel",
         keyDistress: "Distress call",
       },

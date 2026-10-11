@@ -8,6 +8,7 @@ const state = (overrides: Partial<VoyageKeyState> = {}): VoyageKeyState => ({
   hasRun: true,
   isHangarOpen: false,
   isPhoto: false,
+  isMapOpen: false,
   hasHangar: true,
   hasSuggestion: true,
   hasGame: true,
@@ -115,6 +116,11 @@ describe("voyageKeyAction", () => {
   test("steps back out of the hangar before photo mode, and leaves Escape alone with neither open", () => {
     expect(voyageKeyAction("back", state({ isHangarOpen: true, isPhoto: true }))).toBe("closeHangar");
     expect(voyageKeyAction("back", state())).toBeNull();
+  });
+
+  test("Escape on the map closes the map, never the voyage", () => {
+    expect(voyageKeyAction("back", state({ isMapOpen: true }))).toBe("map");
+    expect(voyageKeyAction("back", state({ isMapOpen: true, isHangarOpen: true }))).toBe("closeHangar");
   });
 
   test("dock at a port alongside with E, and cast off with E or Escape", () => {

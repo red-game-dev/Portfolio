@@ -631,7 +631,7 @@ const blueprints: Blueprint[] = [
       "at once, ranks by effective price, and serves a signed fill; each delivery is booked and charged once, straight " +
       "through the ledger.",
     summary: {
-      role: "Founder and architect: designed the engine, the consoles, the money and the compliance, and build it with AI agents",
+      role: "Founder and CTO: designed the engine, the consoles, the money and the compliance, and build it with AI agents",
       scale: "My own gamified social network platform: 20 placements from the feed to video, 14 targeting axes, five transparency regimes",
       stack: ["TypeScript", "NestJS", "Next.js", "React", "PostgreSQL", "Redis", "Row level security", "Zod"],
     },

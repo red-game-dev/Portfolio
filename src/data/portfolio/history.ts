@@ -264,7 +264,7 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
       ],
     },
     {
-      title: "Founder & Architect, Gamified Social Network Platform",
+      title: "Founder & CTO, Gamified Social Network Platform",
       ventureRole: "Founder, CEO and CTO",
       industries: ["fintech", "sports", "social"],
       isVenture: true,

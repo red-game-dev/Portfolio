@@ -13,7 +13,7 @@ export const cvDocumentContent: Pick<PortfolioData, "cvDocument"> = {
       the core its seven squads ship on, and have put machine learning into production since 2019.`,
       `Hands on as an architect, CTO and tech lead: brownfield migrations and greenfield products, from 0 to 1 and at scale, across
       e-commerce, payments, iGaming, Web3 and games. I build production software with AI agents, inside rules, context and checks
-      I write, with a person reviewing every change. Offers from Google and AWS, declined to care for family; now free to relocate.`,
+      I write, with a person reviewing every change. Free to relocate.`,
     ],
     highlightsLabel: "Highlights",
     highlights: [

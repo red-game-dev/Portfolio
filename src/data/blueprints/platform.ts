@@ -622,6 +622,184 @@ const blueprints: Blueprint[] = [
       },
     ],
   },
+  {
+    id: "ads-engine",
+    tab: "Ads engine",
+    zone: "matrix",
+    title: "An ads engine for a social network, built to plug into any surface",
+    caption: "Advertisers point an ad at something that already exists, a post or a profile. One slot API asks every network " +
+      "at once, ranks by effective price, and serves a signed fill; each delivery is booked and charged once, straight " +
+      "through the ledger.",
+    summary: {
+      role: "Founder and architect: designed the engine, the consoles, the money and the compliance, and build it with AI agents",
+      scale: "My own social network: 20 placements from the feed to video, 14 targeting axes, five transparency regimes",
+      stack: ["TypeScript", "NestJS", "Next.js", "React", "PostgreSQL", "Redis", "Row level security", "Zod"],
+    },
+    architecture: {
+      columns: 4,
+      groups: [
+        {
+          id: "ads-buyers",
+          label: "Who buys",
+          place: { col: 1, row: 1 },
+          nodes: [
+            { id: "ads-console", label: "Advertiser console", detail: "Campaign, ad set, ad: three steps", kind: "actor" },
+            { id: "ads-boost", label: "Boost from a post", detail: "Only a budget and the days", kind: "actor" },
+            { id: "ads-apps", label: "Apps over the API", detail: "The app recorded apart from the advertiser", kind: "actor" },
+            { id: "ads-operators", label: "Operators", detail: "Review, on behalf, house campaigns", kind: "actor" },
+          ],
+        },
+        {
+          id: "ads-campaigns",
+          label: "Campaigns",
+          place: { col: 2, row: 1 },
+          nodes: [
+            { id: "ads-campaign", label: "Campaign", detail: "Objective, budget, dates, who paid for it" },
+            { id: "ads-set", label: "Ad set", detail: "Targeting, placements, bid, pacing, frequency cap, dayparting" },
+            { id: "ads-ad", label: "Ad", detail: "Points at a post, profile or article: nothing re-authored" },
+            { id: "ads-review", label: "Review and policy", detail: "Regulated categories, EU DSA and political ad rules", kind: "decision" },
+          ],
+        },
+        {
+          id: "ads-money",
+          label: "Money",
+          place: { col: 3, row: 1 },
+          nodes: [
+            { id: "ads-credit", label: "Ads credit", detail: "Topped up from platform credit, never withdrawn", kind: "store" },
+            { id: "ads-hold", label: "Budget hold", detail: "Held on approval, settled per delivery, the rest released" },
+            { id: "ads-booking", label: "Spend booking", detail: "Lifetime, daily and pacing in one atomic update" },
+            { id: "ads-statements", label: "Statements and invoices", detail: "Monthly, from the ledger" },
+          ],
+        },
+        {
+          id: "ads-surfaces",
+          label: "Surfaces",
+          place: { col: 4, row: 1 },
+          nodes: [
+            { id: "ads-feed", label: "Feed", detail: "One ad every eight posts" },
+            { id: "ads-pages", label: "Profiles, search, articles, inbox" },
+            { id: "ads-video", label: "Video", detail: "Pre roll, mid roll, overlay" },
+            { id: "ads-new", label: "Any new surface", detail: "A placement, a rules row and a mount" },
+          ],
+        },
+        {
+          id: "ads-viewer",
+          label: "A viewer",
+          place: { col: 1, row: 2 },
+          nodes: [
+            { id: "ads-opens", label: "Opens a page", kind: "actor" },
+            { id: "ads-slot", label: "Slot request", detail: "The placement, and the posts around it for brand safety" },
+          ],
+        },
+        {
+          id: "ads-delivery",
+          label: "Delivery engine",
+          place: { col: 2, row: 2, colSpan: 2 },
+          columns: 2,
+          nodes: [
+            { id: "ads-rules", label: "Placement rules", detail: "Guests, slots, personalisation; unknown fails closed" },
+            { id: "ads-networks", label: "Networks in parallel", detail: "First party always in, others behind one adapter, one deadline" },
+            { id: "ads-gates", label: "Every gate in one query", detail: "Live, in dates, jurisdiction, targeting, frequency" },
+            { id: "ads-rank", label: "Ranked by eCPM", detail: "Bid per thousand, by objective and lookalike" },
+            { id: "ads-token", label: "Signed fill", detail: "Single use, ten minutes" },
+            { id: "ads-card", label: "Sponsored card", detail: "The same card in the preview and live" },
+          ],
+        },
+        {
+          id: "ads-events",
+          label: "Events",
+          place: { col: 4, row: 2 },
+          nodes: [
+            { id: "ads-beacons", label: "Beacons", detail: "Viewed at half visible, click, engage, convert" },
+            { id: "ads-attribution", label: "Attribution", detail: "Last click in 7 days, else last view in 1" },
+            { id: "ads-charge", label: "Charged once", detail: "The token is the ledger key: a replay cannot charge twice" },
+            { id: "ads-reports", label: "Reporting", detail: "Breakdowns hide groups under 25 people" },
+          ],
+        },
+      ],
+      edges: [
+        { from: "ads-buyers", to: "ads-campaign" },
+        { from: "ads-campaign", to: "ads-set" },
+        { from: "ads-set", to: "ads-ad" },
+        { from: "ads-ad", to: "ads-review" },
+        { from: "ads-review", to: "ads-hold", label: "approve" },
+        { from: "ads-credit", to: "ads-hold" },
+        { from: "ads-opens", to: "ads-slot" },
+        { from: "ads-slot", to: "ads-rules" },
+        { from: "ads-rules", to: "ads-networks" },
+        { from: "ads-networks", to: "ads-gates" },
+        { from: "ads-gates", to: "ads-rank" },
+        { from: "ads-rank", to: "ads-token" },
+        { from: "ads-token", to: "ads-card" },
+        { from: "ads-card", to: "ads-surfaces" },
+        { from: "ads-card", to: "ads-beacons" },
+        { from: "ads-beacons", to: "ads-attribution" },
+        { from: "ads-attribution", to: "ads-charge" },
+        { from: "ads-charge", to: "ads-booking", style: "dashed" },
+        { from: "ads-hold", to: "ads-booking" },
+        { from: "ads-booking", to: "ads-statements" },
+        { from: "ads-charge", to: "ads-reports" },
+      ],
+    },
+    wireframe: {
+      device: "desktop",
+      screens: [
+        {
+          title: "Creating a campaign",
+          regions: [
+            { kind: "steps", label: "Campaign, ad set, ad", area: "header" },
+            { kind: "form", label: "Targeting, placements, bid, pacing, frequency", area: "main" },
+            { kind: "stat", label: "Estimated reach", area: "right" },
+            { kind: "card", label: "Preview in the placement, the live card", area: "right" },
+            { kind: "actions", label: "Submit for review", area: "footer" },
+          ],
+        },
+        {
+          title: "Reviewing it before it runs",
+          regions: [
+            { kind: "list", label: "Campaigns by status: in review, awaiting funds, live, suspended", size: 1.6 },
+            { kind: "card", label: "The ad as it will publish, with all three tiers", size: 1.6 },
+            { kind: "actions", label: "Approve, or reject with a statement of reasons" },
+          ],
+        },
+      ],
+      decision: "Ads are a slot, not a page: one slot API, one hook and one card serve every placement, first party inventory " +
+        "always competes on price alone, and money moves only through the ledger, booked atomically per delivery.",
+      outcome: "A new surface is a rules row and a mount, a boost is two answers, regulated markets get their transparency " +
+        "records, and no delivery can be charged twice.",
+    },
+    journeys: [
+      {
+        title: "Boosting a post",
+        steps: [
+          "A creator opens the menu on their post and picks a budget and a number of days",
+          "The bid is set from the two, and the boost goes to review",
+          "Approval holds the budget from their ads credit",
+          "It runs as a sponsored card, each delivery settled from the hold",
+          "What is left returns when it ends",
+        ],
+      },
+      {
+        title: "A sponsored card, served",
+        steps: [
+          "A viewer opens the feed, and the slot asks with the posts around it",
+          "Every network is asked at once, within one deadline",
+          "The first party query applies every gate, and the fills are ranked by effective price",
+          "A signed fill comes back, and the card shows between posts with its Sponsored chip and who paid",
+          "Half on screen, it counts as viewed and is charged once, straight through the ledger",
+          "The viewer can hide it, or ask why they are seeing it",
+        ],
+      },
+      {
+        title: "A campaign that runs out of funds",
+        steps: [
+          "A delivery finds the ads credit too low",
+          "The booking is released and the campaign waits for funds",
+          "A top up wakes it, or the nightly sweep does",
+        ],
+      },
+    ],
+  },
 ];
 
 export default blueprints;

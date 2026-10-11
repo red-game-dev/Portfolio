@@ -929,7 +929,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         level: "Level {level}",
         exp: "{into} of {next} EXP to the next level",
         capped: "Top level",
-        stars: "{count} stars",
+        stars: "Stars won: {count}",
         starsWon: "{stars} of 3 stars in {place}",
         levelUp: "Level {level}! Your ship grows a little stronger.",
         achievementsTitle: "Achievements",

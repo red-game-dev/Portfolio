@@ -49,22 +49,33 @@ export const ShipSheet: FC<ShipSheetProps> = ({ content, economy, gear, progress
   const chosenPiece = chosenSlot?.uid ? byUid.get(chosenSlot.uid) : undefined;
   const spares = gear.pieces.filter((piece) => piece.slot === chosen && !piece.isFitted);
 
-  // The ship is drawn again whenever how it looks may have changed.
+  // The ship is drawn again whenever how it looks may have changed, and whenever the canvas changes size, which it
+  // first does when its tab is opened (a hidden tab has no size to draw at).
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
 
     if (!canvas || !context) {
-      return;
+      return undefined;
     }
 
-    const ratio = Math.min(2, window.devicePixelRatio || 1);
-    const width = canvas.clientWidth * ratio;
-    const height = canvas.clientHeight * ratio;
+    const draw = () => {
+      const ratio = Math.min(2, window.devicePixelRatio || 1);
+      const width = Math.round(canvas.clientWidth * ratio);
+      const height = Math.round(canvas.clientHeight * ratio);
 
-    canvas.width = width;
-    canvas.height = height;
-    drawShip(context, width, height);
+      if (width > 0 && height > 0) {
+        canvas.width = width;
+        canvas.height = height;
+        drawShip(context, width, height);
+      }
+    };
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(draw);
+
+    draw();
+    observer?.observe(canvas);
+
+    return () => observer?.disconnect();
   }, [drawShip, gear, economy.level]);
 
   // What a slot not yet grown waits for: a greater ship and a higher level.
@@ -88,6 +99,7 @@ export const ShipSheet: FC<ShipSheetProps> = ({ content, economy, gear, progress
         isLocked={!entry.isOpen}
         aria-pressed={chosen === entry.slot}
         aria-label={`${copy.slots[entry.slot]}: ${name}`}
+        title={name}
         onClick={() => setChosen(entry.slot)}
       >
         <SlotTop>

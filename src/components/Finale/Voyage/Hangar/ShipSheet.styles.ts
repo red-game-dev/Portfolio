@@ -1,6 +1,6 @@
 import tw, { css, styled } from "twin.macro";
 
-import { focusRing } from "@/styles/mixins";
+import { focusRing, media } from "@/styles/mixins";
 
 // The top of the sheet: the pilot's level and the ship's enhancement, as an MMO's character sheet heads its page.
 export const SheetHead = tw.div`flex flex-col gap-[6px]`;
@@ -18,7 +18,7 @@ export const Total = styled.span(({ colour }: { colour: string }) => [
 export const Doll = styled.div(() => [
   tw`grid gap-[6px]`,
   css`
-    grid-template-columns: 1fr minmax(96px, 1.1fr) 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(84px, 0.9fr) minmax(0, 1fr);
     grid-template-areas:
       "left ship right"
       "below below below";
@@ -26,7 +26,7 @@ export const Doll = styled.div(() => [
 ]);
 
 export const Column = styled.div(({ area }: { area: "left" | "right" }) => [
-  tw`flex flex-col gap-[6px]`,
+  tw`flex flex-col gap-[6px] min-w-0`,
   css`
     grid-area: ${area};
   `,
@@ -36,7 +36,11 @@ export const Below = styled.div(() => [
   tw`grid gap-[6px]`,
   css`
     grid-area: below;
-    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    ${media.md} {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   `,
 ]);
 
@@ -48,7 +52,7 @@ export const ShipFrame = styled.div(() => [
   `,
 ]);
 
-export const ShipCanvas = tw.canvas`w-full h-full max-h-[260px]`;
+export const ShipCanvas = tw.canvas`w-full h-full min-h-[180px] max-h-[260px]`;
 
 // One piece's place: its icon, its name in its rarity's colour, its level and its enhancement; dim and locked
 // where the ship has not grown it yet; lit when chosen.

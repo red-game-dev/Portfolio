@@ -64,7 +64,7 @@ export const StationPanel: FC<StationPanelProps> = ({ content, station, port, on
                   <Actions>
                     <SmallButton
                       type="button"
-                      isPrimary={service.isNeeded}
+                      isPrimary={service.isNeeded && service.price <= station.coin}
                       disabled={!service.isNeeded || service.price > station.coin}
                       onClick={() => onAct({ kind: "service", service: service.id })}
                     >
@@ -91,7 +91,7 @@ export const StationPanel: FC<StationPanelProps> = ({ content, station, port, on
                   <Actions>
                     <SmallButton
                       type="button"
-                      isPrimary={!isFull}
+                      isPrimary={!isFull && pack.price <= station.coin}
                       disabled={isFull || pack.price > station.coin}
                       onClick={() => onAct({ kind: "buyAmmo", ammo: pack.type })}
                     >
@@ -114,7 +114,12 @@ export const StationPanel: FC<StationPanelProps> = ({ content, station, port, on
                   </ItemTop>
                   <Note>{content.economy.items[good.id]?.note ?? ""}</Note>
                   <Actions>
-                    <SmallButton type="button" isPrimary disabled={good.price > station.coin} onClick={() => onAct({ kind: "buy", item: good.id, count: 1 })}>
+                    <SmallButton
+                      type="button"
+                      isPrimary={good.price <= station.coin}
+                      disabled={good.price > station.coin}
+                      onClick={() => onAct({ kind: "buy", item: good.id, count: 1 })}
+                    >
                       {good.price > station.coin ? copy.tooPoor : fill(copy.buy, { price: price(good.price) })}
                     </SmallButton>
                   </Actions>

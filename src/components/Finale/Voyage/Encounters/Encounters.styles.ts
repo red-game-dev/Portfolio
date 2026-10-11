@@ -48,4 +48,4 @@ export const DistressFrame = styled.section(() => [
 ]);
 
 // A boss's great attack coming, under its frame.
-export const BossTell = tw.p`m-0 text-[11px] md:text-xs font-bold text-[#ff8a96] uppercase`;
+export const BossTell = tw.p`m-0 text-[11px] md:text-xs font-bold text-[#ff8a96]`;

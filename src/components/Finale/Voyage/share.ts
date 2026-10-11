@@ -69,7 +69,8 @@ export const drawRunCard = (context: CanvasRenderingContext2D, photo: HTMLCanvas
 };
 
 // Shares a card through the device's share sheet where it can share files, else saves it; says which it did (null
-// when the reader closed the sheet or nothing could be made).
+// when the reader closed the sheet or nothing could be made). A sheet that refuses for any other reason (a browser
+// that offers sharing but will not share this) saves the card instead.
 export const shareCard = async (card: HTMLCanvasElement, fileName: string, text: string, url: string): Promise<"shared" | "saved" | null> => {
   const blob = await new Promise<Blob | null>((resolve) => card.toBlob(resolve, "image/png"));
 
@@ -84,8 +85,10 @@ export const shareCard = async (card: HTMLCanvasElement, fileName: string, text:
       await navigator.share({ files: [file], text, url });
 
       return "shared";
-    } catch {
-      return null;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return null;
+      }
     }
   }
 

@@ -147,12 +147,12 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         "click someone to lock on, F " +
         "holds fire. Rocks and crashes cannot destroy the ship in the solar system, but the Sun can, and past the Kuiper belt anything " +
         "can. Fly through gold coins to pick up Red Coin. Hold still beside a wreck to salvage it. H opens the hangar and U does " +
-        "whatever is ready. 1 to 4 use what is on your ability bar: boosts found as glowing cores, and things from the hold. C " +
-        "takes a photo. P pauses, Escape leaves.",
+        "whatever is ready. 1 to 6 use what is on your ability bar: weapons, boosts found as glowing cores, and things from the hold. " +
+        "Slow down beside a station or a trader and E docks to trade. C takes a photo. P pauses, Escape leaves.",
       controlsTouch: "Hold a finger where to fly: the ship turns and burns towards it, harder the further you point. Pinch to zoom. " +
         "The guns aim themselves; tap someone to lock on. Fly through gold coins for Red Coin, and hold still beside a wreck to " +
-        "salvage it. The buttons at the top open the hangar, the map and photo mode, and the ability bar uses boosts and things from " +
-        "the hold.",
+        "salvage it. Slow down beside a station or a trader and tap Dock to trade. The buttons at the top open the hangar, the map and " +
+        "photo mode, and the ability bar uses weapons, boosts and things from the hold.",
       canvasLabel: "Your ship, flying out through space",
       setup: {
         title: "How do you like to fly?",
@@ -818,8 +818,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         levelUp: "{name} reached level {level}",
         loadout: {
           tab: "Loadout",
-          note: "Four slots, used with keys 1 to 4 or a tap. Boosts run on charges, found as glowing cores in space, and each place " +
-            "has its own. Finding the same boost again raises its level.",
+          note: "Six slots, used with keys 1 to 6 or a tap: weapons, boosts and things from the hold. Boosts run on charges, found as " +
+            "glowing cores in space, and each place has its own. Finding the same boost again raises its level.",
           slots: "Your bar",
           boosts: "Boosts found",
           things: "From the hold",

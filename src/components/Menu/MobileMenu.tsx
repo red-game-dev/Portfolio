@@ -16,6 +16,8 @@ import {
   Kicker,
   Node,
   Panel,
+  PartLink,
+  Parts,
   Progress,
   Route,
   Stop,
@@ -130,6 +132,15 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
                         </StopText>
                         <Chevron aria-hidden="true"><FontAwesomeIcon icon={faChevronRight} /></Chevron>
                       </StopLink>
+                      {item.parts && (
+                        <Parts aria-label={fill(content.partsLabel, { stop: content.stops[item.key] })}>
+                          {item.parts.map((part) => (
+                            <li key={part.key}>
+                              <PartLink href={part.href} onClick={(event) => go(event, part.href)}>{content.parts[part.key]}</PartLink>
+                            </li>
+                          ))}
+                        </Parts>
+                      )}
                     </Stop>
                   );
                 })}

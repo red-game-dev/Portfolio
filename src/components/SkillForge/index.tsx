@@ -1,13 +1,17 @@
-import { FC } from "react";
+import { FC, useCallback } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
 import { Anchor, Section } from "@/components/Section";
 import { Station } from "@/components/SkillForge/Station";
+import { SwitchStage, useSwitch } from "@/components/SwitchStage";
+import { Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { ROLE_ANCHORS, SECTION_IDS } from "@/config/sections";
+import useTabs from "@/hooks/useTabs";
 import { DEFAULT_RARITY_TIERS } from "@/packages/insights/skills";
 import { ForgeStation } from "@/services/skills";
+import { honourHidden } from "@/styles/mixins";
 import { ForgeContent } from "@/types/forge";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -35,10 +39,23 @@ const LegendItem = styled.li(({ colour }: { colour: string }) => [
   `,
 ]);
 
-const Stations = tw.div`flex flex-col gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[35px]`;
+// A row that scrolls sideways on a phone, a column beside the open station on a desktop.
+const Layout = tw.div`mt-[25px] lg:mt-[35px] flex flex-col lg:flex-row gap-[16px] lg:gap-[28px]`;
 
-// The skills as a forge: no self ratings, only rarity earned from years of real use.
-export const SkillForge: FC<SkillForgeProps> = ({ intro, stations, content }: SkillForgeProps) => (
+const Stations = styled(SwitchStage)(() => [tw`flex-1 min-w-0`]);
+
+const StationPanel = styled.div(() => [tw`min-w-0`, honourHidden]);
+
+// The skills as a forge: no self ratings, only rarity earned from years of real use. One station is open at
+// a time, so the forge reads in a screen or two rather than fourteen; every station stays in the page, the
+// closed ones hidden, so search engines and find in page still reach every skill.
+export const SkillForge: FC<SkillForgeProps> = ({ intro, stations, content }: SkillForgeProps) => {
+  const switcher = useSwitch();
+  const { play } = switcher;
+  const onSelect = useCallback((next: number, previous: number) => play(next > previous ? 1 : -1), [play]);
+  const { active, listProps, tabProps, panelProps } = useTabs({ count: stations.length, onSelect });
+
+  return (
   <Section id={SECTION_IDS.forge}>
     <Anchor id={ROLE_ANCHORS.fullStack} aria-hidden="true" />
     <SectionText intro={intro} />
@@ -49,10 +66,23 @@ export const SkillForge: FC<SkillForgeProps> = ({ intro, stations, content }: Sk
         </LegendItem>
       ))}
     </Legend>
-    <Stations>
-      {stations.map((station) => (
-        <Station key={station.id} {...station} content={content} />
-      ))}
-    </Stations>
+    <Layout>
+      <TabList {...listProps} layout="column" aria-label={intro.title} data-scroll-x>
+        {stations.map((station, index) => (
+          <Tab key={station.id} {...tabProps(index)} isOn={index === active}>
+            <span>{station.title}</span>
+            <TabCount isOn={index === active} aria-hidden="true">{station.items.length}</TabCount>
+          </Tab>
+        ))}
+      </TabList>
+      <Stations switcher={switcher}>
+        {stations.map((station, index) => (
+          <StationPanel key={station.id} {...panelProps(index)}>
+            <Station {...station} content={content} />
+          </StationPanel>
+        ))}
+      </Stations>
+    </Layout>
   </Section>
-);
+  );
+};

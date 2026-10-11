@@ -2,12 +2,16 @@ import { FC, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import { LensSwitch } from "@/components/Lens/LensSwitch";
 import { Menu } from "@/components/Menu";
 import useJourneyNav from "@/components/Menu/hooks/useJourneyNav";
 import { MobileMenu } from "@/components/Menu/MobileMenu";
 import { JOURNEY_STOPS } from "@/config/journey";
 import useScrolledPast from "@/hooks/useScrolledPast";
+import { focusRing } from "@/styles/mixins";
 import { LensContent } from "@/types/lens";
 import { MenuContent } from "@/types/menu";
 
@@ -76,9 +80,28 @@ const LogoContents = styled.div(() => [
 
 // Beside the hamburger on small screens, under the name on large ones.
 const SwitchSlot = styled.div(({ isScrolled }: HeaderContainerProps) => [
-  tw`absolute top-[-6px] right-[48px] z-[11] lg:right-auto lg:left-0 lg:top-[78px]`,
+  tw`absolute top-[-6px] right-[48px] z-[11] flex flex-row items-center gap-[8px] lg:right-auto lg:left-0 lg:top-[78px]`,
   // On the slim bar the switch moves up beside the name.
   isScrolled && tw`lg:left-[170px] lg:top-[28px]`,
+]);
+
+// The quickest way to get in touch, beside the view switch on large screens; the phone menu has its own.
+const EmailLink = styled.a(() => [
+  tw`hidden lg:flex flex-row items-center gap-[8px] h-[32px] px-[10px] text-xs font-semibold text-white no-underline
+     bg-[rgba(16, 16, 16, 0.85)] border-[1px] border-solid border-[#2a2a2a] rounded-[2px]`,
+  css`
+    transition: border-color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--accent);
+    }
+
+    & > svg {
+      color: var(--accent);
+    }
+  `,
+  focusRing("var(--accent)", 2),
 ]);
 
 // How far down, as a share of the viewport, the header turns into a bar.
@@ -125,6 +148,10 @@ const Header: FC<HeaderProps> = ({ title = "", lens, menu, contact }: HeaderProp
         </LogoContainer>
         <SwitchSlot isScrolled={isScrolled}>
           <LensSwitch content={lens} />
+          <EmailLink href={`mailto:${contact.email}`}>
+            <FontAwesomeIcon icon={faEnvelope} aria-hidden="true" />
+            {menu.email}
+          </EmailLink>
         </SwitchSlot>
         <Menu selected={selected} content={menu} />
         <MobileMenu selected={selected} content={menu} contact={contact} />

@@ -1,10 +1,13 @@
 import tw, { css, styled } from "twin.macro";
 
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 
 import { progressOf } from "@/components/Menu/config";
 import { JOURNEY_STOPS } from "@/config/journey";
-import { progressText } from "@/styles/mixins";
+import { fill } from "@/packages/text/format";
+import { focusRing, noTransitionWhenReduced, progressText } from "@/styles/mixins";
 import { MenuContent } from "@/types/menu";
 
 interface MenuProps {
@@ -41,20 +44,87 @@ const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
 // as the same progress bar as the trail on the left.
 const Label = styled.span(() => [progressText("right", "--nav-progress", "#ffffff")]);
 
+const Caret = tw.span`ml-[6px] text-[10px] align-middle`;
+
+// A stop with parts keeps them in a list that opens under it on hover or keyboard focus, so a reader can
+// go straight to Projects without knowing it lives in the game world. Hidden lists take no focus.
+const Group = styled.div(() => [
+  tw`relative inline-block align-top`,
+  css`
+    &:hover > ul,
+    &:focus-within > ul {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+    }
+  `,
+]);
+
+// Padded at the top rather than spaced, so the pointer never crosses a gap that would close it.
+const Parts = styled.ul(() => [
+  tw`absolute right-0 top-full z-[12] m-0 pt-[10px] px-0 pb-0 list-none text-left`,
+  css`
+    min-width: 210px;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  `,
+  noTransitionWhenReduced,
+]);
+
+const Part = styled.li(() => [
+  tw`m-0`,
+  css`
+    background: rgba(16, 16, 16, 0.97);
+    border: 1px solid rgba(var(--accent-rgb), 0.25);
+
+    & + & {
+      border-top: 0;
+    }
+  `,
+]);
+
+const PartLink = styled(Link)(() => [
+  tw`block px-[16px] py-[10px] text-sm font-semibold text-[#ccc] no-underline hover:text-white`,
+  css`
+    &:hover {
+      background: rgba(var(--accent-rgb), 0.12);
+    }
+  `,
+  focusRing("var(--accent)", -2),
+]);
+
 export const Menu = ({ selected, content }: MenuProps) => (
     <MenuContainer>
       <MenuList aria-label={content.label}>
-        {JOURNEY_STOPS.map((item, index) => (
-          <MenuItem
-            key={item.key}
-            href={item.href}
-            style={progressOf(index)}
-            selected={selected[index]}
-            aria-current={selected[index] ? "location" : undefined}
-          >
-            <Label>{content.stops[item.key]}</Label>
-          </MenuItem>
-        ))}
+        {JOURNEY_STOPS.map((item, index) => {
+          const link = (
+            <MenuItem
+              key={item.key}
+              href={item.href}
+              style={progressOf(index)}
+              selected={selected[index]}
+              aria-current={selected[index] ? "location" : undefined}
+            >
+              <Label>{content.stops[item.key]}</Label>
+              {item.parts && <Caret aria-hidden="true"><FontAwesomeIcon icon={faChevronDown} /></Caret>}
+            </MenuItem>
+          );
+
+          return item.parts ? (
+            <Group key={item.key}>
+              {link}
+              <Parts aria-label={fill(content.partsLabel, { stop: content.stops[item.key] })}>
+                {item.parts.map((part) => (
+                  <Part key={part.key}>
+                    <PartLink href={part.href}>{content.parts[part.key]}</PartLink>
+                  </Part>
+                ))}
+              </Parts>
+            </Group>
+          ) : link;
+        })}
       </MenuList>
     </MenuContainer>
 );

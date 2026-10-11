@@ -202,6 +202,27 @@ export const Here = tw.span`text-[11px] font-bold text-[#09090b] bg-[var(--zone)
 
 export const Chevron = tw.span`text-sm text-[#5a5a5a]`;
 
+// A long stop's parts, under it as a row of chips.
+export const Parts = tw.ul`list-none m-0 mt-[2px] mb-[6px] px-[14px] py-0 flex flex-row flex-wrap gap-[8px]`;
+
+export const PartLink = styled.a(() => [
+  tw`inline-flex items-center min-h-[36px] px-[12px] text-sm font-semibold no-underline text-white rounded-full`,
+  css`
+    border: 1px solid rgba(var(--zone-rgb), 0.45);
+    background: rgba(var(--zone-rgb), 0.06);
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(var(--zone-rgb), 0.16);
+      outline: none;
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 2px var(--zone);
+    }
+  `,
+]);
+
 export const Actions = tw.div`grid grid-cols-3 gap-[8px] mt-[26px] pt-[20px] border-0 border-t-[1px] border-solid border-[rgba(255, 255, 255, 0.08)]`;
 
 export const Action = styled.a(() => [

@@ -3,6 +3,14 @@ import { ZoneId } from "@/config/zones";
 
 export type StopKey = "who" | "offer" | "history" | "ai" | "web3" | "engineering" | "igaming" | "game" | "beyond";
 
+export type StopPartKey = "skills" | "caseStudies" | "projects" | "recommendations" | "arena";
+
+// A section inside a long stop that a reader may look for by name, linked straight from the menu.
+export interface StopPart {
+  key: StopPartKey;
+  href: string;
+}
+
 // One stop of the journey: the run of sections it covers, in page order, and the zone it belongs to.
 export interface JourneyStop {
   key: StopKey;
@@ -13,12 +21,14 @@ export interface JourneyStop {
   // Links to the last of `first`, the section every view renders.
   href: string;
   zone: ZoneId;
+  parts?: StopPart[];
 }
 
-const stop = (key: StopKey, zone: ZoneId, first: string | string[], last: string): JourneyStop => {
+const stop = (key: StopKey, zone: ZoneId, first: string | string[], last: string, parts?: Partial<Record<StopPartKey, string>>): JourneyStop => {
   const ids = Array.isArray(first) ? first : [first];
+  const links = parts && (Object.entries(parts) as Array<[StopPartKey, string]>).map(([part, id]) => ({ key: part, href: `#${id}` }));
 
-  return { key, zone, first, last, href: `#${ids[ids.length - 1]}` };
+  return { key, zone, first, last, href: `#${ids[ids.length - 1]}`, ...(links ? { parts: links } : {}) };
 };
 
 // The menus, the scroll spy and the SEO breadcrumb all follow these stops. Their names are content
@@ -31,6 +41,13 @@ export const JOURNEY_STOPS: JourneyStop[] = [
   stop("web3", "chain", SECTION_IDS.web3, SECTION_IDS.web3),
   stop("engineering", "chain", SECTION_IDS.skillAreas, SECTION_IDS.codeReview),
   stop("igaming", "casino", SECTION_IDS.igaming, SECTION_IDS.igaming),
-  stop("game", "mmo", SECTION_IDS.roster, SECTION_IDS.arena),
+  // The longest stop, and the one a recruiter looks inside by name: its parts are linked from the menu too.
+  stop("game", "mmo", SECTION_IDS.roster, SECTION_IDS.arena, {
+    skills: SECTION_IDS.forge,
+    caseStudies: SECTION_IDS.caseStudies,
+    projects: SECTION_IDS.projects,
+    recommendations: SECTION_IDS.recommendations,
+    arena: SECTION_IDS.arena,
+  }),
   stop("beyond", "beyond", SECTION_IDS.finale, SECTION_IDS.timelapse),
 ];

@@ -68,7 +68,7 @@ export const cvDocumentContent: Pick<PortfolioData, "cvDocument"> = {
         ],
       },
       {
-        title: "Founder & Architect, Gamified Social Network Platform",
+        title: "Founder & CTO, Gamified Social Network Platform",
         bullets: [
           `Payments, double entry ledgers, ads and real time feeds, every vendor behind an adapter and switchable by configuration;
           money paths tested through the real API at real volume.`,

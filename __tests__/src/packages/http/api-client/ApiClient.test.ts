@@ -26,6 +26,16 @@ describe("ApiClient", () => {
     expect(seen[0].headers).toMatchObject({ "x-app": "redgame", "authorization": "Bearer k", "content-type": "application/json" });
   });
 
+  test("a GET sends no body and reads the JSON back", async () => {
+    const seen: SeenRequest[] = [];
+    const client = new ApiClient({ baseURL: "https://api.example" }, fakeFetcher([{ status: 200, body: "{\"day\":\"2026-10-11\"}" }], seen));
+    const result = await client.get<{ day: string }>("/board/?day=2026-10-11");
+
+    expect(result).toEqual({ ok: true, status: 200, data: { day: "2026-10-11" } });
+    expect(seen[0].method).toBe("GET");
+    expect(seen[0].body).toEqual({});
+  });
+
   test("a stream comes back unread, to be consumed as it arrives", async () => {
     const client = new ApiClient({}, fakeFetcher([{ status: 200, body: "data: 1\n\n" }]));
     const result = await client.postStream("https://api.example/s", {});

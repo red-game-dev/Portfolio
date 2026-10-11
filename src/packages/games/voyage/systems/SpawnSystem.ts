@@ -4,12 +4,14 @@ import { randomBetween } from "@/packages/math/random";
 
 import { PickupKind } from "../domain/components";
 import { VoyageContext } from "./context";
-import { distanceFromStar, isInSystem, shipOf, viewRadius } from "./queries";
+import { distanceFromStar, isInSystem, isSolar, shipOf, viewRadius } from "./queries";
 
 // How far past the view things appear, and how far out they are let go.
 const SPAWN_MARGIN = 0.4;
 const SPAWN_DEPTH = 1.6;
 const KEEP_RADII = 2.6;
+// How many times the coins drift by during a real meteor shower.
+const SHOWER_STARDUST = 2;
 
 // Keeps space busy round the ship without the world growing: rocks are kept at a density that depends on where
 // the ship is (open space, a belt, a universe that gets harder the longer it is in it), appearing just out of
@@ -50,8 +52,12 @@ export class SpawnSystem implements System<VoyageContext> {
       cores += pickup.kind === "boost" || pickup.kind === "cache" || pickup.kind === "chest" ? 1 : 0;
     }
 
-    for (let count = world.stores.pickup.size - cores; count < context.config.spawn.pickups; count += 1) {
-      this.spawnPickup(context, reach);
+    // During a real meteor shower, our solar system is thick with stardust: twice the coins drift by.
+    const isShower = isSolar(context) && context.state.sky.some((event) => event.kind === "shower");
+    const wanted = context.config.spawn.pickups * (isShower ? SHOWER_STARDUST : 1);
+
+    for (let count = world.stores.pickup.size - cores; count < wanted; count += 1) {
+      this.spawnPickup(context, reach, isShower && count >= context.config.spawn.pickups);
     }
 
     this.comets(context, reach);
@@ -132,13 +138,13 @@ export class SpawnSystem implements System<VoyageContext> {
     world.stores.hazard.set(rock, { shape: Math.floor(random() * 6), isIcy, isComet: false });
   }
 
-  private spawnPickup(context: VoyageContext, reach: number): void {
+  private spawnPickup(context: VoyageContext, reach: number, isStardust = false): void {
     const { world, random } = context;
     const parts = shipOf(context);
     const { x, y } = this.placeNear(context, reach);
     const item = world.spawn();
-    const kind = this.pickKind(random(), parts ? parts.ship.fuel / parts.ship.maxFuel : 1, parts ? parts.health.hull / parts.health.maxHull : 1,
-      parts ? parts.health.shields / parts.health.maxShields : 1);
+    const kind = isStardust ? "coin" : this.pickKind(random(), parts ? parts.ship.fuel / parts.ship.maxFuel : 1,
+      parts ? parts.health.hull / parts.health.maxHull : 1, parts ? parts.health.shields / parts.health.maxShields : 1);
 
     world.stores.body.set(item, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius: kind === "coin" ? 0.045 : 0.06, mass: 0.01 });
     world.stores.pickup.set(item, { kind });

@@ -1,4 +1,4 @@
-import { KeyValueStore } from "../domain/types";
+import { KeyValueStore, RankedMember } from "../domain/types";
 
 interface Entry {
   value: string;
@@ -12,6 +12,7 @@ const SWEEP_AT = 10000;
 // keeps hold per instance only.
 export class MemoryStore implements KeyValueStore {
   private readonly entries = new Map<string, Entry>();
+  private readonly ranks = new Map<string, { scores: Map<string, number>; expiresAt: number }>();
   private readonly now: () => number;
 
   constructor(now: () => number = Date.now) {
@@ -45,6 +46,41 @@ export class MemoryStore implements KeyValueStore {
     this.put(key, "1", ttlMs);
 
     return Promise.resolve(true);
+  }
+
+  public async rank(key: string, member: string, score: number, ttlMs: number, keep?: number): Promise<void> {
+    const list = this.liveRank(key) ?? { scores: new Map<string, number>(), expiresAt: this.now() + ttlMs };
+
+    list.scores.set(member, Math.max(score, list.scores.get(member) ?? -Infinity));
+
+    if (keep !== undefined && list.scores.size > keep) {
+      const kept = [...list.scores].sort((first, second) => second[1] - first[1]).slice(0, Math.max(0, keep));
+
+      list.scores = new Map(kept);
+    }
+
+    this.ranks.set(key, list);
+
+    return Promise.resolve();
+  }
+
+  public async top(key: string, count: number): Promise<RankedMember[]> {
+    const list = this.liveRank(key);
+    const ranked = list ? [...list.scores].map(([member, score]) => ({ member, score })).sort((first, second) => second.score - first.score) : [];
+
+    return Promise.resolve(ranked.slice(0, Math.max(0, count)));
+  }
+
+  private liveRank(key: string): { scores: Map<string, number>; expiresAt: number } | undefined {
+    const list = this.ranks.get(key);
+
+    if (list && list.expiresAt <= this.now()) {
+      this.ranks.delete(key);
+
+      return undefined;
+    }
+
+    return list;
   }
 
   private live(key: string): Entry | undefined {

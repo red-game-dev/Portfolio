@@ -1,8 +1,9 @@
 import { ledgerMemo } from "@/components/Finale/Voyage/economy";
 import { encounterNotice, perkMax, perkName, perksLine, portName } from "@/components/Finale/Voyage/encounters";
 import { voyageNotice } from "@/components/Finale/Voyage/messages";
+import { skyBadge, skyLine } from "@/components/Finale/Voyage/sky";
 import { portfolioData } from "@/data/resume";
-import { BOSS_MOVES, PERK_IDS, PERKS } from "@/packages/games/voyage";
+import { BOSS_MOVES, METEOR_SHOWERS, PERK_IDS, PERKS } from "@/packages/games/voyage";
 
 const { voyage } = portfolioData.finale;
 
@@ -52,5 +53,16 @@ describe("the voyage's encounters in words", () => {
     expect(ledgerMemo(voyage, "buy:repairKit")).toBe("Bought Repair kit at a port");
     expect(ledgerMemo(voyage, "trade:shells")).toBe("Bought flak shells at a station");
     expect(ledgerMemo(voyage, "trade:refuel")).toBe("A station filled the tank");
+  });
+
+  test("the real sky is said in words: every shower named with its parent, two planets together, one opposite the Sun", () => {
+    expect(METEOR_SHOWERS.filter(({ id }) => !voyage.sky.showers[id]?.name || !voyage.sky.showers[id]?.parent)).toEqual([]);
+    expect(skyLine(voyage, "shower:perseids", true)).toBe(
+      "The Perseids meteor shower is on, at its peak: dust from comet Swift-Tuttle. Fly now for meteors and twice the stardust.",
+    );
+    expect(skyLine(voyage, "conjunction:mars:jupiter")).toBe("Mars and Jupiter sit close together in the sky");
+    expect(skyLine(voyage, "opposition:saturn")).toBe("Saturn is opposite the Sun: at its closest and brightest");
+    expect(skyBadge(voyage, "shower:orionids:2026")).toBe("Orionids, 2026");
+    expect(voyageNotice(voyage, { kind: "sky", event: "shower:orionids", isPeak: false })).toBe("Flown under the real sky: Orionids");
   });
 });

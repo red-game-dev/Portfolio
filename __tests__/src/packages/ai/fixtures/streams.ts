@@ -3,6 +3,7 @@ import type { CustomFetcher } from "@/packages/http/api-client";
 // What a fake fetcher saw: the full URL, and the request it was given.
 export interface SeenRequest {
   url: string;
+  method?: string;
   body: Record<string, unknown>;
   headers: Record<string, string>;
 }
@@ -14,7 +15,12 @@ export const fakeFetcher = (responses: Array<{ status: number; body: string }>, 
   async (url, config) => {
     const { status, body } = responses[Math.min(seen.length, responses.length - 1)];
 
-    seen.push({ url, body: JSON.parse(String(config?.body ?? "{}")) as Record<string, unknown>, headers: (config?.headers ?? {}) as Record<string, string> });
+    seen.push({
+      url,
+      method: typeof config?.method === "string" ? config.method : undefined,
+      body: JSON.parse(String(config?.body ?? "{}")) as Record<string, unknown>,
+      headers: (config?.headers ?? {}) as Record<string, string>,
+    });
 
     return new Response(body, { status });
   }

@@ -106,6 +106,7 @@ export class ProgressLink {
     this.summary = null;
     this.settle(this.progress.record("runs"));
     this.settle(this.progress.record("shipLevel", this.hangar.level));
+    this.flewUnder();
   }
 
   // The weapons on the bar, armed as the armoury makes them for the run to fire.
@@ -358,6 +359,22 @@ export class ProgressLink {
       isDaily: state.daily !== null,
     };
     this.refresh();
+  }
+
+  // A run flown during something in the real sky counts once a year for each (a shower, two planets together, one
+  // opposite the Sun): a badge, and a word to say so.
+  private flewUnder(): void {
+    const { state } = this.simulation;
+    const year = new Date(state.clock.epochMs).getUTCFullYear();
+
+    state.sky.forEach((event) => {
+      const key = `${event.id}:${year}`;
+
+      if (this.progress.counter(`sky:${key}`) === 0) {
+        this.settle(this.progress.seen("sky", key, "skyEvents"));
+        this.notify({ kind: "sky", event: event.id, isPeak: event.isPeak });
+      }
+    });
   }
 
   // Experience for the pilot, and every fitted piece a share of it.

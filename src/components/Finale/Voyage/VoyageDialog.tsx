@@ -11,6 +11,7 @@ import {
   faPause,
   faPlay,
   faRocket,
+  faShareNodes,
   faWarehouse,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
@@ -18,6 +19,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ActionButton } from "@/components/Controls";
 import { AbilityBar } from "@/components/Finale/Voyage/AbilityBar/AbilityBar";
+import { DailyBoard } from "@/components/Finale/Voyage/Board/DailyBoard";
 import { rankName } from "@/components/Finale/Voyage/career";
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
@@ -32,6 +34,8 @@ import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
 import { placeName, strandedLine, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { drawRunCard, RUN_CARD, shareCard } from "@/components/Finale/Voyage/share";
+import { skyLines } from "@/components/Finale/Voyage/sky";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import {
@@ -105,6 +109,7 @@ import {
   Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
+import { SITE_URL } from "@/config/site";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import useModalDialog from "@/hooks/useModalDialog";
 import { readStored, writeStored } from "@/packages/browser/storage";
@@ -192,11 +197,13 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const { economy, isHangarOpen, setHangar, act, follow } = voyage;
   const { career, isPhoto, togglePhoto, savePhoto, landing } = voyage;
   const { gear, progress, summary, isManual, stickRef, drawShip, guideSpawn } = voyage;
-  const { station, castOff, choosePerk } = voyage;
+  const { station, castOff, choosePerk, composePhoto, skyToday } = voyage;
   // The hangar opens on its first tab, or on the Loadout when an empty slot of the bar is pressed.
   const [hangarTab, setHangarTab] = useState<HangarTab | null>(null);
   const [pay, setPay] = useState<number | null>(null);
-  const [daily, setDaily] = useState<{ score: number; isBest: boolean } | null>(null);
+  const [daily, setDaily] = useState<{ day: string; score: number; isBest: boolean } | null>(null);
+  // Said on the run's card once its picture is saved.
+  const [shareNote, setShareNote] = useState<string | null>(null);
   // Today, as the daily voyage counts days: the UTC date.
   const today = new Date().toISOString()
 .slice(0, 10);
@@ -335,7 +342,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       if (notice.kind === "paid") {
         setPay(notice.coin);
       } else if (notice.kind === "daily") {
-        setDaily({ score: notice.score, isBest: notice.isBest });
+        setDaily({ day: notice.day, score: notice.score, isBest: notice.isBest });
       } else if (notice.kind === "slotRefused") {
         // The answer to a press shows at once, as a tap's does.
         reply(voyageNotice(content, notice) ?? "");
@@ -354,11 +361,37 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
 
     setPay(null);
     setDaily(null);
+    setShareNote(null);
     setHangar(false);
     play(mode);
   };
 
   startRef.current = () => start();
+
+  // The run's card: its last view and its figures, shared through the device's share sheet or saved.
+  const shareRun = async () => {
+    const card = document.createElement("canvas");
+    const context = card.getContext("2d");
+
+    if (!context || !snapshot) {
+      return;
+    }
+
+    card.width = RUN_CARD.width;
+    card.height = RUN_CARD.height;
+    drawRunCard(context, composePhoto(), {
+      title: content.share.title,
+      subtitle: content.share.subtitle,
+      score: formatNumber(snapshot.score),
+      rows: summary ? summaryRows(content, summary).filter((row) => row.label !== content.progress.summary.score) : [],
+      site: content.share.site,
+      cta: content.share.cta,
+    });
+
+    const outcome = await shareCard(card, fill(content.share.file, { date: today }), fill(content.share.text, { score: formatNumber(snapshot.score) }), SITE_URL);
+
+    setShareNote(outcome === "saved" ? content.share.saved : null);
+  };
 
   const hullShare = snapshot && snapshot.maxHull > 0 ? snapshot.hull / snapshot.maxHull : 1;
   // The main gun's rounds, against what the racks hold.
@@ -730,6 +763,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                   </Setup>
                 )}
                 {career && <Text>{dailyNote}</Text>}
+                {skyToday.length > 0 && (
+                  <Setup aria-labelledby="voyage-sky-title">
+                    <SetupTitle id="voyage-sky-title">{content.sky.title}</SetupTitle>
+                    {skyLines(content, skyToday).map((line) => <Text key={line}>{line}</Text>)}
+                  </Setup>
+                )}
                 <Credits>{content.credits}</Credits>
                 <CardButtons>
                   <ActionButton type="button" isPrimary disabled={!isReady} onClick={() => start()}>
@@ -781,12 +820,18 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                   </Summary>
                 )}
                 {daily?.isBest && <Badge>{content.career.daily.newBest}</Badge>}
+                {daily && <DailyBoard content={content} day={daily.day} score={daily.score} />}
+                <Text role="status">{shareNote ?? ""}</Text>
                 <Text>{voyagePlace(content, snapshot, universes)}</Text>
                 <Text>{content.kept}</Text>
                 <CardButtons>
                   <ActionButton type="button" isPrimary onClick={() => start()}>
                     <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
                     {content.again}
+                  </ActionButton>
+                  <ActionButton type="button" isPrimary={false} onClick={() => void shareRun()}>
+                    <FontAwesomeIcon icon={faShareNodes} aria-hidden="true" />
+                    {content.share.button}
                   </ActionButton>
                   {career && (
                     <ActionButton type="button" isPrimary={false} onClick={() => start("daily")}>

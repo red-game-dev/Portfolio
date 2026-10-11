@@ -2,6 +2,7 @@ import type { EnhanceForm } from "@/packages/progression/enhancement";
 import type { LevelStanding } from "@/packages/progression/levels";
 
 import { Rarity } from "../../economy/domain/items";
+import type { TalentSpec } from "../../progress/config/talents";
 import { AchievementSpec, PaintSpec, TrailSpec } from "../../progress/domain/progress";
 import { AmmoType, ArmedWeapon, GearSlot, GearStats, WeaponKind } from "./gear";
 
@@ -68,4 +69,8 @@ export interface ProgressView {
   paints: Array<{ spec: PaintSpec; isOwned: boolean; isWorn: boolean; stars: number | null }>;
   trails: Array<{ spec: TrailSpec; isOwned: boolean; isWorn: boolean; stars: number | null }>;
   guide: { step: number; isDone: boolean };
+  // The talent tree: the points the level gives and those left, and each talent with its rank and whether it can
+  // take another; and the real sky events flown under, by id and year ("shower:perseids:2026").
+  talents: { points: number; left: number; entries: Array<{ spec: TalentSpec; rank: number; canLearn: boolean }> };
+  skySeen: string[];
 }

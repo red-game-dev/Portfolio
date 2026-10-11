@@ -25,6 +25,7 @@ import { GlobesLayer } from "./layers/GlobesLayer";
 import { HolesLayer } from "./layers/HolesLayer";
 import { RenderKit } from "./layers/kit";
 import { MapLayer } from "./layers/MapLayer";
+import { MeteorsLayer } from "./layers/MeteorsLayer";
 import { NumbersLayer } from "./layers/NumbersLayer";
 import { OverlayLayer } from "./layers/OverlayLayer";
 import { PhenomenaLayer } from "./layers/PhenomenaLayer";
@@ -131,6 +132,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
     this.surfaceLayer = new SurfaceLayer(this.kit, this.globesLayer, (texture, longitude, latitude, centre) => this.sampleMap(texture, longitude, latitude, centre));
     this.backLayers = new RenderPipeline([
       new BackdropLayer(this.kit),
+      new MeteorsLayer(this.kit),
       new PhenomenaLayer(this.kit),
       this.globesLayer,
       new WeatherLayer(this.kit),

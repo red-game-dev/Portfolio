@@ -19,6 +19,7 @@ import { AMMO_TYPES, STARTER_AMMO } from "../gear/config/slots";
 import { AmmoStock, ArmedWeapon } from "../gear/domain/gear";
 import { UniverseGenerator, UniverseTheme } from "../generators/UniverseGenerator";
 import { SnapshotMapper } from "../mappers/SnapshotMapper";
+import type { SkyEvent } from "../sky/domain/sky";
 import { DOCKING } from "../stations/config/market";
 import { Port } from "../stations/domain/station";
 import { AlienSystem } from "../systems/AlienSystem";
@@ -222,6 +223,11 @@ export class VoyageSimulation {
     AMMO_TYPES.forEach((type) => {
       ammo[type] += found[type] ?? 0;
     });
+  }
+
+  // What the real sky holds on the run's day, read by what it changes (a shower's stardust).
+  public setSky(events: readonly SkyEvent[]): void {
+    this.context.state.sky = events.map((event) => ({ ...event, subjects: [...event.subjects] }));
   }
 
   public setDifficulty(difficulty: Difficulty): void {
@@ -672,6 +678,7 @@ export class VoyageSimulation {
       distress: null,
       nextDistressAt: null,
       hulks: [],
+      sky: this.context?.state.sky ?? [],
       view: this.context?.state.view ?? { halfWidth: 2, halfHeight: 2 },
     };
   }

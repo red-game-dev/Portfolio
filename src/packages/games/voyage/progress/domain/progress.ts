@@ -8,6 +8,8 @@ export interface ProgressProfile {
   counters: Record<string, number>;
   cosmetics: { paint: string; trail: string; owned: string[] };
   guide: { step: number; isDone: boolean };
+  // The talents learned, by id and rank (an older profile has none yet).
+  talents?: Record<string, number>;
 }
 
 // What a lifetime count is: a number added to (worlds landed on, bosses brought down) or the best ever reached (the

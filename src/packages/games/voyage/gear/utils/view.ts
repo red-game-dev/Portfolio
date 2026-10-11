@@ -2,7 +2,9 @@ import { TIERS, tierOf } from "../../economy/config/tiers";
 import { Hangar } from "../../economy/services/Hangar";
 import { ACHIEVEMENTS } from "../../progress/config/achievements";
 import { PAINTS, STAR_UNLOCKS, TRAILS } from "../../progress/config/cosmetics";
+import { TALENTS } from "../../progress/config/talents";
 import { Progress } from "../../progress/services/Progress";
+import { canLearn, talentPoints } from "../../progress/utils/talents";
 import { STABILISER } from "../config/enhance";
 import { dismantleValue, forgeCost, weaponPlan } from "../config/forge";
 import { AMMO_TYPES, GEAR_SLOTS, GRADE_LEVEL, SLOT_SPECS } from "../config/slots";
@@ -97,5 +99,12 @@ export const progressView = (progress: Progress): ProgressView => {
     paints: PAINTS.map((spec) => ({ spec, isOwned: progress.owns(spec.id), isWorn: progress.paint === spec.id, stars: starsFor(spec.id) })),
     trails: TRAILS.map((spec) => ({ spec, isOwned: progress.owns(spec.id), isWorn: progress.trail === spec.id, stars: starsFor(spec.id) })),
     guide: profile.guide,
+    talents: {
+      points: talentPoints(progress.level),
+      left: progress.talentPointsLeft,
+      entries: TALENTS.map((spec) => ({ spec, rank: progress.talents[spec.id] ?? 0, canLearn: canLearn(progress.talents, spec, progress.level) })),
+    },
+    skySeen: Object.keys(profile.counters).filter((key) => key.startsWith("sky:"))
+.map((key) => key.slice("sky:".length)),
   };
 };

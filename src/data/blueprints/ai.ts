@@ -249,7 +249,7 @@ const blueprints: Blueprint[] = [
         { from: "rag-keyword", to: "rag-bm25", style: "dashed" },
         { from: "rag-vectors", to: "rag-knn", style: "dashed" },
         { from: "rag-graph", to: "rag-agent", style: "dashed" },
-        { from: "rag-agent", to: "rag-fuse", label: "search as a tool", style: "dashed" },
+        { from: "rag-agent", to: "rag-fuse", style: "dashed" },
         { from: "rag-bm25", to: "rag-fuse" },
         { from: "rag-knn", to: "rag-fuse" },
         { from: "rag-fuse", to: "rag-rerank" },

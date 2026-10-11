@@ -113,9 +113,11 @@ describe("voyageKeyAction", () => {
     (["left", "burn", "pause", "map", "guns", "hangar", "follow"] as const).forEach((command) => expect(voyageKeyAction(command, photo)).toBeNull());
   });
 
-  test("steps back out of the hangar before photo mode, and leaves Escape alone with neither open", () => {
+  test("steps back out of the hangar before photo mode, and with nothing open asks to leave a run, or leaves Escape alone", () => {
     expect(voyageKeyAction("back", state({ isHangarOpen: true, isPhoto: true }))).toBe("closeHangar");
-    expect(voyageKeyAction("back", state())).toBeNull();
+    expect(voyageKeyAction("back", state())).toBe("leave");
+    expect(voyageKeyAction("back", state({ isPaused: true }))).toBe("leave");
+    expect(voyageKeyAction("back", state({ isFlying: false }))).toBeNull();
   });
 
   test("Escape on the map closes the map, never the voyage", () => {

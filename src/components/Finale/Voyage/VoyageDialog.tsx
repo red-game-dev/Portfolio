@@ -192,7 +192,16 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const canvases = { stage: stageRef, back: backRef, front: frontRef, lens: lensRef };
   // A controller's Start between runs starts one as the card's button does (defined below, so read through a ref).
   const startRef = useRef<() => void>(() => undefined);
-  const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames, home, onStart: () => startRef.current() });
+  // Escape during a run asks before leaving it (defined below, so read through a ref).
+  const leaveRef = useRef<() => void>(() => undefined);
+  const voyage = useVoyage(canvases, {
+    labels,
+    universes,
+    syllables: content.universeNames,
+    home,
+    onStart: () => startRef.current(),
+    onLeave: () => leaveRef.current(),
+  });
   const { snapshot, notices, takeNotices, isReady, isPaused, isMapOpen, play, pause, resume, toggleMap, toggleGuns } = voyage;
   const { economy, isHangarOpen, setHangar, act, follow } = voyage;
   const { career, isPhoto, togglePhoto, savePhoto, landing } = voyage;
@@ -345,12 +354,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       return;
     }
 
-    pausedToAsk.current = !isPaused;
+    // Asked only over a run held by its own pause, never one the map, hangar or photo mode holds still.
+    const didPause = !isPaused && pause();
 
-    if (!isPaused) {
-      pause();
+    if (!isPaused && !didPause) {
+      return;
     }
 
+    pausedToAsk.current = didPause;
     setIsLeaving(true);
   };
 
@@ -363,7 +374,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     }
   };
 
-  // Escape that nothing inside wanted (no hangar, port, photo or map open) would close the dialog: during a run it asks.
+  const toggleLeave = () => (isAskingToLeave ? keepFlying() : askToLeave());
+
+  leaveRef.current = toggleLeave;
+
+  // A close request that came from no key the voyage handles (a phone's back gesture): during a run it steps out of
+  // whatever is open first, then asks, as Escape does.
   const onCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
     if (status !== "flying") {
       return;
@@ -371,10 +387,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
 
     event.preventDefault();
 
-    if (isAskingToLeave) {
-      keepFlying();
+    if (isHangarOpen) {
+      setHangar(false);
+    } else if (isPhoto) {
+      togglePhoto();
+    } else if (isMapOpen) {
+      toggleMap();
     } else {
-      askToLeave();
+      toggleLeave();
     }
   };
 

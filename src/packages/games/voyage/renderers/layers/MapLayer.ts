@@ -1,4 +1,5 @@
 import type { RenderLayer } from "@/packages/games/engine";
+import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { TAU } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
 
@@ -43,6 +44,31 @@ const MAP_TOP_ROOM = 150;
 // next stop. The map also shows what could kill the ship (each black hole with the ring inside which it outpulls
 // the engines, the strange things of a universe, rocks headed for worlds, hostile ships while the sensors work,
 // peoples who fire from the ground) and where the missions send it, with a key to what is shown.
+// A world's name on the map, written after the marks.
+interface MapName {
+  text: string;
+  x: number;
+  y: number;
+  isPassed: boolean;
+}
+
+// Each name with a dark edge round its letters, so it reads over a mark, an orbit or the glow of a world.
+const paintNames = (context: Canvas2DContext, names: MapName[]): void => {
+  context.save();
+  context.font = LABEL_FONT;
+  context.textAlign = "center";
+  context.textBaseline = "top";
+  context.lineJoin = "round";
+  context.lineWidth = 3;
+  context.strokeStyle = "rgba(4, 6, 16, 0.9)";
+  names.forEach((name) => {
+    context.strokeText(name.text, name.x, name.y);
+    context.fillStyle = name.isPassed ? INK : "rgba(196, 210, 255, 0.6)";
+    context.fillText(name.text, name.x, name.y);
+  });
+  context.restore();
+};
+
 export class MapLayer implements RenderLayer<VoyageFrame> {
   public readonly name = "map";
   public isOpen = false;
@@ -99,6 +125,9 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     context.font = LABEL_FONT;
     context.textAlign = "center";
     context.textBaseline = "top";
+
+    // Worlds' names go on last, over the marks, so a station or a mission beside a world never hides its name.
+    const names: MapName[] = [];
 
     if (inSystem) {
       system.belts.forEach((belt) => {
@@ -185,8 +214,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
         context.fill();
 
         if (body.kind !== "moon") {
-          context.fillStyle = state.passed.has(body.id) ? INK : "rgba(196, 210, 255, 0.6)";
-          context.fillText(labels[body.id] ?? state.cosmos?.names[body.id] ?? body.id, x, y + radius + 3);
+          names.push({ text: labels[body.id] ?? state.cosmos?.names[body.id] ?? body.id, x, y: y + radius + 3, isPassed: state.passed.has(body.id) });
         }
       });
     }
@@ -206,6 +234,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     seen.mission = paintMissions(view, frame, this.missions);
     seen.port = paintPorts(view, frame);
     seen.distress = paintDistress(view, frame);
+    paintNames(context, names);
 
     if (state.waypoint) {
       context.setLineDash([3, 5]);

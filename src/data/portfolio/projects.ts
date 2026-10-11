@@ -406,6 +406,7 @@ export const projectsContent: Pick<PortfolioData, "projectMap" | "projects"> = {
         "Vercel", "Storybook", "Automated Testing", "PL/pgSQL"],
       link: "https://the-freight-delay-notification.vercel.app",
       repo: "https://github.com/red-game-dev/the-freight-delay-notification",
+      deepDive: { blueprintId: "freight" },
       from: "Sep 2025",
       to: "Oct 2025",
     },

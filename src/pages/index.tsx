@@ -91,7 +91,12 @@ export default function Home() {
           content={portfolioData.web3}
           blueprintSection="chain"
         />
-        <SkillAreas areas={portfolioData.skillAreas} intro={portfolioData.sections.skillAreas} />
+        <SkillAreas
+          areas={portfolioData.skillAreas}
+          examples={portfolioData.skillAreaExamples}
+          intro={portfolioData.sections.skillAreas}
+          blueprintSection="delivery"
+        />
         <PlatformOverview
           intro={portfolioData.sections.platform}
           expertise={portfolioData.expertise}

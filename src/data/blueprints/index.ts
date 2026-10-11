@@ -8,6 +8,8 @@ export const loadSectionBlueprints = (section: BlueprintSection): Promise<Bluepr
       return import("@/data/blueprints/ai").then((module) => module.default);
     case "chain":
       return import("@/data/blueprints/chain").then((module) => module.default);
+    case "delivery":
+      return import("@/data/blueprints/delivery").then((module) => module.default);
     case "platform":
       return import("@/data/blueprints/platform").then((module) => module.default);
     case "casino":

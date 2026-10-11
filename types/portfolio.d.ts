@@ -20,7 +20,7 @@ import { Resume } from "@/types/resume";
 import { Roster } from "@/types/roster";
 import { SectionIntroMap } from "@/types/sections-intros";
 import { ServiceActions, ServiceGroup } from "@/types/services";
-import { SkillArea, SkillLists } from "@/types/skills";
+import { SkillArea, SkillAreaExamples, SkillLists } from "@/types/skills";
 import { TerminalContent } from "@/types/terminal";
 import { TimelapseContent } from "@/types/timelapse";
 
@@ -52,6 +52,7 @@ export interface PortfolioData {
   historyLabels: HistoryLabels;
   skills: SkillLists;
   skillAreas: SkillArea[];
+  skillAreaExamples: SkillAreaExamples;
   roster: Roster;
   forge: ForgeContent;
   talents: TalentsContent;

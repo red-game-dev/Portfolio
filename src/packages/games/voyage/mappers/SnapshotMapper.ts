@@ -7,9 +7,10 @@ import { VoyageConfig } from "../config";
 import { BOOSTS } from "../config/boosts";
 import { VoyageWorld } from "../core/world";
 import { MODULE_IDS, Modules } from "../domain/components";
-import { DescentView, Frame, IncomingRock, VoyageSnapshot } from "../domain/snapshot";
+import { DescentView, Frame, IncomingRock, PortView, VoyageSnapshot } from "../domain/snapshot";
 import { VoyageState } from "../domain/state";
 import { safeSpeedOf } from "../landing";
+import { Port } from "../stations/domain/station";
 import { boostDuration, isBoostId } from "../utils/boosts";
 import { auForRadius } from "../utils/scale";
 import { TelemetryMapper } from "./TelemetryMapper";
@@ -84,6 +85,18 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
       level: state.level,
       faults: state.faults.map(({ id, kind }) => ({ id, kind })),
       salvage: this.salvage(state, world),
+      perks: [...state.perks],
+      perkOffer: state.perkOffer ? [...state.perkOffer] : null,
+      dockable: state.dockable ? this.port(state, state.dockable) : null,
+      docked: state.docked ? this.port(state, state.docked) : null,
+      distress: state.distress
+        ? {
+          seconds: Math.max(0, Math.ceil((state.distress.until - state.elapsedMs) / 1000)),
+          progress: Math.min(1, roundTo(state.distress.held / this.config.distress.hold, 2)),
+          isNear: body ? Math.hypot(body.x - state.distress.x, body.y - state.distress.y) <= this.config.distress.reach : false,
+        }
+        : null,
+      bossMove: state.boss !== null ? world.stores.alien.get(state.boss)?.move?.kind ?? null : null,
       telemetry: body && ship ? this.telemetry.map({ state, body, ship }) : {
         gravity: 0,
         dominant: null,
@@ -108,7 +121,19 @@ export class SnapshotMapper extends Mapper<SnapshotSource, VoyageSnapshot> {
   private salvage(state: VoyageState, world: VoyageWorld): VoyageSnapshot["salvage"] {
     const wreck = state.salvage ? world.stores.wreck.get(state.salvage.wreck) : undefined;
 
-    return state.salvage && wreck && state.salvage.progress > 0 ? { kind: wreck.kind, progress: Math.floor(state.salvage.progress * 10) / 10 } : null;
+    return state.salvage && wreck && state.salvage.progress > 0
+      ? { kind: wreck.kind, progress: Math.floor(state.salvage.progress * 10) / 10, origin: wreck.origin ?? null }
+      : null;
+  }
+
+  // A port in words the UI can use: the world a station circles and who keeps it.
+  private port(state: VoyageState, port: Port): PortView {
+    return {
+      kind: port.kind,
+      anchor: port.anchor,
+      anchorName: port.anchor ? state.cosmos?.names[port.anchor] ?? null : null,
+      faction: port.faction >= 0 ? state.cosmos?.factions[port.faction]?.name ?? null : null,
+    };
   }
 
   // Who lives on a world, if anyone.

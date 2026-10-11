@@ -9,10 +9,11 @@ export interface PadPort {
 
 // What a controller's buttons ask: a slot of the ability bar, or something the page around the game does (pause,
 // the map, the hangar, photo mode, holding fire).
-export type PadIntent = "slot1" | "slot2" | "slot3" | "slot4" | "slot5" | "slot6" | "pause" | "map" | "hangar" | "photo" | "guns";
+export type PadIntent = "slot1" | "slot2" | "slot3" | "slot4" | "slot5" | "slot6" | "pause" | "map" | "hangar" | "photo" | "guns" | "dock";
 
 // The face buttons and shoulders are the bar's six slots; Start pauses, Back opens the map, the d-pad's up the
-// hangar, a stick pressed in takes a photo, the right stick pressed holds fire.
+// hangar and its down docks at the port alongside (or casts off), a stick pressed in takes a photo, the right stick
+// pressed holds fire.
 const BINDINGS = new GamepadMap<PadIntent>({
   a: "slot1",
   b: "slot2",
@@ -23,6 +24,7 @@ const BINDINGS = new GamepadMap<PadIntent>({
   start: "pause",
   back: "map",
   up: "hangar",
+  down: "dock",
   ls: "photo",
   rs: "guns",
 });

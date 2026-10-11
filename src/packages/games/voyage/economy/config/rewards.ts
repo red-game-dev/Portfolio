@@ -11,6 +11,7 @@ export interface Rewards {
   boss: Purse;
   universe: Purse;
   coin: Purse;
+  distress: Purse;
   bountyPerLevel: number;
   // Red Coin for each kill of a streak, at each milestone.
   streakPerKill: number;
@@ -32,6 +33,7 @@ export const REWARDS: Rewards = {
   boss: purse(250, 3),
   universe: purse(100, 1),
   coin: purse(5),
+  distress: purse(70),
   bountyPerLevel: 6,
   streakPerKill: 4,
   pointsPerCoin: 40,

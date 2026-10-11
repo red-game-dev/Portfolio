@@ -7,6 +7,7 @@ import { VoyageFrame } from "../frame";
 import { paintDarkness, paintVignette } from "../paint/overlay";
 import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
+import { drawEdgeArrow, isWellInView } from "./pointer";
 
 // The colour of the way on: a black hole's violet.
 const WAY_ON = "#b48cff";
@@ -312,8 +313,7 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
     const label = this.kit.labels.wayOn ?? "";
     const x = camera.toScreenX(nearest.x);
     const y = camera.toScreenY(nearest.y);
-    const margin = 46;
-    const isVisible = x > margin && x < front.width - margin && y > margin && y < front.height - margin;
+    const isVisible = isWellInView(front, x, y);
 
     context.strokeStyle = WAY_ON;
     context.fillStyle = WAY_ON;
@@ -331,36 +331,11 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
       context.globalAlpha = 0.9;
       context.fillText(label, x, y - ring - 6);
       context.globalAlpha = 1;
+      context.textAlign = "start";
 
       return;
     }
 
-    const cx = front.width / 2;
-    const cy = front.height / 2;
-    const angle = Math.atan2(y - cy, x - cx);
-    const edge = Math.min((front.width / 2 - margin) / Math.abs(Math.cos(angle) || 1e-6), (front.height / 2 - margin) / Math.abs(Math.sin(angle) || 1e-6));
-    const ax = cx + Math.cos(angle) * edge;
-    const ay = cy + Math.sin(angle) * edge;
-
-    front.frame(ax, ay, angle);
-    context.globalAlpha = 0.6 + Math.sin(now * 0.006) * 0.3;
-    context.beginPath();
-    context.arc(-2, 0, 7, 0, TAU);
-    context.fill();
-    context.fillStyle = "#05060c";
-    context.beginPath();
-    context.arc(-2, 0, 3.5, 0, TAU);
-    context.fill();
-    context.fillStyle = WAY_ON;
-    context.beginPath();
-    context.moveTo(16, 0);
-    context.lineTo(7, -6);
-    context.lineTo(7, 6);
-    context.closePath();
-    context.fill();
-    front.reset();
-    context.globalAlpha = 0.9;
-    context.fillText(label, ax - Math.cos(angle) * 22, ay - Math.sin(angle) * 22 + 4);
-    context.globalAlpha = 1;
+    drawEdgeArrow(front, x, y, WAY_ON, label, now);
   }
 }

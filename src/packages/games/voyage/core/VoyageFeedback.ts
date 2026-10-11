@@ -2,8 +2,8 @@ import type { LoopHandle, MusicThemeId, PlayOptions, SoundCue } from "@/packages
 import type { HapticName } from "@/packages/browser/haptics";
 
 import { VoyageNotice } from "../domain/notices";
-import { ION_TIERS } from "../renderers/paint/ships";
 import { tierOf } from "../economy/config/tiers";
+import { ION_TIERS } from "../renderers/paint/ships";
 import { VoyageSimulation } from "./VoyageSimulation";
 
 // What the voyage needs of a sound engine: one-shot cues, a loop for the engines, a score to cross into, how hard
@@ -32,6 +32,14 @@ const SHOT_CUES: Readonly<Record<string, SoundCue>> = {
   backup: "backupShot",
   rail: "railgun",
   emp: "emp",
+};
+
+// What each turn of a call for help sounds like: heard, survivors aboard, an ambush sprung, a cargo found.
+const DISTRESS_CUES: Readonly<Partial<Record<"call" | "rescued" | "ambush" | "cargo" | "lost", SoundCue>>> = {
+  call: "warning",
+  rescued: "achievement",
+  ambush: "alarm",
+  cargo: "chest",
 };
 
 // How loud the others' shots and a hit landing on them are against the ship's own.
@@ -112,9 +120,34 @@ export class VoyageFeedback {
       }),
       events.on("failing", () => play("alarm")),
       events.on("melting", () => play("alarm")),
+      events.on("bossMove", ({ isWindup, kind }) => {
+        if (isWindup) {
+          play("warning");
+        } else if (kind !== "charge") {
+          play("explosion", { volume: 0.5 });
+        }
+      }),
+      events.on("distress", ({ stage }) => {
+        const cue = DISTRESS_CUES[stage];
+
+        if (cue) {
+          play(cue);
+        }
+
+        if (stage === "ambush") {
+          buzz("bigHit");
+        }
+      }),
+      events.on("docked", () => play("dock")),
+      events.on("undocked", () => play("dock", { volume: 0.6 })),
     ];
 
     return () => offs.forEach((off) => off());
+  }
+
+  // A cue by its name, for a moment that is not an event: perks offered.
+  public cue(cue: SoundCue): void {
+    this.sound?.play(cue);
   }
 
   // The pilot's moments, which come as notices rather than events: a level, an achievement, stars, an enhancement.
@@ -154,7 +187,7 @@ export class VoyageFeedback {
 
     const { state, world } = simulation;
     const ship = world.stores.ship.get(state.ship);
-    const isFlying = state.status === "flying" && state.phase !== "lost";
+    const isFlying = state.status === "flying" && state.phase !== "lost" && !simulation.isHeld;
     const thrust = isFlying && ship ? ship.thrust : 0;
     const wanted = ION_TIERS.includes(tierOf(state.level)) ? "ionEngine" : "engine";
 

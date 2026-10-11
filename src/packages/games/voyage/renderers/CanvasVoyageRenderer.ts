@@ -17,7 +17,7 @@ import { lerpX, lerpY, VoyageFrame } from "./frame";
 import { AliensLayer } from "./layers/AliensLayer";
 import { BackdropLayer } from "./layers/BackdropLayer";
 import { BoostsLayer } from "./layers/BoostsLayer";
-import { NumbersLayer } from "./layers/NumbersLayer";
+import { DistressLayer } from "./layers/DistressLayer";
 import { EffectsLayer } from "./layers/EffectsLayer";
 import { GatesLayer } from "./layers/GatesLayer";
 import { GhostLayer } from "./layers/GhostLayer";
@@ -25,10 +25,12 @@ import { GlobesLayer } from "./layers/GlobesLayer";
 import { HolesLayer } from "./layers/HolesLayer";
 import { RenderKit } from "./layers/kit";
 import { MapLayer } from "./layers/MapLayer";
+import { NumbersLayer } from "./layers/NumbersLayer";
 import { OverlayLayer } from "./layers/OverlayLayer";
 import { PhenomenaLayer } from "./layers/PhenomenaLayer";
 import { ProjectilesLayer } from "./layers/ProjectilesLayer";
 import { ShipLayer } from "./layers/ShipLayer";
+import { StationsLayer } from "./layers/StationsLayer";
 import { SurfaceLayer } from "./layers/SurfaceLayer";
 import { ThingsLayer } from "./layers/ThingsLayer";
 import { WeatherLayer } from "./layers/WeatherLayer";
@@ -139,6 +141,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       new GatesLayer(this.kit),
       new ThingsLayer(this.kit),
       new WrecksLayer(this.kit),
+      new StationsLayer(this.kit),
       this.aliens,
       new ProjectilesLayer(this.kit),
       this.effects,
@@ -148,6 +151,7 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
       this.light,
       this.numbers,
       this.surfaceLayer,
+      new DistressLayer(this.kit),
       this.overlay,
       this.map,
     ]);

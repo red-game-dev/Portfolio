@@ -2,11 +2,13 @@ import type { Entity } from "@/packages/games/engine";
 
 import { AmmoStock, ArmedWeapon } from "../gear/domain/gear";
 import type { DescentState, LandingPlan, LandingWorld } from "../landing";
+import type { Port, Station } from "../stations/domain/station";
 import { ActiveBoost, BoostId } from "./boosts";
 import { StarSystem } from "./content";
 import { VoyagePhase } from "./events";
 import { Fault } from "./faults";
-import { UniverseNetwork, UniverseSpec } from "./universe";
+import { PerkId } from "./perks";
+import { HullShape, UniverseNetwork, UniverseSpec } from "./universe";
 
 // How hard a run is: on normal the main gun keeps a weak backup shot when its rounds run out; on hard it falls silent.
 export type Difficulty = "normal" | "hard";
@@ -103,6 +105,29 @@ export interface PhenomenaState {
   // The dark forest's strike on its way; when the ship last went through a wormhole.
   strikeAt: number | null;
   jumpedAt: number;
+}
+
+// A call for help from a beacon drifting where it was sent: what it really is (known only once it is reached), until
+// when it calls (ms on the run's clock), and how long the ship has held still beside survivors (seconds).
+export type DistressKind = "survivors" | "ambush" | "cargo";
+
+export interface Distress {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  kind: DistressKind;
+  until: number;
+  held: number;
+}
+
+// One of those who fell in an earlier universe of the run, whose hulk can drift through a black hole into a later
+// one: its hull's shape and colours, its level, and the universe it came from (by name).
+export interface ForeignHulk {
+  shape: HullShape;
+  colours: [string, string, string];
+  level: number;
+  origin: string;
 }
 
 // Readings taken while flying, for the telemetry the UI turns into real units.
@@ -224,6 +249,20 @@ export interface VoyageState {
   aimMode: AimMode;
   // Kills in quick succession: how many, when the last fell, and the best this run.
   streak: { count: number; lastAt: number; best: number };
+  // The run's perks, and the ones offered while the pilot chooses (the run held still till then).
+  perks: PerkId[];
+  perkOffer: PerkId[] | null;
+  // The ports of the system the ship is in (and which system they were placed for), the port near and slow enough
+  // to dock at, the one the ship is docked at (the run held still while it trades), and when it last left one.
+  stations: Station[];
+  stationsOf: string | null;
+  dockable: Port | null;
+  docked: Port | null;
+  undockedAt: number;
+  // A call for help, and when the next one comes; the fallen of earlier universes, whose hulks drift into later ones.
+  distress: Distress | null;
+  nextDistressAt: number | null;
+  hulks: ForeignHulk[];
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

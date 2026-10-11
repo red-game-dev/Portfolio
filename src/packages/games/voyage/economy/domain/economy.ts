@@ -40,9 +40,10 @@ export interface Recipe {
 
 // Why money moved, which names the account it moved through.
 export type EarningReason =
-  "discovery" | "landing" | "hosted" | "bounty" | "rescue" | "boss" | "universe" | "mission" | "coin" | "salvage" | "flight" | "recycling" | "streak";
+  "discovery" | "landing" | "hosted" | "bounty" | "rescue" | "boss" | "universe" | "mission" | "coin" | "salvage" | "flight" | "recycling" | "streak" |
+  "distress" | "trade";
 
-export type SpendingReason = "upgrade" | "crafting" | "repair" | "exchange" | "enhance" | "forge";
+export type SpendingReason = "upgrade" | "crafting" | "repair" | "exchange" | "enhance" | "forge" | "trade";
 
 // What the pilot can do next, ready to do in one click.
 export type Suggestion =
@@ -66,7 +67,9 @@ export type Deed =
   // Coins picked up together, paid as one entry.
   | { kind: "coin"; count: number }
   // A streak of kills in quick succession, at each milestone.
-  | { kind: "streak"; count: number };
+  | { kind: "streak"; count: number }
+  // Survivors taken aboard from a call for help.
+  | { kind: "distress" };
 
 // What the economy needs to know of the ship to suggest the next thing to do: whether it is flying, its faults,
 // and its hull, fuel and shields as shares, and its heat as a share of what its plating is built for.

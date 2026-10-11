@@ -119,7 +119,7 @@ export class WrecksLayer implements RenderLayer<VoyageFrame> {
     const y = camera.toScreenY(lerpY(body, alpha));
     const drawn = body.radius * 2.4 * camera.scale;
     const size = sizeBucket(body.radius * 2.4 * (camera.scale / camera.zoom));
-    const sprite = this.sprite(wreck, size, state.cosmos?.factions[wreck.faction]);
+    const sprite = this.sprite(wreck, size, wreck.look ?? state.cosmos?.factions[wreck.faction]);
 
     front.context.globalAlpha = wreck.isEmpty ? 0.55 : 1;
     front.blit(sprite, x, y, drawn, drawn, spin?.angle ?? 0);

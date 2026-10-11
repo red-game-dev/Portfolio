@@ -141,6 +141,25 @@ export interface SalvageConfig {
   match: number;
   seconds: Record<"probe" | "rocket" | "starship" | "alien" | "ore" | "ice", number>;
   debris: number;
+  // In the universes, where far more ships fight and fall: how often (seconds) and how many at once, and the share
+  // of the fallen that are hulks drifted in from an earlier universe of the run, once there are any.
+  away: { every: [number, number]; max: number; foreign: number };
+}
+
+// Calls for help: the first after so many seconds, then one every so often (seconds), each calling for so long,
+// sent from so far off (world units); reached within `reach`, survivors are taken aboard by holding no faster than
+// `holdSpeed` against the beacon for `hold` seconds; an ambush rouses a pack this much bigger than the faction's, and
+// a spilled cargo leaves so many caches.
+export interface DistressConfig {
+  first: number;
+  every: [number, number];
+  seconds: number;
+  distance: [number, number];
+  reach: number;
+  hold: number;
+  holdSpeed: number;
+  ambush: number;
+  caches: [number, number];
 }
 
 // Breakdowns: the chance a second of each system breaking down when sound, how much likelier as it wears, runs
@@ -261,6 +280,7 @@ export interface VoyageConfig {
   // Seconds between ships passing.
   traffic: [number, number];
   salvage: SalvageConfig;
+  distress: DistressConfig;
   faults: FaultConfig;
   spawn: SpawnConfig;
   holes: HoleConfig;
@@ -327,7 +347,9 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     match: 0.22,
     seconds: { probe: 1.6, rocket: 2.2, starship: 3.2, alien: 2, ore: 0.5, ice: 0.6 },
     debris: 0.3,
+    away: { every: [14, 32], max: 6, foreign: 0.35 },
   },
+  distress: { first: 50, every: [70, 140], seconds: 80, distance: [9, 15], reach: 0.8, hold: 2.5, holdSpeed: 0.5, ambush: 2, caches: [2, 3] },
   faults: {
     rate: 1 / 900,
     wearFactor: 5,

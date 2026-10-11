@@ -1,4 +1,5 @@
 import { itemName } from "@/components/Finale/Voyage/economy";
+import { pieceName } from "@/components/Finale/Voyage/names";
 import type { AmmoStock, AmmoType, GearDrop, GearStat, GearStats, ProgressView, RunSummary, VoyageNotice } from "@/packages/games/voyage";
 import type { EnhanceForm } from "@/packages/progression/enhancement";
 import { fill, formatDuration, formatNumber } from "@/packages/text/format";
@@ -12,18 +13,7 @@ const STAT_ORDER: readonly GearStat[] = [
 
 const AMMO_ORDER: readonly AmmoType[] = ["rounds", "missiles", "mines", "slugs", "cells", "shells"];
 
-// A piece's name from its kind ("armor:2" reads "Alloy Plating", "weapon:missile:1" "Titanium Missile pod").
-export const pieceName = (content: FinaleVoyage, base: string): string => {
-  const copy = content.gear;
-  const [first, second, third] = base.split(":");
-  const isWeapon = first === "weapon";
-  const grade = copy.grades[Number(isWeapon ? third : second)] ?? "";
-  const weapons: Record<string, { name: string } | undefined> = copy.weapons;
-  const slots: Record<string, string | undefined> = copy.slots;
-  const piece = isWeapon ? weapons[second]?.name ?? second : slots[first] ?? first;
-
-  return fill(copy.pieceName, { grade, piece });
-};
+export { pieceName };
 
 // How far a piece is enhanced: "+3 stars", or that it is not yet.
 export const formText = (content: FinaleVoyage, form: EnhanceForm): string => {

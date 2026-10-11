@@ -1,3 +1,4 @@
+import { missionName, pieceName } from "@/components/Finale/Voyage/names";
 import type { HullTier, ItemStack, Purse, Suggestion, VoyageNotice } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage, VoyageEconomyCopy } from "@/types/game";
@@ -70,7 +71,21 @@ export const ledgerMemo = (content: FinaleVoyage, memo: string): string => {
         return String(Number(raw) + 1);
       case "craft":
       case "recycling":
+      case "buy":
+      case "sell":
         return itemName(copy, raw);
+      case "enhance":
+      case "forge":
+      case "dismantle":
+        return pieceName(content, raw);
+      case "mission":
+        return missionName(content, raw);
+      case "trade": {
+        const ammo: Record<string, string | undefined> = content.gear.ammo;
+        const services: Record<string, string | undefined> = content.encounters.station.services;
+
+        return ammo[raw] ?? services[raw] ?? raw;
+      }
       default:
         return raw;
     }
@@ -104,6 +119,7 @@ export const economyNotice = (content: FinaleVoyage, notice: VoyageNotice): stri
     case "salvaged": {
       const wreck = copy.salvage.wrecks[notice.wreck];
       const lines = [
+        notice.origin ? fill(copy.salvage.hulk, { origin: notice.origin }) : "",
         notice.kept.length > 0 ? fill(copy.salvage.found, { items: stacksText(copy, notice.kept) }) : "",
         notice.lost.length > 0 ? fill(copy.salvage.holdFull, { items: stacksText(copy, notice.lost) }) : "",
         ...notice.blueprints.map((id) => fill(copy.salvage.blueprint, { name: blueprintName(copy, id) })),
@@ -118,7 +134,7 @@ export const economyNotice = (content: FinaleVoyage, notice: VoyageNotice): stri
     case "upgraded":
       return fill(copy.upgraded, { ship: shipName(copy, notice.tier, notice.mark) });
     case "earned":
-      return notice.deed === "boss" || notice.deed === "universe" || notice.deed === "rescue" || notice.deed === "hosted"
+      return notice.deed === "boss" || notice.deed === "universe" || notice.deed === "rescue" || notice.deed === "hosted" || notice.deed === "distress"
         ? fill(copy.earned[notice.deed], { red: notice.amounts.RED, void: notice.amounts.VOID })
         : null;
     default:

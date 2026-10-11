@@ -2,9 +2,12 @@ import type { Entity, System } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
 import { pick, randomBetween } from "@/packages/math/random";
 
-import { Alien, AlienRole, Weapon } from "../domain/components";
+import { Alien, AlienRole, Body, BossMove, Weapon } from "../domain/components";
 import { FactionSpec } from "../domain/universe";
 import { levelOf, wellPull } from "./boosts";
+import {
+  bossMoveFor, CHARGE_HIT, CHARGE_MS, CHARGE_SPEED, FIRST_MOVE_MS, moveGap, NOVA_PER_PHASE, NOVA_SHOTS, novaDirections, TELEGRAPH_MS, VOLLEY_MISSILES,
+} from "./bossMoves";
 import { damageAlien, fire, leadDirection } from "./combat";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
@@ -167,43 +170,7 @@ export class AlienSystem implements System<VoyageContext> {
   }
 
   private spawn(context: VoyageContext, faction: FactionSpec | null, role: AlienRole, x: number, y: number): Entity {
-    const { world, random } = context;
-    const entity = world.spawn();
-    const boss = role === "boss";
-    const radius = role === "whale" ? WHALE_RADIUS : role === "trader" ? TRADER_RADIUS : (faction ? SIZES[faction.shape] : 0.1) * (boss ? BOSS_SCALE : 1);
-    const hull = role === "whale" ? 2400 : (faction?.hull ?? 100) * (boss ? 12 : role === "trader" ? 2 : 1);
-    const shields = (faction?.shields ?? 0) * (boss ? 4 : 1);
-
-    world.stores.body.set(entity, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius, mass: radius * radius * 80 });
-    world.stores.health.set(entity, { hull, maxHull: hull, shields, maxShields: shields, rechargeIn: 0, decals: [] });
-    world.stores.alien.set(entity, {
-      faction: faction?.id ?? -1,
-      role,
-      mode: "idle",
-      homeX: x,
-      homeY: y,
-      threat: 0,
-      angle: random() * TAU,
-      level: (faction?.level ?? 1) + (boss ? 5 : 0),
-      phase: 0,
-    });
-
-    if (faction && role !== "trader" && faction.disposition !== "peaceful") {
-      const [damage, rate, range, speed] = GUNS[faction.weapon];
-      const level = 1 + (faction.level - 1) * 0.12;
-
-      world.stores.weapon.set(entity, {
-        kind: faction.weapon,
-        damage: damage * level * (boss ? 1.5 : 1),
-        rate: rate * (boss ? 1.4 : 1),
-        range,
-        speed,
-        heat: 0,
-        cooldown: random() / rate,
-      });
-    }
-
-    return entity;
+    return spawnAlien(context, faction, role, x, y);
   }
 
   private think(context: VoyageContext, parts: ShipParts, entity: Entity, alien: Alien, dt: number): void {
@@ -232,10 +199,27 @@ export class AlienSystem implements System<VoyageContext> {
       health.shields = Math.min(health.maxShields, health.shields + health.maxShields * 0.15 * dt);
     }
 
-    // Stunned by an EMP, it drifts, slowing, and neither thinks nor fires until it wakes.
+    // Stunned by an EMP, it drifts, slowing, and neither thinks nor fires until it wakes; a charge stunned is spent.
     if ((alien.stunnedUntil ?? 0) > state.elapsedMs) {
       body.vx *= 1 - Math.min(1, dt * 1.5);
       body.vy *= 1 - Math.min(1, dt * 1.5);
+      alien.chargeUntil = 0;
+      alien.move = null;
+
+      return;
+    }
+
+    // A boss charging runs on along the line it marked, whatever else; meeting the ship, it hits far harder than a ram.
+    if ((alien.chargeUntil ?? 0) > state.elapsedMs) {
+      body.vx = Math.cos(alien.angle) * CHARGE_SPEED;
+      body.vy = Math.sin(alien.angle) * CHARGE_SPEED;
+
+      if (distance < body.radius + ship.radius && state.status === "flying") {
+        applyDamage(context, RAM * CHARGE_HIT, Math.atan2(-dy, -dx), "impact");
+        alien.chargeUntil = 0;
+        body.vx *= -0.3;
+        body.vy *= -0.3;
+      }
 
       return;
     }
@@ -281,9 +265,20 @@ export class AlienSystem implements System<VoyageContext> {
 
       wantX = (qx / apart) * closing * speed - (qy / apart) * circle * speed * 0.6;
       wantY = (qy / apart) * closing * speed + (qx / apart) * circle * speed * 0.6;
-      alien.angle = Math.atan2(qy, qx);
 
-      if (weapon && weapon.cooldown <= 0 && apart < weapon.range) {
+      // A boss gathering itself for a great attack holds its fire, and before a charge, holds still and faces where
+      // it will go.
+      const move = isBoss ? this.bossMove(context, entity, alien, body, quarry, weapon) : null;
+
+      if (move?.kind === "charge") {
+        wantX = 0;
+        wantY = 0;
+        alien.angle = move.angle;
+      } else {
+        alien.angle = Math.atan2(qy, qx);
+      }
+
+      if (!move && weapon && weapon.cooldown <= 0 && apart < weapon.range) {
         const aim = leadDirection(body, quarry, weapon.speed);
 
         if (aim) {
@@ -362,6 +357,64 @@ export class AlienSystem implements System<VoyageContext> {
 
   }
 
+  // A boss's great attacks: after a pause, one is shown winding up (a nova round it, a charge along a line, a volley
+  // at the ship) for long enough to get clear of, then lands. Returns the attack winding up now, if any.
+  private bossMove(context: VoyageContext, entity: Entity, alien: Alien, body: Body, target: Body, weapon: Weapon | undefined): BossMove | null {
+    const { state, random, events } = context;
+    const now = state.elapsedMs;
+
+    if (alien.move) {
+      if (now < alien.move.at) {
+        return alien.move;
+      }
+
+      this.release(context, entity, alien, body, alien.move, weapon);
+      alien.move = null;
+      alien.nextMoveAt = now + moveGap(alien.phase, random) * 1000;
+
+      return null;
+    }
+
+    alien.nextMoveAt = alien.nextMoveAt ?? now + FIRST_MOVE_MS;
+
+    if (now < alien.nextMoveAt) {
+      return null;
+    }
+
+    const kind = bossMoveFor(alien.phase, random);
+
+    alien.move = { kind, at: now + TELEGRAPH_MS[kind], angle: Math.atan2(target.y - body.y, target.x - body.x), x: target.x, y: target.y };
+    events.emit("bossMove", { kind, isWindup: true, x: body.x, y: body.y });
+
+    return alien.move;
+  }
+
+  // A great attack lands: the nova's ring of shots, the charge begun, the volley of missiles after the ship.
+  private release(context: VoyageContext, entity: Entity, alien: Alien, body: Body, move: BossMove, weapon: Weapon | undefined): void {
+    const { state, random, events } = context;
+    const damage = weapon?.damage ?? 20;
+
+    if (move.kind === "nova") {
+      const shot: Weapon = { kind: weapon?.kind ?? "cannon", damage: damage * 0.8, rate: 1, range: 7, speed: 3.2, heat: 0, cooldown: 0 };
+
+      novaDirections(NOVA_SHOTS + alien.phase * NOVA_PER_PHASE, random() * Math.PI).forEach(({ x, y }) => fire(context, entity, shot, x, y, "aliens", null));
+    } else if (move.kind === "charge") {
+      alien.angle = move.angle;
+      alien.chargeUntil = state.elapsedMs + CHARGE_MS;
+    } else {
+      const missile: Weapon = { kind: "missile", damage: damage * 1.3, rate: 1, range: 12, speed: 2.6, heat: 0, cooldown: 0 };
+      const count = VOLLEY_MISSILES + alien.phase;
+
+      for (let index = 0; index < count; index += 1) {
+        const angle = move.angle + (index - (count - 1) / 2) * 0.35;
+
+        fire(context, entity, missile, Math.cos(angle), Math.sin(angle), "aliens", state.decoy ?? state.ship);
+      }
+    }
+
+    events.emit("bossMove", { kind: move.kind, isWindup: false, x: body.x, y: body.y });
+  }
+
   // A boss weakening calls its pack round it, and at the end fires faster.
   private bossPhase(context: VoyageContext, entity: Entity, alien: Alien, share: number): void {
     const { world, state, random } = context;
@@ -396,3 +449,44 @@ export class AlienSystem implements System<VoyageContext> {
     }
   }
 }
+
+// Someone who lives in a universe, come into the world at a point: a faction's fighter, boss or trader, or a void whale.
+export const spawnAlien = (context: VoyageContext, faction: FactionSpec | null, role: AlienRole, x: number, y: number): Entity => {
+  const { world, random } = context;
+  const entity = world.spawn();
+  const boss = role === "boss";
+  const radius = role === "whale" ? WHALE_RADIUS : role === "trader" ? TRADER_RADIUS : (faction ? SIZES[faction.shape] : 0.1) * (boss ? BOSS_SCALE : 1);
+  const hull = role === "whale" ? 2400 : (faction?.hull ?? 100) * (boss ? 12 : role === "trader" ? 2 : 1);
+  const shields = (faction?.shields ?? 0) * (boss ? 4 : 1);
+
+  world.stores.body.set(entity, { x, y, vx: 0, vy: 0, prevX: x, prevY: y, radius, mass: radius * radius * 80 });
+  world.stores.health.set(entity, { hull, maxHull: hull, shields, maxShields: shields, rechargeIn: 0, decals: [] });
+  world.stores.alien.set(entity, {
+    faction: faction?.id ?? -1,
+    role,
+    mode: "idle",
+    homeX: x,
+    homeY: y,
+    threat: 0,
+    angle: random() * TAU,
+    level: (faction?.level ?? 1) + (boss ? 5 : 0),
+    phase: 0,
+  });
+
+  if (faction && role !== "trader" && faction.disposition !== "peaceful") {
+    const [damage, rate, range, speed] = GUNS[faction.weapon];
+    const level = 1 + (faction.level - 1) * 0.12;
+
+    world.stores.weapon.set(entity, {
+      kind: faction.weapon,
+      damage: damage * level * (boss ? 1.5 : 1),
+      rate: rate * (boss ? 1.4 : 1),
+      range,
+      speed,
+      heat: 0,
+      cooldown: random() / rate,
+    });
+  }
+
+  return entity;
+  };

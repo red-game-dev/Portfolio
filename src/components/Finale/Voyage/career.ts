@@ -1,20 +1,11 @@
 import { isBoostName } from "@/components/Finale/Voyage/abilities";
+import { missionName } from "@/components/Finale/Voyage/names";
 import type { CodexEntry, VoyageNotice } from "@/packages/games/voyage";
 import { capitalise, fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 
-// A mission's name: one of the list by its id, or a contract read from its id ("contract:salvage:6").
-export const missionName = (content: FinaleVoyage, id: string): string => {
-  const copy = content.career;
-  const [prefix, kind, count] = id.split(":");
-
-  if (prefix === "contract" && (kind === "salvage" || kind === "bounty" || kind === "rescue")) {
-    return fill(copy.contracts[kind], { count });
-  }
-
-  return copy.missions[id] ?? id;
-};
+export { missionName };
 
 export const rankName = (content: FinaleVoyage, id: string): string => content.career.ranks[id] ?? id;
 

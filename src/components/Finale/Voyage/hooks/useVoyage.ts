@@ -13,8 +13,8 @@ import type { SoundEngine } from "@/packages/audio/synth";
 import type { HapticName } from "@/packages/browser/haptics";
 import { decodeImage } from "@/packages/browser/images";
 import type {
-  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, PadIntent, ProgressView, RunSummary, Suggestion, UniverseNames, VoyageAction, VoyageGame,
-  VoyageNotice, VoyageSnapshot,
+  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, PadIntent, PerkId, ProgressView, RunSummary, Suggestion, UniverseNames, VoyageAction,
+  VoyageGame, VoyageNotice, VoyageSnapshot,
 } from "@/packages/games/voyage";
 import type { GamepadInput } from "@/packages/interaction/gamepad";
 import { DragTracker, localPoint } from "@/packages/interaction/gestures";
@@ -289,6 +289,25 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   // The ship as it looks now, drawn for its sheet.
   const drawShip = useCallback((context: CanvasRenderingContext2D, width: number, height: number) => game?.drawShipPreview(context, width, height), [game]);
 
+  // A port's trade while the ship is docked there, read afresh whenever what it shows may have changed (the purse, the
+  // hold, the racks, the hull, the tank, the shields).
+  const station = useMemo(
+    () => (snapshot?.docked ? game?.stationView ?? null : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [game, snapshot?.docked, snapshot?.hull, snapshot?.fuel, snapshot?.shields, snapshot?.faults, economy, gear],
+  );
+
+  // Casting off from a port, and choosing a perk, hand the keys back to the voyage.
+  const castOff = useCallback(() => {
+    act({ kind: "undock" });
+    stage.current?.focus();
+  }, [act, stage]);
+
+  const choosePerk = useCallback((id: PerkId | null) => {
+    act({ kind: "perk", id });
+    stage.current?.focus();
+  }, [act, stage]);
+
   // The hangar holds a run still while it is open, and lets it go on when it closes.
   const setHangar = useCallback((isOpen: boolean) => {
     setIsHangarOpen(isOpen);
@@ -408,6 +427,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       hasHangar: economy !== null,
       hasSuggestion: Boolean(economy?.suggestion),
       hasGame: game !== null,
+      canDock: Boolean(snapshot?.dockable),
+      isDocked: Boolean(snapshot?.docked),
     });
 
     switch (action) {
@@ -448,6 +469,12 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       case "zoomOut":
         game?.zoomBy(zoom.step(action === "zoomIn" ? 1 : -1));
         break;
+      case "dock":
+        act({ kind: "dock" });
+        break;
+      case "undock":
+        castOff();
+        break;
       default:
         if (slotOf(action) < 0) {
           return false;
@@ -461,8 +488,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
 
     return true;
   }), [
-    act, applyKeys, economy, follow, game, held, isFlying, isHangarOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns, toggleMap, togglePhoto,
-    unlockSound, zoom,
+    act, applyKeys, castOff, economy, follow, game, held, isFlying, isHangarOpen, isPaused, isPhoto, pause, resume, setHangar, snapshot, toggleGuns, toggleMap,
+    togglePhoto, unlockSound, zoom,
   ]);
 
   const onKeyUp = useCallback((event: KeyboardEvent<HTMLElement>) => {
@@ -652,6 +679,14 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       case "guns":
         toggleGuns();
         break;
+      case "dock":
+        if (snapshot?.docked) {
+          castOff();
+        } else if (snapshot?.dockable) {
+          act({ kind: "dock" });
+        }
+
+        break;
       default:
         break;
     }
@@ -709,6 +744,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     setHangar,
     act,
     follow,
+    station,
+    castOff,
+    choosePerk,
     isReady: game !== null,
     isPaused,
     isMapOpen,

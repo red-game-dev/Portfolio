@@ -1,6 +1,7 @@
 import { FC, Fragment, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  faAnchor,
   faCalendarDay,
   faCamera,
   faCircleUp,
@@ -20,6 +21,10 @@ import { AbilityBar } from "@/components/Finale/Voyage/AbilityBar/AbilityBar";
 import { rankName } from "@/components/Finale/Voyage/career";
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
+import { portName } from "@/components/Finale/Voyage/encounters";
+import { BossTell, DistressFrame, DockButton } from "@/components/Finale/Voyage/Encounters/Encounters.styles";
+import { PerkCard } from "@/components/Finale/Voyage/Encounters/PerkCard";
+import { StationPanel } from "@/components/Finale/Voyage/Encounters/StationPanel";
 import { summaryRows } from "@/components/Finale/Voyage/gear";
 import { Guide } from "@/components/Finale/Voyage/Guide";
 import { HangarPanel, HangarTab } from "@/components/Finale/Voyage/Hangar/HangarPanel";
@@ -173,6 +178,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     mapKeyRock: content.mapMarks.keyRock,
     mapKeyHazard: content.mapMarks.keyHazard,
     wayOn: content.mapMarks.wayOn,
+    mapStation: content.mapMarks.station,
+    mapKeyPort: content.mapMarks.keyPort,
+    mapKeyDistress: content.mapMarks.keyDistress,
+    dock: content.encounters.station.dockHere,
+    distress: content.encounters.distress.label,
   }), [content]);
   const canvases = { stage: stageRef, back: backRef, front: frontRef, lens: lensRef };
   const voyage = useVoyage(canvases, { labels, universes, syllables: content.universeNames, home });
@@ -180,6 +190,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const { economy, isHangarOpen, setHangar, act, follow } = voyage;
   const { career, isPhoto, togglePhoto, savePhoto, landing } = voyage;
   const { gear, progress, summary, isManual, stickRef, drawShip, guideSpawn } = voyage;
+  const { station, castOff, choosePerk } = voyage;
   // The hangar opens on its first tab, or on the Loadout when an empty slot of the bar is pressed.
   const [hangarTab, setHangarTab] = useState<HangarTab | null>(null);
   const [pay, setPay] = useState<number | null>(null);
@@ -200,6 +211,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const previous = useRef<VoyageSnapshot | null>(null);
   const bestBefore = useRef(best);
   const status = snapshot?.status ?? "ready";
+  // A perk offered or a port's trade open holds the run still, and the bar with it.
+  const isChoosing = status === "flying" && Boolean(snapshot?.perkOffer);
+  const isDocked = status === "flying" && Boolean(snapshot?.docked);
   // Stranded adrift, the countdown shows over the view; down on a world, the surface card says it.
   const adrift = snapshot && !snapshot.landedOn ? strandedLine(content, snapshot) : null;
   const surfaceTitle = snapshot?.surface ? surfaceHeading(content, snapshot) : "";
@@ -582,9 +596,34 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </TelemetryList>
         </TelemetryPanel>
       )}
-      {status === "flying" && snapshot && (isGuiding || snapshot.boss || snapshot.incoming || snapshot.salvage || adrift || economy?.suggestion) && !isHangarOpen &&
-        !isPhoto && (
+      {status === "flying" && snapshot && !isChoosing && !isDocked && (isGuiding || snapshot.boss || snapshot.incoming || snapshot.salvage || adrift ||
+        economy?.suggestion || snapshot.dockable || snapshot.distress) && !isHangarOpen && !isPhoto && (
         <Frames>
+          {snapshot.dockable && (
+            <DockButton type="button" onClick={() => act({ kind: "dock" })}>
+              <FontAwesomeIcon icon={faAnchor} aria-hidden="true" />
+              {fill(content.encounters.station.dockAt, { port: portName(content, snapshot.dockable) })}
+            </DockButton>
+          )}
+          {snapshot.distress && (
+            <DistressFrame role="status">
+              {fill(content.encounters.distress.frame, { seconds: snapshot.distress.seconds })}
+              {snapshot.distress.isNear && (
+                <span>{snapshot.distress.progress > 0 ? content.encounters.distress.boarding : content.encounters.distress.hold}</span>
+              )}
+              {snapshot.distress.progress > 0 && (
+                <FrameTrack
+                  role="meter"
+                  aria-label={content.encounters.distress.boarding}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(snapshot.distress.progress * 100)}
+                >
+                  <BarFill colour="#ffb347" style={{ transform: `scaleX(${snapshot.distress.progress})` }} />
+                </FrameTrack>
+              )}
+            </DistressFrame>
+          )}
           {isGuiding && guideStep !== null && (
             <Guide content={content} step={guideStep} isTouch={isTouch} onNext={nextGuide} onSkip={() => act({ kind: "skipGuide" })} />
           )}
@@ -616,6 +655,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 <FrameMeta>{`${combat.boss}, ${fill(combat.level, { level: snapshot.boss.level })}`}</FrameMeta>
               </FrameName>
               {frameBars(snapshot.boss)}
+              {snapshot.bossMove && <BossTell>{content.encounters.bossTells[snapshot.bossMove]}</BossTell>}
             </BossFrame>
           )}
           {snapshot.incoming && (
@@ -636,7 +676,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           )}
         </Frames>
       )}
-      {economy && snapshot && status === "flying" && !isPaused && !isHangarOpen && !isPhoto && (
+      {economy && snapshot && status === "flying" && !isPaused && !isHangarOpen && !isPhoto && !isChoosing && !isDocked && (
         <AbilityBar
           content={content}
           rows={economy.bar}
@@ -647,6 +687,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         />
       )}
       {message && status === "flying" && !isPhoto && <Message key={message.id} role="status">{message.text}</Message>}
+      {isChoosing && snapshot?.perkOffer && !isHangarOpen && !isPhoto && (
+        <PerkCard content={content} offer={snapshot.perkOffer} taken={snapshot.perks} onChoose={choosePerk} />
+      )}
+      {isDocked && station && snapshot?.docked && !isHangarOpen && (
+        <StationPanel content={content} station={station} port={snapshot.docked} onAct={act} onCastOff={castOff} />
+      )}
       {economy && isHangarOpen && (
         <HangarPanel
           content={content}

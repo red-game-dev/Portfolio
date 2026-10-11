@@ -15,6 +15,7 @@ export const PILOT_EXP = {
   hosted: 40,
   bountyPerLevel: 10,
   rescue: 80,
+  distress: 100,
   boss: 500,
   bossPerUniverse: 40,
   universe: 300,

@@ -8,11 +8,11 @@ export type SlotCommand = typeof SLOT_COMMANDS[number];
 
 // What a key asks of the voyage.
 export type VoyageCommand =
-  "left" | "right" | "burn" | "brake" | "pause" | "map" | "guns" | "hangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | "back" | SlotCommand;
+  "left" | "right" | "burn" | "brake" | "pause" | "map" | "guns" | "hangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | "back" | "dock" | SlotCommand;
 
 // Arrows and WASD turn and burn, down and S brake; P pauses, M opens the map, F holds fire, H opens the hangar, C photo
-// mode and U does what the hangar suggests; 1 to 6 use the ability bar; + and - zoom, and Escape steps back out of the
-// hangar or photo mode. The browser's own shortcuts (Ctrl+H, Cmd+U, Cmd+1) are left to the browser.
+// mode, U does what the hangar suggests and E docks at the port alongside (or casts off); 1 to 6 use the ability bar;
+// + and - zoom, and Escape steps back out of the hangar, a port or photo mode. The browser's own shortcuts (Ctrl+H, Cmd+U, Cmd+1) are left to the browser.
 export const VOYAGE_KEYS = new KeyMap<VoyageCommand>({
   "ArrowLeft": "left",
   "ArrowRight": "right",
@@ -28,6 +28,7 @@ export const VOYAGE_KEYS = new KeyMap<VoyageCommand>({
   "h": "hangar",
   "c": "photo",
   "u": "follow",
+  "e": "dock",
   "1": "slot1",
   "2": "slot2",
   "3": "slot3",
@@ -64,10 +65,14 @@ export interface VoyageKeyState {
   hasHangar: boolean;
   hasSuggestion: boolean;
   hasGame: boolean;
+  // A port alongside slowly enough to dock at, and docked at one (its trade open, the run held still).
+  canDock: boolean;
+  isDocked: boolean;
 }
 
 // What a key does: steer (held until it comes up), or one of the voyage's own actions.
-export type VoyageKeyAction = "steer" | "pause" | "map" | "guns" | "hangar" | "closeHangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | SlotCommand;
+export type VoyageKeyAction =
+  "steer" | "pause" | "map" | "guns" | "hangar" | "closeHangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | "dock" | "undock" | SlotCommand;
 
 // Which slot of the bar a key action uses, or -1 for any other.
 export const slotOf = (action: VoyageKeyAction | null): number => SLOT_COMMANDS.findIndex((command) => command === action);
@@ -108,9 +113,15 @@ export const voyageKeyAction = (command: VoyageCommand, state: VoyageKeyState): 
     case "slot5":
     case "slot6":
       return state.isFlying && !state.isPaused && state.hasHangar ? command : null;
+    case "dock":
+      return state.isDocked ? "undock" : state.canDock && state.isFlying && !state.isPaused ? "dock" : null;
     case "back":
       if (state.isHangarOpen) {
         return "closeHangar";
+      }
+
+      if (state.isDocked) {
+        return "undock";
       }
 
       return state.isPhoto ? "photo" : null;

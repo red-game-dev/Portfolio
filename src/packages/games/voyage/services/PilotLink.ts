@@ -12,7 +12,7 @@ import { Deed } from "../economy/domain/economy";
 import { Hangar } from "../economy/services/Hangar";
 
 // Deeds big enough to announce what they paid.
-const ANNOUNCED: ReadonlyArray<Deed["kind"]> = ["boss", "universe", "rescue", "hosted"];
+const ANNOUNCED: ReadonlyArray<Deed["kind"]> = ["boss", "universe", "rescue", "hosted", "distress"];
 // Coins picked up are paid together at most this often (ms of the run), so a run's ledger keeps room for deeds.
 const COIN_BATCH_MS = 1000;
 // The Sun's closest approach is only worth telling a mission inside this distance (AU).
@@ -100,6 +100,12 @@ export class PilotLink {
     const { simulation, hangar, career } = this;
     const { events } = simulation;
     const offs = [
+      // Survivors taken aboard from a call for help are paid for.
+      events.on("distress", ({ stage }) => {
+        if (stage === "rescued") {
+          this.pay({ kind: "distress" });
+        }
+      }),
       events.on("passing", ({ stop }) => {
         this.pay({ kind: "discovery", place: this.nameOf(stop) });
         this.count({ kind: "passed", place: stop });
@@ -164,13 +170,13 @@ export class PilotLink {
       events.on("weathered", ({ peril }) => {
         this.peril = peril;
       }),
-      events.on("salvaged", ({ wreck, kind, loot }) => {
+      events.on("salvaged", ({ wreck, kind, loot, origin }) => {
         const { kept, lost, blueprints } = hangar.stow(loot);
 
         // What does not fit stays on the wreck for when there is room; the wreck counts as salvaged only once
         // it is stripped, so a full hold cannot salvage one wreck over and over.
         simulation.returnLoot(wreck, { items: lost, blueprints: [] });
-        this.notify({ kind: "salvaged", wreck: kind, kept, lost, blueprints });
+        this.notify({ kind: "salvaged", wreck: kind, kept, lost, blueprints, origin });
 
         if (lost.length === 0) {
           this.count({ kind: "salvaged" });

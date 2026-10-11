@@ -183,7 +183,9 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const { paint, extras } = this.look;
 
     if (this.painter?.key !== key) {
-      const colours = paint ? { hull: paint.hull, hullShade: paint.hullShade, window: paint.window, fin: paint.fin, accent: paint.accent ?? accent } : { ...theme, accent };
+      const colours = paint
+        ? { hull: paint.hull, hullShade: paint.hullShade, window: paint.window, fin: paint.fin, accent: paint.accent ?? accent }
+        : { ...theme, accent };
 
       this.painter = { key, paint: paintHull(tier, mark, colours, extras) };
     }

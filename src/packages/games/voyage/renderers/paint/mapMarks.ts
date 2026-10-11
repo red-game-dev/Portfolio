@@ -23,12 +23,16 @@ export interface MapSeen {
   hostile: boolean;
   rock: boolean;
   hazard: boolean;
+  port: boolean;
+  distress: boolean;
 }
 
 const MISSION = "#ffd76a";
 const PULL = "#ff6a5c";
 const STANDING = { hostile: "#ff6a5c", territorial: "#ffb347", neutral: "#ffd76a", peaceful: "#6ee7a8" };
 const HAZARD = "#ff9df0";
+const PORT = "#7dffb0";
+const DISTRESS = "#ffb347";
 
 // A mission's mark: a gold diamond round the place.
 const diamond = (context: Canvas2DContext, x: number, y: number, size: number) => {
@@ -342,6 +346,62 @@ export const paintMissions = ({ context, toX, toY, scale, labels }: MapView, { s
   return isShown;
 };
 
+// The ports, each a green square where its station circles its world; returns whether any were shown.
+export const paintPorts = ({ context, toX, toY, labels }: MapView, { state }: VoyageFrame): boolean => {
+  context.save();
+  context.strokeStyle = PORT;
+  context.fillStyle = PORT;
+  context.lineWidth = 2;
+  context.textAlign = "center";
+  context.textBaseline = "top";
+  state.stations.forEach((port) => {
+    const x = toX(port.x);
+    const y = toY(port.y);
+
+    context.strokeRect(x - 4, y - 4, 8, 8);
+
+    if (labels.mapStation) {
+      context.fillText(labels.mapStation, x, y + 7);
+    }
+  });
+  context.restore();
+
+  return state.stations.length > 0;
+};
+
+// A call for help, an amber ring round where the beacon drifts; returns whether one was shown.
+export const paintDistress = ({ context, toX, toY, labels }: MapView, { state }: VoyageFrame): boolean => {
+  const call = state.distress;
+
+  if (!call) {
+    return false;
+  }
+
+  const x = toX(call.x);
+  const y = toY(call.y);
+
+  context.save();
+  context.strokeStyle = DISTRESS;
+  context.fillStyle = DISTRESS;
+  context.lineWidth = 2;
+  context.beginPath();
+  context.arc(x, y, 6, 0, TAU);
+  context.stroke();
+  context.beginPath();
+  context.arc(x, y, 2.5, 0, TAU);
+  context.fill();
+
+  if (labels.distress) {
+    context.textAlign = "center";
+    context.textBaseline = "bottom";
+    context.fillText(labels.distress, x, y - 9);
+  }
+
+  context.restore();
+
+  return true;
+};
+
 // The key, in the bottom left corner (the telemetry stands in the right one), `bottom` pixels up: only what the map
 // shows now.
 export const paintKey = ({ context, labels }: MapView, bottom: number, seen: MapSeen): void => {
@@ -351,6 +411,8 @@ export const paintKey = ({ context, labels }: MapView, bottom: number, seen: Map
     [STANDING.hostile, seen.hostile ? labels.mapKeyHostile : undefined],
     [PULL, seen.rock ? labels.mapKeyRock : undefined],
     [HAZARD, seen.hazard ? labels.mapKeyHazard : undefined],
+    [PORT, seen.port ? labels.mapKeyPort : undefined],
+    [DISTRESS, seen.distress ? labels.mapKeyDistress : undefined],
   ];
   const shown = rows.filter((row): row is [string, string] => Boolean(row[1]));
 

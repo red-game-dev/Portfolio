@@ -1,3 +1,4 @@
+import { QUARTERMASTER_SHARE } from "../config/perks";
 import { VoyageSimulation } from "../core/VoyageSimulation";
 import { VoyageNotice } from "../domain/notices";
 import { VoyageSnapshot } from "../domain/snapshot";
@@ -5,11 +6,13 @@ import { TIERS, tierOf } from "../economy/config/tiers";
 import { Deed } from "../economy/domain/economy";
 import { Hangar } from "../economy/services/Hangar";
 import { GEAR_EXP, PILOT_EXP } from "../gear/config/levels";
+import { AMMO_TYPES } from "../gear/config/slots";
 import { AmmoStock, GearDrop } from "../gear/domain/gear";
 import { Armory } from "../gear/services/Armory";
 import { baseOf, rackFor } from "../gear/utils/gear";
 import { ProgressOutcome } from "../progress/domain/progress";
 import { Progress } from "../progress/services/Progress";
+import { perkCount } from "../utils/perks";
 
 // Inside this distance of the Sun (AU) a pass counts as brushing it.
 const SUN_BRUSH_AU = 0.1;
@@ -123,6 +126,7 @@ export class ProgressLink {
           armory.spendAmmo(ammo);
         }
       }),
+      events.on("docked", () => this.settle(progress.record("docked"))),
       events.on("struck", ({ source }) => {
         const uid = source ?? armory.fitted("primary")?.uid;
 
@@ -264,6 +268,10 @@ export class ProgressLink {
         this.gain(PILOT_EXP.coin * deed.count);
         this.settle(this.progress.record("coins", deed.count));
         break;
+      case "distress":
+        this.gain(PILOT_EXP.distress);
+        this.settle(this.progress.record("distress"));
+        break;
       default:
         break;
     }
@@ -357,7 +365,19 @@ export class ProgressLink {
   // aboard for the run at once.
   private take(gear: readonly GearDrop[], ammo: Partial<AmmoStock>): void {
     const hull = TIERS.indexOf(tierOf(this.hangar.level));
-    const added = this.armory.addAmmo(ammo, (type) => rackFor(type, hull));
+    // A quartermaster makes every find of ammunition go further.
+    const share = perkCount(this.simulation.state.perks, "quartermaster") > 0 ? QUARTERMASTER_SHARE : 1;
+    const found: Partial<AmmoStock> = {};
+
+    for (const type of AMMO_TYPES) {
+      const count = ammo[type];
+
+      if (count) {
+        found[type] = Math.round(count * share);
+      }
+    }
+
+    const added = this.armory.addAmmo(found, (type) => rackFor(type, hull));
     const kept = gear.filter((drop) => this.armory.add(drop) !== null);
 
     this.simulation.addAmmo(added);

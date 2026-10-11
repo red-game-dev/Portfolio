@@ -1,9 +1,11 @@
 import { AmmoType, WeaponKind } from "../gear/domain/gear";
 import type { LandingPhase } from "../landing";
+import type { PortKind } from "../stations/domain/station";
 import { BoostId } from "./boosts";
-import { AlienRole, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
+import { AlienRole, BossMoveKind, ModuleId, PickupKind, Weapon, WreckKind } from "./components";
 import { FaultKind } from "./faults";
 import { Loot } from "./loot";
+import type { DistressKind } from "./state";
 
 export type DamageKind = "impact" | "crash" | "heat" | "melt" | "crush" | "radiation" | "weapon" | "groundFire" | "tidal" | "breach";
 
@@ -70,6 +72,14 @@ export interface VoyageEvents {
   struck: { x: number; y: number; toShields: number; amount: number; entity: number; isCrit: boolean; source: string | null };
   downed: { x: number; y: number; role: AlienRole; faction: number; level: number; source: string | null };
   boss: { name: string; isFallen: boolean };
+  // A boss's great attack winding up (to be seen and got clear of), and landing.
+  bossMove: { kind: BossMoveKind; isWindup: boolean; x: number; y: number };
+  // A call for help: heard, and once reached what it was (survivors taken aboard, an ambush, a spilled cargo), or
+  // gone quiet unanswered.
+  distress: { stage: "call" | "rescued" | "ambush" | "cargo" | "lost"; kind: DistressKind; x: number; y: number };
+  // Docked at a port (the run held still while the pilot trades), and away again.
+  docked: { kind: PortKind; id: string };
+  undocked: { kind: PortKind; id: string };
   // A drifting rock shot to pieces.
   shattered: { x: number; y: number; radius: number };
   // A rock is on its way to a world: which, how big (km), how long until it hits (seconds).
@@ -87,7 +97,7 @@ export interface VoyageEvents {
   burst: { seconds: number; isFired: boolean };
   wormhole: { x: number; y: number };
   // A wreck stripped of what it held (perhaps nothing), something on board breaking down, and a fault fixed.
-  salvaged: { wreck: number; x: number; y: number; kind: WreckKind; loot: Loot };
+  salvaged: { wreck: number; x: number; y: number; kind: WreckKind; loot: Loot; origin: string | null };
   fault: { kind: FaultKind; module: ModuleId };
   fixed: { kind: FaultKind };
   // The ship skimmed a giant's air for fuel, the first time this run for that giant; it took the full force of a

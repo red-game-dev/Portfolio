@@ -382,7 +382,7 @@ describe("the progress link", () => {
     expect(armory.fitted("primary")?.exp ?? 0).toBeGreaterThan(0);
 
     simulation.events.emit("salvaged", { wreck: 1, x: 0, y: 0, kind: "probe", loot: { items: [], blueprints: [], gear: [{ base: "wings:1", rarity: "rare" }],
-      ammo: { missiles: 3 } } });
+      ammo: { missiles: 3 } }, origin: null });
     expect(armory.pieces.some((piece) => piece.base === "wings:1")).toBe(true);
     expect(armory.ammoOf("missiles")).toBe(3);
     expect(simulation.state.ammo.missiles).toBe(3);

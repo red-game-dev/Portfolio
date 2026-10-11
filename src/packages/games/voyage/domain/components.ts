@@ -1,5 +1,6 @@
 import { BoostId } from "./boosts";
 import { Loot } from "./loot";
+import { HullShape } from "./universe";
 
 // Position, velocity and size: everything that moves and collides. `prevX` and `prevY` hold the position one
 // step back, so the renderer can draw between steps.
@@ -87,6 +88,19 @@ export type AlienRole = "fighter" | "boss" | "trader" | "whale";
 
 export type AlienMode = "idle" | "chase" | "flee" | "evade";
 
+// A boss's great attacks, each shown before it lands: a ring of shots thrown out all round it, a charge along a line
+// it marks, and a volley of missiles at where the ship is.
+export type BossMoveKind = "nova" | "charge" | "volley";
+
+// A great attack winding up: which, when it lands (ms on the run's clock), and the way and the point it was aimed at.
+export interface BossMove {
+  kind: BossMoveKind;
+  at: number;
+  angle: number;
+  x: number;
+  y: number;
+}
+
 export interface Alien {
   faction: number;
   role: AlienRole;
@@ -99,6 +113,10 @@ export interface Alien {
   phase: number;
   // Until when an EMP holds it still and silent (ms on the run's clock).
   stunnedUntil?: number;
+  // A boss: the great attack winding up, when it may begin the next, and until when it charges.
+  move?: BossMove | null;
+  nextMoveAt?: number;
+  chargeUntil?: number;
 }
 
 // A gun: what it fires, how hard, how often (shots a second), how far, how fast its shots fly, how much heat each
@@ -162,6 +180,9 @@ export interface Wreck {
   isEmpty: boolean;
   seed: number;
   faction: number;
+  // A hulk that drifted in from an earlier universe of the run: how it looks, and the universe it came from.
+  look?: { shape: HullShape; colours: [string, string, string] };
+  origin?: string;
 }
 
 // A gate between the star systems of a maze universe: the system (by its place in the network) it leads to.

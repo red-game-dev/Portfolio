@@ -2,8 +2,9 @@ import type { RenderLayer } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
 
-import { Alien } from "../../domain/components";
+import { Alien, Body, BossMove } from "../../domain/components";
 import { FactionSpec } from "../../domain/universe";
+import { CHARGE_MS, CHARGE_SPEED, windup } from "../../systems/bossMoves";
 import { lerpX, lerpY, sizeBucket, VoyageFrame } from "../frame";
 import { paintCraft } from "../paint/aliens";
 import { paintRock } from "../paint/hazards";
@@ -13,6 +14,8 @@ import { RenderKit } from "./kit";
 // MMO colours for how someone stands towards the ship.
 const STANDING = { aggro: "#ff4d5e", hostile: "#ff8a5c", territorial: "#ffb347", neutral: "#ffd76a", peaceful: "#6ee7a8" };
 const SHIELD = "#4fd8ff";
+// A boss's great attack, shown winding up.
+const TELL = "#ff3b4e";
 // Whales and traders, who have no faction colours of their own.
 const WHALE: [string, string, string] = ["#1c2a44", "#3a5a8a", "rgba(120, 220, 255, 1)"];
 const OURS: [string, string, string] = ["#9aa3bb", "#2a3350", "rgba(255, 200, 120, 1)"];
@@ -59,6 +62,11 @@ export class AliensLayer implements RenderLayer<VoyageFrame> {
     }
 
     const { front } = this.kit;
+
+    if (alien.move) {
+      this.drawTell(frame, body, alien.move);
+    }
+
     const faction = alien.faction >= 0 ? state.cosmos?.factions[alien.faction] : undefined;
     const shape = alien.role === "whale" ? "whale" : alien.role === "trader" ? "trader" : faction?.shape ?? "saucer";
     const colours = alien.role === "whale" ? WHALE : faction?.colours ?? OURS;
@@ -106,6 +114,66 @@ export class AliensLayer implements RenderLayer<VoyageFrame> {
     }
 
     this.drawPlate(x, y - drawn * 0.62, alien, faction, health.hull / health.maxHull, health.maxShields > 0 ? health.shields / health.maxShields : 0);
+  }
+
+  // A boss's great attack winding up, drawn as games show one coming so it can be got clear of: a nova as a ring
+  // swelling round it, a charge as the lane it will run down filling red, a volley as a reticle closing on the ship.
+  private drawTell({ state, world, camera, alpha }: VoyageFrame, body: Body, move: BossMove): void {
+    const context = this.kit.front.context;
+    const progress = windup(move.kind, move.at, state.elapsedMs);
+    const x = camera.toScreenX(lerpX(body, alpha));
+    const y = camera.toScreenY(lerpY(body, alpha));
+    const radius = body.radius * camera.scale;
+
+    context.save();
+    context.strokeStyle = TELL;
+    context.fillStyle = TELL;
+
+    if (move.kind === "nova") {
+      context.globalAlpha = 0.25 + progress * 0.45;
+      context.lineWidth = 2 + progress * 3;
+      context.beginPath();
+      context.arc(x, y, radius * (1.3 + progress * 2.2), 0, TAU);
+      context.stroke();
+      context.globalAlpha = 0.12 * progress;
+      context.fill();
+    } else if (move.kind === "charge") {
+      const length = CHARGE_SPEED * (CHARGE_MS / 1000) * camera.scale;
+
+      context.translate(x, y);
+      context.rotate(move.angle);
+      context.globalAlpha = 0.18;
+      context.fillRect(0, -radius, length, radius * 2);
+      context.globalAlpha = 0.45;
+      context.fillRect(0, -radius, length * progress, radius * 2);
+      context.globalAlpha = 0.8;
+      context.lineWidth = 1.5;
+      context.strokeRect(0, -radius, length, radius * 2);
+    } else {
+      const ship = world.stores.body.get(state.ship);
+
+      if (ship) {
+        const sx = camera.toScreenX(lerpX(ship, alpha));
+        const sy = camera.toScreenY(lerpY(ship, alpha));
+        const ring = 40 - progress * 22;
+
+        context.globalAlpha = 0.5 + progress * 0.5;
+        context.lineWidth = 2;
+        context.beginPath();
+        context.arc(sx, sy, ring, 0, TAU);
+
+        for (let tick = 0; tick < 4; tick += 1) {
+          const angle = (tick / 4) * TAU + progress;
+
+          context.moveTo(sx + Math.cos(angle) * (ring - 6), sy + Math.sin(angle) * (ring - 6));
+          context.lineTo(sx + Math.cos(angle) * (ring + 6), sy + Math.sin(angle) * (ring + 6));
+        }
+
+        context.stroke();
+      }
+    }
+
+    context.restore();
   }
 
   // A nameplate as an MMO draws one: the level in its colour, a hull bar, a shield bar under it when there is one.

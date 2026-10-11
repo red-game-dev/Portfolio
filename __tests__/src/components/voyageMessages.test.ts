@@ -42,6 +42,12 @@ const at = (snapshot: Partial<VoyageSnapshot> = {}, au = 1): VoyageSnapshot => (
   level: 0,
   faults: [],
   salvage: null,
+  perks: [],
+  perkOffer: null,
+  dockable: null,
+  docked: null,
+  distress: null,
+  bossMove: null,
   telemetry: {
     gravity: 0.12,
     dominant: null,

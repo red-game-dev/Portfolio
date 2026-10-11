@@ -1,5 +1,7 @@
 import type { Entity, System } from "@/packages/games/engine";
 
+import { SCAVENGER_SPEED } from "../config/perks";
+import { perkCount } from "../utils/perks";
 import { VoyageContext } from "./context";
 import { shipOf } from "./queries";
 
@@ -64,8 +66,10 @@ export class SalvageSystem implements System<VoyageContext> {
     }
 
     const isHolding = Math.hypot(at.vx - body.vx, at.vy - body.vy) < match && isEasy;
+    // A scavenger's eye cuts the cargo free faster.
+    const pace = perkCount(state.perks, "scavenger") > 0 ? SCAVENGER_SPEED : 1;
 
-    wreck.progress = isHolding ? Math.min(1, wreck.progress + dt / wreck.seconds) : Math.max(0, wreck.progress - (dt / wreck.seconds) * DECAY);
+    wreck.progress = isHolding ? Math.min(1, wreck.progress + (dt * pace) / wreck.seconds) : Math.max(0, wreck.progress - (dt / wreck.seconds) * DECAY);
     state.salvage = { wreck: nearest, progress: wreck.progress };
 
     if (wreck.progress >= 1) {
@@ -75,7 +79,7 @@ export class SalvageSystem implements System<VoyageContext> {
       wreck.loot = { items: [], blueprints: [] };
       state.salvage = null;
       // Whatever the hold has no room for is handed back to the wreck (`returnLoot`) before this returns.
-      events.emit("salvaged", { wreck: nearest, x: at.x, y: at.y, kind: wreck.kind, loot });
+      events.emit("salvaged", { wreck: nearest, x: at.x, y: at.y, kind: wreck.kind, loot, origin: wreck.origin ?? null });
 
       // Ore and ice are scooped up whole once nothing is left on them; a hulk is left drifting, stripped.
       if (wreck.isEmpty && (wreck.kind === "ore" || wreck.kind === "ice")) {

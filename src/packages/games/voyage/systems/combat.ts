@@ -1,7 +1,9 @@
 import type { Entity } from "@/packages/games/engine";
 
+import { VAMPIRE_MEND } from "../config/perks";
 import { Body, Weapon } from "../domain/components";
 import { AmmoType } from "../gear/domain/gear";
+import { perkCount } from "../utils/perks";
 import { VoyageContext } from "./context";
 import { damageImpactor } from "./impacts";
 import { leaveWreck } from "./salvage";
@@ -15,6 +17,8 @@ const PACK_REACH = 7;
 // every this many kills.
 const STREAK_MS = 6000;
 const STREAK_CALL = 5;
+// How many of the fallen of earlier universes a run remembers, whose hulks can drift into later ones.
+const HULKS_KEPT = 12;
 
 // What else a shot carries: the ammunition it took and the piece that fired it, for the ship's own; a burst's
 // radius on impact; for a mine when it arms and how near something must come; and a share of its gun's damage.
@@ -231,6 +235,33 @@ const countKill = (context: VoyageContext): void => {
   }
 };
 
+// The fallen of a faction remembered once per universe, so their hulks can drift through a black hole into the
+// universes the run reaches after; the oldest forgotten past a dozen.
+const rememberHulk = ({ state }: VoyageContext, faction: number, level: number): void => {
+  const spec = state.cosmos?.factions[faction];
+  const origin = state.cosmos?.name;
+
+  if (!spec || !origin || state.hulks.some((hulk) => hulk.origin === origin && hulk.shape === spec.shape && hulk.colours[0] === spec.colours[0])) {
+    return;
+  }
+
+  state.hulks.push({ shape: spec.shape, colours: spec.colours, level, origin });
+
+  if (state.hulks.length > HULKS_KEPT) {
+    state.hulks.shift();
+  }
+};
+
+// With the vampire perk, every kill mends a share of the hull.
+const mendOnKill = (context: VoyageContext): void => {
+  const taken = perkCount(context.state.perks, "vampire");
+  const health = taken > 0 ? context.world.stores.health.get(context.state.ship) : undefined;
+
+  if (health && context.state.status === "flying") {
+    health.hull = Math.min(health.maxHull, health.hull + health.maxHull * VAMPIRE_MEND * taken);
+  }
+};
+
 // Damage to someone who lives here: shields first, then hull. It raises their threat towards the player, and a
 // pack fights together: everyone of the same faction near them is roused too. A peaceful one only flees. The
 // fallen leave their hulk drifting, with whatever they carried.
@@ -268,6 +299,8 @@ export const damageAlien = (context: VoyageContext, entity: Entity, amount: numb
   if (health.hull <= 0) {
     events.emit("downed", { x: body.x, y: body.y, role: alien.role, faction: alien.faction, level: alien.level, source });
     countKill(context);
+    rememberHulk(context, alien.faction, alien.level);
+    mendOnKill(context);
     leaveWreck(context, "alien", {
       x: body.x,
       y: body.y,

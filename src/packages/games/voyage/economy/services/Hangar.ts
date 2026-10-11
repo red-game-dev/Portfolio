@@ -174,7 +174,7 @@ export class Hangar {
 
   // Pays a cost in Red Coin and things from the hold for something done in the armoury (an enhancement, a weapon
   // forged), all of it or none; returns whether it was paid.
-  public pay(cost: { coin: number; items: readonly ItemStack[] }, reason: "enhance" | "forge", detail: string): boolean {
+  public pay(cost: { coin: number; items: readonly ItemStack[] }, reason: "enhance" | "forge" | "trade" | "repair", detail: string): boolean {
     const items = [...cost.items];
 
     if (!this.shortfall({ coin: { RED: cost.coin, VOID: 0 }, items, blueprint: null }).isReady) {
@@ -189,6 +189,37 @@ export class Hangar {
     this.changed();
 
     return true;
+  }
+
+  // Buys things at a port for Red Coin, all of them or none: only if the wallet has the coin and the hold the room.
+  public buy(id: string, count: number, price: number): boolean {
+    const spec = this.catalog[id];
+    const coin = Math.round(price * count);
+
+    if (!spec || count <= 0 || spec.volume * count > this.backpack.free || !this.wallet.spend("trade", { RED: coin }, memo("buy", id), this.now())) {
+      return false;
+    }
+
+    this.backpack.add(id, count);
+    this.changed();
+
+    return true;
+  }
+
+  // Sells things from the hold at a port, at its price; returns what it paid.
+  public sell(id: string, count: number, price: number): number {
+    const taken = Math.min(count, this.backpack.count(id));
+
+    if (taken <= 0 || !this.catalog[id] || !this.backpack.take([{ id, count: taken }])) {
+      return 0;
+    }
+
+    const paid = Math.round(price * taken);
+
+    this.wallet.earn("trade", { RED: paid }, memo("sell", id), this.now());
+    this.changed();
+
+    return paid;
   }
 
   // Red Coin paid for a piece of gear broken down.
@@ -591,6 +622,8 @@ export class Hangar {
         return { RED: REWARDS.coin.RED * Math.max(0, deed.count), VOID: REWARDS.coin.VOID * Math.max(0, deed.count) };
       case "streak":
         return { RED: REWARDS.streakPerKill * Math.max(0, deed.count), VOID: 0 };
+      case "distress":
+        return { ...REWARDS.distress };
       default:
         return emptyPurse();
     }

@@ -48,6 +48,8 @@ export type VoyageNotice =
   | { kind: "distress"; stage: "call" | "rescued" | "ambush" | "cargo" | "lost"; distress: DistressKind }
   | { kind: "bossMove"; move: BossMoveKind }
   | { kind: "dry"; weapon: WeaponKind | "primary"; isSilent: boolean }
+  // A run flown during something in the real sky, the first time this year.
+  | { kind: "sky"; event: string; isPeak: boolean }
   | { kind: "fault" | "fixed"; fault: FaultKind }
   // A boost's core picked up: its level and charges now, and whether it was the first or raised the level.
   | { kind: "boostFound"; boost: BoostId; level: number; charges: number; isFirst: boolean; isLevelUp: boolean }
@@ -103,5 +105,8 @@ export type VoyageAction =
   | { kind: "buy"; item: string; count: number }
   | { kind: "sell"; item: string; count: number }
   | { kind: "buyAmmo"; ammo: AmmoType }
+  // A talent's next rank learned, and every talent point taken back to spend again.
+  | { kind: "learn"; talent: string }
+  | { kind: "unlearn" }
   | { kind: "service"; service: ServiceId }
   | { kind: "reset" };

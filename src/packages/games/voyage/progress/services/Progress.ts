@@ -1,9 +1,12 @@
 import { LevelCurve, LevelStanding } from "@/packages/progression/levels";
 
+
 import { PILOT_CURVE } from "../../gear/config/levels";
 import { ACHIEVEMENTS, COUNTERS } from "../config/achievements";
 import { DEFAULT_PAINT, DEFAULT_TRAIL, PAINTS, STAR_UNLOCKS, TRAILS } from "../config/cosmetics";
+import { TALENTS } from "../config/talents";
 import { ProgressOutcome, ProgressProfile } from "../domain/progress";
+import { canLearn, cleanTalents, spentPoints, talentPoints } from "../utils/talents";
 
 export const PILOT_LEVELS = new LevelCurve(PILOT_CURVE);
 
@@ -35,6 +38,15 @@ export class Progress {
   constructor(profile: ProgressProfile = newProgressProfile(), { now = Date.now }: { now?: () => number } = {}) {
     this.now = now;
     this.profile = this.clean(profile);
+  }
+
+  // The talents learned, the points the level gives, and those not yet spent.
+  public get talents(): Readonly<Record<string, number>> {
+    return this.profile.talents ?? {};
+  }
+
+  public get talentPointsLeft(): number {
+    return talentPoints(this.level) - spentPoints(this.talents);
   }
 
   public get level(): number {
@@ -90,6 +102,33 @@ export class Progress {
   public replace(profile: ProgressProfile): void {
     this.profile = this.clean(profile);
     this.changed();
+  }
+
+  // One more rank of a talent, if it can take one; says whether it did.
+  public learn(id: string): boolean {
+    const spec = TALENTS.find((talent) => talent.id === id);
+    const talents = this.profile.talents ?? {};
+
+    if (!spec || !canLearn(talents, spec, this.level)) {
+      return false;
+    }
+
+    this.profile.talents = { ...talents, [id]: (talents[id] ?? 0) + 1 };
+    this.changed();
+
+    return true;
+  }
+
+  // Every point back, for nothing, to spend again.
+  public unlearnAll(): boolean {
+    if (spentPoints(this.talents) === 0) {
+      return false;
+    }
+
+    this.profile.talents = {};
+    this.changed();
+
+    return true;
   }
 
   // Experience earned; the level it reaches is a lifetime best too.
@@ -197,7 +236,7 @@ export class Progress {
   }
 
   public toProfile(): ProgressProfile {
-    const { exp, stars, achievements, counters, cosmetics, guide } = this.profile;
+    const { exp, stars, achievements, counters, cosmetics, guide, talents } = this.profile;
 
     return {
       exp,
@@ -206,6 +245,7 @@ export class Progress {
       counters: { ...counters },
       cosmetics: { ...cosmetics, owned: [...cosmetics.owned] },
       guide: { ...guide },
+      talents: { ...talents },
     };
   }
 
@@ -255,6 +295,7 @@ export class Progress {
       counters: { ...profile.counters },
       cosmetics: { paint, trail, owned },
       guide: { ...profile.guide },
+      talents: cleanTalents(profile.talents, PILOT_LEVELS.levelOf(Math.max(0, profile.exp))),
     };
   }
 

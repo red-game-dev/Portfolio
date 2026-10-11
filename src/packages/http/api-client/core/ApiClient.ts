@@ -34,6 +34,12 @@ export class ApiClient {
     return new ApiClient(mergeApiClientConfig(this.config, overrides), fetcher);
   }
 
+  // Nothing sent, the parsed JSON out, as the type the caller expects. Pair it with a guard where the response
+  // crosses a trust boundary.
+  public get<TResponse>(path: string, options: CallOptions = {}): Promise<ApiResult<TResponse>> {
+    return this.send<TResponse>(path, undefined, "json", options, "GET");
+  }
+
   // A JSON body in, the parsed JSON out, as the type the caller expects. Pair it with a guard where the response
   // crosses a trust boundary.
   public post<TResponse, TBody = unknown>(path: string, body: TBody, options: CallOptions = {}): Promise<ApiResult<TResponse>> {
@@ -46,10 +52,11 @@ export class ApiClient {
   }
 
   // The body is serialised here, so fetchff sends it as it is and the caller's type stays the caller's.
-  private async send<TResponse>(path: string, body: unknown, responseType: "json" | "stream", options: CallOptions): Promise<ApiResult<TResponse>> {
+  private async send<TResponse>(path: string, body: unknown, responseType: "json" | "stream", options: CallOptions, method: "GET" | "POST" = "POST"):
+    Promise<ApiResult<TResponse>> {
     const response = await fetchf<TResponse>(path, {
-      method: "POST",
-      body: JSON.stringify(body),
+      method,
+      ...(method === "POST" ? { body: JSON.stringify(body) } : {}),
       responseType,
       baseURL: this.config.baseURL,
       headers: { "content-type": "application/json", ...this.config.headers, ...options.headers },

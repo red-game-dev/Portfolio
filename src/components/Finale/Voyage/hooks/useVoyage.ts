@@ -13,8 +13,8 @@ import type { SoundEngine } from "@/packages/audio/synth";
 import type { HapticName } from "@/packages/browser/haptics";
 import { decodeImage } from "@/packages/browser/images";
 import type {
-  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, PadIntent, PerkId, ProgressView, RunSummary, Suggestion, UniverseNames, VoyageAction,
-  VoyageGame, VoyageNotice, VoyageSnapshot,
+  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, PadIntent, PerkId, ProgressView, RunSummary, SkyEvent, Suggestion, UniverseNames,
+  VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot,
 } from "@/packages/games/voyage";
 import type { GamepadInput } from "@/packages/interaction/gamepad";
 import { DragTracker, localPoint } from "@/packages/interaction/gestures";
@@ -63,6 +63,8 @@ export interface VoyageCanvasRefs {
 // keys, zoomed by the wheel, a pinch or + and -, and its map opened with M. The pilot's hangar comes with it,
 // read back from this browser and kept again shortly after every change, when the page is left and when the
 // dialog closes; opening the hangar (H) pauses a run, and U does whatever the hangar suggests.
+const NO_SKY: readonly SkyEvent[] = [];
+
 export interface VoyageNames {
   labels: Record<string, string>;
   universes: string[];
@@ -338,26 +340,31 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     stage.current?.focus();
   }, [drag, game, isPhoto, stage]);
 
-  // The view as it is now, every canvas in one picture at the device's resolution, saved as a PNG.
-  const savePhoto = useCallback((fileName: string) => {
+  // The view as it is now, every canvas in one picture at the device's resolution.
+  const composePhoto = useCallback((): HTMLCanvasElement | null => {
     const source = back.current;
+    const canvas = source ? document.createElement("canvas") : null;
+    const context = canvas?.getContext("2d");
 
-    if (!game || !source) {
-      return;
+    if (!game || !source || !canvas || !context) {
+      return null;
     }
-
-    const canvas = document.createElement("canvas");
 
     canvas.width = source.width;
     canvas.height = source.height;
+    game.photo(context, canvas.width, canvas.height);
 
-    const context = canvas.getContext("2d");
+    return canvas;
+  }, [back, game]);
 
-    if (!context) {
+  // The view as it is now, saved as a PNG.
+  const savePhoto = useCallback((fileName: string) => {
+    const canvas = composePhoto();
+
+    if (!canvas) {
       return;
     }
 
-    game.photo(context, canvas.width, canvas.height);
     canvas.toBlob((blob) => {
       if (!blob) {
         return;
@@ -371,7 +378,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     }, "image/png");
-  }, [back, game]);
+  }, [composePhoto]);
 
   // The map holds a run still while it is open, so nothing can hit the ship while the pilot finds the way, and
   // lets it go on when it closes. Held still, the game draws the map once.
@@ -770,6 +777,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     station,
     castOff,
     choosePerk,
+    composePhoto,
+    // What the real sky holds today, read once the game is made.
+    skyToday: game?.skyToday ?? NO_SKY,
     isReady: game !== null,
     isPaused,
     isMapOpen,

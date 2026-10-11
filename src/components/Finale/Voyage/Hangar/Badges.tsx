@@ -1,10 +1,11 @@
 import { FC } from "react";
 
-import { faLock, faTrophy } from "@fortawesome/free-solid-svg-icons";
+import { faLock, faMeteor, faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { levelLine } from "@/components/Finale/Voyage/gear";
 import { Item, ItemCount, ItemName, ItemTop, Items, Meter, Note, Subheading } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
+import { skyBadge } from "@/components/Finale/Voyage/sky";
 import { BarFill } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import type { ProgressView } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
@@ -47,6 +48,19 @@ export const Badges: FC<{ content: FinaleVoyage; progress: ProgressView }> = ({ 
           );
         })}
       </Items>
+      <Subheading>{content.sky.badgesTitle}</Subheading>
+      {progress.skySeen.length === 0 ? <Note>{content.sky.badgesNone}</Note> : (
+        <Items>
+          {progress.skySeen.map((key) => (
+            <Item key={key}>
+              <ItemName colour="#ffd9a0">
+                <FontAwesomeIcon icon={faMeteor} aria-hidden="true" />
+                {` ${skyBadge(content, key)}`}
+              </ItemName>
+            </Item>
+          ))}
+        </Items>
+      )}
     </>
   );
 };

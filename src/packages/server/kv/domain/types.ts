@@ -11,4 +11,16 @@ export interface CacheStore {
   claim(key: string, ttlMs: number): Promise<boolean>;
 }
 
-export type KeyValueStore = CounterStore & CacheStore;
+// A ranked list with a time to live: each member keeps its best score (a lower one never replaces it), and the top
+// few are read back best first. `rank` sets the time to live when it creates the list.
+export interface RankStore {
+  rank(key: string, member: string, score: number, ttlMs: number): Promise<void>;
+  top(key: string, count: number): Promise<RankedMember[]>;
+}
+
+export interface RankedMember {
+  member: string;
+  score: number;
+}
+
+export type KeyValueStore = CounterStore & CacheStore & RankStore;

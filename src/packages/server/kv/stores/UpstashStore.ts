@@ -1,7 +1,7 @@
 import type { Redis } from "@upstash/redis";
 
 import { StoreError } from "../domain/errors";
-import { KeyValueStore } from "../domain/types";
+import { KeyValueStore, RankedMember } from "../domain/types";
 
 // Redis on Upstash, through the official client over HTTP, so it works from any serverless instance without a
 // connection pool. Build the client with automaticDeserialization off, so a stored string comes back exactly as
@@ -38,6 +38,34 @@ export class UpstashStore implements KeyValueStore {
 
   public async claim(key: string, ttlMs: number): Promise<boolean> {
     return (await this.run(() => this.redis.set(key, 1, { px: ttlMs, nx: true }))) === "OK";
+  }
+
+  // ZADD GT keeps a member's best score; the time to live is set only if the list has none yet (PEXPIRE NX), so a
+  // list lasts from its first entry, not its last.
+  public async rank(key: string, member: string, score: number, ttlMs: number): Promise<void> {
+    await this.run(() => this.redis.pipeline().zadd(key, { gt: true }, { score, member })
+      .pexpire(key, ttlMs, "NX")
+      .exec());
+  }
+
+  // The best first, as member and score pairs.
+  public async top(key: string, count: number): Promise<RankedMember[]> {
+    if (count <= 0) {
+      return [];
+    }
+
+    const flat = await this.run(() => this.redis.zrange<unknown[]>(key, 0, count - 1, { rev: true, withScores: true }));
+    const ranked: RankedMember[] = [];
+
+    for (let index = 0; index + 1 < flat.length; index += 2) {
+      const score = Number(flat[index + 1]);
+
+      if (Number.isFinite(score)) {
+        ranked.push({ member: String(flat[index]), score });
+      }
+    }
+
+    return ranked;
   }
 
   private async run<T>(command: () => Promise<T>): Promise<T> {

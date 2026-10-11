@@ -4,6 +4,7 @@ import { economyNotice } from "@/components/Finale/Voyage/economy";
 import { encounterNotice } from "@/components/Finale/Voyage/encounters";
 import { gearNotice } from "@/components/Finale/Voyage/gear";
 import { placeName } from "@/components/Finale/Voyage/names";
+import { skyNotice } from "@/components/Finale/Voyage/sky";
 import type { VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
@@ -161,6 +162,6 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
       return fill(notice.kind === "tookOff" ? content.tookOff : content.emergency, { body: placeName(content, notice.body) });
     default:
       return economyNotice(content, notice) ?? careerNotice(content, notice) ?? boostNotice(content, notice) ?? gearNotice(content, notice) ??
-        encounterNotice(content, notice);
+        encounterNotice(content, notice) ?? skyNotice(content, notice);
   }
 };

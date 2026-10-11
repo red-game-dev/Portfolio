@@ -8,4 +8,5 @@ const isCounts = (value: unknown): boolean => isRecord(value) && Object.values(v
 // lifetime counts, the cosmetics by name, and the guide's step.
 export const isProgressProfile: Guard<ProgressProfile> = (value): value is ProgressProfile => isRecord(value) && isCount(value.exp) && isCounts(value.stars) &&
   isCounts(value.achievements) && isCounts(value.counters) && isRecord(value.cosmetics) && isText(value.cosmetics.paint) && isText(value.cosmetics.trail) &&
-  isTextArray(value.cosmetics.owned) && isRecord(value.guide) && isCount(value.guide.step) && typeof value.guide.isDone === "boolean";
+  isTextArray(value.cosmetics.owned) && isRecord(value.guide) && isCount(value.guide.step) && typeof value.guide.isDone === "boolean" &&
+  (value.talents === undefined || isCounts(value.talents));

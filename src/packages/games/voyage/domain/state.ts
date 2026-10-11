@@ -2,6 +2,7 @@ import type { Entity } from "@/packages/games/engine";
 
 import { AmmoStock, ArmedWeapon } from "../gear/domain/gear";
 import type { DescentState, LandingPlan, LandingWorld } from "../landing";
+import type { SkyEvent } from "../sky/domain/sky";
 import type { Port, Station } from "../stations/domain/station";
 import { ActiveBoost, BoostId } from "./boosts";
 import { StarSystem } from "./content";
@@ -263,6 +264,8 @@ export interface VoyageState {
   distress: Distress | null;
   nextDistressAt: number | null;
   hulks: ForeignHulk[];
+  // What is happening in the real sky on the run's day: meteor showers, planets together or opposite the Sun.
+  sky: SkyEvent[];
   // Half the view in world units, for spawning just out of sight.
   view: { halfWidth: number; halfHeight: number };
 }

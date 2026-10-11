@@ -33,6 +33,7 @@ import { configForShip } from "../gear/utils/ship";
 import { armoryView, progressView } from "../gear/utils/view";
 import { DEFAULT_PAINT, DEFAULT_TRAIL, PAINTS, TRAILS } from "../progress/config/cosmetics";
 import { newProgressProfile, Progress } from "../progress/services/Progress";
+import { talentStats } from "../progress/utils/talents";
 import { CanvasVoyageRenderer, VoyageRenderer } from "../renderers/CanvasVoyageRenderer";
 import { lerpX, lerpY, universeOf } from "../renderers/frame";
 import { ShipLook } from "../renderers/look";
@@ -41,6 +42,8 @@ import { SHIP_HEIGHT, SHIP_WIDTH } from "../renderers/paint/space";
 import { PilotLink } from "../services/PilotLink";
 import { ProgressLink, RunSummary } from "../services/ProgressLink";
 import { SystemService } from "../services/SystemService";
+import { SkyEvent } from "../sky/domain/sky";
+import { skyEventsOn } from "../sky/utils/sky";
 import { SolarSystemSource } from "../sources/SolarSystemSource";
 import { ServiceId, StationView } from "../stations/domain/station";
 import { stationView } from "../stations/utils/view";
@@ -225,6 +228,8 @@ export class VoyageGame extends FrameLoop {
   private moment: Moment | null = null;
   // When each weapon last ran dry (ms of the run), and the boss's attacks already told this fight.
   private dryAt = new Map<string, number>();
+  // What the real sky holds today, for the ready card and the run.
+  private sky: SkyEvent[] = [];
   private toldMoves = new Set<string>();
 
   constructor(simulation: VoyageSimulation, renderer: VoyageRenderer, presenter: LensingPresenter | null, backCanvas: TexImageSource | null, theme: VoyageTheme,
@@ -283,11 +288,13 @@ export class VoyageGame extends FrameLoop {
       // With an armoury and a pilot's level, the ship flies with its fittings and grows with its pilot.
       // The run's perks add to the ship as fitted pieces do.
       shipConfig: armory && progress
-        ? (base, level) => configForShip(base, level, addStats(armory.stats(), perkStats(simulation.state.perks)), progress.level)
+        ? (base, level) => configForShip(base, level, addStats(addStats(armory.stats(), perkStats(simulation.state.perks)), talentStats(progress.talents)),
+          progress.level)
         : undefined,
       onDeed: (deed) => progressLink?.deed(deed),
       onMission: (xp) => progressLink?.mission(xp),
     }) : null;
+    this.sky = skyEventsOn(simulation.state.system, this.now());
     this.lastSnapshot = simulation.snapshot;
     this.detach = this.listen(simulation.events);
     this.governor = new QualityGovernor({ levels: QUALITY_RATIOS.length, start: options.quality ?? 0 });
@@ -340,6 +347,11 @@ export class VoyageGame extends FrameLoop {
       rack: (type) => rackFor(type, hull),
       missing: { repair: this.repairNeed(), refuel: 1 - status.fuel, recharge: this.shieldNeed() },
     }, ITEMS);
+  }
+
+  // What is happening in the real sky today (or on the run's day once one has begun).
+  public get skyToday(): readonly SkyEvent[] {
+    return this.sky;
   }
 
   public get runSummary(): RunSummary | null {
@@ -443,7 +455,12 @@ export class VoyageGame extends FrameLoop {
     this.setPhotoMode(false);
     const isDaily = mode === "daily";
 
-    this.simulation.start(isDaily ? dailyEpoch(day) : this.now(), isDaily ? { day, seed: dailySeed(day) } : null);
+    const epoch = isDaily ? dailyEpoch(day) : this.now();
+
+    this.simulation.start(epoch, isDaily ? { day, seed: dailySeed(day) } : null);
+    // The real sky on the run's day: its showers and where the planets stand.
+    this.sky = skyEventsOn(this.simulation.state.system, epoch);
+    this.simulation.setSky(this.sky);
     // A new run has no perks yet: the ship is refitted without the last run's.
     this.link?.refitShip();
     this.link?.startRun();
@@ -611,6 +628,8 @@ export class VoyageGame extends FrameLoop {
       case "wear":
       case "guide":
       case "skipGuide":
+      case "learn":
+      case "unlearn":
         return this.actOnPilot(action);
       case "perk":
       case "dock":
@@ -940,6 +959,16 @@ export class VoyageGame extends FrameLoop {
       }
       case "wear":
         return progress.choose(action.cosmetic, action.id);
+      case "learn":
+      case "unlearn": {
+        const isDone = action.kind === "learn" ? progress.learn(action.talent) : progress.unlearnAll();
+
+        if (isDone) {
+          this.link?.refitShip();
+        }
+
+        return isDone;
+      }
       case "guide":
         progress.guideTo(action.step);
 

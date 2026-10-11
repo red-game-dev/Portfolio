@@ -633,6 +633,68 @@ export interface FinaleVoyage {
   gear: VoyageGearCopy;
   progress: VoyageProgressCopy;
   encounters: VoyageEncountersCopy;
+  board: VoyageBoardCopy;
+  share: VoyageShareCopy;
+  talents: VoyageTalentsCopy;
+  sky: VoyageSkyCopy;
+}
+
+// The daily voyage's board, and what it keeps.
+export interface VoyageBoardCopy {
+  title: string;
+  loading: string;
+  empty: string;
+  resting: string;
+  initials: string;
+  submit: string;
+  // "{rank}" and "{size}" are replaced.
+  sent: string;
+  sentOff: string;
+  busy: string;
+  failed: string;
+  invalid: string;
+  privacy: string;
+}
+
+// A run's card to share: "{score}", "{date}" are replaced.
+export interface VoyageShareCopy {
+  button: string;
+  title: string;
+  subtitle: string;
+  site: string;
+  cta: string;
+  text: string;
+  file: string;
+  saved: string;
+}
+
+// The pilot's talents: "{every}", "{left}", "{points}", "{rank}", "{max}", "{requires}" and "{branch}" are replaced.
+export interface VoyageTalentsCopy {
+  title: string;
+  note: string;
+  points: string;
+  rank: string;
+  learn: string;
+  locked: string;
+  reset: string;
+  branches: Record<"gunnery" | "engineering" | "navigation", string>;
+  names: Record<string, { name: string; note: string }>;
+}
+
+// The real sky: each shower's name and parent, and what to say of a day's events. "{name}", "{parent}", "{first}",
+// "{second}", "{planet}" and "{line}" are replaced.
+export interface VoyageSkyCopy {
+  title: string;
+  showers: Record<string, { name: string; parent: string }>;
+  shower: string;
+  peak: string;
+  conjunction: string;
+  opposition: string;
+  flew: string;
+  badgesTitle: string;
+  badgesNone: string;
+  // "{year}" is replaced.
+  seenYear: string;
 }
 
 // What the voyage says of its encounters: the perks a run picks from, the ports it docks at to trade, calls for help,

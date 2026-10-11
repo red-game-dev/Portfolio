@@ -40,6 +40,14 @@ export class ResilientStore implements KeyValueStore {
     return this.call((store) => store.claim(key, ttlMs));
   }
 
+  public rank(key: string, member: string, score: number, ttlMs: number) {
+    return this.call((store) => store.rank(key, member, score, ttlMs));
+  }
+
+  public top(key: string, count: number) {
+    return this.call((store) => store.top(key, count));
+  }
+
   private async call<T>(run: (store: KeyValueStore) => Promise<T>): Promise<T> {
     const now = this.options.now?.() ?? Date.now();
 

@@ -31,6 +31,7 @@ export const COUNTERS: Readonly<Record<string, CounterKind>> = {
   perfectUniverses: "count",
   dailyRuns: "count",
   docked: "count",
+  skyEvents: "best",
   distress: "count",
   chests: "count",
   boostsUsed: "count",

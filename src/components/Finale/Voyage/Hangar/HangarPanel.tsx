@@ -48,6 +48,7 @@ import {
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
 import { ShipSheet } from "@/components/Finale/Voyage/Hangar/ShipSheet";
 import { Style } from "@/components/Finale/Voyage/Hangar/Style";
+import { Talents } from "@/components/Finale/Voyage/Hangar/Talents";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
 import { BarFill, IconButton } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
@@ -212,6 +213,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
               <Note>{fill(careerCopy.done, { count: career.done })}</Note>
             </>
           )}
+          {progress && <Talents content={content} progress={progress} onAct={onAct} />}
         </TabPanel>
         <TabPanel {...panelProps(TAB.ship)}>
           {gear && <ShipSheet content={content} economy={economy} gear={gear} progress={progress} drawShip={drawShip} onAct={onAct} />}

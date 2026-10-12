@@ -259,35 +259,33 @@ export const LiveTable: FC<LiveTableProps> = ({ cards, content }: LiveTableProps
             </Played>
           )}
         </Layer>
-        <Layer>
+        <Layer ref={handAreaRef}>
           <Hint>{content.hint}</Hint>
           <Label>{content.handLabel}</Label>
           {snapshot.hand.length > 0 ? (
-            <div ref={handAreaRef}>
-              <Hand
-                ref={handRef}
-                data-scroll-x
-                data-fan={step === null ? undefined : true}
-                data-spine={step !== null && isSpineStep(step) ? true : undefined}
-                style={step === null ? undefined : ({ "--step": `${step}px` } as CSSProperties)}
-              >
-                {snapshot.hand.map((name, position) => {
-                  const entry = byName.get(name);
-                  const suit = suitOf(entry?.index ?? 0);
-                  const tilt = (position - (snapshot.hand.length - 1) / 2) * 2.4;
+            <Hand
+              ref={handRef}
+              data-scroll-x
+              data-fan={step === null ? undefined : true}
+              data-spine={step !== null && isSpineStep(step) ? true : undefined}
+              style={step === null ? undefined : ({ "--step": `${step}px` } as CSSProperties)}
+            >
+              {snapshot.hand.map((name, position) => {
+                const entry = byName.get(name);
+                const suit = suitOf(entry?.index ?? 0);
+                const tilt = (position - (snapshot.hand.length - 1) / 2) * 2.4;
 
-                  return (
-                    <li key={name} style={{ "--tilt": `${tilt}deg`, "--drop": `${Math.abs(tilt) * 1.6}px` } as CSSProperties}>
-                      <HandCard type="button" isLocked={!isOpen} aria-disabled={!isOpen} onClick={(event) => throwCard(event, name, position)}>
-                        <Corner isRed={suit.isRed} aria-hidden="true">{suit.glyph}</Corner>
-                        <HandName data-name>{name}</HandName>
-                        <CornerBottom isRed={suit.isRed} aria-hidden="true">{suit.glyph}</CornerBottom>
-                      </HandCard>
-                    </li>
-                  );
-                })}
-              </Hand>
-            </div>
+                return (
+                  <li key={name} style={{ "--tilt": `${tilt}deg`, "--drop": `${Math.abs(tilt) * 1.6}px` } as CSSProperties}>
+                    <HandCard type="button" isLocked={!isOpen} aria-disabled={!isOpen} onClick={(event) => throwCard(event, name, position)}>
+                      <Corner isRed={suit.isRed} aria-hidden="true">{suit.glyph}</Corner>
+                      <HandName data-name>{name}</HandName>
+                      <CornerBottom isRed={suit.isRed} aria-hidden="true">{suit.glyph}</CornerBottom>
+                    </HandCard>
+                  </li>
+                );
+              })}
+            </Hand>
           ) : (
             <Redeal type="button" data-redeal onClick={redeal}>
               <FontAwesomeIcon icon={faRotateLeft} aria-hidden="true" />

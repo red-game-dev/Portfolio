@@ -36,8 +36,7 @@ const Section = styled.div(() => [
   `,
 ]);
 
-// Clear of the fixed header at the top.
-// Clear of the header and, on a phone, of the zone bar under it.
+// Clear of the fixed header and, below a laptop, of the zone bar under it.
 const TitleArea = tw.div`relative z-[2] flex flex-1 items-center w-full px-5 pt-[116px] pb-[20px] lg:pt-[140px] lg:pb-[40px]`;
 
 // Room at the bottom for the scroll cue, so it never sits on the role chips.

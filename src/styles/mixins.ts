@@ -1,7 +1,8 @@
 import { css } from "styled-components";
 
 // Media queries for rules a utility class cannot reach: Tailwind's md, lg and xl breakpoints, each from that width
-// up, and a reader who asked for less motion. Write `${media.md} { ... }` inside a css block.
+// up; two below a width (narrow, narrowTable), each saying what it is for; and a reader who asked for less motion.
+// Write `${media.md} { ... }` inside a css block.
 export const media = {
   // Phones too narrow for the header's name and the view switch's words side by side.
   narrow: "@media (max-width: 339px)",

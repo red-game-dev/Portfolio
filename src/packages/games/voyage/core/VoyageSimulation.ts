@@ -18,6 +18,7 @@ import { UniverseNames } from "../domain/universe";
 import { AMMO_TYPES, STARTER_AMMO } from "../gear/config/slots";
 import { AmmoStock, ArmedWeapon } from "../gear/domain/gear";
 import { UniverseGenerator, UniverseTheme } from "../generators/UniverseGenerator";
+import { LandingForecasts } from "../landing";
 import { SnapshotMapper } from "../mappers/SnapshotMapper";
 import type { SkyEvent } from "../sky/domain/sky";
 import { DOCKING } from "../stations/config/market";
@@ -126,6 +127,7 @@ export class VoyageSimulation {
       loot,
       landing: DEFAULT_LANDING,
       spaceDrag: "felt",
+      forecasts: new LandingForecasts(),
     };
     this.pipeline = new SystemPipeline<VoyageContext>([
       new OrbitSystem(),
@@ -159,6 +161,11 @@ export class VoyageSimulation {
       new SpawnSystem(),
     ], { stepMs: config.stepMs, maxSteps: config.maxSteps });
     this.placeShip();
+  }
+
+  // Landings worked out ahead, for a host to fill (off the main thread) before a landing begins.
+  public get forecasts(): LandingForecasts {
+    return this.context.forecasts;
   }
 
   public get state(): Readonly<VoyageState> {

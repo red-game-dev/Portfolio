@@ -9,6 +9,7 @@ import { LandingOptions, SpaceDrag, VoyageInput } from "../domain/input";
 import { LootTable } from "../domain/loot";
 import { VoyageState } from "../domain/state";
 import { UniverseGenerator, UniverseTheme } from "../generators/UniverseGenerator";
+import type { LandingForecasts } from "../landing";
 
 // What every system is handed each step. Shared scratch (the field sample, the source list, the grid) lives here
 // so no system allocates in the hot loop.
@@ -31,5 +32,7 @@ export interface VoyageContext {
   loot: LootTable;
   // How the pilot likes their landings, and how much space slows the ship.
   landing: LandingOptions;
+  // Landings worked out ahead by the host, taken as a landing begins.
+  forecasts: LandingForecasts;
   spaceDrag: SpaceDrag;
 }

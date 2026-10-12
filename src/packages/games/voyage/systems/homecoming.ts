@@ -61,7 +61,8 @@ export const rescueHome = (context: VoyageContext, parts: ShipParts, fewestDays:
   const contact = home.radius + parts.body.radius;
   const offset = { x: Math.cos(up) * contact, y: Math.sin(up) * contact };
   const homeWorld = landingWorldOf(home, true);
-  const plan = planLanding(homeWorld);
+  // Home's way down was worked out ahead with the rest of our system; worked out here only if it was not.
+  const plan = context.forecasts.take(homeWorld)?.plan ?? planLanding(homeWorld);
   const craft = startDescent(plan);
 
   Object.assign(craft, { altitude: 0, across: 0, up: 0, phase: "down", isDown: true });
@@ -70,7 +71,7 @@ export const rescueHome = (context: VoyageContext, parts: ShipParts, fewestDays:
   parts.ship.angle = up;
   parts.ship.prevAngle = up;
   placeBody(parts.body, home.x + offset.x, home.y + offset.y, home.vx, home.vy);
-  state.descent = { body: home.id, world: homeWorld, plan, craft, speedUp: 1, pace: 1, downAt: state.elapsedMs, isSoft: true, isFiredOn: false };
+  state.descent = { body: home.id, world: homeWorld, begun: { ...homeWorld }, plan, craft, speedUp: 1, pace: 1, downAt: state.elapsedMs, isSoft: true, isFiredOn: false };
   state.homecoming = { stage: "pad", since: state.elapsedMs, days, isSea: false, isArmed: false };
   restoreShip(context, parts);
   parts.health.decals = [];

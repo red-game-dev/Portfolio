@@ -18,6 +18,7 @@ jest.mock("@/packages/games/bug-raid", () => ({ BugRaidGame: { forCanvas: jest.f
 jest.mock("@/packages/games/launch", () => ({ LaunchGame: { forCanvas: jest.fn() } }));
 jest.mock("@/packages/games/voyage", () => ({ VoyageGame: { forCanvas: jest.fn() } }));
 jest.mock("@/services/voyage/pilot", () => ({ openPilot: jest.fn() }));
+jest.mock("@/components/Finale/Voyage/landingWorker", () => ({ createLandingForecaster: () => null }));
 jest.mock("@/packages/browser/images", () => ({ decodeImage: () => new Promise(() => undefined) }));
 
 const { useBugRaid } = jest.requireActual<typeof import("@/components/Arena/hooks/useBugRaid")>("@/components/Arena/hooks/useBugRaid");
@@ -310,12 +311,15 @@ describe("the voyage's controls", () => {
     expect(fireEvent.keyDown(stage, { key: "ArrowUp" })).toBe(true);
     expect(fireEvent.keyDown(stage, { key: "m" })).toBe(true);
     expect(fireEvent.keyDown(stage, { key: "c" })).toBe(true);
+    // Before a run, Escape is the browser's: it closes the voyage.
+    expect(fireEvent.keyDown(stage, { key: "Escape" })).toBe(true);
 
     fly();
     expect(fireEvent.keyDown(stage, { key: "ArrowUp", altKey: true })).toBe(true);
     expect(fireEvent.keyDown(stage, { key: "w", metaKey: true })).toBe(true);
     expect(fireEvent.keyDown(stage, { key: "h", ctrlKey: true })).toBe(true);
-    expect(fireEvent.keyDown(stage, { key: "Escape" })).toBe(true);
+    // During a run the voyage keeps Escape, to ask before the run is left.
+    expect(fireEvent.keyDown(stage, { key: "Escape" })).toBe(false);
     expect(game.setKeys).not.toHaveBeenCalled();
     expect(game.setMap).not.toHaveBeenCalled();
     expect(state()).toBe("");

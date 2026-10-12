@@ -90,11 +90,14 @@ export const NextStepText = tw.span`flex-1 min-w-0 text-[#f4e7c2]`;
 export const NextStepLabel = tw.span`block text-[11px] font-semibold text-[#ffd76a]`;
 
 // The six tabs, each an icon over its name, in one row across the drawer that never wraps: where they do not fit (a
-// narrow phone, larger text) the row scrolls sideways under a finger, snapping to a tab.
+// narrow phone, larger text) the row scrolls sideways under a finger, snapping to a tab, its edges fading so a tab
+// past them shows there is more.
 export const TabBar = styled.div(() => [
   tw`flex flex-row flex-nowrap overflow-x-auto`,
   css`
     border-bottom: 1px solid ${RULE};
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
     scroll-snap-type: x proximity;
     overscroll-behavior-x: contain;
     scrollbar-width: none;

@@ -214,11 +214,12 @@ export const IconButton = styled.button(() => [
   focusRing("#c4d2ff", 2),
 ]);
 
+// Centred all the way through: a step without a transform would ease towards none and slide the line sideways.
 const fadeLine = keyframes`
   0% { opacity: 0; transform: translate(-50%, 6px); }
   12% { opacity: 1; transform: translate(-50%, 0); }
-  80% { opacity: 1; }
-  100% { opacity: 0; }
+  80% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 0); }
 `;
 
 // The same without the movement: there for its moment, then gone.

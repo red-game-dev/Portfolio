@@ -89,9 +89,9 @@ export const NextStepText = tw.span`flex-1 min-w-0 text-[#f4e7c2]`;
 
 export const NextStepLabel = tw.span`block text-[11px] font-semibold text-[#ffd76a]`;
 
-// The five tabs, each an icon over its name, side by side across the drawer.
+// The six tabs, each an icon over its name, side by side across the drawer.
 export const TabBar = styled.div(() => [
-  tw`grid grid-cols-5`,
+  tw`grid grid-cols-6`,
   css`
     border-bottom: 1px solid ${RULE};
   `,

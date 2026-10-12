@@ -119,7 +119,9 @@ const shine = keyframes`
 `;
 
 const Badge = styled.li(({ isShown, delay }: RunProps) => [
-  tw`relative flex flex-row items-center gap-[10px] p-[10px] overflow-hidden bg-[#121212] border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`,
+  // The medal sits above the words on a phone, where two badges a row leave no room beside it.
+  tw`relative flex flex-col items-start md:flex-row md:items-center gap-[8px] md:gap-[10px] p-[10px] overflow-hidden
+     bg-[#121212] border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`,
   css`
     opacity: 0;
 
@@ -161,9 +163,9 @@ const Medal = styled.span(() => [
   `,
 ]);
 
-const BadgeText = tw.span`text-xs leading-snug text-[#ddd]`;
+const BadgeText = tw.span`min-w-0 break-words text-xs leading-snug text-[#ddd]`;
 
-const BadgeValue = tw.strong`block text-base text-white`;
+const BadgeValue = tw.strong`block text-sm md:text-base text-white`;
 
 const Legend = tw.p`m-0 text-[11px] text-[#777]`;
 

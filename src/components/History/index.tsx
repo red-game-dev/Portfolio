@@ -234,7 +234,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
         <Panel>
           <PanelTitle>{labels.experience}</PanelTitle>
           <TabBar>
-            <TabList {...listProps} aria-label={labels.tabsLabel} data-scroll-x>
+            <TabList {...listProps} layout="wrap" aria-label={labels.tabsLabel} data-scroll-x>
               {branches.map((branch, index) => (
                 <Tab key={branch.branch} {...tabProps(index)} isOn={index === active}>
                   <FontAwesomeIcon icon={faCodeBranch} aria-hidden="true" />

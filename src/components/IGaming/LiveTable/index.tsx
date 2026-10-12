@@ -28,7 +28,17 @@ const Felt = tw.canvas`absolute inset-0 w-full h-full pointer-events-none`;
 
 const Layer = tw.div`relative z-[1] flex flex-col gap-[10px]`;
 
-const Label = tw.h3`m-0 text-xs font-semibold text-[rgba(255, 255, 255, 0.7)]`;
+// On a phone the other players' cards sit right behind the words, so the words carry a dark plate of their own.
+const Label = styled.h3(() => [
+  tw`m-0 self-start text-xs font-semibold text-[rgba(255, 255, 255, 0.7)]`,
+  css`
+    ${media.narrowTable} {
+      padding: 3px 8px;
+      border-radius: 9999px;
+      background: rgba(6, 26, 16, 0.78);
+    }
+  `,
+]);
 
 const Played = tw.ul`list-none m-0 p-0 grid gap-[14px] sm:grid-cols-2 lg:grid-cols-3`;
 
@@ -41,7 +51,16 @@ const Empty = styled.p(() => [
   `,
 ]);
 
-const Hint = tw.p`m-0 text-sm text-[rgba(255, 255, 255, 0.75)] max-w-[60ch]`;
+const Hint = styled.p(() => [
+  tw`m-0 text-sm text-[rgba(255, 255, 255, 0.75)] max-w-[60ch]`,
+  css`
+    ${media.narrowTable} {
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(6, 26, 16, 0.78);
+    }
+  `,
+]);
 
 // A fan on wide screens, each card tucked under the next; a row to swipe through on phones.
 const Hand = styled.ul(() => [

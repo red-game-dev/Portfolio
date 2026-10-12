@@ -5,6 +5,8 @@ import { css } from "styled-components";
 export const media = {
   // Phones too narrow for the header's name and the view switch's words side by side.
   narrow: "@media (max-width: 339px)",
+  // Below the tablet breakpoint: a table too narrow for the players round its edge to stay clear of its words.
+  narrowTable: "@media (max-width: 767px)",
   md: "@media (min-width: 768px)",
   lg: "@media (min-width: 1024px)",
   xl: "@media (min-width: 1280px)",

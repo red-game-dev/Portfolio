@@ -44,11 +44,18 @@ export const LensCanvas = styled.canvas(() => [
 // How to play, always there for a screen reader, whatever card is showing.
 export const ControlsNote = tw.p`sr-only`;
 
-// Static, for legibility over a bright planet; nothing behind it moves the gradient.
+// Static, for legibility over a bright planet; nothing behind it moves the gradient. On a narrow upright phone the
+// buttons leave the place no room beside them, so it stacks: the buttons on their own row, the readout under them, then
+// the place, the ship and the bars at the column's full width.
 export const Hud = styled.header(() => [
   tw`absolute top-0 left-0 right-0 flex flex-row items-start justify-between gap-[12px] p-[14px] md:p-[18px] pointer-events-none`,
   css`
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+
+    ${media.narrowPortrait} {
+      flex-direction: column;
+      gap: 8px;
+    }
 
     /* Hidden in photo mode. */
     ${honourHidden}
@@ -57,8 +64,16 @@ export const Hud = styled.header(() => [
 
 export const Vitals = tw.div`flex flex-col gap-[6px] min-w-0`;
 
-// Two lines tall on a phone whatever it says, so the bars below always clear the readout row beside it.
-export const Place = tw.p`m-0 min-h-[40px] md:min-h-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`;
+// Two lines tall on a phone whatever it says, so the bars below always clear the readout row beside it; on a narrow
+// upright phone the readout sits above it instead, so it takes the lines it needs.
+export const Place = styled.p(() => [
+  tw`m-0 min-h-[40px] md:min-h-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`,
+  css`
+    ${media.narrowPortrait} {
+      min-height: 0;
+    }
+  `,
+]);
 
 export const Bars = tw.dl`m-0 flex flex-col gap-[4px] w-[150px] md:w-[210px]`;
 
@@ -90,13 +105,18 @@ export const BarFill = styled.div(({ colour }: { colour: string }) => [
   `,
 ]);
 
-// Where the ship stands on a world: in the corner the radar keeps in flight; on a phone on its side, in the bottom
-// right corner instead (where the telemetry steps aside for it), so it stays clear of the column of bars on the left.
+// Where the ship stands on a world: in the corner the radar keeps in flight, wider on a narrow upright phone where the
+// telemetry steps aside for it (short of the ability bar down the right); on a phone on its side, in the bottom right
+// corner instead (where the telemetry steps aside for it), so it stays clear of the column of bars on the left.
 export const SurfaceCard = styled.section(() => [
   tw`absolute left-[10px] bottom-[10px] md:left-[18px] md:bottom-[18px] m-0 p-[8px] md:p-[12px] flex flex-col gap-[2px] pointer-events-none`,
   css`
     max-width: min(44vw, 300px);
     ${voyagePanel()}
+
+    ${media.narrowPortrait} {
+      max-width: min(70vw, 260px);
+    }
 
     ${media.shortLandscape} {
       left: auto;
@@ -127,6 +147,10 @@ export const SurfaceMethod = styled.p(() => [
 export const SurfaceReading = styled.p(() => [
   tw`hidden m-0 text-[11px] md:text-xs text-[#c4d2ff] tabular-nums`,
   css`
+    ${media.narrowPortrait} {
+      display: block;
+    }
+
     ${media.shortLandscape} {
       display: block;
     }
@@ -138,7 +162,8 @@ export const SurfacePhase = tw.p`m-0 my-[2px] text-xs md:text-sm font-semibold t
 
 export const SurfaceHint = tw.p`m-0 mt-[4px] text-[11px] md:text-xs text-[#9aa3bb]`;
 
-// The live readings in the bottom right; on a phone on its side it steps aside while a world's card has the corner.
+// The live readings in the bottom right; on a narrow upright phone, where the two would overlap, and on a phone on
+// its side it steps aside while a world's card shows.
 export const TelemetryPanel = styled.section(({ isYielding = false }: { isYielding?: boolean }) => [
   tw`absolute right-[10px] bottom-[10px] md:right-[18px] md:bottom-[18px] p-[8px] md:p-[12px] pointer-events-none`,
   css`
@@ -148,6 +173,10 @@ export const TelemetryPanel = styled.section(({ isYielding = false }: { isYieldi
 
     ${media.md} {
       min-width: 200px;
+    }
+
+    ${media.narrowPortrait} {
+      ${isYielding ? "display: none;" : ""}
     }
 
     ${media.shortLandscape} {
@@ -178,9 +207,20 @@ export const TelemetryName = tw.dt`text-[#9aa3bb]`;
 export const TelemetryValue = tw.dd`m-0 text-right text-white`;
 
 // On a phone, a row of its own under the buttons, so the place and the bars keep their room; between them where
-// there is space.
-export const Readout = tw.dl`m-0 absolute right-[14px] top-[60px] flex flex-row flex-wrap items-center justify-end gap-x-[12px] gap-y-[2px]
-  md:static md:gap-x-[16px] md:gap-y-[4px] text-sm tabular-nums pointer-events-none`;
+// there is space. On a narrow upright phone it heads the column instead, at the right under the buttons, so however
+// it wraps the place starts below it.
+export const Readout = styled.dl(() => [
+  tw`m-0 absolute right-[14px] top-[60px] flex flex-row flex-wrap items-center justify-end gap-x-[12px] gap-y-[2px]
+    md:static md:gap-x-[16px] md:gap-y-[4px] text-sm tabular-nums pointer-events-none`,
+  css`
+    ${media.narrowPortrait} {
+      position: static;
+      order: -1;
+      align-self: flex-end;
+      margin-top: 46px;
+    }
+  `,
+]);
 
 export const Reading = tw.div`flex flex-row items-baseline gap-[6px]`;
 
@@ -188,7 +228,27 @@ export const ReadingName = tw.dt`text-xs text-[#9aa3bb]`;
 
 export const ReadingValue = tw.dd`m-0 font-semibold text-white`;
 
-export const HudButtons = tw.div`flex flex-row gap-[8px] pointer-events-auto`;
+// Beside the place where there is room; on a narrow upright phone a row of their own at the top right, a little
+// smaller where all six would not fit at full size (a foldable's cover screen).
+export const HudButtons = styled.div(() => [
+  tw`flex flex-row gap-[8px] pointer-events-auto`,
+  css`
+    ${media.narrowPortrait} {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+    }
+
+    ${media.narrow} {
+      gap: 5px;
+
+      & > button {
+        width: 36px;
+        height: 36px;
+      }
+    }
+  `,
+]);
 
 // The ship's systems, listed only once one of them is hurt, each with a small bar.
 export const Systems = tw.dl`m-0 mt-[4px] flex flex-col gap-[3px] w-[150px] md:w-[210px]`;
@@ -286,9 +346,12 @@ const showStrip = keyframes`
 `;
 
 // Where the line becomes a strip across the top: a phone too short for it to sit between the bars and the ship, held
-// upright or on its side, and any phone on its side however wide.
-const STRIP = "@media (max-width: 767px) and (max-height: 720px), (orientation: landscape) and (max-height: 500px)";
+// upright or on its side, a narrow upright phone (whose column of bars starts lower, where the line would sit), and
+// any phone on its side however wide.
+const STRIP = "@media (max-width: 767px) and (max-height: 720px), (orientation: portrait) and (max-width: 389px), " +
+  "(orientation: landscape) and (max-height: 500px)";
 const STRIP_STILL = "@media (max-width: 767px) and (max-height: 720px) and (prefers-reduced-motion: reduce), " +
+  "(orientation: portrait) and (max-width: 389px) and (prefers-reduced-motion: reduce), " +
   "(orientation: landscape) and (max-height: 500px) and (prefers-reduced-motion: reduce)";
 
 // The same without the movement: there for its moment, then gone.
@@ -389,9 +452,9 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       }
     }
 
-    /* Where the screen is short enough for the ability bar down the right to reach the top (the smallest phones), the
-       strip stops short of it. */
-    @media (max-width: 767px) and (max-height: 540px) {
+    /* Where the screen is short enough for the ability bar down the right to start just under the readout, the strip
+       stops short of it. */
+    @media (max-width: 767px) and (max-height: 699px) {
       right: 72px;
     }
 

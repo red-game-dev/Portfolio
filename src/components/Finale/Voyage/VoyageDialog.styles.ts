@@ -91,10 +91,16 @@ export const Place = styled.p(() => [
 
 export const Bars = tw.dl`m-0 flex flex-col gap-[4px] w-[150px] md:w-[210px]`;
 
+// A little tighter on the shortest upright phone, where the column has to make room for what is hurt.
 export const BarRow = styled.div(() => [
   tw`grid items-center gap-x-[8px] gap-y-[2px] text-xs tabular-nums`,
   css`
     grid-template-columns: 1fr auto;
+
+    ${media.shortestPortrait} {
+      font-size: 11px;
+      line-height: 14px;
+    }
   `,
 ]);
 
@@ -106,6 +112,10 @@ export const BarTrack = styled.div(() => [
   tw`relative h-[6px] overflow-hidden bg-[rgba(255,255,255,0.12)]`,
   css`
     grid-column: 1 / -1;
+
+    ${media.shortestPortrait} {
+      height: 4px;
+    }
   `,
 ]);
 
@@ -264,8 +274,16 @@ export const HudButtons = styled.div(() => [
   `,
 ]);
 
-// The ship's systems, listed only once one of them is hurt, each with a small bar.
-export const Systems = tw.dl`m-0 mt-[4px] flex flex-col gap-[3px] w-[150px] md:w-[210px]`;
+// The ship's systems, listed only once one of them is hurt, each with a small bar; on the shortest upright phone
+// narrow enough to clear the telemetry beside it.
+export const Systems = styled.dl(() => [
+  tw`m-0 mt-[4px] flex flex-col gap-[3px] w-[150px] md:w-[210px]`,
+  css`
+    ${media.shortestPortrait} {
+      width: 120px;
+    }
+  `,
+]);
 
 export const SystemsTitle = tw.p`m-0 mt-[6px] text-[11px] md:text-xs font-semibold text-[#c4d2ff]`;
 
@@ -282,12 +300,17 @@ export const SystemTrack = tw.dd`relative m-0 h-[4px] overflow-hidden bg-[rgba(2
 
 export const Credits = tw.p`m-0 text-[11px] text-[#7d859c] leading-snug`;
 
-// MMO frames: the target under the vitals; the boss and any rock headed for a world centred under the HUD on
-// narrow screens and along the bottom where there is room.
+// MMO frames: the target under the vitals (on the shortest upright phone narrow enough to clear the telemetry); the
+// boss and any rock headed for a world centred under the HUD on narrow screens and along the bottom where there is
+// room.
 export const TargetFrame = styled.section(() => [
   tw`mt-[6px] flex flex-col gap-[3px] w-[150px] md:w-[210px] p-[6px] bg-[rgba(5,8,18,0.7)]`,
   css`
     border: 1px solid rgba(255, 77, 94, 0.45);
+
+    ${media.shortestPortrait} {
+      width: 120px;
+    }
   `,
 ]);
 
@@ -362,10 +385,10 @@ const showStrip = keyframes`
 // Where the line becomes a strip across the top: a phone too short for it to sit between the bars and the ship, held
 // upright or on its side, a narrow upright phone (whose column of bars starts lower, where the line would sit), and
 // any phone on its side however wide.
-const STRIP = "@media (max-width: 767px) and (max-height: 720px), (orientation: portrait) and (max-width: 389px), " +
+const STRIP = "@media (max-width: 767px) and (max-height: 720px), (orientation: portrait) and (max-width: 479px), " +
   "(orientation: landscape) and (max-height: 500px)";
 const STRIP_STILL = "@media (max-width: 767px) and (max-height: 720px) and (prefers-reduced-motion: reduce), " +
-  "(orientation: portrait) and (max-width: 389px) and (prefers-reduced-motion: reduce), " +
+  "(orientation: portrait) and (max-width: 479px) and (prefers-reduced-motion: reduce), " +
   "(orientation: landscape) and (max-height: 500px) and (prefers-reduced-motion: reduce)";
 
 // The same without the movement: there for its moment, then gone.
@@ -491,12 +514,17 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
 
 // The quest followed, under the bars in the left column: its objective and how far along it is, and what it belongs
 // to, read through like the rest of the HUD so it never takes the pointer that steers; only its scroll opens the
-// quest log.
-export const Tracker = styled.div(() => [
+// quest log. On the shortest upright phone it steps aside while a system is hurt or a fault waits, which need its
+// room more.
+export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolean }) => [
   tw`flex flex-row items-center gap-[6px] w-[150px] md:w-[210px] mt-[2px] pl-[8px] py-[4px] pr-[4px]`,
   css`
     ${voyagePanel(0.55, 0.25)}
     border-left: 2px solid #ff9f5a;
+
+    ${media.shortestPortrait} {
+      ${isYielding ? "display: none;" : ""}
+    }
   `,
 ]);
 
@@ -510,6 +538,10 @@ export const TrackerCount = tw.span`tabular-nums text-[#ffcf9f] whitespace-nowra
 export const TrackerSub = styled.span(() => [
   tw`text-[10px] md:text-[11px] text-[#aab3c9] truncate`,
   css`
+    ${media.shortestPortrait} {
+      display: none;
+    }
+
     ${media.shortLandscape} {
       display: none;
     }
@@ -725,6 +757,10 @@ export const Badge = tw.p`m-0 self-start px-[10px] py-[4px] text-xs font-semibol
 export const ShipLine = styled.p(() => [
   tw`m-0 text-[11px] md:text-xs text-[#9aa3bb]`,
   css`
+    ${media.shortestPortrait} {
+      display: none;
+    }
+
     ${media.shortLandscape} {
       display: none;
     }
@@ -756,8 +792,16 @@ export const Gain = styled.span(() => [
   `,
 ]);
 
-// Faults on board, each with its fix; the buttons take clicks through the HUD.
-export const FaultList = tw.ul`m-0 mt-[4px] p-0 list-none flex flex-col gap-[4px] w-[170px] md:w-[230px] pointer-events-auto`;
+// Faults on board, each with its fix; the buttons take clicks through the HUD. On the shortest upright phone narrow
+// enough to clear the telemetry beside it.
+export const FaultList = styled.ul(() => [
+  tw`m-0 mt-[4px] p-0 list-none flex flex-col gap-[4px] w-[170px] md:w-[230px] pointer-events-auto`,
+  css`
+    ${media.shortestPortrait} {
+      width: 120px;
+    }
+  `,
+]);
 
 export const FaultRow = styled.li(() => [
   tw`flex flex-row flex-wrap items-center justify-between gap-x-[8px] gap-y-[3px] px-[6px] py-[4px] text-[11px] md:text-xs font-semibold text-[#ffd0d4]`,
@@ -778,8 +822,16 @@ export const FixButton = styled.button(({ isReady }: { isReady: boolean }) => [
   `,
 ]);
 
-// What a fault needs, under it, when the hold has nothing that fixes it.
-export const FaultNeed = tw.p`m-0 w-full text-[10px] md:text-[11px] font-normal leading-snug text-[#e3b5bb]`;
+// What a fault needs, under it, when the hold has nothing that fixes it. Left to its button on the shortest upright
+// phone, whose press says the same, and still read with the button by a screen reader.
+export const FaultNeed = styled.p(() => [
+  tw`m-0 w-full text-[10px] md:text-[11px] font-normal leading-snug text-[#e3b5bb]`,
+  css`
+    ${media.shortestPortrait} {
+      display: none;
+    }
+  `,
+]);
 
 // The one thing ready to do, in one click.
 export const ReadyButton = styled.button(() => [

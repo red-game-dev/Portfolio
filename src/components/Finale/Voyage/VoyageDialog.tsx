@@ -643,7 +643,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </Bars>
           )}
           {tracked && status === "flying" && !isHangarOpen && !isChoosing && !isDocked && (
-            <Tracker>
+            <Tracker isYielding={hurt.length > 0 || repairs.length > 0}>
               <TrackerText>
                 <TrackerName>
                   <span>{trackedName}</span>

@@ -1,4 +1,4 @@
-import { CSSProperties, FC, Fragment, SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, FC, SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   faAnchor,

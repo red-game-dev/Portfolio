@@ -1,4 +1,4 @@
-import { FC, Fragment, SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, FC, Fragment, SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   faAnchor,
@@ -33,7 +33,18 @@ import { HangarPanel, HangarTab } from "@/components/Finale/Voyage/Hangar/Hangar
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
-import { placeName, strandedLine, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import {
+  isKeptNotice,
+  messageMs,
+  placeName,
+  QueuedLine,
+  queueLine,
+  strandedLine,
+  voyageMessage,
+  voyageNotice,
+  voyagePlace,
+} from "@/components/Finale/Voyage/messages";
+import { CurrencyIcon } from "@/components/Finale/Voyage/Money";
 import { drawRunCard, RUN_CARD, shareCard } from "@/components/Finale/Voyage/share";
 import { skyLines } from "@/components/Finale/Voyage/sky";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
@@ -140,8 +151,7 @@ const GUIDE_WAIT_MS = 9000;
 // Whether the pilot has been asked how they like to fly, kept so it is asked only the first time.
 const SETUP_KEY = "redgame.voyageSetup";
 const isTrue = (value: unknown): value is true => value === true;
-// How long each line the voyage says stays (ms, its animation's length), and how many may wait.
-const MESSAGE_MS = 2800;
+// How many lines the voyage says may wait (each stays as long as `messageMs` gives it, its animation's length).
 const MESSAGE_QUEUE = 4;
 
 // Hull green turning red as it fails, shields blue, fuel gold; a hurt system amber, then red.
@@ -223,7 +233,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const redGain = useGains(economy ? economy.purse.RED : null);
   const voidGain = useGains(economy ? economy.purse.VOID : null);
   // What the voyage says, one line at a time: a burst waits its turn.
-  const [messages, setMessages] = useState<Array<{ id: number; text: string }>>([]);
+  const [messages, setMessages] = useState<QueuedLine[]>([]);
   const messageId = useRef(0);
   const message = messages[0] ?? null;
   const previous = useRef<VoyageSnapshot | null>(null);
@@ -241,20 +251,20 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const comingDownOn = snapshot?.surface
     ? placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn)
     : placeName(content, snapshot?.landedOn ?? "");
-  const say = (text: string | null) => {
+  const say = (text: string | null, isKept = false) => {
     if (text) {
       messageId.current += 1;
 
-      const next = { id: messageId.current, text };
+      const next = { id: messageId.current, text, isKept };
 
-      setMessages((queue) => [...queue, next].slice(-MESSAGE_QUEUE));
+      setMessages((queue) => queueLine(queue, next, MESSAGE_QUEUE));
     }
   };
   // The answer to a tap shows at once, in place of the line already seen, and the rest still wait their turn.
   const reply = (text: string) => {
     messageId.current += 1;
 
-    const next = { id: messageId.current, text };
+    const next = { id: messageId.current, text, isKept: false };
 
     setMessages((queue) => [next, ...queue.slice(1)]);
   };
@@ -265,7 +275,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       return undefined;
     }
 
-    const timer = window.setTimeout(() => setMessages((queue) => queue.slice(1)), MESSAGE_MS);
+    const timer = window.setTimeout(() => setMessages((queue) => queue.slice(1)), messageMs(message.text));
 
     return () => window.clearTimeout(timer);
   }, [message]);
@@ -423,7 +433,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         // The answer to a press shows at once, as a tap's does.
         reply(voyageNotice(content, notice) ?? "");
       } else {
-        say(voyageNotice(content, notice));
+        say(voyageNotice(content, notice), isKeptNotice(notice));
       }
     });
     takeNotices(notices.length);
@@ -650,14 +660,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           {economy && (
             <>
               <Reading>
-                <ReadingName>{copy.symbols.RED}</ReadingName>
+                <ReadingName><CurrencyIcon code="RED" label={copy.currencies.RED} isDecorative /></ReadingName>
                 <Coin aria-label={`${economy.purse.RED} ${copy.currencies.RED}`}>
                   {formatNumber(economy.purse.RED)}
                   {redGain && <Gain key={redGain.id} aria-hidden="true">{`+${redGain.amount}`}</Gain>}
                 </Coin>
               </Reading>
               <Reading>
-                <ReadingName>{copy.symbols.VOID}</ReadingName>
+                <ReadingName><CurrencyIcon code="VOID" label={copy.currencies.VOID} isDecorative /></ReadingName>
                 <Coin isShards aria-label={`${economy.purse.VOID} ${copy.currencies.VOID}`}>
                   {economy.purse.VOID}
                   {voidGain && <Gain key={voidGain.id} aria-hidden="true">{`+${voidGain.amount}`}</Gain>}
@@ -817,7 +827,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           onFill={openLoadout}
         />
       )}
-      {message && status === "flying" && !isHudAside && <Message key={message.id} role="status">{message.text}</Message>}
+      {message && status === "flying" && !isHudAside && (
+        <Message key={message.id} role="status" style={{ "--message-ms": `${messageMs(message.text)}ms` } as CSSProperties}>{message.text}</Message>
+      )}
       {isChoosing && snapshot?.perkOffer && !isHangarOpen && !isPhoto && (
         <PerkCard content={content} offer={snapshot.perkOffer} taken={snapshot.perks} onChoose={choosePerk} />
       )}

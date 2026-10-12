@@ -13,6 +13,7 @@ import { EnhancePanel, FormBadge, PieceRow } from "@/components/Finale/Voyage/Ha
 import {
   Below, Column, Doll, ShipCanvas, ShipFrame, SheetHead, Slot, SlotLevel, SlotName, SlotTop, Total, Totals,
 } from "@/components/Finale/Voyage/Hangar/ShipSheet.styles";
+import { fillNodes, Money } from "@/components/Finale/Voyage/Money";
 import { BarFill } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import type { ArmoryView, EconomyView, GearSlot, ProgressView, SlotView, VoyageAction } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
@@ -175,7 +176,7 @@ export const ShipSheet: FC<ShipSheetProps> = ({ content, economy, gear, progress
                       {piece.canFit ? copy.fit : fill(copy.needsLevel, { level: piece.gradeLevel })}
                     </SmallButton>
                     <SmallButton type="button" onClick={() => onAct({ kind: "dismantle", uid: piece.uid })}>
-                      {fill(copy.dismantle, { value: `${piece.value} ${content.economy.symbols.RED}` })}
+                      {fillNodes(copy.dismantle, { value: <Money copy={content.economy} amount={piece.value} /> })}
                     </SmallButton>
                   </Actions>
                 )}

@@ -1,11 +1,11 @@
 import { isBoostName } from "@/components/Finale/Voyage/abilities";
-import { missionName } from "@/components/Finale/Voyage/names";
+import { chapterTitle, missionName, storyStepName } from "@/components/Finale/Voyage/names";
 import type { CodexEntry, VoyageNotice } from "@/packages/games/voyage";
 import { capitalise, fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 
-export { missionName };
+export { chapterTitle, missionName, storyStepName };
 
 export const rankName = (content: FinaleVoyage, id: string): string => content.career.ranks[id] ?? id;
 
@@ -85,13 +85,23 @@ export const codexNotes = (content: FinaleVoyage, entry: CodexEntry): string[] =
   }
 };
 
-// What to say when the career moves: a mission done, a promotion, something new in the codex. Null otherwise.
+// What to say when the career moves: a mission or a step of the story done, a chapter told (the line it decodes to),
+// the chapter under way (how it opens, or that the story is all told), a promotion, something new in the codex. Null
+// otherwise.
 export const careerNotice = (content: FinaleVoyage, notice: VoyageNotice): string | null => {
   const copy = content.career;
 
   switch (notice.kind) {
     case "missionDone":
       return fill(notice.coin > 0 ? copy.missionDone : copy.missionDoneXp, { mission: missionName(content, notice.mission), xp: notice.xp, coin: notice.coin });
+    case "storyStep":
+      return fill(copy.story.stepDone, { step: storyStepName(content, notice.step), xp: notice.xp, coin: notice.coin });
+    case "storyChapter":
+      return fill(copy.story.chapterDone, { chapter: chapterTitle(content, notice.chapter), line: copy.story.chapters[notice.chapter]?.line ?? "" });
+    case "storyOpened":
+      return notice.chapter
+        ? fill(copy.story.opened, { chapter: chapterTitle(content, notice.chapter), intro: copy.story.chapters[notice.chapter]?.intro ?? "" })
+        : copy.story.told;
     case "promoted":
       return fill(copy.promoted, { rank: rankName(content, notice.rank) });
     case "discovered": {

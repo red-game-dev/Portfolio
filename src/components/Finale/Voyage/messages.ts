@@ -6,10 +6,42 @@ import { gearNotice } from "@/components/Finale/Voyage/gear";
 import { placeName } from "@/components/Finale/Voyage/names";
 import { skyNotice } from "@/components/Finale/Voyage/sky";
 import type { VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
+import { clamp } from "@/packages/math/clamp";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 const formatKm = (km: number) => formatNumber(km, km < 10 ? 1 : 0);
+
+// How long a line the voyage says stays (ms): long enough to read, a short one its moment and a long one (a line of
+// the story) up to eight seconds.
+export const MESSAGE_MS = { least: 2800, perChar: 60, most: 8000 };
+
+export const messageMs = (text: string): number => clamp(text.length * MESSAGE_MS.perChar, MESSAGE_MS.least, MESSAGE_MS.most);
+
+// A line waiting to be said; the story's lines are kept when too many wait.
+export interface QueuedLine {
+  id: number;
+  text: string;
+  isKept: boolean;
+}
+
+// The story's notices, which are never dropped for the lines that crowd in with them (codex finds, payments).
+export const isKeptNotice = (notice: VoyageNotice): boolean =>
+  notice.kind === "storyStep" || notice.kind === "storyChapter" || notice.kind === "storyOpened";
+
+// Adds a line to those waiting, no more than `limit` of them: the oldest that may go make room, never the line on
+// screen (the first).
+export const queueLine = (queue: readonly QueuedLine[], next: QueuedLine, limit: number): QueuedLine[] => {
+  const lines = [...queue, next];
+
+  while (lines.length > limit) {
+    const drop = lines.findIndex((line, index) => index > 0 && !line.isKept);
+
+    lines.splice(drop === -1 ? 1 : drop, 1);
+  }
+
+  return lines;
+};
 
 // A universe's name: its own, or the zone it is named for.
 const universeName = (snapshot: VoyageSnapshot, universes: string[]) => snapshot.universeName ?? universes[snapshot.universe] ?? "";

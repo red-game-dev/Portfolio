@@ -1,8 +1,9 @@
-// What a mission asks: land on a world, reach a place, fly close to the Sun, skim a giant, salvage, bring down
-// hostiles, save worlds, beat bosses, reach a universe, make things, upgrade the ship, live through something
-// terrible, go through a wormhole, or score so much in one run.
+// What a mission asks: land on a world (or on any world past the singularity), reach a place, fly close to the Sun,
+// skim a giant, salvage, bring down hostiles, save worlds, beat bosses, reach a universe, make things, upgrade the
+// ship, live through something terrible (or anything terrible), go through a wormhole, or score so much in one run.
 export type MissionGoal =
   | { kind: "land"; body: string }
+  | { kind: "landAway" }
   | { kind: "reach"; place: string }
   | { kind: "sun"; au: number }
   | { kind: "skim"; count: number }
@@ -13,7 +14,7 @@ export type MissionGoal =
   | { kind: "universe"; count: number }
   | { kind: "craft"; count: number }
   | { kind: "upgrade"; level: number }
-  | { kind: "survive"; hazard: Peril }
+  | { kind: "survive"; hazard: Peril | "any" }
   | { kind: "wormhole" }
   | { kind: "score"; points: number };
 
@@ -34,9 +35,9 @@ export interface MissionProgress {
   progress: number;
 }
 
-// Something that happened that a mission may count.
+// Something that happened that a mission may count: a landing says whether it was past the singularity.
 export type CareerEvent =
-  | { kind: "landed"; body: string }
+  | { kind: "landed"; body: string; isAway?: boolean }
   | { kind: "passed"; place: string }
   | { kind: "sun"; au: number }
   | { kind: "skimmed"; body: string }
@@ -86,7 +87,28 @@ export interface DailyRecord {
   runs: number;
 }
 
-// Everything a pilot's career keeps between runs.
+// A step of the story: what it asks and what it pays, as a mission does.
+export interface StoryStep {
+  id: string;
+  goal: MissionGoal;
+  xp: number;
+  coin: number;
+}
+
+// A chapter of the story: its first step opens it, and the rest count in any order once it is done.
+export interface StoryChapter {
+  id: string;
+  steps: readonly StoryStep[];
+}
+
+// Where a pilot is in the story: the chapter (the number of chapters once it is all told) and how far along each
+// of its steps is.
+export interface StoryProgress {
+  chapter: number;
+  progress: number[];
+}
+
+// Everything a pilot's career keeps between runs. A career kept before the story began has none, and starts it.
 export interface CareerProfile {
   xp: number;
   active: MissionProgress[];
@@ -95,6 +117,7 @@ export interface CareerProfile {
   contracts: number;
   codex: string[];
   daily: DailyRecord | null;
+  story?: StoryProgress;
 }
 
 // A mission done: which, and what it paid.
@@ -102,6 +125,23 @@ export interface MissionDone {
   mission: MissionSpec;
   xp: number;
   coin: number;
+}
+
+// A step of the story done, the chapter it belongs to, and what it paid.
+export interface StoryStepDone {
+  step: StoryStep;
+  chapter: StoryChapter;
+  xp: number;
+  coin: number;
+}
+
+// The chapter under way (null once the story is all told), its place among them, and each step: how far along,
+// what it takes, and whether it counts yet (the rest wait for the first).
+export interface StoryView {
+  chapter: StoryChapter | null;
+  index: number;
+  total: number;
+  steps: Array<{ step: StoryStep; progress: number; target: number; isOpen: boolean }>;
 }
 
 // What the UI shows of a career.
@@ -116,4 +156,5 @@ export interface CareerView {
   codex: Array<{ entry: CodexEntry; isFound: boolean }>;
   found: number;
   daily: DailyRecord | null;
+  story: StoryView;
 }

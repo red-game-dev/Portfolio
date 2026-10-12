@@ -1,10 +1,9 @@
-import { missionName, pieceName } from "@/components/Finale/Voyage/names";
-import type { HullTier, ItemStack, Purse, Suggestion, VoyageNotice } from "@/packages/games/voyage";
-import { fill, formatNumber } from "@/packages/text/format";
+import { missionName, pieceName, storyStepName } from "@/components/Finale/Voyage/names";
+import type { HullTier, ItemStack, Suggestion, VoyageNotice } from "@/packages/games/voyage";
+import { fill } from "@/packages/text/format";
 import { FinaleVoyage, VoyageEconomyCopy } from "@/types/game";
 
 const TIER_ORDER: readonly HullTier[] = ["rocket", "shuttle", "corvette", "starship", "intergalactic", "titan"];
-const CURRENCIES: ReadonlyArray<keyof Purse> = ["RED", "VOID"];
 const MARKS_PER_HULL = 5;
 
 // A ship's name from its hull and mark: "Corvette Mk III".
@@ -40,14 +39,6 @@ export const blueprintName = (copy: VoyageEconomyCopy, id: string): string => {
   return itemName(copy, subject);
 };
 
-// Money with its symbols, leaving out a currency that is nothing: "+250 RC, +3 VS".
-export const formatPurse = (copy: VoyageEconomyCopy, purse: Purse, isSigned = false): string => {
-  const parts = CURRENCIES.filter((code) => purse[code] !== 0)
-    .map((code) => `${isSigned && purse[code] > 0 ? "+" : ""}${formatNumber(purse[code])} ${copy.symbols[code]}`);
-
-  return parts.length > 0 ? parts.join(", ") : `0 ${copy.symbols.RED}`;
-};
-
 // A ledger entry's memo (a key such as "upgrade:7" or "landing:Mars") in words.
 export const ledgerMemo = (content: FinaleVoyage, memo: string): string => {
   const copy = content.economy;
@@ -81,6 +72,8 @@ export const ledgerMemo = (content: FinaleVoyage, memo: string): string => {
         return pieceName(content, raw);
       case "mission":
         return missionName(content, raw);
+      case "story":
+        return storyStepName(content, raw);
       case "trade": {
         const ammo: Record<string, string | undefined> = content.gear.ammo;
 

@@ -8,6 +8,7 @@ import { TIER_COLOURS, TIER_ICONS } from "@/components/Finale/Voyage/Hangar/gear
 import {
   Actions, Badge, BadgeRow, Item, ItemCount, ItemName, ItemTop, Meter, Note, RARITY_COLOUR, SmallButton, StatLine, StatList,
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
+import { fillNodes, Money } from "@/components/Finale/Voyage/Money";
 import { BarFill } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import type { PieceView, VoyageAction } from "@/packages/games/voyage";
 import type { EnhanceForm } from "@/packages/progression/enhancement";
@@ -57,7 +58,7 @@ export const EnhancePanel: FC<EnhanceProps> = ({ content, piece, stabilisers, on
   return (
     <div>
       <Note>{`${fill(copy.chance, { chance: Math.round(next.chance * 100) })}. ${fill(copy.fall, { fall: next.fall })}.`}</Note>
-      <Note>{fill(copy.cost, { coin: formatNumber(next.coin), count: next.count, material })}</Note>
+      <Note>{fillNodes(copy.cost, { coin: <Money copy={content.economy} amount={next.coin} />, count: next.count, material })}</Note>
       {stabilisers > 0 && (
         <label htmlFor={protectId}>
           <input id={protectId} type="checkbox" checked={isProtected} onChange={(event) => setProtected(event.target.checked)} />

@@ -72,7 +72,7 @@ export { METEOR_SHOWERS } from "./sky/config/showers";
 export type { ShowerSpec, SkyEvent, SkyEventKind } from "./sky/domain/sky";
 export { alignmentsIn, showersOn, skyEventsOn } from "./sky/utils/sky";
 export type { ActiveBoost, BoostId, BoostOrigin, BoostSpec } from "./domain/boosts";
-export { missionMarks, NO_MISSION_MARKS } from "./utils/missions";
+export { careerGoals, missionMarks, NO_MISSION_MARKS } from "./utils/missions";
 export type { MissionMarks } from "./utils/missions";
 export { lightAt, massOfPull, pullOfMass } from "./utils/stars";
 export { SolarSystemValidator } from "./validators/SolarSystemValidator";
@@ -93,7 +93,9 @@ export { newProfile, pilotEnvelope, PilotRepository, readPilot } from "./economy
 export { CODEX, codexId } from "./career/config/codex";
 export { contractFor, MISSIONS, missionById } from "./career/config/missions";
 export { rankFor, RANKS } from "./career/config/ranks";
+export { newStory, STORY } from "./career/config/story";
 export { advance, targetOf } from "./career/core/MissionBoard";
+export { advanceStory, cleanStory, storyView } from "./career/core/StoryBoard";
 export { isCareerProfile } from "./career/guards/isCareerProfile";
 export { Career, newCareer } from "./career/services/Career";
 export { GHOST_STRIDE } from "./domain/ghost";
@@ -161,7 +163,13 @@ export type {
   MissionSpec,
   Peril,
   RankSpec,
+  StoryChapter,
+  StoryProgress,
+  StoryStep,
+  StoryStepDone,
+  StoryView,
 } from "./career/domain/career";
+export type { StoryOutcome } from "./career/core/StoryBoard";
 export type { CareerOutcome } from "./career/services/Career";
 export type { GhostRun } from "./domain/ghost";
 export type { TierSpec } from "./economy/config/tiers";

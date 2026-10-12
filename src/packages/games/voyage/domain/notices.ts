@@ -69,8 +69,12 @@ export type VoyageNotice =
   | { kind: "upgraded"; level: number; tier: HullTier; mark: number }
   | { kind: "earned"; deed: Deed["kind"]; amounts: Purse }
   | { kind: "paid"; coin: number }
-  // A mission done and what it paid, a promotion, something new in the codex, and a daily voyage's result.
+  // A mission done and what it paid, a step of the story done and what it paid, a chapter of the story told, the
+  // chapter under way (null once it is all told), a promotion, something new in the codex, and a daily voyage's result.
   | { kind: "missionDone"; mission: string; xp: number; coin: number }
+  | { kind: "storyStep"; step: string; xp: number; coin: number }
+  | { kind: "storyChapter"; chapter: string }
+  | { kind: "storyOpened"; chapter: string | null }
   | { kind: "promoted"; rank: string }
   | { kind: "discovered"; entry: string }
   | { kind: "daily"; day: string; score: number; isBest: boolean };

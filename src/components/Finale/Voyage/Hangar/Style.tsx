@@ -35,7 +35,7 @@ export const Style: FC<StyleProps> = ({ content, progress, onAct }) => {
             <ItemTop>
               <ItemName colour={isOwned ? "#ffffff" : "#7d859c"}>{copy.paints[spec.id] ?? spec.id}</ItemName>
               <span>
-                {[spec.hull, spec.fin, spec.window, spec.accent ?? spec.hullShade].map((colour) => <Swatch key={colour} colour={colour} aria-hidden="true" />)}
+                {[spec.hull, spec.fin, spec.window, spec.accent ?? spec.hullShade].map((colour, index) => <Swatch key={index} colour={colour} aria-hidden="true" />)}
               </span>
             </ItemTop>
             {isOwned ? (
@@ -55,7 +55,7 @@ export const Style: FC<StyleProps> = ({ content, progress, onAct }) => {
             <ItemTop>
               <ItemName colour={isOwned ? "#ffffff" : "#7d859c"}>{copy.trails[spec.id] ?? spec.id}</ItemName>
               <span>
-                {[spec.core, spec.edge].map((colour) => <Swatch key={colour} colour={colour} aria-hidden="true" />)}
+                {[spec.core, spec.edge].map((colour, index) => <Swatch key={index} colour={colour} aria-hidden="true" />)}
               </span>
             </ItemTop>
             {isOwned ? (

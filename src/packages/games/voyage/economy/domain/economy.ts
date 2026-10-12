@@ -40,7 +40,7 @@ export interface Recipe {
 
 // Why money moved, which names the account it moved through.
 export type EarningReason =
-  "discovery" | "landing" | "hosted" | "bounty" | "rescue" | "boss" | "universe" | "mission" | "coin" | "salvage" | "flight" | "recycling" | "streak" |
+  "discovery" | "landing" | "hosted" | "bounty" | "rescue" | "boss" | "universe" | "mission" | "story" | "coin" | "salvage" | "flight" | "recycling" | "streak" |
   "distress" | "trade";
 
 export type SpendingReason = "upgrade" | "crafting" | "repair" | "exchange" | "enhance" | "forge" | "trade";
@@ -53,7 +53,7 @@ export type Suggestion =
   | { kind: "use"; item: string; reason: "hull" | "fuel" | "shields" | "heat" };
 
 // A deed that pays: a new place reached, a first landing, a hostile downed, a world saved, a boss brought down,
-// a universe reached, a mission done, a Red Coin picked up.
+// a universe reached, a mission or a step of the story done, a Red Coin picked up.
 export type Deed =
   | { kind: "discovery"; place: string }
   | { kind: "landing"; place: string }
@@ -64,6 +64,7 @@ export type Deed =
   | { kind: "boss"; name: string }
   | { kind: "universe"; index: number }
   | { kind: "mission"; id: string; coin: number }
+  | { kind: "story"; id: string; coin: number }
   // Coins picked up together, paid as one entry.
   | { kind: "coin"; count: number }
   // A streak of kills in quick succession, at each milestone.

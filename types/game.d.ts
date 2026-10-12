@@ -136,7 +136,6 @@ export interface VoyageEconomyCopy {
   tiers: Record<HullTierKey, string>;
   tierNotes: Record<HullTierKey, string>;
   currencies: Record<CurrencyKey, string>;
-  symbols: Record<CurrencyKey, string>;
   stats: { hull: string; shields: string; fuel: string; thrust: string; cargo: string; plating: string; pressure: string; guns: string; weapon: string };
   weapons: { cannon: string; laser: string };
   // "{value}" is replaced.
@@ -211,6 +210,24 @@ interface NamedNote {
   note: string;
 }
 
+// The story, told in the Pilot tab and in notices: each chapter's title, what the signal says as it opens and the
+// line of mine it decodes to once told, and each step. "{index}" and "{total}"; "{step}", "{xp}" and "{coin}";
+// "{chapter}" and "{line}" for a chapter told; "{chapter}" and "{intro}" as one opens.
+export interface VoyageStoryCopy {
+  title: string;
+  chapterOf: string;
+  chapters: Record<string, { title: string; intro: string; line: string }>;
+  steps: Record<string, string>;
+  // Beside a step that waits for the chapter's first.
+  waiting: string;
+  stepDone: string;
+  chapterDone: string;
+  opened: string;
+  told: string;
+  // The lines decoded so far, under the chapter under way.
+  decoded: string;
+}
+
 // The career: missions and ranks, the codex of everything found, the daily voyage, its ghost and photo mode.
 // Templates replace "{name}" placeholders.
 export interface VoyageCareerCopy {
@@ -237,6 +254,7 @@ export interface VoyageCareerCopy {
   missionDoneXp: string;
   promoted: string;
   discovered: string;
+  story: VoyageStoryCopy;
   codexTitle: string;
   // "{found}" and "{total}" are replaced.
   codexFound: string;

@@ -1,10 +1,13 @@
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
-import { strandedLine, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { ledgerMemo } from "@/components/Finale/Voyage/economy";
+import {
+  isKeptNotice, MESSAGE_MS, messageMs, QueuedLine, queueLine, strandedLine, voyageMessage, voyageNotice, voyagePlace,
+} from "@/components/Finale/Voyage/messages";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { formatClock, formatDistance, telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import { portfolioData } from "@/data/resume";
 import {
-  DescentView, GALAXY_KINDS, MODULE_IDS, SOLAR_SYSTEM, STAR_CLASSES, SurfaceInfo, VoyageSnapshot, WORLD_CLASS_IDS,
+  DescentView, GALAXY_KINDS, MODULE_IDS, SOLAR_SYSTEM, STAR_CLASSES, STORY, SurfaceInfo, VoyageSnapshot, WORLD_CLASS_IDS,
 } from "@/packages/games/voyage";
 
 const { voyage } = portfolioData.finale;
@@ -269,5 +272,40 @@ describe("the voyage's cards", () => {
     expect(surfaceHeading(voyage, moon)).toBe("On the Moon");
     expect(surfaceLines(voyage, moon, null)[0]).toBe("Cratered regolith");
     expect(surfaceHint(voyage, moon, null)).toBe("Burn to lift off");
+  });
+
+  test("the story names every chapter and step, says each step paid, each chapter's line and how the next opens", () => {
+    const copy = voyage.career.story;
+
+    STORY.forEach((chapter) => {
+      expect(copy.chapters[chapter.id]?.title).toBeTruthy();
+      expect(copy.chapters[chapter.id]?.intro).toBeTruthy();
+      expect(copy.chapters[chapter.id]?.line).toBeTruthy();
+      chapter.steps.forEach((step) => expect(copy.steps[step.id]).toBeTruthy());
+    });
+    expect(Object.keys(copy.chapters).sort()).toEqual(STORY.map(({ id }) => id).sort());
+    expect(Object.keys(copy.steps).sort()).toEqual(STORY.flatMap(({ steps }) => steps.map(({ id }) => id)).sort());
+
+    expect(voyageNotice(voyage, { kind: "storyStep", step: "launchMoon", xp: 80, coin: 50 })).toBe("Story: Land on the Moon. +80 XP, +50 Red Coin");
+    expect(voyageNotice(voyage, { kind: "storyChapter", chapter: "matrix" })).toBe(`The Matrix complete. The signal decodes: ${copy.chapters.matrix.line}`);
+    expect(voyageNotice(voyage, { kind: "storyOpened", chapter: "ai" })).toBe(`AI: ${copy.chapters.ai.intro}`);
+    expect(voyageNotice(voyage, { kind: "storyOpened", chapter: null })).toBe(copy.told);
+    expect(ledgerMemo(voyage, "story:chainBounty")).toBe("Story: Bring down 5 hostiles");
+  });
+
+  test("a line stays long enough to read, and the story's lines are never crowded out of those waiting", () => {
+    expect(messageMs("Landed")).toBe(MESSAGE_MS.least);
+    expect(messageMs("x".repeat(100))).toBe(6000);
+    expect(messageMs("x".repeat(400))).toBe(MESSAGE_MS.most);
+
+    const line = (id: number, isKept = false): QueuedLine => ({ id, text: String(id), isKept });
+    const story = [line(1), line(2, true), line(3), line(4, true)];
+
+    // The line on screen stays; the oldest that may go makes room.
+    expect(queueLine(story, line(5), 4).map(({ id }) => id)).toEqual([1, 2, 4, 5]);
+    expect(queueLine([line(1), line(2, true), line(3, true), line(4, true)], line(5), 4).map(({ id }) => id)).toEqual([1, 2, 3, 4]);
+    expect(queueLine([line(1), line(2, true), line(3, true), line(4, true)], line(5, true), 4).map(({ id }) => id)).toEqual([1, 3, 4, 5]);
+    expect(isKeptNotice({ kind: "storyChapter", chapter: "ai" })).toBe(true);
+    expect(isKeptNotice({ kind: "discovered", entry: "worlds:mars" })).toBe(false);
   });
 });

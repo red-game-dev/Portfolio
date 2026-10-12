@@ -658,7 +658,12 @@ const blueprints: Blueprint[] = [
             { id: "ads-campaign", label: "Campaign", detail: "Objective, budget, charge model, who paid for it" },
             { id: "ads-set", label: "Ad set", detail: "Targeting, placements, bid strategy, pacing, frequency cap, dayparting" },
             { id: "ads-ad", label: "Ad", detail: "Points at a post, profile or article; two can share an ad set for an A/B test" },
-            { id: "ads-review", label: "Review per creative", detail: "In the platform's moderation queue; regulated, DSA and political rules", kind: "decision" },
+            {
+              id: "ads-review",
+              label: "Review per creative",
+              detail: "In the platform's moderation queue; regulated categories, DSA and political ad rules",
+              kind: "decision",
+            },
             { id: "ads-filings", label: "Transparency filings", detail: "Five regimes; statements of reasons sent through an outbox with retries" },
           ],
         },
@@ -668,8 +673,8 @@ const blueprints: Blueprint[] = [
           place: { col: 3, row: 1 },
           nodes: [
             { id: "ads-credit", label: "Ads credit", detail: "Topped up from platform credit, never withdrawn", kind: "store" },
-            { id: "ads-hold", label: "Two charge models", detail: "A held ceiling charged per delivery, or prepaid with the unspent part refunded" },
-            { id: "ads-booking", label: "Spend booking", detail: "Against the ceiling first, the only step that can refuse" },
+            { id: "ads-hold", label: "Two charge models", detail: "A held ceiling charged per delivery, or prepaid with the undelivered part refunded" },
+            { id: "ads-booking", label: "Spend booking", detail: "Against the ceiling first, so a delivery over budget is refused before money moves" },
             { id: "ads-debit", label: "Debit, then revenue", detail: "Both idempotent; a failed debit releases the booking" },
             { id: "ads-statements", label: "Statements and invoices", detail: "Monthly, from the ledger" },
           ],
@@ -703,7 +708,7 @@ const blueprints: Blueprint[] = [
             { id: "ads-rules", label: "Placement rules", detail: "Guests, slots, personalisation; unknown fails closed" },
             { id: "ads-networks", label: "Networks in parallel", detail: "First party always in, others behind one adapter, one deadline" },
             { id: "ads-gates", label: "Every gate in one query", detail: "Live, in dates, jurisdiction, targeting, frequency" },
-            { id: "ads-strategy", label: "Bid strategies", detail: "Bid cap, cost cap, target cost, lowest cost; unresolved serves unbilled" },
+            { id: "ads-strategy", label: "Bid strategies", detail: "Bid cap, cost cap, target cost, lowest cost; an unresolved bid serves without charge" },
             { id: "ads-rank", label: "Ranked by eCPM", detail: "Bid times predicted action rate; estimated bids are labelled" },
             { id: "ads-token", label: "Signed fill", detail: "Single use, ten minutes" },
             { id: "ads-card", label: "Sponsored card", detail: "The same card in the preview and live" },
@@ -715,7 +720,7 @@ const blueprints: Blueprint[] = [
           place: { col: 4, row: 2 },
           nodes: [
             { id: "ads-beacons", label: "Beacons", detail: "Counted once half on screen; click, engage, convert" },
-            { id: "ads-attribution", label: "Attribution", detail: "Last click in 7 days, else last view in 1; up to 90 days" },
+            { id: "ads-attribution", label: "Attribution", detail: "Last click in 7 days, else last view in 1, by default; windows up to 90 days" },
             { id: "ads-charge", label: "Charged once", detail: "The token is the ledger key: a replay cannot charge twice" },
             { id: "ads-reports", label: "Reporting", detail: "Breakdowns hide groups under 25 people" },
             { id: "ads-reconcile", label: "Reconciliation", detail: "Networks' numbers settled behind a lag, as they restate them" },
@@ -774,7 +779,7 @@ const blueprints: Blueprint[] = [
         },
       ],
       decision: "Ads are a slot, not a page: one slot API, one hook and one card serve every placement, my own advertisers' ads " +
-        "compete with the networks on price alone, and money moves only through the ledger, booked atomically per delivery.",
+        "compete with the networks on effective price alone, and money moves only through the ledger, booked atomically per delivery.",
       outcome: "A new surface is a rules row and a mount, a boost is two answers, an A/B test is a second creative in the same " +
         "ad set, regulated markets get their transparency records, and no delivery can be charged twice.",
     },
@@ -805,16 +810,15 @@ const blueprints: Blueprint[] = [
         steps: [
           "A second creative goes under the same ad set",
           "Both run against one audience and one budget",
-          "Each is reviewed on its own, so one can pass while the other is held",
-          "Reporting sets them side by side",
+          "Each is reviewed on its own, so one can be approved while the other is rejected",
         ],
       },
       {
-        title: "A campaign that runs out of funds",
+        title: "A campaign short of funds",
         steps: [
-          "A delivery finds the ads credit too low",
-          "The booking is released and the campaign waits for funds",
-          "A top up wakes it, or the nightly sweep does",
+          "Approval finds the ads credit too low to hold the budget",
+          "The campaign waits for funds",
+          "A top up wakes it",
         ],
       },
     ],

@@ -591,7 +591,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
           },
           {
             name: "Developer platforms",
-            detail: "A developer portal, CLI tools and scaffolders for outside studios, and an OIDC provider with consent for client apps.",
+            detail: "A developer portal for outside studios, CLI tools and scaffolders for the team, and an OIDC provider with consent for client apps.",
             places: ["HyperPlay", "Own platform"],
           },
           {
@@ -616,12 +616,12 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
           },
           {
             name: "Chat and messaging",
-            detail: "World and language chat channels for a community of millions, and a private inbox.",
-            places: ["AMW", "Own platform"],
+            detail: "World and language chat channels for a community of millions, and guild, party and world chat in an MMORPG.",
+            places: ["AMW", "Gods of Zushin"],
           },
           {
             name: "Moderation and trust",
-            detail: "Moderators and the tools they work with, terms and age rules, and ad review with a statement of reasons for every decision.",
+            detail: "Moderators and the tools they work with, terms and age rules, and ad review with a statement of reasons for every rejection.",
             places: ["AMW", "Gods of Zushin", "Own platform"],
           },
           {

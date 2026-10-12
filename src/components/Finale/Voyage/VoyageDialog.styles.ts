@@ -7,6 +7,8 @@ import { focusRing, honourHidden, media, voyagePanel } from "@/styles/mixins";
 // The whole screen, edge to edge, over a black backdrop.
 // Inside a compact HUD (the dialog's data-hud, set from the voyage-hud setting and the screen's size), which keeps to
 // what matters in the moment: thin bars, the quest on one line, a slim telemetry, and the rest behind its info button.
+// A rule under it must not depend on a prop: styled-components writes it against the component's shared class, so a
+// prop's variant would reach every instance. What differs per element is read from a data attribute instead.
 const COMPACT = '[data-hud="compact"] &';
 
 export const Dialog = styled.dialog(() => [
@@ -300,9 +302,9 @@ export const TelemetryTitle = styled.h2(() => [
 
 export const TelemetryList = tw.dl`m-0 flex flex-col gap-[2px] md:gap-[3px] text-[11px] md:text-xs tabular-nums`;
 
-// Only the key readings on narrow screens and on a phone on its side, only the slim ones (how fast, where to) in a
-// compact HUD; every reading where there is room.
-export const TelemetryRow = styled.div(({ isKey, isSlim = false }: { isKey: boolean; isSlim?: boolean }) => [
+// Only the key readings on narrow screens and on a phone on its side, only the slim ones (how fast, where to, marked
+// data-slim) in a compact HUD; every reading where there is room.
+export const TelemetryRow = styled.div(({ isKey }: { isKey: boolean }) => [
   tw`flex flex-row items-baseline justify-between gap-[10px] md:gap-[14px]`,
   !isKey && tw`hidden md:flex`,
   !isKey && css`
@@ -310,8 +312,8 @@ export const TelemetryRow = styled.div(({ isKey, isSlim = false }: { isKey: bool
       display: none;
     }
   `,
-  !isSlim && css`
-    ${COMPACT} {
+  css`
+    ${COMPACT}:not([data-slim]) {
       display: none;
     }
   `,
@@ -648,8 +650,8 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
 // The quest followed, under the bars in the left column: its objective and how far along it is, and what it belongs
 // to, read through like the rest of the HUD so it never takes the pointer that steers; only its scroll opens the
 // quest log. On a short upright phone it steps aside while a system is hurt or a fault waits, which need its room
-// more, and on the shortest, in full, while a world's card rises over the column.
-export const Tracker = styled.div(({ isYielding = false, isUnderCard = false }: { isYielding?: boolean; isUnderCard?: boolean }) => [
+// more, and on the shortest, in full, while a world's card rises over the column (marked data-under-card).
+export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolean }) => [
   tw`flex flex-row items-center gap-[6px] w-[150px] md:w-[210px] mt-[2px] pl-[8px] py-[4px] pr-[4px]`,
   css`
     ${voyagePanel(0.55, 0.25)}
@@ -660,8 +662,8 @@ export const Tracker = styled.div(({ isYielding = false, isUnderCard = false }: 
     }
 
     ${media.shortestPortrait} {
-      [data-hud="full"] & {
-        ${isUnderCard ? "display: none;" : ""}
+      [data-hud="full"] &[data-under-card] {
+        display: none;
       }
     }
   `,

@@ -674,7 +674,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </BarsRow>
           )}
           {tracked && status === "flying" && !isHangarOpen && !isChoosing && !isDocked && (
-            <Tracker isYielding={isTroubled} isUnderCard={Boolean(snapshot?.descent || snapshot?.surface)}>
+            <Tracker isYielding={isTroubled} data-under-card={snapshot?.descent || snapshot?.surface ? "" : undefined}>
               <TrackerText>
                 <TrackerName>
                   <span>{trackedName}</span>
@@ -829,7 +829,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>
             {telemetryRows(content, snapshot).map((row) => (
-              <TelemetryRow key={row.label} isKey={row.isKey} isSlim={row.isSlim ?? false}>
+              <TelemetryRow key={row.label} isKey={row.isKey} data-slim={row.isSlim ? "" : undefined}>
                 <TelemetryName>{row.label}</TelemetryName>
                 <TelemetryValue>{row.value}</TelemetryValue>
               </TelemetryRow>

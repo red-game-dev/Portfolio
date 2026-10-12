@@ -9,21 +9,27 @@ const formatHeight = (content: FinaleVoyage, metres: number): string => (metres 
 
 const formatSpeed = (content: FinaleVoyage, speed: number): string => fill(content.units.metresPerSecond, { value: formatNumber(speed, speed < 10 ? 1 : 0) });
 
+export interface DescentRow {
+  text: string;
+  // Kept in a compact HUD: how high and how fast falling, which a pilot landing by hand reads to touch down gently.
+  isSlim: boolean;
+}
+
 // The way down, line by line for the card: how high, how fast and how fast falling, the load once the crew would
 // feel it, and how fast the clock is running.
-export const descentRows = (content: FinaleVoyage, view: DescentView): string[] => {
+export const descentRows = (content: FinaleVoyage, view: DescentView): DescentRow[] => {
   const { descent } = content;
-  const rows = [
-    fill(descent.altitude, { value: formatHeight(content, view.altitude) }),
-    fill(descent.speed, { value: formatSpeed(content, view.speed) }),
-    fill(descent.fall, { value: formatSpeed(content, view.fall) }),
+  const rows: DescentRow[] = [
+    { text: fill(descent.altitude, { value: formatHeight(content, view.altitude) }), isSlim: true },
+    { text: fill(descent.speed, { value: formatSpeed(content, view.speed) }), isSlim: false },
+    { text: fill(descent.fall, { value: formatSpeed(content, view.fall) }), isSlim: true },
   ];
 
   if (view.load >= 0.1) {
-    rows.push(fill(descent.load, { value: formatNumber(view.load, 1, true) }));
+    rows.push({ text: fill(descent.load, { value: formatNumber(view.load, 1, true) }), isSlim: false });
   }
 
-  rows.push(view.pace > 1 ? fill(descent.pace, { pace: formatNumber(view.pace) }) : descent.realTime);
+  rows.push({ text: view.pace > 1 ? fill(descent.pace, { pace: formatNumber(view.pace) }) : descent.realTime, isSlim: false });
 
   return rows;
 };

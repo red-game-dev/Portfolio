@@ -563,7 +563,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   }) : [];
   // What wants the pilot while the HUD keeps it short: a hurt system or a fault (the compact HUD's info button wears a
   // dot for it, and the tracker steps aside for it on a short phone).
-  const isTroubled = hurt.length > 0 || repairs.length > 0;
+  const isTroubled = status === "flying" && (hurt.length > 0 || repairs.length > 0);
   const hudLabel = !hud.isCompact ? content.hud.close : isTroubled ? `${content.hud.open}, ${content.hud.alert}` : content.hud.open;
   // Every way a fault can be fixed, and the ground: what to look for when nothing in the hold will do.
   const needsFor = (options: ItemStack[][]) => {
@@ -599,6 +599,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       onKeyUp={voyage.onKeyUp}
       aria-label={content.title}
       data-hud={hud.isCompact ? "compact" : "full"}
+      data-hud-toggle={hud.canCompact ? "" : undefined}
     >
       <Stage
         ref={stageRef}
@@ -674,7 +675,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </BarsRow>
           )}
           {tracked && status === "flying" && !isHangarOpen && !isChoosing && !isDocked && (
-            <Tracker isYielding={isTroubled} data-under-card={snapshot?.descent || snapshot?.surface ? "" : undefined}>
+            <Tracker isYielding={isTroubled && !hud.isCompact} data-under-card={snapshot?.descent || snapshot?.surface ? "" : undefined}>
               <TrackerText>
                 <TrackerName>
                   <span>{trackedName}</span>
@@ -810,7 +811,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           <SurfaceTitle>{fill(content.descent.title, { body: comingDownOn })}</SurfaceTitle>
           <SurfaceMethod>{descentMethod(content, snapshot.descent, snapshot.surface?.isHome ?? false)}</SurfaceMethod>
           <SurfacePhase>{content.descent.phases[snapshot.descent.phase]}</SurfacePhase>
-          {descentRows(content, snapshot.descent).map((row) => <SurfaceLine key={row}>{row}</SurfaceLine>)}
+          {descentRows(content, snapshot.descent).map(({ text, isSlim }) => <SurfaceLine key={text} data-slim={isSlim ? "" : undefined}>{text}</SurfaceLine>)}
           {snapshot.people && <SurfaceLine>{fill(content.surface.people, { faction: snapshot.people.name })}</SurfaceLine>}
           {readingsInCorner.map((row) => <SurfaceReading key={row.label}>{`${row.label} ${row.value}`}</SurfaceReading>)}
           {descentHint(content, snapshot.descent, landing.control === "manual").map((line) => <SurfaceHint key={line}>{line}</SurfaceHint>)}
@@ -839,7 +840,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       {status === "flying" && snapshot && !isChoosing && !isDocked && (isGuiding || snapshot.boss || snapshot.incoming || snapshot.salvage || adrift ||
         economy?.suggestion || snapshot.dockable || snapshot.distress) && !isHangarOpen && !isHudAside && (
-        <Frames>
+        <Frames data-target={snapshot.target ? "" : undefined}>
           {snapshot.dockable && (
             <DockButton type="button" onClick={() => act({ kind: "dock" })}>
               <FontAwesomeIcon icon={faAnchor} aria-hidden="true" />

@@ -205,11 +205,12 @@ export const SurfaceCard = styled.section(() => [
 
 export const SurfaceTitle = tw.h3`m-0 text-xs md:text-sm font-semibold text-white`;
 
-// The card's details: left to the full HUD when the HUD is compact, which keeps the title, the phase and what to do.
+// The card's details: left to the full HUD when the HUD is compact, which keeps the title, the phase, what to do and,
+// coming down, how high and how fast falling (marked data-slim).
 export const SurfaceLine = styled.p(() => [
   tw`m-0 text-[11px] md:text-xs text-[#c4d2ff]`,
   css`
-    ${COMPACT} {
+    ${COMPACT}:not([data-slim]) {
       display: none;
     }
   `,
@@ -455,8 +456,9 @@ export const Frames = styled.div(() => [
       width: auto;
       transform: none;
 
-      /* The compact column ends high, so the frames take the room under it, short of the bar folded beside them. */
-      ${COMPACT} {
+      /* The compact column ends high, so the frames take the room under it, short of the bar folded beside them;
+         beside it still while a target's frame lengthens it (marked data-target). */
+      ${COMPACT}:not([data-target]) {
         left: 14px;
         right: 96px;
       }
@@ -638,10 +640,19 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
     ${media.shortLandscape} {
       left: 176px;
       right: 8px;
+
+      /* Past the compact HUD's info button beside the bars, where the setting offers it on a phone on its side. */
+      [data-hud-toggle] & {
+        left: 214px;
+      }
     }
 
     @media (orientation: landscape) and (max-height: 500px) and (min-width: 768px) {
       left: 240px;
+
+      [data-hud-toggle] & {
+        left: 278px;
+      }
     }
 
     ${STRIP_STILL} {
@@ -652,8 +663,9 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
 
 // The quest followed, under the bars in the left column: its objective and how far along it is, and what it belongs
 // to, read through like the rest of the HUD so it never takes the pointer that steers; only its scroll opens the
-// quest log. On a short upright phone it steps aside while a system is hurt or a fault waits, which need its room
-// more, and on the shortest, in full, while a world's card rises over the column (marked data-under-card).
+// quest log. On a short upright phone in full it steps aside while a system is hurt or a fault waits, which need its
+// room more (a compact HUD keeps those behind its info button, so the quest stays), and on the shortest, in full,
+// while a world's card rises over the column (marked data-under-card).
 export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolean }) => [
   tw`flex flex-row items-center gap-[6px] w-[150px] md:w-[210px] mt-[2px] pl-[8px] py-[4px] pr-[4px]`,
   css`

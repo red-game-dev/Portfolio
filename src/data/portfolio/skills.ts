@@ -590,6 +590,11 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
             places: ["Conrad", "Own platform"],
           },
           {
+            name: "Developer platforms",
+            detail: "A developer portal for outside studios, CLI tools and scaffolders for the team, and an OIDC provider with consent for client apps.",
+            places: ["HyperPlay", "Own platform"],
+          },
+          {
             name: "Servers run by hand",
             detail: "Game and web servers set up from scratch on dedicated hosts, tuned for latency and cost, before managed cloud.",
             places: ["Gods of Zushin", "AMW"],
@@ -608,6 +613,21 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
             name: "Social networks and communities",
             detail: "Feeds, profiles, guilds, chat and moderation, grown to millions of members.",
             places: ["AMW", "Own platform", "Gods of Zushin"],
+          },
+          {
+            name: "Chat and messaging",
+            detail: "World and language chat channels for a community of millions, and guild, party and world chat in an MMORPG.",
+            places: ["AMW", "Gods of Zushin"],
+          },
+          {
+            name: "Moderation and trust",
+            detail: "Moderators and the tools they work with, terms and age rules, and ad review with a statement of reasons for every rejection.",
+            places: ["AMW", "Gods of Zushin", "Own platform"],
+          },
+          {
+            name: "Analytics and measurement",
+            detail: "Live game dashboards, site statistics, and consent first analytics into a warehouse for market by market decisions.",
+            places: ["Gods of Zushin", "AMW", "Conrad"],
           },
           {
             name: "Recommendations and ranking",

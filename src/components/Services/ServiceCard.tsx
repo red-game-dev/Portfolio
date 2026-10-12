@@ -21,7 +21,7 @@ interface ServiceCardProps extends Service {
 }
 
 const Card = styled.article(() => [
-  tw`relative flex flex-col gap-[14px] p-[22px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
+  tw`relative flex flex-col gap-[14px] p-[16px] md:p-[22px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
   css`
     transition: border-color 0.3s ease;
 

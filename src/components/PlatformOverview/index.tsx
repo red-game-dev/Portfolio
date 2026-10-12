@@ -61,7 +61,7 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
     <Anchor id={ROLE_ANCHORS.enterprise} aria-hidden="true" />
     <SectionText intro={intro} />
     <Groups>
-      <TabList {...listProps} aria-label={intro.title} data-scroll-x>
+      <TabList {...listProps} layout="wrap" aria-label={intro.title} data-scroll-x>
         {expertise.tileGroups.map((group, index) => (
           <Tab key={group.label} {...tabProps(index)} isOn={index === active}>
             {group.label}

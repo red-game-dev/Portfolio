@@ -27,7 +27,7 @@ interface AboutProps extends Detail {
   stackoverflow: string;
 }
 
-const Content = tw.div`relative text-base ml-[-1px] p-[22px] md:p-[25px] lg:p-[35px] bg-[#101010] border-solid border-l-[1px] border-[var(--accent)]`;
+const Content = tw.div`relative text-base ml-[-1px] p-[18px] md:p-[25px] lg:p-[35px] bg-[#101010] border-solid border-l-[1px] border-[var(--accent)]`;
 
 const Title = tw.h2`relative m-[0 0 30px 0] lg:m-[0 0 35px 35px] inline-block align-top text-2xl font-semibold text-white`;
 

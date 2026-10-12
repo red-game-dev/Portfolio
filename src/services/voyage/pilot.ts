@@ -77,9 +77,10 @@ export const readPilotFile = async (file: Blob): Promise<PilotProfile | null> =>
   }
 };
 
-// What a pilot is, in two numbers: the pilot's own level and the ship's.
+// What a pilot is, in two numbers: the pilot's own level and the ship's, counted from 1 as the hangar shows it (the
+// profile keeps the ship's from 0).
 export const summarisePilot = (profile: PilotProfile): { level: number; ship: number } =>
-  ({ level: new Progress(profile.progress).level, ship: profile.level });
+  ({ level: new Progress(profile.progress).level, ship: profile.level + 1 });
 
 // A pilot from another device written as this device's own while the voyage is closed, newer than anything kept, and
 // any voyage open in another tab told to take it on. Where the browser keeps nothing (memory only), nothing is kept for

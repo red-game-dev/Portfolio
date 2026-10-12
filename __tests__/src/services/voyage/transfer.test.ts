@@ -40,6 +40,6 @@ describe("moving a pilot to another device", () => {
   });
 
   test("a pilot is summed up by its own level and its ship's", () => {
-    expect(summarisePilot(pilot)).toEqual({ level: 1, ship: 7 });
+    expect(summarisePilot(pilot)).toEqual({ level: 1, ship: 8 });
   });
 });

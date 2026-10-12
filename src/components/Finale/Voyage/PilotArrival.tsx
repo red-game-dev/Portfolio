@@ -48,7 +48,16 @@ export const PilotArrival: FC<PilotArrivalProps> = ({ copy }: PilotArrivalProps)
   const [isOpen, setIsOpen] = useState(true);
   const [stage, setStage] = useState<Stage>("reading");
   const [arrival, setArrival] = useState<{ profile: PilotProfile; summary: { level: number; ship: number } } | null>(null);
-  const onBackdrop = useModalDialog(dialogRef, isOpen && stage !== "reading");
+  const laterRef = useRef<HTMLButtonElement>(null);
+  const isShown = isOpen && stage !== "reading";
+  const onBackdrop = useModalDialog(dialogRef, isShown);
+
+  // The dialog opens on its first button; focus starts instead on the choice that changes nothing.
+  useEffect(() => {
+    if (isShown && stage === "ready") {
+      laterRef.current?.focus();
+    }
+  }, [isShown, stage]);
 
   useEffect(() => {
     void import("@/services/voyage/pilot")
@@ -99,9 +108,7 @@ export const PilotArrival: FC<PilotArrivalProps> = ({ copy }: PilotArrivalProps)
           {stage === "ready" && (
             <>
               <Button type="button" isPrimary onClick={() => void bring()}>{copy.arrival.bring}</Button>
-              {/* Focus starts on the choice that changes nothing. */}
-              {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
-              <Button type="button" autoFocus onClick={close}>{copy.arrival.later}</Button>
+              <Button ref={laterRef} type="button" onClick={close}>{copy.arrival.later}</Button>
             </>
           )}
           {stage === "failed" && <Button type="button" isPrimary onClick={() => void bring()}>{copy.arrival.bring}</Button>}

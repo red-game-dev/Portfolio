@@ -828,6 +828,8 @@ export interface PilotTransferContent {
   qrLabel: string;
   copy: string;
   copied: string;
+  copyFailed: string;
+  linkLabel: string;
   file: string;
   fileName: string;
   tooBig: string;

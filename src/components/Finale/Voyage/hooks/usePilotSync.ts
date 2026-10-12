@@ -1,7 +1,7 @@
 import { RefObject, useCallback, useEffect, useRef } from "react";
 
 import type { PilotProfile } from "@/packages/games/voyage";
-import { PILOT_CHANNEL } from "@/services/voyage/channel";
+import { PILOT_CHANNEL, PilotSaved, pilotSavedOf } from "@/services/voyage/channel";
 import type { Pilot } from "@/services/voyage/pilot";
 
 // Progress is kept this long after the last change, so a burst of finds is one write.
@@ -26,7 +26,7 @@ export const usePilotSync = (pilot: RefObject<Pilot | null>) => {
   const isAdopting = useRef(false);
   const channel = useRef<BroadcastChannel | null>(null);
 
-  const saveNow = useCallback(() => {
+  const saveNow = useCallback((isReplaced = false) => {
     if (timer.current !== null) {
       window.clearTimeout(timer.current);
       timer.current = null;
@@ -43,7 +43,7 @@ export const usePilotSync = (pilot: RefObject<Pilot | null>) => {
     void opened.repository.save(profile).then((isSaved) => {
       if (isSaved) {
         lastSaved.current = profile.savedAt;
-        channel.current?.postMessage(profile.savedAt);
+        channel.current?.postMessage({ savedAt: profile.savedAt, isReplaced } satisfies PilotSaved);
       }
     });
   }, [pilot]);
@@ -58,7 +58,7 @@ export const usePilotSync = (pilot: RefObject<Pilot | null>) => {
       window.clearTimeout(timer.current);
     }
 
-    timer.current = window.setTimeout(saveNow, SAVE_DELAY_MS);
+    timer.current = window.setTimeout(() => saveNow(), SAVE_DELAY_MS);
   }, [saveNow]);
 
   useEffect(() => {
@@ -69,15 +69,34 @@ export const usePilotSync = (pilot: RefObject<Pilot | null>) => {
         saveNow();
       }
     };
-    const onOtherTab = () => {
+    // Only a change still waiting is written as the page goes: an idle tab has nothing newer than what is kept, and
+    // writing it anyway could put back a pilot another tab has since replaced.
+    const onLeave = () => {
+      if (timer.current !== null) {
+        saveNow();
+      }
+    };
+    const onOtherTab = (event: MessageEvent<unknown>) => {
       const opened = pilot.current;
+      const saved = pilotSavedOf(event.data);
 
-      if (!opened || timer.current !== null) {
+      if (!opened || !saved) {
+        return;
+      }
+
+      // A pilot brought in from another device replaces this one, changes still waiting here included: the visitor
+      // chose it.
+      if (saved.isReplaced && timer.current !== null) {
+        window.clearTimeout(timer.current);
+        timer.current = null;
+      }
+
+      if (timer.current !== null) {
         return;
       }
 
       void opened.repository.load().then((profile) => {
-        if (timer.current === null && profile.savedAt > lastSaved.current) {
+        if (timer.current === null && (saved.isReplaced || profile.savedAt > lastSaved.current)) {
           lastSaved.current = profile.savedAt;
           isAdopting.current = true;
           replacePilot(opened, profile);
@@ -91,11 +110,11 @@ export const usePilotSync = (pilot: RefObject<Pilot | null>) => {
     const release = () => pilot.current?.repository.close();
 
     channel.current?.addEventListener("message", onOtherTab);
-    window.addEventListener("pagehide", saveNow);
+    window.addEventListener("pagehide", onLeave);
     document.addEventListener("visibilitychange", onHidden);
 
     return () => {
-      window.removeEventListener("pagehide", saveNow);
+      window.removeEventListener("pagehide", onLeave);
       document.removeEventListener("visibilitychange", onHidden);
 
       if (timer.current !== null) {
@@ -118,7 +137,7 @@ export const usePilotSync = (pilot: RefObject<Pilot | null>) => {
     isAdopting.current = true;
     replacePilot(opened, profile);
     isAdopting.current = false;
-    saveNow();
+    saveNow(true);
   }, [pilot, saveNow]);
 
   return { scheduleSave, adopt };

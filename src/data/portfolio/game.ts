@@ -185,6 +185,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         qrLabel: "QR code of the link carrying this pilot",
         copy: "Copy the link",
         copied: "Link copied",
+        copyFailed: "This browser would not copy it. Select the link above and copy it by hand.",
+        linkLabel: "The link carrying this pilot",
         file: "Save as a file",
         fileName: "redgame-pilot-{date}.json",
         tooBig: "This pilot is too big for a QR code. Copy the link, or save it as a file and open it on the other device.",

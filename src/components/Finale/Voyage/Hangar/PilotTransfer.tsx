@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, useEffect, useState } from "react";
+import { ChangeEvent, FC, useEffect, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -15,6 +15,8 @@ interface PilotTransferProps {
   transfer: Transfer;
   // Taking a pilot on waits for the run to end, as the reset does.
   isFlying: boolean;
+  // Whether its tab is open: leaving it lets go of the link, so one shown again carries any change made meanwhile.
+  isShown: boolean;
 }
 
 // The longest link drawn as a QR code: past it the code grows too dense to scan from a screen.
@@ -29,9 +31,20 @@ const Code = styled.svg(() => [
   `,
 ]);
 
+// The file input inside is out of sight, so the label shows its focus.
 const FileLabel = styled.label(() => [
   tw`inline-flex items-center cursor-pointer text-xs font-semibold text-[#c4d2ff] underline`,
-  focusRing("#c4d2ff", 2),
+  css`
+    &:focus-within {
+      outline: 2px solid #c4d2ff;
+      outline-offset: 2px;
+    }
+  `,
+]);
+
+const LinkField = styled.input(() => [
+  tw`w-full min-w-0 px-[8px] py-[6px] text-xs text-[#dfe6f7] bg-[rgba(4, 8, 20, 0.6)] border-[1px] border-solid border-[#2a3350] rounded-[2px]`,
+  focusRing("#c4d2ff", 1),
 ]);
 
 const Hidden = tw.input`sr-only`;
@@ -57,11 +70,20 @@ const qrPath = async (text: string): Promise<{ path: string; size: number } | nu
 
 // Moving this pilot to another device, with no account and no server: a link carrying the pilot (as a QR code when it is
 // short enough to scan), the same pilot as a file, and a pilot from a file taken on here once the pilot agrees.
-export const PilotTransfer: FC<PilotTransferProps> = ({ copy, transfer, isFlying }: PilotTransferProps) => {
+export const PilotTransfer: FC<PilotTransferProps> = ({ copy, transfer, isFlying, isShown }: PilotTransferProps) => {
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const [link, setLink] = useState<string | null>(null);
   const [code, setCode] = useState<{ path: string; size: number } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [arriving, setArriving] = useState<{ profile: PilotProfile; summary: { level: number; ship: number } } | null>(null);
+
+  useEffect(() => {
+    if (!isShown) {
+      setLink(null);
+      setCode(null);
+      setMessage(null);
+    }
+  }, [isShown]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -77,13 +99,17 @@ export const PilotTransfer: FC<PilotTransferProps> = ({ copy, transfer, isFlying
 
   const show = async () => setLink(await transfer.link());
 
+  // Offered once the link is shown, so the copy happens straight from the press, as browsers ask.
   const copyLink = async () => {
-    const made = link ?? await transfer.link();
+    if (!link) {
+      return;
+    }
 
-    if (made) {
-      await navigator.clipboard.writeText(made);
-      setLink(made);
+    try {
+      await navigator.clipboard.writeText(link);
       setMessage(copy.copied);
+    } catch {
+      setMessage(copy.copyFailed);
     }
   };
 
@@ -115,12 +141,14 @@ export const PilotTransfer: FC<PilotTransferProps> = ({ copy, transfer, isFlying
       transfer.adopt(arriving.profile);
       setArriving(null);
       setMessage(copy.moved);
+      // The buttons that held focus are gone, so it comes back to the section's heading.
+      headingRef.current?.focus();
     }
   };
 
   return (
     <Section aria-label={copy.title}>
-      <Subheading>{copy.title}</Subheading>
+      <Subheading ref={headingRef} tabIndex={-1}>{copy.title}</Subheading>
       <Note>{copy.note}</Note>
       {link && code && (
         <>
@@ -131,9 +159,11 @@ export const PilotTransfer: FC<PilotTransferProps> = ({ copy, transfer, isFlying
         </>
       )}
       {link && !code && link.length > QR_LIMIT && <Note>{copy.tooBig}</Note>}
+      {link && <LinkField type="text" readOnly value={link} aria-label={copy.linkLabel} onFocus={(event) => event.target.select()} />}
       <Actions>
-        {!link && <SmallButton type="button" isPrimary onClick={() => void show()}>{copy.show}</SmallButton>}
-        <SmallButton type="button" onClick={() => void copyLink()}>{copy.copy}</SmallButton>
+        {link
+          ? <SmallButton type="button" isPrimary onClick={() => void copyLink()}>{copy.copy}</SmallButton>
+          : <SmallButton type="button" isPrimary onClick={() => void show()}>{copy.show}</SmallButton>}
         <SmallButton type="button" onClick={() => void saveFile()}>{copy.file}</SmallButton>
       </Actions>
       {!isFlying && (
@@ -150,7 +180,7 @@ export const PilotTransfer: FC<PilotTransferProps> = ({ copy, transfer, isFlying
           </FileLabel>
         )
       )}
-      {message && <Note role="status">{message}</Note>}
+      <Note role="status">{message ?? ""}</Note>
     </Section>
   );
 };

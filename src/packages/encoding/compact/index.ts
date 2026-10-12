@@ -35,11 +35,16 @@ const through = async (bytes: Uint8Array<ArrayBuffer>, transform: ByteTransform)
 export const packText = async (text: string): Promise<string> => {
   const bytes = new TextEncoder().encode(text);
 
-  if (typeof CompressionStream === "undefined") {
-    return PLAIN + toBase64Url(bytes);
+  // Some browsers have the stream but not this format, and throw on it: they write the text plain instead.
+  try {
+    if (typeof CompressionStream !== "undefined") {
+      return DEFLATED + toBase64Url(await through(bytes, new CompressionStream("deflate-raw")));
+    }
+  } catch {
+    // Written plain below.
   }
 
-  return DEFLATED + toBase64Url(await through(bytes, new CompressionStream("deflate-raw")));
+  return PLAIN + toBase64Url(bytes);
 };
 
 // The text back, or null for anything that is not a packed text this code can read.

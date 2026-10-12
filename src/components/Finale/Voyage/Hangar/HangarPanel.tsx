@@ -516,7 +516,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
         </TabPanel>
         <TabPanel {...panelProps(TAB.settings)}>
           <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
-          <PilotTransferPanel copy={content.transfer} transfer={transfer} isFlying={isFlying} />
+          <PilotTransferPanel copy={content.transfer} transfer={transfer} isFlying={isFlying} isShown={active === TAB.settings} />
         </TabPanel>
       </Body>
       <Footer>

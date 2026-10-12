@@ -14,8 +14,10 @@ interface PilotArrivalProps {
 
 type Stage = "reading" | "ready" | "invalid" | "moved" | "failed";
 
+// No padding on the dialog itself: a press on it, outside its body, is the backdrop and closes it, so only a press beyond
+// the card counts as one.
 const Dialog = styled.dialog(() => [
-  tw`w-[calc(100% - 32px)] max-w-[440px] p-[22px] text-left text-[#ccc] bg-[#0b1020] border-[1px] border-solid border-[#c4d2ff]`,
+  tw`w-[calc(100% - 32px)] max-w-[440px] p-0 text-left text-[#ccc] bg-[#0b1020] border-[1px] border-solid border-[#c4d2ff]`,
   css`
     box-shadow: 0 0 40px rgba(196, 210, 255, 0.2);
 
@@ -24,6 +26,8 @@ const Dialog = styled.dialog(() => [
     }
   `,
 ]);
+
+const Body = tw.div`p-[22px]`;
 
 const Title = tw.h2`m-0 mb-[10px] text-lg font-semibold text-white`;
 
@@ -47,12 +51,14 @@ export const PilotArrival: FC<PilotArrivalProps> = ({ copy }: PilotArrivalProps)
   const onBackdrop = useModalDialog(dialogRef, isOpen && stage !== "reading");
 
   useEffect(() => {
-    void import("@/services/voyage/pilot").then(async ({ readPilotLink, summarisePilot }) => {
-      const profile = await readPilotLink(window.location.hash);
+    void import("@/services/voyage/pilot")
+      .then(async ({ readPilotLink, summarisePilot }) => {
+        const profile = await readPilotLink(window.location.hash);
 
-      setArrival(profile ? { profile, summary: summarisePilot(profile) } : null);
-      setStage(profile ? "ready" : "invalid");
-    });
+        setArrival(profile ? { profile, summary: summarisePilot(profile) } : null);
+        setStage(profile ? "ready" : "invalid");
+      })
+      .catch(() => setStage("invalid"));
   }, []);
 
   const close = () => {
@@ -67,9 +73,13 @@ export const PilotArrival: FC<PilotArrivalProps> = ({ copy }: PilotArrivalProps)
       return;
     }
 
-    const { landPilot } = await import("@/services/voyage/pilot");
+    try {
+      const { landPilot } = await import("@/services/voyage/pilot");
 
-    setStage(await landPilot(arrival.profile) ? "moved" : "failed");
+      setStage(await landPilot(arrival.profile) ? "moved" : "failed");
+    } catch {
+      setStage("failed");
+    }
   };
 
   const text = {
@@ -82,18 +92,22 @@ export const PilotArrival: FC<PilotArrivalProps> = ({ copy }: PilotArrivalProps)
 
   return (
     <Dialog ref={dialogRef} aria-labelledby="pilot-arrival-title" onClose={close} onClick={onBackdrop}>
-      <Title id="pilot-arrival-title">{copy.arrival.title}</Title>
-      <Text role="status">{text}</Text>
-      <Buttons>
-        {stage === "ready" && (
-          <>
-            <Button type="button" isPrimary onClick={() => void bring()}>{copy.arrival.bring}</Button>
-            <Button type="button" onClick={close}>{copy.arrival.later}</Button>
-          </>
-        )}
-        {stage === "failed" && <Button type="button" isPrimary onClick={() => void bring()}>{copy.arrival.bring}</Button>}
-        {stage !== "ready" && stage !== "reading" && <Button type="button" onClick={close}>{copy.arrival.done}</Button>}
-      </Buttons>
+      <Body>
+        <Title id="pilot-arrival-title">{copy.arrival.title}</Title>
+        <Text role="status">{text}</Text>
+        <Buttons>
+          {stage === "ready" && (
+            <>
+              <Button type="button" isPrimary onClick={() => void bring()}>{copy.arrival.bring}</Button>
+              {/* Focus starts on the choice that changes nothing. */}
+              {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+              <Button type="button" autoFocus onClick={close}>{copy.arrival.later}</Button>
+            </>
+          )}
+          {stage === "failed" && <Button type="button" isPrimary onClick={() => void bring()}>{copy.arrival.bring}</Button>}
+          {stage !== "ready" && stage !== "reading" && <Button type="button" onClick={close}>{copy.arrival.done}</Button>}
+        </Buttons>
+      </Body>
     </Dialog>
   );
 };

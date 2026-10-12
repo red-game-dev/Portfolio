@@ -4,7 +4,8 @@ import { hexWithAlpha } from "@/packages/graphics/colour";
 import { focusRing, media, voyagePanel } from "@/styles/mixins";
 
 // Down the right edge on a phone, within a thumb's reach and clear of the radar and the telemetry; along the
-// bottom, between them, where there is room.
+// bottom, between them, where there is room, and on a phone on its side, where a column would run the screen's
+// whole height.
 export const Bar = styled.div(() => [
   tw`absolute flex flex-col gap-[6px] p-[4px] pointer-events-auto`,
   css`
@@ -19,6 +20,17 @@ export const Bar = styled.div(() => [
       left: 50%;
       bottom: 18px;
       flex-direction: row;
+      transform: translateX(-50%);
+    }
+
+    /* Centred in the room between the radar and the corner card, which is wider than the radar. */
+    ${media.shortLandscape} {
+      right: auto;
+      top: auto;
+      left: calc(50% - 4vw);
+      bottom: 8px;
+      flex-direction: row;
+      gap: 5px;
       transform: translateX(-50%);
     }
   `,
@@ -36,6 +48,13 @@ export const Slot = styled.button(({ colour, isEmpty, isOn }: { colour: string; 
     font-size: 18px;
 
     ${focusRing("#ffffff", 2)}
+
+    /* Along the bottom of a phone on its side, a little smaller so the row fits between the radar and the corner. */
+    ${media.shortLandscape} {
+      width: 38px;
+      height: 38px;
+      font-size: 15px;
+    }
   `,
 ]);
 

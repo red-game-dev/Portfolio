@@ -90,12 +90,19 @@ export const BarFill = styled.div(({ colour }: { colour: string }) => [
   `,
 ]);
 
-// Where the ship stands on a world: in the corner the radar keeps in flight.
+// Where the ship stands on a world: in the corner the radar keeps in flight; on a phone on its side, in the bottom
+// right corner instead (where the telemetry steps aside for it), so it stays clear of the column of bars on the left.
 export const SurfaceCard = styled.section(() => [
   tw`absolute left-[10px] bottom-[10px] md:left-[18px] md:bottom-[18px] m-0 p-[8px] md:p-[12px] flex flex-col gap-[2px] pointer-events-none`,
   css`
     max-width: min(44vw, 300px);
     ${voyagePanel()}
+
+    ${media.shortLandscape} {
+      left: auto;
+      right: 10px;
+      max-width: min(28vw, 190px);
+    }
   `,
 ]);
 
@@ -103,12 +110,36 @@ export const SurfaceTitle = tw.h3`m-0 text-xs md:text-sm font-semibold text-whit
 
 export const SurfaceLine = tw.p`m-0 text-[11px] md:text-xs text-[#c4d2ff]`;
 
+// How a world is come down on: kept to two lines on a phone on its side, where the card has the corner's height only.
+export const SurfaceMethod = styled.p(() => [
+  tw`m-0 text-[11px] md:text-xs text-[#c4d2ff]`,
+  css`
+    ${media.shortLandscape} {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  `,
+]);
+
+// The hull's heat and the air, from the telemetry: shown in the card only where the telemetry steps aside for it.
+export const SurfaceReading = styled.p(() => [
+  tw`hidden m-0 text-[11px] md:text-xs text-[#c4d2ff] tabular-nums`,
+  css`
+    ${media.shortLandscape} {
+      display: block;
+    }
+  `,
+]);
+
 // What the way down is doing now, the line a reader looks for first.
 export const SurfacePhase = tw.p`m-0 my-[2px] text-xs md:text-sm font-semibold text-[#ffd27a]`;
 
 export const SurfaceHint = tw.p`m-0 mt-[4px] text-[11px] md:text-xs text-[#9aa3bb]`;
 
-export const TelemetryPanel = styled.section(() => [
+// The live readings in the bottom right; on a phone on its side it steps aside while a world's card has the corner.
+export const TelemetryPanel = styled.section(({ isYielding = false }: { isYielding?: boolean }) => [
   tw`absolute right-[10px] bottom-[10px] md:right-[18px] md:bottom-[18px] p-[8px] md:p-[12px] pointer-events-none`,
   css`
     min-width: 170px;
@@ -118,6 +149,12 @@ export const TelemetryPanel = styled.section(() => [
     ${media.md} {
       min-width: 200px;
     }
+
+    ${media.shortLandscape} {
+      min-width: 0;
+      max-width: min(28vw, 190px);
+      ${isYielding ? "display: none;" : ""}
+    }
   `,
 ]);
 
@@ -125,10 +162,15 @@ export const TelemetryTitle = tw.h2`m-0 mb-[4px] md:mb-[6px] text-[11px] md:text
 
 export const TelemetryList = tw.dl`m-0 flex flex-col gap-[2px] md:gap-[3px] text-[11px] md:text-xs tabular-nums`;
 
-// Only the key readings on narrow screens; every reading where there is room.
+// Only the key readings on narrow screens and on a phone on its side; every reading where there is room.
 export const TelemetryRow = styled.div(({ isKey }: { isKey: boolean }) => [
   tw`flex flex-row items-baseline justify-between gap-[10px] md:gap-[14px]`,
   !isKey && tw`hidden md:flex`,
+  !isKey && css`
+    ${media.shortLandscape} {
+      display: none;
+    }
+  `,
 ]);
 
 export const TelemetryName = tw.dt`text-[#9aa3bb]`;
@@ -192,6 +234,13 @@ export const Frames = styled.div(() => [
     ${media.md} {
       width: min(88vw, 420px);
     }
+
+    /* On a phone on its side: just above the ability bar along the bottom, narrow enough to clear the radar and the
+       corner cards, below the ship. */
+    ${media.shortLandscape} {
+      bottom: 56px;
+      width: min(36vw, 240px);
+    }
   `,
 ]);
 
@@ -236,8 +285,11 @@ const showStrip = keyframes`
   100% { opacity: 0; }
 `;
 
-// A phone too short for the line to sit between the bars and the ship.
-const SHORT_PHONE = "@media (max-width: 767px) and (max-height: 720px)";
+// Where the line becomes a strip across the top: a phone too short for it to sit between the bars and the ship, held
+// upright or on its side, and any phone on its side however wide.
+const STRIP = "@media (max-width: 767px) and (max-height: 720px), (orientation: landscape) and (max-height: 500px)";
+const STRIP_STILL = "@media (max-width: 767px) and (max-height: 720px) and (prefers-reduced-motion: reduce), " +
+  "(orientation: landscape) and (max-height: 500px) and (prefers-reduced-motion: reduce)";
 
 // The same without the movement: there for its moment, then gone.
 const showLine = keyframes`
@@ -295,7 +347,7 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
     /* A short phone has no room under the bars before the ship: the line becomes a strip across the top, under the
        buttons, over the place and the readout for its moment, its way to the quest log beside the words rather than
        under them, so up to three lines stay clear of the bars, the ship and the faults. */
-    ${SHORT_PHONE} {
+    ${STRIP} {
       top: 54px;
       left: 8px;
       right: 8px;
@@ -337,13 +389,24 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       }
     }
 
-    /* Where the screen is short enough for the ability bar down the right to reach the top (a phone on its side, the
-       smallest phones), the strip stops short of it. */
+    /* Where the screen is short enough for the ability bar down the right to reach the top (the smallest phones), the
+       strip stops short of it. */
     @media (max-width: 767px) and (max-height: 540px) {
       right: 72px;
     }
 
-    ${SHORT_PHONE} and (prefers-reduced-motion: reduce) {
+    /* On its side the bar runs along the bottom, so the strip keeps its width; and the bars sit higher, so it starts
+       beside their column rather than across it (a wider column from the tablet breakpoint up). */
+    ${media.shortLandscape} {
+      left: 176px;
+      right: 8px;
+    }
+
+    @media (orientation: landscape) and (max-height: 500px) and (min-width: 768px) {
+      left: 240px;
+    }
+
+    ${STRIP_STILL} {
       animation-name: ${showStrip};
     }
   `,
@@ -366,7 +429,15 @@ export const TrackerName = tw.span`flex flex-row items-baseline justify-between 
 
 export const TrackerCount = tw.span`tabular-nums text-[#ffcf9f] whitespace-nowrap`;
 
-export const TrackerSub = tw.span`text-[10px] md:text-[11px] text-[#aab3c9] truncate`;
+// What the quest belongs to; left out on a phone on its side, where the column is short.
+export const TrackerSub = styled.span(() => [
+  tw`text-[10px] md:text-[11px] text-[#aab3c9] truncate`,
+  css`
+    ${media.shortLandscape} {
+      display: none;
+    }
+  `,
+]);
 
 export const TrackerOpen = styled.button(() => [
   tw`flex flex-shrink-0 items-center justify-center w-[34px] h-[34px] p-0 cursor-pointer text-[#ff9f5a] bg-[rgba(10,14,30,0.75)] border-[1px] border-solid
@@ -573,7 +644,15 @@ export const ScoreRow = styled.div(() => [
 export const Badge = tw.p`m-0 self-start px-[10px] py-[4px] text-xs font-semibold text-[#101010] bg-[#ffc45c]`;
 
 // The ship's hull and mark, under where it is.
-export const ShipLine = tw.p`m-0 text-[11px] md:text-xs text-[#9aa3bb]`;
+// The rank and the ship; left out on a phone on its side, where the column is short (the hangar says both).
+export const ShipLine = styled.p(() => [
+  tw`m-0 text-[11px] md:text-xs text-[#9aa3bb]`,
+  css`
+    ${media.shortLandscape} {
+      display: none;
+    }
+  `,
+]);
 
 // Red Coin gold, Void Shards violet.
 export const Coin = styled.dd(({ isShards = false }: { isShards?: boolean }) => [

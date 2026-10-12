@@ -114,6 +114,8 @@ import {
   SurfaceCard,
   SurfaceHint,
   SurfaceLine,
+  SurfaceMethod,
+  SurfaceReading,
   SurfacePhase,
   SurfaceTitle,
   SystemName,
@@ -328,6 +330,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     writeStored(TRACK_KEY, id);
   };
   const tracked = career ? trackedQuest(career, pinned) : null;
+  // The hull's heat and the air, carried into a world's card where the telemetry steps aside for it.
+  const cornerLabels = [content.telemetry.temperature, content.telemetry.air];
+  const readingsInCorner = snapshot ? telemetryRows(content, snapshot).filter((row) => cornerLabels.includes(row.label)) : [];
   const trackedName = tracked ? (tracked.kind === "story" ? storyStepName(content, tracked.objective) : missionName(content, tracked.objective)) : "";
 
   useEffect(() => {
@@ -772,10 +777,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       {snapshot?.descent && status === "flying" && !isHangarOpen && !isHudAside && (
         <SurfaceCard aria-label={fill(content.descent.title, { body: comingDownOn })}>
           <SurfaceTitle>{fill(content.descent.title, { body: comingDownOn })}</SurfaceTitle>
-          <SurfaceLine>{descentMethod(content, snapshot.descent, snapshot.surface?.isHome ?? false)}</SurfaceLine>
+          <SurfaceMethod>{descentMethod(content, snapshot.descent, snapshot.surface?.isHome ?? false)}</SurfaceMethod>
           <SurfacePhase>{content.descent.phases[snapshot.descent.phase]}</SurfacePhase>
           {descentRows(content, snapshot.descent).map((row) => <SurfaceLine key={row}>{row}</SurfaceLine>)}
           {snapshot.people && <SurfaceLine>{fill(content.surface.people, { faction: snapshot.people.name })}</SurfaceLine>}
+          {readingsInCorner.map((row) => <SurfaceReading key={row.label}>{`${row.label} ${row.value}`}</SurfaceReading>)}
           {descentHint(content, snapshot.descent, landing.control === "manual").map((line) => <SurfaceHint key={line}>{line}</SurfaceHint>)}
         </SurfaceCard>
       )}
@@ -783,11 +789,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         <SurfaceCard aria-label={surfaceTitle}>
           <SurfaceTitle>{surfaceTitle}</SurfaceTitle>
           {surfaceLines(content, snapshot, home?.name ?? null).map((line) => <SurfaceLine key={line}>{line}</SurfaceLine>)}
+          {readingsInCorner.map((row) => <SurfaceReading key={row.label}>{`${row.label} ${row.value}`}</SurfaceReading>)}
           <SurfaceHint>{surfaceHint(content, snapshot, home?.name ?? null)}</SurfaceHint>
         </SurfaceCard>
       )}
       {snapshot && status === "flying" && !isHangarOpen && !isHudAside && (
-        <TelemetryPanel aria-label={content.telemetry.title}>
+        <TelemetryPanel aria-label={content.telemetry.title} isYielding={Boolean(snapshot.descent || snapshot.surface)}>
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>
             {telemetryRows(content, snapshot).map((row) => (

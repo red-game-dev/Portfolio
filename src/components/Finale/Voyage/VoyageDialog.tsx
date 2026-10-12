@@ -4,7 +4,9 @@ import {
   faAnchor,
   faCalendarDay,
   faCamera,
+  faCircleInfo,
   faCircleUp,
+  faCompress,
   faCrosshairs,
   faDownload,
   faMap,
@@ -34,6 +36,7 @@ import { HangarPanel, HangarTab } from "@/components/Finale/Voyage/Hangar/Hangar
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
+import { hudLayout, SMALL_HUD_SCREEN } from "@/components/Finale/Voyage/hud";
 import {
   isKeptNotice,
   isQuestNotice,
@@ -60,6 +63,7 @@ import {
   BossFrame,
   BarLabel,
   BarRow,
+  BarsRow,
   Bars,
   BarTrack,
   BarValue,
@@ -80,7 +84,9 @@ import {
   FrameTrack,
   Gain,
   Hud,
+  HudAlert,
   HudButtons,
+  HudToggle,
   IconButton,
   Incoming,
   LensCanvas,
@@ -145,6 +151,7 @@ import {
   TrackerText,
   Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
+import { usePreferencesStateHook } from "@/components/Preferences/hooks/usePreferencesStateHook";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
 import { SITE_URL } from "@/config/site";
 import useMediaQuery from "@/hooks/useMediaQuery";
@@ -202,6 +209,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   // On a touch screen, how to fly by touch rather than by keys.
   const isTouch = useMediaQuery("(hover: none) and (pointer: coarse)");
   const controlsText = isTouch ? content.controlsTouch : content.controls;
+  // How much of the HUD shows: compact on a screen too small for all of it (or where the setting asks), in full once
+  // its info button opens it.
+  const { values: preferences } = usePreferencesStateHook();
+  const isSmallScreen = useMediaQuery(SMALL_HUD_SCREEN);
+  const [isHudOpen, setHudOpen] = useState(false);
+  const hud = hudLayout(preferences["voyage-hud"], isSmallScreen, isHudOpen);
   // Asked once: read after mount, so the server and the first render agree (asked, until known otherwise).
   const [isSetUp, setIsSetUp] = useState(true);
 
@@ -548,6 +561,10 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
 
     return { fault: id, kind, parts: repair?.parts ?? null, craft: repair?.craft ?? null, options: repair?.options ?? [] };
   }) : [];
+  // What wants the pilot while the HUD keeps it short: a hurt system or a fault (the compact HUD's info button wears a
+  // dot for it, and the tracker steps aside for it on a short phone).
+  const isTroubled = hurt.length > 0 || repairs.length > 0;
+  const hudLabel = !hud.isCompact ? content.hud.close : isTroubled ? `${content.hud.open}, ${content.hud.alert}` : content.hud.open;
   // Every way a fault can be fixed, and the ground: what to look for when nothing in the hold will do.
   const needsFor = (options: ItemStack[][]) => {
     const parts = options.map((option) => option.map(({ id, count }) => stacksText(copy, [{ id, count }])).join(copy.faults.and)).join(copy.faults.or);
@@ -581,6 +598,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       onKeyDown={voyage.onKeyDown}
       onKeyUp={voyage.onKeyUp}
       aria-label={content.title}
+      data-hud={hud.isCompact ? "compact" : "full"}
     >
       <Stage
         ref={stageRef}
@@ -630,20 +648,33 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </ShipLine>
           )}
           {status !== "ready" && (
-            <Bars>
-              {bars.map((bar) => (
-                <BarRow key={bar.label}>
-                  <BarLabel>{bar.label}</BarLabel>
-                  <BarValue>{`${bar.value} / ${bar.max}`}</BarValue>
-                  <BarTrack role="meter" aria-label={bar.label} aria-valuemin={0} aria-valuemax={bar.max} aria-valuenow={bar.value}>
-                    <BarFill colour={bar.colour} style={{ transform: `scaleX(${bar.max > 0 ? bar.value / bar.max : 0})` }} />
-                  </BarTrack>
-                </BarRow>
-              ))}
-            </Bars>
+            <BarsRow>
+              <Bars>
+                {bars.map((bar) => (
+                  <BarRow key={bar.label}>
+                    <BarLabel>{bar.label}</BarLabel>
+                    <BarValue>{`${bar.value} / ${bar.max}`}</BarValue>
+                    <BarTrack role="meter" aria-label={bar.label} aria-valuemin={0} aria-valuemax={bar.max} aria-valuenow={bar.value}>
+                      <BarFill colour={bar.colour} style={{ transform: `scaleX(${bar.max > 0 ? bar.value / bar.max : 0})` }} />
+                    </BarTrack>
+                  </BarRow>
+                ))}
+              </Bars>
+              {hud.canCompact && (
+                <HudToggle
+                  type="button"
+                  aria-pressed={!hud.isCompact}
+                  aria-label={hudLabel}
+                  onClick={() => setHudOpen(!isHudOpen)}
+                >
+                  <FontAwesomeIcon icon={hud.isCompact ? faCircleInfo : faCompress} aria-hidden="true" />
+                  {hud.isCompact && isTroubled && <HudAlert aria-hidden="true" />}
+                </HudToggle>
+              )}
+            </BarsRow>
           )}
           {tracked && status === "flying" && !isHangarOpen && !isChoosing && !isDocked && (
-            <Tracker isYielding={hurt.length > 0 || repairs.length > 0}>
+            <Tracker isYielding={isTroubled} isUnderCard={Boolean(snapshot?.descent || snapshot?.surface)}>
               <TrackerText>
                 <TrackerName>
                   <span>{trackedName}</span>
@@ -798,7 +829,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>
             {telemetryRows(content, snapshot).map((row) => (
-              <TelemetryRow key={row.label} isKey={row.isKey}>
+              <TelemetryRow key={row.label} isKey={row.isKey} isSlim={row.isSlim ?? false}>
                 <TelemetryName>{row.label}</TelemetryName>
                 <TelemetryValue>{row.value}</TelemetryValue>
               </TelemetryRow>

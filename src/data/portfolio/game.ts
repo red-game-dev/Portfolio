@@ -255,6 +255,11 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         tides: "{value} times what the hull takes",
         clock: "{date} UTC",
       },
+      hud: {
+        open: "Show every panel",
+        close: "Back to the compact HUD",
+        alert: "a system is hurt or a fault waits",
+      },
       systems: {
         title: "Systems",
         names: {

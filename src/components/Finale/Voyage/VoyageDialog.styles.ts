@@ -5,6 +5,10 @@ import tw, { css, styled } from "twin.macro";
 import { focusRing, honourHidden, media, voyagePanel } from "@/styles/mixins";
 
 // The whole screen, edge to edge, over a black backdrop.
+// Inside a compact HUD (the dialog's data-hud, set from the voyage-hud setting and the screen's size), which keeps to
+// what matters in the moment: thin bars, the quest on one line, a slim telemetry, and the rest behind its info button.
+const COMPACT = '[data-hud="compact"] &';
+
 export const Dialog = styled.dialog(() => [
   tw`fixed inset-0 m-0 p-0 border-0 text-white overflow-hidden`,
   css`
@@ -89,7 +93,31 @@ export const Place = styled.p(() => [
   `,
 ]);
 
-export const Bars = tw.dl`m-0 flex flex-col gap-[4px] w-[150px] md:w-[210px]`;
+export const Bars = styled.dl(() => [
+  tw`m-0 flex flex-col gap-[4px] w-[150px] md:w-[210px]`,
+  css`
+    ${COMPACT} {
+      gap: 3px;
+    }
+  `,
+]);
+
+// The bars and, where the HUD can be compact, the button that opens it in full or tucks it back.
+export const BarsRow = tw.div`flex flex-row items-center gap-[8px]`;
+
+export const HudToggle = styled.button(() => [
+  tw`relative flex items-center justify-center w-[30px] h-[30px] p-0 cursor-pointer text-[#c4d2ff] bg-[rgba(10,14,30,0.75)] border-[1px] border-solid
+    border-[#2a3350] rounded-full pointer-events-auto`,
+  focusRing("#c4d2ff", 2),
+]);
+
+// A red dot on the info button while the compact HUD keeps a hurt system or a fault behind it.
+export const HudAlert = styled.span(() => [
+  tw`absolute top-[-3px] right-[-3px] w-[10px] h-[10px] rounded-full bg-[#ff4d5e]`,
+  css`
+    border: 2px solid #03050c;
+  `,
+]);
 
 // A little tighter on the shortest upright phone, where the column has to make room for what is hurt.
 export const BarRow = styled.div(() => [
@@ -101,12 +129,31 @@ export const BarRow = styled.div(() => [
       font-size: 11px;
       line-height: 14px;
     }
+
+    ${COMPACT} {
+      row-gap: 0;
+    }
   `,
 ]);
 
-export const BarLabel = tw.dt`text-[#9aa3bb]`;
+// The compact HUD shows the bars alone, told apart by colour; their names and figures are in the full HUD.
+export const BarLabel = styled.dt(() => [
+  tw`text-[#9aa3bb]`,
+  css`
+    ${COMPACT} {
+      display: none;
+    }
+  `,
+]);
 
-export const BarValue = tw.dd`m-0 text-right text-white`;
+export const BarValue = styled.dd(() => [
+  tw`m-0 text-right text-white`,
+  css`
+    ${COMPACT} {
+      display: none;
+    }
+  `,
+]);
 
 export const BarTrack = styled.div(() => [
   tw`relative h-[6px] overflow-hidden bg-[rgba(255,255,255,0.12)]`,
@@ -114,6 +161,10 @@ export const BarTrack = styled.div(() => [
     grid-column: 1 / -1;
 
     ${media.shortestPortrait} {
+      height: 4px;
+    }
+
+    ${COMPACT} {
       height: 4px;
     }
   `,
@@ -152,12 +203,29 @@ export const SurfaceCard = styled.section(() => [
 
 export const SurfaceTitle = tw.h3`m-0 text-xs md:text-sm font-semibold text-white`;
 
-export const SurfaceLine = tw.p`m-0 text-[11px] md:text-xs text-[#c4d2ff]`;
+// The card's details: left to the full HUD when the HUD is compact, which keeps the title, the phase and what to do.
+export const SurfaceLine = styled.p(() => [
+  tw`m-0 text-[11px] md:text-xs text-[#c4d2ff]`,
+  css`
+    ${COMPACT} {
+      display: none;
+    }
+  `,
+]);
 
-// How a world is come down on: kept to two lines on a phone on its side, where the card has the corner's height only.
+// How a world is come down on: kept to two lines on a phone on its side, where the card has the corner's height only,
+// and left out on the shortest upright phone, where the title and the phase say enough.
 export const SurfaceMethod = styled.p(() => [
   tw`m-0 text-[11px] md:text-xs text-[#c4d2ff]`,
   css`
+    ${media.shortestPortrait} {
+      display: none;
+    }
+
+    ${COMPACT} {
+      display: none;
+    }
+
     ${media.shortLandscape} {
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -177,6 +245,10 @@ export const SurfaceReading = styled.p(() => [
 
     ${media.shortLandscape} {
       display: block;
+    }
+
+    ${COMPACT} {
+      display: none;
     }
   `,
 ]);
@@ -216,16 +288,30 @@ export const TelemetryPanel = styled.section(({ isYielding = false }: { isYieldi
   `,
 ]);
 
-export const TelemetryTitle = tw.h2`m-0 mb-[4px] md:mb-[6px] text-[11px] md:text-xs font-semibold text-[#c4d2ff]`;
+// Left out of the compact HUD's slim telemetry, whose two readings say what they are.
+export const TelemetryTitle = styled.h2(() => [
+  tw`m-0 mb-[4px] md:mb-[6px] text-[11px] md:text-xs font-semibold text-[#c4d2ff]`,
+  css`
+    ${COMPACT} {
+      display: none;
+    }
+  `,
+]);
 
 export const TelemetryList = tw.dl`m-0 flex flex-col gap-[2px] md:gap-[3px] text-[11px] md:text-xs tabular-nums`;
 
-// Only the key readings on narrow screens and on a phone on its side; every reading where there is room.
-export const TelemetryRow = styled.div(({ isKey }: { isKey: boolean }) => [
+// Only the key readings on narrow screens and on a phone on its side, only the slim ones (how fast, where to) in a
+// compact HUD; every reading where there is room.
+export const TelemetryRow = styled.div(({ isKey, isSlim = false }: { isKey: boolean; isSlim?: boolean }) => [
   tw`flex flex-row items-baseline justify-between gap-[10px] md:gap-[14px]`,
   !isKey && tw`hidden md:flex`,
   !isKey && css`
     ${media.shortLandscape} {
+      display: none;
+    }
+  `,
+  !isSlim && css`
+    ${COMPACT} {
       display: none;
     }
   `,
@@ -287,10 +373,22 @@ export const Systems = styled.dl(() => [
     ${media.shortestPortrait} {
       width: 120px;
     }
+
+    ${COMPACT} {
+      display: none;
+    }
   `,
 ]);
 
-export const SystemsTitle = tw.p`m-0 mt-[6px] text-[11px] md:text-xs font-semibold text-[#c4d2ff]`;
+// Over the systems and over the faults; with both, behind the compact HUD's info button, whose dot says they wait.
+export const SystemsTitle = styled.p(() => [
+  tw`m-0 mt-[6px] text-[11px] md:text-xs font-semibold text-[#c4d2ff]`,
+  css`
+    ${COMPACT} {
+      display: none;
+    }
+  `,
+]);
 
 export const SystemRow = styled.div(() => [
   tw`grid items-center gap-x-[8px] text-[11px] tabular-nums`,
@@ -354,6 +452,12 @@ export const Frames = styled.div(() => [
       right: 8px;
       width: auto;
       transform: none;
+
+      /* The compact column ends high, so the frames take the room under it, short of the bar folded beside them. */
+      ${COMPACT} {
+        left: 14px;
+        right: 96px;
+      }
     }
 
     /* On a phone on its side: just above the ability bar along the bottom, narrow enough to clear the radar and the
@@ -544,8 +648,8 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
 // The quest followed, under the bars in the left column: its objective and how far along it is, and what it belongs
 // to, read through like the rest of the HUD so it never takes the pointer that steers; only its scroll opens the
 // quest log. On a short upright phone it steps aside while a system is hurt or a fault waits, which need its room
-// more.
-export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolean }) => [
+// more, and on the shortest, in full, while a world's card rises over the column.
+export const Tracker = styled.div(({ isYielding = false, isUnderCard = false }: { isYielding?: boolean; isUnderCard?: boolean }) => [
   tw`flex flex-row items-center gap-[6px] w-[150px] md:w-[210px] mt-[2px] pl-[8px] py-[4px] pr-[4px]`,
   css`
     ${voyagePanel(0.55, 0.25)}
@@ -554,12 +658,32 @@ export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolea
     ${media.shortPortrait} {
       ${isYielding ? "display: none;" : ""}
     }
+
+    ${media.shortestPortrait} {
+      [data-hud="full"] & {
+        ${isUnderCard ? "display: none;" : ""}
+      }
+    }
   `,
 ]);
 
 export const TrackerText = tw.span`flex flex-col gap-[1px] flex-1 min-w-0`;
 
-export const TrackerName = tw.span`flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white leading-snug`;
+// One line in a compact HUD, the name cut short before its count.
+export const TrackerName = styled.span(() => [
+  tw`flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white leading-snug`,
+  css`
+    ${COMPACT} {
+      white-space: nowrap;
+
+      & > span:first-of-type {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  `,
+]);
 
 export const TrackerCount = tw.span`tabular-nums text-[#ffcf9f] whitespace-nowrap`;
 
@@ -568,6 +692,10 @@ export const TrackerSub = styled.span(() => [
   tw`text-[10px] md:text-[11px] text-[#aab3c9] truncate`,
   css`
     ${media.shortPortrait} {
+      display: none;
+    }
+
+    ${COMPACT} {
       display: none;
     }
 
@@ -791,6 +919,10 @@ export const ShipLine = styled.p(() => [
       display: none;
     }
 
+    ${COMPACT} {
+      display: none;
+    }
+
     ${media.shortLandscape} {
       display: none;
     }
@@ -829,6 +961,10 @@ export const FaultList = styled.ul(() => [
   css`
     ${media.shortestPortrait} {
       width: 120px;
+    }
+
+    ${COMPACT} {
+      display: none;
     }
   `,
 ]);

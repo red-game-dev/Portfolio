@@ -7,6 +7,8 @@ export interface TelemetryRow {
   value: string;
   // Shown on narrow screens too; the rest only where there is room.
   isKey: boolean;
+  // Kept in the compact HUD's slim telemetry: how fast, and where to.
+  isSlim?: boolean;
 }
 
 // Below this share of their integrity the sensors read nothing.
@@ -36,7 +38,7 @@ export const telemetryRows = (content: FinaleVoyage, snapshot: VoyageSnapshot): 
     telemetry.altitudeKm !== null && telemetry.altitudeKm < 500000
       ? { label: labels.altitude, value: sense(fill(units.altitude, { value: formatNumber(telemetry.altitudeKm) })), isKey: false }
       : null,
-    { label: labels.speed, value: sense(fill(units.speed, { value: formatNumber(telemetry.speedKmS, 1, true) })), isKey: true },
+    { label: labels.speed, value: sense(fill(units.speed, { value: formatNumber(telemetry.speedKmS, 1, true) })), isKey: true, isSlim: true },
     telemetry.au !== null ? { label: labels.sun, value: sense(fill(units.au, { value: formatNumber(telemetry.au, 2, true) })), isKey: false } : null,
     telemetry.pressureBar !== null
       ? { label: labels.air, value: sense(fill(units.pressure, { value: formatNumber(telemetry.pressureBar, telemetry.pressureBar < 0.01 ? 5 : 2, true) })), isKey: true }
@@ -49,7 +51,12 @@ export const telemetryRows = (content: FinaleVoyage, snapshot: VoyageSnapshot): 
       ? { label: labels.dilation, value: sense(fill(units.dilation, { value: formatNumber(telemetry.timeDilation, 2, true) })), isKey: true }
       : null,
     waypoint
-      ? { label: labels.next, value: sense(`${waypoint.name ?? stops[waypoint.id] ?? waypoint.id}, ${formatDistance(content, waypoint.distanceKm)}`), isKey: true }
+      ? {
+        label: labels.next,
+        value: sense(`${waypoint.name ?? stops[waypoint.id] ?? waypoint.id}, ${formatDistance(content, waypoint.distanceKm)}`),
+        isKey: true,
+        isSlim: true,
+      }
       : null,
     { label: labels.space, value: sense(labels.media[telemetry.medium]), isKey: false },
     // Tides worth knowing about: from a fifth of what the hull takes, and key once they tear.

@@ -69,7 +69,7 @@ const LogoContainer = styled.div(() => [
 const LogoContents = styled.div(() => [
   css`
     &:hover .mask-lnk,
-    &:focus-within .mask-lnk {
+    &:has(:focus-visible) .mask-lnk {
       opacity: 1;
       transform: translateY(-32px);
        

@@ -149,7 +149,7 @@ const TabBar = tw.div`mt-[6px]`;
 const More = styled.li(({ isDimmed }: { isDimmed: boolean }) => [
   tw`relative list-none pl-[36px] md:pl-[44px]`,
   css`
-    transition: opacity 0.3s ease;
+    transition: filter 0.3s ease;
   `,
   isDimmed && css`
     filter: grayscale(1);

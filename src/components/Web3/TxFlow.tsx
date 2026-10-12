@@ -78,7 +78,7 @@ const Step = styled.li(({ state }: { state: StepState }) => [
 const StepHead = tw.span`flex flex-row items-center gap-[8px] text-sm font-semibold text-white`;
 
 const StepNumber = styled.span(({ state }: { state: StepState }) => [
-  tw`flex items-center justify-center w-[20px] h-[20px] rounded-full text-[11px] font-bold bg-[#1d1d1d] text-[#999]`,
+  tw`flex items-center justify-center w-[20px] h-[20px] rounded-full text-[11px] font-bold bg-[#1d1d1d] text-[#aaa]`,
   (state === "active" || state === "passed") && tw`bg-[var(--accent)] text-[#101010]`,
   state === "blocked" && tw`bg-[#ff5a5a] text-[#101010]`,
 ]);

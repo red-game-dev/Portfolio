@@ -11,5 +11,11 @@ export const Section = styled.div(() => [
 ]);
 
 // A link target at the very top of a section, for the role, audience and industry links of the first
-// screen, so a section can answer to more than its own id.
-export const Anchor = tw.span`absolute top-0 left-0`;
+// screen, so a section can answer to more than its own id; like the section, it cancels the page's scroll padding,
+// so a jump to it lands the section at the top.
+export const Anchor = styled.span(() => [
+  tw`absolute top-0 left-0`,
+  css`
+    scroll-margin-top: calc(-1 * var(--bars-top, 0px));
+  `,
+]);

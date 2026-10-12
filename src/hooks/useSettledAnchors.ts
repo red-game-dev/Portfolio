@@ -18,10 +18,14 @@ export default function useSettledAnchors() {
       const link = closestTo(event.target, "a[href*='#']");
       const target = link instanceof HTMLAnchorElement ? targetOf(link) : null;
 
-      if (target) {
-        settleAtTop(target);
-        focusLanding(target);
+      // Opened in another tab or window: this page does not move.
+      if (!target || event.metaKey || event.ctrlKey || event.shiftKey) {
+        return;
       }
+
+      settleAtTop(target);
+      // The section the jump lands in, not the hidden anchor some links aim at, so a screen reader says where it is.
+      focusLanding(target.closest("[id^='section-']") ?? target);
     };
 
     document.addEventListener("click", onClick);

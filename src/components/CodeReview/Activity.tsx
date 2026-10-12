@@ -25,8 +25,9 @@ interface ActivityProps {
 const PITCH = 12;
 const CELL = 10;
 const WEEKS = 54;
-// The faintest level still 3:1 against the empty cells' ground.
-const LEVEL_OPACITY = [0, 0.45, 0.6, 0.8, 1];
+// The faintest level still 3:1 against the empty cells' ground in the dimmest zone accent it can take (the chain's
+// purple).
+const LEVEL_OPACITY = [0, 0.6, 0.73, 0.86, 1];
 
 // The run: each year's row is scanned in, one after another, then the achievements unlock in turn.
 const SWEEP_MS = 1100;

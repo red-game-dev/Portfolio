@@ -37,7 +37,7 @@ const Row = styled.li(({ hasVentureLane, isDimmed }: { hasVentureLane: boolean; 
   tw`relative list-none`,
   hasVentureLane ? tw`pl-[52px] md:pl-[74px]` : tw`pl-[36px] md:pl-[44px]`,
   css`
-    transition: opacity 0.3s ease;
+    transition: filter 0.3s ease;
   `,
   isDimmed && css`
     filter: grayscale(1);

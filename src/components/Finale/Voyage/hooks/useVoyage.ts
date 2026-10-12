@@ -321,7 +321,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const guideSpawn = useCallback((kind: "coin" | "boost") => game?.guideSpawn(kind), [game]);
 
   // The ship as it looks now, drawn for its sheet.
-  const drawShip = useCallback((context: CanvasRenderingContext2D, width: number, height: number) => game?.drawShipPreview(context, width, height), [game]);
+  const drawShip = useCallback((context: CanvasRenderingContext2D, width: number, height: number, paint?: string) =>
+    game?.drawShipPreview(context, width, height, paint), [game]);
 
   // A port's trade while the ship is docked there, read afresh whenever what it shows may have changed (the purse, the
   // hold, the racks, the hull, the tank, the shields).

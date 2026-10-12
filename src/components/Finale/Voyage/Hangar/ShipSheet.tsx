@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useRef, useState } from "react";
 
 import { faLock } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -13,6 +13,7 @@ import { EnhancePanel, FormBadge, PieceRow } from "@/components/Finale/Voyage/Ha
 import {
   Below, Column, Doll, ShipCanvas, ShipFrame, SheetHead, Slot, SlotLevel, SlotName, SlotTop, Total, Totals,
 } from "@/components/Finale/Voyage/Hangar/ShipSheet.styles";
+import { useShipCanvas } from "@/components/Finale/Voyage/Hangar/useShipCanvas";
 import { fillNodes, Money } from "@/components/Finale/Voyage/Money";
 import { BarFill } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import type { ArmoryView, EconomyView, GearSlot, ProgressView, SlotView, VoyageAction } from "@/packages/games/voyage";
@@ -50,34 +51,8 @@ export const ShipSheet: FC<ShipSheetProps> = ({ content, economy, gear, progress
   const chosenPiece = chosenSlot?.uid ? byUid.get(chosenSlot.uid) : undefined;
   const spares = gear.pieces.filter((piece) => piece.slot === chosen && !piece.isFitted);
 
-  // The ship is drawn again whenever how it looks may have changed, and whenever the canvas changes size, which it
-  // first does when its tab is opened (a hidden tab has no size to draw at).
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-
-    if (!canvas || !context) {
-      return undefined;
-    }
-
-    const draw = () => {
-      const ratio = Math.min(2, window.devicePixelRatio || 1);
-      const width = Math.round(canvas.clientWidth * ratio);
-      const height = Math.round(canvas.clientHeight * ratio);
-
-      if (width > 0 && height > 0) {
-        canvas.width = width;
-        canvas.height = height;
-        drawShip(context, width, height);
-      }
-    };
-    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(draw);
-
-    draw();
-    observer?.observe(canvas);
-
-    return () => observer?.disconnect();
-  }, [drawShip, gear, economy.level]);
+  // The ship is drawn again whenever how it looks may have changed: its fittings, its level, its paint.
+  useShipCanvas(canvasRef, drawShip, [drawShip, gear, economy.level, progress?.paints]);
 
   // What a slot not yet grown waits for: a greater ship and a higher level.
   const lockedText = (entry: SlotView) => fill(copy.locked, { ship: shipAtLevel(content.economy, entry.form), level: entry.pilotLevel });

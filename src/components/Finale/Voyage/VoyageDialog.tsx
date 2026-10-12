@@ -852,6 +852,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           isFlying={status === "flying"}
           transfer={voyage.transfer}
           onAct={act}
+          onFollow={() => economy.suggestion && follow(economy.suggestion)}
           onClose={() => setHangar(false)}
         />
       )}

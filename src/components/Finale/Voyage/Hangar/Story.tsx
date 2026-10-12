@@ -57,7 +57,7 @@ export const Story: FC<{ content: FinaleVoyage; story: StoryView }> = ({ content
                     <ItemName colour={isDone ? SIGNAL : isOpen ? "#ffffff" : "#8a93ab"}>{name}</ItemName>
                     <ItemCount>{fill(career.progress, { progress, target })}</ItemCount>
                   </ItemTop>
-                  <Meter role="meter" aria-label={name} aria-valuemin={0} aria-valuemax={target} aria-valuenow={progress}>
+                  <Meter segments={target} role="meter" aria-label={name} aria-valuemin={0} aria-valuemax={target} aria-valuenow={progress}>
                     <BarFill colour={SIGNAL} style={{ transform: `scaleX(${target > 0 ? progress / target : 0})` }} />
                   </Meter>
                   <Note>{isOpen ? fillNodes(career.reward, { xp: step.xp, coin: <Money copy={content.economy} amount={step.coin} isSigned /> }) : copy.waiting}</Note>

@@ -412,10 +412,12 @@ export class VoyageGame extends FrameLoop {
   }
 
   // The ship as it looks now (its hull and mark, paint and fitted pieces), drawn nose up to fill a canvas, for the
-  // ship's sheet.
-  public drawShipPreview(context: Canvas2DContext, width: number, height: number): void {
+  // ship's sheet; or in another paint, by its id, for trying one on.
+  public drawShipPreview(context: Canvas2DContext, width: number, height: number, paintId?: string): void {
     const level = this.hangar?.level ?? 0;
-    const { paint, extras } = this.look();
+    const look = this.look();
+    const extras = look.extras;
+    const paint = paintId === undefined ? look.paint : paintId === DEFAULT_PAINT ? null : PAINTS.find((spec) => spec.id === paintId) ?? look.paint;
     const accent = this.theme.danger;
     const colours = paint ? { hull: paint.hull, hullShade: paint.hullShade, window: paint.window, fin: paint.fin, accent: paint.accent ?? accent }
       : { ...this.theme, accent };

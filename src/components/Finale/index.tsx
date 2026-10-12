@@ -316,11 +316,13 @@ export const Finale: FC<FinaleProps> = ({
                 </RedButton>
                 <Hint id={hint}>{content.launch.orbitHint}</Hint>
               </>
-            ) : (
+            ) : isOnPad && (
+              // Only while a ship waits on the pad: it lifts off by itself the first time, so during the climb there is
+              // nothing to press.
               <>
                 <LaunchButton
                   type="button"
-                  disabled={!isReady || !isOnPad}
+                  disabled={!isReady}
                   aria-describedby={hint}
                   onPointerDown={press.onPointerDown}
                   onPointerUp={press.onPointerUp}

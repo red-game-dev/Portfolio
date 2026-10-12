@@ -10,11 +10,12 @@ import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { PauseHolds } from "@/packages/animation/frame-loop";
 import type { SoundEngine } from "@/packages/audio/synth";
+import { saveBlob } from "@/packages/browser/files";
 import type { HapticName } from "@/packages/browser/haptics";
 import { decodeImage } from "@/packages/browser/images";
 import type {
-  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, PadIntent, PerkId, ProgressView, RunSummary, SkyEvent, Suggestion, UniverseNames,
-  VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot,
+  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, PadIntent, PerkId, PilotProfile, ProgressView, RunSummary, SkyEvent, Suggestion,
+  UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot,
 } from "@/packages/games/voyage";
 import type { GamepadInput } from "@/packages/interaction/gamepad";
 import { DragTracker, localPoint } from "@/packages/interaction/gestures";
@@ -77,6 +78,14 @@ export interface VoyageNames {
   onLeave?: () => void;
 }
 
+// What the hangar needs to move a pilot between devices.
+export interface PilotTransfer {
+  link: () => Promise<string | null>;
+  file: () => Promise<Blob | null>;
+  read: (file: Blob) => Promise<{ profile: PilotProfile; summary: { level: number; ship: number } } | null>;
+  adopt: (profile: PilotProfile) => void;
+}
+
 export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labels, universes, syllables, home = null, onStart, onLeave }: VoyageNames) => {
   const [snapshot, setSnapshot] = useState<VoyageSnapshot | null>(null);
   // Notices queue up: several can come in the same moment (a run paid, a mission done, a promotion), and each
@@ -106,7 +115,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   const pad = useRef<GamepadInput | null>(null);
   const buzz = useRef<((name: HapticName) => void) | null>(null);
   const padIntent = useRef<(intent: PadIntent) => void>(() => undefined);
-  const scheduleSave = usePilotSync(pilot);
+  const { scheduleSave, adopt } = usePilotSync(pilot);
   // The map and the hangar each hold the run still while open, together: it goes on only once both are closed.
   const [holds] = useState(() => new PauseHolds());
   const game = useCanvasEngine(back, {
@@ -381,17 +390,9 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
 
     canvas.toBlob((blob) => {
-      if (!blob) {
-        return;
+      if (blob) {
+        saveBlob(blob, fileName);
       }
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = fileName;
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     }, "image/png");
   }, [composePhoto]);
 
@@ -778,7 +779,32 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     return () => window.cancelAnimationFrame(frame);
   }, [game, isHeld]);
 
+  // Moving the pilot to another device: the link or the file carrying the pilot as it is now, a pilot read from a file
+  // with the two levels that sum it up, and that pilot taken on in place. The pilot module is the one the voyage opened.
+  const transfer = useMemo<PilotTransfer>(() => ({
+    link: async () => {
+      const opened = pilot.current;
+      const { pilotLink, profileOf } = await import("@/services/voyage/pilot");
+
+      return opened ? pilotLink(profileOf(opened)) : null;
+    },
+    file: async () => {
+      const opened = pilot.current;
+      const { pilotFile, profileOf } = await import("@/services/voyage/pilot");
+
+      return opened ? pilotFile(profileOf(opened)) : null;
+    },
+    read: async (file: Blob) => {
+      const { readPilotFile, summarisePilot } = await import("@/services/voyage/pilot");
+      const profile = await readPilotFile(file);
+
+      return profile ? { profile, summary: summarisePilot(profile) } : null;
+    },
+    adopt,
+  }), [adopt]);
+
   return {
+    transfer,
     snapshot,
     landing,
     gear,

@@ -1,3 +1,5 @@
+import { saveBlob } from "@/packages/browser/files";
+
 // A run's card: the size social sites show a picture at.
 export const RUN_CARD = { width: 1200, height: 630 };
 
@@ -92,13 +94,7 @@ export const shareCard = async (card: HTMLCanvasElement, fileName: string, text:
     }
   }
 
-  const link = document.createElement("a");
-  const href = URL.createObjectURL(blob);
-
-  link.href = href;
-  link.download = fileName;
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(href), 1000);
+  saveBlob(blob, fileName);
 
   return "saved";
 };

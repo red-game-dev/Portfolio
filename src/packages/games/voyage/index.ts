@@ -88,7 +88,7 @@ export { CatalogLootTable } from "./economy/core/CatalogLootTable";
 export { Wallet } from "./economy/core/Wallet";
 export { isEconomyProfile, isPilotProfile } from "./economy/guards/isPilotProfile";
 export { Hangar, newEconomyProfile } from "./economy/services/Hangar";
-export { newProfile, PilotRepository } from "./economy/services/PilotRepository";
+export { newProfile, pilotEnvelope, PilotRepository, readPilot } from "./economy/services/PilotRepository";
 export { CODEX, codexId } from "./career/config/codex";
 export { contractFor, MISSIONS, missionById } from "./career/config/missions";
 export { rankFor, RANKS } from "./career/config/ranks";

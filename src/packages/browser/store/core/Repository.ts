@@ -14,6 +14,20 @@ export interface RepositoryOptions<T> {
   repair?: (data: unknown) => unknown;
 }
 
+// A record as it was written, read through the same steps a store read takes: migrated from an older version, repaired
+// and validated; null when it is not a record, is from a newer version this code cannot read, or does not check out.
+// A record carried in from elsewhere (another device's export) is read this way, as the device's own would be.
+export const readVersioned = <T>(stored: unknown, { version, isValid, migrate, repair }: RepositoryOptions<T>): T | null => {
+  if (!isVersioned(stored) || stored.version > version) {
+    return null;
+  }
+
+  const migrated = stored.version < version && migrate ? migrate(stored.data, stored.version) : stored.data;
+  const data = repair ? repair(migrated) : migrated;
+
+  return isValid(data) ? data : null;
+};
+
 // One typed record in a store: read back, migrated from older versions, repaired, validated, and replaced by the fallback
 // when it is missing, broken or from a newer version this code cannot read; written with its version. Failures
 // to read are nothing kept, failures to write are reported, never thrown.
@@ -21,21 +35,10 @@ export class Repository<T> {
   constructor(private readonly adapter: StoreAdapter, private readonly key: string, private readonly options: RepositoryOptions<T>) {}
 
   public async load(): Promise<T> {
-    const { version, isValid, fallback, migrate, repair } = this.options;
-
     try {
-      const stored = await this.adapter.get(this.key);
-
-      if (!isVersioned(stored) || stored.version > version) {
-        return fallback();
-      }
-
-      const migrated = stored.version < version && migrate ? migrate(stored.data, stored.version) : stored.data;
-      const data = repair ? repair(migrated) : migrated;
-
-      return isValid(data) ? data : fallback();
+      return readVersioned(await this.adapter.get(this.key), this.options) ?? this.options.fallback();
     } catch {
-      return fallback();
+      return this.options.fallback();
     }
   }
 

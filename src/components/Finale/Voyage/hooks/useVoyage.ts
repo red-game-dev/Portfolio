@@ -123,12 +123,13 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     contextOptions: { alpha: false },
     nearMargin: "0px",
     create: async (context) => {
-      const [{ VoyageGame: Game }, { openPilot }, synth, gamepad, haptics] = await Promise.all([
+      const [{ VoyageGame: Game }, { openPilot }, synth, gamepad, haptics, { createLandingForecaster }] = await Promise.all([
         import("@/packages/games/voyage"),
         import("@/services/voyage/pilot"),
         import("@/packages/audio/synth"),
         import("@/packages/interaction/gamepad"),
         import("@/packages/browser/haptics"),
+        import("@/components/Finale/Voyage/landingWorker"),
       ]);
       const frontContext = front.current?.getContext("2d");
 
@@ -179,6 +180,8 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
           sound: sound.current,
           gamepad: pad.current,
           onPadIntent: (intent) => padIntent.current(intent),
+          // Each world's way down worked out ahead in a worker, so a landing never stalls an older phone's frame.
+          forecaster: createLandingForecaster() ?? undefined,
         },
       );
 

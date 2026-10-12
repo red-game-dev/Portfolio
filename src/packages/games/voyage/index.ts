@@ -11,7 +11,8 @@ export { arrivalSpeed, bindingEnergy, craterKm, impactEnergy, impactOutcome, isO
 export { leadDirection } from "./systems/combat";
 export { MODULE_IDS } from "./domain/components";
 export { DEFAULT_LANDING, NO_INPUT } from "./domain/input";
-export { LANDING, planLanding, rehearse } from "./landing";
+export { forecastKey, forecastLanding, LANDING, LandingForecasts, planLanding, rehearse } from "./landing";
+export type { LandingForecast, LandingPlan, LandingWorld } from "./landing";
 export { isSolarSystemData } from "./guards/isSolarSystemData";
 export { SnapshotMapper } from "./mappers/SnapshotMapper";
 export { SystemMapper } from "./mappers/SystemMapper";
@@ -115,7 +116,7 @@ export type {
   VoyageUniverseTheme,
   WeatherConfig,
 } from "./config";
-export type { VoyageCanvases, VoyageCanvasOptions, VoyageOptions } from "./core/VoyageGame";
+export type { LandingForecaster, VoyageCanvases, VoyageCanvasOptions, VoyageOptions } from "./core/VoyageGame";
 export type { LandingOptions } from "./domain/input";
 export type { LandingMethod, LandingPhase } from "./landing";
 export type { SlotRefusal, VoyageAction, VoyageNotice } from "./domain/notices";

@@ -31,6 +31,8 @@ import { Armory, newArmoryProfile } from "../gear/services/Armory";
 import { baseOf, ENHANCE_LADDER, rackFor, weaponBaseId } from "../gear/utils/gear";
 import { configForShip } from "../gear/utils/ship";
 import { armoryView, progressView } from "../gear/utils/view";
+import { forecastKey } from "../landing";
+import type { LandingForecast, LandingWorld } from "../landing";
 import { DEFAULT_PAINT, DEFAULT_TRAIL, PAINTS, TRAILS } from "../progress/config/cosmetics";
 import { newProgressProfile, Progress } from "../progress/services/Progress";
 import { talentStats } from "../progress/utils/talents";
@@ -48,6 +50,7 @@ import { SolarSystemSource } from "../sources/SolarSystemSource";
 import { ServiceId, StationView } from "../stations/domain/station";
 import { stationView } from "../stations/utils/view";
 import { dailyEpoch, dailySeed, dayKey } from "../utils/daily";
+import { landingWorldOf } from "../utils/landing";
 import { missionMarks } from "../utils/missions";
 import { addStats, perkStats } from "../utils/perks";
 import { GhostRecorder, placeCode } from "./GhostRecorder";
@@ -62,8 +65,19 @@ const HIT_STOP = { kill: 45, boss: 180 };
 // Running dry is said at most this often for each weapon (ms of the run), not every time a gun clicks.
 const DRY_EVERY_MS = 20000;
 
+// Something that works landings out away from the frame (a worker): asked for a world under its key, it answers later
+// with that world's forecast. The game asks for every world it could land on as each star system comes into play.
+export interface LandingForecaster {
+  request: (key: string, world: LandingWorld) => void;
+  onForecast: (handler: (key: string, forecast: LandingForecast) => void) => void;
+  // Let go with the game.
+  dispose?: () => void;
+}
+
 export interface VoyageOptions {
   config?: VoyageConfigOverrides;
+  // Works landings out ahead, so none is worked out in the frame a landing begins; without one, each is worked out then.
+  forecaster?: LandingForecaster;
   random?: RandomSource;
   scheduler?: FrameScheduler;
   system?: StarSystem;
@@ -169,6 +183,10 @@ interface Moment {
 // changed.
 export class VoyageGame extends FrameLoop {
   public readonly simulation: VoyageSimulation;
+  private readonly forecaster: LandingForecaster | null;
+  // The star system last sent to be worked out ahead, and the worlds asked about, so none is asked twice.
+  private forecastedSystem: StarSystem | null = null;
+  private readonly forecastAsked = new Set<string>();
   private readonly renderer: VoyageRenderer;
   private readonly presenter: LensingPresenter | null;
   private readonly backCanvas: TexImageSource | null;
@@ -260,6 +278,8 @@ export class VoyageGame extends FrameLoop {
     this.feedback = new VoyageFeedback(simulation, options.sound ?? null, options.vibrate ?? null);
     this.pad = options.gamepad ? new PadControl(options.gamepad) : null;
     this.onPadIntent = options.onPadIntent ?? (() => undefined);
+    this.forecaster = options.forecaster ?? null;
+    this.forecaster?.onForecast((key, forecast) => simulation.forecasts.put(key, forecast));
     this.onCareer = options.onCareer ?? (() => undefined);
     this.onGhost = options.onGhost ?? (() => undefined);
     this.ghost = options.ghost ?? null;
@@ -565,6 +585,7 @@ export class VoyageGame extends FrameLoop {
   // Stops for good and gives back everything it holds on the GPU.
   public dispose(): void {
     this.stop();
+    this.forecaster?.dispose?.();
     this.feedback.dispose();
     this.detach();
     this.renderer.dispose();
@@ -1491,8 +1512,37 @@ export class VoyageGame extends FrameLoop {
   }
 
   // The snapshot is built only when it will be sent: a change of state at once, the rest on the tick.
+  // As each star system comes into play (a run, a universe, a gate), every world in it the ship could land on is sent to
+  // be worked out ahead, once each.
+  private forecastSystem(): void {
+    const { state, forecasts } = this.simulation;
+
+    if (!this.forecaster || state.system === this.forecastedSystem) {
+      return;
+    }
+
+    this.forecastedSystem = state.system;
+    const isSolarPhase = state.phase === "solar" || state.phase === "singularity";
+
+    state.system.bodies.forEach((body) => {
+      if (body.isGiant || body.isShattered || !body.isLandable) {
+        return;
+      }
+
+      const world = landingWorldOf(body, isSolarPhase);
+      const key = forecastKey(world);
+
+      if (!forecasts.has(key) && !this.forecastAsked.has(key)) {
+        this.forecastAsked.add(key);
+        this.forecaster?.request(key, world);
+      }
+    });
+  }
+
   private publish(force: boolean, now = 0): void {
     const isMoment = this.hasMomentChanged();
+
+    this.forecastSystem();
 
     if (force || isMoment || now - this.lastTickAt >= TICK_MS) {
       this.lastSnapshot = { ...this.simulation.snapshot, surface: this.renderer.surface };

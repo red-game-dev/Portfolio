@@ -78,7 +78,13 @@ export class DescentSystem implements System<VoyageContext> {
 
   private begin(context: VoyageContext, place: SystemBody): void {
     const world = landingWorldOf(place, isSolar(context));
-    const plan = planLanding(world);
+    // Worked out ahead where the host could (and timed with it), else worked out here, the same either way.
+    const ready = context.forecasts.take(world);
+    const plan = ready?.plan ?? planLanding(world);
+
+    if (ready) {
+      this.rehearsals.set(place, { auto: ready.auto, manual: ready.manual });
+    }
     const craft = startDescent(plan);
 
     context.state.descent = { body: place.id, world, plan, craft, speedUp: 1, pace: 1, downAt: null, isSoft: false, isFiredOn: false };

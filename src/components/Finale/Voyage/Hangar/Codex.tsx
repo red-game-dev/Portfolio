@@ -28,7 +28,8 @@ import { fill } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 const CODEX_ORDER: readonly CodexCategory[] = ["worlds", "kinds", "universes", "galaxies", "stars", "phenomena", "life", "wrecks", "things", "boosts"];
-// At most this many marks for what is still to find in a category; the rest are counted on the last.
+// At most this many marks for what is still to find in a category, the rest counted on one more (never a "+1": that
+// would take a mark's room to say one).
 const UNKNOWN_SHOWN = 9;
 
 const Hidden = tw.span`sr-only`;
@@ -82,8 +83,8 @@ export const Codex: FC<{ content: FinaleVoyage; career: CareerView }> = ({ conte
             )}
             {left > 0 && (
               <Unknowns aria-hidden="true">
-                {Array.from({ length: Math.min(left, UNKNOWN_SHOWN) }, (_, index) => <Unknown key={`unknown-${index}`}>?</Unknown>)}
-                {left > UNKNOWN_SHOWN && <Unknown key="more">{`+${left - UNKNOWN_SHOWN}`}</Unknown>}
+                {Array.from({ length: left > UNKNOWN_SHOWN + 1 ? UNKNOWN_SHOWN : left }, (_, index) => <Unknown key={`unknown-${index}`}>?</Unknown>)}
+                {left > UNKNOWN_SHOWN + 1 && <Unknown key="more">{`+${left - UNKNOWN_SHOWN}`}</Unknown>}
               </Unknowns>
             )}
             {left > 0 && <Hidden>{fill(copy.unknown, { count: left })}</Hidden>}

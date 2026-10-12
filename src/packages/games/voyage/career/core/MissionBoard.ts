@@ -25,6 +25,8 @@ export const advance = (goal: MissionGoal, progress: number, event: CareerEvent)
   switch (goal.kind) {
     case "land":
       return once(event.kind === "landed" && event.body === goal.body);
+    case "landAway":
+      return once(event.kind === "landed" && event.isAway === true);
     case "reach":
       return once((event.kind === "passed" && event.place === goal.place) || (event.kind === "landed" && event.body === goal.place));
     case "sun":
@@ -46,7 +48,7 @@ export const advance = (goal: MissionGoal, progress: number, event: CareerEvent)
     case "upgrade":
       return event.kind === "upgraded" ? Math.max(progress, event.level) : progress;
     case "survive":
-      return once(event.kind === "survived" && event.hazard === goal.hazard);
+      return once(event.kind === "survived" && (goal.hazard === "any" || event.hazard === goal.hazard));
     case "wormhole":
       return once(event.kind === "wormhole");
     case "score":

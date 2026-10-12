@@ -9,8 +9,9 @@ import {
   Actions, Block, Item, ItemCount, ItemName, ItemTop, Items, Need, Needs, Note, SmallButton, Subheading,
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
 import { EnhancePanel, PieceRow } from "@/components/Finale/Voyage/Hangar/parts";
+import { fillNodes, Money } from "@/components/Finale/Voyage/Money";
 import type { ArmoryView, VoyageAction } from "@/packages/games/voyage";
-import { fill, formatNumber } from "@/packages/text/format";
+import { fill } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 interface ForgeProps {
@@ -43,7 +44,7 @@ export const Forge: FC<ForgeProps> = ({ content, gear, onAct }) => {
                     {!piece.isOnBar && (
                       <Actions>
                         <SmallButton type="button" onClick={() => onAct({ kind: "dismantle", uid: piece.uid })}>
-                          {fill(copy.dismantle, { value: `${piece.value} ${content.economy.symbols.RED}` })}
+                          {fillNodes(copy.dismantle, { value: <Money copy={content.economy} amount={piece.value} /> })}
                         </SmallButton>
                       </Actions>
                     )}
@@ -72,7 +73,10 @@ export const Forge: FC<ForgeProps> = ({ content, gear, onAct }) => {
                 <div key={grade.grade}>
                   <ItemTop>
                     <ItemCount>{fill(copy.forge.grade, { grade: copy.grades[grade.grade] })}</ItemCount>
-                    <ItemCount>{`${formatNumber(grade.coin)} ${content.economy.symbols.RED}, ${fill(copy.forge.needsLevel, { level: grade.pilotLevel })}`}</ItemCount>
+                    <ItemCount>
+                      <Money copy={content.economy} amount={grade.coin} />
+                      {`, ${fill(copy.forge.needsLevel, { level: grade.pilotLevel })}`}
+                    </ItemCount>
                   </ItemTop>
                   <Needs aria-label={content.economy.needs}>
                     {grade.items.map(({ id, count, have }) => (

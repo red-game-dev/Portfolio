@@ -6,10 +6,61 @@ import { gearNotice } from "@/components/Finale/Voyage/gear";
 import { placeName } from "@/components/Finale/Voyage/names";
 import { skyNotice } from "@/components/Finale/Voyage/sky";
 import type { VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
+import { clamp } from "@/packages/math/clamp";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 const formatKm = (km: number) => formatNumber(km, km < 10 ? 1 : 0);
+
+// How long a line the voyage says stays (ms): long enough to read, a short one its moment and a long one (a line of
+// the story) up to eight seconds.
+export const MESSAGE_MS = { least: 2800, perChar: 60, most: 8000 };
+
+export const messageMs = (text: string): number => clamp(text.length * MESSAGE_MS.perChar, MESSAGE_MS.least, MESSAGE_MS.most);
+
+// A line waiting to be said: kept lines are never dropped when too many wait, and an urgent one is said at once.
+export interface QueuedLine {
+  id: number;
+  text: string;
+  isKept: boolean;
+  isUrgent: boolean;
+}
+
+// The story's notices, which are never dropped for the lines that crowd in with them (codex finds, payments).
+const STORY_NOTICES: ReadonlyArray<VoyageNotice["kind"]> = ["storyStep", "storyChapter", "storyOpened"];
+
+// Dangers the pilot must hear at once: something about to hit or go off, the ship failing, captured or lost.
+const URGENT_NOTICES: ReadonlyArray<VoyageNotice["kind"]> = [
+  "impactAlert", "supernova", "burst", "bossMove", "storm", "groundFire", "melting", "failing", "stranded", "emergency", "captured", "destroyed",
+];
+
+export const isUrgentNotice = (notice: VoyageNotice): boolean => URGENT_NOTICES.includes(notice.kind);
+
+export const isKeptNotice = (notice: VoyageNotice): boolean => STORY_NOTICES.includes(notice.kind) || isUrgentNotice(notice);
+
+// Adds a line to those waiting. An urgent one is said at once, and a kept line it cuts short is said again after it.
+// No more than `limit` wait: the oldest that may go make room, never the line on screen, and never a kept line, so
+// only kept lines (as many as one moment of the story brings) can wait past it.
+export const queueLine = (queue: readonly QueuedLine[], next: QueuedLine, limit: number): QueuedLine[] => {
+  const [shown, ...waiting] = queue;
+  const lines = next.isUrgent && shown ? [next, ...(shown.isKept ? [shown] : []), ...waiting] : [...queue, next];
+
+  while (lines.length > limit) {
+    const drop = lines.findIndex((line, index) => index > 0 && !line.isKept);
+
+    if (drop === -1) {
+      break;
+    }
+
+    lines.splice(drop, 1);
+  }
+
+  return lines;
+};
+
+// The answer to a press, shown at once in place of the line on screen, unless that line is kept: then it is said
+// again after the answer.
+export const replyLine = (queue: readonly QueuedLine[], next: QueuedLine): QueuedLine[] => [next, ...(queue[0]?.isKept ? queue : queue.slice(1))];
 
 // A universe's name: its own, or the zone it is named for.
 const universeName = (snapshot: VoyageSnapshot, universes: string[]) => snapshot.universeName ?? universes[snapshot.universe] ?? "";

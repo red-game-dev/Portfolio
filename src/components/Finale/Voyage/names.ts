@@ -28,3 +28,8 @@ export const missionName = (content: FinaleVoyage, id: string): string => {
 
   return copy.missions[id] ?? id;
 };
+
+// A step of the story, and a chapter's title.
+export const storyStepName = (content: FinaleVoyage, id: string): string => content.career.story.steps[id] ?? id;
+
+export const chapterTitle = (content: FinaleVoyage, id: string): string => content.career.story.chapters[id]?.title ?? id;

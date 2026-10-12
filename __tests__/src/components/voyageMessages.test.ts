@@ -1,10 +1,13 @@
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
-import { strandedLine, voyageMessage, voyageNotice, voyagePlace } from "@/components/Finale/Voyage/messages";
+import { ledgerMemo } from "@/components/Finale/Voyage/economy";
+import {
+  isKeptNotice, isUrgentNotice, MESSAGE_MS, messageMs, QueuedLine, queueLine, replyLine, strandedLine, voyageMessage, voyageNotice, voyagePlace,
+} from "@/components/Finale/Voyage/messages";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { formatClock, formatDistance, telemetryRows } from "@/components/Finale/Voyage/telemetry";
 import { portfolioData } from "@/data/resume";
 import {
-  DescentView, GALAXY_KINDS, MODULE_IDS, SOLAR_SYSTEM, STAR_CLASSES, SurfaceInfo, VoyageSnapshot, WORLD_CLASS_IDS,
+  DescentView, GALAXY_KINDS, MODULE_IDS, SOLAR_SYSTEM, STAR_CLASSES, STORY, SurfaceInfo, VoyageSnapshot, WORLD_CLASS_IDS,
 } from "@/packages/games/voyage";
 
 const { voyage } = portfolioData.finale;
@@ -269,5 +272,53 @@ describe("the voyage's cards", () => {
     expect(surfaceHeading(voyage, moon)).toBe("On the Moon");
     expect(surfaceLines(voyage, moon, null)[0]).toBe("Cratered regolith");
     expect(surfaceHint(voyage, moon, null)).toBe("Burn to lift off");
+  });
+
+  test("the story names every chapter and step, says each step paid, each chapter's line and how the next opens", () => {
+    const copy = voyage.career.story;
+
+    STORY.forEach((chapter) => {
+      expect(copy.chapters[chapter.id]?.title).toBeTruthy();
+      expect(copy.chapters[chapter.id]?.intro).toBeTruthy();
+      expect(copy.chapters[chapter.id]?.line).toBeTruthy();
+      chapter.steps.forEach((step) => expect(copy.steps[step.id]).toBeTruthy());
+    });
+    expect(Object.keys(copy.chapters).sort()).toEqual(STORY.map(({ id }) => id).sort());
+    expect(Object.keys(copy.steps).sort()).toEqual(STORY.flatMap(({ steps }) => steps.map(({ id }) => id)).sort());
+
+    expect(voyageNotice(voyage, { kind: "storyStep", step: "launchMoon", xp: 80, coin: 50 })).toBe("Story: Land on the Moon. +80 XP, +50 Red Coin");
+    expect(voyageNotice(voyage, { kind: "storyChapter", chapter: "matrix" })).toBe(`The Matrix complete. The signal decodes: ${copy.chapters.matrix.line}`);
+    expect(voyageNotice(voyage, { kind: "storyOpened", chapter: "ai" })).toBe(`AI: ${copy.chapters.ai.intro}`);
+    expect(voyageNotice(voyage, { kind: "storyOpened", chapter: null })).toBe(copy.told);
+    expect(ledgerMemo(voyage, "story:chainBounty")).toBe("Story: Bring down 5 hostiles");
+  });
+
+  test("a line stays long enough to read, kept lines are never crowded out, and a danger is said at once", () => {
+    expect(messageMs("Landed")).toBe(MESSAGE_MS.least);
+    expect(messageMs("x".repeat(100))).toBe(6000);
+    expect(messageMs("x".repeat(400))).toBe(MESSAGE_MS.most);
+
+    const line = (id: number, isKept = false, isUrgent = false): QueuedLine => ({ id, text: String(id), isKept, isUrgent });
+    const ids = (lines: QueuedLine[]) => lines.map(({ id }) => id);
+    const kept = [line(1), line(2, true), line(3, true), line(4, true)];
+
+    // The line on screen stays; the oldest that may go makes room.
+    expect(ids(queueLine([line(1), line(2, true), line(3), line(4, true)], line(5), 4))).toEqual([1, 2, 4, 5]);
+    // With only kept lines waiting, a plain line is the one left out, and another kept line waits past the limit.
+    expect(ids(queueLine(kept, line(5), 4))).toEqual([1, 2, 3, 4]);
+    expect(ids(queueLine(kept, line(5, true), 4))).toEqual([1, 2, 3, 4, 5]);
+    // A danger cuts in at once: a plain line it cuts short is gone, a kept one is said again after it.
+    expect(ids(queueLine([line(1), line(2)], line(9, true, true), 4))).toEqual([9, 2]);
+    expect(ids(queueLine([line(1, true), line(2)], line(9, true, true), 4))).toEqual([9, 1, 2]);
+    expect(ids(queueLine([], line(9, true, true), 4))).toEqual([9]);
+    // The answer to a press takes the place of a plain line, but waits a kept one out.
+    expect(ids(replyLine([line(1), line(2)], line(7)))).toEqual([7, 2]);
+    expect(ids(replyLine([line(1, true), line(2)], line(7)))).toEqual([7, 1, 2]);
+
+    expect(isKeptNotice({ kind: "storyChapter", chapter: "ai" })).toBe(true);
+    expect(isKeptNotice({ kind: "discovered", entry: "worlds:mars" })).toBe(false);
+    expect(isUrgentNotice({ kind: "impactAlert", target: "Earth", diameterKm: 2, seconds: 30 })).toBe(true);
+    expect(isKeptNotice({ kind: "captured", isSingularity: true })).toBe(true);
+    expect(isUrgentNotice({ kind: "storyOpened", chapter: "ai" })).toBe(false);
   });
 });

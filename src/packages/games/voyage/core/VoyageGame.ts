@@ -51,7 +51,7 @@ import { ServiceId, StationView } from "../stations/domain/station";
 import { stationView } from "../stations/utils/view";
 import { dailyEpoch, dailySeed, dayKey } from "../utils/daily";
 import { landingWorldOf } from "../utils/landing";
-import { missionMarks } from "../utils/missions";
+import { careerGoals, missionMarks } from "../utils/missions";
 import { addStats, perkStats } from "../utils/perks";
 import { GhostRecorder, placeCode } from "./GhostRecorder";
 import { PadControl, PadIntent, PadPort } from "./PadControl";
@@ -1459,11 +1459,11 @@ export class VoyageGame extends FrameLoop {
     const { career } = this;
 
     if (career) {
-      this.renderer.setMissions(missionMarks(career.view().missions));
+      this.renderer.setMissions(missionMarks(careerGoals(career.view())));
       offs.push(career.subscribe(() => {
         const view = career.view();
 
-        this.renderer.setMissions(missionMarks(view.missions));
+        this.renderer.setMissions(missionMarks(careerGoals(view)));
         this.onCareer(view);
       }));
     }

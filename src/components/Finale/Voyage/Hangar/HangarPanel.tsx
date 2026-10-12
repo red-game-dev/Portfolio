@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { slotName } from "@/components/Finale/Voyage/abilities";
 import { slotIcon } from "@/components/Finale/Voyage/AbilityBar/icons";
 import { codexName, codexNotes, missionName, rankName } from "@/components/Finale/Voyage/career";
-import { blueprintName, formatPurse, itemName, ledgerMemo, shipName } from "@/components/Finale/Voyage/economy";
+import { blueprintName, itemName, ledgerMemo, shipName } from "@/components/Finale/Voyage/economy";
 import { pieceName } from "@/components/Finale/Voyage/gear";
 import { Badges } from "@/components/Finale/Voyage/Hangar/Badges";
 import { Forge } from "@/components/Finale/Voyage/Hangar/Forge";
@@ -48,10 +48,12 @@ import {
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
 import { PilotTransfer as PilotTransferPanel } from "@/components/Finale/Voyage/Hangar/PilotTransfer";
 import { ShipSheet } from "@/components/Finale/Voyage/Hangar/ShipSheet";
+import { Story } from "@/components/Finale/Voyage/Hangar/Story";
 import { Style } from "@/components/Finale/Voyage/Hangar/Style";
 import { Talents } from "@/components/Finale/Voyage/Hangar/Talents";
 import type { PilotTransfer } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
+import { CurrencyIcon, fillNodes, Money, PurseAmounts } from "@/components/Finale/Voyage/Money";
 import { BarFill, IconButton } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
 import { Tab, TabList } from "@/components/Tabs";
@@ -159,8 +161,8 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
       <Header>
         <Heading id="hangar-heading" ref={headingRef} tabIndex={-1}>{copy.hangar}</Heading>
         <Purse>
-          <span>{`${formatNumber(economy.purse.RED)} ${copy.symbols.RED}`}</span>
-          <Shards>{`${economy.purse.VOID} ${copy.symbols.VOID}`}</Shards>
+          <Money copy={copy} amount={economy.purse.RED} />
+          <Shards><Money copy={copy} amount={economy.purse.VOID} code="VOID" /></Shards>
         </Purse>
         <IconButton type="button" onClick={onClose} aria-label={copy.closeHangar}>
           <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
@@ -199,6 +201,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
                   />
                 </Meter>
               </div>
+              <Story content={content} story={career.story} />
               <Subheading>{careerCopy.missionsTitle}</Subheading>
               <Items>
                 {career.missions.map(({ mission, progress: done, target }) => (
@@ -210,7 +213,11 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
                     <Meter role="meter" aria-label={missionName(content, mission.id)} aria-valuemin={0} aria-valuemax={target} aria-valuenow={done}>
                       <BarFill colour="#7dffcf" style={{ transform: `scaleX(${target > 0 ? done / target : 0})` }} />
                     </Meter>
-                    <Note>{fill(mission.coin > 0 ? careerCopy.reward : careerCopy.rewardXp, { xp: mission.xp, coin: mission.coin })}</Note>
+                    <Note>
+                      {mission.coin > 0
+                        ? fillNodes(careerCopy.reward, { xp: mission.xp, coin: <Money copy={copy} amount={mission.coin} isSigned /> })
+                        : fill(careerCopy.rewardXp, { xp: mission.xp })}
+                    </Note>
                   </Item>
                 ))}
               </Items>
@@ -240,12 +247,18 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
               {next.tier !== economy.tier && <Note>{copy.tierNotes[next.tier]}</Note>}
               <Needs aria-label={copy.needs}>
                 <Need isMet={next.shortfall.coin.RED === 0}>
-                  <span>{copy.currencies.RED}</span>
+                  <span>
+                    <CurrencyIcon code="RED" label={copy.currencies.RED} isDecorative />
+                    {` ${copy.currencies.RED}`}
+                  </span>
                   <span>{fill(copy.have, { have: economy.purse.RED, need: next.cost.coin.RED })}</span>
                 </Need>
                 {next.cost.coin.VOID > 0 && (
                   <Need isMet={next.shortfall.coin.VOID === 0}>
-                    <span>{copy.currencies.VOID}</span>
+                    <span>
+                      <CurrencyIcon code="VOID" label={copy.currencies.VOID} isDecorative />
+                      {` ${copy.currencies.VOID}`}
+                    </span>
                     <span>{fill(copy.have, { have: economy.purse.VOID, need: next.cost.coin.VOID })}</span>
                   </Need>
                 )}
@@ -285,10 +298,10 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
           </Block>
           <Actions>
             <SmallButton type="button" disabled={economy.purse.VOID < 1} onClick={() => onAct({ kind: "trade", direction: "sell" })}>
-              {fill(copy.trade.sell, { price: `${economy.prices.sell} ${copy.symbols.RED}` })}
+              {fillNodes(copy.trade.sell, { price: <Money copy={copy} amount={economy.prices.sell} /> })}
             </SmallButton>
             <SmallButton type="button" disabled={economy.purse.RED < economy.prices.buy} onClick={() => onAct({ kind: "trade", direction: "buy" })}>
-              {fill(copy.trade.buy, { price: `${economy.prices.buy} ${copy.symbols.RED}` })}
+              {fillNodes(copy.trade.buy, { price: <Money copy={copy} amount={economy.prices.buy} /> })}
             </SmallButton>
           </Actions>
         </TabPanel>
@@ -413,7 +426,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
                     aria-label={`${fill(copy.recycle, { value: `${row.value} ${copy.currencies.RED}` })}: ${itemName(copy, row.id)}`}
                     onClick={() => onAct({ kind: "recycle", item: row.id, count: 1 })}
                   >
-                    {fill(copy.recycle, { value: `${row.value} ${copy.symbols.RED}` })}
+                    {fillNodes(copy.recycle, { value: <Money copy={copy} amount={row.value} /> })}
                   </SmallButton>
                 </Actions>
               </Item>
@@ -426,7 +439,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
               <Item key={recipe.id}>
                 <ItemTop>
                   <ItemName colour={isKnown ? "#ffffff" : "#7d859c"}>{itemName(copy, recipe.makes.id)}</ItemName>
-                  <ItemCount>{recipe.coin > 0 ? `${recipe.coin} ${copy.symbols.RED}` : ""}</ItemCount>
+                  <ItemCount>{recipe.coin > 0 ? <Money copy={copy} amount={recipe.coin} /> : ""}</ItemCount>
                 </ItemTop>
                 {isKnown ? (
                   <>
@@ -467,7 +480,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
         <TabPanel {...panelProps(TAB.ledger)}>
           <Stats>
             <StatName>{copy.ledger.balance}</StatName>
-            <StatValue>{formatPurse(copy, economy.purse)}</StatValue>
+            <StatValue><PurseAmounts copy={copy} purse={economy.purse} /></StatValue>
             <StatNext />
           </Stats>
           {economy.history.length === 0 && <Note>{copy.ledger.empty}</Note>}
@@ -475,7 +488,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
             {economy.history.map((row) => (
               <Entry key={row.id}>
                 <span>{ledgerMemo(content, row.memo)}</span>
-                <Amount isGain={row.amounts.RED + row.amounts.VOID >= 0}>{formatPurse(copy, row.amounts, true)}</Amount>
+                <Amount isGain={row.amounts.RED + row.amounts.VOID >= 0}><PurseAmounts copy={copy} purse={row.amounts} isSigned /></Amount>
               </Entry>
             ))}
           </Entries>

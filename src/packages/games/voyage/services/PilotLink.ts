@@ -59,6 +59,8 @@ export class PilotLink {
   private savedRocks = new Set<number>();
   private peril: Peril | null = null;
   private isRunSettled = false;
+  // The story's chapter last told to the pilot, so each is opened once while the voyage is open.
+  private toldChapter: string | null | undefined = undefined;
   private pendingCoins = 0;
   private coinsPaidAt = 0;
 
@@ -94,6 +96,7 @@ export class PilotLink {
     this.count({ kind: "upgraded", level: this.hangar.level });
     // Every run starts at Earth, which is passed already, so no passing tells the codex of it.
     this.discover(codexId("worlds", HOME_WORLD));
+    this.openChapter();
   }
 
   public attach(): () => void {
@@ -117,7 +120,7 @@ export class PilotLink {
           this.pay({ kind: "landing", place: this.nameOf(body) });
         }
 
-        this.count({ kind: "landed", body });
+        this.count({ kind: "landed", body, isAway: simulation.state.phase === "universe" });
         this.discoverPlace(body);
       }),
       events.on("skimmed", ({ body }) => this.count({ kind: "skimmed", body })),
@@ -297,7 +300,7 @@ export class PilotLink {
     this.settle(this.career.record(event));
   }
 
-  private settle({ done, promoted }: CareerOutcome): void {
+  private settle({ done, story, chapter, promoted }: CareerOutcome): void {
     done.forEach(({ mission, xp, coin }) => {
       if (coin > 0) {
         this.hangar.reward({ kind: "mission", id: mission.id, coin });
@@ -307,8 +310,42 @@ export class PilotLink {
       this.notify({ kind: "missionDone", mission: mission.id, xp, coin });
     });
 
+    story.forEach(({ step, xp, coin }) => {
+      if (coin > 0) {
+        this.hangar.reward({ kind: "story", id: step.id, coin });
+      }
+
+      this.onMission(xp);
+      this.notify({ kind: "storyStep", step: step.id, xp, coin });
+    });
+
+    if (chapter) {
+      this.notify({ kind: "storyChapter", chapter: chapter.id });
+      this.openChapter();
+    }
+
     if (promoted !== null) {
       this.notify({ kind: "promoted", rank: RANKS[promoted].id });
+    }
+
+    // A chapter that opens on reaching a universe the ship is in already opens at once.
+    if (chapter && this.simulation.state.phase === "universe") {
+      this.count({ kind: "universe", count: this.simulation.state.universes });
+    }
+  }
+
+  // Tells the pilot the story's chapter under way, or that it is all told when the last chapter has just been;
+  // each once while the voyage is open.
+  private openChapter(): void {
+    const chapter = this.career?.view().story.chapter?.id ?? null;
+    const isNews = chapter !== null || this.toldChapter !== undefined;
+
+    if (this.career && chapter !== this.toldChapter) {
+      this.toldChapter = chapter;
+
+      if (isNews) {
+        this.notify({ kind: "storyOpened", chapter });
+      }
     }
   }
 

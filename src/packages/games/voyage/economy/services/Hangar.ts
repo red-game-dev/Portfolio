@@ -617,6 +617,7 @@ export class Hangar {
       case "universe":
         return { ...REWARDS.universe };
       case "mission":
+      case "story":
         return { RED: Math.max(0, Math.round(deed.coin)), VOID: 0 };
       case "coin":
         return { RED: REWARDS.coin.RED * Math.max(0, deed.count), VOID: REWARDS.coin.VOID * Math.max(0, deed.count) };
@@ -784,6 +785,7 @@ const detailOf = (deed: Deed): string => {
     case "universe":
       return String(deed.index);
     case "mission":
+    case "story":
       return deed.id;
     case "coin":
     case "streak":

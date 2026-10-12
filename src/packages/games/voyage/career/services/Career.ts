@@ -1,22 +1,38 @@
 import { CODEX, CODEX_IDS } from "../config/codex";
 import { BOARD_SIZE, contractFor, MISSIONS, missionById } from "../config/missions";
 import { rankFor, RANKS } from "../config/ranks";
+import { newStory } from "../config/story";
 import { advance, targetOf } from "../core/MissionBoard";
-import { CareerEvent, CareerProfile, CareerView, MissionDone, MissionGoal, MissionProgress, MissionSpec } from "../domain/career";
+import { advanceStory, cleanStory, storyView } from "../core/StoryBoard";
+import {
+  CareerEvent,
+  CareerProfile,
+  CareerView,
+  MissionDone,
+  MissionGoal,
+  MissionProgress,
+  MissionSpec,
+  StoryChapter,
+  StoryStepDone,
+} from "../domain/career";
 
 // A pilot who has done nothing yet.
-export const newCareer = (): CareerProfile => ({ xp: 0, active: [], done: [], contracts: 0, codex: [], daily: null });
+export const newCareer = (): CareerProfile => ({ xp: 0, active: [], done: [], contracts: 0, codex: [], daily: null, story: newStory() });
 
-// What came of something happening: the missions it finished, and the new rank if it promoted the pilot.
+// What came of something happening: the missions it finished, the story's steps and chapter it finished, and the
+// new rank if it promoted the pilot.
 export interface CareerOutcome {
   done: MissionDone[];
+  story: StoryStepDone[];
+  chapter: StoryChapter | null;
   promoted: number | null;
 }
 
 // A pilot's career between and during runs: three missions on the board at a time, offered in order as rank
 // allows (contracts once every mission is done), each counting what happens until it is done and pays its
-// experience and Red Coin; ranks from the experience; the codex of everything seen; and each day's daily voyage.
-// It pays nothing itself: what missions pay comes back for the hangar to credit. Listeners hear every change.
+// experience and Red Coin; the story, a chapter at a time, whose steps count and pay the same way; ranks from the
+// experience; the codex of everything seen; and each day's daily voyage. It pays nothing itself: what missions
+// and steps pay comes back for the hangar to credit. Listeners hear every change.
 export class Career {
   private profile: CareerProfile;
   private readonly listeners = new Set<() => void>();
@@ -34,6 +50,10 @@ export class Career {
     return rankFor(this.profile.xp);
   }
 
+  private get story() {
+    return this.profile.story ?? newStory();
+  }
+
   // A career as kept, with anything this code no longer knows left out.
   private static clean(profile: CareerProfile): CareerProfile {
     return {
@@ -44,6 +64,7 @@ export class Career {
       contracts: Math.max(0, Math.floor(profile.contracts)),
       codex: profile.codex.filter((id) => CODEX_IDS.has(id)),
       daily: profile.daily ? { ...profile.daily } : null,
+      story: cleanStory(profile.story),
     };
   }
 
@@ -53,8 +74,8 @@ export class Career {
     return () => this.listeners.delete(listener);
   }
 
-  // Counts something that happened against every mission on the board; finishes, pays and replaces those it
-  // completes.
+  // Counts something that happened against every mission on the board and the story's chapter; finishes, pays and
+  // replaces the missions it completes, and moves the story on.
   public record(event: CareerEvent): CareerOutcome {
     const rankBefore = this.rank;
     const done: MissionDone[] = [];
@@ -95,22 +116,31 @@ export class Career {
       }
     });
 
-    if (done.length > 0) {
+    const story = advanceStory(this.story, event);
+    const isStoryChanged = story.story.chapter !== this.story.chapter || story.story.progress.some((value, index) => value !== this.story.progress[index]);
+
+    this.profile.story = story.story;
+    story.done.forEach(({ xp }) => {
+      this.profile.xp += xp;
+    });
+
+    if (done.length > 0 || story.done.length > 0) {
       this.fill();
     }
 
-    if (isChanged || done.length > 0) {
+    if (isChanged || done.length > 0 || isStoryChanged) {
       this.changed();
     }
 
     const rank = this.rank;
 
-    return { done, promoted: rank > rankBefore ? rank : null };
+    return { done, story: story.done, chapter: story.chapter, promoted: rank > rankBefore ? rank : null };
   }
 
-  // Whether a mission of this kind is on the board, so what only it would count need not be offered.
+  // Whether a mission or an open step of the story asks this, so what only it would count need not be offered.
   public isWatching(kind: MissionGoal["kind"]): boolean {
-    return this.profile.active.some((entry) => missionById(entry.id)?.goal.kind === kind);
+    return this.profile.active.some((entry) => missionById(entry.id)?.goal.kind === kind) ||
+      storyView(this.story).steps.some(({ step, progress, target, isOpen }) => isOpen && progress < target && step.goal.kind === kind);
   }
 
   // Marks something seen in the codex; whether it was new.
@@ -163,6 +193,7 @@ export class Career {
       codex: CODEX.map((entry) => ({ entry, isFound: found.has(entry.id) })),
       found: CODEX.filter((entry) => found.has(entry.id)).length,
       daily: this.profile.daily ? { ...this.profile.daily } : null,
+      story: storyView(this.story),
     };
   }
 
@@ -173,6 +204,7 @@ export class Career {
       done: [...this.profile.done],
       codex: [...this.profile.codex],
       daily: this.profile.daily ? { ...this.profile.daily } : null,
+      story: { chapter: this.story.chapter, progress: [...this.story.progress] },
     };
   }
 

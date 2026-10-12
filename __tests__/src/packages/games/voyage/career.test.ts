@@ -27,6 +27,7 @@ import {
   resolveVoyageConfig,
   SolarSystemSource,
   StepRandom,
+  STORY,
   SystemService,
   UniverseGenerator,
   VoyageConfig,
@@ -69,15 +70,15 @@ describe("voyage career", () => {
 
     const outcome = career.record({ kind: "landed", body: "moon" });
 
+    // The Moon is the story's first step too, and pays for both.
     expect(outcome.done.map(({ mission }) => mission.id)).toEqual(["landMoon"]);
-    expect(career.xp).toBe(MISSIONS[0].xp);
+    expect(outcome.story.map(({ step }) => step.id)).toEqual(["launchMoon"]);
+    expect(career.xp).toBe(MISSIONS[0].xp + STORY[0].steps[0].xp);
     expect(career.view().missions).toHaveLength(3);
     expect(career.view().missions.map(({ mission }) => mission.id)).not.toContain("landMoon");
     expect(career.record({ kind: "landed", body: "moon" }).done).toHaveLength(0);
 
-    career.record({ kind: "salvaged" });
-
-    const promoted = career.record({ kind: "passed", place: "mars" });
+    const promoted = career.record({ kind: "salvaged" });
 
     expect(promoted.promoted).toBe(rankFor(career.xp));
     expect(RANKS[career.rank].id).toBe("ensign");

@@ -9,6 +9,7 @@ import { PortNote } from "@/components/Finale/Voyage/Encounters/Encounters.style
 import {
   Actions, Block, Body, Footer, Header, Heading, Item, ItemCount, ItemName, Items, ItemTop, Note, Panel, Purse, RARITY_COLOUR, SmallButton, Subheading,
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
+import { fillNodes, Money } from "@/components/Finale/Voyage/Money";
 import type { PortView, ServiceId, StationView, VoyageAction } from "@/packages/games/voyage";
 import { ITEMS } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
@@ -31,10 +32,9 @@ const SERVICES: readonly ServiceId[] = ["repair", "refuel", "recharge"];
 // against the Red Coin there is to spend; and casting off to fly on.
 export const StationPanel: FC<StationPanelProps> = ({ content, station, port, onAct, onCastOff }) => {
   const copy = content.encounters.station;
-  const coin = content.economy.symbols.RED;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const name = portName(content, port);
-  const price = (amount: number) => `${formatNumber(amount)} ${coin}`;
+  const price = (amount: number) => <Money copy={content.economy} amount={amount} />;
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -44,7 +44,7 @@ export const StationPanel: FC<StationPanelProps> = ({ content, station, port, on
     <Panel aria-labelledby="station-heading">
       <Header>
         <Heading id="station-heading" ref={headingRef} tabIndex={-1}>{name}</Heading>
-        <Purse>{fill(copy.coin, { coin: price(station.coin) })}</Purse>
+        <Purse>{fillNodes(copy.coin, { coin: price(station.coin) })}</Purse>
       </Header>
       {port.faction && port.kind === "station" && <PortNote>{fill(copy.keptBy, { faction: port.faction })}</PortNote>}
       <Body>
@@ -68,7 +68,7 @@ export const StationPanel: FC<StationPanelProps> = ({ content, station, port, on
                       disabled={!service.isNeeded || service.price > station.coin}
                       onClick={() => onAct({ kind: "service", service: service.id })}
                     >
-                      {!service.isNeeded ? copy.notNeeded : service.price > station.coin ? copy.tooPoor : fill(copy.buy, { price: price(service.price) })}
+                      {!service.isNeeded ? copy.notNeeded : service.price > station.coin ? copy.tooPoor : fillNodes(copy.buy, { price: price(service.price) })}
                     </SmallButton>
                   </Actions>
                 </Item>
@@ -95,7 +95,7 @@ export const StationPanel: FC<StationPanelProps> = ({ content, station, port, on
                       disabled={isFull || pack.price > station.coin}
                       onClick={() => onAct({ kind: "buyAmmo", ammo: pack.type })}
                     >
-                      {isFull ? copy.racksFull : pack.price > station.coin ? copy.tooPoor : fill(copy.buy, { price: price(pack.price) })}
+                      {isFull ? copy.racksFull : pack.price > station.coin ? copy.tooPoor : fillNodes(copy.buy, { price: price(pack.price) })}
                     </SmallButton>
                   </Actions>
                 </Item>
@@ -120,7 +120,7 @@ export const StationPanel: FC<StationPanelProps> = ({ content, station, port, on
                       disabled={good.price > station.coin}
                       onClick={() => onAct({ kind: "buy", item: good.id, count: 1 })}
                     >
-                      {good.price > station.coin ? copy.tooPoor : fill(copy.buy, { price: price(good.price) })}
+                      {good.price > station.coin ? copy.tooPoor : fillNodes(copy.buy, { price: price(good.price) })}
                     </SmallButton>
                   </Actions>
                 </Item>
@@ -136,7 +136,7 @@ export const StationPanel: FC<StationPanelProps> = ({ content, station, port, on
                 <Item key={sale.id}>
                   <ItemTop>
                     <ItemName colour={RARITY_COLOUR[ITEMS[sale.id]?.rarity ?? "common"]}>{itemName(content.economy, sale.id)}</ItemName>
-                    <ItemCount>{`x${sale.count}, ${fill(copy.each, { price: price(sale.price) })}`}</ItemCount>
+                    <ItemCount>{`x${sale.count}, `}{fillNodes(copy.each, { price: price(sale.price) })}</ItemCount>
                   </ItemTop>
                   <Actions>
                     <SmallButton type="button" onClick={() => onAct({ kind: "sell", item: sale.id, count: 1 })}>{copy.sellOne}</SmallButton>

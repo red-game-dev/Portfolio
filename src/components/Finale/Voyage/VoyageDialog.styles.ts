@@ -625,9 +625,12 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       right: 72px;
     }
 
-    /* Short of the bar folded into two columns, which a tall line (a quest done) could otherwise reach. */
+    /* Short of the bar folded into two columns, which a tall line (a quest done) could otherwise reach, and with its
+       way to the quest log under the words, which the narrower strip has no room for beside them. */
     ${media.shortestPortrait} {
       right: 96px;
+      flex-direction: column;
+      gap: 6px;
     }
 
     /* On its side the bar runs along the bottom, so the strip keeps its width; and the bars sit higher, so it starts

@@ -250,12 +250,36 @@ const showLine = keyframes`
 // than over them, as wide
 // as its words need but narrow enough to clear the ability bar down the right edge, so a long line of the story
 // reads in a few lines without hiding the hull.
-export const Message = styled.p(() => [
+// A quest done, as a card in the line's place: what kind of quest, its name, what it paid, and for a chapter the line
+// it decoded to. Spans, since it lives in the line's paragraph.
+export const CardText = tw.span`flex flex-col gap-[2px] min-w-0`;
+
+export const CardTitle = styled.span(() => [tw`flex flex-row items-center gap-[6px] text-[11px] font-semibold text-[#ff9f5a]`]);
+
+export const CardName = styled.span(() => [
+  tw`text-[15px] md:text-base font-semibold text-white`,
+  css`
+    line-height: 1.375;
+  `,
+]);
+
+export const CardReward = tw.span`flex flex-row flex-wrap items-center gap-x-[8px] text-xs font-semibold text-[#c9cfdf] tabular-nums`;
+
+export const CardLine = styled.span(() => [
+  tw`block mt-[4px] pl-[8px] text-xs md:text-sm font-normal text-[#e6e9f2]`,
+  css`
+    line-height: 1.625;
+    border-left: 2px solid #ffd76a;
+  `,
+]);
+
+export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
   tw`absolute left-1/2 top-[288px] md:top-[84px] m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
   css`
     width: max-content;
     max-width: min(66vw, 520px);
     ${voyagePanel(0.72, 0.35)}
+    ${isCard ? "text-align: left; border-left: 2px solid #ff9f5a;" : ""}
     animation: ${fadeLine} var(--message-ms, 2800ms) ease both;
 
     ${media.md} {
@@ -290,6 +314,26 @@ export const Message = styled.p(() => [
       & > button {
         flex-shrink: 0;
         margin-left: 0;
+      }
+
+      ${isCard ? "justify-content: space-between;" : ""}
+
+      /* The chip beside it says it is a quest, so the card's kind gives its room to the chapter's line. */
+      ${CardTitle} {
+        display: none;
+      }
+
+      ${CardName} {
+        font-size: 13px;
+      }
+
+      ${CardLine} {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-size: 11px;
+        line-height: 1.4;
       }
     }
 

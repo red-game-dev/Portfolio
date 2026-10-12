@@ -1,5 +1,5 @@
 import { boostNotice } from "@/components/Finale/Voyage/abilities";
-import { careerNotice } from "@/components/Finale/Voyage/career";
+import { careerNotice, QuestCard } from "@/components/Finale/Voyage/career";
 import { economyNotice } from "@/components/Finale/Voyage/economy";
 import { encounterNotice } from "@/components/Finale/Voyage/encounters";
 import { gearNotice } from "@/components/Finale/Voyage/gear";
@@ -18,14 +18,21 @@ export const MESSAGE_MS = { least: 2800, perChar: 60, most: 8000 };
 
 export const messageMs = (text: string): number => clamp(text.length * MESSAGE_MS.perChar, MESSAGE_MS.least, MESSAGE_MS.most);
 
+// A quest's card stays at least this long, so what it paid is seen (ms).
+export const CARD_MS = 4500;
+
+// How long a waiting line stays: its words' time, or a card's at least.
+export const lineMs = (line: Pick<QueuedLine, "text" | "card">): number => Math.max(messageMs(line.text), line.card ? CARD_MS : 0);
+
 // A line waiting to be said: kept lines are never dropped when too many wait, and an urgent one is said at once.
 export interface QueuedLine {
   id: number;
   text: string;
   isKept: boolean;
   isUrgent: boolean;
-  // About a quest: pressed, it opens the quest log.
+  // About a quest: pressed, it opens the quest log; and the card it shows, for a quest done.
   isQuest?: boolean;
+  card?: QuestCard | null;
 }
 
 // The story's notices, which are never dropped for the lines that crowd in with them (codex finds, payments).

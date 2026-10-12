@@ -459,6 +459,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           none: "Nothing done yet. Every quest you finish is kept here.",
           open: "Open the quests",
           daily: { fly: "Fly today's daily voyage", today: "Today's best: {best}, runs flown: {runs}", notYet: "Not flown today yet" },
+          card: { mission: "Quest complete", step: "Story step complete", chapter: "Chapter complete", xp: "+{xp} XP" },
         },
         pilot: { rank: "Rank", rankNote: "From missions and the story", level: "Pilot level", levelNote: "From everything you do in flight" },
         style: {

@@ -46,9 +46,11 @@ import {
   TabPanel,
   Tabs,
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
+import { PilotTransfer as PilotTransferPanel } from "@/components/Finale/Voyage/Hangar/PilotTransfer";
 import { ShipSheet } from "@/components/Finale/Voyage/Hangar/ShipSheet";
 import { Style } from "@/components/Finale/Voyage/Hangar/Style";
 import { Talents } from "@/components/Finale/Voyage/Hangar/Talents";
+import type { PilotTransfer } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
 import { BarFill, IconButton } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
@@ -73,6 +75,8 @@ interface HangarPanelProps {
   drawShip: (context: CanvasRenderingContext2D, width: number, height: number) => void;
   opensOn?: HangarTab | null;
   isFlying: boolean;
+  // Moving the pilot to another device, from the Settings tab.
+  transfer: PilotTransfer;
   onAct: (action: VoyageAction) => boolean;
   onClose: () => void;
 }
@@ -90,7 +94,7 @@ const STAT_KEYS: ReadonlyArray<keyof ShipStats> = ["hull", "shields", "fuel", "t
 // puts boosts and things from the hold on the ability bar; the hold, with
 // each thing's use and worth; the plans, made from the hold; and the ledger of every coin earned and spent. Its
 // own records, the Void Shard trade and the reset sit beside them. Opening it focuses its heading.
-export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, gear, progress, drawShip, opensOn = null, isFlying, onAct, onClose }:
+export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, gear, progress, drawShip, opensOn = null, isFlying, transfer, onAct, onClose }:
   HangarPanelProps) => {
   const copy = content.economy;
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -512,6 +516,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
         </TabPanel>
         <TabPanel {...panelProps(TAB.settings)}>
           <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
+          <PilotTransferPanel copy={content.transfer} transfer={transfer} isFlying={isFlying} />
         </TabPanel>
       </Body>
       <Footer>

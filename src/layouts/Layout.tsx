@@ -4,11 +4,13 @@ import tw, { css, styled } from "twin.macro";
 
 import { AppLoader, AppLoadingLines } from "@/components/AppLoader";
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
+import { LazyPilotArrival } from "@/components/Finale/Voyage/LazyPilotArrival";
 import { Journey } from "@/components/Journey";
 import { LensGate } from "@/components/Lens";
 import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 import { portfolioData  } from "@/data/resume";
+import { useHashValue } from "@/hooks/useHashState";
 import useSettledAnchors from "@/hooks/useSettledAnchors";
 import { createJourneyTrail } from "@/services/journey/trail";
 
@@ -68,6 +70,9 @@ const LENS_CANDIDATE = {
   checks: portfolioData.details.facts,
 };
 
+// Whether the page was opened with a pilot sent from another device in its fragment.
+const hasPilot = (hash: string): true | null => (hash.startsWith("#pilot=") ? true : null);
+
 const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   const { isLoading } = useAppLoaderStateHook();
 
@@ -76,6 +81,8 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   // The world starts once the reader has picked a view, so it is built with that view's settings, and runs
   // under the entrance so it is already moving when the page opens.
   const isWorldLive = !isLoading && (status === "entering" || status === "chosen");
+  // A pilot link's card waits until a view is chosen, so it does not open under the character select.
+  const isPilotArriving = useHashValue(hasPilot) === true && status === "chosen";
 
   return (
     <>
@@ -95,6 +102,7 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
         <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
       </Container>
       <AppLoadingLines />
+      {isPilotArriving && <LazyPilotArrival copy={portfolioData.finale.voyage.transfer} />}
       <Journey
         isEnabled={isWorldLive}
         hud={{ roster: portfolioData.roster, labels: portfolioData.hud, bossCount: portfolioData.caseStudies.length }}

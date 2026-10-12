@@ -456,6 +456,8 @@ export interface FinaleVoyage {
   closeMap: string;
   // Asked before a run in progress is left: the run ends, what the pilot owns stays.
   leave: { title: string; text: string; stay: string; confirm: string };
+  // Moving the pilot to another device, from the hangar's Settings, and the card shown where a pilot link lands.
+  transfer: PilotTransferContent;
   // Where the planet maps come from.
   credits: string;
   // The live readings in the corner, and the units each is shown in ("{value}" is replaced). Readings go dark
@@ -814,4 +816,26 @@ export interface JourneyTrailContent {
     started: string;
     about: string;
   };
+}
+
+// Moving a pilot between devices with no server: "{level}" and "{ship}" are the pilot's and the ship's levels, "{date}"
+// today's date in a file name.
+export interface PilotTransferContent {
+  title: string;
+  note: string;
+  show: string;
+  scan: string;
+  qrLabel: string;
+  copy: string;
+  copied: string;
+  file: string;
+  fileName: string;
+  tooBig: string;
+  open: string;
+  invalid: string;
+  confirm: string;
+  bring: string;
+  keep: string;
+  moved: string;
+  arrival: { title: string; text: string; bring: string; later: string; moved: string; done: string; invalid: string; failed: string };
 }

@@ -1,4 +1,4 @@
-import { Repository, StoreAdapter } from "@/packages/browser/store";
+import { readVersioned, Repository, RepositoryOptions, StoreAdapter, Versioned } from "@/packages/browser/store";
 
 import { isCareerProfile } from "../../career/guards/isCareerProfile";
 import { newCareer } from "../../career/services/Career";
@@ -60,6 +60,16 @@ const repair = (data: unknown): unknown => {
   return record;
 };
 
+const OPTIONS: RepositoryOptions<PilotProfile> = { version: VERSION, isValid: isPilotProfile, fallback: newProfile, migrate, repair };
+
+// A pilot ready to travel to another device: the profile with the version it was written in, so the device it lands on
+// brings it up to date and checks it as it does its own.
+export const pilotEnvelope = (profile: PilotProfile): Versioned<PilotProfile> => ({ version: VERSION, data: profile });
+
+// A pilot that came from elsewhere (a link or a file), read as this device reads its own: null when it does not check
+// out or was written by a newer release.
+export const readPilot = (stored: unknown): PilotProfile | null => readVersioned(stored, OPTIONS);
+
 const KEY = "pilot";
 const GHOST_KEY = "ghost";
 
@@ -73,7 +83,7 @@ export class PilotRepository {
 
   constructor(adapter: StoreAdapter) {
     this.ghost = new Repository<GhostRun | null>(adapter, GHOST_KEY, { version: 1, isValid: isGhostOrNone, fallback: () => null });
-    this.repository = new Repository(adapter, KEY, { version: VERSION, isValid: isPilotProfile, fallback: newProfile, migrate, repair });
+    this.repository = new Repository(adapter, KEY, OPTIONS);
   }
 
   public load(): Promise<PilotProfile> {

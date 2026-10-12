@@ -835,6 +835,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           drawShip={drawShip}
           opensOn={hangarTab}
           isFlying={status === "flying"}
+          transfer={voyage.transfer}
           onAct={act}
           onClose={() => setHangar(false)}
         />

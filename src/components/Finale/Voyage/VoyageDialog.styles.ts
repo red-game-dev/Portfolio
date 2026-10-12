@@ -222,6 +222,23 @@ const fadeLine = keyframes`
   100% { opacity: 0; transform: translate(-50%, 0); }
 `;
 
+// On a short phone the line is a strip across the top instead, so it eases in from above without moving sideways.
+const fadeStrip = keyframes`
+  0% { opacity: 0; transform: translateY(-6px); }
+  10% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
+`;
+
+// The strip without the movement.
+const showStrip = keyframes`
+  0%, 99% { opacity: 1; }
+  100% { opacity: 0; }
+`;
+
+// A phone too short for the line to sit between the bars and the ship.
+const SHORT_PHONE = "@media (max-width: 767px) and (max-height: 720px)";
+
 // The same without the movement: there for its moment, then gone.
 const showLine = keyframes`
   0%, 99% { opacity: 1; transform: translate(-50%, 0); }
@@ -239,16 +256,35 @@ export const Message = styled.p(() => [
     width: max-content;
     max-width: min(66vw, 520px);
     ${voyagePanel(0.72, 0.35)}
+    animation: ${fadeLine} var(--message-ms, 2800ms) ease both;
 
     ${media.md} {
       width: auto;
       max-width: min(90vw, 520px);
     }
-    animation: ${fadeLine} var(--message-ms, 2800ms) ease both;
 
     ${media.reducedMotion} {
       animation-name: ${showLine};
       animation-timing-function: linear;
+    }
+
+    /* A short phone has no room under the bars before the ship: the line becomes a strip across the top, under the
+       buttons, over the place and the readout for its moment, and never over the bars, the ship or the faults. */
+    ${SHORT_PHONE} {
+      top: 50px;
+      left: 8px;
+      right: 8px;
+      width: auto;
+      max-width: none;
+      padding: 6px 10px;
+      font-size: 12px;
+      line-height: 1.35;
+      background: rgba(5, 8, 18, 0.9);
+      animation-name: ${fadeStrip};
+    }
+
+    ${SHORT_PHONE} and (prefers-reduced-motion: reduce) {
+      animation-name: ${showStrip};
     }
   `,
 ]);

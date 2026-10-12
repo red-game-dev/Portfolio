@@ -821,7 +821,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           {economy?.suggestion && (
             <ReadyButton type="button" onClick={() => economy.suggestion && follow(economy.suggestion)}>
               <FontAwesomeIcon icon={faCircleUp} aria-hidden="true" />
-              {fill(copy.suggestion.hint, { action: suggestionText(copy, economy.suggestion) })}
+              {/* The key that does it is said only where there are keys. */}
+              {isTouch ? suggestionText(copy, economy.suggestion) : fill(copy.suggestion.hint, { action: suggestionText(copy, economy.suggestion) })}
             </ReadyButton>
           )}
           {snapshot.salvage && (

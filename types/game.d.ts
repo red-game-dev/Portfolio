@@ -221,7 +221,7 @@ export interface VoyageHangarCopy {
   nextStep: { label: string; act: string };
   pilot: { rank: string; rankNote: string; level: string; levelNote: string };
   style: { intro: string; trying: string; wearing: string; locked: string };
-  loadout: { pick: string; chosen: string; chosenEmpty: string; empty: string; remove: string };
+  loadout: { pick: string; chosen: string; chosenEmpty: string; empty: string; remove: string; weapons: string };
   details: { unlocked: string; close: string };
   data: string;
 }

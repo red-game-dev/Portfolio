@@ -376,7 +376,7 @@ export const Amount = styled.span(({ isGain }: { isGain: boolean }) => [
 ]);
 
 // Tiles in a grid, as many to a row as fit: badges, codex entries, paints and trails.
-export const TileGrid = styled.ul(({ min = 88 }: { min?: number }) => [
+export const TileGrid = styled.ul(({ min = 76 }: { min?: number }) => [
   tw`m-0 p-0 list-none grid gap-[8px]`,
   css`
     grid-template-columns: repeat(auto-fill, minmax(${min}px, 1fr));
@@ -384,7 +384,7 @@ export const TileGrid = styled.ul(({ min = 88 }: { min?: number }) => [
 ]);
 
 export const Tile = styled.button(({ isOn, isDim = false }: { isOn: boolean; isDim?: boolean }) => [
-  tw`flex flex-col items-center justify-start gap-[6px] w-full h-full min-h-[88px] p-[10px] cursor-pointer text-center text-[11px] md:text-xs
+  tw`flex flex-col items-center justify-center gap-[6px] w-full h-full min-h-[64px] px-[6px] py-[10px] cursor-pointer text-center text-[11px] md:text-xs
      font-semibold leading-snug border-[1px] border-solid`,
   isOn ? tint(14) : tw`bg-[rgba(255,255,255,0.03)]`,
   css`
@@ -413,11 +413,13 @@ export const TileName = styled.span(() => [
   `,
 ]);
 
-// Something still to find: a dim mark where its tile will be.
+// Something still to find: a small dim mark for each, in a row under what is found.
+export const Unknowns = tw.ul`m-0 p-0 list-none flex flex-row flex-wrap items-center gap-[6px]`;
+
 export const Unknown = styled.li(() => [
-  tw`flex items-center justify-center min-h-[56px] text-base font-semibold text-[#3d4560]`,
+  tw`flex items-center justify-center w-[28px] h-[28px] text-xs font-semibold text-[#4a5270]`,
   css`
-    border: 1px dashed rgba(196, 210, 255, 0.14);
+    border: 1px dashed rgba(196, 210, 255, 0.16);
   `,
 ]);
 

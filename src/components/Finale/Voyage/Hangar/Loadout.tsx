@@ -141,7 +141,7 @@ export const Loadout: FC<LoadoutProps> = ({ content, economy, gear, onAct }) => 
       </Block>
       {gear && (
         <Block aria-labelledby="loadout-weapons">
-          <Subheading id="loadout-weapons">{content.gear.forge.title}</Subheading>
+          <Subheading id="loadout-weapons">{words.weapons}</Subheading>
           <Note>{content.gear.aimWarning}</Note>
           {weapons.length === 0 && <Note>{content.gear.forge.note}</Note>}
           <Items>

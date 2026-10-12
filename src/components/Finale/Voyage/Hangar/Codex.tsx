@@ -20,6 +20,7 @@ import {
   TileGrid,
   TileName,
   Unknown,
+  Unknowns,
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
 import { BarFill } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import type { CareerView, CodexCategory } from "@/packages/games/voyage";
@@ -27,8 +28,8 @@ import { fill } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 const CODEX_ORDER: readonly CodexCategory[] = ["worlds", "kinds", "universes", "galaxies", "stars", "phenomena", "life", "wrecks", "things", "boosts"];
-// At most this many marks for what is still to find in a category; the rest are counted in words.
-const UNKNOWN_SHOWN = 8;
+// At most this many marks for what is still to find in a category; the rest are counted on the last.
+const UNKNOWN_SHOWN = 9;
 
 const Hidden = tw.span`sr-only`;
 
@@ -58,27 +59,34 @@ export const Codex: FC<{ content: FinaleVoyage; career: CareerView }> = ({ conte
             <Meter segments={Math.min(entries.length, 20)} aria-hidden="true">
               <BarFill colour="var(--tab-accent)" style={{ transform: `scaleX(${entries.length > 0 ? found.length / entries.length : 0})` }} />
             </Meter>
-            <TileGrid>
-              {found.map((entry) => {
-                const isOpen = chosen === entry.id;
+            {found.length > 0 && (
+              <TileGrid>
+                {found.map((entry) => {
+                  const isOpen = chosen === entry.id;
 
-                return (
-                  <li key={entry.id}>
-                    <Tile
-                      type="button"
-                      isOn={isOpen}
-                      aria-expanded={isOpen}
-                      aria-controls={isOpen ? detailId : undefined}
-                      onClick={() => setChosen(isOpen ? null : entry.id)}
-                    >
-                      <TileName>{codexName(content, entry)}</TileName>
-                    </Tile>
-                  </li>
-                );
-              })}
-              {Array.from({ length: Math.min(left, UNKNOWN_SHOWN) }, (_, index) => <Unknown key={`unknown-${index}`} aria-hidden="true">?</Unknown>)}
-            </TileGrid>
-            {left > 0 && (left > UNKNOWN_SHOWN ? <Note>{fill(copy.unknown, { count: left })}</Note> : <Hidden>{fill(copy.unknown, { count: left })}</Hidden>)}
+                  return (
+                    <li key={entry.id}>
+                      <Tile
+                        type="button"
+                        isOn={isOpen}
+                        aria-expanded={isOpen}
+                        aria-controls={isOpen ? detailId : undefined}
+                        onClick={() => setChosen(isOpen ? null : entry.id)}
+                      >
+                        <TileName>{codexName(content, entry)}</TileName>
+                      </Tile>
+                    </li>
+                  );
+                })}
+              </TileGrid>
+            )}
+            {left > 0 && (
+              <Unknowns aria-hidden="true">
+                {Array.from({ length: Math.min(left, UNKNOWN_SHOWN) }, (_, index) => <Unknown key={`unknown-${index}`}>?</Unknown>)}
+                {left > UNKNOWN_SHOWN && <Unknown key="more">{`+${left - UNKNOWN_SHOWN}`}</Unknown>}
+              </Unknowns>
+            )}
+            {left > 0 && <Hidden>{fill(copy.unknown, { count: left })}</Hidden>}
             {open && (
               <Frame id={detailId} aria-label={codexName(content, open)}>
                 <ItemName colour="#ffffff">{codexName(content, open)}</ItemName>

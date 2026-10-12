@@ -453,6 +453,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           chosenEmpty: "Slot {n} is empty",
           empty: "Empty",
           remove: "Remove",
+          weapons: "Weapons",
         },
         details: { unlocked: "Unlocked", close: "Close" },
         data: "Your data",

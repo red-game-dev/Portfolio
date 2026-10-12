@@ -447,7 +447,7 @@ export const Chip = styled.span(({ colour = "#c9cfdf" }: { colour?: string }) =>
 
 // The controls, folded under a title the pilot opens (open the first time the voyage opens).
 export const HowTo = styled.details(() => [
-  tw`flex flex-col gap-[8px]`,
+  tw`block`,
   css`
     border-top: 1px solid rgba(196, 210, 255, 0.14);
     padding-top: 10px;
@@ -468,7 +468,7 @@ export const HowTo = styled.details(() => [
     }
 
     & > p {
-      margin-top: 8px;
+      margin-top: 4px;
     }
   `,
 ]);

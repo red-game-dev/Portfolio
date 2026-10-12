@@ -23,10 +23,11 @@ export const Bar = styled.div(() => [
       transform: translateX(-50%);
     }
 
+    /* Centred in the room between the radar and the corner card, which is wider than the radar. */
     ${media.shortLandscape} {
       right: auto;
       top: auto;
-      left: 50%;
+      left: calc(50% - 4vw);
       bottom: 8px;
       flex-direction: row;
       gap: 5px;

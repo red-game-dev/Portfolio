@@ -324,7 +324,8 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     }
 
     const context = front.context;
-    const radius = front.width < 640 ? RADAR_RADIUS_NARROW : RADAR_RADIUS;
+    // Smaller on a narrow screen, and on a short one, where the column of bars above it is nearly as tall.
+    const radius = front.width < 640 || front.height < 420 ? RADAR_RADIUS_NARROW : RADAR_RADIUS;
     const cx = RADAR_MARGIN + radius;
     const cy = front.height - RADAR_MARGIN - radius;
     const scale = radius / RADAR_RANGE;

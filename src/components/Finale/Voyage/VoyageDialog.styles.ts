@@ -110,6 +110,29 @@ export const SurfaceTitle = tw.h3`m-0 text-xs md:text-sm font-semibold text-whit
 
 export const SurfaceLine = tw.p`m-0 text-[11px] md:text-xs text-[#c4d2ff]`;
 
+// How a world is come down on: kept to two lines on a phone on its side, where the card has the corner's height only.
+export const SurfaceMethod = styled.p(() => [
+  tw`m-0 text-[11px] md:text-xs text-[#c4d2ff]`,
+  css`
+    ${media.shortLandscape} {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  `,
+]);
+
+// The hull's heat and the air, from the telemetry: shown in the card only where the telemetry steps aside for it.
+export const SurfaceReading = styled.p(() => [
+  tw`hidden m-0 text-[11px] md:text-xs text-[#c4d2ff] tabular-nums`,
+  css`
+    ${media.shortLandscape} {
+      display: block;
+    }
+  `,
+]);
+
 // What the way down is doing now, the line a reader looks for first.
 export const SurfacePhase = tw.p`m-0 my-[2px] text-xs md:text-sm font-semibold text-[#ffd27a]`;
 
@@ -257,8 +280,11 @@ const showStrip = keyframes`
   100% { opacity: 0; }
 `;
 
-// A phone too short for the line to sit between the bars and the ship.
-const SHORT_PHONE = "@media (max-width: 767px) and (max-height: 720px)";
+// Where the line becomes a strip across the top: a phone too short for it to sit between the bars and the ship, held
+// upright or on its side, and any phone on its side however wide.
+const STRIP = "@media (max-width: 767px) and (max-height: 720px), (orientation: landscape) and (max-height: 500px)";
+const STRIP_STILL = "@media (max-width: 767px) and (max-height: 720px) and (prefers-reduced-motion: reduce), " +
+  "(orientation: landscape) and (max-height: 500px) and (prefers-reduced-motion: reduce)";
 
 // The same without the movement: there for its moment, then gone.
 const showLine = keyframes`
@@ -316,7 +342,7 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
     /* A short phone has no room under the bars before the ship: the line becomes a strip across the top, under the
        buttons, over the place and the readout for its moment, its way to the quest log beside the words rather than
        under them, so up to three lines stay clear of the bars, the ship and the faults. */
-    ${SHORT_PHONE} {
+    ${STRIP} {
       top: 54px;
       left: 8px;
       right: 8px;
@@ -358,18 +384,24 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       }
     }
 
-    /* Where the screen is short enough for the ability bar down the right to reach the top (the smallest phones held
-       upright), the strip stops short of it; on its side the bar runs along the bottom, so the strip keeps its width. */
-    @media (max-width: 767px) and (max-height: 540px) and (orientation: portrait) {
+    /* Where the screen is short enough for the ability bar down the right to reach the top (the smallest phones), the
+       strip stops short of it. */
+    @media (max-width: 767px) and (max-height: 540px) {
       right: 72px;
     }
 
-    /* On its side the bars sit higher, so the strip starts beside their column rather than across it. */
+    /* On its side the bar runs along the bottom, so the strip keeps its width; and the bars sit higher, so it starts
+       beside their column rather than across it (a wider column from the tablet breakpoint up). */
     ${media.shortLandscape} {
       left: 176px;
+      right: 8px;
     }
 
-    ${SHORT_PHONE} and (prefers-reduced-motion: reduce) {
+    @media (orientation: landscape) and (max-height: 500px) and (min-width: 768px) {
+      left: 240px;
+    }
+
+    ${STRIP_STILL} {
       animation-name: ${showStrip};
     }
   `,
@@ -607,7 +639,15 @@ export const ScoreRow = styled.div(() => [
 export const Badge = tw.p`m-0 self-start px-[10px] py-[4px] text-xs font-semibold text-[#101010] bg-[#ffc45c]`;
 
 // The ship's hull and mark, under where it is.
-export const ShipLine = tw.p`m-0 text-[11px] md:text-xs text-[#9aa3bb]`;
+// The rank and the ship; left out on a phone on its side, where the column is short (the hangar says both).
+export const ShipLine = styled.p(() => [
+  tw`m-0 text-[11px] md:text-xs text-[#9aa3bb]`,
+  css`
+    ${media.shortLandscape} {
+      display: none;
+    }
+  `,
+]);
 
 // Red Coin gold, Void Shards violet.
 export const Coin = styled.dd(({ isShards = false }: { isShards?: boolean }) => [

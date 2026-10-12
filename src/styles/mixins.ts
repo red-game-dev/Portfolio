@@ -12,8 +12,8 @@ export const media = {
   md: "@media (min-width: 768px)",
   lg: "@media (min-width: 1024px)",
   xl: "@media (min-width: 1280px)",
-  // A phone on its side: below the tablet breakpoint and too short for a column down either edge.
-  shortLandscape: "@media (max-width: 767px) and (max-height: 500px)",
+  // A phone on its side, of any width: too short for a column down either edge.
+  shortLandscape: "@media (orientation: landscape) and (max-height: 500px)",
   reducedMotion: "@media (prefers-reduced-motion: reduce)",
 };
 

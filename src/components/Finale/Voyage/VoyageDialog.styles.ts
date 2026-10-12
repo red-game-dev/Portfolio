@@ -162,10 +162,15 @@ export const TelemetryTitle = tw.h2`m-0 mb-[4px] md:mb-[6px] text-[11px] md:text
 
 export const TelemetryList = tw.dl`m-0 flex flex-col gap-[2px] md:gap-[3px] text-[11px] md:text-xs tabular-nums`;
 
-// Only the key readings on narrow screens; every reading where there is room.
+// Only the key readings on narrow screens and on a phone on its side; every reading where there is room.
 export const TelemetryRow = styled.div(({ isKey }: { isKey: boolean }) => [
   tw`flex flex-row items-baseline justify-between gap-[10px] md:gap-[14px]`,
   !isKey && tw`hidden md:flex`,
+  !isKey && css`
+    ${media.shortLandscape} {
+      display: none;
+    }
+  `,
 ]);
 
 export const TelemetryName = tw.dt`text-[#9aa3bb]`;

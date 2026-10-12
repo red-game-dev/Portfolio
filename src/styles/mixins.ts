@@ -17,6 +17,9 @@ export const media = {
   narrowPortrait: "@media (orientation: portrait) and (max-width: 389px)",
   // A phone held upright too short for the ability bar, centred down the edge, to clear the telemetry below it.
   shortPortrait: "@media (orientation: portrait) and (max-height: 699px)",
+  // The shortest upright phone (a small one with the browser's bars showing): too short even for a column of smaller
+  // slots, so the ability bar folds into two.
+  shortestPortrait: "@media (orientation: portrait) and (max-height: 520px)",
   // A phone on its side, of any width: too short for a column down either edge.
   shortLandscape: "@media (orientation: landscape) and (max-height: 500px)",
   reducedMotion: "@media (prefers-reduced-motion: reduce)",

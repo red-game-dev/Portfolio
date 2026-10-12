@@ -62,7 +62,21 @@ export const Hud = styled.header(() => [
   `,
 ]);
 
-export const Vitals = tw.div`flex flex-col gap-[6px] min-w-0`;
+// The column of the place, the ship and the bars; on a narrow upright phone as wide as the screen but short of the
+// ability bar down the right (wider where it folds into two columns), so a long place wraps before it.
+export const Vitals = styled.div(() => [
+  tw`flex flex-col gap-[6px] min-w-0`,
+  css`
+    ${media.narrowPortrait} {
+      align-self: stretch;
+      padding-right: 52px;
+    }
+
+    ${media.narrowPortrait} and (max-height: 520px) {
+      padding-right: 84px;
+    }
+  `,
+]);
 
 // Two lines tall on a phone whatever it says, so the bars below always clear the readout row beside it; on a narrow
 // upright phone the readout sits above it instead, so it takes the lines it needs.
@@ -452,7 +466,7 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       }
     }
 
-    /* Where the screen is short enough for the ability bar down the right to start just under the readout, the strip
+    /* Where the screen is short enough for the ability bar down the right to start under the readout, the strip
        stops short of it. */
     @media (max-width: 767px) and (max-height: 699px) {
       right: 72px;

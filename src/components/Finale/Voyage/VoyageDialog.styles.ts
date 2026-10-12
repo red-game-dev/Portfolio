@@ -101,7 +101,7 @@ export const SurfaceCard = styled.section(() => [
     ${media.shortLandscape} {
       left: auto;
       right: 10px;
-      max-width: min(30vw, 220px);
+      max-width: min(28vw, 190px);
     }
   `,
 ]);
@@ -129,7 +129,7 @@ export const TelemetryPanel = styled.section(({ isYielding = false }: { isYieldi
 
     ${media.shortLandscape} {
       min-width: 0;
-      max-width: min(30vw, 220px);
+      max-width: min(28vw, 190px);
       ${isYielding ? "display: none;" : ""}
     }
   `,
@@ -211,7 +211,7 @@ export const Frames = styled.div(() => [
        corner cards, below the ship. */
     ${media.shortLandscape} {
       bottom: 56px;
-      width: min(44vw, 300px);
+      width: min(36vw, 240px);
     }
   `,
 ]);

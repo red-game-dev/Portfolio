@@ -1,4 +1,4 @@
-import { FC, MouseEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, FC, MouseEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -62,29 +62,39 @@ const Hint = styled.p(() => [
   `,
 ]);
 
-// A fan on wide screens, each card tucked under the next; a row to swipe through on phones.
+// The hand's own width, which the fan reads to decide how far each card tucks under the next.
+const HandArea = styled.div(() => [
+  css`
+    container-type: inline-size;
+  `,
+]);
+
+// A fan on a desktop, each card tucked under the next, and tucked further when the table is too narrow for the whole
+// hand (--cards is how many it holds); a row to swipe through on phones and tablets.
 const Hand = styled.ul(() => [
-  tw`list-none m-0 p-0 pt-[18px] pb-[6px] flex flex-row overflow-x-auto md:overflow-visible md:justify-center`,
+  tw`list-none m-0 p-0 pt-[18px] pb-[6px] flex flex-row overflow-x-auto lg:overflow-visible lg:justify-center`,
   css`
     scrollbar-width: thin;
 
-    ${media.md} {
+    ${media.lg} {
+      --step: min(-46px, calc((100cqw - 24px - 112px * var(--cards)) / max(1, var(--cards) - 1)));
+
       & > li + li {
-        margin-left: -46px;
+        margin-left: var(--step);
       }
 
       /* Only a strip of each card shows under the next, so its name wraps inside that strip. */
       & > li:not(:last-child) [data-name] {
-        max-width: 58px;
+        max-width: calc(112px + var(--step) - 8px);
       }
     }
   `,
 ]);
 
 const HandSlot = styled.li(({ tilt }: { tilt: number }) => [
-  tw`flex-shrink-0 mr-[8px] md:mr-0`,
+  tw`flex-shrink-0 mr-[8px] lg:mr-0`,
   css`
-    ${media.md} {
+    ${media.lg} {
       transform: rotate(${tilt}deg) translateY(${Math.abs(tilt) * 1.6}px);
     }
   `,
@@ -245,23 +255,25 @@ export const LiveTable: FC<LiveTableProps> = ({ cards, content }: LiveTableProps
           <Hint>{content.hint}</Hint>
           <Label>{content.handLabel}</Label>
           {snapshot.hand.length > 0 ? (
-            <Hand ref={handRef} data-scroll-x>
-              {snapshot.hand.map((name, position) => {
-                const entry = byName.get(name);
-                const suit = suitOf(entry?.index ?? 0);
-                const tilt = (position - (snapshot.hand.length - 1) / 2) * 2.4;
+            <HandArea>
+              <Hand ref={handRef} data-scroll-x style={{ "--cards": snapshot.hand.length } as CSSProperties}>
+                {snapshot.hand.map((name, position) => {
+                  const entry = byName.get(name);
+                  const suit = suitOf(entry?.index ?? 0);
+                  const tilt = (position - (snapshot.hand.length - 1) / 2) * 2.4;
 
-                return (
-                  <HandSlot key={name} tilt={tilt}>
-                    <HandCard type="button" isLocked={!isOpen} aria-disabled={!isOpen} onClick={(event) => throwCard(event, name, position)}>
-                      <Corner isRed={suit.isRed} aria-hidden="true">{suit.glyph}</Corner>
-                      <HandName data-name>{name}</HandName>
-                      <CornerBottom isRed={suit.isRed} aria-hidden="true">{suit.glyph}</CornerBottom>
-                    </HandCard>
-                  </HandSlot>
-                );
-              })}
-            </Hand>
+                  return (
+                    <HandSlot key={name} tilt={tilt}>
+                      <HandCard type="button" isLocked={!isOpen} aria-disabled={!isOpen} onClick={(event) => throwCard(event, name, position)}>
+                        <Corner isRed={suit.isRed} aria-hidden="true">{suit.glyph}</Corner>
+                        <HandName data-name>{name}</HandName>
+                        <CornerBottom isRed={suit.isRed} aria-hidden="true">{suit.glyph}</CornerBottom>
+                      </HandCard>
+                    </HandSlot>
+                  );
+                })}
+              </Hand>
+            </HandArea>
           ) : (
             <Redeal type="button" data-redeal onClick={redeal}>
               <FontAwesomeIcon icon={faRotateLeft} aria-hidden="true" />

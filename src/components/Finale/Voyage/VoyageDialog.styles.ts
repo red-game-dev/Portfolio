@@ -364,6 +364,11 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       right: 72px;
     }
 
+    /* On its side the bars sit higher, so the strip starts beside their column rather than across it. */
+    ${media.shortLandscape} {
+      left: 176px;
+    }
+
     ${SHORT_PHONE} and (prefers-reduced-motion: reduce) {
       animation-name: ${showStrip};
     }
@@ -387,7 +392,15 @@ export const TrackerName = tw.span`flex flex-row items-baseline justify-between 
 
 export const TrackerCount = tw.span`tabular-nums text-[#ffcf9f] whitespace-nowrap`;
 
-export const TrackerSub = tw.span`text-[10px] md:text-[11px] text-[#aab3c9] truncate`;
+// What the quest belongs to; left out on a phone on its side, where the column is short.
+export const TrackerSub = styled.span(() => [
+  tw`text-[10px] md:text-[11px] text-[#aab3c9] truncate`,
+  css`
+    ${media.shortLandscape} {
+      display: none;
+    }
+  `,
+]);
 
 export const TrackerOpen = styled.button(() => [
   tw`flex flex-shrink-0 items-center justify-center w-[34px] h-[34px] p-0 cursor-pointer text-[#ff9f5a] bg-[rgba(10,14,30,0.75)] border-[1px] border-solid

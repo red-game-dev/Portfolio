@@ -222,6 +222,23 @@ const fadeLine = keyframes`
   100% { opacity: 0; transform: translate(-50%, 0); }
 `;
 
+// On a short phone the line is a strip across the top instead, so it eases in from above without moving sideways.
+const fadeStrip = keyframes`
+  0% { opacity: 0; transform: translateY(-2px); }
+  10% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
+`;
+
+// The strip without the movement.
+const showStrip = keyframes`
+  0%, 99% { opacity: 1; }
+  100% { opacity: 0; }
+`;
+
+// A phone too short for the line to sit between the bars and the ship.
+const SHORT_PHONE = "@media (max-width: 767px) and (max-height: 720px)";
+
 // The same without the movement: there for its moment, then gone.
 const showLine = keyframes`
   0%, 99% { opacity: 1; transform: translate(-50%, 0); }
@@ -239,16 +256,51 @@ export const Message = styled.p(() => [
     width: max-content;
     max-width: min(66vw, 520px);
     ${voyagePanel(0.72, 0.35)}
+    animation: ${fadeLine} var(--message-ms, 2800ms) ease both;
 
     ${media.md} {
       width: auto;
       max-width: min(90vw, 520px);
     }
-    animation: ${fadeLine} var(--message-ms, 2800ms) ease both;
 
     ${media.reducedMotion} {
       animation-name: ${showLine};
       animation-timing-function: linear;
+    }
+
+    /* A short phone has no room under the bars before the ship: the line becomes a strip across the top, under the
+       buttons, over the place and the readout for its moment, its way to the quest log beside the words rather than
+       under them, so up to three lines stay clear of the bars, the ship and the faults. */
+    ${SHORT_PHONE} {
+      top: 54px;
+      left: 8px;
+      right: 8px;
+      width: auto;
+      max-width: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      line-height: 1.35;
+      background: rgba(5, 8, 18, 0.9);
+      animation-name: ${fadeStrip};
+
+      & > button {
+        flex-shrink: 0;
+        margin-left: 0;
+      }
+    }
+
+    /* Where the screen is short enough for the ability bar down the right to reach the top (a phone on its side, the
+       smallest phones), the strip stops short of it. */
+    @media (max-width: 767px) and (max-height: 540px) {
+      right: 72px;
+    }
+
+    ${SHORT_PHONE} and (prefers-reduced-motion: reduce) {
+      animation-name: ${showStrip};
     }
   `,
 ]);
@@ -287,6 +339,7 @@ export const MessageButton = styled.button(() => [
   tw`inline-flex items-center gap-[4px] ml-[8px] px-[8px] py-[2px] cursor-pointer text-[11px] font-semibold text-[#ffcf9f] bg-transparent border-[1px]
      border-solid border-[#ff9f5a] align-middle`,
   css`
+    min-height: 28px;
     pointer-events: auto;
   `,
   focusRing("#c4d2ff", 2),

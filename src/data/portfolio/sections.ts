@@ -295,7 +295,8 @@ export const sectionsContent: Pick<PortfolioData, "sections"> = {
     recommendations: {
       title: "Recommendations",
       description: [
-        "Lines from my reference letters from Authentic Gaming and reNFT, attributed by role. A reference from KPMG is available on request.",
+        "Lines from my reference letters from Authentic Gaming and reNFT, attributed by role. The full letters from Authentic Gaming, KPMG and reNFT " +
+          "are available on request.",
       ],
     },
     // After the finale, for readers who stayed: the site's own history as a time-lapse they can open.

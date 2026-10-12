@@ -11,6 +11,7 @@ import {
   faPause,
   faPlay,
   faRocket,
+  faScroll,
   faShareNodes,
   faWarehouse,
   faXmark,
@@ -20,7 +21,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ActionButton } from "@/components/Controls";
 import { AbilityBar } from "@/components/Finale/Voyage/AbilityBar/AbilityBar";
 import { DailyBoard } from "@/components/Finale/Voyage/Board/DailyBoard";
-import { rankName } from "@/components/Finale/Voyage/career";
+import { chapterTitle, missionName, rankName, storyStepName } from "@/components/Finale/Voyage/career";
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
 import { portName } from "@/components/Finale/Voyage/encounters";
@@ -35,6 +36,7 @@ import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
 import {
   isKeptNotice,
+  isQuestNotice,
   isUrgentNotice,
   messageMs,
   placeName,
@@ -47,6 +49,7 @@ import {
   voyagePlace,
 } from "@/components/Finale/Voyage/messages";
 import { CurrencyIcon } from "@/components/Finale/Voyage/Money";
+import { isQuestId, trackedQuest } from "@/components/Finale/Voyage/quests";
 import { drawRunCard, RUN_CARD, shareCard } from "@/components/Finale/Voyage/share";
 import { skyLines } from "@/components/Finale/Voyage/sky";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
@@ -84,6 +87,7 @@ import {
   MapBar,
   MapTitle,
   Message,
+  MessageButton,
   Overlay,
   Pay,
   PhotoBar,
@@ -121,6 +125,12 @@ import {
   SetupTitle,
   Text,
   Title,
+  Tracker,
+  TrackerCount,
+  TrackerName,
+  TrackerOpen,
+  TrackerSub,
+  TrackerText,
   Vitals,
 } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
@@ -152,6 +162,8 @@ const GUIDE_LAST = 5;
 const GUIDE_WAIT_MS = 9000;
 // Whether the pilot has been asked how they like to fly, kept so it is asked only the first time.
 const SETUP_KEY = "redgame.voyageSetup";
+// The quest followed on the HUD, a convenience of this browser.
+const TRACK_KEY = "redgame.trackedQuest";
 const isTrue = (value: unknown): value is true => value === true;
 // How many lines the voyage says may wait (each stays as long as `messageMs` gives it, its animation's length).
 const MESSAGE_QUEUE = 4;
@@ -253,11 +265,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const comingDownOn = snapshot?.surface
     ? placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn)
     : placeName(content, snapshot?.landedOn ?? "");
-  const say = (text: string | null, isKept = false, isUrgent = false) => {
+  const say = (text: string | null, isKept = false, isUrgent = false, isQuest = false) => {
     if (text) {
       messageId.current += 1;
 
-      const next = { id: messageId.current, text, isKept, isUrgent };
+      const next = { id: messageId.current, text, isKept, isUrgent, isQuest };
 
       setMessages((queue) => queueLine(queue, next, MESSAGE_QUEUE));
     }
@@ -293,6 +305,20 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     setHangarTab("loadout");
     setHangar(true);
   };
+
+  const openQuests = () => {
+    setHangarTab("quests");
+    setHangar(true);
+  };
+
+  // The quest pinned to the HUD, kept in this browser; and pinning one.
+  const [pinned, setPinned] = useState<string | null>(() => readStored(TRACK_KEY, isQuestId));
+  const track = (id: string | null) => {
+    setPinned(id);
+    writeStored(TRACK_KEY, id);
+  };
+  const tracked = career ? trackedQuest(career, pinned) : null;
+  const trackedName = tracked ? (tracked.kind === "story" ? storyStepName(content, tracked.objective) : missionName(content, tracked.objective)) : "";
 
   useEffect(() => {
     if (!snapshot) {
@@ -436,7 +462,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         // The answer to a press shows at once, as a tap's does.
         reply(voyageNotice(content, notice) ?? "");
       } else {
-        say(voyageNotice(content, notice), isKeptNotice(notice), isUrgentNotice(notice));
+        say(voyageNotice(content, notice), isKeptNotice(notice), isUrgentNotice(notice), isQuestNotice(notice));
       }
     });
     takeNotices(notices.length);
@@ -597,6 +623,26 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 </BarRow>
               ))}
             </Bars>
+          )}
+          {tracked && status === "flying" && !isHangarOpen && !isChoosing && !isDocked && (
+            <Tracker>
+              <TrackerText>
+                <TrackerName>
+                  <span>{trackedName}</span>
+                  <TrackerCount>{`${tracked.progress}/${tracked.target}`}</TrackerCount>
+                </TrackerName>
+                <TrackerSub>
+                  {tracked.chapter ? fill(content.hangar.quests.story, { chapter: chapterTitle(content, tracked.chapter) }) : content.hangar.quests.mission}
+                </TrackerSub>
+              </TrackerText>
+              <TrackerOpen
+                type="button"
+                onClick={openQuests}
+                aria-label={fill(content.hangar.quests.tracker, { name: trackedName, progress: tracked.progress, target: tracked.target })}
+              >
+                <FontAwesomeIcon icon={faScroll} aria-hidden="true" />
+              </TrackerOpen>
+            </Tracker>
           )}
           {status === "flying" && hurt.length > 0 && snapshot && (
             <>
@@ -831,7 +877,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         />
       )}
       {message && status === "flying" && !isHudAside && (
-        <Message key={message.id} role="status" style={{ "--message-ms": `${messageMs(message.text)}ms` } as CSSProperties}>{message.text}</Message>
+        <Message key={message.id} role="status" style={{ "--message-ms": `${messageMs(message.text)}ms` } as CSSProperties}>
+          {message.text}
+          {message.isQuest && (
+            <MessageButton type="button" onClick={openQuests}>
+              <FontAwesomeIcon icon={faScroll} aria-hidden="true" />
+              {` ${content.hangar.quests.open}`}
+            </MessageButton>
+          )}
+        </Message>
       )}
       {isChoosing && snapshot?.perkOffer && !isHangarOpen && !isPhoto && (
         <PerkCard content={content} offer={snapshot.perkOffer} taken={snapshot.perks} onChoose={choosePerk} />
@@ -853,6 +907,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           transfer={voyage.transfer}
           onAct={act}
           onFollow={() => economy.suggestion && follow(economy.suggestion)}
+          pinned={pinned}
+          onTrack={track}
+          onDaily={status === "flying" ? null : () => start("daily")}
           onClose={() => setHangar(false)}
         />
       )}

@@ -24,6 +24,8 @@ export interface QueuedLine {
   text: string;
   isKept: boolean;
   isUrgent: boolean;
+  // About a quest: pressed, it opens the quest log.
+  isQuest?: boolean;
 }
 
 // The story's notices, which are never dropped for the lines that crowd in with them (codex finds, payments).
@@ -37,6 +39,9 @@ const URGENT_NOTICES: ReadonlyArray<VoyageNotice["kind"]> = [
 export const isUrgentNotice = (notice: VoyageNotice): boolean => URGENT_NOTICES.includes(notice.kind);
 
 export const isKeptNotice = (notice: VoyageNotice): boolean => STORY_NOTICES.includes(notice.kind) || isUrgentNotice(notice);
+
+// A quest done or begun: the story's steps and chapters and the missions.
+export const isQuestNotice = (notice: VoyageNotice): boolean => STORY_NOTICES.includes(notice.kind) || notice.kind === "missionDone";
 
 // Adds a line to those waiting. An urgent one is said at once, and a kept line it cuts short is said again after it.
 // No more than `limit` wait: the oldest that may go make room, never the line on screen, and never a kept line, so

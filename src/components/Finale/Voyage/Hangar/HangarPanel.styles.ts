@@ -79,6 +79,7 @@ export const PurseNoteTitle = tw.span`font-semibold text-white`;
 export const NextStep = styled.div(() => [
   tw`flex flex-row items-center gap-[10px] px-[16px] py-[8px] text-xs md:text-sm`,
   css`
+    --tab-accent: #ffd76a;
     background: rgba(255, 215, 106, 0.07);
     border-top: 1px solid rgba(255, 215, 106, 0.18);
     border-bottom: 1px solid rgba(255, 215, 106, 0.18);
@@ -89,18 +90,36 @@ export const NextStepText = tw.span`flex-1 min-w-0 text-[#f4e7c2]`;
 
 export const NextStepLabel = tw.span`block text-[11px] font-semibold text-[#ffd76a]`;
 
-// The five tabs, each an icon over its name, side by side across the drawer.
-export const TabBar = styled.div(() => [
-  tw`grid grid-cols-5`,
-  css`
-    border-bottom: 1px solid ${RULE};
-  `,
-]);
+// The six tabs, each an icon over its name, in one row across the drawer that never wraps: where they do not fit (a
+// narrow phone, larger text) the row scrolls sideways under a finger, snapping to a tab, and an edge with more past
+// it fades. Its rule is drawn inside it, since a row that scrolls clips whatever hangs below it.
+export const TabBar = styled.div(({ fadeStart, fadeEnd }: { fadeStart: boolean; fadeEnd: boolean }) => {
+  const fade = `linear-gradient(to right, ${fadeStart ? "transparent" : "#000"}, #000 18px, #000 calc(100% - 18px), ${fadeEnd ? "transparent" : "#000"})`;
+
+  return [
+    tw`flex flex-row flex-nowrap overflow-x-auto overflow-y-hidden`,
+    css`
+      box-shadow: inset 0 -1px 0 ${RULE};
+      -webkit-mask-image: ${fade};
+      mask-image: ${fade};
+      scroll-snap-type: x proximity;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    `,
+  ];
+});
 
 export const TabButton = styled.button(({ isOn, accent }: { isOn: boolean; accent: string }) => [
   tw`relative flex flex-col items-center justify-center gap-[4px] min-h-[56px] px-[2px] cursor-pointer bg-transparent border-0 text-[11px] md:text-xs
      font-semibold`,
   css`
+    flex: 1 0 60px;
+    scroll-snap-align: start;
+    white-space: nowrap;
     color: ${isOn ? accent : "#9aa3bb"};
     transition: color 0.2s ease;
 
@@ -113,7 +132,7 @@ export const TabButton = styled.button(({ isOn, accent }: { isOn: boolean; accen
       position: absolute;
       left: 18%;
       right: 18%;
-      bottom: -1px;
+      bottom: 0;
       height: 2px;
       background: ${accent};
       transform: scaleX(${isOn ? 1 : 0});

@@ -25,10 +25,10 @@ const viewsOf = (coin = 0) => {
 };
 
 describe("the hangar's tabs", () => {
-  test("five tabs, every section in exactly one, each tab with its own accent", () => {
+  test("six tabs, every section in exactly one, each tab with its own accent", () => {
     const sections = HANGAR_TABS.flatMap(({ sections: list }) => list);
 
-    expect(HANGAR_TABS.map(({ id }) => id)).toEqual(["pilot", "ship", "cargo", "log", "settings"]);
+    expect(HANGAR_TABS.map(({ id }) => id)).toEqual(["pilot", "quests", "ship", "cargo", "log", "settings"]);
     expect(new Set(sections).size).toBe(sections.length);
     expect(new Set(HANGAR_TABS.map(({ accent }) => accent)).size).toBe(HANGAR_TABS.length);
     sections.forEach((section) => expect(placeOf(section).tab).toBe(tabOf(section)));
@@ -36,7 +36,7 @@ describe("the hangar's tabs", () => {
   });
 
   test("a swipe moves one tab along and stops at either end", () => {
-    expect(swipeTab("pilot", 1)).toBe("ship");
+    expect(swipeTab("pilot", 1)).toBe("quests");
     expect(swipeTab("pilot", -1)).toBe("pilot");
     expect(swipeTab("settings", 1)).toBe("settings");
     expect(swipeTab("log", -1)).toBe("cargo");
@@ -48,6 +48,8 @@ describe("the hangar's tabs", () => {
     expect(isHangarSection(3)).toBe(false);
     expect(isHangarSeen({ codex: 2, badges: 0 })).toBe(true);
     expect(isHangarSeen({ codex: "2", badges: 0 })).toBe(false);
+    expect(isHangarSeen({ codex: 2, badges: 0, quests: 3 })).toBe(true);
+    expect(isHangarSeen({ codex: 2, badges: 0, quests: "3" })).toBe(false);
   });
 
   test("a dot marks a plan that can be made, an empty slot with something for it, and finds newer than those seen", () => {

@@ -1,7 +1,7 @@
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { ledgerMemo } from "@/components/Finale/Voyage/economy";
 import {
-  isKeptNotice, isUrgentNotice, MESSAGE_MS, messageMs, QueuedLine, queueLine, replyLine, strandedLine, voyageMessage, voyageNotice, voyagePlace,
+  isKeptNotice, isQuestNotice, isUrgentNotice, MESSAGE_MS, messageMs, QueuedLine, queueLine, replyLine, strandedLine, voyageMessage, voyageNotice, voyagePlace,
 } from "@/components/Finale/Voyage/messages";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { formatClock, formatDistance, telemetryRows } from "@/components/Finale/Voyage/telemetry";
@@ -320,5 +320,8 @@ describe("the voyage's cards", () => {
     expect(isUrgentNotice({ kind: "impactAlert", target: "Earth", diameterKm: 2, seconds: 30 })).toBe(true);
     expect(isKeptNotice({ kind: "captured", isSingularity: true })).toBe(true);
     expect(isUrgentNotice({ kind: "storyOpened", chapter: "ai" })).toBe(false);
+    expect(isQuestNotice({ kind: "missionDone", mission: "landMoon", xp: 60, coin: 40 })).toBe(true);
+    expect(isQuestNotice({ kind: "storyStep", step: "launchMoon", xp: 80, coin: 50 })).toBe(true);
+    expect(isQuestNotice({ kind: "discovered", entry: "worlds:mars" })).toBe(false);
   });
 });

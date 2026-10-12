@@ -214,11 +214,12 @@ export const IconButton = styled.button(() => [
   focusRing("#c4d2ff", 2),
 ]);
 
+// Centred all the way through: a step without a transform would ease towards none and slide the line sideways.
 const fadeLine = keyframes`
   0% { opacity: 0; transform: translate(-50%, 6px); }
   12% { opacity: 1; transform: translate(-50%, 0); }
-  80% { opacity: 1; }
-  100% { opacity: 0; }
+  80% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 0); }
 `;
 
 // The same without the movement: there for its moment, then gone.
@@ -228,11 +229,12 @@ const showLine = keyframes`
 `;
 
 // Each moment of the voyage, said once and gone, for as long as "--message-ms" gives it to be read. Keyed per
-// message, so a new one plays from the start. On a phone it sits under the HUD's bars rather than over them, as wide
+// message, so a new one plays from the start. On a phone it sits under the HUD's bars and the quest followed rather
+// than over them, as wide
 // as its words need but narrow enough to clear the ability bar down the right edge, so a long line of the story
 // reads in a few lines without hiding the hull.
 export const Message = styled.p(() => [
-  tw`absolute left-1/2 top-[232px] md:top-[84px] m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
+  tw`absolute left-1/2 top-[288px] md:top-[84px] m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
   css`
     width: max-content;
     max-width: min(66vw, 520px);
@@ -249,6 +251,45 @@ export const Message = styled.p(() => [
       animation-timing-function: linear;
     }
   `,
+]);
+
+// The quest followed, under the bars in the left column: its objective and how far along it is, and what it belongs
+// to, read through like the rest of the HUD so it never takes the pointer that steers; only its scroll opens the
+// quest log.
+export const Tracker = styled.div(() => [
+  tw`flex flex-row items-center gap-[6px] w-[150px] md:w-[210px] mt-[2px] pl-[8px] py-[4px] pr-[4px]`,
+  css`
+    ${voyagePanel(0.55, 0.25)}
+    border-left: 2px solid #ff9f5a;
+  `,
+]);
+
+export const TrackerText = tw.span`flex flex-col gap-[1px] flex-1 min-w-0`;
+
+export const TrackerName = tw.span`flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white leading-snug`;
+
+export const TrackerCount = tw.span`tabular-nums text-[#ffcf9f] whitespace-nowrap`;
+
+export const TrackerSub = tw.span`text-[10px] md:text-[11px] text-[#aab3c9] truncate`;
+
+export const TrackerOpen = styled.button(() => [
+  tw`flex flex-shrink-0 items-center justify-center w-[34px] h-[34px] p-0 cursor-pointer text-[#ff9f5a] bg-[rgba(10,14,30,0.75)] border-[1px] border-solid
+     border-[#3a4566]`,
+  css`
+    pointer-events: auto;
+  `,
+  focusRing("#c4d2ff", 2),
+]);
+
+// The way from a line about a quest to the quest log: a small chip after its words, the only part of the line that
+// takes a press.
+export const MessageButton = styled.button(() => [
+  tw`inline-flex items-center gap-[4px] ml-[8px] px-[8px] py-[2px] cursor-pointer text-[11px] font-semibold text-[#ffcf9f] bg-transparent border-[1px]
+     border-solid border-[#ff9f5a] align-middle`,
+  css`
+    pointer-events: auto;
+  `,
+  focusRing("#c4d2ff", 2),
 ]);
 
 // Under the HUD's buttons (so they still answer while a card is up), the card's own scrolling area: the whole of it

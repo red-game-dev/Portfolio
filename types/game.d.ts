@@ -214,8 +214,29 @@ interface NamedNote {
 // currency is (opened from the purse), the next step strip, the pilot's two standings, the Style tab, the Loadout's
 // slots ("{n}", "{name}"), and the group that holds what is kept of the pilot.
 export interface VoyageHangarCopy {
-  tabs: Record<"pilot" | "ship" | "cargo" | "log" | "settings", string>;
-  sections: Record<"overview" | "talents" | "sheet" | "loadout" | "forge" | "style" | "hold" | "plans" | "codex" | "badges" | "ledger" | "settings", string>;
+  tabs: Record<"pilot" | "quests" | "ship" | "cargo" | "log" | "settings", string>;
+  sections: Record<"overview" | "quests" | "completed" | "sheet" | "loadout" | "forge" | "style" | "hold" | "plans" | "codex" | "badges" | "ledger" | "settings", string>;
+  // The quest log: the story as the main quest, the missions as side quests, what comes next, the daily voyage, what
+  // is done, and the one quest followed on the HUD ("{name}", "{progress}", "{target}", "{chapter}", "{rank}",
+  // "{count}", "{best}", "{runs}").
+  quests: {
+    main: string;
+    side: string;
+    track: string;
+    tracked: string;
+    tracker: string;
+    story: string;
+    mission: string;
+    next: string;
+    opensAt: string;
+    onBoard: string;
+    chapters: string;
+    missions: string;
+    contracts: string;
+    none: string;
+    open: string;
+    daily: { fly: string; today: string; notYet: string };
+  };
   ready: string;
   currencies: { open: string; RED: string; VOID: string };
   nextStep: { label: string; act: string };
@@ -226,11 +247,10 @@ export interface VoyageHangarCopy {
   data: string;
 }
 
-// The story, told in the Pilot tab and in notices: each chapter's title, what the signal says as it opens and the
+// The story, told in the hangar's Quests tab and in notices: each chapter's title, what the signal says as it opens and the
 // line of mine it decodes to once told, and each step. "{index}" and "{total}"; "{step}", "{xp}" and "{coin}";
 // "{chapter}" and "{line}" for a chapter told; "{chapter}" and "{intro}" as one opens.
 export interface VoyageStoryCopy {
-  title: string;
   chapterOf: string;
   chapters: Record<string, { title: string; intro: string; line: string }>;
   steps: Record<string, string>;
@@ -240,8 +260,6 @@ export interface VoyageStoryCopy {
   chapterDone: string;
   opened: string;
   told: string;
-  // The lines decoded so far, under the chapter under way.
-  decoded: string;
 }
 
 // The career: missions and ranks, the codex of everything found, the daily voyage, its ghost and photo mode.
@@ -255,7 +273,6 @@ export interface VoyageCareerCopy {
   xp: string;
   nextRank: string;
   topRank: string;
-  missionsTitle: string;
   missions: Record<string, string>;
   // "{count}" is replaced.
   contracts: Record<"salvage" | "bounty" | "rescue", string>;
@@ -263,7 +280,6 @@ export interface VoyageCareerCopy {
   progress: string;
   reward: string;
   rewardXp: string;
-  done: string;
   // Notices: "{mission}", "{xp}" and "{coin}"; "{rank}"; "{name}".
   missionDone: string;
   // The same for a mission that pays no coin.

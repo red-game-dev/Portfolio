@@ -6,8 +6,10 @@ import { faRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Dealer } from "@/components/IGaming/LiveTable/Dealer";
+import { CARD_WIDTH, fanStep } from "@/components/IGaming/LiveTable/fan";
 import useLiveTable from "@/components/IGaming/LiveTable/useLiveTable";
 import { Corner, CornerBottom, PlayingCard, suitOf } from "@/components/IGaming/PlayingCard";
+import useSize from "@/hooks/useSize";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { DEFAULT_LIVE_TABLE_CONFIG } from "@/packages/games/live-table";
 import { fill } from "@/packages/text/format";
@@ -62,40 +64,35 @@ const Hint = styled.p(() => [
   `,
 ]);
 
-// The hand's own width, which the fan reads to decide how far each card tucks under the next.
-const HandArea = styled.div(() => [
-  css`
-    container-type: inline-size;
-  `,
-]);
-
-// A fan on a desktop, each card tucked under the next, and tucked further when the table is too narrow for the whole
-// hand (--cards is how many it holds); a row to swipe through on phones and tablets.
+// A fan where the whole hand fits with strips wide enough to read (data-fan, with --step how far each card tucks under
+// the one before), each card tilted by its --tilt; a row to swipe through everywhere else.
 const Hand = styled.ul(() => [
-  tw`list-none m-0 p-0 pt-[18px] pb-[6px] flex flex-row overflow-x-auto lg:overflow-visible lg:justify-center`,
+  tw`list-none m-0 p-0 pt-[18px] pb-[6px] flex flex-row overflow-x-auto`,
   css`
     scrollbar-width: thin;
 
-    ${media.lg} {
-      --step: min(-46px, calc((100cqw - 24px - 112px * var(--cards)) / max(1, var(--cards) - 1)));
-
-      & > li + li {
-        margin-left: var(--step);
-      }
-
-      /* Only a strip of each card shows under the next, so its name wraps inside that strip. */
-      & > li:not(:last-child) [data-name] {
-        max-width: calc(112px + var(--step) - 8px);
-      }
+    & > li {
+      flex-shrink: 0;
+      margin-right: 8px;
     }
-  `,
-]);
 
-const HandSlot = styled.li(({ tilt }: { tilt: number }) => [
-  tw`flex-shrink-0 mr-[8px] lg:mr-0`,
-  css`
-    ${media.lg} {
-      transform: rotate(${tilt}deg) translateY(${Math.abs(tilt) * 1.6}px);
+    &[data-fan] {
+      justify-content: center;
+      overflow: visible;
+    }
+
+    &[data-fan] > li {
+      margin-right: 0;
+      transform: rotate(var(--tilt)) translateY(var(--drop));
+    }
+
+    &[data-fan] > li + li {
+      margin-left: var(--step);
+    }
+
+    /* Only a strip of each card shows under the next, so its name wraps inside that strip. */
+    &[data-fan] > li:not(:last-child) [data-name] {
+      max-width: calc(${CARD_WIDTH}px + var(--step) - 8px);
     }
   `,
 ]);
@@ -181,6 +178,8 @@ export const LiveTable: FC<LiveTableProps> = ({ cards, content }: LiveTableProps
   const boardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handRef = useRef<HTMLUListElement>(null);
+  const handAreaRef = useRef<HTMLDivElement>(null);
+  const { width: handWidth } = useSize(handAreaRef);
   const names = useMemo(() => cards.map((card) => card.name), [cards]);
   const byName = useMemo(() => new Map(cards.map((card, index) => [card.name, { card, index }])), [cards]);
   const { snapshot, play, redeal, isRunning } = useLiveTable(boardRef, canvasRef, names);
@@ -188,6 +187,7 @@ export const LiveTable: FC<LiveTableProps> = ({ cards, content }: LiveTableProps
   const [message, setMessage] = useState("");
   const focusAt = useRef<number | null>(null);
   const isOpen = snapshot.phase === "place" || snapshot.phase === "final";
+  const step = fanStep(handWidth, snapshot.hand.length);
 
   // After a throw, focus moves to the card that took its place, or to the button that picks them back up.
   useEffect(() => {
@@ -255,25 +255,30 @@ export const LiveTable: FC<LiveTableProps> = ({ cards, content }: LiveTableProps
           <Hint>{content.hint}</Hint>
           <Label>{content.handLabel}</Label>
           {snapshot.hand.length > 0 ? (
-            <HandArea>
-              <Hand ref={handRef} data-scroll-x style={{ "--cards": snapshot.hand.length } as CSSProperties}>
+            <div ref={handAreaRef}>
+              <Hand
+                ref={handRef}
+                data-scroll-x
+                data-fan={step === null ? undefined : true}
+                style={step === null ? undefined : ({ "--step": `${step}px` } as CSSProperties)}
+              >
                 {snapshot.hand.map((name, position) => {
                   const entry = byName.get(name);
                   const suit = suitOf(entry?.index ?? 0);
                   const tilt = (position - (snapshot.hand.length - 1) / 2) * 2.4;
 
                   return (
-                    <HandSlot key={name} tilt={tilt}>
+                    <li key={name} style={{ "--tilt": `${tilt}deg`, "--drop": `${Math.abs(tilt) * 1.6}px` } as CSSProperties}>
                       <HandCard type="button" isLocked={!isOpen} aria-disabled={!isOpen} onClick={(event) => throwCard(event, name, position)}>
                         <Corner isRed={suit.isRed} aria-hidden="true">{suit.glyph}</Corner>
                         <HandName data-name>{name}</HandName>
                         <CornerBottom isRed={suit.isRed} aria-hidden="true">{suit.glyph}</CornerBottom>
                       </HandCard>
-                    </HandSlot>
+                    </li>
                   );
                 })}
               </Hand>
-            </HandArea>
+            </div>
           ) : (
             <Redeal type="button" data-redeal onClick={redeal}>
               <FontAwesomeIcon icon={faRotateLeft} aria-hidden="true" />

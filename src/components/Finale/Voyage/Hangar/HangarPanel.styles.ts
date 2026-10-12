@@ -89,11 +89,19 @@ export const NextStepText = tw.span`flex-1 min-w-0 text-[#f4e7c2]`;
 
 export const NextStepLabel = tw.span`block text-[11px] font-semibold text-[#ffd76a]`;
 
-// The six tabs, each an icon over its name, side by side across the drawer.
+// The six tabs, each an icon over its name, in one row across the drawer that never wraps: where they do not fit (a
+// narrow phone, larger text) the row scrolls sideways under a finger, snapping to a tab.
 export const TabBar = styled.div(() => [
-  tw`grid grid-cols-6`,
+  tw`flex flex-row flex-nowrap overflow-x-auto`,
   css`
     border-bottom: 1px solid ${RULE};
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   `,
 ]);
 
@@ -101,6 +109,9 @@ export const TabButton = styled.button(({ isOn, accent }: { isOn: boolean; accen
   tw`relative flex flex-col items-center justify-center gap-[4px] min-h-[56px] px-[2px] cursor-pointer bg-transparent border-0 text-[11px] md:text-xs
      font-semibold`,
   css`
+    flex: 1 0 64px;
+    scroll-snap-align: start;
+    white-space: nowrap;
     color: ${isOn ? accent : "#9aa3bb"};
     transition: color 0.2s ease;
 

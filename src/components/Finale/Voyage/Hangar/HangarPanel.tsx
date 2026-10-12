@@ -143,6 +143,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
   const mainTabs = useTabs({ count: HANGAR_TABS.length, active: tabIndex, onSelect: (next) => openTab(HANGAR_TABS[next].id) });
   const sectionTabs = useTabs({ count: tabSpec.sections.length, active: sectionIndex, onSelect: (next) => open(tabSpec.sections[next]) });
   const sectionList = sectionTabs.listProps.ref;
+  const mainList = mainTabs.listProps.ref;
   const swipe = useSwipe((direction) => openTab(swipeTab(tab, direction)), SWIPE_PX);
 
   useEffect(() => {
@@ -164,9 +165,10 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
       bodyRef.current.scrollTop = 0;
     }
 
-    sectionList.current?.querySelector<HTMLElement>("[aria-selected=true]")?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    [sectionList.current, mainList.current].forEach((list) =>
+      list?.querySelector<HTMLElement>("[aria-selected=true]")?.scrollIntoView?.({ block: "nearest", inline: "nearest" }));
     writeStored(PLACE_KEY, section);
-  }, [section, sectionList]);
+  }, [section, sectionList, mainList]);
 
   // The codex and the badges, once looked at, are seen as they stand; and nothing counts as seen that is not there.
   useEffect(() => {

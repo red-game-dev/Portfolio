@@ -787,7 +787,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </SurfaceCard>
       )}
       {snapshot && status === "flying" && !isHangarOpen && !isHudAside && (
-        <TelemetryPanel aria-label={content.telemetry.title}>
+        <TelemetryPanel aria-label={content.telemetry.title} isYielding={Boolean(snapshot.descent || snapshot.surface)}>
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>
             {telemetryRows(content, snapshot).map((row) => (

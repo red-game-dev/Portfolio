@@ -90,12 +90,19 @@ export const BarFill = styled.div(({ colour }: { colour: string }) => [
   `,
 ]);
 
-// Where the ship stands on a world: in the corner the radar keeps in flight.
+// Where the ship stands on a world: in the corner the radar keeps in flight; on a phone on its side, in the bottom
+// right corner instead (where the telemetry steps aside for it), so it stays clear of the column of bars on the left.
 export const SurfaceCard = styled.section(() => [
   tw`absolute left-[10px] bottom-[10px] md:left-[18px] md:bottom-[18px] m-0 p-[8px] md:p-[12px] flex flex-col gap-[2px] pointer-events-none`,
   css`
     max-width: min(44vw, 300px);
     ${voyagePanel()}
+
+    ${media.shortLandscape} {
+      left: auto;
+      right: 10px;
+      max-width: min(30vw, 220px);
+    }
   `,
 ]);
 
@@ -108,7 +115,8 @@ export const SurfacePhase = tw.p`m-0 my-[2px] text-xs md:text-sm font-semibold t
 
 export const SurfaceHint = tw.p`m-0 mt-[4px] text-[11px] md:text-xs text-[#9aa3bb]`;
 
-export const TelemetryPanel = styled.section(() => [
+// The live readings in the bottom right; on a phone on its side it steps aside while a world's card has the corner.
+export const TelemetryPanel = styled.section(({ isYielding = false }: { isYielding?: boolean }) => [
   tw`absolute right-[10px] bottom-[10px] md:right-[18px] md:bottom-[18px] p-[8px] md:p-[12px] pointer-events-none`,
   css`
     min-width: 170px;
@@ -117,6 +125,12 @@ export const TelemetryPanel = styled.section(() => [
 
     ${media.md} {
       min-width: 200px;
+    }
+
+    ${media.shortLandscape} {
+      min-width: 0;
+      max-width: min(30vw, 220px);
+      ${isYielding ? "display: none;" : ""}
     }
   `,
 ]);
@@ -191,6 +205,13 @@ export const Frames = styled.div(() => [
 
     ${media.md} {
       width: min(88vw, 420px);
+    }
+
+    /* On a phone on its side: just above the ability bar along the bottom, narrow enough to clear the radar and the
+       corner cards, below the ship. */
+    ${media.shortLandscape} {
+      bottom: 56px;
+      width: min(44vw, 300px);
     }
   `,
 ]);
@@ -337,9 +358,9 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       }
     }
 
-    /* Where the screen is short enough for the ability bar down the right to reach the top (a phone on its side, the
-       smallest phones), the strip stops short of it. */
-    @media (max-width: 767px) and (max-height: 540px) {
+    /* Where the screen is short enough for the ability bar down the right to reach the top (the smallest phones held
+       upright), the strip stops short of it; on its side the bar runs along the bottom, so the strip keeps its width. */
+    @media (max-width: 767px) and (max-height: 540px) and (orientation: portrait) {
       right: 72px;
     }
 

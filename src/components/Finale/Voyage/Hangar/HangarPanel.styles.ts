@@ -79,6 +79,7 @@ export const PurseNoteTitle = tw.span`font-semibold text-white`;
 export const NextStep = styled.div(() => [
   tw`flex flex-row items-center gap-[10px] px-[16px] py-[8px] text-xs md:text-sm`,
   css`
+    --tab-accent: #ffd76a;
     background: rgba(255, 215, 106, 0.07);
     border-top: 1px solid rgba(255, 215, 106, 0.18);
     border-bottom: 1px solid rgba(255, 215, 106, 0.18);
@@ -116,7 +117,7 @@ export const TabButton = styled.button(({ isOn, accent }: { isOn: boolean; accen
   tw`relative flex flex-col items-center justify-center gap-[4px] min-h-[56px] px-[2px] cursor-pointer bg-transparent border-0 text-[11px] md:text-xs
      font-semibold`,
   css`
-    flex: 1 0 64px;
+    flex: 1 0 60px;
     scroll-snap-align: start;
     white-space: nowrap;
     color: ${isOn ? accent : "#9aa3bb"};

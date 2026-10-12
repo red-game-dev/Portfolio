@@ -6,6 +6,8 @@ interface TabsOptions {
   count: number;
   // The tab open at first.
   initial?: number;
+  // The tab open, where its owner keeps it (the row then follows it, and `onSelect` is how it changes).
+  active?: number;
   // Called before the switch with the tab being opened and the one being left, for direction aware effects.
   onSelect?: (next: number, previous: number) => void;
 }
@@ -14,9 +16,10 @@ interface TabsOptions {
 // a tab opens as it is focused, and each tab and its panel wired together by id. Spread `listProps` on the
 // tablist, `tabProps(index)` on each tab and `panelProps(index)` on each panel. Rendering every panel and
 // letting `hidden` hide the others keeps all of them in the server HTML; a showcase that only ever mounts
-// the open one passes `panelProps(active)`.
-const useTabs = ({ count, initial = 0, onSelect }: TabsOptions) => {
-  const [active, setActive] = useState(initial);
+// the open one passes `panelProps(active)`. A row whose open tab is kept by its owner passes `active`.
+const useTabs = ({ count, initial = 0, active: owned, onSelect }: TabsOptions) => {
+  const [own, setActive] = useState(initial);
+  const active = owned ?? own;
   const listRef = useRef<HTMLDivElement>(null);
   const baseId = useId();
   const panelId = (index: number) => `${baseId}-panel-${index}`;

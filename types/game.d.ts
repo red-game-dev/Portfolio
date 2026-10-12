@@ -210,6 +210,22 @@ interface NamedNote {
   note: string;
 }
 
+// The hangar's frame: its five tabs and their sections, what is said of a tab with something to do, what each
+// currency is (opened from the purse), the next step strip, the pilot's two standings, the Style tab, the Loadout's
+// slots ("{n}", "{name}"), and the group that holds what is kept of the pilot.
+export interface VoyageHangarCopy {
+  tabs: Record<"pilot" | "ship" | "cargo" | "log" | "settings", string>;
+  sections: Record<"overview" | "talents" | "sheet" | "loadout" | "forge" | "style" | "hold" | "plans" | "codex" | "badges" | "ledger" | "settings", string>;
+  ready: string;
+  currencies: { open: string; RED: string; VOID: string };
+  nextStep: { label: string; act: string };
+  pilot: { rank: string; rankNote: string; level: string; levelNote: string };
+  style: { intro: string; trying: string; wearing: string; locked: string };
+  loadout: { pick: string; chosen: string; chosenEmpty: string; empty: string; remove: string; weapons: string };
+  details: { unlocked: string; close: string };
+  data: string;
+}
+
 // The story, told in the Pilot tab and in notices: each chapter's title, what the signal says as it opens and the
 // line of mine it decodes to once told, and each step. "{index}" and "{total}"; "{step}", "{xp}" and "{coin}";
 // "{chapter}" and "{line}" for a chapter told; "{chapter}" and "{intro}" as one opens.
@@ -647,6 +663,7 @@ export interface FinaleVoyage {
   newBest: string;
   // "{coin}" is replaced with the Red Coin a run's points paid.
   pay: string;
+  hangar: VoyageHangarCopy;
   economy: VoyageEconomyCopy;
   career: VoyageCareerCopy;
   boosts: VoyageBoostCopy;

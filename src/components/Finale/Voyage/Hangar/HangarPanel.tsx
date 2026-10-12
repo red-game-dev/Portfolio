@@ -1,70 +1,84 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { CSSProperties, FC, useEffect, useId, useRef, useState } from "react";
 
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import tw from "twin.macro";
+
+import { faBook, faBoxOpen, faGear, faRocket, faUserAstronaut, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { slotName } from "@/components/Finale/Voyage/abilities";
-import { slotIcon } from "@/components/Finale/Voyage/AbilityBar/icons";
-import { codexName, codexNotes, missionName, rankName } from "@/components/Finale/Voyage/career";
-import { blueprintName, itemName, ledgerMemo, shipName } from "@/components/Finale/Voyage/economy";
-import { pieceName } from "@/components/Finale/Voyage/gear";
+import { useSwipe } from "@/components/Carousel/hooks/useSwipe";
+import { suggestionText } from "@/components/Finale/Voyage/economy";
 import { Badges } from "@/components/Finale/Voyage/Hangar/Badges";
+import { Hold, Plans } from "@/components/Finale/Voyage/Hangar/Cargo";
+import { Codex } from "@/components/Finale/Voyage/Hangar/Codex";
 import { Forge } from "@/components/Finale/Voyage/Hangar/Forge";
 import {
-  Actions,
-  Amount,
-  Block,
   Body,
-  Entries,
-  Entry,
-  Footer,
+  Dot,
   Header,
   Heading,
-  Item,
-  ItemCount,
-  ItemName,
-  Items,
-  ItemTop,
-  LoadoutSlot,
-  LoadoutSlots,
-  Meter,
-  Need,
-  Needs,
+  NextStep,
+  NextStepLabel,
+  NextStepText,
   Note,
   Panel,
   Purse,
-  RARITY_COLOUR,
-  Shards,
-  ShipName,
+  PurseButton,
+  PurseNote,
+  PurseNoteTitle,
+  SectionBar,
   SmallButton,
-  StatRow,
-  StatName,
-  StatNext,
-  Stats,
-  StatValue,
-  Subheading,
+  TabBar,
+  TabButton,
   TabPanel,
-  Tabs,
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
+import { Ledger, YourData } from "@/components/Finale/Voyage/Hangar/Ledger";
+import { Loadout } from "@/components/Finale/Voyage/Hangar/Loadout";
+import { Pilot } from "@/components/Finale/Voyage/Hangar/Pilot";
 import { PilotTransfer as PilotTransferPanel } from "@/components/Finale/Voyage/Hangar/PilotTransfer";
-import { ShipSheet } from "@/components/Finale/Voyage/Hangar/ShipSheet";
-import { Story } from "@/components/Finale/Voyage/Hangar/Story";
+import { Sheet } from "@/components/Finale/Voyage/Hangar/Sheet";
 import { Style } from "@/components/Finale/Voyage/Hangar/Style";
+import {
+  HANGAR_TABS,
+  HangarSectionId,
+  HangarSeen,
+  HangarTabId,
+  isHangarSeen,
+  isHangarSection,
+  sectionDots,
+  seenNow,
+  swipeTab,
+  tabOf,
+} from "@/components/Finale/Voyage/Hangar/tabs";
 import { Talents } from "@/components/Finale/Voyage/Hangar/Talents";
 import type { PilotTransfer } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
-import { CurrencyIcon, fillNodes, Money, PurseAmounts } from "@/components/Finale/Voyage/Money";
-import { BarFill, IconButton } from "@/components/Finale/Voyage/VoyageDialog.styles";
+import { Money } from "@/components/Finale/Voyage/Money";
+import { IconButton } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
 import { Tab, TabList } from "@/components/Tabs";
 import useTabs from "@/hooks/useTabs";
-import type { ArmoryView, BarSlot, CareerView, CodexCategory, EconomyView, ProgressView, ShipStats, VoyageAction } from "@/packages/games/voyage";
-import { fill, formatNumber } from "@/packages/text/format";
+import { readStored, writeStored } from "@/packages/browser/storage";
+import type { ArmoryView, CareerView, CurrencyCode, EconomyView, ProgressView, VoyageAction } from "@/packages/games/voyage";
+import { fill } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 import { PreferencesContent } from "@/types/preferences";
 
-// A tab the hangar can be opened on, other than its first.
+// A place the hangar can be opened on from elsewhere in the voyage.
 export type HangarTab = "loadout" | "ship" | "forge" | "badges";
+
+const OPENS_ON: Record<HangarTab, HangarSectionId> = { loadout: "loadout", ship: "sheet", forge: "forge", badges: "badges" };
+
+// Where the hangar was last left, and the codex finds and badges already seen there: conveniences of this browser.
+const PLACE_KEY = "redgame.hangarPlace";
+const SEEN_KEY = "redgame.hangarSeen";
+
+const TAB_ICONS = { pilot: faUserAstronaut, ship: faRocket, cargo: faBoxOpen, log: faBook, settings: faGear };
+const CURRENCY_COLOURS: Record<CurrencyCode, string> = { RED: "#ffd76a", VOID: "#c58bff" };
+// How far a finger must travel sideways for a swipe to change tabs (px).
+const SWIPE_PX = 60;
+
+const Hidden = tw.span`sr-only`;
+const MainPanel = tw.div`flex flex-col flex-1 min-h-0`;
 
 interface HangarPanelProps {
   content: FinaleVoyage;
@@ -73,484 +87,221 @@ interface HangarPanelProps {
   career: CareerView | null;
   gear: ArmoryView | null;
   progress: ProgressView | null;
-  // Draws the ship as it looks now, for its sheet.
-  drawShip: (context: CanvasRenderingContext2D, width: number, height: number) => void;
+  // Draws the ship as it looks now, or in a paint being tried on.
+  drawShip: (context: CanvasRenderingContext2D, width: number, height: number, paint?: string) => void;
   opensOn?: HangarTab | null;
   isFlying: boolean;
   // Moving the pilot to another device, from the Settings tab.
   transfer: PilotTransfer;
   onAct: (action: VoyageAction) => boolean;
+  // Does the hangar's one suggestion.
+  onFollow: () => void;
   onClose: () => void;
 }
 
-const CODEX_ORDER: readonly CodexCategory[] = ["worlds", "kinds", "universes", "galaxies", "stars", "phenomena", "life", "wrecks", "things", "boosts"];
-
-// Each tab's place in the row.
-const TAB = { pilot: 0, ship: 1, loadout: 2, forge: 3, hold: 4, plans: 5, ledger: 6, codex: 7, badges: 8, style: 9, settings: 10 };
-// What a thing from the hold looks like in the Loadout, as on the bar.
-const ITEM_COLOUR = "#c9cfdf";
-
-const STAT_KEYS: ReadonlyArray<keyof ShipStats> = ["hull", "shields", "fuel", "thrust", "cargo", "plating", "pressure", "guns", "weapon"];
-
-// The hangar: the ship, what it can do and what the next level needs (upgraded in one click); the Loadout, which
-// puts boosts and things from the hold on the ability bar; the hold, with
-// each thing's use and worth; the plans, made from the hold; and the ledger of every coin earned and spent. Its
-// own records, the Void Shard trade and the reset sit beside them. Opening it focuses its heading.
-export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, gear, progress, drawShip, opensOn = null, isFlying, transfer, onAct, onClose }:
-  HangarPanelProps) => {
+// The hangar, as a flight deck: the purse (each currency a button that says what it is), the one thing most worth
+// doing now a tap away, and five tabs (the pilot, the ship, the cargo, the log, the settings), each a row of
+// sections. A tab with something to do carries a dot. It opens where it was last left (or where the voyage sends
+// it), a sideways swipe moves between tabs, and opening it focuses its heading.
+export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, gear, progress, drawShip, opensOn = null, isFlying, transfer, onAct,
+  onFollow, onClose }: HangarPanelProps) => {
   const copy = content.economy;
+  const words = content.hangar;
+  const views = { economy, career, gear, progress };
+  const baseId = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const careerCopy = content.career;
-  const loadout = content.boosts.loadout;
-  const gearTabs = content.gear.tabs;
-  const tabs = [careerCopy.tabs.pilot, copy.tabs.ship, loadout.tab, gearTabs.forge, copy.tabs.hold, copy.tabs.plans, copy.tabs.ledger, careerCopy.tabs.codex,
-    gearTabs.badges,
-    gearTabs.style, settings.title];
-  const { active, listProps, tabProps, panelProps } = useTabs({ count: tabs.length, initial: opensOn ? TAB[opensOn] : 0 });
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const found = seenNow(views);
+  const [section, setSection] = useState<HangarSectionId>(() => (opensOn ? OPENS_ON[opensOn] : readStored(PLACE_KEY, isHangarSection) ?? "overview"));
+  const [lastSections, setLastSections] = useState<Partial<Record<HangarTabId, HangarSectionId>>>(() => ({ [tabOf(section)]: section }));
+  // What was seen before, never more than there is now (after a reset, or another device's pilot taken on); the
+  // first time, everything found so far.
+  const [seen, setSeen] = useState<HangarSeen>(() => {
+    const stored = readStored(SEEN_KEY, isHangarSeen);
+
+    return stored ? { codex: Math.min(stored.codex, found.codex), badges: Math.min(stored.badges, found.badges) } : found;
+  });
+  const [purseNote, setPurseNote] = useState<CurrencyCode | null>(null);
   const voyageSettings = useVoyageSettings();
-  const { next, stats } = economy;
+  const tab = tabOf(section);
+  const tabIndex = HANGAR_TABS.findIndex(({ id }) => id === tab);
+  const tabSpec = HANGAR_TABS[tabIndex] ?? HANGAR_TABS[0];
+  const sectionIndex = Math.max(0, tabSpec.sections.indexOf(section));
+  const dots = sectionDots(views, seen);
+
+  const open = (next: HangarSectionId) => {
+    setSection(next);
+    setLastSections((now) => ({ ...now, [tabOf(next)]: next }));
+  };
+  const openTab = (next: HangarTabId) => open(lastSections[next] ?? HANGAR_TABS.find(({ id }) => id === next)?.sections[0] ?? "overview");
+  const mainTabs = useTabs({ count: HANGAR_TABS.length, active: tabIndex, onSelect: (next) => openTab(HANGAR_TABS[next].id) });
+  const sectionTabs = useTabs({ count: tabSpec.sections.length, active: sectionIndex, onSelect: (next) => open(tabSpec.sections[next]) });
+  const sectionList = sectionTabs.listProps.ref;
+  const swipe = useSwipe((direction) => openTab(swipeTab(tab, direction)), SWIPE_PX);
 
   useEffect(() => {
     headingRef.current?.focus();
   }, []);
 
-  const statText = (key: keyof ShipStats, value: ShipStats[keyof ShipStats]) => {
-    if (key === "weapon") {
-      return copy.weapons[value === "laser" ? "laser" : "cannon"];
+  // The voyage asks for a place while the hangar is open (an empty slot of the bar pressed, say).
+  useEffect(() => {
+    if (opensOn) {
+      open(OPENS_ON[opensOn]);
+    }
+    // Only a new request moves the hangar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opensOn]);
+
+  // A new section starts at its top, with its segment in view, and is where the hangar opens next time.
+  useEffect(() => {
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = 0;
     }
 
-    const text = typeof value === "number" ? formatNumber(value) : String(value);
+    sectionList.current?.querySelector<HTMLElement>("[aria-selected=true]")?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    writeStored(PLACE_KEY, section);
+  }, [section, sectionList]);
 
-    return key === "plating" ? fill(copy.units.celsius, { value: text }) : key === "pressure" ? fill(copy.units.bar, { value: text }) :
-      key === "thrust" ? fill(copy.units.times, { value: text }) : text;
-  };
-  const have = (id: string) => economy.cargo.find((row) => row.id === id)?.count ?? 0;
-  // A slot button for something that can go on the bar: pressed where it already sits, which empties that slot.
-  const slotButtons = (slot: BarSlot, name: string) => (
-    <Actions role="group" aria-label={name}>
-      {economy.bar.map((row, index) => {
-        const isThere = row.slot?.kind === slot.kind && row.slot.id === slot.id;
+  // The codex and the badges, once looked at, are seen as they stand; and nothing counts as seen that is not there.
+  useEffect(() => {
+    const next = {
+      codex: section === "codex" ? found.codex : Math.min(seen.codex, found.codex),
+      badges: section === "badges" ? found.badges : Math.min(seen.badges, found.badges),
+    };
 
+    if (next.codex !== seen.codex || next.badges !== seen.badges) {
+      setSeen(next);
+    }
+  }, [section, found.codex, found.badges, seen]);
+
+  // Kept from the first open, so what is found while the hangar is closed is marked the next time.
+  useEffect(() => {
+    writeStored(SEEN_KEY, seen);
+  }, [seen]);
+
+  const body = (() => {
+    switch (section) {
+      case "overview":
+        return <Pilot content={content} career={career} progress={progress} />;
+      case "talents":
+        return progress && <Talents content={content} progress={progress} onAct={onAct} />;
+      case "sheet":
+        return <Sheet content={content} economy={economy} gear={gear} progress={progress} drawShip={drawShip} onAct={onAct} />;
+      case "loadout":
+        return <Loadout content={content} economy={economy} gear={gear} onAct={onAct} />;
+      case "forge":
+        return gear && <Forge content={content} gear={gear} onAct={onAct} />;
+      case "style":
+        return progress && <Style content={content} progress={progress} drawShip={drawShip} onAct={onAct} />;
+      case "hold":
+        return <Hold content={content} economy={economy} isFlying={isFlying} onAct={onAct} />;
+      case "plans":
+        return <Plans content={content} economy={economy} onAct={onAct} />;
+      case "codex":
+        return career && <Codex content={content} career={career} />;
+      case "badges":
+        return progress && <Badges content={content} progress={progress} />;
+      case "ledger":
+        return <Ledger content={content} economy={economy} />;
+      default:
         return (
-          <SmallButton
-            key={index}
-            type="button"
-            isPrimary={isThere}
-            aria-pressed={isThere}
-            aria-label={fill(loadout.putLabel, { name, n: index + 1 })}
-            onClick={() => onAct({ kind: "setSlot", index, slot: isThere ? null : slot })}
-          >
-            {fill(loadout.put, { n: index + 1 })}
-          </SmallButton>
+          <>
+            <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
+            <PilotTransferPanel copy={content.transfer} transfer={transfer} isFlying={isFlying} isShown />
+            <YourData content={content} isFlying={isFlying} onAct={onAct} />
+          </>
         );
-      })}
-    </Actions>
-  );
-  const records: Array<[string, number]> = [
-    [copy.records.runs, economy.records.runs],
-    [copy.records.best, economy.records.bestScore],
-    [copy.records.universes, economy.records.universes],
-    [copy.records.bosses, economy.records.bosses],
-    [copy.records.rescues, economy.records.rescues],
-    [copy.records.salvaged, economy.records.salvaged],
-  ];
+    }
+  })();
 
   return (
-    <Panel aria-labelledby="hangar-heading">
+    <Panel aria-labelledby="hangar-heading" style={{ "--tab-accent": tabSpec.accent } as CSSProperties}>
       <Header>
         <Heading id="hangar-heading" ref={headingRef} tabIndex={-1}>{copy.hangar}</Heading>
         <Purse>
-          <Money copy={copy} amount={economy.purse.RED} />
-          <Shards><Money copy={copy} amount={economy.purse.VOID} code="VOID" /></Shards>
+          {(["RED", "VOID"] as const).map((code) => (
+            <PurseButton
+              key={code}
+              type="button"
+              colour={CURRENCY_COLOURS[code]}
+              isOpen={purseNote === code}
+              aria-expanded={purseNote === code}
+              aria-controls={`${baseId}-purse`}
+              title={fill(words.currencies.open, { name: copy.currencies[code] })}
+              onClick={() => setPurseNote(purseNote === code ? null : code)}
+            >
+              <Money copy={copy} amount={economy.purse[code]} code={code} />
+            </PurseButton>
+          ))}
         </Purse>
         <IconButton type="button" onClick={onClose} aria-label={copy.closeHangar}>
           <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
         </IconButton>
       </Header>
-      <Tabs data-scroll-x>
-        <TabList {...listProps} aria-label={copy.hangar}>
-          {tabs.map((label, index) => (
-            <Tab key={label} {...tabProps(index)} isOn={index === active}>{label}</Tab>
-          ))}
-        </TabList>
-      </Tabs>
-      <Body>
-        <TabPanel {...panelProps(TAB.pilot)}>
-          {career && (
-            <>
-              <div>
-                <ShipName>{rankName(content, career.rankId)}</ShipName>
-                <Note>
-                  {fill(careerCopy.xp, { xp: formatNumber(career.xp) })}
-                  {", "}
-                  {career.nextRank
-                    ? fill(careerCopy.nextRank, { xp: formatNumber(career.nextRank.xp - career.xp), rank: rankName(content, career.nextRank.id) })
-                    : careerCopy.topRank}
-                </Note>
-                <Meter
-                  role="meter"
-                  aria-label={rankName(content, career.rankId)}
-                  aria-valuemin={career.rankFloor}
-                  aria-valuemax={career.nextRank?.xp ?? career.xp}
-                  aria-valuenow={career.xp}
-                >
-                  <BarFill
-                    colour="#ffd76a"
-                    style={{ transform: `scaleX(${career.nextRank ? (career.xp - career.rankFloor) / Math.max(1, career.nextRank.xp - career.rankFloor) : 1})` }}
-                  />
-                </Meter>
-              </div>
-              <Story content={content} story={career.story} />
-              <Subheading>{careerCopy.missionsTitle}</Subheading>
-              <Items>
-                {career.missions.map(({ mission, progress: done, target }) => (
-                  <Item key={mission.id}>
-                    <ItemTop>
-                      <ItemName colour="#ffffff">{missionName(content, mission.id)}</ItemName>
-                      <ItemCount>{fill(careerCopy.progress, { progress: done, target })}</ItemCount>
-                    </ItemTop>
-                    <Meter role="meter" aria-label={missionName(content, mission.id)} aria-valuemin={0} aria-valuemax={target} aria-valuenow={done}>
-                      <BarFill colour="#7dffcf" style={{ transform: `scaleX(${target > 0 ? done / target : 0})` }} />
-                    </Meter>
-                    <Note>
-                      {mission.coin > 0
-                        ? fillNodes(careerCopy.reward, { xp: mission.xp, coin: <Money copy={copy} amount={mission.coin} isSigned /> })
-                        : fill(careerCopy.rewardXp, { xp: mission.xp })}
-                    </Note>
-                  </Item>
-                ))}
-              </Items>
-              <Note>{fill(careerCopy.done, { count: career.done })}</Note>
-            </>
-          )}
-          {progress && <Talents content={content} progress={progress} onAct={onAct} />}
-        </TabPanel>
-        <TabPanel {...panelProps(TAB.ship)}>
-          {gear && <ShipSheet content={content} economy={economy} gear={gear} progress={progress} drawShip={drawShip} onAct={onAct} />}
-          <div>
-            {!gear && <ShipName>{shipName(copy, economy.tier, economy.mark)}</ShipName>}
-            <Note>{copy.tierNotes[economy.tier]}</Note>
-          </div>
-          <Stats>
-            {STAT_KEYS.map((key) => (
-              <StatRow key={key}>
-                <StatName>{copy.stats[key]}</StatName>
-                <StatValue>{statText(key, stats[key])}</StatValue>
-                <StatNext>{next && next.stats[key] !== stats[key] ? statText(key, next.stats[key]) : ""}</StatNext>
-              </StatRow>
-            ))}
-          </Stats>
-          {next ? (
-            <Block aria-labelledby="hangar-next">
-              <Subheading id="hangar-next">{fill(copy.next, { ship: shipName(copy, next.tier, next.mark) })}</Subheading>
-              {next.tier !== economy.tier && <Note>{copy.tierNotes[next.tier]}</Note>}
-              <Needs aria-label={copy.needs}>
-                <Need isMet={next.shortfall.coin.RED === 0}>
-                  <span>
-                    <CurrencyIcon code="RED" label={copy.currencies.RED} isDecorative />
-                    {` ${copy.currencies.RED}`}
-                  </span>
-                  <span>{fill(copy.have, { have: economy.purse.RED, need: next.cost.coin.RED })}</span>
-                </Need>
-                {next.cost.coin.VOID > 0 && (
-                  <Need isMet={next.shortfall.coin.VOID === 0}>
-                    <span>
-                      <CurrencyIcon code="VOID" label={copy.currencies.VOID} isDecorative />
-                      {` ${copy.currencies.VOID}`}
-                    </span>
-                    <span>{fill(copy.have, { have: economy.purse.VOID, need: next.cost.coin.VOID })}</span>
-                  </Need>
-                )}
-                {next.cost.items.map(({ id, count }) => (
-                  <Need key={id} isMet={have(id) >= count}>
-                    <span>{itemName(copy, id)}</span>
-                    <span>{fill(copy.have, { have: Math.min(have(id), count), need: count })}</span>
-                  </Need>
-                ))}
-                {next.cost.blueprint && (
-                  <Need isMet={next.shortfall.blueprint === null}>
-                    <span>{fill(copy.blueprint, { ship: copy.tiers[next.tier] })}</span>
-                    <span>{fill(copy.have, { have: next.shortfall.blueprint === null ? 1 : 0, need: 1 })}</span>
-                  </Need>
-                )}
-              </Needs>
-              <Actions>
-                <SmallButton type="button" isPrimary disabled={!next.shortfall.isReady} onClick={() => onAct({ kind: "upgrade" })}>
-                  {fill(copy.upgrade, { ship: shipName(copy, next.tier, next.mark) })}
-                </SmallButton>
-              </Actions>
-            </Block>
-          ) : (
-            <Note>{copy.top}</Note>
-          )}
-          <Block aria-labelledby="hangar-records">
-            <Subheading id="hangar-records">{copy.records.title}</Subheading>
-            <Stats>
-              {records.map(([label, value]) => (
-                <StatRow key={label}>
-                  <StatName>{label}</StatName>
-                  <StatValue>{formatNumber(value)}</StatValue>
-                  <StatNext />
-                </StatRow>
-              ))}
-            </Stats>
-          </Block>
-          <Actions>
-            <SmallButton type="button" disabled={economy.purse.VOID < 1} onClick={() => onAct({ kind: "trade", direction: "sell" })}>
-              {fillNodes(copy.trade.sell, { price: <Money copy={copy} amount={economy.prices.sell} /> })}
-            </SmallButton>
-            <SmallButton type="button" disabled={economy.purse.RED < economy.prices.buy} onClick={() => onAct({ kind: "trade", direction: "buy" })}>
-              {fillNodes(copy.trade.buy, { price: <Money copy={copy} amount={economy.prices.buy} /> })}
-            </SmallButton>
-          </Actions>
-        </TabPanel>
-        <TabPanel {...panelProps(TAB.loadout)}>
-          <Note>{loadout.note}</Note>
-          <Block aria-labelledby="loadout-slots">
-            <Subheading id="loadout-slots">{loadout.slots}</Subheading>
-            <LoadoutSlots>
-              {economy.bar.map((row, index) => (
-                <LoadoutSlot key={row.slot ? `${row.slot.kind}:${row.slot.id}` : `empty:${index}`} colour={row.colour ?? ITEM_COLOUR}>
-                  <span aria-hidden="true">{index + 1}</span>
-                  {row.slot ? (
+      <div id={`${baseId}-purse`} aria-live="polite">
+        {purseNote && (
+          <PurseNote>
+            <PurseNoteTitle>{copy.currencies[purseNote]}</PurseNoteTitle>
+            {words.currencies[purseNote]}
+          </PurseNote>
+        )}
+      </div>
+      {economy.suggestion && (
+        <NextStep>
+          <NextStepText>
+            <NextStepLabel>{words.nextStep.label}</NextStepLabel>
+            {suggestionText(copy, economy.suggestion)}
+          </NextStepText>
+          <SmallButton type="button" isPrimary onClick={onFollow}>{words.nextStep.act}</SmallButton>
+        </NextStep>
+      )}
+      <TabBar {...mainTabs.listProps} aria-label={copy.hangar}>
+        {HANGAR_TABS.map(({ id, sections, accent }, index) => {
+          const hasDot = sections.some((entry) => dots.has(entry));
+
+          return (
+            <TabButton key={id} {...mainTabs.tabProps(index)} isOn={index === tabIndex} accent={accent}>
+              <FontAwesomeIcon icon={TAB_ICONS[id]} aria-hidden="true" />
+              {words.tabs[id]}
+              {hasDot && (
+                <>
+                  <Dot colour={accent} aria-hidden="true" />
+                  <Hidden>{`, ${words.ready}`}</Hidden>
+                </>
+              )}
+            </TabButton>
+          );
+        })}
+      </TabBar>
+      <MainPanel {...mainTabs.panelProps(tabIndex)}>
+        {tabSpec.sections.length > 1 && (
+          <SectionBar data-scroll-x>
+            <TabList {...sectionTabs.listProps} aria-label={words.tabs[tab]}>
+              {tabSpec.sections.map((id, index) => (
+                <Tab key={id} {...sectionTabs.tabProps(index)} isOn={index === sectionIndex}>
+                  {words.sections[id]}
+                  {dots.has(id) && (
                     <>
-                      <FontAwesomeIcon icon={slotIcon(row.slot)} aria-hidden="true" />
-                      <span>{`${slotName(content, row.slot, row.base)}, x${row.count}`}</span>
-                      <SmallButton type="button" onClick={() => onAct({ kind: "setSlot", index, slot: null })}>
-                        {fill(loadout.clear, { n: index + 1 })}
-                      </SmallButton>
+                      <Dot colour={tabSpec.accent} isCorner aria-hidden="true" />
+                      <Hidden>{`, ${words.ready}`}</Hidden>
                     </>
-                  ) : (
-                    <span>{fill(content.boosts.bar.empty, { n: index + 1 })}</span>
                   )}
-                </LoadoutSlot>
+                </Tab>
               ))}
-            </LoadoutSlots>
-          </Block>
-          <Block aria-labelledby="loadout-boosts">
-            <Subheading id="loadout-boosts">{loadout.boosts}</Subheading>
-            {economy.boosts.length === 0 && <Note>{loadout.none}</Note>}
-            <Items>
-              {economy.boosts.map((boost) => {
-                const name = content.boosts.names[boost.id];
-                const standing = `${fill(content.boosts.bar.level, { level: boost.level })}, ${fill(loadout.charges, { count: boost.charges, max: boost.max })}`;
-
-                return (
-                  <Item key={boost.id}>
-                    <ItemTop>
-                      <ItemName colour={boost.colour}>
-                        <FontAwesomeIcon icon={slotIcon({ kind: "boost", id: boost.id })} aria-hidden="true" />
-                        {` ${name}`}
-                      </ItemName>
-                      <ItemCount>{standing}</ItemCount>
-                    </ItemTop>
-                    <Note>{content.boosts.notes[boost.id]}</Note>
-                    <Note>
-                      {boost.nextAt === null
-                        ? fill(loadout.top, { finds: boost.finds })
-                        : fill(loadout.progress, { finds: boost.finds, next: boost.nextAt, level: boost.level + 1 })}
-                    </Note>
-                    {slotButtons({ kind: "boost", id: boost.id }, name)}
-                  </Item>
-                );
-              })}
-            </Items>
-          </Block>
-          {gear && (
-            <Block aria-labelledby="loadout-weapons">
-              <Subheading id="loadout-weapons">{content.gear.forge.title}</Subheading>
-              <Note>{content.gear.aimWarning}</Note>
-              {gear.pieces.filter((piece) => piece.slot === "weapon").length === 0 && <Note>{content.gear.forge.note}</Note>}
-              <Items>
-                {gear.pieces.filter((piece) => piece.slot === "weapon").map((piece) => (
-                  <Item key={piece.uid}>
-                    <ItemTop>
-                      <ItemName colour={RARITY_COLOUR[piece.rarity]}>{pieceName(content, piece.base)}</ItemName>
-                      <ItemCount>{fill(content.gear.level, { level: piece.level })}</ItemCount>
-                    </ItemTop>
-                    {slotButtons({ kind: "weapon", id: piece.uid }, pieceName(content, piece.base))}
-                  </Item>
-                ))}
-              </Items>
-            </Block>
-          )}
-          <Block aria-labelledby="loadout-things">
-            <Subheading id="loadout-things">{loadout.things}</Subheading>
-            <Items>
-              {economy.cargo.filter((row) => row.isUsable).map((row) => (
-                <Item key={row.id}>
-                  <ItemTop>
-                    <ItemName colour={RARITY_COLOUR[row.rarity]}>{itemName(copy, row.id)}</ItemName>
-                    <ItemCount>{`x${row.count}`}</ItemCount>
-                  </ItemTop>
-                  {slotButtons({ kind: "item", id: row.id }, itemName(copy, row.id))}
-                </Item>
-              ))}
-            </Items>
-          </Block>
-        </TabPanel>
-        <TabPanel {...panelProps(TAB.forge)}>
-          {gear && <Forge content={content} gear={gear} onAct={onAct} />}
-        </TabPanel>
-        <TabPanel {...panelProps(TAB.hold)}>
-          <div>
-            <Note>{fill(copy.hold, { used: economy.used, capacity: economy.capacity })}</Note>
-            <Meter role="meter" aria-label={copy.tabs.hold} aria-valuemin={0} aria-valuemax={economy.capacity} aria-valuenow={economy.used}>
-              <BarFill colour="#c4d2ff" style={{ transform: `scaleX(${economy.capacity > 0 ? economy.used / economy.capacity : 0})` }} />
-            </Meter>
-          </div>
-          {economy.cargo.length === 0 && <Note>{copy.emptyHold}</Note>}
-          <Items>
-            {economy.cargo.map((row) => (
-              <Item key={row.id}>
-                <ItemTop>
-                  <ItemName colour={RARITY_COLOUR[row.rarity]}>{itemName(copy, row.id)}</ItemName>
-                  <ItemCount>{`${copy.rarities[row.rarity]}, x${row.count}`}</ItemCount>
-                </ItemTop>
-                <Note>{copy.items[row.id]?.note ?? ""}</Note>
-                <Actions>
-                  {row.isUsable && (
-                    <SmallButton
-                      type="button"
-                      isPrimary
-                      disabled={!isFlying}
-                      aria-label={`${copy.use}: ${itemName(copy, row.id)}`}
-                      onClick={() => onAct({ kind: "use", item: row.id })}
-                    >
-                      {copy.use}
-                    </SmallButton>
-                  )}
-                  <SmallButton
-                    type="button"
-                    aria-label={`${fill(copy.recycle, { value: `${row.value} ${copy.currencies.RED}` })}: ${itemName(copy, row.id)}`}
-                    onClick={() => onAct({ kind: "recycle", item: row.id, count: 1 })}
-                  >
-                    {fillNodes(copy.recycle, { value: <Money copy={copy} amount={row.value} /> })}
-                  </SmallButton>
-                </Actions>
-              </Item>
-            ))}
-          </Items>
-        </TabPanel>
-        <TabPanel {...panelProps(TAB.plans)}>
-          <Items>
-            {economy.recipes.map(({ recipe, isKnown, shortfall }) => (
-              <Item key={recipe.id}>
-                <ItemTop>
-                  <ItemName colour={isKnown ? "#ffffff" : "#7d859c"}>{itemName(copy, recipe.makes.id)}</ItemName>
-                  <ItemCount>{recipe.coin > 0 ? <Money copy={copy} amount={recipe.coin} /> : ""}</ItemCount>
-                </ItemTop>
-                {isKnown ? (
-                  <>
-                    <Needs aria-label={copy.needs}>
-                      {recipe.needs.map(({ id, count }) => (
-                        <Need key={id} isMet={have(id) >= count}>
-                          <span>{itemName(copy, id)}</span>
-                          <span>{fill(copy.have, { have: Math.min(have(id), count), need: count })}</span>
-                        </Need>
-                      ))}
-                    </Needs>
-                    <Actions>
-                      <SmallButton
-                        type="button"
-                        isPrimary
-                        disabled={!shortfall.isReady}
-                        aria-label={`${copy.plans.make}: ${itemName(copy, recipe.makes.id)}`}
-                        onClick={() => onAct({ kind: "craft", recipe: recipe.id })}
-                      >
-                        {copy.plans.make}
-                      </SmallButton>
-                    </Actions>
-                  </>
-                ) : (
-                  <Note>{copy.plans.locked}</Note>
-                )}
-              </Item>
-            ))}
-          </Items>
-          {economy.blueprints.some((id) => id.startsWith("hull:")) && (
-            <Block aria-labelledby="hangar-hulls">
-              <Subheading id="hangar-hulls">{copy.plans.hullPlans}</Subheading>
-              <Note>{economy.blueprints.filter((id) => id.startsWith("hull:")).map((id) => blueprintName(copy, id))
-.join(", ")}</Note>
-            </Block>
-          )}
-        </TabPanel>
-        <TabPanel {...panelProps(TAB.ledger)}>
-          <Stats>
-            <StatName>{copy.ledger.balance}</StatName>
-            <StatValue><PurseAmounts copy={copy} purse={economy.purse} /></StatValue>
-            <StatNext />
-          </Stats>
-          {economy.history.length === 0 && <Note>{copy.ledger.empty}</Note>}
-          <Entries>
-            {economy.history.map((row) => (
-              <Entry key={row.id}>
-                <span>{ledgerMemo(content, row.memo)}</span>
-                <Amount isGain={row.amounts.RED + row.amounts.VOID >= 0}><PurseAmounts copy={copy} purse={row.amounts} isSigned /></Amount>
-              </Entry>
-            ))}
-          </Entries>
-        </TabPanel>
-        <TabPanel {...panelProps(TAB.codex)}>
-          {career && (
-            <>
-              <Note>{fill(careerCopy.codexFound, { found: career.found, total: career.codex.length })}</Note>
-              {CODEX_ORDER.map((category) => {
-                const entries = career.codex.filter(({ entry }) => entry.category === category);
-                const found = entries.filter(({ isFound }) => isFound);
-
-                return (
-                  <Block key={category} aria-labelledby={`codex-${category}`}>
-                    <Subheading id={`codex-${category}`}>{careerCopy.categories[category]}</Subheading>
-                    {found.length > 0 && (
-                      <Items>
-                        {found.map(({ entry }) => (
-                          <Item key={entry.id}>
-                            <ItemName colour="#ffffff">{codexName(content, entry)}</ItemName>
-                            {codexNotes(content, entry).map((line) => <Note key={line}>{line}</Note>)}
-                          </Item>
-                        ))}
-                      </Items>
-                    )}
-                    {found.length < entries.length && <Note>{fill(careerCopy.unknown, { count: entries.length - found.length })}</Note>}
-                  </Block>
-                );
-              })}
-            </>
-          )}
-        </TabPanel>
-        <TabPanel {...panelProps(TAB.badges)}>
-          {progress && <Badges content={content} progress={progress} />}
-        </TabPanel>
-        <TabPanel {...panelProps(TAB.style)}>
-          {progress && <Style content={content} progress={progress} onAct={onAct} />}
-        </TabPanel>
-        <TabPanel {...panelProps(TAB.settings)}>
-          <SettingsPanel copy={settings} names={voyageSettings.names} onPick={voyageSettings.onPick} />
-          <PilotTransferPanel copy={content.transfer} transfer={transfer} isFlying={isFlying} isShown={active === TAB.settings} />
-        </TabPanel>
-      </Body>
-      <Footer>
-        <Note>{copy.privacy}</Note>
-        {!isFlying && (isConfirming ? (
-          <Actions role="group" aria-label={copy.reset.confirm}>
-            <Note>{copy.reset.confirm}</Note>
-            <SmallButton type="button" onClick={() => {
-              onAct({ kind: "reset" });
-              setIsConfirming(false);
-            }}>
-              {copy.reset.yes}
-            </SmallButton>
-            <SmallButton type="button" isPrimary onClick={() => setIsConfirming(false)}>{copy.reset.no}</SmallButton>
-          </Actions>
-        ) : (
-          <Actions>
-            <SmallButton type="button" onClick={() => setIsConfirming(true)}>{copy.reset.button}</SmallButton>
-          </Actions>
-        ))}
-      </Footer>
+            </TabList>
+          </SectionBar>
+        )}
+        <Body
+          ref={bodyRef}
+          {...(tabSpec.sections.length > 1 ? sectionTabs.panelProps(sectionIndex) : {})}
+          onPointerDown={swipe.onPointerDown}
+          onPointerUp={swipe.onPointerUp}
+        >
+          <TabPanel key={section}>
+            {body ?? <Note>{words.sections[section]}</Note>}
+          </TabPanel>
+        </Body>
+      </MainPanel>
     </Panel>
   );
 };

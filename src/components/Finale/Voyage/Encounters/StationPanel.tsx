@@ -7,7 +7,7 @@ import { itemName } from "@/components/Finale/Voyage/economy";
 import { portName } from "@/components/Finale/Voyage/encounters";
 import { PortNote } from "@/components/Finale/Voyage/Encounters/Encounters.styles";
 import {
-  Actions, Block, Body, Footer, Header, Heading, Item, ItemCount, ItemName, Items, ItemTop, Note, Panel, Purse, RARITY_COLOUR, SmallButton, Subheading,
+  Actions, Block, Body, Footer, Header, Heading, Item, ItemCount, ItemName, Items, ItemTop, Note, Panel, PurseText, RARITY_COLOUR, SmallButton, Subheading,
 } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
 import { fillNodes, Money } from "@/components/Finale/Voyage/Money";
 import type { PortView, ServiceId, StationView, VoyageAction } from "@/packages/games/voyage";
@@ -44,7 +44,7 @@ export const StationPanel: FC<StationPanelProps> = ({ content, station, port, on
     <Panel aria-labelledby="station-heading">
       <Header>
         <Heading id="station-heading" ref={headingRef} tabIndex={-1}>{name}</Heading>
-        <Purse>{fillNodes(copy.coin, { coin: price(station.coin) })}</Purse>
+        <PurseText>{fillNodes(copy.coin, { coin: price(station.coin) })}</PurseText>
       </Header>
       {port.faction && port.kind === "station" && <PortNote>{fill(copy.keptBy, { faction: port.faction })}</PortNote>}
       <Body>

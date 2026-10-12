@@ -779,6 +779,9 @@ export interface VoyageEncountersCopy {
     traderAlone: string;
     // "{coin}" is replaced.
     coin: string;
+    // The port's sections, short, for its row of tabs; and what is said of one with something to do.
+    tabs: { crew: string; ammo: string; market: string; sell: string };
+    ready: string;
     crew: string;
     services: Record<ServiceId, string>;
     notNeeded: string;

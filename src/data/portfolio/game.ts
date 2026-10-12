@@ -1276,6 +1276,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           trader: "A {faction} trader",
           traderAlone: "A trader",
           coin: "{coin} to spend",
+          tabs: { crew: "Crew", ammo: "Ammo", market: "Market", sell: "Sell" },
+          ready: "something to do here",
           crew: "Station crew",
           services: { repair: "Mend the ship, every system and fault", refuel: "Fill the tank", recharge: "Charge the shields" },
           notNeeded: "Not needed",

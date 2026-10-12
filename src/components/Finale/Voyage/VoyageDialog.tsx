@@ -467,7 +467,10 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         // The answer to a press shows at once, as a tap's does.
         reply(voyageNotice(content, notice) ?? "");
       } else {
-        say(voyageNotice(content, notice), isKeptNotice(notice), isUrgentNotice(notice), isQuestNotice(notice), questCard(content, notice));
+        // A quest's card is kept like the story's lines, so what it paid is never crowded out or cut short.
+        const card = questCard(content, notice);
+
+        say(voyageNotice(content, notice), isKeptNotice(notice) || card !== null, isUrgentNotice(notice), isQuestNotice(notice), card);
       }
     });
     takeNotices(notices.length);

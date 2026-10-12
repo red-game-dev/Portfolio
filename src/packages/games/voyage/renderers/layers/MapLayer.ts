@@ -11,9 +11,11 @@ import {
 import { Surface } from "../Surface";
 import { RenderKit } from "./kit";
 
-// The radar in the corner: its radius in CSS pixels (smaller on narrow screens) and how far it sees (world units).
+// The radar in the corner: its radius in CSS pixels (smaller on narrow screens, smaller still on the shortest) and how
+// far it sees (world units).
 const RADAR_RADIUS = 58;
 const RADAR_RADIUS_NARROW = 44;
+const RADAR_RADIUS_SHORT = 38;
 const RADAR_RANGE = 9;
 const RADAR_MARGIN = 14;
 const LABEL_FONT = "11px Roboto, Arial, sans-serif";
@@ -324,8 +326,9 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     }
 
     const context = front.context;
-    // Smaller on a narrow screen, and on a short one, where the column of bars above it is nearly as tall.
-    const radius = front.width < 640 || front.height < 420 ? RADAR_RADIUS_NARROW : RADAR_RADIUS;
+    // Smaller on a narrow screen, and on a short one, where the column of bars above it is nearly as tall; on the
+    // shortest (a small phone on its side) smaller still, so it clears the quest tracker at the foot of that column.
+    const radius = front.height < 360 ? RADAR_RADIUS_SHORT : front.width < 640 || front.height < 420 ? RADAR_RADIUS_NARROW : RADAR_RADIUS;
     const cx = RADAR_MARGIN + radius;
     const cy = front.height - RADAR_MARGIN - radius;
     const scale = radius / RADAR_RANGE;

@@ -11,7 +11,7 @@ import { PixelSprite } from "@/components/PixelSprite";
 import { Lens, LENS_ACCENTS, LENSES } from "@/config/lenses";
 import useFocusLeave from "@/hooks/useFocusLeave";
 import { KeyMap } from "@/packages/interaction/keys";
-import { svgFill } from "@/styles/mixins";
+import { media, svgFill } from "@/styles/mixins";
 import { LensContent } from "@/types/lens";
 
 interface LensSwitchProps {
@@ -40,6 +40,16 @@ const Face = styled.span(() => [
 ]);
 
 const Label = tw.span`hidden sm:inline text-[#888] font-medium`;
+
+// The view's name, left to the face (and the button's label) on the narrowest phones, where it would run over the name
+// in the header.
+const Name = styled.span(() => [
+  css`
+    ${media.narrow} {
+      display: none;
+    }
+  `,
+]);
 
 const Chevron = styled.span(({ isOpen }: { isOpen: boolean }) => [
   tw`block w-[6px] h-[6px] ml-[2px] border-solid border-[#888] border-t-0 border-l-0 border-r-[1.5px] border-b-[1.5px]`,
@@ -134,7 +144,7 @@ export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) =>
       >
         <Face aria-hidden="true"><PixelSprite {...LENS_SPRITES[lens]} /></Face>
         <Label>{content.switchLabel}</Label>
-        <span>{content.names[lens]}</span>
+        <Name>{content.names[lens]}</Name>
         <Chevron isOpen={isOpen} aria-hidden="true" />
       </Toggle>
       {isOpen && (

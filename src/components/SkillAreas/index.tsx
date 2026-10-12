@@ -24,7 +24,7 @@ interface SkillAreasProps {
   blueprintSection: BlueprintSectionId;
 }
 
-const Content = tw.div`relative text-base ml-[-1px] p-[25px] lg:p-[35px] bg-[#101010] border-[1px] border-r-[0px] border-solid
+const Content = tw.div`relative text-base ml-[-1px] p-[18px] md:p-[25px] lg:p-[35px] bg-[#101010] border-[1px] border-r-[0px] border-solid
 border-[rgba(255, 255, 255, 0.07)]`;
 
 // A row that scrolls sideways on a phone, a column beside the open area on a desktop.

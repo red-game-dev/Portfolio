@@ -228,12 +228,20 @@ const showLine = keyframes`
 `;
 
 // Each moment of the voyage, said once and gone, for as long as "--message-ms" gives it to be read. Keyed per
-// message, so a new one plays from the start.
+// message, so a new one plays from the start. On a phone it sits under the HUD's bars rather than over them, as wide
+// as its words need but narrow enough to clear the ability bar down the right edge, so a long line of the story
+// reads in a few lines without hiding the hull.
 export const Message = styled.p(() => [
-  tw`absolute left-1/2 top-[96px] md:top-[84px] m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
+  tw`absolute left-1/2 top-[232px] md:top-[84px] m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
   css`
-    max-width: min(90vw, 520px);
+    width: max-content;
+    max-width: min(66vw, 520px);
     ${voyagePanel(0.72, 0.35)}
+
+    ${media.md} {
+      width: auto;
+      max-width: min(90vw, 520px);
+    }
     animation: ${fadeLine} var(--message-ms, 2800ms) ease both;
 
     ${media.reducedMotion} {

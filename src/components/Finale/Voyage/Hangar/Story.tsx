@@ -29,8 +29,8 @@ const Fragment = styled.li(() => [
 const FragmentTitle = tw.span`text-[11px] md:text-xs font-semibold text-[#9aa3bb]`;
 
 // The story in the Pilot tab: the chapter under way (its place among them, how it opens, and each step with how far
-// along it is, what it pays, or that it waits for the chapter's first), then every line decoded so far. Once it is
-// all told, only the lines.
+// along it is, what it pays, or that it waits for the universe to be reached), then every line decoded so far. Once
+// it is all told, only the lines.
 export const Story: FC<{ content: FinaleVoyage; story: StoryView }> = ({ content, story }) => {
   const copy = content.career.story;
   const career = content.career;

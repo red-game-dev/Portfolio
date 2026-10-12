@@ -39,7 +39,20 @@ describe("games/voyage story", () => {
     });
   });
 
-  test("a chapter's first step opens it; the rest wait for it, then count in any order", () => {
+  test("the launch's steps count in any order from the start", () => {
+    let story = newStory();
+
+    story = advanceStory(story, { kind: "passed", place: "pluto" }).story;
+    story = advanceStory(story, { kind: "passed", place: "mars" }).story;
+    expect(storyView(story).steps.map(({ progress, isOpen }) => [progress, isOpen])).toEqual([[0, true], [1, true], [1, true]]);
+
+    const launched = advanceStory(story, { kind: "landed", body: "moon" });
+
+    expect(launched.chapter?.id).toBe("launch");
+    expect(launched.story).toEqual(at("matrix"));
+  });
+
+  test("a universe's chapter opens on reaching it; the rest wait for that, then count in any order", () => {
     let story = at("chain");
 
     story = advanceStory(story, { kind: "salvaged" }).story;
@@ -93,6 +106,7 @@ describe("games/voyage story", () => {
     expect(cleanStory(undefined)).toEqual(newStory());
     expect(cleanStory({ chapter: 3, progress: [1.7, 99] })).toEqual({ chapter: 3, progress: [1, targetOf(STORY[3].steps[1].goal), 0] });
     expect(cleanStory({ chapter: 40, progress: [3] })).toEqual(told);
+    expect(cleanStory({ chapter: -1, progress: [-2] })).toEqual(newStory());
 
     const { story, ...before } = newCareer();
 
@@ -100,7 +114,11 @@ describe("games/voyage story", () => {
     // A career kept before the story began reads back whole, and starts it.
     expect(isCareerProfile(before)).toBe(true);
     expect(new Career(before).view().story.chapter?.id).toBe("launch");
-    expect(isCareerProfile({ ...before, story: { chapter: -1, progress: [] } })).toBe(false);
+    // Odd numbers in a story are made to fit as it is read, never a reason to start the whole career again; only a
+    // story of the wrong shape is.
+    expect(isCareerProfile({ ...before, story: { chapter: -1, progress: [0.5] } })).toBe(true);
+    expect(new Career({ ...before, story: { chapter: -1, progress: [0.5] } }).toProfile().story).toEqual(newStory());
+    expect(isCareerProfile({ ...before, story: { chapter: "2", progress: [] } })).toBe(false);
   });
 
   test("the career pays each step, counts it on the board's watch, and keeps where it is", () => {

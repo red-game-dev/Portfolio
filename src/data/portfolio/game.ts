@@ -664,7 +664,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
             launch: {
               title: "Launch",
               intro: "A signal is coming from somewhere past Pluto, too regular to be noise. Leave home and follow it.",
-              line: "Mine started when I began studying at MCAST: a social network for anime, manga, cosplay and gaming fans.",
+              line: "It all started when I began studying at MCAST: a social network for anime, manga, cosplay and gaming fans.",
             },
             matrix: {
               title: "The Matrix",
@@ -717,7 +717,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
             mmoLand: "Land on a world past the singularity",
             beyondReach: "Reach a sixth universe in one run",
           },
-          waiting: "Opens once you arrive",
+          waiting: "Counts once you reach this universe",
           stepDone: "Story: {step}. +{xp} XP, +{coin} Red Coin",
           chapterDone: "{chapter} complete. The signal decodes: {line}",
           opened: "{chapter}: {intro}",

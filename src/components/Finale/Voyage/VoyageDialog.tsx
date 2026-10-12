@@ -35,10 +35,12 @@ import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
 import {
   isKeptNotice,
+  isUrgentNotice,
   messageMs,
   placeName,
   QueuedLine,
   queueLine,
+  replyLine,
   strandedLine,
   voyageMessage,
   voyageNotice,
@@ -251,22 +253,23 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const comingDownOn = snapshot?.surface
     ? placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn)
     : placeName(content, snapshot?.landedOn ?? "");
-  const say = (text: string | null, isKept = false) => {
+  const say = (text: string | null, isKept = false, isUrgent = false) => {
     if (text) {
       messageId.current += 1;
 
-      const next = { id: messageId.current, text, isKept };
+      const next = { id: messageId.current, text, isKept, isUrgent };
 
       setMessages((queue) => queueLine(queue, next, MESSAGE_QUEUE));
     }
   };
-  // The answer to a tap shows at once, in place of the line already seen, and the rest still wait their turn.
+  // The answer to a tap shows at once, in place of the line already seen (unless it is kept), and the rest still wait
+  // their turn.
   const reply = (text: string) => {
     messageId.current += 1;
 
-    const next = { id: messageId.current, text, isKept: false };
+    const next = { id: messageId.current, text, isKept: false, isUrgent: false };
 
-    setMessages((queue) => [next, ...queue.slice(1)]);
+    setMessages((queue) => replyLine(queue, next));
   };
 
   // Each line shows for its moment, then the next.
@@ -433,7 +436,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         // The answer to a press shows at once, as a tap's does.
         reply(voyageNotice(content, notice) ?? "");
       } else {
-        say(voyageNotice(content, notice), isKeptNotice(notice));
+        say(voyageNotice(content, notice), isKeptNotice(notice), isUrgentNotice(notice));
       }
     });
     takeNotices(notices.length);
@@ -660,15 +663,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           {economy && (
             <>
               <Reading>
-                <ReadingName><CurrencyIcon code="RED" label={copy.currencies.RED} isDecorative /></ReadingName>
-                <Coin aria-label={`${economy.purse.RED} ${copy.currencies.RED}`}>
+                <ReadingName><CurrencyIcon code="RED" label={copy.currencies.RED} /></ReadingName>
+                <Coin>
                   {formatNumber(economy.purse.RED)}
                   {redGain && <Gain key={redGain.id} aria-hidden="true">{`+${redGain.amount}`}</Gain>}
                 </Coin>
               </Reading>
               <Reading>
-                <ReadingName><CurrencyIcon code="VOID" label={copy.currencies.VOID} isDecorative /></ReadingName>
-                <Coin isShards aria-label={`${economy.purse.VOID} ${copy.currencies.VOID}`}>
+                <ReadingName><CurrencyIcon code="VOID" label={copy.currencies.VOID} /></ReadingName>
+                <Coin isShards>
                   {economy.purse.VOID}
                   {voidGain && <Gain key={voidGain.id} aria-hidden="true">{`+${voidGain.amount}`}</Gain>}
                 </Coin>

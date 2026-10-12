@@ -1,4 +1,4 @@
-import { Guard, isArrayOf, isCount, isRecord, isText, isTextArray } from "@/packages/core/domain";
+import { Guard, isArrayOf, isCount, isFiniteNumber, isRecord, isText, isTextArray } from "@/packages/core/domain";
 
 import { CareerProfile, DailyRecord, MissionProgress, StoryProgress } from "../domain/career";
 
@@ -6,7 +6,10 @@ const isProgress: Guard<MissionProgress> = (value): value is MissionProgress => 
 
 const isDaily: Guard<DailyRecord> = (value): value is DailyRecord => isRecord(value) && isText(value.day) && isCount(value.best) && isCount(value.runs);
 
-const isStory: Guard<StoryProgress> = (value): value is StoryProgress => isRecord(value) && isCount(value.chapter) && isArrayOf(isCount)(value.progress);
+// Only the story's shape: odd numbers in it are made to fit as the career reads it, never a reason to start the
+// whole career again.
+const isStory: Guard<StoryProgress> = (value): value is StoryProgress =>
+  isRecord(value) && isFiniteNumber(value.chapter) && isArrayOf(isFiniteNumber)(value.progress);
 
 // Whether something read back is a career in shape: experience, the board, what is done, the codex, the last daily
 // voyage and where it is in the story (none for a career kept before the story began). Missions and codex entries

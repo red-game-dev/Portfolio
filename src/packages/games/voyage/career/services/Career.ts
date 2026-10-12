@@ -143,7 +143,6 @@ export class Career {
       storyView(this.story).steps.some(({ step, progress, target, isOpen }) => isOpen && progress < target && step.goal.kind === kind);
   }
 
-
   // Marks something seen in the codex; whether it was new.
   public discover(id: string): boolean {
     if (!CODEX_IDS.has(id) || this.profile.codex.includes(id)) {

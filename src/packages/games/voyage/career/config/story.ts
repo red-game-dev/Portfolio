@@ -3,9 +3,9 @@ import { MissionGoal, StoryChapter, StoryProgress, StoryStep } from "../domain/c
 const step = (id: string, goal: MissionGoal, xp: number, coin: number): StoryStep => ({ id, goal, xp, coin });
 
 // The story, a chapter at a time: out of our solar system to the singularity, then one chapter for each universe of
-// the site's zones in the order the voyage reaches them, and the sixth universe past them. Each chapter's first step
-// opens it (in a universe, reaching it); the rest count in any order once it is open. Steps pay as missions do,
-// more the deeper the chapter.
+// the site's zones in the order the voyage reaches them, and the sixth universe past them. A universe's chapter opens
+// on reaching it, and its other steps count in any order after that; the launch's steps count in any order from the
+// start. Steps pay as missions do, more the deeper the chapter.
 export const STORY: readonly StoryChapter[] = [
   {
     id: "launch",

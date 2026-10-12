@@ -1,7 +1,7 @@
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { ledgerMemo } from "@/components/Finale/Voyage/economy";
 import {
-  isKeptNotice, MESSAGE_MS, messageMs, QueuedLine, queueLine, strandedLine, voyageMessage, voyageNotice, voyagePlace,
+  isKeptNotice, isUrgentNotice, MESSAGE_MS, messageMs, QueuedLine, queueLine, replyLine, strandedLine, voyageMessage, voyageNotice, voyagePlace,
 } from "@/components/Finale/Voyage/messages";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { formatClock, formatDistance, telemetryRows } from "@/components/Finale/Voyage/telemetry";
@@ -293,19 +293,32 @@ describe("the voyage's cards", () => {
     expect(ledgerMemo(voyage, "story:chainBounty")).toBe("Story: Bring down 5 hostiles");
   });
 
-  test("a line stays long enough to read, and the story's lines are never crowded out of those waiting", () => {
+  test("a line stays long enough to read, kept lines are never crowded out, and a danger is said at once", () => {
     expect(messageMs("Landed")).toBe(MESSAGE_MS.least);
     expect(messageMs("x".repeat(100))).toBe(6000);
     expect(messageMs("x".repeat(400))).toBe(MESSAGE_MS.most);
 
-    const line = (id: number, isKept = false): QueuedLine => ({ id, text: String(id), isKept });
-    const story = [line(1), line(2, true), line(3), line(4, true)];
+    const line = (id: number, isKept = false, isUrgent = false): QueuedLine => ({ id, text: String(id), isKept, isUrgent });
+    const ids = (lines: QueuedLine[]) => lines.map(({ id }) => id);
+    const kept = [line(1), line(2, true), line(3, true), line(4, true)];
 
     // The line on screen stays; the oldest that may go makes room.
-    expect(queueLine(story, line(5), 4).map(({ id }) => id)).toEqual([1, 2, 4, 5]);
-    expect(queueLine([line(1), line(2, true), line(3, true), line(4, true)], line(5), 4).map(({ id }) => id)).toEqual([1, 2, 3, 4]);
-    expect(queueLine([line(1), line(2, true), line(3, true), line(4, true)], line(5, true), 4).map(({ id }) => id)).toEqual([1, 3, 4, 5]);
+    expect(ids(queueLine([line(1), line(2, true), line(3), line(4, true)], line(5), 4))).toEqual([1, 2, 4, 5]);
+    // With only kept lines waiting, a plain line is the one left out, and another kept line waits past the limit.
+    expect(ids(queueLine(kept, line(5), 4))).toEqual([1, 2, 3, 4]);
+    expect(ids(queueLine(kept, line(5, true), 4))).toEqual([1, 2, 3, 4, 5]);
+    // A danger cuts in at once: a plain line it cuts short is gone, a kept one is said again after it.
+    expect(ids(queueLine([line(1), line(2)], line(9, true, true), 4))).toEqual([9, 2]);
+    expect(ids(queueLine([line(1, true), line(2)], line(9, true, true), 4))).toEqual([9, 1, 2]);
+    expect(ids(queueLine([], line(9, true, true), 4))).toEqual([9]);
+    // The answer to a press takes the place of a plain line, but waits a kept one out.
+    expect(ids(replyLine([line(1), line(2)], line(7)))).toEqual([7, 2]);
+    expect(ids(replyLine([line(1, true), line(2)], line(7)))).toEqual([7, 1, 2]);
+
     expect(isKeptNotice({ kind: "storyChapter", chapter: "ai" })).toBe(true);
     expect(isKeptNotice({ kind: "discovered", entry: "worlds:mars" })).toBe(false);
+    expect(isUrgentNotice({ kind: "impactAlert", target: "Earth", diameterKm: 2, seconds: 30 })).toBe(true);
+    expect(isKeptNotice({ kind: "captured", isSingularity: true })).toBe(true);
+    expect(isUrgentNotice({ kind: "storyOpened", chapter: "ai" })).toBe(false);
   });
 });

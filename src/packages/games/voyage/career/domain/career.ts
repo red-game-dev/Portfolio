@@ -95,7 +95,8 @@ export interface StoryStep {
   coin: number;
 }
 
-// A chapter of the story: its first step opens it, and the rest count in any order once it is done.
+// A chapter of the story: in a universe, its first step (reaching it) opens it and the rest count in any order once
+// it is done; the launch's steps count in any order from the start.
 export interface StoryChapter {
   id: string;
   steps: readonly StoryStep[];
@@ -136,7 +137,7 @@ export interface StoryStepDone {
 }
 
 // The chapter under way (null once the story is all told), its place among them, and each step: how far along,
-// what it takes, and whether it counts yet (the rest wait for the first).
+// what it takes, and whether it counts yet (in a universe's chapter, the rest wait for reaching it).
 export interface StoryView {
   chapter: StoryChapter | null;
   index: number;

@@ -22,9 +22,10 @@ export const cleanStory = (story: StoryProgress | undefined): StoryProgress => {
   return { chapter, progress: steps.map((step, index) => Math.min(targetOf(step.goal), Math.max(0, Math.floor(story.progress[index] ?? 0)))) };
 };
 
-// Whether a step counts yet: the first always, the rest once the first is done.
+// Whether a step counts yet: in a universe's chapter, only reaching it until it is reached, then the rest; the
+// launch's steps all count from the start.
 const isOpen = (chapter: StoryChapter, progress: readonly number[], index: number): boolean =>
-  index === 0 || progress[0] >= targetOf(chapter.steps[0].goal);
+  index === 0 || chapter.steps[0].goal.kind !== "universe" || progress[0] >= targetOf(chapter.steps[0].goal);
 
 // Counts something that happened against the chapter under way. A chapter whose steps are all done gives way to
 // the next, whose steps start from nothing: what finished one chapter never counts for the next.

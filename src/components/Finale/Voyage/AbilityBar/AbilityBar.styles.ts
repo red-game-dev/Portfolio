@@ -3,9 +3,10 @@ import tw, { css, styled } from "twin.macro";
 import { hexWithAlpha } from "@/packages/graphics/colour";
 import { focusRing, media, voyagePanel } from "@/styles/mixins";
 
-// Down the right edge on a phone, within a thumb's reach and clear of the radar and the telemetry; along the
-// bottom, between them, where there is room, and on a phone on its side, where a column would run the screen's
-// whole height.
+// Down the right edge on a phone, within a thumb's reach and clear of the radar and the telemetry (on a short phone
+// from under the readout, however it wraps, with smaller slots, so it ends above the telemetry; on the shortest
+// folded into two columns of three); along the bottom, between them, where there is room, and on a phone on its side,
+// where a column would run the screen's whole height.
 export const Bar = styled.div(() => [
   tw`absolute flex flex-col gap-[6px] p-[4px] pointer-events-auto`,
   css`
@@ -13,6 +14,20 @@ export const Bar = styled.div(() => [
     top: 50%;
     transform: translateY(-50%);
     ${voyagePanel(0.55, 0.2)}
+
+    ${media.shortPortrait} {
+      top: 106px;
+      gap: 4px;
+      transform: none;
+    }
+
+    /* Below the strip of the voyage's lines at its tallest, so the strip can keep its width. */
+    ${media.shortestPortrait} {
+      top: 120px;
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      gap: 3px;
+    }
 
     ${media.md} {
       right: auto;
@@ -48,6 +63,19 @@ export const Slot = styled.button(({ colour, isEmpty, isOn }: { colour: string; 
     font-size: 18px;
 
     ${focusRing("#ffffff", 2)}
+
+    /* Down the edge of a short upright phone, a little smaller so the column ends above the telemetry. */
+    ${media.shortPortrait} {
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+    }
+
+    ${media.shortestPortrait} {
+      width: 36px;
+      height: 36px;
+      font-size: 15px;
+    }
 
     /* Along the bottom of a phone on its side, a little smaller so the row fits between the radar and the corner. */
     ${media.shortLandscape} {

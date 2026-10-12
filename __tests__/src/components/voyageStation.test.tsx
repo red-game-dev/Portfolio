@@ -9,7 +9,7 @@ const copy = voyage.encounters.station;
 
 const port: PortView = { kind: "station", anchor: "earth", anchorName: null, faction: null };
 
-// A station at Earth: its crew (the ship needs mending and can pay; its tank is full), ammunition, goods and a buyer.
+// A station: its crew (the ship needs mending and charging; its tank is full), ammunition, goods and a buyer.
 const station = (overrides: Partial<StationView> = {}): StationView => ({
   port: { kind: "station", id: "station:earth", anchor: "earth", faction: -1, seed: 1, depth: 0 },
   services: [{ id: "repair", price: 40, isNeeded: true }, { id: "refuel", price: 20, isNeeded: false }, { id: "recharge", price: 30, isNeeded: true }],
@@ -33,7 +33,7 @@ describe("the voyage's station", () => {
     expect(tabs[0].textContent).toContain(copy.ready);
   });
 
-  test("a trader has no crew and nothing to buy from it marks nothing", () => {
+  test("a port with no crew and nothing for sale shows neither", () => {
     open(station({ services: [], goods: [] }));
 
     expect(within(screen.getByRole("tablist")).getAllByRole("tab")

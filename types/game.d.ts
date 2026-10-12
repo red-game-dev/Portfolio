@@ -785,13 +785,10 @@ export interface VoyageEncountersCopy {
     crew: string;
     services: Record<ServiceId, string>;
     notNeeded: string;
-    ammo: string;
     // "{count}", "{ammo}", "{aboard}" and "{rack}" are replaced.
     pack: string;
     aboard: string;
     racksFull: string;
-    goods: string;
-    sales: string;
     nothingToSell: string;
     // "{price}" is replaced.
     buy: string;

@@ -447,7 +447,6 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           side: "Side quests",
           track: "Track",
           tracked: "Tracked",
-          trackLabel: "Track {name} on your screen",
           tracker: "Tracked quest: {name}, {progress} of {target}. Open the quests",
           story: "Story: {chapter}",
           mission: "Side quest",
@@ -459,7 +458,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           contracts: "Contracts done: {count}",
           none: "Nothing done yet. Every quest you finish is kept here.",
           open: "Open the quests",
-          daily: { fly: "Fly today's daily voyage", today: "Today: best {best} from {runs} runs", notYet: "Not flown today yet" },
+          daily: { fly: "Fly today's daily voyage", today: "Today's best: {best}, runs flown: {runs}", notYet: "Not flown today yet" },
         },
         pilot: { rank: "Rank", rankNote: "From missions and the story", level: "Pilot level", levelNote: "From everything you do in flight" },
         style: {
@@ -677,7 +676,6 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         xp: "{xp} XP",
         nextRank: "{xp} XP to {rank}",
         topRank: "The highest rank there is.",
-        missionsTitle: "Missions",
         missions: {
           landMoon: "Land on the Moon",
           reachMars: "Reach Mars",
@@ -716,13 +714,11 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         progress: "{progress} of {target}",
         reward: "+{xp} XP, {coin}",
         rewardXp: "+{xp} XP",
-        done: "Missions done: {count}",
         missionDone: "Mission complete: {mission}. +{xp} XP, +{coin} Red Coin",
         missionDoneXp: "Mission complete: {mission}. +{xp} XP",
         promoted: "Promoted to {rank}",
         discovered: "New in the codex: {name}",
         story: {
-          title: "Story",
           chapterOf: "Chapter {index} of {total}",
           chapters: {
             launch: {
@@ -786,7 +782,6 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           chapterDone: "{chapter} complete. The signal decodes: {line}",
           opened: "{chapter}: {intro}",
           told: "The signal is decoded, every fragment of it. Fly on, there is more out there.",
-          decoded: "Decoded so far",
         },
         codexTitle: "Codex",
         codexFound: "{found} of {total} found",

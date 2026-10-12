@@ -18,7 +18,7 @@ interface OpenOptions {
   career?: Career;
   opensOn?: HangarTab | null;
   onAct?: (action: VoyageAction) => boolean;
-  onTrack?: (id: string) => void;
+  onTrack?: (id: string | null) => void;
   onDaily?: (() => void) | null;
 }
 
@@ -135,14 +135,18 @@ describe("the voyage's hangar", () => {
     expect(within(main).getByText(`Chapter 3 of ${STORY.length}`)).toBeInTheDocument();
     expect(within(main).getByText(voyage.career.story.steps.aiSave)).toBeInTheDocument();
     expect(within(main).getByText(voyage.career.story.waiting)).toBeInTheDocument();
-    // The story is followed until another quest is pinned.
-    expect(within(main).getByRole("button", { name: fill(words.quests.trackLabel, words.quests.main) })).toHaveAttribute("aria-pressed", "true");
+    // The story is followed until another quest is pinned, and pressing it there stops following it.
+    const followed = within(main).getByRole("button", { name: `${words.quests.tracked} ${words.quests.main}` });
+
+    expect(followed).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(followed);
+    expect(onTrack).toHaveBeenLastCalledWith(null);
 
     const side = screen.getByRole("region", { name: words.quests.side });
 
-    expect(within(side).getByText(voyage.career.missions.landMoon)).toBeInTheDocument();
-    fireEvent.click(within(side).getByRole("button", { name: fill(words.quests.trackLabel, voyage.career.missions.landMoon) }));
-    expect(onTrack).toHaveBeenCalledWith("landMoon");
+    expect(within(side).getAllByText(voyage.career.missions.landMoon).length).toBeGreaterThan(0);
+    fireEvent.click(within(side).getByRole("button", { name: `${words.quests.track} ${voyage.career.missions.landMoon}` }));
+    expect(onTrack).toHaveBeenLastCalledWith("landMoon");
 
     expect(within(screen.getByRole("region", { name: words.quests.next })).getAllByRole("listitem").length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole("button", { name: words.quests.daily.fly }));
@@ -162,6 +166,15 @@ describe("the voyage's hangar", () => {
     expect(within(chapters).getByText(voyage.career.story.chapters.matrix.line)).toBeInTheDocument();
     expect(within(chapters).queryByText(voyage.career.story.chapters.ai.line)).toBeNull();
     expect(within(screen.getByRole("region", { name: words.quests.missions })).getByText(voyage.career.missions.landMoon)).toBeInTheDocument();
+  });
+
+  test("a count of what was seen kept before quests were counted reads back with no quest marked", () => {
+    const career = new Career();
+
+    career.record({ kind: "landed", body: "moon" });
+    window.localStorage.setItem("redgame.hangarSeen", JSON.stringify({ codex: 0, badges: 0 }));
+    openHangar({ career });
+    expect(tabNamed(words.tabs.quests).textContent).not.toContain(words.ready);
   });
 
   test("a quest done while the hangar is closed marks the Quests tab until it is looked at", () => {

@@ -1,5 +1,5 @@
 import { questsDone, STORY_QUEST, trackedQuest } from "@/components/Finale/Voyage/quests";
-import { Career, newCareer, STORY } from "@/packages/games/voyage";
+import { Career, MISSIONS, newCareer, STORY } from "@/packages/games/voyage";
 
 describe("the voyage's quests", () => {
   test("the story's next open step is followed until a mission on the board is pinned", () => {
@@ -30,6 +30,25 @@ describe("the voyage's quests", () => {
     career.record({ kind: "landed", body: "moon" });
     expect(questsDone(career.view())).toBe(before + 2);
     expect(questsDone(new Career({ ...newCareer(), story: { chapter: 2, progress: [0, 0] } }).view())).toBe(STORY[0].steps.length + STORY[1].steps.length);
+  });
+
+  test("what comes next is in the order the board takes it: the missions the rank allows, then the nearest rank's", () => {
+    // A lieutenant's board early on, after the first eight missions and the third upgrade; the Storm mission is offered
+    // at rank 1 although the list has it after missions for rank 2.
+    const done = [...MISSIONS.slice(0, 8).map(({ id }) => id), "upgradeThree"];
+    const career = new Career({ ...newCareer(), xp: 160, done, story: { chapter: STORY.length, progress: [] } });
+    const view = career.view();
+    const offered = view.missions.map(({ mission }) => mission.id);
+    const next = view.upcoming.map(({ mission }) => mission.id);
+
+    expect(view.rank).toBe(1);
+    expect(next[0]).toBe("surviveStorm");
+    expect(view.upcoming[0].isLocked).toBe(false);
+    expect(next.some((id) => offered.includes(id))).toBe(false);
+
+    // Finishing a mission on the board brings the first of what came next onto it.
+    career.record({ kind: "passed", place: "pluto" });
+    expect(career.view().missions.map(({ mission }) => mission.id)).toContain(next[0]);
   });
 
   test("the career lists the missions done, the contracts, and what comes next with the rank it waits for", () => {

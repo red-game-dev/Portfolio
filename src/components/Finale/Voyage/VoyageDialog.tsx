@@ -128,6 +128,7 @@ import {
   Tracker,
   TrackerCount,
   TrackerName,
+  TrackerOpen,
   TrackerSub,
   TrackerText,
   Vitals,
@@ -312,7 +313,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
 
   // The quest pinned to the HUD, kept in this browser; and pinning one.
   const [pinned, setPinned] = useState<string | null>(() => readStored(TRACK_KEY, isQuestId));
-  const track = (id: string) => {
+  const track = (id: string | null) => {
     setPinned(id);
     writeStored(TRACK_KEY, id);
   };
@@ -623,6 +624,26 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
               ))}
             </Bars>
           )}
+          {tracked && status === "flying" && !isHangarOpen && !isChoosing && !isDocked && (
+            <Tracker>
+              <TrackerText>
+                <TrackerName>
+                  <span>{trackedName}</span>
+                  <TrackerCount>{`${tracked.progress}/${tracked.target}`}</TrackerCount>
+                </TrackerName>
+                <TrackerSub>
+                  {tracked.chapter ? fill(content.hangar.quests.story, { chapter: chapterTitle(content, tracked.chapter) }) : content.hangar.quests.mission}
+                </TrackerSub>
+              </TrackerText>
+              <TrackerOpen
+                type="button"
+                onClick={openQuests}
+                aria-label={fill(content.hangar.quests.tracker, { name: trackedName, progress: tracked.progress, target: tracked.target })}
+              >
+                <FontAwesomeIcon icon={faScroll} aria-hidden="true" />
+              </TrackerOpen>
+            </Tracker>
+          )}
           {status === "flying" && hurt.length > 0 && snapshot && (
             <>
               <SystemsTitle>{content.systems.title}</SystemsTitle>
@@ -735,22 +756,6 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </IconButton>
         </HudButtons>
       </Hud>
-      {tracked && status === "flying" && !isHudAside && !isHangarOpen && !isChoosing && !isDocked && (
-        <Tracker
-          type="button"
-          onClick={openQuests}
-          aria-label={fill(content.hangar.quests.tracker, { name: trackedName, progress: tracked.progress, target: tracked.target })}
-        >
-          <TrackerName>
-            <FontAwesomeIcon icon={faScroll} aria-hidden="true" style={{ color: "#ff9f5a" }} />
-            <TrackerText>{trackedName}</TrackerText>
-            <TrackerCount>{`${tracked.progress}/${tracked.target}`}</TrackerCount>
-          </TrackerName>
-          <TrackerSub>
-            {tracked.chapter ? fill(content.hangar.quests.story, { chapter: chapterTitle(content, tracked.chapter) }) : content.hangar.quests.mission}
-          </TrackerSub>
-        </Tracker>
-      )}
       {snapshot?.descent && status === "flying" && !isHangarOpen && !isHudAside && (
         <SurfaceCard aria-label={fill(content.descent.title, { body: comingDownOn })}>
           <SurfaceTitle>{fill(content.descent.title, { body: comingDownOn })}</SurfaceTitle>
@@ -872,14 +877,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         />
       )}
       {message && status === "flying" && !isHudAside && (
-        <Message
-          key={message.id}
-          role="status"
-          style={{ "--message-ms": `${messageMs(message.text)}ms`, "pointerEvents": message.isQuest ? "auto" : undefined } as CSSProperties}
-        >
-          {message.isQuest ? (
-            <MessageButton type="button" title={content.hangar.quests.open} onClick={openQuests}>{message.text}</MessageButton>
-          ) : message.text}
+        <Message key={message.id} role="status" style={{ "--message-ms": `${messageMs(message.text)}ms` } as CSSProperties}>
+          {message.text}
+          {message.isQuest && (
+            <MessageButton type="button" onClick={openQuests}>
+              <FontAwesomeIcon icon={faScroll} aria-hidden="true" />
+              {` ${content.hangar.quests.open}`}
+            </MessageButton>
+          )}
         </Message>
       )}
       {isChoosing && snapshot?.perkOffer && !isHangarOpen && !isPhoto && (

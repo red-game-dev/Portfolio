@@ -195,9 +195,7 @@ export class Career {
       done: this.profile.done.length + this.profile.contracts,
       doneMissions: this.profile.done.map((id) => missionById(id)).filter((mission): mission is MissionSpec => mission !== null),
       contracts: this.profile.contracts,
-      upcoming: MISSIONS.filter((mission) => !this.profile.done.includes(mission.id) && !this.profile.active.some((entry) => entry.id === mission.id))
-        .slice(0, UPCOMING)
-        .map((mission) => ({ mission, isLocked: mission.minRank > rank })),
+      upcoming: this.upcoming(rank),
       codex: CODEX.map((entry) => ({ entry, isFound: found.has(entry.id) })),
       found: CODEX.filter((entry) => found.has(entry.id)).length,
       daily: this.profile.daily ? { ...this.profile.daily } : null,
@@ -221,6 +219,16 @@ export class Career {
     this.profile = Career.clean(profile);
     this.fill();
     this.changed();
+  }
+
+  // The missions still to come, in the order the board will take them: those the rank allows first, as the list has
+  // them, then those waiting for a higher rank, the nearest rank first.
+  private upcoming(rank: number): CareerView["upcoming"] {
+    const left = MISSIONS.filter((mission) => !this.profile.done.includes(mission.id) && !this.profile.active.some((entry) => entry.id === mission.id));
+    const open = left.filter((mission) => mission.minRank <= rank);
+    const waiting = left.filter((mission) => mission.minRank > rank).sort((first, second) => first.minRank - second.minRank);
+
+    return [...open, ...waiting].slice(0, UPCOMING).map((mission) => ({ mission, isLocked: mission.minRank > rank }));
   }
 
   // Keeps the board full: the next missions in order that the rank allows and are not done or on it, then

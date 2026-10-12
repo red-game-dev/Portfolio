@@ -1,5 +1,7 @@
 import { FC } from "react";
 
+import tw from "twin.macro";
+
 import { missionName, rankName } from "@/components/Finale/Voyage/career";
 import {
   Actions,
@@ -21,17 +23,19 @@ import { STORY_QUEST, trackedQuest } from "@/components/Finale/Voyage/quests";
 import { BarFill } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import type { CareerView, MissionSpec } from "@/packages/games/voyage";
 import { dayKey, RANKS } from "@/packages/games/voyage";
-import { fill } from "@/packages/text/format";
+import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
 const SIDE_COLOUR = "#7dffcf";
 
+const Hidden = tw.span`sr-only`;
+
 interface QuestsProps {
   content: FinaleVoyage;
   career: CareerView;
-  // The quest pinned to the HUD, and pinning one.
+  // The quest pinned to the HUD, and pinning one (null goes back to following the story).
   pinned: string | null;
-  onTrack: (id: string) => void;
+  onTrack: (id: string | null) => void;
   // Starts today's daily voyage; null while a run is flying.
   onDaily: (() => void) | null;
 }
@@ -50,10 +54,12 @@ export const ActiveQuests: FC<QuestsProps> = ({ content, career, pinned, onTrack
   const today = dayKey(Date.now());
   const daily = career.daily?.day === today ? career.daily : null;
 
-  // The way to follow a quest on the HUD, or that it is followed.
+  // The way to follow a quest on the HUD, or, pressed again where it is followed, to stop following it (the story is
+  // then followed again). Named by what it shows, then the quest.
   const track = (id: string, name: string) => (
-    <SmallButton type="button" isPrimary={followed !== id} aria-pressed={followed === id} aria-label={fill(words.trackLabel, { name })} onClick={() => onTrack(id)}>
+    <SmallButton type="button" isPrimary={followed !== id} aria-pressed={followed === id} onClick={() => onTrack(followed === id ? null : id)}>
       {followed === id ? words.tracked : words.track}
+      <Hidden>{` ${name}`}</Hidden>
     </SmallButton>
   );
 
@@ -99,7 +105,7 @@ export const ActiveQuests: FC<QuestsProps> = ({ content, career, pinned, onTrack
       <Block aria-labelledby="quests-daily">
         <Subheading id="quests-daily">{content.career.daily.title}</Subheading>
         <Note>{content.career.daily.note}</Note>
-        <Note>{daily ? fill(words.daily.today, { best: daily.best, runs: daily.runs }) : words.daily.notYet}</Note>
+        <Note>{daily ? fill(words.daily.today, { best: formatNumber(daily.best), runs: daily.runs }) : words.daily.notYet}</Note>
         {onDaily && (
           <Actions>
             <SmallButton type="button" onClick={onDaily}>{words.daily.fly}</SmallButton>

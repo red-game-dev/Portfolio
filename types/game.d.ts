@@ -224,7 +224,6 @@ export interface VoyageHangarCopy {
     side: string;
     track: string;
     tracked: string;
-    trackLabel: string;
     tracker: string;
     story: string;
     mission: string;
@@ -248,11 +247,10 @@ export interface VoyageHangarCopy {
   data: string;
 }
 
-// The story, told in the Pilot tab and in notices: each chapter's title, what the signal says as it opens and the
+// The story, told in the hangar's Quests tab and in notices: each chapter's title, what the signal says as it opens and the
 // line of mine it decodes to once told, and each step. "{index}" and "{total}"; "{step}", "{xp}" and "{coin}";
 // "{chapter}" and "{line}" for a chapter told; "{chapter}" and "{intro}" as one opens.
 export interface VoyageStoryCopy {
-  title: string;
   chapterOf: string;
   chapters: Record<string, { title: string; intro: string; line: string }>;
   steps: Record<string, string>;
@@ -262,8 +260,6 @@ export interface VoyageStoryCopy {
   chapterDone: string;
   opened: string;
   told: string;
-  // The lines decoded so far, under the chapter under way.
-  decoded: string;
 }
 
 // The career: missions and ranks, the codex of everything found, the daily voyage, its ghost and photo mode.
@@ -277,7 +273,6 @@ export interface VoyageCareerCopy {
   xp: string;
   nextRank: string;
   topRank: string;
-  missionsTitle: string;
   missions: Record<string, string>;
   // "{count}" is replaced.
   contracts: Record<"salvage" | "bounty" | "rescue", string>;
@@ -285,7 +280,6 @@ export interface VoyageCareerCopy {
   progress: string;
   reward: string;
   rewardXp: string;
-  done: string;
   // Notices: "{mission}", "{xp}" and "{coin}"; "{rank}"; "{name}".
   missionDone: string;
   // The same for a mission that pays no coin.

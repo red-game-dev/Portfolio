@@ -50,6 +50,7 @@ import {
   swipeTab,
   tabOf,
 } from "@/components/Finale/Voyage/Hangar/tabs";
+import { useScrollEdges } from "@/components/Finale/Voyage/Hangar/useScrollEdges";
 import type { PilotTransfer } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
 import { Money } from "@/components/Finale/Voyage/Money";
@@ -68,7 +69,8 @@ export type HangarTab = "loadout" | "ship" | "forge" | "badges" | "quests";
 
 const OPENS_ON: Record<HangarTab, HangarSectionId> = { loadout: "loadout", ship: "sheet", forge: "forge", badges: "badges", quests: "quests" };
 
-// Where the hangar was last left, and the codex finds and badges already seen there: conveniences of this browser.
+// Where the hangar was last left, and the codex finds, badges and quests done already seen there: conveniences of this
+// browser.
 const PLACE_KEY = "redgame.hangarPlace";
 const SEEN_KEY = "redgame.hangarSeen";
 
@@ -98,13 +100,13 @@ interface HangarPanelProps {
   onFollow: () => void;
   // The quest pinned to the HUD, and pinning one; starting today's daily voyage (null while a run is flying).
   pinned: string | null;
-  onTrack: (id: string) => void;
+  onTrack: (id: string | null) => void;
   onDaily: (() => void) | null;
   onClose: () => void;
 }
 
 // The hangar, as a flight deck: the purse (each currency a button that says what it is), the one thing most worth
-// doing now a tap away, and five tabs (the pilot, the ship, the cargo, the log, the settings), each a row of
+// doing now a tap away, and six tabs (the pilot, the quests, the ship, the cargo, the log, the settings), each a row of
 // sections. A tab with something to do carries a dot. It opens where it was last left (or where the voyage sends
 // it), a sideways swipe moves between tabs, and opening it focuses its heading.
 export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, gear, progress, drawShip, opensOn = null, isFlying, transfer, onAct,
@@ -144,6 +146,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
   const sectionTabs = useTabs({ count: tabSpec.sections.length, active: sectionIndex, onSelect: (next) => open(tabSpec.sections[next]) });
   const sectionList = sectionTabs.listProps.ref;
   const mainList = mainTabs.listProps.ref;
+  const tabEdges = useScrollEdges(mainList);
   const swipe = useSwipe((direction) => openTab(swipeTab(tab, direction)), SWIPE_PX);
 
   useEffect(() => {
@@ -170,7 +173,8 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
     writeStored(PLACE_KEY, section);
   }, [section, sectionList, mainList]);
 
-  // The codex and the badges, once looked at, are seen as they stand; and nothing counts as seen that is not there.
+  // The codex, the badges and the quests, once looked at, are seen as they stand; and nothing counts as seen that is
+  // not there.
   useEffect(() => {
     const isQuests = tabOf(section) === "quests";
     const next = {
@@ -267,7 +271,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
           <SmallButton type="button" isPrimary onClick={onFollow}>{words.nextStep.act}</SmallButton>
         </NextStep>
       )}
-      <TabBar {...mainTabs.listProps} aria-label={copy.hangar}>
+      <TabBar {...mainTabs.listProps} aria-label={copy.hangar} fadeStart={tabEdges.start} fadeEnd={tabEdges.end}>
         {HANGAR_TABS.map(({ id, sections, accent }, index) => {
           const hasDot = sections.some((entry) => dots.has(entry));
 

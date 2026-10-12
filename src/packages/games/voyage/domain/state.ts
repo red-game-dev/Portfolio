@@ -35,6 +35,9 @@ export interface Capture {
 export interface Descent {
   body: string;
   world: LandingWorld;
+  // The world as the landing began, before the ground under it was learnt (a capsule over the sea): what the way down is
+  // timed against, so a landing worked out ahead and one worked out here time it alike.
+  begun: LandingWorld;
   plan: LandingPlan;
   craft: DescentState;
   speedUp: number;

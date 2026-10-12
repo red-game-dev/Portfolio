@@ -63,7 +63,7 @@ export class DescentSystem implements System<VoyageContext> {
     const isManual = landing.control === "manual";
     const { craft, plan, world } = descent;
     const phase = craft.phase;
-    const ahead = this.rehearsed(bodyById(context, descent.body), world, plan, isManual);
+    const ahead = this.rehearsed(bodyById(context, descent.body), descent.begun, plan, isManual);
 
     descent.speedUp = Math.max(config.descent.speedUp, ahead / config.descent.longest);
     descent.pace = craft.isPilot || landing.time === "real" ? 1 : descent.speedUp;
@@ -82,12 +82,12 @@ export class DescentSystem implements System<VoyageContext> {
     const ready = context.forecasts.take(world);
     const plan = ready?.plan ?? planLanding(world);
 
-    if (ready) {
+    if (ready && !this.rehearsals.has(place)) {
       this.rehearsals.set(place, { auto: ready.auto, manual: ready.manual });
     }
     const craft = startDescent(plan);
 
-    context.state.descent = { body: place.id, world, plan, craft, speedUp: 1, pace: 1, downAt: null, isSoft: false, isFiredOn: false };
+    context.state.descent = { body: place.id, world, begun: { ...world }, plan, craft, speedUp: 1, pace: 1, downAt: null, isSoft: false, isFiredOn: false };
     context.events.emit("descending", { body: place.id, phase: craft.phase });
   }
 

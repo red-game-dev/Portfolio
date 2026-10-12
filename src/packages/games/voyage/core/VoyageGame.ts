@@ -1511,7 +1511,6 @@ export class VoyageGame extends FrameLoop {
     this.presenter?.resize(this.size.width, this.size.height, ratio);
   }
 
-  // The snapshot is built only when it will be sent: a change of state at once, the rest on the tick.
   // As each star system comes into play (a run, a universe, a gate), every world in it the ship could land on is sent to
   // be worked out ahead, once each.
   private forecastSystem(): void {
@@ -1539,6 +1538,7 @@ export class VoyageGame extends FrameLoop {
     });
   }
 
+  // The snapshot is built only when it will be sent: a change of state at once, the rest on the tick.
   private publish(force: boolean, now = 0): void {
     const isMoment = this.hasMomentChanged();
 

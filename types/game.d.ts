@@ -489,6 +489,8 @@ export interface FinaleVoyage {
   controls: string;
   // The same for a touch screen, where there are no keys.
   controlsTouch: string;
+  // The title the controls fold under on the card before a flight.
+  howToFly: string;
   // The first time the voyage opens, before the first flight: how the pilot likes to fly.
   setup: { title: string; note: string };
   canvasLabel: string;

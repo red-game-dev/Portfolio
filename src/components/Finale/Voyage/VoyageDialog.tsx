@@ -88,9 +88,12 @@ import {
   MapTitle,
   CardLine,
   CardName,
+  Chip,
+  Chips,
   CardReward,
   CardText,
   CardTitle,
+  HowTo,
   Message,
   MessageButton,
   Overlay,
@@ -105,9 +108,9 @@ import {
   Readout,
   Salvage,
   Score,
+  ScoreRow,
   ShipLine,
   Stage,
-  Summary,
   SurfaceCard,
   SurfaceHint,
   SurfaceLine,
@@ -129,6 +132,8 @@ import {
   Setup,
   SetupTitle,
   Text,
+  StatGrid,
+  Stat,
   Title,
   Tracker,
   TrackerCount,
@@ -939,12 +944,32 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       {(status !== "flying" || isPaused) && !isHangarOpen && !isPhoto && (
         <Overlay isPassThrough={status === "flying"}>
-          <Card isPassThrough={status === "flying"}>
+          <Card isPassThrough={status === "flying"} accent={status === "over" ? "#ffd76a" : isAskingToLeave ? "#ff9aa5" : "#c4d2ff"}>
             {status === "ready" && (
               <>
                 <Title>{content.title}</Title>
+                {(career || economy) && (
+                  <Chips>
+                    {career && (
+                      <Chip colour="#ffd76a">
+                        {`${rankName(content, career.rankId)}${progress ? `, ${fill(content.progress.level, { level: progress.level })}` : ""}`}
+                      </Chip>
+                    )}
+                    {economy && <Chip colour="#ffd76a"><Money copy={copy} amount={economy.purse.RED} /></Chip>}
+                    {economy && <Chip colour="#c58bff"><Money copy={copy} amount={economy.purse.VOID} code="VOID" /></Chip>}
+                    {tracked && (
+                      <Chip colour="#ffcf9f">
+                        <FontAwesomeIcon icon={faScroll} aria-hidden="true" />
+                        {trackedName}
+                      </Chip>
+                    )}
+                  </Chips>
+                )}
                 <Text>{content.intro}</Text>
-                <Text>{controlsText}</Text>
+                <HowTo open={!isSetUp}>
+                  <summary>{content.howToFly}</summary>
+                  <Text>{controlsText}</Text>
+                </HowTo>
                 {!isSetUp && (
                   <Setup aria-labelledby="voyage-setup-title">
                     <SetupTitle id="voyage-setup-title">{content.setup.title}</SetupTitle>
@@ -1010,19 +1035,21 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             {status === "over" && snapshot && (
               <>
                 <Title>{content.over}</Title>
-                <Score role="status">{fill(content.finalScore, { score: snapshot.score })}</Score>
-                {snapshot.score > bestBefore.current && <Badge>{content.newBest}</Badge>}
+                <ScoreRow>
+                  <Score role="status">{fill(content.finalScore, { score: formatNumber(snapshot.score) })}</Score>
+                  {snapshot.score > bestBefore.current && <Badge>{content.newBest}</Badge>}
+                </ScoreRow>
                 {pay !== null && pay > 0 && <Pay>{fill(content.pay, { coin: pay })}</Pay>}
                 {daily && <Text>{fill(content.career.daily.result, { score: daily.score })}</Text>}
                 {summary && (
-                  <Summary aria-label={content.progress.summary.title}>
+                  <StatGrid aria-label={content.progress.summary.title}>
                     {summaryRows(content, summary).map((row) => (
-                      <Fragment key={row.label}>
+                      <Stat key={row.label} isWide={row.value.length > 12}>
                         <dt>{row.label}</dt>
                         <dd>{row.value}</dd>
-                      </Fragment>
+                      </Stat>
                     ))}
-                  </Summary>
+                  </StatGrid>
                 )}
                 {daily?.isBest && <Badge>{content.career.daily.newBest}</Badge>}
                 {daily && <DailyBoard content={content} day={daily.day} score={daily.score} />}

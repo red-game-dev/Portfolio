@@ -153,6 +153,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         "The guns aim themselves; tap someone to lock on. Fly through gold coins for Red Coin, and hold still beside a wreck to " +
         "salvage it. Slow down beside a station or a trader and tap Dock to trade. The buttons at the top open the hangar, the map and " +
         "photo mode, and the ability bar uses weapons, boosts and things from the hold.",
+      howToFly: "How to fly",
       canvasLabel: "Your ship, flying out through space",
       setup: {
         title: "How do you like to fly?",

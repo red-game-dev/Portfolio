@@ -410,14 +410,126 @@ export const Overlay = styled.div(({ isPassThrough }: { isPassThrough: boolean }
   `,
 ]);
 
-// Centred where it fits, from the top where it does not; it never scrolls inside itself.
-export const Card = styled.section(({ isPassThrough }: { isPassThrough: boolean }) => [
-  tw`flex flex-col gap-[12px] w-full max-w-[460px] p-[22px] md:p-[28px]`,
+// Centred where it fits, from the top where it does not; it never scrolls inside itself. Framed as the hangar's
+// panels are, its corners bracketed in the colour of the moment: pale before a flight, gold at a run's end.
+export const Card = styled.section(({ isPassThrough, accent = "#c4d2ff" }: { isPassThrough: boolean; accent?: string }) => [
+  tw`relative flex flex-col gap-[12px] w-full max-w-[460px] p-[22px] md:p-[28px]`,
   isPassThrough && tw`pointer-events-auto`,
   css`
     margin: auto 0;
     flex-shrink: 0;
-    ${voyagePanel(0.86, 0.4)}
+    ${voyagePanel(0.86, 0.3)}
+
+    /* The brackets are drawn over everything in the card, so the pinned buttons at its foot never hide the lower two. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      pointer-events: none;
+      background:
+        linear-gradient(${accent}, ${accent}) left top / 18px 2px,
+        linear-gradient(${accent}, ${accent}) left top / 2px 18px,
+        linear-gradient(${accent}, ${accent}) right top / 18px 2px,
+        linear-gradient(${accent}, ${accent}) right top / 2px 18px,
+        linear-gradient(${accent}, ${accent}) left bottom / 18px 2px,
+        linear-gradient(${accent}, ${accent}) left bottom / 2px 18px,
+        linear-gradient(${accent}, ${accent}) right bottom / 18px 2px,
+        linear-gradient(${accent}, ${accent}) right bottom / 2px 18px;
+      background-repeat: no-repeat;
+    }
+  `,
+]);
+
+// Where the pilot stands, as the card before a flight opens: rank and level, coin and shards, the quest followed.
+export const Chips = tw.div`flex flex-row flex-wrap gap-[6px]`;
+
+export const Chip = styled.span(({ colour = "#c9cfdf" }: { colour?: string }) => [
+  tw`inline-flex items-center gap-[6px] min-h-[30px] px-[10px] text-xs font-semibold tabular-nums`,
+  css`
+    color: ${colour};
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(196, 210, 255, 0.18);
+  `,
+]);
+
+// The controls, folded under a title the pilot opens (open the first time the voyage opens).
+export const HowTo = styled.details(() => [
+  tw`block`,
+  css`
+    border-top: 1px solid rgba(196, 210, 255, 0.14);
+    padding-top: 10px;
+
+    /* Its own arrow, the same in every browser, turning as it opens. */
+    & > summary {
+      cursor: pointer;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      list-style: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: #c4d2ff;
+    }
+
+    & > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    & > summary::before {
+      content: "";
+      border-left: 6px solid currentColor;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      transition: transform 0.15s ease;
+    }
+
+    &[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    ${media.reducedMotion} {
+      & > summary::before {
+        transition: none;
+      }
+    }
+
+    & > summary:focus-visible {
+      outline: 2px solid #c4d2ff;
+      outline-offset: 2px;
+    }
+
+    & > p {
+      margin-top: 4px;
+    }
+  `,
+]);
+
+// A run's figures at its end, as tiles: the figure large and what it is under it; one too long for a tile spans the
+// row.
+export const StatGrid = tw.dl`m-0 grid grid-cols-2 md:grid-cols-3 gap-[8px]`;
+
+export const Stat = styled.div(({ isWide = false }: { isWide?: boolean }) => [
+  tw`flex flex-col gap-[2px] px-[10px] py-[8px]`,
+  isWide && tw`col-span-2 md:col-span-3`,
+  css`
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(196, 210, 255, 0.14);
+
+    & > dd {
+      order: -1;
+      margin: 0;
+      font-size: ${isWide ? "13px" : "18px"};
+      font-weight: 600;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.3;
+    }
+
+    & > dt {
+      font-size: 11px;
+      color: #9aa3bb;
+    }
   `,
 ]);
 
@@ -446,7 +558,17 @@ export const Setup = tw.section`flex flex-col gap-[10px] p-[12px] border-[1px] b
 
 export const SetupTitle = tw.h3`m-0 text-base font-semibold text-white`;
 
-export const Score = tw.p`m-0 text-3xl font-bold text-[#c4d2ff] tabular-nums`;
+export const Score = tw.p`m-0 text-4xl md:text-5xl font-bold text-[#ffd76a] tabular-nums leading-none`;
+
+// The score and what it won, side by side, the badge centred on the score.
+export const ScoreRow = styled.div(() => [
+  tw`flex flex-row flex-wrap items-center gap-[10px]`,
+  css`
+    & > p {
+      align-self: center;
+    }
+  `,
+]);
 
 export const Badge = tw.p`m-0 self-start px-[10px] py-[4px] text-xs font-semibold text-[#101010] bg-[#ffc45c]`;
 
@@ -576,24 +698,6 @@ export const GuideActions = styled.div(() => [
       color: #c9cfdf;
       background: transparent;
       border: 1px solid #3a4566;
-    }
-  `,
-]);
-
-// The run's summary on the card at its end: each figure on a line of its own.
-export const Summary = styled.dl(() => [
-  tw`m-0 grid gap-x-[12px] gap-y-[3px] text-xs md:text-sm tabular-nums`,
-  css`
-    grid-template-columns: 1fr auto;
-
-    & dt {
-      color: #9aa3bb;
-    }
-
-    & dd {
-      margin: 0;
-      text-align: right;
-      color: #ffffff;
     }
   `,
 ]);

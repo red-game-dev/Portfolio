@@ -5,7 +5,9 @@ import { HANGAR_TABS } from "@/components/Finale/Voyage/Hangar/tabs";
 import { fillNodes, Money, PurseAmounts } from "@/components/Finale/Voyage/Money";
 import { PreferencesProvider } from "@/components/Preferences/context/PreferencesContext";
 import { portfolioData } from "@/data/resume";
-import { Armory, armoryView, Career, Hangar, newCareer, newProfile, Progress, progressView, STORY, VoyageAction } from "@/packages/games/voyage";
+import {
+  Armory, armoryView, Career, codexId, Hangar, newCareer, newProfile, Progress, progressView, STORY, VoyageAction,
+} from "@/packages/games/voyage";
 
 const { voyage } = portfolioData.finale;
 const words = voyage.hangar;
@@ -144,6 +146,37 @@ describe("the voyage's hangar", () => {
     first.unmount();
     openHangar();
     expect(tabNamed(words.tabs.cargo)).toHaveAttribute("aria-selected", "true");
+  });
+
+  test("what is found while the hangar is closed is marked the next time, until it is looked at", () => {
+    openHangar().unmount();
+
+    const career = new Career();
+
+    career.discover(codexId("worlds", "earth"));
+    openHangar({ career });
+    expect(tabNamed(words.tabs.log).textContent).toContain(words.ready);
+
+    fireEvent.click(tabNamed(words.tabs.log));
+    fireEvent.click(within(screen.getByRole("tablist", { name: words.tabs.log })).getByRole("tab", { name: new RegExp(`^${words.sections.codex}`) }));
+    expect(tabNamed(words.tabs.log).textContent).not.toContain(words.ready);
+  });
+
+  test("arrows move along a row of sections with the focus, after a tab without sections", () => {
+    openHangar();
+    fireEvent.click(tabNamed(words.tabs.settings));
+    fireEvent.click(tabNamed(words.tabs.log));
+
+    const sections = within(screen.getByRole("tablist", { name: words.tabs.log }));
+    const codex = sections.getByRole("tab", { name: new RegExp(`^${words.sections.codex}`) });
+
+    codex.focus();
+    fireEvent.keyDown(codex, { key: "ArrowRight" });
+
+    const badges = sections.getByRole("tab", { name: new RegExp(`^${words.sections.badges}`) });
+
+    expect(badges).toHaveAttribute("aria-selected", "true");
+    expect(document.activeElement).toBe(badges);
   });
 
   test("the Style tab tries a paint on, and says how a locked one is won", () => {

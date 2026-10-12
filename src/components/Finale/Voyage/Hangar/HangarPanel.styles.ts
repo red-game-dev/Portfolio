@@ -135,47 +135,19 @@ export const TabButton = styled.button(({ isOn, accent }: { isOn: boolean; accen
   focusRing("#c4d2ff", -2),
 ]);
 
-// Something there can be done now.
-export const Dot = styled.span(({ colour }: { colour: string }) => [
+// Something there can be done now: over a tab's icon, or in a section's corner.
+export const Dot = styled.span(({ colour, isCorner = false }: { colour: string; isCorner?: boolean }) => [
   tw`absolute w-[8px] h-[8px] rounded-full pointer-events-none`,
   css`
-    top: 9px;
-    right: calc(50% - 16px);
+    top: ${isCorner ? "4px" : "9px"};
+    right: ${isCorner ? "4px" : "calc(50% - 16px)"};
     background: ${colour};
     box-shadow: 0 0 0 2px #05081a;
   `,
 ]);
 
-// The open tab's sections, a row of segments under the tabs.
-export const SectionBar = styled.div(() => [
-  tw`flex flex-row gap-[6px] px-[16px] pt-[10px] overflow-x-auto`,
-  css`
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  `,
-]);
-
-export const SectionButton = styled.button(({ isOn }: { isOn: boolean }) => [
-  tw`relative flex-shrink-0 min-h-[36px] px-[14px] cursor-pointer text-xs font-semibold whitespace-nowrap border-[1px] border-solid`,
-  isOn ? tint(16) : tw`bg-transparent`,
-  css`
-    color: ${isOn ? "var(--tab-accent)" : "#c9cfdf"};
-    border-color: ${isOn ? "var(--tab-accent)" : RULE};
-
-    &:hover {
-      border-color: var(--tab-accent);
-    }
-
-    & > span[data-dot] {
-      top: 4px;
-      right: 4px;
-    }
-  `,
-  focusRing("#c4d2ff", 2),
-]);
+// The open tab's sections, a row of the site's tabs under the hangar's own.
+export const SectionBar = tw.div`px-[16px] pt-[10px]`;
 
 // A sideways swipe across it moves between tabs, so it lets the browser scroll only up and down.
 export const Body = styled.div(() => [

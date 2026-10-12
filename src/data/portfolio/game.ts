@@ -435,9 +435,10 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         currencies: {
           open: "What is {name}?",
           RED: "Paid for what you do: new places, first landings, hostiles brought down, worlds saved, missions and the story, " +
-            "and picked up as gold coins in flight. It buys upgrades, plans, forging and enhancing, and what stations sell.",
-          VOID: "Rare, and only from past the singularity: bosses, new universes and gifts from those who host you. Upgrades " +
-            "take them from the Corvette on, and the Ship tab trades them for Red Coin.",
+            "and picked up as gold coins in flight. It pays for upgrades, making things from plans, forging and enhancing, " +
+            "and what stations sell.",
+          VOID: "Earned only past the singularity: bosses, new universes and gifts from those who host you. The Ship tab also " +
+            "buys and sells them for Red Coin. Upgrades take them from the Corvette on.",
         },
         nextStep: { label: "Next step", act: "Do it" },
         pilot: { rank: "Rank", rankNote: "From missions and the story", level: "Pilot level", levelNote: "From everything you do in flight" },

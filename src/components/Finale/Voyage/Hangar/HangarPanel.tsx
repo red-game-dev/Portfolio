@@ -1,4 +1,4 @@
-import { CSSProperties, FC, KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import { CSSProperties, FC, useEffect, useId, useRef, useState } from "react";
 
 import tw from "twin.macro";
 
@@ -26,7 +26,6 @@ import {
   PurseNote,
   PurseNoteTitle,
   SectionBar,
-  SectionButton,
   SmallButton,
   TabBar,
   TabButton,
@@ -56,7 +55,8 @@ import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSet
 import { Money } from "@/components/Finale/Voyage/Money";
 import { IconButton } from "@/components/Finale/Voyage/VoyageDialog.styles";
 import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
-import { rovingTarget } from "@/packages/accessibility/roving";
+import { Tab, TabList } from "@/components/Tabs";
+import useTabs from "@/hooks/useTabs";
 import { readStored, writeStored } from "@/packages/browser/storage";
 import type { ArmoryView, CareerView, CurrencyCode, EconomyView, ProgressView, VoyageAction } from "@/packages/games/voyage";
 import { fill } from "@/packages/text/format";
@@ -111,25 +111,32 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
   const baseId = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const tabListRef = useRef<HTMLDivElement>(null);
-  const sectionListRef = useRef<HTMLDivElement>(null);
+  const found = seenNow(views);
   const [section, setSection] = useState<HangarSectionId>(() => (opensOn ? OPENS_ON[opensOn] : readStored(PLACE_KEY, isHangarSection) ?? "overview"));
   const [lastSections, setLastSections] = useState<Partial<Record<HangarTabId, HangarSectionId>>>(() => ({ [tabOf(section)]: section }));
-  const [seen, setSeen] = useState<HangarSeen>(() => readStored(SEEN_KEY, isHangarSeen) ?? seenNow(views));
+  // What was seen before, never more than there is now (after a reset, or another device's pilot taken on); the
+  // first time, everything found so far.
+  const [seen, setSeen] = useState<HangarSeen>(() => {
+    const stored = readStored(SEEN_KEY, isHangarSeen);
+
+    return stored ? { codex: Math.min(stored.codex, found.codex), badges: Math.min(stored.badges, found.badges) } : found;
+  });
   const [purseNote, setPurseNote] = useState<CurrencyCode | null>(null);
   const voyageSettings = useVoyageSettings();
   const tab = tabOf(section);
-  const tabSpec = HANGAR_TABS.find(({ id }) => id === tab) ?? HANGAR_TABS[0];
+  const tabIndex = HANGAR_TABS.findIndex(({ id }) => id === tab);
+  const tabSpec = HANGAR_TABS[tabIndex] ?? HANGAR_TABS[0];
+  const sectionIndex = Math.max(0, tabSpec.sections.indexOf(section));
   const dots = sectionDots(views, seen);
-  const tabId = (id: HangarTabId) => `${baseId}-tab-${id}`;
-  const sectionId = (id: HangarSectionId) => `${baseId}-section-${id}`;
-  const found = seenNow(views);
 
   const open = (next: HangarSectionId) => {
     setSection(next);
     setLastSections((now) => ({ ...now, [tabOf(next)]: next }));
   };
   const openTab = (next: HangarTabId) => open(lastSections[next] ?? HANGAR_TABS.find(({ id }) => id === next)?.sections[0] ?? "overview");
+  const mainTabs = useTabs({ count: HANGAR_TABS.length, active: tabIndex, onSelect: (next) => openTab(HANGAR_TABS[next].id) });
+  const sectionTabs = useTabs({ count: tabSpec.sections.length, active: sectionIndex, onSelect: (next) => open(tabSpec.sections[next]) });
+  const sectionList = sectionTabs.listProps.ref;
   const swipe = useSwipe((direction) => openTab(swipeTab(tab, direction)), SWIPE_PX);
 
   useEffect(() => {
@@ -151,36 +158,26 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
       bodyRef.current.scrollTop = 0;
     }
 
-    sectionListRef.current?.querySelector<HTMLElement>("[aria-selected=true]")?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    sectionList.current?.querySelector<HTMLElement>("[aria-selected=true]")?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
     writeStored(PLACE_KEY, section);
-  }, [section]);
+  }, [section, sectionList]);
 
-  // The codex and the badges, once looked at, are seen as they stand.
+  // The codex and the badges, once looked at, are seen as they stand; and nothing counts as seen that is not there.
   useEffect(() => {
     const next = {
-      codex: section === "codex" ? Math.max(seen.codex, found.codex) : seen.codex,
-      badges: section === "badges" ? Math.max(seen.badges, found.badges) : seen.badges,
+      codex: section === "codex" ? found.codex : Math.min(seen.codex, found.codex),
+      badges: section === "badges" ? found.badges : Math.min(seen.badges, found.badges),
     };
 
     if (next.codex !== seen.codex || next.badges !== seen.badges) {
       setSeen(next);
-      writeStored(SEEN_KEY, next);
     }
   }, [section, found.codex, found.badges, seen]);
 
-  // Arrows, Home and End move along a row of tabs, opening each as it is reached.
-  const roving = <T extends string>(ids: readonly T[], current: T, go: (id: T) => void, list: HTMLDivElement | null) => (event: KeyboardEvent<HTMLElement>) => {
-    const next = rovingTarget(event.key, ids.indexOf(current), ids.length);
-
-    if (next === null) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    go(ids[next]);
-    list?.querySelectorAll<HTMLElement>("[role=tab]")[next]?.focus();
-  };
+  // Kept from the first open, so what is found while the hangar is closed is marked the next time.
+  useEffect(() => {
+    writeStored(SEEN_KEY, seen);
+  }, [seen]);
 
   const body = (() => {
     switch (section) {
@@ -258,25 +255,12 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
           <SmallButton type="button" isPrimary onClick={onFollow}>{words.nextStep.act}</SmallButton>
         </NextStep>
       )}
-      <TabBar ref={tabListRef} role="tablist" aria-label={copy.hangar}>
-        {HANGAR_TABS.map(({ id, sections, accent }) => {
-          const isOn = id === tab;
+      <TabBar {...mainTabs.listProps} aria-label={copy.hangar}>
+        {HANGAR_TABS.map(({ id, sections, accent }, index) => {
           const hasDot = sections.some((entry) => dots.has(entry));
 
           return (
-            <TabButton
-              key={id}
-              id={tabId(id)}
-              type="button"
-              role="tab"
-              aria-selected={isOn}
-              aria-controls={`${baseId}-panel`}
-              tabIndex={isOn ? 0 : -1}
-              isOn={isOn}
-              accent={accent}
-              onClick={() => openTab(id)}
-              onKeyDown={roving(HANGAR_TABS.map((entry) => entry.id), tab, openTab, tabListRef.current)}
-            >
+            <TabButton key={id} {...mainTabs.tabProps(index)} isOn={index === tabIndex} accent={accent}>
               <FontAwesomeIcon icon={TAB_ICONS[id]} aria-hidden="true" />
               {words.tabs[id]}
               {hasDot && (
@@ -289,38 +273,27 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
           );
         })}
       </TabBar>
-      <MainPanel id={`${baseId}-panel`} role="tabpanel" aria-labelledby={tabId(tab)}>
+      <MainPanel {...mainTabs.panelProps(tabIndex)}>
         {tabSpec.sections.length > 1 && (
-          <SectionBar ref={sectionListRef} role="tablist" aria-label={words.tabs[tab]} data-scroll-x>
-            {tabSpec.sections.map((id) => (
-              <SectionButton
-                key={id}
-                id={sectionId(id)}
-                type="button"
-                role="tab"
-                aria-selected={id === section}
-                aria-controls={`${baseId}-body`}
-                tabIndex={id === section ? 0 : -1}
-                isOn={id === section}
-                onClick={() => open(id)}
-                onKeyDown={roving(tabSpec.sections, section, open, sectionListRef.current)}
-              >
-                {words.sections[id]}
-                {dots.has(id) && (
-                  <>
-                    <Dot colour={tabSpec.accent} data-dot aria-hidden="true" />
-                    <Hidden>{`, ${words.ready}`}</Hidden>
-                  </>
-                )}
-              </SectionButton>
-            ))}
+          <SectionBar data-scroll-x>
+            <TabList {...sectionTabs.listProps} aria-label={words.tabs[tab]}>
+              {tabSpec.sections.map((id, index) => (
+                <Tab key={id} {...sectionTabs.tabProps(index)} isOn={index === sectionIndex}>
+                  {words.sections[id]}
+                  {dots.has(id) && (
+                    <>
+                      <Dot colour={tabSpec.accent} isCorner aria-hidden="true" />
+                      <Hidden>{`, ${words.ready}`}</Hidden>
+                    </>
+                  )}
+                </Tab>
+              ))}
+            </TabList>
           </SectionBar>
         )}
         <Body
           ref={bodyRef}
-          id={`${baseId}-body`}
-          role={tabSpec.sections.length > 1 ? "tabpanel" : undefined}
-          aria-labelledby={tabSpec.sections.length > 1 ? sectionId(section) : undefined}
+          {...(tabSpec.sections.length > 1 ? sectionTabs.panelProps(sectionIndex) : {})}
           onPointerDown={swipe.onPointerDown}
           onPointerUp={swipe.onPointerUp}
         >

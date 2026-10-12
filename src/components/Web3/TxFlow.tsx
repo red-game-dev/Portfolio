@@ -33,8 +33,14 @@ const Note = tw.p`m-0 mt-[4px] text-xs text-[#888]`;
 const Controls = tw.div`flex flex-row flex-wrap gap-[10px] mt-[14px]`;
 
 const Button = styled.button(({ variant }: { variant: "primary" | "danger" | "plain" }) => [
-  tw`inline-flex items-center h-[36px] px-[14px] cursor-pointer text-sm font-semibold rounded-[2px] border-[1px] border-solid disabled:opacity-40
-     disabled:cursor-default`,
+  tw`inline-flex items-center h-[36px] px-[14px] cursor-pointer text-sm font-semibold rounded-[2px] border-[1px] border-solid`,
+  // Marked rather than disabled while a run plays, so the button pressed keeps focus.
+  css`
+    &[aria-disabled="true"] {
+      opacity: 0.4;
+      cursor: default;
+    }
+  `,
   variant === "primary" && tw`text-[#101010] bg-[var(--accent)] border-[var(--accent)]`,
   variant === "danger" && tw`text-[#ff8a8a] bg-transparent border-[#6b2a2a]`,
   variant === "plain" && tw`text-[#bbb] bg-transparent border-[#2a2a2a]`,
@@ -156,11 +162,17 @@ export const TxFlow: FC<TxFlowContent> = ({ title, description, note, resetLabel
       <Note>{note}</Note>
       <Controls>
         {scenarios.map((scenario, index) => (
-          <Button key={scenario.label} type="button" variant={index === 0 ? "primary" : "danger"} disabled={run.status === "running"} onClick={() => play(scenario)}>
+          <Button
+            key={scenario.label}
+            type="button"
+            variant={index === 0 ? "primary" : "danger"}
+            aria-disabled={run.status === "running"}
+            onClick={() => run.status !== "running" && play(scenario)}
+          >
             {scenario.label}
           </Button>
         ))}
-        <Button type="button" variant="plain" disabled={run.status === "idle"} onClick={reset}>{resetLabel}</Button>
+        <Button type="button" variant="plain" aria-disabled={run.status === "idle"} onClick={() => run.status !== "idle" && reset()}>{resetLabel}</Button>
       </Controls>
       <Pipeline>
         {steps.map((step, index) => {

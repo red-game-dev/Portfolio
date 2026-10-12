@@ -239,7 +239,7 @@ export const Action = styled.a(() => [
     &:hover,
     &:focus-visible {
       background: rgba(var(--here-rgb), 0.12);
-      outline: none;
     }
   `,
+  focusRing("var(--here)", -2),
 ]);

@@ -80,7 +80,15 @@ const Line = styled.div(({ kind }: { kind: TerminalLineKind }) => [
   `,
 ]);
 
-const Form = tw.form`flex flex-row items-center gap-[8px] px-[16px] py-[12px] border-0 border-t-[1px] border-solid border-[#1E1E1E]`;
+// The prompt's row lights its edge while the input has focus, so focus is seen as more than a caret.
+const Form = styled.form(() => [
+  tw`flex flex-row items-center gap-[8px] px-[16px] py-[12px] border-0 border-t-[1px] border-solid border-[#1E1E1E]`,
+  css`
+    &:focus-within {
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+  `,
+]);
 
 const Prompt = styled.label(() => [
   tw`flex-shrink-0 text-[13px] text-[var(--accent)]`,
@@ -349,12 +357,14 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
       return true;
     }
 
-    // With nothing typed, Tab moves focus on as usual.
-    if (!value.trim()) {
+    // With nothing typed, or nothing it completes to, Tab moves focus on as usual, so it never holds focus here.
+    const completed = value.trim() ? session.complete(value) : value;
+
+    if (completed === value) {
       return false;
     }
 
-    setValue(session.complete(value));
+    setValue(completed);
 
     return true;
   });
@@ -408,7 +418,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
         </Form>
       </Window>
       {(asking || followUp) && (
-        <FollowUps aria-label={content.ask.summary}>
+        <FollowUps role="group" aria-label={content.ask.summary}>
           {asking && <Suggestion type="button" isFeatured={false} onClick={stopAsking}>{content.ask.stopLabel}</Suggestion>}
           {followUp?.canDeepen && <Suggestion type="button" isFeatured onClick={() => run("deeper")}>{content.ask.deeperLabel}</Suggestion>}
           {followUp && followUp.sources.length > 0 && <SourcesLabel>{content.ask.sourcesLabel}</SourcesLabel>}

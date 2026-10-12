@@ -1,7 +1,14 @@
-import tw from "twin.macro";
+import tw, { css, styled } from "twin.macro";
 
-// The column every section of the journey sits in, above the backdrop, clear of the fixed rails.
-export const Section = tw.div`relative px-[20px] md:px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`;
+// The column every section of the journey sits in, above the backdrop, clear of the fixed rails. A jump to a section
+// lands it at the top of the screen: its scroll margin cancels the page's scroll padding, which is there to keep
+// focused controls clear of the fixed bars.
+export const Section = styled.div(() => [
+  tw`relative px-[20px] md:px-[30px] py-[50px] lg:px-[20%] lg:py-[70px] z-[6]`,
+  css`
+    scroll-margin-top: calc(-1 * var(--bars-top, 0px));
+  `,
+]);
 
 // A link target at the very top of a section, for the role, audience and industry links of the first
 // screen, so a section can answer to more than its own id.

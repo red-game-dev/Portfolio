@@ -153,6 +153,7 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
           <Slide
             key={getKey(item)}
             hidden={index < first || index >= last}
+            role="group"
             aria-roledescription="slide"
             aria-label={`${index + 1} / ${items.length}`}
           >

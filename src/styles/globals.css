@@ -66,6 +66,30 @@
 		margin-right: 0 !important;
     scroll-behavior: smooth;
 		background: #101010;
+    /* The room the fixed bars take: the header and the zone trail above, the game HUD along the bottom on phones and
+       mid widths. A control focused by keyboard is scrolled clear of them (WCAG 2.4.11); sections cancel it with a
+       scroll margin of their own, so a jump to one still lands it at the top. */
+    --bars-top: 104px;
+    --bars-bottom: 80px;
+    scroll-padding-top: var(--bars-top);
+    scroll-padding-bottom: var(--bars-bottom);
+  }
+
+  @media (min-width: 1024px) {
+    html {
+      --bars-top: 72px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    html {
+      --bars-bottom: 16px;
+    }
+  }
+
+  /* Where a jump on the page lands, focused so the next Tab goes on from there; not a control, so no ring. */
+  :where(main, [id^="section-"])[tabindex="-1"]:focus {
+    outline: none;
   }
 
 	body {

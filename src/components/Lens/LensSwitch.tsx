@@ -11,7 +11,7 @@ import { PixelSprite } from "@/components/PixelSprite";
 import { Lens, LENS_ACCENTS, LENSES } from "@/config/lenses";
 import useFocusLeave from "@/hooks/useFocusLeave";
 import { KeyMap } from "@/packages/interaction/keys";
-import { media, svgFill } from "@/styles/mixins";
+import { focusRing, media, svgFill } from "@/styles/mixins";
 import { LensContent } from "@/types/lens";
 
 interface LensSwitchProps {
@@ -79,9 +79,9 @@ const Option = styled.button(({ isCurrent }: { isCurrent: boolean }) => [
     &:hover,
     &:focus-visible {
       background: rgba(var(--lens-rgb), 0.08);
-      outline: none;
     }
   `,
+  focusRing("var(--lens-accent)", -2),
 ]);
 
 const OptionText = tw.span`flex flex-col`;

@@ -40,7 +40,7 @@ const Pipeline = tw.ol`list-none m-0 p-0 flex flex-row items-center gap-[6px] md
 const PipelineStage = styled.li(({ isReached }: { isReached: boolean }) => [
   tw`flex flex-row items-center gap-[6px] md:gap-[10px] text-xs md:text-sm font-semibold`,
   css`
-    color: ${isReached ? "var(--lens-accent)" : "#555"};
+    color: ${isReached ? "var(--lens-accent)" : "#8a8a8a"};
     transition: color 0.3s ease;
 
     & + &::before {
@@ -87,7 +87,7 @@ const tick = keyframes`
 const Check = styled.li(({ isTicked }: { isTicked: boolean }) => [
   tw`flex flex-row items-center gap-[10px] text-sm`,
   css`
-    color: ${isTicked ? "#eee" : "#555"};
+    color: ${isTicked ? "#eee" : "#8a8a8a"};
     transition: color 0.25s ease;
 
     &::before {

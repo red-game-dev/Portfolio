@@ -22,7 +22,7 @@ const Face = styled.div(() => [
 
 export const Corner = styled.span(({ isRed }: { isRed: boolean }) => [
   tw`absolute top-[10px] left-[14px] text-lg leading-none`,
-  isRed ? tw`text-[#d6264f]` : tw`text-[#1a1a1a]`,
+  isRed ? tw`text-[#c01d44]` : tw`text-[#1a1a1a]`,
 ]);
 
 export const CornerBottom = styled(Corner)(() => [
@@ -38,7 +38,7 @@ const Detail = tw.p`m-0 text-sm text-[#3a3a3a] break-words`;
 
 const Places = tw.p`m-0 mt-auto pr-[24px] text-xs font-semibold text-[#6b5a3a]`;
 
-const CardLink = tw.a`self-start text-xs font-semibold text-[#d6264f] underline`;
+const CardLink = tw.a`self-start text-xs font-semibold text-[#c01d44] underline`;
 
 interface PlayingCardProps {
   card: DomainCapability;

@@ -155,7 +155,14 @@ export const Group = tw.div`flex flex-row flex-wrap gap-[10px]`;
 
 export const Travel = styled.button(() => [
   ...actionStyle(false),
-  tw`max-w-full md:max-w-[220px] disabled:opacity-30 disabled:cursor-default`,
+  tw`max-w-full md:max-w-[220px]`,
+  // Marked rather than disabled at either end, so a reader whose focus is on it keeps it there.
+  css`
+    &[aria-disabled="true"] {
+      opacity: 0.3;
+      cursor: default;
+    }
+  `,
 ]);
 
 export const TravelName = tw.span`truncate`;

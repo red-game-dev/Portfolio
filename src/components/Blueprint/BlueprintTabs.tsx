@@ -39,7 +39,7 @@ export const BlueprintTabs: FC<BlueprintTabsProps> = ({ blueprints, labels }: Bl
     <Showcase>
       <TabList {...listProps} layout="wrap" aria-label={labels.showcase} data-scroll-x>
         {blueprints.map((blueprint, index) => (
-          <Tab key={blueprint.id} {...tabProps(index)} isOn={index === active}>
+          <Tab key={blueprint.id} {...tabProps(index)} aria-controls={index === active ? tabProps(index)["aria-controls"] : undefined} isOn={index === active}>
             {blueprint.tab ?? blueprint.title}
           </Tab>
         ))}

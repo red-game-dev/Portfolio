@@ -26,6 +26,7 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
     industryFilter: "Industries I know",
     allIndustries: "All",
     industryMatches: "{count} roles in {industry}",
+    outsideIndustry: "Outside {industry}.",
   },
   experience: [
     {

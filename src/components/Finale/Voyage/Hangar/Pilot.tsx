@@ -1,25 +1,10 @@
 import { FC } from "react";
 
-import { missionName, rankName } from "@/components/Finale/Voyage/career";
-import {
-  Block,
-  Frame,
-  Item,
-  ItemCount,
-  ItemName,
-  Items,
-  ItemTop,
-  Meter,
-  Note,
-  Standing,
-  Standings,
-  StandingValue,
-  Subheading,
-} from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
-import { Story } from "@/components/Finale/Voyage/Hangar/Story";
-import { fillNodes, Money } from "@/components/Finale/Voyage/Money";
+import { rankName } from "@/components/Finale/Voyage/career";
+import { Frame, ItemCount, Meter, Note, Standing, Standings, StandingValue } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
+import { Talents } from "@/components/Finale/Voyage/Hangar/Talents";
 import { BarFill } from "@/components/Finale/Voyage/VoyageDialog.styles";
-import type { CareerView, ProgressView } from "@/packages/games/voyage";
+import type { CareerView, ProgressView, VoyageAction } from "@/packages/games/voyage";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 
@@ -30,11 +15,12 @@ interface PilotProps {
   content: FinaleVoyage;
   career: CareerView | null;
   progress: ProgressView | null;
+  onAct: (action: VoyageAction) => boolean;
 }
 
 // The pilot at a glance: their two standings side by side, each saying where it comes from (the rank from missions
-// and the story, the level from everything done in flight), then the story and the missions on the board.
-export const Pilot: FC<PilotProps> = ({ content, career, progress }) => {
+// and the story, the level from everything done in flight), then the talents their levels give.
+export const Pilot: FC<PilotProps> = ({ content, career, progress, onAct }) => {
   const copy = content.career;
   const words = content.hangar.pilot;
   const rankShare = career ? (career.nextRank ? (career.xp - career.rankFloor) / Math.max(1, career.nextRank.xp - career.rankFloor) : 1) : 0;
@@ -78,31 +64,7 @@ export const Pilot: FC<PilotProps> = ({ content, career, progress }) => {
           </Standings>
         </Frame>
       )}
-      {career && <Story content={content} story={career.story} />}
-      {career && (
-        <Block aria-labelledby="pilot-missions">
-          <Subheading id="pilot-missions">{copy.missionsTitle}</Subheading>
-          <Items>
-            {career.missions.map(({ mission, progress: done, target }) => (
-              <Item key={mission.id}>
-                <ItemTop>
-                  <ItemName colour="#ffffff">{missionName(content, mission.id)}</ItemName>
-                  <ItemCount>{fill(copy.progress, { progress: done, target })}</ItemCount>
-                </ItemTop>
-                <Meter segments={target} role="meter" aria-label={missionName(content, mission.id)} aria-valuemin={0} aria-valuemax={target} aria-valuenow={done}>
-                  <BarFill colour={LEVEL_COLOUR} style={{ transform: `scaleX(${target > 0 ? done / target : 0})` }} />
-                </Meter>
-                <Note>
-                  {mission.coin > 0
-                    ? fillNodes(copy.reward, { xp: mission.xp, coin: <Money copy={content.economy} amount={mission.coin} isSigned /> })
-                    : fill(copy.rewardXp, { xp: mission.xp })}
-                </Note>
-              </Item>
-            ))}
-          </Items>
-          <Note>{fill(copy.done, { count: career.done })}</Note>
-        </Block>
-      )}
+      {progress && <Talents content={content} progress={progress} onAct={onAct} />}
     </>
   );
 };

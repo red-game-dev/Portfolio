@@ -214,8 +214,30 @@ interface NamedNote {
 // currency is (opened from the purse), the next step strip, the pilot's two standings, the Style tab, the Loadout's
 // slots ("{n}", "{name}"), and the group that holds what is kept of the pilot.
 export interface VoyageHangarCopy {
-  tabs: Record<"pilot" | "ship" | "cargo" | "log" | "settings", string>;
-  sections: Record<"overview" | "talents" | "sheet" | "loadout" | "forge" | "style" | "hold" | "plans" | "codex" | "badges" | "ledger" | "settings", string>;
+  tabs: Record<"pilot" | "quests" | "ship" | "cargo" | "log" | "settings", string>;
+  sections: Record<"overview" | "quests" | "completed" | "sheet" | "loadout" | "forge" | "style" | "hold" | "plans" | "codex" | "badges" | "ledger" | "settings", string>;
+  // The quest log: the story as the main quest, the missions as side quests, what comes next, the daily voyage, what
+  // is done, and the one quest followed on the HUD ("{name}", "{progress}", "{target}", "{chapter}", "{rank}",
+  // "{count}", "{best}", "{runs}").
+  quests: {
+    main: string;
+    side: string;
+    track: string;
+    tracked: string;
+    trackLabel: string;
+    tracker: string;
+    story: string;
+    mission: string;
+    next: string;
+    opensAt: string;
+    onBoard: string;
+    chapters: string;
+    missions: string;
+    contracts: string;
+    none: string;
+    open: string;
+    daily: { fly: string; today: string; notYet: string };
+  };
   ready: string;
   currencies: { open: string; RED: string; VOID: string };
   nextStep: { label: string; act: string };

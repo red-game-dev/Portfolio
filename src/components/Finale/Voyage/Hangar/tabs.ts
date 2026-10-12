@@ -1,9 +1,11 @@
+import { questsDone } from "@/components/Finale/Voyage/quests";
 import type { ArmoryView, CareerView, EconomyView, ProgressView } from "@/packages/games/voyage";
 
-// The hangar's five tabs, each with its sections in the order they show, and its accent.
-export type HangarTabId = "pilot" | "ship" | "cargo" | "log" | "settings";
+// The hangar's six tabs, each with its sections in the order they show, and its accent.
+export type HangarTabId = "pilot" | "quests" | "ship" | "cargo" | "log" | "settings";
 
-export type HangarSectionId = "overview" | "talents" | "sheet" | "loadout" | "forge" | "style" | "hold" | "plans" | "codex" | "badges" | "ledger" | "settings";
+export type HangarSectionId =
+  "overview" | "quests" | "completed" | "sheet" | "loadout" | "forge" | "style" | "hold" | "plans" | "codex" | "badges" | "ledger" | "settings";
 
 export interface HangarTabSpec {
   id: HangarTabId;
@@ -12,7 +14,8 @@ export interface HangarTabSpec {
 }
 
 export const HANGAR_TABS: readonly HangarTabSpec[] = [
-  { id: "pilot", sections: ["overview", "talents"], accent: "#ffd76a" },
+  { id: "pilot", sections: ["overview"], accent: "#ffd76a" },
+  { id: "quests", sections: ["quests", "completed"], accent: "#ff9f5a" },
   { id: "ship", sections: ["sheet", "loadout", "forge", "style"], accent: "#4fd8ff" },
   { id: "cargo", sections: ["hold", "plans"], accent: "#7dffcf" },
   { id: "log", sections: ["codex", "badges", "ledger"], accent: "#c58bff" },
@@ -36,14 +39,17 @@ const SECTIONS = new Set<string>(HANGAR_TABS.flatMap((tab) => tab.sections));
 // Whether something read back is a section this code knows, to open the hangar where it was last left.
 export const isHangarSection = (value: unknown): value is HangarSectionId => typeof value === "string" && SECTIONS.has(value);
 
-// The codex finds and badges a pilot has already seen in the hangar, so only newer ones are marked.
+// The codex finds, badges and quests done a pilot has already seen in the hangar, so only newer ones are marked. Quests
+// were counted later, so a count kept before has none.
 export interface HangarSeen {
   codex: number;
   badges: number;
+  quests?: number;
 }
 
-export const isHangarSeen = (value: unknown): value is HangarSeen =>
-  typeof value === "object" && value !== null && typeof (value as HangarSeen).codex === "number" && typeof (value as HangarSeen).badges === "number";
+export const isHangarSeen = (value: unknown): value is HangarSeen => typeof value === "object" && value !== null &&
+  typeof (value as HangarSeen).codex === "number" && typeof (value as HangarSeen).badges === "number" &&
+  ["number", "undefined"].includes(typeof (value as HangarSeen).quests);
 
 export interface HangarViews {
   economy: EconomyView;
@@ -55,11 +61,12 @@ export interface HangarViews {
 export const badgesWon = (progress: ProgressView | null): number => progress?.achievements.filter(({ at }) => at !== null).length ?? 0;
 
 // What the pilot has seen now, for marking it seen.
-export const seenNow = ({ career, progress }: HangarViews): HangarSeen => ({ codex: career?.found ?? 0, badges: badgesWon(progress) });
+export const seenNow = ({ career, progress }: HangarViews): Required<HangarSeen> =>
+  ({ codex: career?.found ?? 0, badges: badgesWon(progress), quests: career ? questsDone(career) : 0 });
 
-// The sections with something that can be done now: a talent point to spend, the next upgrade paid for, a slot of the
-// bar left empty while there is something to put in it, a weapon that can be forged, a plan that can be made, and
-// codex finds and badges newer than those seen.
+// The sections with something that can be done now: a talent point to spend, a quest done (and a new one come) since
+// the quests were last looked at, the next upgrade paid for, a slot of the bar left empty while there is something
+// to put in it, a weapon that can be forged, a plan that can be made, and codex finds and badges newer than those seen.
 export const sectionDots = (views: HangarViews, seen: HangarSeen): Set<HangarSectionId> => {
   const { economy, career, gear, progress } = views;
   const dots = new Set<HangarSectionId>();
@@ -71,7 +78,11 @@ export const sectionDots = (views: HangarViews, seen: HangarSeen): Set<HangarSec
   ].filter((key) => !onBar.has(key));
 
   if ((progress?.talents.left ?? 0) > 0) {
-    dots.add("talents");
+    dots.add("overview");
+  }
+
+  if (career && questsDone(career) > (seen.quests ?? questsDone(career))) {
+    dots.add("quests");
   }
 
   if (economy.next?.shortfall.isReady) {

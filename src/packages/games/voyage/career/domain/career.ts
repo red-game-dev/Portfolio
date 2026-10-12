@@ -154,6 +154,11 @@ export interface CareerView {
   rankFloor: number;
   missions: Array<{ mission: MissionSpec; progress: number; target: number }>;
   done: number;
+  // The missions finished, in the order they were, and the contracts done (counted, not kept).
+  doneMissions: MissionSpec[];
+  contracts: number;
+  // The next missions in order not yet on the board, and whether each waits for a higher rank.
+  upcoming: Array<{ mission: MissionSpec; isLocked: boolean }>;
   codex: Array<{ entry: CodexEntry; isFound: boolean }>;
   found: number;
   daily: DailyRecord | null;

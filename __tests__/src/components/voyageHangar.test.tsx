@@ -18,9 +18,11 @@ interface OpenOptions {
   career?: Career;
   opensOn?: HangarTab | null;
   onAct?: (action: VoyageAction) => boolean;
+  onTrack?: (id: string) => void;
+  onDaily?: (() => void) | null;
 }
 
-const openHangar = ({ career = new Career(), opensOn = null, onAct = () => true }: OpenOptions = {}) => {
+const openHangar = ({ career = new Career(), opensOn = null, onAct = () => true, onTrack = () => undefined, onDaily = null }: OpenOptions = {}) => {
   const armory = new Armory();
   const progress = new Progress();
   const hangar = new Hangar(newProfile(), { weapons: armory.port() });
@@ -43,6 +45,9 @@ const openHangar = ({ career = new Career(), opensOn = null, onAct = () => true 
         transfer={transfer}
         onAct={onAct}
         onFollow={() => undefined}
+        pinned={null}
+        onTrack={onTrack}
+        onDaily={onDaily}
         onClose={() => undefined}
       />
     </PreferencesProvider>,
@@ -54,17 +59,17 @@ const tabNamed = (name: string) => screen.getAllByRole("tab").find((tab) => tab.
 describe("the voyage's hangar", () => {
   beforeEach(() => window.localStorage.clear());
 
-  test("five tabs with icons, and every section of each opens with something in it, without an error", () => {
+  test("six tabs with icons, and every section of each opens with something in it, without an error", () => {
     const errors = jest.spyOn(console, "error").mockImplementation(() => undefined);
 
     openHangar();
 
     const main = screen.getByRole("tablist", { name: voyage.economy.hangar });
 
-    expect(within(main).getAllByRole("tab")
-.map((tab) => tab.textContent?.replace(`, ${words.ready}`, ""))).toEqual(HANGAR_TABS.map(({ id }) => words.tabs[id]));
-    within(main).getAllByRole("tab")
-.forEach((tab) => expect(tab.querySelector("svg")).not.toBeNull());
+    const tabs = within(main).getAllByRole("tab");
+
+    expect(tabs.map((tab) => tab.textContent?.replace(`, ${words.ready}`, ""))).toEqual(HANGAR_TABS.map(({ id }) => words.tabs[id]));
+    tabs.forEach((tab) => expect(tab.querySelector("svg")).not.toBeNull());
 
     HANGAR_TABS.forEach(({ id, sections }) => {
       fireEvent.click(tabNamed(words.tabs[id]));
@@ -88,8 +93,8 @@ describe("the voyage's hangar", () => {
     openHangar();
 
     const purse = screen.getByRole("heading", { name: voyage.economy.hangar }).parentElement as HTMLElement;
-    const coin = within(purse).getByRole("img", { name: voyage.economy.currencies.RED })
-.closest("button") as HTMLElement;
+    const coinMark = within(purse).getByRole("img", { name: voyage.economy.currencies.RED });
+    const coin = coinMark.closest("button") as HTMLElement;
 
     expect(within(purse).getByRole("img", { name: voyage.economy.currencies.VOID })).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/\b(RC|VS)\b/);
@@ -110,29 +115,64 @@ describe("the voyage's hangar", () => {
     expect(screen.getByTestId("purse")).toHaveTextContent("-2");
   });
 
-  test("the Pilot tab shows rank and level side by side, the chapter under way, and every line decoded so far", () => {
-    openHangar({ career: new Career({ ...newCareer(), story: { chapter: 2, progress: [0, 0] } }) });
+  test("the Pilot tab shows the rank and the level side by side, and the talents", () => {
+    openHangar();
 
     expect(screen.getByText(words.pilot.rank)).toBeInTheDocument();
     expect(screen.getByText(words.pilot.level)).toBeInTheDocument();
-
-    const story = screen.getByRole("region", { name: voyage.career.story.title });
-
-    expect(within(story).getByText(voyage.career.story.chapters.ai.title)).toBeInTheDocument();
-    expect(within(story).getByText(`Chapter 3 of ${STORY.length}`)).toBeInTheDocument();
-    expect(within(story).getByText(voyage.career.story.steps.aiSave)).toBeInTheDocument();
-    expect(within(story).getByText(voyage.career.story.waiting)).toBeInTheDocument();
-    expect(within(story).getByText(voyage.career.story.chapters.launch.line)).toBeInTheDocument();
-    expect(within(story).queryByText(voyage.career.story.chapters.ai.line)).toBeNull();
+    expect(screen.getByText(voyage.talents.title)).toBeInTheDocument();
   });
 
-  test("once the story is told, only its lines remain", () => {
-    openHangar({ career: new Career({ ...newCareer(), story: { chapter: STORY.length, progress: [] } }) });
+  test("the Quests tab holds the main quest, the side quests to follow, what comes next and the daily voyage", () => {
+    const onTrack = jest.fn();
+    const onDaily = jest.fn();
 
-    const story = screen.getByRole("region", { name: voyage.career.story.title });
+    openHangar({ career: new Career({ ...newCareer(), story: { chapter: 2, progress: [0, 0] } }), opensOn: "quests", onTrack, onDaily });
 
-    expect(within(story).getByText(voyage.career.story.told)).toBeInTheDocument();
-    expect(within(story).getAllByRole("listitem")).toHaveLength(STORY.length);
+    const main = screen.getByRole("region", { name: words.quests.main });
+
+    expect(within(main).getByText(voyage.career.story.chapters.ai.title)).toBeInTheDocument();
+    expect(within(main).getByText(`Chapter 3 of ${STORY.length}`)).toBeInTheDocument();
+    expect(within(main).getByText(voyage.career.story.steps.aiSave)).toBeInTheDocument();
+    expect(within(main).getByText(voyage.career.story.waiting)).toBeInTheDocument();
+    // The story is followed until another quest is pinned.
+    expect(within(main).getByRole("button", { name: fill(words.quests.trackLabel, words.quests.main) })).toHaveAttribute("aria-pressed", "true");
+
+    const side = screen.getByRole("region", { name: words.quests.side });
+
+    expect(within(side).getByText(voyage.career.missions.landMoon)).toBeInTheDocument();
+    fireEvent.click(within(side).getByRole("button", { name: fill(words.quests.trackLabel, voyage.career.missions.landMoon) }));
+    expect(onTrack).toHaveBeenCalledWith("landMoon");
+
+    expect(within(screen.getByRole("region", { name: words.quests.next })).getAllByRole("listitem").length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("button", { name: words.quests.daily.fly }));
+    expect(onDaily).toHaveBeenCalled();
+  });
+
+  test("Completed keeps every chapter told with the line it decoded to, and every mission done", () => {
+    const career = new Career({ ...newCareer(), story: { chapter: 2, progress: [0, 0] } });
+
+    career.record({ kind: "landed", body: "moon" });
+    openHangar({ career, opensOn: "quests" });
+    fireEvent.click(within(screen.getByRole("tablist", { name: words.tabs.quests })).getByRole("tab", { name: new RegExp(`^${words.sections.completed}`) }));
+
+    const chapters = screen.getByRole("region", { name: words.quests.chapters });
+
+    expect(within(chapters).getByText(voyage.career.story.chapters.launch.line)).toBeInTheDocument();
+    expect(within(chapters).getByText(voyage.career.story.chapters.matrix.line)).toBeInTheDocument();
+    expect(within(chapters).queryByText(voyage.career.story.chapters.ai.line)).toBeNull();
+    expect(within(screen.getByRole("region", { name: words.quests.missions })).getByText(voyage.career.missions.landMoon)).toBeInTheDocument();
+  });
+
+  test("a quest done while the hangar is closed marks the Quests tab until it is looked at", () => {
+    const career = new Career();
+
+    openHangar({ career }).unmount();
+    career.record({ kind: "landed", body: "moon" });
+    openHangar({ career });
+    expect(tabNamed(words.tabs.quests).textContent).toContain(words.ready);
+    fireEvent.click(tabNamed(words.tabs.quests));
+    expect(tabNamed(words.tabs.quests).textContent).not.toContain(words.ready);
   });
 
   test("it opens where the voyage sends it, and otherwise where it was last left", () => {

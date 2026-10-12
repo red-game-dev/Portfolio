@@ -251,6 +251,38 @@ export const Message = styled.p(() => [
   `,
 ]);
 
+// The quest followed, under the readout on the right: its objective and how far along it is, and what it belongs
+// to. A press opens the quest log. On a phone it keeps to the right half, clear of the bars on the left.
+export const Tracker = styled.button(() => [
+  tw`absolute right-[14px] top-[92px] md:right-[18px] md:top-[72px] flex flex-col items-start gap-[2px] px-[10px] py-[7px] cursor-pointer text-left`,
+  css`
+    max-width: min(48vw, 280px);
+    ${voyagePanel(0.6, 0.3)}
+    border-left: 2px solid #ff9f5a;
+    pointer-events: auto;
+  `,
+  focusRing("#c4d2ff", 2),
+]);
+
+export const TrackerName = tw.span`flex flex-row items-baseline gap-[8px] w-full text-xs md:text-sm font-semibold text-white`;
+
+export const TrackerText = tw.span`flex-1 min-w-0`;
+
+export const TrackerCount = tw.span`tabular-nums text-[#ffcf9f] whitespace-nowrap`;
+
+export const TrackerSub = tw.span`text-[11px] text-[#aab3c9]`;
+
+// A line about a quest, pressed to open the quest log.
+export const MessageButton = styled.button(() => [
+  tw`m-0 p-0 cursor-pointer bg-transparent border-0 font-semibold text-white text-center`,
+  css`
+    font: inherit;
+    text-decoration: underline dotted rgba(255, 255, 255, 0.5);
+    text-underline-offset: 3px;
+  `,
+  focusRing("#c4d2ff", 2),
+]);
+
 // Under the HUD's buttons (so they still answer while a card is up), the card's own scrolling area: the whole of it
 // scrolls as one, so a card taller than a short phone is read to the end. Some phones will not scroll a box nested
 // inside a layer that lets touches through to the canvas, so this layer takes the touches itself; the paused card,

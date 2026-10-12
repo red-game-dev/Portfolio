@@ -2,7 +2,7 @@ import { CSSProperties, FC, useEffect, useId, useRef, useState } from "react";
 
 import tw from "twin.macro";
 
-import { faBook, faBoxOpen, faGear, faRocket, faUserAstronaut, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faBoxOpen, faGear, faRocket, faScroll, faUserAstronaut, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useSwipe } from "@/components/Carousel/hooks/useSwipe";
@@ -35,6 +35,7 @@ import { Ledger, YourData } from "@/components/Finale/Voyage/Hangar/Ledger";
 import { Loadout } from "@/components/Finale/Voyage/Hangar/Loadout";
 import { Pilot } from "@/components/Finale/Voyage/Hangar/Pilot";
 import { PilotTransfer as PilotTransferPanel } from "@/components/Finale/Voyage/Hangar/PilotTransfer";
+import { ActiveQuests, CompletedQuests } from "@/components/Finale/Voyage/Hangar/Quests";
 import { Sheet } from "@/components/Finale/Voyage/Hangar/Sheet";
 import { Style } from "@/components/Finale/Voyage/Hangar/Style";
 import {
@@ -49,7 +50,6 @@ import {
   swipeTab,
   tabOf,
 } from "@/components/Finale/Voyage/Hangar/tabs";
-import { Talents } from "@/components/Finale/Voyage/Hangar/Talents";
 import type { PilotTransfer } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
 import { Money } from "@/components/Finale/Voyage/Money";
@@ -64,15 +64,15 @@ import { FinaleVoyage } from "@/types/game";
 import { PreferencesContent } from "@/types/preferences";
 
 // A place the hangar can be opened on from elsewhere in the voyage.
-export type HangarTab = "loadout" | "ship" | "forge" | "badges";
+export type HangarTab = "loadout" | "ship" | "forge" | "badges" | "quests";
 
-const OPENS_ON: Record<HangarTab, HangarSectionId> = { loadout: "loadout", ship: "sheet", forge: "forge", badges: "badges" };
+const OPENS_ON: Record<HangarTab, HangarSectionId> = { loadout: "loadout", ship: "sheet", forge: "forge", badges: "badges", quests: "quests" };
 
 // Where the hangar was last left, and the codex finds and badges already seen there: conveniences of this browser.
 const PLACE_KEY = "redgame.hangarPlace";
 const SEEN_KEY = "redgame.hangarSeen";
 
-const TAB_ICONS = { pilot: faUserAstronaut, ship: faRocket, cargo: faBoxOpen, log: faBook, settings: faGear };
+const TAB_ICONS = { pilot: faUserAstronaut, quests: faScroll, ship: faRocket, cargo: faBoxOpen, log: faBook, settings: faGear };
 const CURRENCY_COLOURS: Record<CurrencyCode, string> = { RED: "#ffd76a", VOID: "#c58bff" };
 // How far a finger must travel sideways for a swipe to change tabs (px).
 const SWIPE_PX = 60;
@@ -96,6 +96,10 @@ interface HangarPanelProps {
   onAct: (action: VoyageAction) => boolean;
   // Does the hangar's one suggestion.
   onFollow: () => void;
+  // The quest pinned to the HUD, and pinning one; starting today's daily voyage (null while a run is flying).
+  pinned: string | null;
+  onTrack: (id: string) => void;
+  onDaily: (() => void) | null;
   onClose: () => void;
 }
 
@@ -104,7 +108,7 @@ interface HangarPanelProps {
 // sections. A tab with something to do carries a dot. It opens where it was last left (or where the voyage sends
 // it), a sideways swipe moves between tabs, and opening it focuses its heading.
 export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, career, gear, progress, drawShip, opensOn = null, isFlying, transfer, onAct,
-  onFollow, onClose }: HangarPanelProps) => {
+  onFollow, pinned, onTrack, onDaily, onClose }: HangarPanelProps) => {
   const copy = content.economy;
   const words = content.hangar;
   const views = { economy, career, gear, progress };
@@ -119,7 +123,9 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
   const [seen, setSeen] = useState<HangarSeen>(() => {
     const stored = readStored(SEEN_KEY, isHangarSeen);
 
-    return stored ? { codex: Math.min(stored.codex, found.codex), badges: Math.min(stored.badges, found.badges) } : found;
+    return stored
+      ? { codex: Math.min(stored.codex, found.codex), badges: Math.min(stored.badges, found.badges), quests: Math.min(stored.quests ?? found.quests, found.quests) }
+      : found;
   });
   const [purseNote, setPurseNote] = useState<CurrencyCode | null>(null);
   const voyageSettings = useVoyageSettings();
@@ -164,15 +170,17 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
 
   // The codex and the badges, once looked at, are seen as they stand; and nothing counts as seen that is not there.
   useEffect(() => {
+    const isQuests = tabOf(section) === "quests";
     const next = {
       codex: section === "codex" ? found.codex : Math.min(seen.codex, found.codex),
       badges: section === "badges" ? found.badges : Math.min(seen.badges, found.badges),
+      quests: isQuests ? found.quests : Math.min(seen.quests ?? found.quests, found.quests),
     };
 
-    if (next.codex !== seen.codex || next.badges !== seen.badges) {
+    if (next.codex !== seen.codex || next.badges !== seen.badges || next.quests !== seen.quests) {
       setSeen(next);
     }
-  }, [section, found.codex, found.badges, seen]);
+  }, [section, found.codex, found.badges, found.quests, seen]);
 
   // Kept from the first open, so what is found while the hangar is closed is marked the next time.
   useEffect(() => {
@@ -182,9 +190,11 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
   const body = (() => {
     switch (section) {
       case "overview":
-        return <Pilot content={content} career={career} progress={progress} />;
-      case "talents":
-        return progress && <Talents content={content} progress={progress} onAct={onAct} />;
+        return <Pilot content={content} career={career} progress={progress} onAct={onAct} />;
+      case "quests":
+        return career && <ActiveQuests content={content} career={career} pinned={pinned} onTrack={onTrack} onDaily={onDaily} />;
+      case "completed":
+        return career && <CompletedQuests content={content} career={career} />;
       case "sheet":
         return <Sheet content={content} economy={economy} gear={gear} progress={progress} drawShip={drawShip} onAct={onAct} />;
       case "loadout":

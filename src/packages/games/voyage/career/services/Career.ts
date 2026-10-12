@@ -16,6 +16,9 @@ import {
   StoryStepDone,
 } from "../domain/career";
 
+// How many of the missions still to come the career shows.
+const UPCOMING = 3;
+
 // A pilot who has done nothing yet.
 export const newCareer = (): CareerProfile => ({ xp: 0, active: [], done: [], contracts: 0, codex: [], daily: null, story: newStory() });
 
@@ -190,6 +193,11 @@ export class Career {
         .filter((item): item is { entry: MissionProgress; mission: MissionSpec } => item.mission !== null)
         .map(({ entry, mission }) => ({ mission, progress: entry.progress, target: targetOf(mission.goal) })),
       done: this.profile.done.length + this.profile.contracts,
+      doneMissions: this.profile.done.map((id) => missionById(id)).filter((mission): mission is MissionSpec => mission !== null),
+      contracts: this.profile.contracts,
+      upcoming: MISSIONS.filter((mission) => !this.profile.done.includes(mission.id) && !this.profile.active.some((entry) => entry.id === mission.id))
+        .slice(0, UPCOMING)
+        .map((mission) => ({ mission, isLocked: mission.minRank > rank })),
       codex: CODEX.map((entry) => ({ entry, isFound: found.has(entry.id) })),
       found: CODEX.filter((entry) => found.has(entry.id)).length,
       daily: this.profile.daily ? { ...this.profile.daily } : null,

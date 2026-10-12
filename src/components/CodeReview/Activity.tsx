@@ -167,7 +167,7 @@ const BadgeText = tw.span`min-w-0 break-words text-xs leading-snug text-[#ddd]`;
 
 const BadgeValue = tw.strong`block text-sm md:text-base text-white`;
 
-const Legend = tw.p`m-0 text-[11px] text-[#777]`;
+const Legend = tw.p`m-0 text-[11px] text-[#8a8a8a]`;
 
 // The full sentence for screen readers, while the counter animates on screen.
 const Spoken = tw.span`sr-only`;

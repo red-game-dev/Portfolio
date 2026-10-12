@@ -43,9 +43,10 @@ const Button = styled.button(({ variant }: { variant: "primary" | "danger" | "pl
 const Pipeline = tw.ol`list-none m-0 mt-[18px] p-0 grid gap-[8px] grid-cols-2 md:grid-cols-4`;
 
 const STEP_STYLES: Record<StepState, ReturnType<typeof css>> = {
+  // Dimmed no further than its smallest text (the tech line) keeps a 4.5:1 contrast.
   pending: css`
     border-color: #2a2a2a;
-    opacity: 0.55;
+    opacity: 0.82;
   `,
   active: css`
     border-color: var(--accent);

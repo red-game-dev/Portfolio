@@ -66,17 +66,26 @@ const Middle = tw.div`flex-1 flex flex-col items-center gap-[8px] min-w-0`;
 const Position = tw.span`text-xs text-[#999]`;
 
 // One segment per page, the current one lit: a quest progress bar more than a row of dots.
-const Track = tw.div`flex flex-row gap-[3px] w-full max-w-[320px]`;
+const Track = tw.div`flex flex-row gap-[4px] w-full max-w-[320px]`;
+
+// Pressed to jump to its page while every segment still has a 24px target (WCAG 2.5.8 asks no less); with more
+// pages than that leaves room for, the track only shows where the reader is, and the arrows turn the pages.
+const JUMP_MAX = 6;
 
 const Segment = styled.button(({ isOn }: { isOn: boolean }) => [
-  tw`flex-1 h-[16px] p-0 cursor-pointer bg-transparent border-0 relative`,
+  tw`flex-1 min-w-[24px] h-[24px] p-0 cursor-pointer bg-transparent border-0 relative`,
   css`
+    span& {
+      min-width: 0;
+      cursor: default;
+    }
+
     &::before {
       content: "";
       position: absolute;
       left: 0;
       right: 0;
-      top: 6px;
+      top: 10px;
       height: 4px;
       background: ${isOn ? "var(--accent)" : "#2a2a2a"};
       box-shadow: ${isOn ? "0 0 8px rgba(var(--accent-rgb), 0.6)" : "none"};
@@ -158,8 +167,10 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
           </Arrow>
           <Middle>
             <Position aria-live="polite">{describe(first + 1, last)}</Position>
-            <Track>
-              {Array.from({ length: pages }, (_, index) => (
+            <Track aria-hidden={pages > JUMP_MAX ? true : undefined}>
+              {Array.from({ length: pages }, (_, index) => (pages > JUMP_MAX ? (
+                <Segment key={index} as="span" isOn={index === page} />
+              ) : (
                 <Segment
                   key={index}
                   type="button"
@@ -168,7 +179,7 @@ export const Carousel = <T,>({ items, getKey, renderItem, label, labels, perView
                   aria-current={index === page ? "true" : undefined}
                   onClick={() => goTo(index, index > page ? 1 : -1)}
                 />
-              ))}
+              )))}
             </Track>
           </Middle>
           <Arrow type="button" aria-label={labels.next} onClick={() => goTo(page + 1, 1)}>

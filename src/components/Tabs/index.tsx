@@ -44,4 +44,4 @@ export const Tab = styled.button(({ isOn }: { isOn: boolean }) => [
 ]);
 
 // How many items a tab holds, beside its name.
-export const TabCount = styled.span(({ isOn }: { isOn: boolean }) => [tw`text-[11px] font-medium`, isOn ? tw`text-[#101010]` : tw`text-[#777]`]);
+export const TabCount = styled.span(({ isOn }: { isOn: boolean }) => [tw`text-[11px] font-medium`, isOn ? tw`text-[#101010]` : tw`text-[#8a8a8a]`]);

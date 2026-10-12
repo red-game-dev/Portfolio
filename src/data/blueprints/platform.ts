@@ -632,7 +632,8 @@ const blueprints: Blueprint[] = [
       "through the ledger.",
     summary: {
       role: "Founder and CTO: designed the engine, the consoles, the money and the compliance, and build it with AI agents",
-      scale: "My own gamified social network platform: 20 placements from the feed to video, 14 targeting axes, five transparency regimes",
+      scale: "My own gamified social network platform: 20 placements from the feed to video, 14 targeting axes (nine attribute, " +
+        "five behavioural), five transparency regimes",
       stack: ["TypeScript", "NestJS", "Next.js", "React", "PostgreSQL", "Redis", "Row level security", "Zod"],
     },
     architecture: {
@@ -654,10 +655,11 @@ const blueprints: Blueprint[] = [
           label: "Campaigns",
           place: { col: 2, row: 1 },
           nodes: [
-            { id: "ads-campaign", label: "Campaign", detail: "Objective, budget, dates, who paid for it" },
-            { id: "ads-set", label: "Ad set", detail: "Targeting, placements, bid, pacing, frequency cap, dayparting" },
-            { id: "ads-ad", label: "Ad", detail: "Points at a post, profile or article: nothing re-authored" },
-            { id: "ads-review", label: "Review and policy", detail: "Regulated categories, EU DSA and political ad rules", kind: "decision" },
+            { id: "ads-campaign", label: "Campaign", detail: "Objective, budget, charge model, who paid for it" },
+            { id: "ads-set", label: "Ad set", detail: "Targeting, placements, bid strategy, pacing, frequency cap, dayparting" },
+            { id: "ads-ad", label: "Ad", detail: "Points at a post, profile or article; two can share an ad set for an A/B test" },
+            { id: "ads-review", label: "Review per creative", detail: "In the platform's moderation queue; regulated, DSA and political rules", kind: "decision" },
+            { id: "ads-filings", label: "Transparency filings", detail: "Five regimes; statements of reasons sent through an outbox with retries" },
           ],
         },
         {
@@ -666,8 +668,9 @@ const blueprints: Blueprint[] = [
           place: { col: 3, row: 1 },
           nodes: [
             { id: "ads-credit", label: "Ads credit", detail: "Topped up from platform credit, never withdrawn", kind: "store" },
-            { id: "ads-hold", label: "Budget hold", detail: "Held on approval, settled per delivery, the rest released" },
-            { id: "ads-booking", label: "Spend booking", detail: "Lifetime, daily and pacing in one atomic update" },
+            { id: "ads-hold", label: "Two charge models", detail: "A held ceiling charged per delivery, or prepaid with the unspent part refunded" },
+            { id: "ads-booking", label: "Spend booking", detail: "Against the ceiling first, the only step that can refuse" },
+            { id: "ads-debit", label: "Debit, then revenue", detail: "Both idempotent; a failed debit releases the booking" },
             { id: "ads-statements", label: "Statements and invoices", detail: "Monthly, from the ledger" },
           ],
         },
@@ -700,7 +703,8 @@ const blueprints: Blueprint[] = [
             { id: "ads-rules", label: "Placement rules", detail: "Guests, slots, personalisation; unknown fails closed" },
             { id: "ads-networks", label: "Networks in parallel", detail: "First party always in, others behind one adapter, one deadline" },
             { id: "ads-gates", label: "Every gate in one query", detail: "Live, in dates, jurisdiction, targeting, frequency" },
-            { id: "ads-rank", label: "Ranked by eCPM", detail: "Bid per thousand, by objective and lookalike" },
+            { id: "ads-strategy", label: "Bid strategies", detail: "Bid cap, cost cap, target cost, lowest cost; unresolved serves unbilled" },
+            { id: "ads-rank", label: "Ranked by eCPM", detail: "Bid times predicted action rate; estimated bids are labelled" },
             { id: "ads-token", label: "Signed fill", detail: "Single use, ten minutes" },
             { id: "ads-card", label: "Sponsored card", detail: "The same card in the preview and live" },
           ],
@@ -711,9 +715,10 @@ const blueprints: Blueprint[] = [
           place: { col: 4, row: 2 },
           nodes: [
             { id: "ads-beacons", label: "Beacons", detail: "Counted once half on screen; click, engage, convert" },
-            { id: "ads-attribution", label: "Attribution", detail: "Last click in 7 days, else last view in 1" },
+            { id: "ads-attribution", label: "Attribution", detail: "Last click in 7 days, else last view in 1; up to 90 days" },
             { id: "ads-charge", label: "Charged once", detail: "The token is the ledger key: a replay cannot charge twice" },
             { id: "ads-reports", label: "Reporting", detail: "Breakdowns hide groups under 25 people" },
+            { id: "ads-reconcile", label: "Reconciliation", detail: "Networks' numbers settled behind a lag, as they restate them" },
           ],
         },
       ],
@@ -722,13 +727,15 @@ const blueprints: Blueprint[] = [
         { from: "ads-campaign", to: "ads-set" },
         { from: "ads-set", to: "ads-ad" },
         { from: "ads-ad", to: "ads-review" },
+        { from: "ads-review", to: "ads-filings", style: "dashed" },
         { from: "ads-review", to: "ads-hold", label: "approve" },
         { from: "ads-credit", to: "ads-hold" },
         { from: "ads-opens", to: "ads-slot" },
         { from: "ads-slot", to: "ads-rules" },
         { from: "ads-rules", to: "ads-networks" },
         { from: "ads-networks", to: "ads-gates" },
-        { from: "ads-gates", to: "ads-rank" },
+        { from: "ads-gates", to: "ads-strategy" },
+        { from: "ads-strategy", to: "ads-rank" },
         { from: "ads-rank", to: "ads-token" },
         { from: "ads-token", to: "ads-card" },
         { from: "ads-card", to: "ads-surfaces" },
@@ -737,8 +744,10 @@ const blueprints: Blueprint[] = [
         { from: "ads-attribution", to: "ads-charge" },
         { from: "ads-charge", to: "ads-booking", style: "dashed" },
         { from: "ads-hold", to: "ads-booking" },
-        { from: "ads-booking", to: "ads-statements" },
+        { from: "ads-booking", to: "ads-debit" },
+        { from: "ads-debit", to: "ads-statements" },
         { from: "ads-charge", to: "ads-reports" },
+        { from: "ads-reports", to: "ads-reconcile", style: "dashed" },
       ],
     },
     wireframe: {
@@ -749,7 +758,7 @@ const blueprints: Blueprint[] = [
           regions: [
             { kind: "bar", label: "Advertiser, ads credit, draft", area: "header" },
             { kind: "steps", label: "Campaign, ad set, ad", area: "left" },
-            { kind: "form", label: "Targeting, placements, bid, pacing, frequency", area: "main" },
+            { kind: "form", label: "Targeting, placements, bid strategy, pacing, frequency, charge model", area: "main" },
             { kind: "stat", label: "Estimated reach", area: "right" },
             { kind: "card", label: "Preview in the placement, the live card", area: "right" },
             { kind: "actions", label: "Submit for review", area: "footer" },
@@ -766,8 +775,8 @@ const blueprints: Blueprint[] = [
       ],
       decision: "Ads are a slot, not a page: one slot API, one hook and one card serve every placement, my own advertisers' ads " +
         "compete with the networks on price alone, and money moves only through the ledger, booked atomically per delivery.",
-      outcome: "A new surface is a rules row and a mount, a boost is two answers, regulated markets get their transparency " +
-        "records, and no delivery can be charged twice.",
+      outcome: "A new surface is a rules row and a mount, a boost is two answers, an A/B test is a second creative in the same " +
+        "ad set, regulated markets get their transparency records, and no delivery can be charged twice.",
     },
     journeys: [
       {
@@ -776,8 +785,8 @@ const blueprints: Blueprint[] = [
           "A creator opens the menu on their post and picks a budget and a number of days",
           "The bid is set from the two, and the boost goes to review",
           "Approval holds the budget from their ads credit",
-          "It runs as a sponsored card, each delivery settled from the hold",
-          "What is left returns when it ends",
+          "It runs as a sponsored card, each delivery charged against the hold",
+          "When it ends the hold is released, so nothing unspent is charged",
         ],
       },
       {
@@ -789,6 +798,15 @@ const blueprints: Blueprint[] = [
           "A signed fill comes back, and the card shows between posts with its Sponsored chip and who paid",
           "Once half of it is on screen, the impression is counted and charged once, straight through the ledger",
           "The viewer can hide it, or ask why they are seeing it",
+        ],
+      },
+      {
+        title: "Testing two creatives",
+        steps: [
+          "A second creative goes under the same ad set",
+          "Both run against one audience and one budget",
+          "Each is reviewed on its own, so one can pass while the other is held",
+          "Reporting sets them side by side",
         ],
       },
       {

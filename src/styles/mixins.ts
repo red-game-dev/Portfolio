@@ -12,13 +12,12 @@ export const media = {
   md: "@media (min-width: 768px)",
   lg: "@media (min-width: 1024px)",
   xl: "@media (min-width: 1280px)",
-  // A phone held upright too narrow for the place and the voyage's buttons side by side (a foldable's cover screen,
-  // most Android phones, the smaller iPhones).
-  narrowPortrait: "@media (orientation: portrait) and (max-width: 389px)",
+  // A phone held upright, of any size short of a tablet: too narrow for the place and the voyage's buttons side by side.
+  narrowPortrait: "@media (orientation: portrait) and (max-width: 479px)",
   // A phone held upright too short for the ability bar, centred down the edge, to clear the telemetry below it.
   shortPortrait: "@media (orientation: portrait) and (max-height: 699px)",
   // The shortest upright phone (a small one with the browser's bars showing): too short even for a column of smaller
-  // slots, so the ability bar folds into two.
+  // slots, so the ability bar folds into two, and the column of bars keeps to what matters most.
   shortestPortrait: "@media (orientation: portrait) and (max-height: 520px)",
   // A phone on its side, of any width: too short for a column down either edge.
   shortLandscape: "@media (orientation: landscape) and (max-height: 500px)",

@@ -23,6 +23,9 @@ export const SITE_PREFERENCES = {
   "voyage-music": { kind: "choice", options: ["off", "low", "medium", "high"], initial: "low" },
   // A buzz on hits and finds, on a phone that can.
   "voyage-haptics": { kind: "toggle", initial: true },
+  // How much of the voyage's HUD shows: compact by itself on a screen too small for all of it, or always compact, or
+  // always in full. A compact HUD opens in full from its info button.
+  "voyage-hud": { kind: "choice", options: ["auto", "compact", "full"], initial: "auto" },
 } as const satisfies Schema;
 
 export type SitePreferences = typeof SITE_PREFERENCES;

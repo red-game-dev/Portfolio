@@ -57,6 +57,12 @@ export const preferencesContent: Pick<PortfolioData, "preferences"> = {
         description: "A short buzz on hits, kills and finds, on a phone that can.",
         options: { on: "On", off: "Off" },
       },
+      "voyage-hud": {
+        name: "HUD",
+        description: "How much the flight shows. Auto keeps it compact on a very small screen, so the view stays clear; compact always " +
+          "shows only what matters in the moment; full always shows every panel. A compact HUD opens in full from its info button.",
+        options: { auto: "Auto", compact: "Compact", full: "Full" },
+      },
     },
     terminal: {
       settingsSummary: "See your settings",

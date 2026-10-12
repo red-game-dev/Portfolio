@@ -224,9 +224,13 @@ describe("the voyage's cards", () => {
   const HOME: SurfaceInfo = { body: "earth", pad: null, name: null, isHome: true, latitude: 27.1, longitude: -72.4, hours: 9.5, biome: "ocean" };
 
   test("the way down reads its height, speeds, load and pace, and what the pilot can do", () => {
-    expect(descentRows(voyage, DESCENT)).toEqual(["Altitude 12 km", "Speed 1,180 m/s", "Falling 22 m/s", "Load 0.3 g", "Playing 47 times faster than life"]);
-    expect(descentRows(voyage, { ...DESCENT, altitude: 140, speed: 4.6, fall: 4.6, load: 0, pace: 1 }))
+    const text = (rows: Array<{ text: string }>) => rows.map((row) => row.text);
+
+    expect(text(descentRows(voyage, DESCENT))).toEqual(["Altitude 12 km", "Speed 1,180 m/s", "Falling 22 m/s", "Load 0.3 g", "Playing 47 times faster than life"]);
+    expect(text(descentRows(voyage, { ...DESCENT, altitude: 140, speed: 4.6, fall: 4.6, load: 0, pace: 1 })))
       .toEqual(["Altitude 140 m", "Speed 4.6 m/s", "Falling 4.6 m/s", "In real time"]);
+    // A compact HUD keeps how high and how fast falling, what a pilot landing by hand reads.
+    expect(text(descentRows(voyage, DESCENT).filter((row) => row.isSlim))).toEqual(["Altitude 12 km", "Falling 22 m/s"]);
     expect(descentHint(voyage, DESCENT, false)).toEqual(["Flown by the guidance"]);
     expect(descentHint(voyage, { ...DESCENT, isUnderFire: true }, true)).toEqual(["Under fire from the ground: hold Up or W, or press and hold, to abort the landing"]);
     // With the pilot's hand on the burn, the burn lands the ship, so the card says how to land rather than how to abort.

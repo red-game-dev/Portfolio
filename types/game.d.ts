@@ -565,6 +565,12 @@ export interface FinaleVoyage {
     title: string;
     names: Record<string, string>;
   };
+  // The compact HUD's info button: opening every panel, going back to compact, and what its dot means.
+  hud: {
+    open: string;
+    close: string;
+    alert: string;
+  };
   // "{body}" is replaced.
   landed: string;
   tookOff: string;

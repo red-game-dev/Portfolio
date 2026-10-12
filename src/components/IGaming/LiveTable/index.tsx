@@ -6,7 +6,7 @@ import { faRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Dealer } from "@/components/IGaming/LiveTable/Dealer";
-import { CARD_WIDTH, fanStep } from "@/components/IGaming/LiveTable/fan";
+import { CARD_WIDTH, fanStep, isSpineStep } from "@/components/IGaming/LiveTable/fan";
 import useLiveTable from "@/components/IGaming/LiveTable/useLiveTable";
 import { Corner, CornerBottom, PlayingCard, suitOf } from "@/components/IGaming/PlayingCard";
 import useSize from "@/hooks/useSize";
@@ -90,9 +90,17 @@ const Hand = styled.ul(() => [
       margin-left: var(--step);
     }
 
-    /* Only a strip of each card shows under the next, so its name wraps inside that strip. */
+    /* Only a strip of each card shows under the next, so its name wraps inside that strip, or on a strip too thin for
+       that runs up it. */
     &[data-fan] > li:not(:last-child) [data-name] {
       max-width: calc(${CARD_WIDTH}px + var(--step) - 8px);
+    }
+
+    &[data-spine] > li:not(:last-child) [data-name] {
+      max-width: none;
+      max-height: 104px;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
     }
   `,
 ]);
@@ -260,6 +268,7 @@ export const LiveTable: FC<LiveTableProps> = ({ cards, content }: LiveTableProps
                 ref={handRef}
                 data-scroll-x
                 data-fan={step === null ? undefined : true}
+                data-spine={step !== null && isSpineStep(step) ? true : undefined}
                 style={step === null ? undefined : ({ "--step": `${step}px` } as CSSProperties)}
               >
                 {snapshot.hand.map((name, position) => {

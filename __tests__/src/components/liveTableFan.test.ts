@@ -1,4 +1,4 @@
-import { CARD_WIDTH, fanStep } from "@/components/IGaming/LiveTable/fan";
+import { CARD_WIDTH, fanStep, isSpineStep } from "@/components/IGaming/LiveTable/fan";
 
 describe("the live table's hand", () => {
   test("is a row until it has been measured, or with one card", () => {
@@ -14,6 +14,11 @@ describe("the live table's hand", () => {
     const width = 24 + CARD_WIDTH * 11 - 10 * 55;
 
     expect(fanStep(width, 11)).toBe(-55);
-    expect(fanStep(24 + CARD_WIDTH * 11 - 10 * 61, 11)).toBeNull();
+    expect(fanStep(24 + CARD_WIDTH * 11 - 10 * 77, 11)).toBeNull();
+  });
+
+  test("runs each tucked card's name up its strip once the strips are too thin for it across", () => {
+    expect(isSpineStep(-46)).toBe(false);
+    expect(isSpineStep(-70)).toBe(true);
   });
 });

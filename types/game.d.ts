@@ -779,16 +779,16 @@ export interface VoyageEncountersCopy {
     traderAlone: string;
     // "{coin}" is replaced.
     coin: string;
+    // The port's sections, short, for its row of tabs; and what is said of one with something to do.
+    tabs: { crew: string; ammo: string; market: string; sell: string };
+    ready: string;
     crew: string;
     services: Record<ServiceId, string>;
     notNeeded: string;
-    ammo: string;
     // "{count}", "{ammo}", "{aboard}" and "{rack}" are replaced.
     pack: string;
     aboard: string;
     racksFull: string;
-    goods: string;
-    sales: string;
     nothingToSell: string;
     // "{price}" is replaced.
     buy: string;

@@ -203,6 +203,11 @@ export const TelemetryPanel = styled.section(({ isYielding = false }: { isYieldi
       ${isYielding ? "display: none;" : ""}
     }
 
+    /* On the shortest upright phone the column runs down beside it, so a long reading wraps rather than widening it. */
+    ${media.shortestPortrait} {
+      max-width: calc(100vw - 150px);
+    }
+
     ${media.shortLandscape} {
       min-width: 0;
       max-width: min(28vw, 190px);
@@ -314,14 +319,26 @@ export const TargetFrame = styled.section(() => [
   `,
 ]);
 
-export const FrameName = tw.p`m-0 flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white truncate`;
+// A frame's name and its standing; on the shortest upright phone, where the target's frame is narrow, the standing
+// wraps under the name rather than being cut off.
+export const FrameName = styled.p(() => [
+  tw`m-0 flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white truncate`,
+  css`
+    ${media.shortestPortrait} {
+      flex-wrap: wrap;
+      gap: 0 6px;
+      white-space: normal;
+    }
+  `,
+]);
 
 export const FrameMeta = tw.span`text-[10px] md:text-[11px] font-normal text-[#9aa3bb] whitespace-nowrap`;
 
 export const FrameTrack = tw.div`relative h-[5px] overflow-hidden bg-[rgba(255,255,255,0.12)]`;
 
 // On a phone, above the radar and the telemetry, narrow enough to clear the ability bar down the right edge and
-// clear of the HUD's bars at the top; above the bar along the bottom where there is room.
+// clear of the HUD's bars at the top (on the shortest upright phone beside the column, under the bar, since the column
+// reaches down to the telemetry there); above the bar along the bottom where there is room.
 export const Frames = styled.div(() => [
   tw`absolute left-1/2 bottom-[150px] md:bottom-[82px] flex flex-col gap-[6px] pointer-events-none`,
   css`
@@ -330,6 +347,13 @@ export const Frames = styled.div(() => [
 
     ${media.md} {
       width: min(88vw, 420px);
+    }
+
+    ${media.shortestPortrait} {
+      left: 140px;
+      right: 8px;
+      width: auto;
+      transform: none;
     }
 
     /* On a phone on its side: just above the ability bar along the bottom, narrow enough to clear the radar and the
@@ -495,6 +519,11 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       right: 72px;
     }
 
+    /* Short of the bar folded into two columns, which a tall line (a quest done) could otherwise reach. */
+    ${media.shortestPortrait} {
+      right: 96px;
+    }
+
     /* On its side the bar runs along the bottom, so the strip keeps its width; and the bars sit higher, so it starts
        beside their column rather than across it (a wider column from the tablet breakpoint up). */
     ${media.shortLandscape} {
@@ -514,15 +543,15 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
 
 // The quest followed, under the bars in the left column: its objective and how far along it is, and what it belongs
 // to, read through like the rest of the HUD so it never takes the pointer that steers; only its scroll opens the
-// quest log. On the shortest upright phone it steps aside while a system is hurt or a fault waits, which need its
-// room more.
+// quest log. On a short upright phone it steps aside while a system is hurt or a fault waits, which need its room
+// more.
 export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolean }) => [
   tw`flex flex-row items-center gap-[6px] w-[150px] md:w-[210px] mt-[2px] pl-[8px] py-[4px] pr-[4px]`,
   css`
     ${voyagePanel(0.55, 0.25)}
     border-left: 2px solid #ff9f5a;
 
-    ${media.shortestPortrait} {
+    ${media.shortPortrait} {
       ${isYielding ? "display: none;" : ""}
     }
   `,
@@ -534,11 +563,11 @@ export const TrackerName = tw.span`flex flex-row items-baseline justify-between 
 
 export const TrackerCount = tw.span`tabular-nums text-[#ffcf9f] whitespace-nowrap`;
 
-// What the quest belongs to; left out on a phone on its side, where the column is short.
+// What the quest belongs to; left out on a short upright phone and on a phone on its side, where the column is short.
 export const TrackerSub = styled.span(() => [
   tw`text-[10px] md:text-[11px] text-[#aab3c9] truncate`,
   css`
-    ${media.shortestPortrait} {
+    ${media.shortPortrait} {
       display: none;
     }
 
@@ -753,11 +782,12 @@ export const ScoreRow = styled.div(() => [
 export const Badge = tw.p`m-0 self-start px-[10px] py-[4px] text-xs font-semibold text-[#101010] bg-[#ffc45c]`;
 
 // The ship's hull and mark, under where it is.
-// The rank and the ship; left out on a phone on its side, where the column is short (the hangar says both).
+// The rank and the ship; left out on a short upright phone and on a phone on its side, where the column is short (the
+// hangar says both).
 export const ShipLine = styled.p(() => [
   tw`m-0 text-[11px] md:text-xs text-[#9aa3bb]`,
   css`
-    ${media.shortestPortrait} {
+    ${media.shortPortrait} {
       display: none;
     }
 

@@ -329,7 +329,7 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     // Smaller on a narrow screen, and on a short one, where the column of bars above it is nearly as tall; on the
     // shortest (a small phone on its side, or upright with the browser's bars showing) smaller still, so it clears the
     // foot of that column, and on the narrowest (a foldable's cover screen), so it clears the telemetry beside it.
-    const isShortUpright = front.height < 520 && front.height > front.width;
+    const isShortUpright = front.height <= 520 && front.height > front.width;
     const radius = front.height < 360 || front.width < 300 || isShortUpright
       ? RADAR_RADIUS_SHORT
       : front.width < 640 || front.height < 420 ? RADAR_RADIUS_NARROW : RADAR_RADIUS;

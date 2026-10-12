@@ -85,6 +85,31 @@ export const codexNotes = (content: FinaleVoyage, entry: CodexEntry): string[] =
   }
 };
 
+// The card a quest done shows: what kind of quest, its name, what it paid, and for a chapter told the line it decoded
+// to. Null for anything else.
+export interface QuestCard {
+  title: string;
+  name: string;
+  xp: number;
+  coin: number;
+  line: string | null;
+}
+
+export const questCard = (content: FinaleVoyage, notice: VoyageNotice): QuestCard | null => {
+  const words = content.hangar.quests.card;
+
+  switch (notice.kind) {
+    case "missionDone":
+      return { title: words.mission, name: missionName(content, notice.mission), xp: notice.xp, coin: notice.coin, line: null };
+    case "storyStep":
+      return { title: words.step, name: storyStepName(content, notice.step), xp: notice.xp, coin: notice.coin, line: null };
+    case "storyChapter":
+      return { title: words.chapter, name: chapterTitle(content, notice.chapter), xp: 0, coin: 0, line: content.career.story.chapters[notice.chapter]?.line ?? null };
+    default:
+      return null;
+  }
+};
+
 // What to say when the career moves: a mission or a step of the story done, a chapter told (the line it decodes to),
 // the chapter under way (how it opens, or that the story is all told), a promotion, something new in the codex. Null
 // otherwise.

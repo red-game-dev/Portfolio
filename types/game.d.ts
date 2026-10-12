@@ -236,6 +236,8 @@ export interface VoyageHangarCopy {
     none: string;
     open: string;
     daily: { fly: string; today: string; notYet: string };
+    // The card a quest done shows: what was done, by kind, and "+{xp} XP".
+    card: { mission: string; step: string; chapter: string; xp: string };
   };
   ready: string;
   currencies: { open: string; RED: string; VOID: string };

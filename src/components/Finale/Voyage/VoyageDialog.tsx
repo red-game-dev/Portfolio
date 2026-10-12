@@ -21,7 +21,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ActionButton } from "@/components/Controls";
 import { AbilityBar } from "@/components/Finale/Voyage/AbilityBar/AbilityBar";
 import { DailyBoard } from "@/components/Finale/Voyage/Board/DailyBoard";
-import { chapterTitle, missionName, rankName, storyStepName } from "@/components/Finale/Voyage/career";
+import { chapterTitle, missionName, QuestCard, questCard, rankName, storyStepName } from "@/components/Finale/Voyage/career";
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
 import { portName } from "@/components/Finale/Voyage/encounters";
@@ -38,7 +38,7 @@ import {
   isKeptNotice,
   isQuestNotice,
   isUrgentNotice,
-  messageMs,
+  lineMs,
   placeName,
   QueuedLine,
   queueLine,
@@ -48,7 +48,7 @@ import {
   voyageNotice,
   voyagePlace,
 } from "@/components/Finale/Voyage/messages";
-import { CurrencyIcon } from "@/components/Finale/Voyage/Money";
+import { CurrencyIcon, Money } from "@/components/Finale/Voyage/Money";
 import { isQuestId, trackedQuest } from "@/components/Finale/Voyage/quests";
 import { drawRunCard, RUN_CARD, shareCard } from "@/components/Finale/Voyage/share";
 import { skyLines } from "@/components/Finale/Voyage/sky";
@@ -86,6 +86,11 @@ import {
   LensCanvas,
   MapBar,
   MapTitle,
+  CardLine,
+  CardName,
+  CardReward,
+  CardText,
+  CardTitle,
   Message,
   MessageButton,
   Overlay,
@@ -165,7 +170,7 @@ const SETUP_KEY = "redgame.voyageSetup";
 // The quest followed on the HUD, a convenience of this browser.
 const TRACK_KEY = "redgame.trackedQuest";
 const isTrue = (value: unknown): value is true => value === true;
-// How many lines the voyage says may wait (each stays as long as `messageMs` gives it, its animation's length).
+// How many lines the voyage says may wait (each stays as long as `lineMs` gives it, its animation's length).
 const MESSAGE_QUEUE = 4;
 
 // Hull green turning red as it fails, shields blue, fuel gold; a hurt system amber, then red.
@@ -265,11 +270,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const comingDownOn = snapshot?.surface
     ? placeName(content, snapshot.surface.body, snapshot.surface.name ?? snapshot.landedOn)
     : placeName(content, snapshot?.landedOn ?? "");
-  const say = (text: string | null, isKept = false, isUrgent = false, isQuest = false) => {
+  const say = (text: string | null, isKept = false, isUrgent = false, isQuest = false, card: QuestCard | null = null) => {
     if (text) {
       messageId.current += 1;
 
-      const next = { id: messageId.current, text, isKept, isUrgent, isQuest };
+      const next = { id: messageId.current, text, isKept, isUrgent, isQuest, card };
 
       setMessages((queue) => queueLine(queue, next, MESSAGE_QUEUE));
     }
@@ -290,7 +295,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       return undefined;
     }
 
-    const timer = window.setTimeout(() => setMessages((queue) => queue.slice(1)), messageMs(message.text));
+    const timer = window.setTimeout(() => setMessages((queue) => queue.slice(1)), lineMs(message));
 
     return () => window.clearTimeout(timer);
   }, [message]);
@@ -462,7 +467,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         // The answer to a press shows at once, as a tap's does.
         reply(voyageNotice(content, notice) ?? "");
       } else {
-        say(voyageNotice(content, notice), isKeptNotice(notice), isUrgentNotice(notice), isQuestNotice(notice));
+        say(voyageNotice(content, notice), isKeptNotice(notice), isUrgentNotice(notice), isQuestNotice(notice), questCard(content, notice));
       }
     });
     takeNotices(notices.length);
@@ -878,8 +883,23 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         />
       )}
       {message && status === "flying" && !isHudAside && (
-        <Message key={message.id} role="status" style={{ "--message-ms": `${messageMs(message.text)}ms` } as CSSProperties}>
-          {message.text}
+        <Message key={message.id} role="status" isCard={Boolean(message.card)} style={{ "--message-ms": `${lineMs(message)}ms` } as CSSProperties}>
+          {message.card ? (
+            <CardText>
+              <CardTitle>
+                <FontAwesomeIcon icon={faScroll} aria-hidden="true" />
+                {message.card.title}
+              </CardTitle>
+              <CardName>{message.card.name}</CardName>
+              {(message.card.xp > 0 || message.card.coin > 0) && (
+                <CardReward>
+                  {message.card.xp > 0 && <span>{fill(content.hangar.quests.card.xp, { xp: message.card.xp })}</span>}
+                  {message.card.coin > 0 && <Money copy={copy} amount={message.card.coin} isSigned />}
+                </CardReward>
+              )}
+              {message.card.line && <CardLine>{message.card.line}</CardLine>}
+            </CardText>
+          ) : message.text}
           {message.isQuest && (
             <MessageButton type="button" onClick={openQuests}>
               <FontAwesomeIcon icon={faScroll} aria-hidden="true" />

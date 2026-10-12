@@ -1,7 +1,9 @@
+import { questCard } from "@/components/Finale/Voyage/career";
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { ledgerMemo } from "@/components/Finale/Voyage/economy";
 import {
-  isKeptNotice, isQuestNotice, isUrgentNotice, MESSAGE_MS, messageMs, QueuedLine, queueLine, replyLine, strandedLine, voyageMessage, voyageNotice, voyagePlace,
+  CARD_MS, isKeptNotice, isQuestNotice, isUrgentNotice, lineMs, MESSAGE_MS, messageMs, QueuedLine, queueLine, replyLine, strandedLine, voyageMessage,
+  voyageNotice, voyagePlace,
 } from "@/components/Finale/Voyage/messages";
 import { surfaceHeading, surfaceHint, surfaceLines } from "@/components/Finale/Voyage/surface";
 import { formatClock, formatDistance, telemetryRows } from "@/components/Finale/Voyage/telemetry";
@@ -323,5 +325,21 @@ describe("the voyage's cards", () => {
     expect(isQuestNotice({ kind: "missionDone", mission: "landMoon", xp: 60, coin: 40 })).toBe(true);
     expect(isQuestNotice({ kind: "storyStep", step: "launchMoon", xp: 80, coin: 50 })).toBe(true);
     expect(isQuestNotice({ kind: "discovered", entry: "worlds:mars" })).toBe(false);
+  });
+
+  test("a quest done shows a card: its kind, its name, what it paid, and for a chapter the line it decoded to", () => {
+    const words = voyage.hangar.quests.card;
+
+    expect(questCard(voyage, { kind: "missionDone", mission: "landMoon", xp: 60, coin: 40 }))
+      .toEqual({ title: words.mission, name: voyage.career.missions.landMoon, xp: 60, coin: 40, line: null });
+    expect(questCard(voyage, { kind: "storyStep", step: "launchMoon", xp: 80, coin: 50 }))
+      .toEqual({ title: words.step, name: voyage.career.story.steps.launchMoon, xp: 80, coin: 50, line: null });
+    expect(questCard(voyage, { kind: "storyChapter", chapter: "matrix" }))
+      .toEqual({ title: words.chapter, name: voyage.career.story.chapters.matrix.title, xp: 0, coin: 0, line: voyage.career.story.chapters.matrix.line });
+    expect(questCard(voyage, { kind: "storyOpened", chapter: "ai" })).toBeNull();
+
+    // A card stays long enough for what it paid to be seen, even when its words are short.
+    expect(lineMs({ text: "Mission complete", card: null })).toBe(MESSAGE_MS.least);
+    expect(lineMs({ text: "Mission complete", card: { title: "", name: "", xp: 1, coin: 1, line: null } })).toBe(CARD_MS);
   });
 });

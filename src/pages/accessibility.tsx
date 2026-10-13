@@ -60,7 +60,6 @@ export default function Accessibility() {
           {statement.limits.map((line) => <li key={line}>{line}</li>)}
         </List>
         <Heading>{statement.settingsTitle}</Heading>
-        <Paragraph>{statement.settingsNote}</Paragraph>
         <Settings>
           <SettingsPanel copy={portfolioData.preferences} names={STATEMENT_SETTINGS} />
         </Settings>

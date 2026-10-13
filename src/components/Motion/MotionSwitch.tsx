@@ -34,7 +34,7 @@ const Square = styled.button(({ isPressed }: { isPressed: boolean }) => [
 ]);
 
 const Row = styled.button(({ isPressed }: { isPressed: boolean }) => [
-  tw`flex flex-row items-center justify-center gap-[10px] w-full h-[48px] mt-[10px] cursor-pointer text-sm font-semibold text-white rounded-[8px]`,
+  tw`flex flex-shrink-0 flex-row items-center justify-center gap-[10px] w-full h-[48px] mt-[10px] cursor-pointer text-sm font-semibold text-white rounded-[8px]`,
   css`
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(var(--here-rgb, 196, 210, 255), ${isPressed ? 0.9 : 0.35});

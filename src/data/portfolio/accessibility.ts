@@ -32,7 +32,6 @@ export const accessibilityContent: Pick<PortfolioData, "accessibility"> = {
       "At very high zoom in a small window, the fixed header and the game bars take much of the screen.",
     ],
     settingsTitle: "Your settings",
-    settingsNote: "Kept in this browser only.",
     testingTitle: "How I test it",
     testing: "With automated checks (Lighthouse), from the keyboard alone, and by reviewing the code against each WCAG 2.2 criterion.",
     reportTitle: "Something in your way?",

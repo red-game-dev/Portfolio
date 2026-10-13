@@ -11,9 +11,8 @@ export interface AccessibilityContent {
   done: string[];
   limitsTitle: string;
   limits: string[];
-  // The settings a reader may want here (motion and the single key shortcuts), and a note on where they are kept.
+  // Over the settings a reader may want here: motion and the single key shortcuts.
   settingsTitle: string;
-  settingsNote: string;
   testingTitle: string;
   testing: string;
   reportTitle: string;

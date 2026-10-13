@@ -57,7 +57,7 @@ export const Slot = styled.button(({ colour, isEmpty, isOn }: { colour: string; 
   css`
     --slot: ${colour};
     background: rgba(10, 14, 30, 0.85);
-    border: 1px ${isEmpty ? "dashed" : "solid"} ${isEmpty ? "#3a4566" : hexWithAlpha(colour, 0.55)};
+    border: 1px ${isEmpty ? "dashed" : "solid"} ${isEmpty ? "#6a7aa6" : hexWithAlpha(colour, 0.55)};
     border-radius: 6px;
     box-shadow: ${isOn ? `0 0 0 1px ${colour}, 0 0 14px ${hexWithAlpha(colour, 0.6)}` : "none"};
     font-size: 18px;
@@ -134,4 +134,4 @@ export const Left = styled.span(() => [
   `,
 ]);
 
-export const Plus = tw.span`flex text-[14px] text-[#3a4566]`;
+export const Plus = tw.span`flex text-[14px] text-[#6a7aa6]`;

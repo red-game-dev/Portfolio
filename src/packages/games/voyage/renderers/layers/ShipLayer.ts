@@ -212,7 +212,8 @@ export class ShipLayer implements RenderLayer<VoyageFrame> {
     const px = Math.sin(decal.angle) * r * HULL.across;
     const py = -Math.cos(decal.angle) * r * HULL.along;
 
-    front.context.globalAlpha = decal.kind === "breach" ? 0.75 + Math.sin(now * 0.02 + decal.seed * 9) * 0.25 : 0.9;
+    // A breach glows on and off under twice a second (WCAG 2.3.1).
+    front.context.globalAlpha = decal.kind === "breach" ? 0.75 + Math.sin(now * 0.012 + decal.seed * 9) * 0.25 : 0.9;
 
     if (sprite) {
       front.context.drawImage(sprite.surface, px - size / 2, py - size / 2, size, size);

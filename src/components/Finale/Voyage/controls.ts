@@ -1,3 +1,4 @@
+import { isTypingTarget } from "@/packages/interaction/focus";
 import { BROWSER_SHORTCUTS, KeyMap, KeyStep } from "@/packages/interaction/keys";
 import type { ZoomInputOptions } from "@/packages/interaction/zoom";
 
@@ -12,7 +13,8 @@ export type VoyageCommand =
 
 // Arrows and WASD turn and burn, down and S brake; P pauses, M opens the map, F holds fire, H opens the hangar, C photo
 // mode, U does what the hangar suggests and E docks at the port alongside (or casts off); 1 to 6 use the ability bar;
-// + and - zoom, and Escape steps back out of the hangar, a port or photo mode. The browser's own shortcuts (Ctrl+H, Cmd+U, Cmd+1) are left to the browser.
+// + and - zoom, and Escape steps back out of the hangar, a port or photo mode. The browser's own shortcuts (Ctrl+H, Cmd+U, Cmd+1) are left to the browser,
+// and so is every key typed into a field (the daily board's initials), but Escape.
 export const VOYAGE_KEYS = new KeyMap<VoyageCommand>({
   "ArrowLeft": "left",
   "ArrowRight": "right",
@@ -39,7 +41,7 @@ export const VOYAGE_KEYS = new KeyMap<VoyageCommand>({
   "=": "zoomIn",
   "-": "zoomOut",
   "Escape": "back",
-}, { ignore: BROWSER_SHORTCUTS });
+}, { ignore: BROWSER_SHORTCUTS, skip: (event) => event.key !== "Escape" && isTypingTarget(event.target) });
 
 // How far an arrow looks round in photo mode: the CSS pixels the view moves, against the arrow.
 export const PHOTO_PAN = new KeyMap<KeyStep>({

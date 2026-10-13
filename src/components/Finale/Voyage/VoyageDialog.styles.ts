@@ -57,6 +57,8 @@ export const Hud = styled.header(() => [
   tw`absolute top-0 left-0 right-0 flex flex-row items-start justify-between gap-[12px] p-[14px] md:p-[18px] pointer-events-none`,
   css`
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+    /* A dark halo round every letter, so the readings keep their contrast over the Sun's glare or a day sky. */
+    text-shadow: 0 0 2px #000000, 0 1px 3px rgba(0, 0, 0, 0.9);
 
     ${media.narrowPortrait} {
       flex-direction: column;
@@ -133,7 +135,22 @@ export const BarRow = styled.div(() => [
     }
 
     ${COMPACT} {
+      grid-template-columns: 12px 1fr;
+      column-gap: 6px;
       row-gap: 0;
+    }
+  `,
+]);
+
+// Beside each bar in the compact HUD, which shows the bars without their names: what each one is, in its colour, so
+// they are told apart by more than colour (WCAG 1.4.1).
+export const BarIcon = styled.span(({ colour }: { colour: string }) => [
+  tw`hidden items-center justify-center text-[10px]`,
+  css`
+    color: ${colour};
+
+    ${COMPACT} {
+      display: inline-flex;
     }
   `,
 ]);
@@ -168,6 +185,7 @@ export const BarTrack = styled.div(() => [
 
     ${COMPACT} {
       height: 4px;
+      grid-column: 2;
     }
   `,
 ]);
@@ -560,6 +578,11 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
     width: max-content;
     max-width: min(66vw, 520px);
     ${voyagePanel(0.72, 0.35)}
+
+    /* Held, while the run is paused or the hangar is open: the fade waits with the line. */
+    &[data-held] {
+      animation-play-state: paused;
+    }
     ${isCard ? "text-align: left; border-left: 2px solid #ff9f5a;" : ""}
     animation: ${fadeLine} var(--message-ms, 2800ms) ease both;
 
@@ -1048,11 +1071,22 @@ export const PhotoBar = styled.section(() => [
 
 export const PhotoHint = tw.p`m-0 w-full text-center text-xs md:text-sm text-[#c9cfdf]`;
 
+// Photo mode's look round and zoom buttons, for a reader who cannot drag or pinch.
+export const PadButtons = tw.div`flex flex-row flex-wrap items-center justify-center gap-[8px] w-full`;
+
+// Where the voyage's lines are spoken from: off screen, always mounted.
+export const LiveRegion = tw.div`sr-only`;
+
 // The map's own bar in place of the HUD: its name, and the way back to flying.
 export const MapBar = styled.header(() => [
-  tw`absolute top-0 left-0 right-0 flex flex-row items-center justify-between gap-[12px] p-[14px] md:p-[18px]`,
+  tw`absolute top-0 left-0 right-0 flex flex-row items-center gap-[8px] p-[14px] md:p-[18px]`,
   css`
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+
+    /* The name on the left, the way back on the right. */
+    & > :first-child {
+      margin-right: auto;
+    }
   `,
 ]);
 

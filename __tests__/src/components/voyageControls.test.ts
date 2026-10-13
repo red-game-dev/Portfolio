@@ -18,6 +18,15 @@ const state = (overrides: Partial<VoyageKeyState> = {}): VoyageKeyState => ({
 });
 
 describe("the voyage's keys", () => {
+  test("leave a field being typed in alone, but for Escape, so the daily board's initials can hold an H or an M", () => {
+    const field = document.createElement("input");
+
+    expect(VOYAGE_KEYS.intentOf(keyPress("h", { target: field } as never))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress("m", { target: field } as never))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress("Escape", { target: field } as never))).toBe("back");
+    expect(VOYAGE_KEYS.intentOf(keyPress("h", { target: document.body } as never))).toBe("hangar");
+  });
+
   test("name a command for every key the voyage answers, in either case", () => {
     expect(VOYAGE_KEYS.intentOf(keyPress("ArrowLeft"))).toBe("left");
     expect(VOYAGE_KEYS.intentOf(keyPress("D"))).toBe("right");

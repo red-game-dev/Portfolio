@@ -190,7 +190,8 @@ export class PhenomenaLayer implements RenderLayer<VoyageFrame> {
         if (camera.sees(phenomenon.x, phenomenon.y, 3)) {
           // Before it blows, a red supergiant swelling and flickering; after, a hot white remnant.
           const left = nova ? (nova.blowsAt - state.elapsedMs) / 1000 : 60;
-          const flicker = left < 15 && left > 0 ? 1 + Math.sin(now * 0.02) * 0.06 * (1 - left / 15) : 1;
+          // Under two pulses a second, well clear of the rate that can set off a seizure (WCAG 2.3.1 allows three).
+          const flicker = left < 15 && left > 0 ? 1 + Math.sin(now * 0.012) * 0.06 * (1 - left / 15) : 1;
 
           globes.drawStar(context, {
             x,
@@ -263,7 +264,8 @@ export class PhenomenaLayer implements RenderLayer<VoyageFrame> {
     const left = Math.max(0, (burst.firesAt - state.elapsedMs) / 1000);
 
     context.setLineDash([10, 8]);
-    context.strokeStyle = `rgba(255, 70, 90, ${0.4 + Math.sin(now * 0.02) * 0.3 * (1 - left / 3.5)})`;
+    // The warning line pulses under twice a second (WCAG 2.3.1).
+    context.strokeStyle = `rgba(255, 70, 90, ${0.4 + Math.sin(now * 0.012) * 0.3 * (1 - left / 3.5)})`;
     context.lineWidth = Math.max(2, 0.7 * 2 * camera.scale);
     context.beginPath();
     context.moveTo(x - Math.cos(burst.angle) * reach, y - Math.sin(burst.angle) * reach);

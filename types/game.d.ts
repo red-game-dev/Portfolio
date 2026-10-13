@@ -306,7 +306,16 @@ export interface VoyageCareerCopy {
   // What the map says where the black hole waits.
   edgeNote: string;
   // "{date}" is replaced in the file's name.
-  photo: { title: string; open: string; close: string; save: string; hint: string; file: string };
+  photo: {
+    title: string;
+    open: string;
+    close: string;
+    save: string;
+    hint: string;
+    file: string;
+    // The buttons that look round, for a reader who cannot drag.
+    look: { left: string; right: string; up: string; down: string };
+  };
 }
 
 // The boosts: each one's name and what it does; the ability bar's words ("{n}" a slot's number, "{name}" what it
@@ -562,11 +571,14 @@ export interface FinaleVoyage {
     title: string;
     names: Record<string, string>;
   };
-  // The compact HUD's info button: opening every panel, going back to compact, and what its dot means.
+  // The compact HUD's info button: opening every panel, going back to compact, and what its dot means; and the zoom
+  // buttons of the map and photo mode, for a reader who cannot pinch.
   hud: {
     open: string;
     close: string;
     alert: string;
+    zoomIn: string;
+    zoomOut: string;
   };
   // "{body}" is replaced.
   landed: string;

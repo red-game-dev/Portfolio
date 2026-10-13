@@ -257,6 +257,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         open: "Show every panel",
         close: "Back to the compact HUD",
         alert: "a system is hurt or a fault waits",
+        zoomIn: "Zoom in",
+        zoomOut: "Zoom out",
       },
       systems: {
         title: "Systems",
@@ -920,8 +922,9 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           open: "Take a photo",
           close: "Back to flying",
           save: "Save photo",
-          hint: "Drag to look around. Pinch or scroll to zoom.",
+          hint: "Drag or use the arrows to look around. Pinch, scroll or use + and - to zoom.",
           file: "redgame-voyage-{date}.png",
+          look: { left: "Look left", right: "Look right", up: "Look up", down: "Look down" },
         },
       },
       boosts: {

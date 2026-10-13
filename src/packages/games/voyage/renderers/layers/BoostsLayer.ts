@@ -50,7 +50,8 @@ export class BoostsLayer implements RenderLayer<VoyageFrame> {
 
     if (decoy) {
       const flare = this.kit.cache.get(`glow:${FLARE}`, 64, 64, paintGlow(FLARE));
-      const flicker = 0.8 + Math.sin(now * 0.04) * 0.2;
+      // Under two pulses a second (WCAG 2.3.1).
+      const flicker = 0.8 + Math.sin(now * 0.012) * 0.2;
       const size = Math.max(14, camera.scale * 0.5) * flicker;
 
       context.globalCompositeOperation = "lighter";

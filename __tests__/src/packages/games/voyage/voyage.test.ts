@@ -490,6 +490,53 @@ describe("the way out and beyond", () => {
     expect(new Set(universes.slice(0, defaults.universes)).size).toBe(defaults.universes);
   });
 
+  test("a rock falling into a black hole is gone inside three horizons, rather than swinging through and out again at speed", () => {
+    const simulation = create();
+
+    crossEdge(simulation);
+
+    const first = singularityOf(simulation);
+
+    place(simulation, first.x, first.y);
+    simulation.step(defaults.holes.captureMs + defaults.holes.lostMs + 300);
+
+    const { stores } = simulation.world;
+    const hole = stores.hole.entities[0];
+    const at = stores.body.get(hole);
+    const horizon = stores.hole.get(hole)?.horizon ?? 0;
+
+    if (!at || horizon <= 0) {
+      throw new Error("expected a black hole in the universe");
+    }
+
+    // The ship held off to one side (close enough that the rock is kept round it), the rock dropped from ten horizons
+    // out with a little sideways drift.
+    const hold = () => place(simulation, at.x + horizon * 8, at.y + horizon * 4);
+
+    const rock = simulation.world.spawn();
+
+    stores.body.set(rock, { x: at.x, y: at.y - horizon * 10, vx: 0.05, vy: 0, prevX: at.x, prevY: at.y - horizon * 10, radius: 0.08, mass: 1 });
+    stores.hazard.set(rock, { shape: 0, isIcy: false, isComet: false });
+
+    // How far from the hole the rock was each time it was seen, in horizons: the last is where it went.
+    let lastSeen = Infinity;
+
+    for (let step = 0; step < 2000 && simulation.world.isAlive(rock); step += 1) {
+      const body = stores.body.get(rock);
+
+      hold();
+
+      if (body) {
+        lastSeen = Math.hypot(body.x - at.x, body.y - at.y) / horizon;
+      }
+
+      simulation.step(defaults.stepMs);
+    }
+
+    expect(simulation.world.isAlive(rock)).toBe(false);
+    expect(lastSeen).toBeLessThan(3.5);
+  });
+
   test("space slows the ship as it really thickens, felt: in the asteroid belt it eases down; set to real, only the engines limit it", () => {
     const felt = create();
     const real = create();

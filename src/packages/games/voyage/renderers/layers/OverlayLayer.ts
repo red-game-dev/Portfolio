@@ -7,7 +7,7 @@ import { VoyageFrame } from "../frame";
 import { paintDarkness, paintVignette } from "../paint/overlay";
 import { paintGlow } from "../paint/space";
 import { RenderKit } from "./kit";
-import { drawEdgeArrow, isWellInView } from "./pointer";
+import { drawEdgeArrow, edgePoint, isCovered, isWellInView } from "./pointer";
 
 // The colour of the way on: a black hole's violet.
 const WAY_ON = "#b48cff";
@@ -197,8 +197,6 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
   private drawAttackers({ world, camera, now }: VoyageFrame): void {
     const { front } = this.kit;
     const margin = 30;
-    const cx = front.width / 2;
-    const cy = front.height / 2;
 
     world.stores.alien.entities.forEach((entity, index) => {
       const alien = world.stores.alien.values[index];
@@ -211,14 +209,13 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
       const x = camera.toScreenX(at.x);
       const y = camera.toScreenY(at.y);
 
-      if (x > margin && x < front.width - margin && y > margin && y < front.height - margin) {
+      if (x > margin && x < front.width - margin && y > margin && y < front.height - margin && !isCovered(front.covered, x, y)) {
         return;
       }
 
-      const angle = Math.atan2(y - cy, x - cx);
-      const edge = Math.min((front.width / 2 - margin) / Math.abs(Math.cos(angle) || 1e-6), (front.height / 2 - margin) / Math.abs(Math.sin(angle) || 1e-6));
+      const arrow = edgePoint(front.width, front.height, front.covered, x, y, margin);
 
-      front.frame(cx + Math.cos(angle) * edge, cy + Math.sin(angle) * edge, angle);
+      front.frame(arrow.x, arrow.y, arrow.angle);
       front.context.globalAlpha = 0.65 + Math.sin(now * 0.012 + index) * 0.25;
       front.context.strokeStyle = "#ff4d5e";
       front.context.lineWidth = 2.5;
@@ -243,8 +240,7 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
     const { front, theme } = this.kit;
     const x = camera.toScreenX(waypoint.x);
     const y = camera.toScreenY(waypoint.y);
-    const margin = 46;
-    const isVisible = x > margin && x < front.width - margin && y > margin && y < front.height - margin;
+    const isVisible = isWellInView(front, x, y);
 
     front.context.strokeStyle = theme.window;
     front.context.fillStyle = theme.window;
@@ -264,14 +260,9 @@ export class OverlayLayer implements RenderLayer<VoyageFrame> {
       return;
     }
 
-    const cx = front.width / 2;
-    const cy = front.height / 2;
-    const angle = Math.atan2(y - cy, x - cx);
-    const edge = Math.min((front.width / 2 - margin) / Math.abs(Math.cos(angle) || 1e-6), (front.height / 2 - margin) / Math.abs(Math.sin(angle) || 1e-6));
-    const ax = cx + Math.cos(angle) * edge;
-    const ay = cy + Math.sin(angle) * edge;
+    const arrow = edgePoint(front.width, front.height, front.covered, x, y);
 
-    front.frame(ax, ay, angle);
+    front.frame(arrow.x, arrow.y, arrow.angle);
     front.context.globalAlpha = 0.85;
     front.context.beginPath();
     front.context.moveTo(14, 0);

@@ -124,6 +124,7 @@ export type { LandingMethod, LandingPhase } from "./landing";
 export type { SlotRefusal, VoyageAction, VoyageNotice } from "./domain/notices";
 export type { VoyageStores, VoyageWorld } from "./core/world";
 export type { VoyageRenderer } from "./renderers/CanvasVoyageRenderer";
+export type { ScreenBox } from "./renderers/Surface";
 export type { VoyageFrame } from "./renderers/frame";
 export type { Body, Decal, Health, Hazard, Hole, ModuleId, Modules, Pickup, PickupKind, Ship, Spin, Wreck, WreckKind } from "./domain/components";
 export type { Fault, FaultKind, ShipEffect } from "./domain/faults";

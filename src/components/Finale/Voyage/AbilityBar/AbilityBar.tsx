@@ -28,7 +28,7 @@ const ITEM_COLOUR = "#c9cfdf";
 // level, a glow while it is on and a sweep while it cools down. A press of a spent slot still says why nothing
 // happened; an empty one opens the Loadout.
 export const AbilityBar: FC<AbilityBarProps> = ({ content, rows, boosts, weapons, onUse, onFill }: AbilityBarProps) => (
-  <Bar role="group" aria-label={content.boosts.bar.label}>
+  <Bar role="group" aria-label={content.boosts.bar.label} data-covers="">
     {rows.map((row, index) => {
       const state = slotState(row, boosts, weapons);
       const colour = row.colour ?? ITEM_COLOUR;

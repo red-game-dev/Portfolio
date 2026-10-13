@@ -1,4 +1,5 @@
 import type { System } from "@/packages/games/engine";
+import { clamp } from "@/packages/math/clamp";
 
 import { Body, MODULE_IDS, PickupKind } from "../domain/components";
 import { boostStrength } from "../utils/boosts";
@@ -9,6 +10,9 @@ import { placeBody, shipOf } from "./queries";
 
 // The rock size the impact damage is measured against, and how far round the ship the grid is searched.
 const REFERENCE_RADIUS = 0.08;
+// The closing speed a hit counts at most (world units a second), about twice a first ship's top speed: a rock flung
+// far faster still hits hard, but never for many times any hull.
+const FASTEST_HIT = 6;
 const REACH = 0.6;
 // How much of a system one repair kit restores.
 const REPAIR_SHARE = 0.35;
@@ -92,7 +96,9 @@ export class CollisionSystem implements System<VoyageContext> {
       // Ships and rocks headed for worlds are too big to break on the hull: the ship bounces off them instead.
       const isBig = world.stores.traffic.has(entity) || world.stores.impactor.has(entity);
 
-      applyDamage(context, config.flight.impact * (Math.min(other.radius, 0.2) / REFERENCE_RADIUS) * Math.max(0.35, closing) ** 2, Math.atan2(dy, dx), "impact");
+      const hit = config.flight.impact * (Math.min(other.radius, 0.2) / REFERENCE_RADIUS) * clamp(closing, 0.35, FASTEST_HIT) ** 2;
+
+      applyDamage(context, hit, Math.atan2(dy, dx), "impact");
       body.vx += (other.vx - body.vx) * share;
       body.vy += (other.vy - body.vy) * share;
 

@@ -95,6 +95,26 @@ export class GravitySystem implements System<VoyageContext> {
     body.vx += sample.ax * dt;
     body.vy += sample.ay * dt;
 
+    // Just lifted off: the world left behind pulls only as much as the window has run, so the climb clears the ground.
+    const liftoff = state.liftoff;
+
+    if (liftoff && state.elapsedMs < liftoff.untilMs) {
+      const ground = state.system.bodies.find((place) => place.id === liftoff.body);
+
+      if (ground) {
+        const dx = ground.x - body.x;
+        const dy = ground.y - body.y;
+        const distance = Math.hypot(dx, dy) || 1;
+        const pull = ground.mu / Math.max(ground.radius, distance) ** 2;
+        const spared = 1 - (state.elapsedMs - liftoff.sinceMs) / (liftoff.untilMs - liftoff.sinceMs);
+
+        body.vx -= (dx / distance) * pull * spared * dt;
+        body.vy -= (dy / distance) * pull * spared * dt;
+      }
+    } else if (liftoff) {
+      state.liftoff = null;
+    }
+
     // What pulls hardest is decided by the pulls the ship feels; the reading is that body's pull in real units.
     const source = sources[sample.dominant];
     const id = sourceIds[sample.dominant] ?? null;

@@ -661,6 +661,7 @@ export class VoyageSimulation {
       nextWreckAt: null,
       descent: null,
       homecoming: null,
+      liftoff: null,
       speedLimit: config.ship.maxSpeed,
       stranded: null,
       boosts: [],

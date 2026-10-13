@@ -35,7 +35,8 @@ export class SurfaceSystem implements System<VoyageContext> {
     const { body, ship } = parts;
 
     for (const place of state.system.bodies) {
-      if (place.isGiant || place.isShattered) {
+      // A world just lifted off from is left to climb away from, not landed on again.
+      if (place.isGiant || place.isShattered || (state.liftoff?.body === place.id && state.elapsedMs < state.liftoff.untilMs)) {
         continue;
       }
 
@@ -64,6 +65,7 @@ export class SurfaceSystem implements System<VoyageContext> {
         ship.angle = Math.atan2(ny, nx);
         ship.landedOn = place.id;
         ship.landedOffset = { x: nx * contact, y: ny * contact };
+        state.liftoff = null;
       } else {
         applyDamage(context, config.flight.crash * Math.max(0, speed - config.flight.safeLanding) ** 2, Math.atan2(-ny, -nx), "crash");
 

@@ -56,6 +56,33 @@ describe("voyage descents", () => {
     expect(simulation.state.descent).toBeNull();
   });
 
+  test("a short burn on the ground lifts off straight up and climbs clear, rather than falling straight back", () => {
+    const simulation = createFlying();
+
+    touchDown(simulation, "mars");
+    untilDown(simulation);
+    simulation.step(defaults.descent.settleSeconds * 1000);
+
+    const mars = simulation.state.system.bodies.find((place) => place.id === "mars");
+    const height = () => {
+      const { body } = partsOf(simulation);
+
+      return mars ? Math.hypot(body.x - mars.x, body.y - mars.y) - mars.radius : 0;
+    };
+
+    // A tap's worth of burn, then hands off: no aiming, no holding.
+    simulation.step(100, BURN);
+    expect(partsOf(simulation).ship.landedOn).toBeNull();
+    expect(simulation.state.liftoff?.body).toBe("mars");
+
+    simulation.step(defaults.flight.liftoffSeconds * 1000);
+    expect(partsOf(simulation).ship.landedOn).toBeNull();
+    expect(height()).toBeGreaterThan(mars ? mars.radius : 1);
+    // The window over, the world pulls in full again.
+    simulation.step(500);
+    expect(simulation.state.liftoff).toBeNull();
+  });
+
   test("a descent never plays longer than the config allows, and in real time plays at life's pace", () => {
     const fast = createFlying();
 

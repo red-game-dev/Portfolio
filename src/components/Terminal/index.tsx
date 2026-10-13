@@ -6,6 +6,7 @@ import tw, { css, styled } from "twin.macro";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { usePreferencesStateHook } from "@/components/Preferences/hooks/usePreferencesStateHook";
 import { Section } from "@/components/Section";
 import { useWindowKeys } from "@/components/Terminal/hooks/useWindowKeys";
 import { LazyTerminalDialog } from "@/components/Terminal/LazyTerminalDialog";
@@ -378,10 +379,13 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
   });
 
   // Backtick from anywhere on the page brings you to the prompt, like a game console.
+  // Single key shortcuts, unless the reader turned them off in the settings (WCAG 2.1.4).
+  const { values: preferences } = usePreferencesStateHook();
+
   useWindowKeys(SHORTCUT, () => {
     sectionRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
     inputRef.current?.focus({ preventScroll: true });
-  });
+  }, preferences.shortcuts);
 
   return (
     <Section id={SECTION_IDS.terminal} ref={sectionRef}>
@@ -389,7 +393,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
       <Window>
         <TitleBar>
           <span>{content.prompt.replace(/:.*$/, "")}</span>
-          <Hint>{content.shortcutHint}</Hint>
+          {preferences.shortcuts && <Hint>{content.shortcutHint}</Hint>}
         </TitleBar>
         <Screen ref={screenRef} role="log" aria-live="polite" aria-label={intro.title}>
           {session.output.slice(0, visibleCount).map((line, index) => (

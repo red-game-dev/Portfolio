@@ -4,7 +4,7 @@ import tw, { css, styled } from "twin.macro";
 
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useInView from "@/hooks/useInView";
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import type { HeroClass } from "@/packages/games/heroes";
 import type { RigActor, RigModel, RigRenderer } from "@/packages/graphics/rig";
 
@@ -61,13 +61,15 @@ export const HeroPortrait: FC<HeroPortraitProps> = ({ heroId }: HeroPortraitProp
     resize: (hero, { width, pixelRatio }) => hero.resize(width, pixelRatio),
   }, [heroId]);
 
+  const isReduced = useReducedMotion();
+
   useEffect(() => {
-    if (actor && isOnScreen && !prefersReducedMotion()) {
+    if (actor && isOnScreen && !isReduced) {
       actor.start();
     } else {
       actor?.stop();
     }
-  }, [actor, isOnScreen]);
+  }, [actor, isOnScreen, isReduced]);
 
   return (
     <Frame ref={frameRef} aria-hidden="true">

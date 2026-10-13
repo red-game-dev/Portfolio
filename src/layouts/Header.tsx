@@ -9,6 +9,7 @@ import { LensSwitch } from "@/components/Lens/LensSwitch";
 import { Menu } from "@/components/Menu";
 import useJourneyNav from "@/components/Menu/hooks/useJourneyNav";
 import { MobileMenu } from "@/components/Menu/MobileMenu";
+import { MotionSwitch } from "@/components/Motion/MotionSwitch";
 import { JOURNEY_STOPS } from "@/config/journey";
 import useScrolledPast from "@/hooks/useScrolledPast";
 import { focusRing } from "@/styles/mixins";
@@ -160,6 +161,7 @@ const Header: FC<HeaderProps> = ({ title = "", lens, menu, contact }: HeaderProp
         </LogoContainer>
         <SwitchSlot isScrolled={isScrolled}>
           <LensSwitch content={lens} />
+          <MotionSwitch label={menu.motion} />
           <EmailLink href={`mailto:${contact.email}`} isScrolled={isScrolled}>
             <FontAwesomeIcon icon={faEnvelope} aria-hidden="true" />
             {menu.email}

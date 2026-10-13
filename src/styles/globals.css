@@ -54,10 +54,9 @@
   --accent-rgb: 196, 210, 255;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    transition: none;
-  }
+/* Kept still: the reader's switch on the page or their device's setting (packages/accessibility/motion). */
+:root[data-motion="reduced"] {
+  transition: none;
 }
 
 /* - Basic */

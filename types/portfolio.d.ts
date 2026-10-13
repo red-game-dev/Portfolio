@@ -1,3 +1,4 @@
+import { AccessibilityContent } from "@/types/accessibility";
 import { PortfolioAiUsage } from "@/types/ai-usage";
 import { BlueprintLabels } from "@/types/blueprints";
 import { CarouselLabels } from "@/types/carousel";
@@ -33,6 +34,7 @@ export interface DocumentLink {
 // The shape of everything the site says. The content lives in src/data/portfolio, one file per part of
 // the page, gathered into portfolioData by src/data/resume.ts.
 export interface PortfolioData {
+  accessibility: AccessibilityContent;
   intro: string;
   headline: Headline;
   terminal: TerminalContent;

@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useEffect, useMemo, useState } from "react";
 
 import { PreferenceName, SitePreferences } from "@/config/preferences";
+import { isMotionReduced, MOTION_ATTRIBUTE } from "@/packages/accessibility/motion";
 import type { Values } from "@/packages/settings/preferences";
 import { preferences } from "@/services/preferences/store";
 
@@ -30,6 +31,19 @@ export const PreferencesProvider = ({ children }: PreferencesProviderProps) => {
 
     return stop;
   }, []);
+
+  // The root's data-motion, which every rule about motion reads: from the kept setting (read from the store, loaded by
+  // the effect above, so the first pass already has it) and the device's setting, as either changes. The document's
+  // head set it before the first paint from the same two.
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => document.documentElement.setAttribute(MOTION_ATTRIBUTE, isMotionReduced(preferences.values.motion, media.matches) ? "reduced" : "full");
+
+    apply();
+    media.addEventListener("change", apply);
+
+    return () => media.removeEventListener("change", apply);
+  }, [values.motion]);
 
   const value = useMemo<PreferencesState>(() => ({
     values,

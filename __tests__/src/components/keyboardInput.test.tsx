@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 import { LensProvider } from "@/components/Lens/context/LensContext";
 import { LensSwitch } from "@/components/Lens/LensSwitch";
+import { PreferencesProvider } from "@/components/Preferences/context/PreferencesContext";
 import { RegionDialog } from "@/components/Projects/RegionDialog";
 import { ScreenCarousel } from "@/components/Projects/ScreenCarousel";
 import { Terminal } from "@/components/Terminal";
@@ -83,9 +84,11 @@ describe("ScreenCarousel", () => {
 
 describe("Terminal", () => {
   const renderTerminal = () => render(
-    <LensProvider>
-      <Terminal intro={portfolioData.sections.terminal} content={portfolioData.terminal} createSession={createPortfolioTerminal} />
-    </LensProvider>,
+    <PreferencesProvider>
+      <LensProvider>
+        <Terminal intro={portfolioData.sections.terminal} content={portfolioData.terminal} createSession={createPortfolioTerminal} />
+      </LensProvider>
+    </PreferencesProvider>,
   );
   const prompt = () => screen.getByLabelText(portfolioData.terminal.inputLabel);
 

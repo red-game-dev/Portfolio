@@ -1,3 +1,4 @@
+import { accessibilityContent } from "@/data/portfolio/accessibility";
 import { aiUsageContent } from "@/data/portfolio/aiUsage";
 import { caseStudiesContent } from "@/data/portfolio/caseStudies";
 import { cvDocumentContent } from "@/data/portfolio/cvDocument";
@@ -37,4 +38,5 @@ export const portfolioData: PortfolioData = {
   ...navigationContent,
   ...cvDocumentContent,
   ...preferencesContent,
+  ...accessibilityContent,
 };

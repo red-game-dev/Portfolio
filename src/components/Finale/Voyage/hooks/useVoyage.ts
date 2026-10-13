@@ -7,7 +7,7 @@ import { canTilt } from "@/components/Finale/Voyage/tilt";
 import { usePreferencesStateHook } from "@/components/Preferences/hooks/usePreferencesStateHook";
 import { VOYAGE_TEXTURES, VOYAGE_THEME } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
-import useMediaQuery from "@/hooks/useMediaQuery";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { PauseHolds } from "@/packages/animation/frame-loop";
 import type { SoundEngine } from "@/packages/audio/synth";
 import { saveBlob } from "@/packages/browser/files";
@@ -233,7 +233,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   }, [game, preferences]);
 
   // Less motion asked for: small shakes and no hit-stop.
-  const isReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const isReducedMotion = useReducedMotion();
 
   useEffect(() => {
     game?.setReducedMotion(isReducedMotion);

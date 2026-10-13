@@ -28,10 +28,10 @@ describe("nextTypewriterStep", () => {
     expect(run(8 + 6)).toEqual({ index: 0, typed: 0, isDeleting: false });
   });
 
-  it("shows whole phrases at once and rotates them with reduced motion", () => {
+  it("shows the phrase whole at once and keeps it there with reduced motion", () => {
     expect(nextTypewriterStep({ index: 0, typed: 0, isDeleting: false }, LENGTHS, TIMING, true)).toEqual({ next: { index: 0, typed: 3, isDeleting: false }, delay: 0 });
-    expect(run(2, true)).toEqual({ index: 1, typed: 2, isDeleting: false });
-    expect(run(3, true)).toEqual({ index: 0, typed: 3, isDeleting: false });
+    expect(nextTypewriterStep({ index: 0, typed: 3, isDeleting: false }, LENGTHS, TIMING, true)).toBeNull();
+    expect(run(5, true)).toEqual({ index: 0, typed: 3, isDeleting: false });
   });
 
   it("does nothing without phrases", () => {

@@ -6,7 +6,7 @@ import { Image } from "@/components/Image";
 import { COLORS } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useInView from "@/hooks/useInView";
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import type { PixelRevealStage } from "@/packages/effects/pixel-reveal";
 import { PortraitLabels } from "@/types/details";
 
@@ -59,12 +59,14 @@ export const Portrait: FC<PortraitProps> = ({ src, fallbackSrc, alt, labels }: P
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stage, setStage] = useState<PixelRevealStage | null>(null);
   const isInView = useInView(frameRef, { threshold: 0.4 });
+  // No reveal while motion is reduced: the photo stays as it is.
+  const isReduced = useReducedMotion();
   // Built once the photo is near and decoded, with the reveal engine's code fetched alongside. Without the
   // picture there is nothing to reveal, and the photo underneath stays as it is.
   const engine = useCanvasEngine(canvasRef, {
     sizeRef: frameRef,
     contextOptions: { alpha: false },
-    isEnabled: !prefersReducedMotion(),
+    isEnabled: !isReduced,
     create: async (context) => {
       const image = new window.Image();
 

@@ -5,8 +5,8 @@ import tw from "twin.macro";
 import { BACKDROP_THEME, COLORS, TRANSITION_THEME } from "@/config/theme";
 import { ZoneId } from "@/config/zones";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { usePageHeld } from "@/hooks/useScrollLock";
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
 
 interface BackdropProps {
   zone: ZoneId;
@@ -23,15 +23,16 @@ const Canvas = tw.canvas`fixed inset-0 w-full h-full z-[1] pointer-events-none`;
 
 interface EngineOptions {
   zone: ZoneId;
+  isStatic: boolean;
 }
 
-const createEngine = async (context: CanvasRenderingContext2D, { zone }: EngineOptions) => {
+const createEngine = async (context: CanvasRenderingContext2D, { zone, isStatic }: EngineOptions) => {
   const backdrop = await import("@/packages/effects/backdrop");
   const { transitionKey } = backdrop;
 
   return new backdrop.BackdropEngine(context, {
     initialScene: zone,
-    isStatic: prefersReducedMotion(),
+    isStatic,
     config: { background: COLORS.surface, framesPerSecond: 30, maxPixelRatio: FULL_PIXEL_RATIO },
     scenes: [
       (random) => new backdrop.RainScene(random, BACKDROP_THEME.rain),
@@ -68,6 +69,8 @@ export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled }: BackdropProps) 
   const hasCheckedBudget = useRef(false);
 
   zoneRef.current = zone;
+  // Rebuilt still the moment motion is reduced, from the page's switch or the device's setting, and moving again after.
+  const isReduced = useReducedMotion();
 
   const engine = useCanvasEngine(canvasRef, {
     isEnabled,
@@ -77,10 +80,10 @@ export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled }: BackdropProps) 
     create: async (context) => {
       await wait(START_DELAY_MS);
 
-      return createEngine(context, { zone: zoneRef.current });
+      return createEngine(context, { zone: zoneRef.current, isStatic: isReduced });
     },
     resize: (backdrop, { width, height, pixelRatio }) => backdrop.resize(width, height, Math.min(pixelRatio, pixelRatioCap.current)),
-  }, []);
+  }, [isReduced]);
 
   useEffect(() => {
     if (!engine) {

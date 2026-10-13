@@ -97,9 +97,15 @@ const Streak = styled.path(({ isShown, delay }: RunProps) => [
   `,
   isShown && css`
     animation: ${glow} 2.4s ease-in-out ${delay}ms infinite both;
-
+  `,
+  // Kept still, a shown streak (marked data-shown, since a rule under the root's attribute reaches every streak)
+  // stays lit rather than breathing.
+  css`
     ${media.reducedMotion} {
       animation: none;
+    }
+
+    ${media.reducedMotion}[data-shown] {
       opacity: 1;
     }
   `,
@@ -289,7 +295,7 @@ export const Activity: FC<ActivityProps> = ({ activity, title, description, year
                     {paths.map((d, level) => (
                       <path key={level} d={d} fill={level === 0 ? "#1c1c1c" : "var(--accent)"} fillOpacity={level === 0 ? 1 : LEVEL_OPACITY[level]} />
                     ))}
-                    {streak && <Streak d={streak} isShown={isShown} delay={delay + SWEEP_MS} />}
+                    {streak && <Streak d={streak} isShown={isShown} delay={delay + SWEEP_MS} data-shown={isShown ? "" : undefined} />}
                   </Grid>
                   <Head isShown={isShown} delay={delay} aria-hidden="true" />
                 </Row>

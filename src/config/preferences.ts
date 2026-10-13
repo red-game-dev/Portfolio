@@ -4,6 +4,12 @@ import type { Schema } from "@/packages/settings/preferences";
 // (`settings`, `set`, `reset`). A new one is added here, with its words in the content (`preferences.items`), and
 // read where it applies through `usePreferencesStateHook`.
 export const SITE_PREFERENCES = {
+  // How much the page moves (its backdrops, typing, binary rain and every animation): as the device asks, kept
+  // still, or in full. The header's switch moves between them; packages/accessibility/motion reads it.
+  "motion": { kind: "choice", options: ["system", "reduced", "full"], initial: "system" },
+  // The single keys that open the terminal from anywhere (/ and the backtick), which a reader using speech input or
+  // a switch can turn off (WCAG 2.1.4).
+  "shortcuts": { kind: "toggle", initial: true },
   // How long a landing takes: sped up the same for every world (true to how long each takes against the others),
   // or as long as the real thing.
   "landing-time": { kind: "choice", options: ["compressed", "real"], initial: "compressed" },

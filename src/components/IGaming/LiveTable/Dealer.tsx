@@ -4,7 +4,7 @@ import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import useCanvasEngine from "@/hooks/useCanvasEngine";
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { createDealerModel, DEFAULT_DEALER_OUTFITS } from "@/packages/games/live-table";
 import { RigActor } from "@/packages/graphics/rig";
 import { focusRing, media, noAnimationWhenReduced } from "@/styles/mixins";
@@ -108,13 +108,15 @@ export const Dealer: FC<DealerProps> = ({ phrase, phraseKey, outfitLabels, chang
   });
 
   // She only moves while the table is on screen, and stays still for reduced motion.
+  const isReduced = useReducedMotion();
+
   useEffect(() => {
-    if (dealer && isRunning && !prefersReducedMotion()) {
+    if (dealer && isRunning && !isReduced) {
       dealer.start();
     } else {
       dealer?.stop();
     }
-  }, [dealer, isRunning]);
+  }, [dealer, isRunning, isReduced]);
 
   useEffect(() => {
     dealer?.play("talk", TALK_MS);

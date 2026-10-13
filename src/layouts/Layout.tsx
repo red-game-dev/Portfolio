@@ -13,6 +13,7 @@ import { portfolioData  } from "@/data/resume";
 import { useHashValue } from "@/hooks/useHashState";
 import useSettledAnchors from "@/hooks/useSettledAnchors";
 import { createJourneyTrail } from "@/services/journey/trail";
+import { focusRing } from "@/styles/mixins";
 
 import Footer from "./Footer";
 import Header from "./Header";
@@ -43,6 +44,18 @@ const SkipLink = styled.a(() => [
       outline-offset: 2px;
     }
   `,
+]);
+
+// The foot of the page, past the last section: the way to the accessibility statement, clear of the game's bar along
+// the bottom on phones.
+const PageEnd = tw.div`relative z-[6] flex justify-center pt-[8px] pb-[96px] lg:pb-[32px]`;
+
+const PageEndLink = styled.a(() => [
+  tw`text-sm text-[#9a9a9a] underline hover:text-white`,
+  css`
+    text-underline-offset: 4px;
+  `,
+  focusRing("var(--accent)", 2),
 ]);
 
 const Main = styled.main(() => [
@@ -99,6 +112,9 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
         <Main id={MAIN_ID} tabIndex={-1}>
           {children}
         </Main>
+        <PageEnd>
+          <PageEndLink href="/accessibility/">{portfolioData.accessibility.link}</PageEndLink>
+        </PageEnd>
         <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
       </Container>
       <AppLoadingLines />

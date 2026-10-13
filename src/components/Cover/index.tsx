@@ -10,7 +10,7 @@ import { Image } from "@/components/Image";
 import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
 import TypingAnimation from "@/components/TypingAnimation";
 import { industryAnchor, SECTION_IDS } from "@/config/sections";
-import { accentFillOnHover } from "@/styles/mixins";
+import { accentFillOnHover, noAnimationWhenReduced } from "@/styles/mixins";
 import { Headline } from "@/types/headline";
 
 interface CoverProps {
@@ -84,11 +84,12 @@ const AudienceLink = styled.a(() => [
   `,
 ]);
 
-// Centred under the essentials on every screen.
+// Centred under the essentials on every screen, bobbing until the page is kept still.
 const ScrollerLink = styled(Link)(() => [
   tw`absolute block w-5 h-5 left-0 right-0 mx-auto bottom-[14px] lg:bottom-[10px] z-[2] text-[var(--accent)] text-2xl text-center
   animate-[scroll-cue 1s ease-out 0s infinite]
-  `
+  `,
+  noAnimationWhenReduced,
 ]);
 
 const ScrollerIcon = styled(FontAwesomeIcon)(() => [

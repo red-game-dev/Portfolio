@@ -23,4 +23,6 @@ export interface MenuContent {
   cv: string;
   email: string;
   linkedIn: string;
+  // The switch that keeps the page still, named by what pressing it does.
+  motion: string;
 }

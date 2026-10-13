@@ -206,9 +206,10 @@ export const Wires = styled.svg(({ isMoving }: { isMoving: boolean }) => [
       display: block;
     }
 
+    /* At least 3:1 against the drawing's ground, which the muted accent was not. */
     .wire {
       fill: none;
-      stroke: var(--accent-muted);
+      stroke: rgba(var(--accent-rgb), 0.6);
       stroke-width: 1.5;
     }
 

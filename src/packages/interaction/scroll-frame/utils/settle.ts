@@ -6,7 +6,7 @@ export interface SettleView {
   removeEventListener(type: string, listener: () => void): void;
   setTimeout(handler: () => void, ms: number): number;
   clearTimeout(id: number): void;
-  getComputedStyle(element: Element): Pick<CSSStyleDeclaration, "scrollMarginTop">;
+  getComputedStyle(element: Element): Partial<Pick<CSSStyleDeclaration, "scrollMarginTop" | "scrollPaddingTop">>;
 }
 
 // Input that means the reader has taken over the scroll, so the target is left wherever they take it.
@@ -21,9 +21,15 @@ let cancelActive: (() => void) | null = null;
 
 // A smooth scroll aims at where its target was when it started. Content that changes size above the target
 // on the way (sections that load as the scroll passes them) moves it, and the scroll ends somewhere else.
-// Once the scroll ends, this puts the target back where it was meant to land: at the top of the screen,
-// less its scroll-margin-top. Within `tolerance` pixels it leaves it alone. Returns a cancel.
-export const settleAtTop = (element: Element, view: SettleView = window, tolerance = 2) => {
+// Once the scroll ends, this puts the target back where it was meant to land: at the top of the screen, plus the
+// page's scroll-padding-top (read from `root`) and the target's scroll-margin-top. Within `tolerance` pixels it leaves
+// it alone. Returns a cancel.
+export const settleAtTop = (
+  element: Element,
+  view: SettleView = window,
+  tolerance = 2,
+  root: Element | null = typeof document === "undefined" ? null : document.documentElement,
+) => {
   cancelActive?.();
 
   let isDone = false;
@@ -54,9 +60,10 @@ export const settleAtTop = (element: Element, view: SettleView = window, toleran
 
     stop();
 
-    const margin = parseFloat(view.getComputedStyle(element).scrollMarginTop) || 0;
+    const margin = parseFloat(view.getComputedStyle(element).scrollMarginTop ?? "") || 0;
+    const padding = root ? parseFloat(view.getComputedStyle(root).scrollPaddingTop ?? "") || 0 : 0;
 
-    if (Math.abs(element.getBoundingClientRect().top - margin) > tolerance) {
+    if (Math.abs(element.getBoundingClientRect().top - padding - margin) > tolerance) {
       element.scrollIntoView({ behavior: "instant", block: "start" });
     }
   }

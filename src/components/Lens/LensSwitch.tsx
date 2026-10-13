@@ -11,7 +11,7 @@ import { PixelSprite } from "@/components/PixelSprite";
 import { Lens, LENS_ACCENTS, LENSES } from "@/config/lenses";
 import useFocusLeave from "@/hooks/useFocusLeave";
 import { KeyMap } from "@/packages/interaction/keys";
-import { media, svgFill } from "@/styles/mixins";
+import { focusRing, media, svgFill } from "@/styles/mixins";
 import { LensContent } from "@/types/lens";
 
 interface LensSwitchProps {
@@ -39,14 +39,23 @@ const Face = styled.span(() => [
   svgFill,
 ]);
 
-const Label = tw.span`hidden sm:inline text-[#888] font-medium`;
+// Shown from the small breakpoint up; below it still read out, so the button's name stays whole.
+const Label = tw.span`sr-only sm:not-sr-only text-[#888] font-medium`;
 
-// The view's name, left to the face (and the button's label) on the narrowest phones, where it would run over the name
-// in the header.
+// The view's name, left to the face on the narrowest phones, where it would run over the name in the header, though
+// still read out as the button's name.
 const Name = styled.span(() => [
   css`
     ${media.narrow} {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
     }
   `,
 ]);
@@ -70,9 +79,9 @@ const Option = styled.button(({ isCurrent }: { isCurrent: boolean }) => [
     &:hover,
     &:focus-visible {
       background: rgba(var(--lens-rgb), 0.08);
-      outline: none;
     }
   `,
+  focusRing("var(--lens-accent)", -2),
 ]);
 
 const OptionText = tw.span`flex flex-col`;
@@ -139,11 +148,11 @@ export const LensSwitch: FC<LensSwitchProps> = ({ content }: LensSwitchProps) =>
         type="button"
         aria-expanded={isOpen}
         aria-controls={isOpen ? optionsId : undefined}
-        aria-label={`${content.switchLabel}: ${content.names[lens]}`}
         onClick={toggle}
       >
+        {/* Named by what it shows ("View as Recruiter"), so a voice command saying the visible words finds it. */}
         <Face aria-hidden="true"><PixelSprite {...LENS_SPRITES[lens]} /></Face>
-        <Label>{content.switchLabel}</Label>
+        <Label>{content.switchLabel}</Label>{" "}
         <Name>{content.names[lens]}</Name>
         <Chevron isOpen={isOpen} aria-hidden="true" />
       </Toggle>

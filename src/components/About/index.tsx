@@ -78,7 +78,7 @@ const Contact = tw.p`m-0 mb-[22px] text-sm text-[#bbb] [& > a]:text-[var(--accen
 const ButtonsContainer = tw.div`flex flex-row flex-wrap text-center justify-center`;
 
 const Button = styled(Link)(() => [
-  tw`relative w-full lg:w-24 bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
+  tw`relative w-full lg:w-auto lg:px-[16px] bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
      inline-block align-middle text-center text-sm lg:text-base leading-9 lg:leading-9`,
   tw`h-[44px] my-[0px] mx-[0.5rem] lg:ml-0 mb-[10px] text-[var(--accent)] border-[#101010] border-r-[var(--accent)]
      hover:text-white 

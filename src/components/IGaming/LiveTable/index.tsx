@@ -47,7 +47,7 @@ const Played = tw.ul`list-none m-0 p-0 grid gap-[14px] sm:grid-cols-2 lg:grid-co
 const Slot = tw.li`min-w-0`;
 
 const Empty = styled.p(() => [
-  tw`m-0 flex items-center justify-center h-[120px] text-sm text-[rgba(255, 255, 255, 0.55)] rounded-[10px]`,
+  tw`m-0 flex items-center justify-center h-[120px] text-sm text-[rgba(255, 255, 255, 0.75)] rounded-[10px]`,
   css`
     border: 1px dashed rgba(255, 255, 255, 0.25);
   `,

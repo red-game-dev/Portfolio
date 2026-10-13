@@ -23,4 +23,6 @@ export interface HistoryLabels {
   allIndustries: string;
   // "{count}" and "{industry}" are replaced.
   industryMatches: string;
+  // Read out before an entry outside the chosen industry, which is otherwise only greyed. "{industry}" is replaced.
+  outsideIndustry: string;
 }

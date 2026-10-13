@@ -65,9 +65,18 @@ const LogoContainer = styled.div(() => [
   `
 ]);
 
+// The CV link slides in on hover, and on keyboard focus too, so a reader tabbing to it sees where focus is.
 const LogoContents = styled.div(() => [
   css`
-    &:hover .mask-lnk {
+    /* The box clips an outline, so keyboard focus underlines the link instead. */
+    a:focus-visible {
+      outline: none;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    &:hover .mask-lnk,
+    &:has(:focus-visible) .mask-lnk {
       opacity: 1;
       transform: translateY(-32px);
        

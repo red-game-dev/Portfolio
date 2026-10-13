@@ -86,6 +86,8 @@ const Fill = styled.span(() => [
 
 const Bosses = tw.span`inline-flex flex-row items-center gap-[5px] text-[#ff8a8a]`;
 
+const Hidden = tw.span`sr-only`;
+
 // A game HUD for the MMO zone: the reader's character, its level, experience earned by reading on, and the
 // bosses beaten so far. The experience bar follows --journey-experience, written on the HUD by useJourney.
 export const Hud = forwardRef<HTMLDivElement, HudProps>(({ roster, labels, bossCount, isVisible }, ref) => {
@@ -109,6 +111,7 @@ export const Hud = forwardRef<HTMLDivElement, HudProps>(({ roster, labels, bossC
           <span>{level === null ? labels.xp : `${labels.level} ${level}`}</span>
           <Bosses title={labels.bosses}>
             <FontAwesomeIcon icon={faSkull} aria-hidden="true" />
+            <Hidden>{`${labels.bosses}: `}</Hidden>
             {`${defeatedBosses}/${bossCount}`}
           </Bosses>
         </Row>

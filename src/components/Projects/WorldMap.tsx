@@ -106,7 +106,11 @@ const Region = styled.button(({ isDim, isCurrent }: { isDim: boolean; isCurrent:
 
     ${noAnimationWhenReduced}
   `,
-  isDim && tw`opacity-20`,
+  // Outside the filter: greyed and faded only as far as its words stay readable.
+  isDim && css`
+    filter: grayscale(1);
+    opacity: 0.7;
+  `,
 ]);
 
 const RegionFace = tw.span`absolute inset-[3px] flex flex-col items-center justify-center gap-[3px] text-[var(--kind)]`;

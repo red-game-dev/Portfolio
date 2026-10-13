@@ -187,11 +187,16 @@ export const RegionDialog: FC<RegionDialogProps> = ({
               )}
             </Group>
             <Group>
-              <Travel type="button" onClick={onPrevious} disabled={!previous} aria-label={previous ? `${labels.previous}: ${previous.title}` : labels.previous}>
+              <Travel
+                type="button"
+                onClick={previous ? onPrevious : undefined}
+                aria-disabled={!previous}
+                aria-label={previous ? `${labels.previous}: ${previous.title}` : labels.previous}
+              >
                 <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" />
                 <TravelName>{previous?.title ?? labels.previous}</TravelName>
               </Travel>
-              <Travel type="button" onClick={onNext} disabled={!next} aria-label={next ? `${labels.next}: ${next.title}` : labels.next}>
+              <Travel type="button" onClick={next ? onNext : undefined} aria-disabled={!next} aria-label={next ? `${labels.next}: ${next.title}` : labels.next}>
                 <TravelName>{next?.title ?? labels.next}</TravelName>
                 <FontAwesomeIcon icon={faArrowRight} aria-hidden="true" />
               </Travel>

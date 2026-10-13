@@ -1,4 +1,4 @@
-import { closestTo, firstFocusable, focusLeaves, isFocusLost, isInside, isTypingTarget, listenOutside, PressRoot } from "@/packages/interaction/focus";
+import { closestTo, firstFocusable, focusLanding, focusLeaves, isFocusLost, isInside, isTypingTarget, listenOutside, PressRoot } from "@/packages/interaction/focus";
 
 const build = () => {
   const container = document.createElement("div");
@@ -141,5 +141,29 @@ describe("firstFocusable and isFocusLost", () => {
     const empty = document.getElementById("empty");
 
     expect(empty && firstFocusable(empty)).toBeNull();
+  });
+});
+
+describe("focusLanding", () => {
+  it("focuses a section a jump landed on, focusable by script but kept out of the Tab order", () => {
+    const section = document.createElement("section");
+
+    document.body.appendChild(section);
+    focusLanding(section);
+
+    expect(section.getAttribute("tabindex")).toBe("-1");
+    expect(document.activeElement).toBe(section);
+    section.remove();
+  });
+
+  it("leaves a control's own focusability alone", () => {
+    const button = document.createElement("button");
+
+    document.body.appendChild(button);
+    focusLanding(button);
+
+    expect(button.hasAttribute("tabindex")).toBe(false);
+    expect(document.activeElement).toBe(button);
+    button.remove();
   });
 });

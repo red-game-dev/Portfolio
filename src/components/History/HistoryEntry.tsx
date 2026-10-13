@@ -16,8 +16,10 @@ interface HistoryEntryProps extends Resume {
   labels: HistoryLabels;
   // Single lane for education, two lanes for experience.
   hasVentureLane: boolean;
-  // Outside the selected industry: kept in place so the graph stays whole, but faded back.
+  // Outside the selected industry: kept in place so the graph stays whole, but greyed back, with `dimNote` saying so
+  // to a screen reader, since the grey alone would not.
   isDimmed?: boolean;
+  dimNote?: string;
 }
 
 interface NodeProps {
@@ -35,10 +37,14 @@ const Row = styled.li(({ hasVentureLane, isDimmed }: { hasVentureLane: boolean; 
   tw`relative list-none`,
   hasVentureLane ? tw`pl-[52px] md:pl-[74px]` : tw`pl-[36px] md:pl-[44px]`,
   css`
-    transition: opacity 0.3s ease;
+    transition: filter 0.3s ease;
   `,
-  isDimmed && tw`opacity-30`,
+  isDimmed && css`
+    filter: grayscale(1);
+  `,
 ]);
+
+const Hidden = tw.span`sr-only`;
 
 // A commit on its lane. Ventures sit on the second lane, as their own branch.
 const Node = styled.span(({ isVenture, isReached, isCurrent, hasVentureLane }: NodeProps) => [
@@ -120,7 +126,7 @@ const Toggle = styled.button(() => [
 
 export const HistoryEntry: FC<HistoryEntryProps> = ({
   title, description, outcome, productOutcome, bullets = [], techStack = [], period, from, to, isVenture = false, labels, hasVentureLane,
-  isDimmed = false,
+  isDimmed = false, dimNote,
 }: HistoryEntryProps) => {
   const rowRef = useRef<HTMLLIElement>(null);
   const isReached = useInView(rowRef, { threshold: 0.35 });
@@ -145,6 +151,7 @@ export const HistoryEntry: FC<HistoryEntryProps> = ({
       {isVenture && <Branch hasVentureLane={hasVentureLane} aria-hidden="true" />}
       <Node isVenture={isVenture} isReached={isReached} isCurrent={isCurrent} hasVentureLane={hasVentureLane} aria-hidden="true" />
       <Card>
+        {isDimmed && dimNote && <Hidden>{dimNote}</Hidden>}
         <Meta>
           <Period isCurrent={isCurrent}>{period ?? `${from} ${labels.to} ${to ?? labels.present}`}</Period>
           {hasVentureLane && <Kind isVenture={isVenture}>{isVenture ? labels.venture : labels.role}</Kind>}

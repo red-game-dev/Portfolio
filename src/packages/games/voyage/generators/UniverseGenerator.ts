@@ -34,7 +34,7 @@ import { auForRadius, radiusForAu } from "../utils/scale";
 import { pullOfMass } from "../utils/stars";
 import { lookFor } from "./looks";
 import { beltName, factionName, nameWord, universeName } from "./names";
-import { airFor, classFor, equilibriumC, gravityFor, moonClassFor, radiusFor, spreadOrbits } from "./worlds";
+import { airFor, classFor, equilibriumC, farthestForC, gravityFor, moonClassFor, radiusFor, spreadOrbits } from "./worlds";
 
 const SHAPE_WEAPONS: Record<HullShape, WeaponKind> = { saucer: "cannon", insect: "spit", crystal: "laser", organic: "spit", monolith: "laser", swarm: "cannon" };
 const SHAPES: readonly HullShape[] = ["saucer", "insect", "crystal", "organic", "monolith", "swarm"];
@@ -70,6 +70,13 @@ const NEAREST = 8;
 const MOON_GAP = 2.6;
 const MOON_RADII = 5;
 const MOON_SPREAD = 1.55;
+// However many moons a world keeps, the farthest lies within this many of its drawn radii (the spread tightening for
+// a crowd of them), and neighbouring moons, the nearest one and the world itself are never closer than this (world
+// units) as drawn.
+const MOON_MOST = 7;
+const MOON_CLEAR = 0.12;
+// Neighbouring worlds, each with its moons, keep at least this much open space between them as drawn (world units).
+const WORLD_CLEAR = 1;
 // No world circles further out than this (world units), so even a supergiant's system can be crossed.
 const FURTHEST = 420;
 // Round one star of a wide pair, worlds stay within the pair's separation divided by this; further, the partner
@@ -138,6 +145,51 @@ interface StarBody {
 // (both of a close pair's), the star they circle if only one (a wide pair's brighter star), and how far from the
 // centre they must keep (clear of a close pair) and how far they can stray (inside a third of a wide pair's
 // separation, past which its partner would pull them away).
+// Worlds laid out so nothing collides as drawn: from the innermost out, each world (its moons and all) sits clear of
+// the star and at least `WORLD_CLEAR` beyond the last world's reach, moved out where the logarithmic spread left them
+// too close (as round a dwarf, where real systems crowd and drawn worlds are large), its year read again for the new
+// distance. A world moves out only as far as its kind still holds there (`farthestOf`, in AU: a lava world stays
+// where it is hot enough to melt); one that cannot fit, or is pushed past the system's furthest, is left out with its
+// moons.
+const spaceWorlds = (bodies: SystemBody[], { scale, mass, hasStar, nearest, furthest, farthestOf }: {
+  scale: SystemScale; mass: number; hasStar: boolean; nearest: number; furthest: number; farthestOf: (planet: SystemBody) => number;
+}): SystemBody[] => {
+  const moonsOf = (planet: SystemBody) => bodies.filter((moon) => moon.parent === planet.id);
+  const reachOf = (planet: SystemBody) => Math.max(planet.radius, ...moonsOf(planet).map((moon) => (moon.orbit.kind === "moon" ? moon.orbit.distance : 0) + moon.radius));
+  const planets = bodies.filter((body) => body.orbit.kind === "circle").sort((first, second) => (first.orbit.kind === "circle" && second.orbit.kind === "circle"
+    ? first.orbit.distance - second.orbit.distance
+    : 0));
+  const kept = new Map<string, SystemBody>();
+  let edge = nearest;
+
+  planets.forEach((planet) => {
+    if (planet.orbit.kind !== "circle") {
+      return;
+    }
+
+    const reach = reachOf(planet);
+    const distance = Math.max(planet.orbit.distance, edge + reach + (kept.size > 0 ? WORLD_CLEAR : 0));
+
+    if (distance > furthest || (distance !== planet.orbit.distance && auForRadius(scale, distance) > farthestOf(planet))) {
+      return;
+    }
+
+    const au = auForRadius(scale, distance);
+    const periodDays = hasStar && distance !== planet.orbit.distance ? DAYS_PER_YEAR * Math.sqrt(au ** 3 / mass) : planet.orbit.periodDays;
+
+    kept.set(planet.id, { ...planet, orbit: { ...planet.orbit, distance, periodDays } });
+    edge = distance + reach;
+  });
+
+  return bodies.flatMap((body) => {
+    if (body.orbit.kind === "circle") {
+      return kept.get(body.id) ?? [];
+    }
+
+    return body.parent && kept.has(body.parent) ? [body] : [];
+  });
+};
+
 interface SystemPlan {
   index: number;
   node: number;
@@ -570,7 +622,14 @@ export class UniverseGenerator {
       bodies.push(planet.body, ...this.moons(random, planet, { starKind, metals, temperatureC, au, index }, made));
     });
 
-    return bodies;
+    return spaceWorlds(bodies, {
+      scale,
+      mass,
+      hasStar: star !== null,
+      nearest: radiusForAu(scale, Math.exp(nearest)),
+      furthest,
+      farthestOf: (planet) => farthestForC(luminosity, WORLD_CLASSES[made.classes[planet.id]].coldest),
+    });
   }
 
   // The nearest a world can circle: just clear of the star's surface as it is drawn.
@@ -633,11 +692,14 @@ export class UniverseGenerator {
     const { body } = planet;
     // GM from the surface pull and radius (m^3/s^2).
     const pull = planet.gravity * (planet.radiusKm * 1000) ** 2;
+    // A crowd of moons spreads less, so the farthest stays within `MOON_MOST` of the world's radii.
+    const ratio = count > 1 ? Math.min(MOON_SPREAD, (MOON_MOST / MOON_GAP) ** (1 / (count - 1))) : MOON_SPREAD;
+    let reached = body.radius;
 
     return Array.from({ length: count }, (_, order) => {
       const id = `${body.id}-${order}`;
       const kind = moonClassFor(random, around.temperatureC, around.starKind, around.metals, order, body.isGiant);
-      const spread = MOON_SPREAD ** order * randomBetween(random, 0.95, 1.05);
+      const spread = ratio ** order * randomBetween(random, 0.97, 1.03);
       const distanceKm = planet.radiusKm * MOON_RADII * spread;
       const periodDays = (TAU * Math.sqrt((distanceKm * 1000) ** 3 / pull)) / 86400;
       const orbit: SystemOrbit = {
@@ -650,10 +712,13 @@ export class UniverseGenerator {
       };
       const moon = this.world(random, { id, kind, temperatureC: around.temperatureC, au: around.au, orbit, parent: body.id, starKind: around.starKind,
         seed: around.index * 97 + order * 13 + body.id.length }, made);
+      // Clear of the world and of the moon before, as drawn.
+      const distance = Math.max(orbit.distance, reached + moon.body.radius + MOON_CLEAR);
 
+      reached = distance + moon.body.radius;
       made.names[id] = `${made.names[body.id] ?? made.base} ${NUMERALS[order] ?? order + 1}`;
 
-      return moon.body;
+      return { ...moon.body, orbit: { ...orbit, distance } };
     });
   }
 

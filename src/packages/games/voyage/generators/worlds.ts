@@ -48,6 +48,10 @@ export const spreadOrbits = (random: RandomSource, room: OrbitRoom): number[] =>
 export const equilibriumC = (luminosity: number, au: number): number =>
   (luminosity > 0 ? (EQUILIBRIUM_1AU * luminosity ** 0.25) / Math.sqrt(au) + ABSOLUTE_ZERO : ROGUE_C);
 
+// The farthest (AU) a world can lie and still be held at `coldestC` or warmer by that star; without a star, anywhere.
+export const farthestForC = (luminosity: number, coldestC: number): number =>
+  (luminosity > 0 ? ((EQUILIBRIUM_1AU * luminosity ** 0.25) / Math.max(1, coldestC - ABSOLUTE_ZERO)) ** 2 : Infinity);
+
 // The kind of world that forms at that temperature round that star, in a galaxy that rich in metals: each kind that
 // can, as likely as its weight, scaled by how much it needs the heavy elements the galaxy has. No star, a rogue.
 export const classFor = (random: RandomSource, temperatureC: number, star: StarKind | null, metals: number, among?: readonly WorldClass[]): WorldClass => {

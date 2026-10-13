@@ -501,12 +501,13 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     context.textBaseline = "alphabetic";
   }
 
-  // The whole board pulsing red, and the seconds left, big.
+  // The whole board pulsing red, and the seconds left, big; under two pulses a second, well clear of the rate that
+  // can set off a seizure (WCAG 2.3.1 allows three).
   private drawAlarm(state: LaunchState, now: number): void {
     const { width, height } = this.size;
     const context = this.context;
 
-    context.globalAlpha = 0.16 + 0.14 * (0.5 + 0.5 * Math.sin(now * 0.014));
+    context.globalAlpha = 0.16 + 0.14 * (0.5 + 0.5 * Math.sin(now * 0.011));
     context.fillStyle = this.theme.alarm;
     context.fillRect(0, 0, width, height);
     context.globalAlpha = 0.9;

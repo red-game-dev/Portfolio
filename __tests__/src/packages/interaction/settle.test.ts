@@ -20,7 +20,7 @@ const fakeView = (withScrollEnd = true) => {
     clearTimeout: (id) => {
       timers.delete(id);
     },
-    getComputedStyle: () => ({ scrollMarginTop: "0px" }),
+    getComputedStyle: () => ({ scrollMarginTop: "0px", scrollPaddingTop: "0px" }),
     fire: (type) => [...(listeners.get(type) ?? [])].forEach((listener) => listener()),
     runTimers: () => [...timers.values()].forEach((handler) => handler()),
     count: (type) => listeners.get(type)?.size ?? 0,
@@ -64,6 +64,27 @@ describe("settleAtTop", () => {
     view.fire("scrollend");
 
     expect(scroll).not.toHaveBeenCalled();
+  });
+
+  it("counts the page's scroll padding and the target's scroll margin in where it should land", () => {
+    const view = fakeView();
+    const root = document.createElement("html");
+    const styles = new Map<Element, { scrollMarginTop: string; scrollPaddingTop: string }>();
+    const padded = { ...view, getComputedStyle: (element: Element) => styles.get(element) ?? { scrollMarginTop: "0px", scrollPaddingTop: "0px" } };
+    const section = target(0);
+    const control = target(104);
+
+    styles.set(root, { scrollMarginTop: "0px", scrollPaddingTop: "104px" });
+    // A section cancels the padding with a margin of its own, so it lands at the very top.
+    styles.set(section.element, { scrollMarginTop: "-104px", scrollPaddingTop: "0px" });
+    settleAtTop(section.element, padded, 2, root);
+    view.fire("scrollend");
+    // Anything else lands below the fixed bars.
+    settleAtTop(control.element, padded, 2, root);
+    view.fire("scrollend");
+
+    expect(section.scroll).not.toHaveBeenCalled();
+    expect(control.scroll).not.toHaveBeenCalled();
   });
 
   it("lets the reader take over: no correction once they scroll themselves", () => {

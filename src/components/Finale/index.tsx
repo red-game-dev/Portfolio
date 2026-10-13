@@ -285,7 +285,7 @@ export const Finale: FC<FinaleProps> = ({
             <DecodedText text={content.title} isActive={isReached} />
           </Title>
         </Heading>
-        <Board ref={boardRef} role="img" aria-label={content.launch.boardLabel} isAlarm={snapshot.status === "destructing"}>
+        <Board ref={boardRef} role="group" aria-label={content.launch.boardLabel} isAlarm={snapshot.status === "destructing"}>
           <Canvas ref={canvasRef} aria-hidden="true" />
           <Status role="status">{statusOf(content.launch, snapshot, zoneLabels, site)}</Status>
         </Board>

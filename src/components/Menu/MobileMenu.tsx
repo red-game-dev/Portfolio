@@ -36,6 +36,7 @@ import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
 import useModalDialog from "@/hooks/useModalDialog";
 import { scrollBehavior } from "@/packages/accessibility/motion";
 import { rgbChannels } from "@/packages/graphics/colour";
+import { focusLanding } from "@/packages/interaction/focus";
 import { scrollToElement } from "@/packages/interaction/scroll-frame";
 import { fill } from "@/packages/text/format";
 import { MenuContent } from "@/types/menu";
@@ -75,6 +76,8 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
 
       if (target) {
         scrollToElement(target, scrollBehavior());
+        // Focus follows the jump rather than going back to the menu's button as the dialog closes.
+        focusLanding(target);
       }
 
       window.history.replaceState(null, "", href);

@@ -27,6 +27,21 @@ const FOCUSABLE = "a[href], button:not([disabled]), input:not([disabled]), selec
 export const firstFocusable = (container: ParentNode): HTMLElement | null =>
   Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE)).find((element) => element.closest("[hidden]") === null) ?? null;
 
+// Moves focus to where a jump on the page landed, without scrolling again, so the next Tab goes on from there rather
+// than from the link that jumped. An element that takes no focus of its own is given a tabindex of -1 first, which
+// lets a script focus it without putting it in the Tab order.
+export const focusLanding = (element: Element): void => {
+  if (typeof HTMLElement === "undefined" || !(element instanceof HTMLElement)) {
+    return;
+  }
+
+  if (!element.matches(FOCUSABLE) && !element.hasAttribute("tabindex")) {
+    element.setAttribute("tabindex", "-1");
+  }
+
+  element.focus({ preventScroll: true });
+};
+
 // Whether focus has dropped out of view: nothing holds it, or what holds it now sits inside something hidden (a
 // page of a carousel turned away, a panel closed), which a browser leaves on the page's body.
 export const isFocusLost = (active: Element | null): boolean => active === null || active === active.ownerDocument.body || active.closest("[hidden]") !== null;

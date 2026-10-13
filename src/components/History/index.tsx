@@ -45,7 +45,7 @@ const Panels = tw.div`flex flex-col gap-[25px] lg:gap-[35px] mt-[25px] lg:mt-[35
 
 const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[25px] lg:mt-[35px] text-sm text-[#999]`;
 
-const Matches = tw.p`m-0 mt-[12px] text-sm text-[#bbb]`;
+const Matches = tw.p`m-0 mt-[12px] text-sm text-[#bbb] empty:mt-0`;
 
 // The lanes are drawn once for the whole list, and their fill follows the scroll through a CSS variable.
 
@@ -149,9 +149,11 @@ const TabBar = tw.div`mt-[6px]`;
 const More = styled.li(({ isDimmed }: { isDimmed: boolean }) => [
   tw`relative list-none pl-[36px] md:pl-[44px]`,
   css`
-    transition: opacity 0.3s ease;
+    transition: filter 0.3s ease;
   `,
-  isDimmed && tw`opacity-30`,
+  isDimmed && css`
+    filter: grayscale(1);
+  `,
 ]);
 
 const MoreNode = styled.span(() => [
@@ -227,9 +229,8 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
           </FilterChip>
         ))}
       </Filters>
-      {selected && (
-        <Matches aria-live="polite">{fill(labels.industryMatches, { count: matches, industry: selected.label })}</Matches>
-      )}
+      {/* Mounted whether or not an industry is chosen, so a screen reader hears each change to it. */}
+      <Matches aria-live="polite">{selected ? fill(labels.industryMatches, { count: matches, industry: selected.label }) : ""}</Matches>
       <Panels>
         <Panel>
           <PanelTitle>{labels.experience}</PanelTitle>
@@ -262,6 +263,7 @@ export const History: FC<HistoryProps> = ({ intro, experience, foundedTotal, edu
                     labels={labels}
                     hasVentureLane={false}
                     isDimmed={industry !== null && !entry.industries?.includes(industry)}
+                    dimNote={selected ? fill(labels.outsideIndustry, { industry: selected.label }) : undefined}
                   />
                 ))}
                 {branch.unlisted > 0 && (

@@ -143,4 +143,6 @@ export const Switched = styled.div(() => [
 
 export const HireChips = tw.div`flex flex-row flex-wrap gap-[6px]`;
 
-export const Fit = tw.p`m-0 text-sm md:text-base text-white border-0 border-l-[2px] border-solid border-[var(--accent)] pl-[10px]`;
+// Mounted empty until a role is picked, so its live region reads each fit line; with nothing to say it takes no room.
+export const Fit = tw.p`m-0 text-sm md:text-base text-white border-0 border-l-[2px] border-solid border-[var(--accent)] pl-[10px]
+  empty:border-l-0 empty:pl-0 empty:mt-[-10px]`;

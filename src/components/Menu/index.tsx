@@ -36,16 +36,23 @@ const MenuList = styled.nav(() => [
 const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
   tw`w-full lg:w-auto m-4 p-4 py-8 lg:p-0 lg:m-0 inline text-base lg:text-sm xl:text-base leading-loose text-white font-semibold 
       lg:px-2 xl:px-4 border-dotted border-2 border-[#121212ed] border-[transparent] border-r-[var(--accent)]
-     opacity-50 relative align-top overflow-hidden hover:text-white hover:opacity-100`,
-  selected && tw`opacity-100 animate-[move-text 0.75s forwards, border-transition 1s ease-in-out 0s]`,
+     relative align-top overflow-hidden hover:text-white`,
+  selected && tw`animate-[move-text 0.75s forwards, border-transition 1s ease-in-out 0s]`,
   css`
-    transition: opacity 0.4s ease;
+    --nav-rest: ${selected ? "#ffffff" : "#9a9a9a"};
+
+    &:hover,
+    &:focus-visible {
+      --nav-rest: #ffffff;
+    }
   `
 ]);
 
 // The label fills with the zone's colour as the reader moves through the item's sections, so the menu reads
 // as the same progress bar as the trail on the left.
-const Label = styled.span(() => [progressText("right", "--nav-progress", "#ffffff")]);
+// Not faded with opacity, which would take the zone's colour below a readable contrast; the rest of the label is a
+// softer grey until the item is hovered, focused or current.
+const Label = styled.span(() => [progressText("right", "--nav-progress", "var(--nav-rest, #9a9a9a)")]);
 
 const Caret = tw.span`ml-[6px] text-[10px] align-middle`;
 

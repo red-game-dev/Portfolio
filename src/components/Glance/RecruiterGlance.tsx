@@ -98,7 +98,8 @@ export const RecruiterGlance: FC<RecruiterGlanceProps> = ({ content, details, he
               </FilterChip>
             ))}
           </HireChips>
-          {hire && <Fit key={hire.id} aria-live="polite">{hire.fit}</Fit>}
+          {/* One live region for every pick, so each new fit line is read out. */}
+          <Fit aria-live="polite">{hire?.fit ?? ""}</Fit>
         </Value>
         <Term>{content.rolesLabel}</Term>
         <Value>

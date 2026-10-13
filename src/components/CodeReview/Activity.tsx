@@ -25,7 +25,9 @@ interface ActivityProps {
 const PITCH = 12;
 const CELL = 10;
 const WEEKS = 54;
-const LEVEL_OPACITY = [0, 0.3, 0.5, 0.75, 1];
+// The faintest level still 3:1 against the empty cells' ground in the dimmest zone accent it can take (the chain's
+// purple).
+const LEVEL_OPACITY = [0, 0.6, 0.73, 0.86, 1];
 
 // The run: each year's row is scanned in, one after another, then the achievements unlock in turn.
 const SWEEP_MS = 1100;
@@ -167,7 +169,7 @@ const BadgeText = tw.span`min-w-0 break-words text-xs leading-snug text-[#ddd]`;
 
 const BadgeValue = tw.strong`block text-sm md:text-base text-white`;
 
-const Legend = tw.p`m-0 text-[11px] text-[#777]`;
+const Legend = tw.p`m-0 text-[11px] text-[#8a8a8a]`;
 
 // The full sentence for screen readers, while the counter animates on screen.
 const Spoken = tw.span`sr-only`;

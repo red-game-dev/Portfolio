@@ -25,10 +25,10 @@ interface PlatformOverviewProps {
 
 const Groups = tw.div`mt-[25px] lg:mt-[35px] mb-[25px] flex flex-col gap-[14px]`;
 
-const Tiles = styled.ul(() => [
-  tw`list-none m-0 p-0 grid gap-[14px] md:grid-cols-2 xl:grid-cols-3`,
-  honourHidden,
-]);
+// Each group's panel holds its list, so the list keeps its meaning (a list given the panel's role is no longer one).
+const TilePanel = styled.div(() => [honourHidden]);
+
+const Tiles = tw.ul`list-none m-0 p-0 grid gap-[14px] md:grid-cols-2 xl:grid-cols-3`;
 
 const Tile = tw.li`flex flex-col gap-[10px] p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
@@ -71,7 +71,8 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
       </TabList>
       <SwitchStage switcher={switcher}>
       {expertise.tileGroups.map((group, index) => (
-        <Tiles key={group.label} {...panelProps(index)}>
+        <TilePanel key={group.label} {...panelProps(index)}>
+          <Tiles>
           {group.tiles.map((tile) => (
             <Tile key={tile.name}>
               <TileName>{tile.name}</TileName>
@@ -83,7 +84,8 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
               </Places>
             </Tile>
           ))}
-        </Tiles>
+          </Tiles>
+        </TilePanel>
       ))}
       </SwitchStage>
     </Groups>

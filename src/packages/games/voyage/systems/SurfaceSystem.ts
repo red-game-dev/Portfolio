@@ -35,8 +35,7 @@ export class SurfaceSystem implements System<VoyageContext> {
     const { body, ship } = parts;
 
     for (const place of state.system.bodies) {
-      // A world just lifted off from is left to climb away from, not landed on again.
-      if (place.isGiant || place.isShattered || (state.liftoff?.body === place.id && state.elapsedMs < state.liftoff.untilMs)) {
+      if (place.isGiant || place.isShattered) {
         continue;
       }
 
@@ -55,6 +54,17 @@ export class SurfaceSystem implements System<VoyageContext> {
       const vy = body.vy - place.vy;
       const speed = Math.hypot(vx, vy);
       const inward = vx * nx + vy * ny;
+      const isLiftingOff = state.liftoff?.body === place.id && state.elapsedMs < state.liftoff.untilMs;
+
+      // A world just lifted off from is left to climb away from, not landed on again while the ship rises; coming back
+      // down onto it is a landing (or a crash) as ever, and ends the climb's grace.
+      if (isLiftingOff && inward > 0) {
+        continue;
+      }
+
+      if (isLiftingOff) {
+        state.liftoff = null;
+      }
 
       body.x = place.x + nx * contact;
       body.y = place.y + ny * contact;

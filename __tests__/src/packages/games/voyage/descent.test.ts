@@ -56,6 +56,22 @@ describe("voyage descents", () => {
     expect(simulation.state.descent).toBeNull();
   });
 
+  test("a new run climbs clear of Earth with no hand on the controls, rather than falling straight back in", () => {
+    const simulation = createFlying();
+    const earth = () => simulation.state.system.bodies.find((place) => place.id === "earth");
+    const height = () => {
+      const { body } = partsOf(simulation);
+      const home = earth();
+
+      return home ? Math.hypot(body.x - home.x, body.y - home.y) - home.radius : 0;
+    };
+
+    expect(simulation.state.liftoff?.body).toBe("earth");
+    simulation.step(10000);
+    expect(partsOf(simulation).ship.landedOn).toBeNull();
+    expect(height()).toBeGreaterThan((earth()?.radius ?? 1) * 3);
+  });
+
   test("a short burn on the ground lifts off straight up and climbs clear, rather than falling straight back", () => {
     const simulation = createFlying();
 

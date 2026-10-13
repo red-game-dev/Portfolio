@@ -560,6 +560,9 @@ export class VoyageSimulation {
       radius: config.ship.radius,
       mass: config.ship.mass,
     });
+    // A run starts as a lift off does: Earth's pull eases back in over the first seconds, so the ship climbs clear and
+    // a new pilot has time to find the controls before it drifts back.
+    state.liftoff = earth && isFlying ? { body: earth.id, sinceMs: state.elapsedMs, untilMs: state.elapsedMs + config.flight.liftoffSeconds * 1000 } : null;
     this.world.stores.ship.set(ship, {
       angle: -Math.PI / 2,
       prevAngle: -Math.PI / 2,

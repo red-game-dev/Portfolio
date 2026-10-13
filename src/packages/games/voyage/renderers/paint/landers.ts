@@ -140,7 +140,8 @@ export const paintShell = (context: Canvas2DContext, wide: number, high: number,
 // heart and rose to orange at the edge, flickering. `heat` is how hard the air heats it, about 1 at a capsule's
 // peak.
 export const paintPlasma = (context: Canvas2DContext, wide: number, high: number, tall: number, heat: number, now: number, isFront: boolean): void => {
-  const strength = Math.min(1.2, heat) * (0.85 + 0.15 * Math.sin(now * 0.031));
+  // Its flicker under twice a second (WCAG 2.3.1).
+  const strength = Math.min(1.2, heat) * (0.85 + 0.15 * Math.sin(now * 0.012));
 
   if (strength < 0.02) {
     return;

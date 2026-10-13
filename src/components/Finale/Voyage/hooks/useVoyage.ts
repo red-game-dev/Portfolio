@@ -808,7 +808,13 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     adopt,
   }), [adopt]);
 
+  // Buttons for what a pinch or a drag does, so one finger or a pointer does it too (WCAG 2.5.1 and 2.5.7).
+  const zoomStep = useCallback((direction: 1 | -1) => game?.zoomBy(zoom.step(direction)), [game, zoom]);
+  const look = useCallback((x: number, y: number) => game?.panBy(x, y), [game]);
+
   return {
+    zoomStep,
+    look,
     transfer,
     snapshot,
     landing,

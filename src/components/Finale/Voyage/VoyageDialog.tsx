@@ -2,6 +2,10 @@ import { CSSProperties, FC, SyntheticEvent, useEffect, useMemo, useRef, useState
 
 import {
   faAnchor,
+  faArrowDown,
+  faArrowLeft,
+  faArrowRight,
+  faArrowUp,
   faCalendarDay,
   faCamera,
   faCircleInfo,
@@ -9,12 +13,17 @@ import {
   faCompress,
   faCrosshairs,
   faDownload,
+  faGasPump,
+  faHeartPulse,
+  faMagnifyingGlassMinus,
+  faMagnifyingGlassPlus,
   faMap,
   faPause,
   faPlay,
   faRocket,
   faScroll,
   faShareNodes,
+  faShieldHalved,
   faWarehouse,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
@@ -62,6 +71,7 @@ import {
   BarFill,
   BossFrame,
   BarLabel,
+  BarIcon,
   BarRow,
   BarsRow,
   Bars,
@@ -104,6 +114,8 @@ import {
   MessageButton,
   Overlay,
   Pay,
+  LiveRegion,
+  PadButtons,
   PhotoBar,
   PhotoHint,
   Place,
@@ -158,6 +170,7 @@ import useMediaQuery from "@/hooks/useMediaQuery";
 import useModalDialog from "@/hooks/useModalDialog";
 import { readStored, writeStored } from "@/packages/browser/storage";
 import type { Frame, HomePad, ItemStack, ModuleId, VoyageSnapshot } from "@/packages/games/voyage";
+import { focusLanding, isFocusLost } from "@/packages/interaction/focus";
 import { fill, formatNumber } from "@/packages/text/format";
 import { FinaleVoyage } from "@/types/game";
 import { PreferencesContent } from "@/types/preferences";
@@ -187,6 +200,9 @@ const isTrue = (value: unknown): value is true => value === true;
 // How many lines the voyage says may wait (each stays as long as `lineMs` gives it, its animation's length).
 const MESSAGE_QUEUE = 4;
 
+// How far a look round button moves the view, as an arrow key does in photo mode.
+const PHOTO_STEP = 60;
+
 // Hull green turning red as it fails, shields blue, fuel gold; a hurt system amber, then red.
 const BAR_COLOUR = { hull: "#6ee7a8", hullLow: "#ff4d5e", shields: "#4fd8ff", fuel: "#ffd76a", rounds: "#c9cfdf", worn: "#ffb347", failing: "#ff4d5e" };
 
@@ -205,6 +221,41 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const frontRef = useRef<HTMLCanvasElement>(null);
   const lensRef = useRef<HTMLCanvasElement>(null);
   const onBackdropClick = useModalDialog(dialogRef, true);
+  // Closed through the dialog itself, so the browser hands focus back to what opened it (its close event then tells
+  // the page); never by unmounting it, which leaves focus nowhere.
+  const closeDialog = () => {
+    if (dialogRef.current?.open) {
+      dialogRef.current.close();
+    } else {
+      onClose();
+    }
+  };
+
+  // A control that held focus and went away (a slot used while paused, a fault fixed, a card closed) would leave focus
+  // on the page's body, where the voyage's keys no longer reach: it goes back to the flight instead.
+  useEffect(() => {
+    const dialog = dialogRef.current;
+
+    if (!dialog) {
+      return undefined;
+    }
+
+    const rescue = (event: FocusEvent) => {
+      if (event.relatedTarget) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        if (dialog.open && isFocusLost(document.activeElement)) {
+          stageRef.current?.focus({ preventScroll: true });
+        }
+      });
+    };
+
+    dialog.addEventListener("focusout", rescue);
+
+    return () => dialog.removeEventListener("focusout", rescue);
+  }, []);
   const voyageSettings = useVoyageSettings();
   // On a touch screen, how to fly by touch rather than by keys.
   const isTouch = useMediaQuery("(hover: none) and (pointer: coarse)");
@@ -274,6 +325,10 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   // What the voyage says, one line at a time: a burst waits its turn.
   const [messages, setMessages] = useState<QueuedLine[]>([]);
   const messageId = useRef(0);
+  // What the voyage says aloud: each line once, as it is said, through one polite and one urgent region that stay
+  // mounted (a region mounted with its words already in it is often not read). The id alternates a mark so the same
+  // words said twice are read twice.
+  const [spoken, setSpoken] = useState<{ id: number; text: string; isUrgent: boolean } | null>(null);
   const message = messages[0] ?? null;
   const previous = useRef<VoyageSnapshot | null>(null);
   // The guided step whose coin or core has been set out this run, so pausing or the hangar never sets out another.
@@ -283,6 +338,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   // A perk offered or a port's trade open holds the run still, and the bar with it.
   const isChoosing = status === "flying" && Boolean(snapshot?.perkOffer);
   const isDocked = status === "flying" && Boolean(snapshot?.docked);
+  // While the hangar or a port is open, the flight's HUD under it (marked data-hud-layer) takes no focus and no clicks,
+  // so Tab stays within the panel.
+
+  useEffect(() => {
+    dialogRef.current?.querySelectorAll<HTMLElement>("[data-hud-layer]").forEach((layer) => layer.toggleAttribute("inert", isHangarOpen || isDocked));
+  });
   // Stranded adrift, the countdown shows over the view; down on a world, the surface card says it.
   const adrift = snapshot && !snapshot.landedOn ? strandedLine(content, snapshot) : null;
   const surfaceTitle = snapshot?.surface ? surfaceHeading(content, snapshot) : "";
@@ -297,6 +358,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       const next = { id: messageId.current, text, isKept, isUrgent, isQuest, card };
 
       setMessages((queue) => queueLine(queue, next, MESSAGE_QUEUE));
+      setSpoken({ id: messageId.current, text, isUrgent });
     }
   };
   // The answer to a tap shows at once, in place of the line already seen (unless it is kept), and the rest still wait
@@ -307,18 +369,22 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     const next = { id: messageId.current, text, isKept: false, isUrgent: false };
 
     setMessages((queue) => replyLine(queue, next));
+    setSpoken({ id: messageId.current, text, isUrgent: false });
   };
 
-  // Each line shows for its moment, then the next.
+  // Each line shows for its moment, then the next; held while the run is paused or the hangar is open, so pausing
+  // gives a reader all the time they need (WCAG 2.2.1).
+  const isLineHeld = isPaused || isHangarOpen;
+
   useEffect(() => {
-    if (!message) {
+    if (!message || isLineHeld) {
       return undefined;
     }
 
     const timer = window.setTimeout(() => setMessages((queue) => queue.slice(1)), lineMs(message));
 
     return () => window.clearTimeout(timer);
-  }, [message]);
+  }, [message, isLineHeld]);
 
   useEffect(() => {
     if (!isHangarOpen) {
@@ -407,6 +473,19 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const [isLeaving, setIsLeaving] = useState(false);
   const pausedToAsk = useRef(false);
   const isAskingToLeave = isLeaving && isPaused && status === "flying";
+  // The card that comes up takes focus, so a keyboard or a screen reader is in it at once: the leave question on its
+  // Stay, the others on their title.
+  const cardRef = useRef<HTMLDivElement>(null);
+  const cardKind = status === "over" ? "over" : isAskingToLeave ? "leave" : status === "ready" ? "ready" : null;
+
+  useEffect(() => {
+    const card = cardRef.current;
+    const target = cardKind === "leave" ? card?.querySelector<HTMLElement>("button") : card?.querySelector<HTMLElement>("h2, h3");
+
+    if (target) {
+      focusLanding(target);
+    }
+  }, [cardKind]);
 
   useEffect(() => {
     if (!isPaused) {
@@ -416,7 +495,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
 
   const askToLeave = () => {
     if (status !== "flying") {
-      onClose();
+      closeDialog();
 
       return;
     }
@@ -543,14 +622,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   // The main gun's rounds, against what the racks hold.
   const roundsRack = gear?.ammo.find((rack) => rack.type === "rounds")?.rack ?? 0;
   const bars = snapshot ? [
-    { label: content.hull, value: snapshot.hull, max: snapshot.maxHull, colour: hullShare < 0.3 ? BAR_COLOUR.hullLow : BAR_COLOUR.hull },
-    { label: content.shields, value: snapshot.shields, max: snapshot.maxShields, colour: BAR_COLOUR.shields },
-    { label: content.fuel, value: snapshot.fuel, max: snapshot.maxFuel, colour: BAR_COLOUR.fuel },
+    { label: content.hull, value: snapshot.hull, max: snapshot.maxHull, colour: hullShare < 0.3 ? BAR_COLOUR.hullLow : BAR_COLOUR.hull, icon: faHeartPulse },
+    { label: content.shields, value: snapshot.shields, max: snapshot.maxShields, colour: BAR_COLOUR.shields, icon: faShieldHalved },
+    { label: content.fuel, value: snapshot.fuel, max: snapshot.maxFuel, colour: BAR_COLOUR.fuel, icon: faGasPump },
     ...(gear ? [{
       label: content.gear.ammo.rounds,
       value: snapshot.weapons.ammo.rounds,
       max: Math.max(roundsRack, snapshot.weapons.ammo.rounds),
       colour: BAR_COLOUR.rounds,
+      icon: faCrosshairs,
     }] : []),
   ] : [];
   const hurt = snapshot ? SYSTEMS.filter((id) => snapshot.modules[id] < SOUND) : [];
@@ -623,6 +703,26 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       {isPhoto && (
         <PhotoBar aria-label={content.career.photo.title}>
           <PhotoHint role="status">{content.career.photo.hint}</PhotoHint>
+          <PadButtons>
+            <IconButton type="button" onClick={() => voyage.look(PHOTO_STEP, 0)} aria-label={content.career.photo.look.left}>
+              <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" />
+            </IconButton>
+            <IconButton type="button" onClick={() => voyage.look(0, PHOTO_STEP)} aria-label={content.career.photo.look.up}>
+              <FontAwesomeIcon icon={faArrowUp} aria-hidden="true" />
+            </IconButton>
+            <IconButton type="button" onClick={() => voyage.look(0, -PHOTO_STEP)} aria-label={content.career.photo.look.down}>
+              <FontAwesomeIcon icon={faArrowDown} aria-hidden="true" />
+            </IconButton>
+            <IconButton type="button" onClick={() => voyage.look(-PHOTO_STEP, 0)} aria-label={content.career.photo.look.right}>
+              <FontAwesomeIcon icon={faArrowRight} aria-hidden="true" />
+            </IconButton>
+            <IconButton type="button" onClick={() => voyage.zoomStep(1)} aria-label={content.hud.zoomIn}>
+              <FontAwesomeIcon icon={faMagnifyingGlassPlus} aria-hidden="true" />
+            </IconButton>
+            <IconButton type="button" onClick={() => voyage.zoomStep(-1)} aria-label={content.hud.zoomOut}>
+              <FontAwesomeIcon icon={faMagnifyingGlassMinus} aria-hidden="true" />
+            </IconButton>
+          </PadButtons>
           <ActionButton type="button" isPrimary onClick={() => savePhoto(fill(content.career.photo.file, { date: today }))}>
             <FontAwesomeIcon icon={faDownload} aria-hidden="true" />
             {content.career.photo.save}
@@ -635,12 +735,18 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       {isMapView && (
         <MapBar aria-label={content.map}>
           <MapTitle>{content.map}</MapTitle>
+          <IconButton type="button" onClick={() => voyage.zoomStep(1)} aria-label={content.hud.zoomIn}>
+            <FontAwesomeIcon icon={faMagnifyingGlassPlus} aria-hidden="true" />
+          </IconButton>
+          <IconButton type="button" onClick={() => voyage.zoomStep(-1)} aria-label={content.hud.zoomOut}>
+            <FontAwesomeIcon icon={faMagnifyingGlassMinus} aria-hidden="true" />
+          </IconButton>
           <IconButton type="button" onClick={toggleMap} aria-label={content.closeMap}>
             <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
           </IconButton>
         </MapBar>
       )}
-      <Hud hidden={isHudAside}>
+      <Hud hidden={isHudAside} data-hud-layer="">
         <Vitals>
           <Place>{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
           {economy && (
@@ -653,6 +759,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
               <Bars>
                 {bars.map((bar) => (
                   <BarRow key={bar.label}>
+                    <BarIcon colour={bar.colour} aria-hidden="true"><FontAwesomeIcon icon={bar.icon} /></BarIcon>
                     <BarLabel>{bar.label}</BarLabel>
                     <BarValue>{`${bar.value} / ${bar.max}`}</BarValue>
                     <BarTrack role="meter" aria-label={bar.label} aria-valuemin={0} aria-valuemax={bar.max} aria-valuenow={bar.value}>
@@ -840,7 +947,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       {status === "flying" && snapshot && !isChoosing && !isDocked && (isGuiding || snapshot.boss || snapshot.incoming || snapshot.salvage || adrift ||
         economy?.suggestion || snapshot.dockable || snapshot.distress) && !isHangarOpen && !isHudAside && (
-        <Frames data-target={snapshot.target ? "" : undefined}>
+        <Frames data-target={snapshot.target ? "" : undefined} data-hud-layer="">
           {snapshot.dockable && (
             <DockButton type="button" onClick={() => act({ kind: "dock" })}>
               <FontAwesomeIcon icon={faAnchor} aria-hidden="true" />
@@ -848,7 +955,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </DockButton>
           )}
           {snapshot.distress && (
-            <DistressFrame role="status">
+            <DistressFrame>
               {fill(content.encounters.distress.frame, { seconds: snapshot.distress.seconds })}
               {snapshot.distress.isNear && (
                 <span>{snapshot.distress.progress > 0 ? content.encounters.distress.boarding : content.encounters.distress.hold}</span>
@@ -869,7 +976,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           {isGuiding && guideStep !== null && (
             <Guide content={content} step={guideStep} isTouch={isTouch} onNext={nextGuide} onSkip={() => act({ kind: "skipGuide" })} />
           )}
-          {adrift && <Incoming role="status">{adrift}</Incoming>}
+          {adrift && <Incoming>{adrift}</Incoming>}
           {economy?.suggestion && (
             <ReadyButton type="button" onClick={() => economy.suggestion && follow(economy.suggestion)}>
               <FontAwesomeIcon icon={faCircleUp} aria-hidden="true" />
@@ -902,7 +1009,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </BossFrame>
           )}
           {snapshot.incoming && (
-            <Incoming role="status">
+            <Incoming>
               {fill(combat.incoming, {
                 diameter: snapshot.incoming.diameterKm,
                 target: content.stops[snapshot.incoming.target] ?? snapshot.incoming.target,
@@ -930,7 +1037,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         />
       )}
       {message && status === "flying" && !isHudAside && (
-        <Message key={message.id} role="status" isCard={Boolean(message.card)} style={{ "--message-ms": `${lineMs(message)}ms` } as CSSProperties}>
+        <Message key={message.id} data-hud-layer="" isCard={Boolean(message.card)} style={{ "--message-ms": `${lineMs(message)}ms` } as CSSProperties}>
           {message.card ? (
             <CardText>
               <CardTitle>
@@ -983,7 +1090,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       {(status !== "flying" || isPaused) && !isHangarOpen && !isPhoto && (
         <Overlay isPassThrough={status === "flying"}>
-          <Card isPassThrough={status === "flying"} accent={status === "over" ? "#ffd76a" : isAskingToLeave ? "#ff9aa5" : "#c4d2ff"}>
+          <Card ref={cardRef} isPassThrough={status === "flying"} accent={status === "over" ? "#ffd76a" : isAskingToLeave ? "#ff9aa5" : "#c4d2ff"}>
             {status === "ready" && (
               <>
                 <Title>{content.title}</Title>
@@ -1053,7 +1160,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                     <FontAwesomeIcon icon={faPlay} aria-hidden="true" />
                     {content.leave.stay}
                   </ActionButton>
-                  <ActionButton type="button" isPrimary={false} onClick={onClose}>
+                  <ActionButton type="button" isPrimary={false} onClick={closeDialog}>
                     {content.leave.confirm}
                   </ActionButton>
                 </CardButtons>
@@ -1116,7 +1223,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                       {copy.hangar}
                     </ActionButton>
                   )}
-                  <ActionButton type="button" isPrimary={false} onClick={onClose}>
+                  <ActionButton type="button" isPrimary={false} onClick={closeDialog}>
                     {content.close}
                   </ActionButton>
                 </CardButtons>
@@ -1125,6 +1232,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </Card>
         </Overlay>
       )}
+      <LiveRegion aria-live="polite" aria-atomic="true">{spoken && !spoken.isUrgent ? `${spoken.text}${spoken.id % 2 ? "\u200b" : ""}` : ""}</LiveRegion>
+      <LiveRegion role="alert">{spoken?.isUrgent ? `${spoken.text}${spoken.id % 2 ? "\u200b" : ""}` : ""}</LiveRegion>
     </Dialog>
   );
 };

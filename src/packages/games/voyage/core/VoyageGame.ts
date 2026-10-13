@@ -730,14 +730,14 @@ export class VoyageGame extends FrameLoop {
     return state.lockedTarget !== null;
   }
 
-  // Holds the view still to be looked round and saved as a picture, without the radar, the map or the arrows to
-  // attackers; leaving it carries on from where it was.
   // The panels the page lays over the view (CSS pixels from the canvas's top left), which the arrows at the screen's
   // edge keep clear of.
   public setCovered(boxes: readonly ScreenBox[]): void {
     this.renderer.setCovered(boxes);
   }
 
+  // Holds the view still to be looked round and saved as a picture, without the radar, the map or the arrows to
+  // attackers; leaving it carries on from where it was.
   public setPhotoMode(isOn: boolean): void {
     if (isOn === this.isPhoto) {
       return;

@@ -141,10 +141,6 @@ interface StarBody {
   surfaceGravity: number;
 }
 
-// What a system's worlds are made round, and what is collected as they are made: the light and mass they circle
-// (both of a close pair's), the star they circle if only one (a wide pair's brighter star), and how far from the
-// centre they must keep (clear of a close pair) and how far they can stray (inside a third of a wide pair's
-// separation, past which its partner would pull them away).
 // Worlds laid out so nothing collides as drawn: from the innermost out, each world (its moons and all) sits clear of
 // the star and at least `WORLD_CLEAR` beyond the last world's reach, moved out where the logarithmic spread left them
 // too close (as round a dwarf, where real systems crowd and drawn worlds are large), its year read again for the new
@@ -190,6 +186,10 @@ const spaceWorlds = (bodies: SystemBody[], { scale, mass, hasStar, nearest, furt
   });
 };
 
+// What a system's worlds are made round, and what is collected as they are made: the light and mass they circle
+// (both of a close pair's), the star they circle if only one (a wide pair's brighter star), and how far from the
+// centre they must keep (clear of a close pair) and how far they can stray (inside a third of a wide pair's
+// separation, past which its partner would pull them away).
 interface SystemPlan {
   index: number;
   node: number;

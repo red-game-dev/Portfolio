@@ -1,7 +1,5 @@
 import { Canvas2DContext, CanvasSurface, DrawableSurface } from "@/packages/graphics/canvas";
 
-// One drawing surface: its context, sized for the device's pixels with coordinates in CSS pixels, and the few
-// drawing operations every layer shares, done without save and restore on the hot path.
 // A box on the screen in CSS pixels from the canvas's top left: a panel the page lays over the view.
 export interface ScreenBox {
   left: number;
@@ -10,6 +8,8 @@ export interface ScreenBox {
   bottom: number;
 }
 
+// One drawing surface: its context, sized for the device's pixels with coordinates in CSS pixels, and the few
+// drawing operations every layer shares, done without save and restore on the hot path.
 export class Surface {
   public readonly context: Canvas2DContext;
   public width = 0;

@@ -376,7 +376,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       return undefined;
     }
 
-    let last = "";
+    let last: string | null = null;
     const measure = () => {
       const stage = stageRef.current;
       const panels = dialogRef.current?.querySelectorAll<HTMLElement>("[data-covers]");

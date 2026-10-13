@@ -1,6 +1,7 @@
 import { NO_INPUT, VoyageEvents, VoyageSimulation } from "@/packages/games/voyage";
+import { angleBetween } from "@/packages/math/angles";
 
-import { createFlying, defaults, partsOf, touchDown, untilDown } from "./fixtures/simulation";
+import { createFlying, defaults, EPOCH, partsOf, touchDown, untilDown } from "./fixtures/simulation";
 
 const BURN = { ...NO_INPUT, thrust: 1 };
 
@@ -98,6 +99,77 @@ describe("voyage descents", () => {
     simulation.step(500);
     expect(simulation.state.liftoff).toBeNull();
   });
+
+  test("a run that starts with the Moon overhead climbs past it, never into it", () => {
+    const placeOf = (simulation: VoyageSimulation, id: string) => {
+      const place = simulation.state.system.bodies.find((body) => body.id === id);
+
+      if (!place) {
+        throw new Error(`no ${id} in the system`);
+      }
+
+      return place;
+    };
+    // The start, every six hours over a month, nearest to the Moon standing straight over the pad.
+    const [overhead] = Array.from({ length: 120 }, (_, index) => EPOCH + index * 6 * 3600 * 1000).map((epochMs) => {
+      const simulation = createFlying({}, 7, epochMs);
+      const earth = placeOf(simulation, "earth");
+      const moon = placeOf(simulation, "moon");
+
+      return { epochMs, off: Math.abs(angleBetween(-Math.PI / 2, Math.atan2(moon.y - earth.y, moon.x - earth.x))) };
+    })
+.sort((a, b) => a.off - b.off);
+
+    expect(overhead.off).toBeLessThan(0.15);
+
+    const simulation = createFlying({}, 7, overhead.epochMs);
+    let hits = 0;
+    let touched = false;
+
+    simulation.events.on("hit", () => {
+      hits += 1;
+    });
+
+    for (let elapsed = 0; elapsed < 8000; elapsed += 100) {
+      simulation.step(100);
+      touched = touched || partsOf(simulation).ship.landedOn !== null || simulation.state.descent !== null;
+    }
+
+    expect(touched).toBe(false);
+    expect(hits).toBe(0);
+  });
+
+  test("the shortest burn on a giant's moon climbs clear from any side on any day, the giant's pull eased with the moon's", () => {
+    const cases = Array.from({ length: 12 }, (_, day) => EPOCH + day * 2.5 * 24 * 3600 * 1000).flatMap((epochMs) =>
+      ["io", "europa", "ganymede"].flatMap((id) => [0, Math.PI / 2, Math.PI, -Math.PI / 2].map((side) => ({ epochMs, id, side }))));
+
+    cases.forEach(({ epochMs, id, side }) => {
+      const simulation = createFlying({}, 7, epochMs);
+      const place = simulation.state.system.bodies.find((body) => body.id === id);
+
+      if (!place) {
+        throw new Error(`no ${id} in the system`);
+      }
+
+      const { body } = partsOf(simulation);
+      const contact = place.radius + body.radius * 0.9;
+      const x = place.x + Math.cos(side) * contact;
+      const y = place.y + Math.sin(side) * contact;
+
+      Object.assign(body, { x, y, prevX: x, prevY: y, vx: place.vx, vy: place.vy });
+      simulation.step(defaults.stepMs * 2);
+      untilDown(simulation);
+      simulation.step(defaults.descent.settleSeconds * 1000);
+      // One step's burn, then hands off.
+      simulation.step(defaults.stepMs, BURN);
+      simulation.step(defaults.flight.liftoffSeconds * 1000);
+
+      const after = partsOf(simulation).body;
+
+      expect({ id, side, landedOn: partsOf(simulation).ship.landedOn }).toEqual({ id, side, landedOn: null });
+      expect(Math.hypot(after.x - place.x, after.y - place.y) - place.radius).toBeGreaterThan(place.radius);
+    });
+  }, 60000);
 
   test("a descent never plays longer than the config allows, and in real time plays at life's pace", () => {
     const fast = createFlying();

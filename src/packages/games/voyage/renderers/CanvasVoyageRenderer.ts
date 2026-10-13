@@ -62,6 +62,8 @@ export interface VoyageRenderer {
   setCovered(boxes: readonly ScreenBox[]): void;
   // Photo mode: no radar, map, compass or arrows.
   setPhoto(isOn: boolean): void;
+  // Whether a point on the screen (CSS pixels) is on the radar as it was last drawn, so a press there opens the map.
+  radarAt(x: number, y: number): boolean;
   // The pad at home a new rocket stands on once a crew is back.
   setHome(pad: HomePad | null): void;
   // Where the missions on the board send the pilot, marked on the map.
@@ -217,6 +219,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
   public setPhoto(isOn: boolean): void {
     this.isPhoto = isOn;
     this.map.isHidden = isOn;
+  }
+
+  public radarAt(x: number, y: number): boolean {
+    return this.map.radarAt(x, y);
   }
 
   public dispose(): void {

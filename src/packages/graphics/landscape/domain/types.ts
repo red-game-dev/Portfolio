@@ -38,6 +38,9 @@ export interface SkyBody {
   lit: number;
   lightSide: number;
   hasRings: boolean;
+  // A host that can draw the body as it really looks (a globe from its own maps) paints it here, its centre and
+  // radius in pixels, and answers true; otherwise, or answering false, the painter draws its lit disc.
+  paint?: (x: number, y: number, radius: number) => boolean;
 }
 
 export interface Sun {

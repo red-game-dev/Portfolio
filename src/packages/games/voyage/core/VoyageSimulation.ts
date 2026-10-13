@@ -2,7 +2,7 @@ import { EventBus, SpatialHash, SystemPipeline, World } from "@/packages/games/e
 import { RandomSource } from "@/packages/math/random";
 import { createFieldSample, GravityField } from "@/packages/physics/newtonian";
 
-import { VoyageConfig } from "../config";
+import { ClockSpeed, VoyageConfig } from "../config";
 import { DEFAULT_UNIVERSE_NAMES } from "../config/names";
 import { BoostId } from "../domain/boosts";
 import { MODULE_IDS } from "../domain/components";
@@ -42,7 +42,7 @@ import { climbDirection } from "../systems/liftoff";
 import { MalfunctionSystem } from "../systems/MalfunctionSystem";
 import { MotionSystem } from "../systems/MotionSystem";
 import { NavigationSystem } from "../systems/NavigationSystem";
-import { missionTime, placeBodies } from "../systems/orbits";
+import { missionTime, placeBodies, rebaseClock } from "../systems/orbits";
 import { OrbitSystem } from "../systems/OrbitSystem";
 import { PhaseSystem } from "../systems/PhaseSystem";
 import { PhenomenaSystem } from "../systems/PhenomenaSystem";
@@ -104,6 +104,8 @@ export class VoyageSimulation {
   // step (`StepRandom`), and counts its steps.
   private readonly freeRandom: RandomSource;
   private daily: StepRandom | null = null;
+  // How fast the pilot likes the mission clock (hours a second), or null for the config's.
+  private clockRate: number | null = null;
   private stepIndex = 0;
 
   constructor(system: StarSystem, { config, random, epochMs, names = DEFAULT_UNIVERSE_NAMES, themes = [], loot = NO_LOOT_TABLE, level = 0 }: VoyageSimulationOptions) {
@@ -213,6 +215,18 @@ export class VoyageSimulation {
 
   public setSpaceDrag(drag: SpaceDrag): void {
     this.context.spaceDrag = drag;
+  }
+
+  // How fast the mission clock runs, as the pilot picks it. A run under way carries on from the moment its clock reads,
+  // with nothing jumping; the daily voyage keeps the config's rate, so everyone flying it meets the same sky.
+  public setClockSpeed(speed: ClockSpeed): void {
+    const { state, config } = this.context;
+
+    this.clockRate = config.clock.speeds[speed];
+
+    if (state.daily === null) {
+      state.clock = rebaseClock(state.clock, state.elapsedMs, this.clockRate);
+    }
   }
 
   // Sets a boost to work at a level, if it is ready and the ship can use one now; says whether it did.
@@ -497,6 +511,11 @@ export class VoyageSimulation {
     this.context.random = this.daily?.next ?? this.freeRandom;
     this.context.state = this.fresh(cloneSystem(this.home), "flying", epochMs, this.context.config, this.context.random, this.context.state.level);
     this.context.state.daily = daily?.day ?? null;
+
+    if (!daily && this.clockRate !== null) {
+      this.context.state.clock = rebaseClock(this.context.state.clock, 0, this.clockRate);
+    }
+
     this.daily?.reseed(0);
     this.context.state.view = { ...this.context.state.view };
     this.placeShip();

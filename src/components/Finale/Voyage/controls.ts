@@ -9,21 +9,27 @@ export type SlotCommand = typeof SLOT_COMMANDS[number];
 
 // What a key asks of the voyage.
 export type VoyageCommand =
-  "left" | "right" | "burn" | "brake" | "pause" | "map" | "guns" | "hangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | "back" | "dock" | SlotCommand;
+  "left" | "right" | "up" | "down" | "brake" | "pause" | "map" | "guns" | "hangar" | "photo" | "follow" | "zoomIn" | "zoomOut" | "back" | "dock" |
+  SlotCommand;
 
-// Arrows and WASD turn and burn, down and S brake; P pauses, M opens the map, F holds fire, H opens the hangar, C photo
-// mode, U does what the hangar suggests and E docks at the port alongside (or casts off); 1 to 6 use the ability bar;
-// + and - zoom, and Escape steps back out of the hangar, a port or photo mode. The browser's own shortcuts (Ctrl+H, Cmd+U, Cmd+1) are left to the browser,
-// and so is every key typed into a field (the daily board's initials), but Escape.
+// The keys that fly the ship, held for as long as they are down.
+export type SteerCommand = "left" | "right" | "up" | "down" | "brake";
+
+// Arrows and WASD fly the ship (the way they point, or turning and burning, as the reader's `voyage-keys` setting
+// has it) and Space brakes; P pauses, M opens the map, F holds fire, H opens the hangar, C photo mode, U does what
+// the hangar suggests and E docks at the port alongside (or casts off); 1 to 6 use the ability bar; + and - zoom,
+// and Escape steps back out of the hangar, a port or photo mode. The browser's own shortcuts (Ctrl+H, Cmd+U, Cmd+1)
+// are left to the browser, and so is every key typed into a field (the daily board's initials), but Escape.
 export const VOYAGE_KEYS = new KeyMap<VoyageCommand>({
   "ArrowLeft": "left",
   "ArrowRight": "right",
-  "ArrowUp": "burn",
-  "ArrowDown": "brake",
+  "ArrowUp": "up",
+  "ArrowDown": "down",
   "a": "left",
   "d": "right",
-  "w": "burn",
-  "s": "brake",
+  "w": "up",
+  "s": "down",
+  " ": "brake",
   "p": "pause",
   "m": "map",
   "f": "guns",
@@ -51,8 +57,32 @@ export const PHOTO_PAN = new KeyMap<KeyStep>({
   ArrowDown: { x: 0, y: -60 },
 });
 
-// How much a pixel of the wheel, or a key, zooms.
-export const VOYAGE_ZOOM: ZoomInputOptions = { wheel: 0.0015, step: 1.25 };
+// How much a pixel of the wheel, a pixel of a trackpad's pinch (far smaller steps), or a key zooms.
+export const VOYAGE_ZOOM: ZoomInputOptions = { wheel: 0.0015, pinch: 0.012, step: 1.25 };
+
+// What the held keys ask of the ship. Pointing the way they fly, they lean like a thumb stick (x right, y down, -1
+// to 1), the burn is the up key (which is still the burn while coming down) and only Space brakes; turning and
+// burning, left and right turn, up burns along the nose and down or Space brakes.
+export interface HeldSteer {
+  turn: number;
+  thrust: number;
+  brake: boolean;
+  lean: { x: number; y: number } | null;
+}
+
+export const heldSteer = (isHeld: (command: SteerCommand) => boolean, mode: "direction" | "turn"): HeldSteer => {
+  const across = (isHeld("right") ? 1 : 0) - (isHeld("left") ? 1 : 0);
+  const down = (isHeld("down") ? 1 : 0) - (isHeld("up") ? 1 : 0);
+  const thrust = isHeld("up") ? 1 : 0;
+
+  if (mode === "turn") {
+    return { turn: across, thrust, brake: isHeld("down") || isHeld("brake"), lean: null };
+  }
+
+  const length = Math.hypot(across, down);
+
+  return { turn: 0, thrust, brake: isHeld("brake"), lean: length > 0 ? { x: across / length, y: down / length } : null };
+};
 
 // What the voyage is doing, as far as its keys care.
 export interface VoyageKeyState {
@@ -95,7 +125,8 @@ export const voyageKeyAction = (command: VoyageCommand, state: VoyageKeyState): 
   switch (command) {
     case "left":
     case "right":
-    case "burn":
+    case "up":
+    case "down":
     case "brake":
       return state.isFlying ? "steer" : null;
     case "pause":

@@ -111,6 +111,8 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
   // The world stood on, and what hangs in its sky (its planet, or its moons) with how far each really is.
   private place: SystemBody | null = null;
   private neighbours: Array<{ body: SystemBody; sky: SkyBody }> = [];
+  // The frame being drawn, for the planet or moons in the sky to be drawn as their globes.
+  private frame: VoyageFrame | null = null;
   // The world angle straight up from the spot.
   private up = 0;
   private shown = 0;
@@ -142,6 +144,8 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
   public draw(frame: VoyageFrame): void {
     const { state, world, dt, now } = frame;
     const ship = world.stores.ship.get(state.ship);
+
+    this.frame = frame;
     const landedOn = state.phase !== "lost" ? ship?.landedOn ?? null : null;
     // The world already stood on is kept, so a frame only looks one up when the ship sets down somewhere new.
     const ground = landedOn === null ? undefined : landedOn === this.place?.id ? this.place : state.system.bodies.find((candidate) => candidate.id === landedOn);
@@ -293,19 +297,21 @@ export class SurfaceLayer implements RenderLayer<VoyageFrame> {
       const orbit = other.id === place.parent ? place.orbit : other.orbit;
       const kilometres = orbit.kind === "moon" ? orbit.distanceKm : Math.hypot(other.x - place.x, other.y - place.y) * place.kmPerUnit;
       const otherLook = theme.bodies[other.id] ?? state.cosmos?.looks[other.id];
-
-      return {
-        body: other,
-        sky: {
-          elevation: 0,
-          side: 0,
-          lit: 1,
-          lightSide: 1,
-          radius: Math.asin(Math.min(1, (other.radius * other.kmPerUnit) / Math.max(kilometres, 1))) * RAD,
-          colour: otherLook?.surface.palette[2] ?? "#c8c8c8",
-          hasRings: Boolean(otherLook?.rings),
-        },
+      const sky: SkyBody = {
+        elevation: 0,
+        side: 0,
+        lit: 1,
+        lightSide: 1,
+        radius: Math.asin(Math.min(1, (other.radius * other.kmPerUnit) / Math.max(kilometres, 1))) * RAD,
+        colour: otherLook?.surface.palette[2] ?? "#c8c8c8",
+        hasRings: Boolean(otherLook?.rings),
       };
+
+      // Drawn as its own globe, as it is in space (Earth from the Moon its blue seas, clouds and city lights), lit at
+      // the phase it stands at.
+      sky.paint = (x, y, radius) => this.frame !== null && this.globes.drawInSky(this.frame, other, this.kit.front.context, x, y, radius, sky.lit, sky.lightSide);
+
+      return { body: other, sky };
     });
     this.scene = {
       air: airFor(place.id, look, place.air?.pressureBar ?? null, isHome),

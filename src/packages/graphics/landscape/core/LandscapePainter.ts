@@ -141,6 +141,12 @@ export class LandscapePainter {
       // By day a body is washed out by the sky in front of it.
       context.globalAlpha = opacity * (1 - daylight * 0.55);
 
+      if (body.paint?.(x, y, radius)) {
+        context.globalAlpha = opacity;
+
+        return;
+      }
+
       if (body.hasRings) {
         context.strokeStyle = rgba(hexToRgb(body.colour), 0.55);
         context.lineWidth = Math.max(1, radius * 0.18);

@@ -198,7 +198,7 @@ export class WebGLGlobeRenderer implements GlobeRenderer {
 
     const { gl } = this;
     const program = this.planet;
-    const frame = globeFrame(pose);
+    const frame = globeFrame(pose, pose.phase);
     const surface = look.surface;
     const map = surface.map ? this.textures.get(surface.map) : undefined;
     const night = surface.night ? this.textures.get(surface.night) : undefined;

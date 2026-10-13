@@ -1,4 +1,10 @@
-import { airFor, earthGround, groundAt, phaseOf, skyPlace, solarHours } from "@/packages/games/voyage";
+import { airFor, DEFAULT_VOYAGE_THEME, earthGround, groundAt, phaseOf, skyPlace, solarHours } from "@/packages/games/voyage";
+import { VoyageFrame } from "@/packages/games/voyage/renderers/frame";
+import { GlobesLayer } from "@/packages/games/voyage/renderers/layers/GlobesLayer";
+import { RenderKit } from "@/packages/games/voyage/renderers/layers/kit";
+import type { GlobeDraw } from "@/packages/graphics/globe";
+
+import { createFlying } from "./fixtures/simulation";
 
 const QUARTER = Math.PI / 2;
 
@@ -51,5 +57,34 @@ describe("standing on a world", () => {
     expect(airFor("veldara-ii", undefined, 0.001, false)).toBeNull();
     expect(airFor("veldara-ii", undefined, 50, false)?.haze).toBeGreaterThan(0.8);
     expect(airFor("veldara-ii", undefined, 0.05, false)?.strength).toBeLessThan(airFor("veldara-ii", undefined, 5, false)?.strength ?? 0);
+  });
+});
+
+describe("a world in another's sky", () => {
+  test("is drawn as its own globe, north up, lit at the phase it stands at, from the side its light comes; a point is left to the painter", () => {
+    const simulation = createFlying();
+    const draws: GlobeDraw[] = [];
+    const kit = { globes: { drawGlobe: (_: unknown, draw: GlobeDraw) => draws.push(draw) } } as unknown as RenderKit;
+    const layer = new GlobesLayer(kit);
+    const earth = simulation.state.system.bodies.find((body) => body.id === "earth");
+    const frame = { state: simulation.state, now: 2000, theme: DEFAULT_VOYAGE_THEME } as unknown as VoyageFrame;
+    const target = {} as CanvasRenderingContext2D;
+
+    if (!earth) {
+      throw new Error("no Earth");
+    }
+
+    expect(layer.drawInSky(frame, earth, target, 100, 80, 18, 1, 1)).toBe(true);
+    expect(layer.drawInSky(frame, earth, target, 100, 80, 18, 0.5, -1)).toBe(true);
+    expect(layer.drawInSky(frame, earth, target, 100, 80, 1, 0.5, 1)).toBe(false);
+    expect(draws).toHaveLength(2);
+
+    const [full, half] = draws;
+
+    expect(full).toMatchObject({ x: 100, y: 80, radius: 18, look: DEFAULT_VOYAGE_THEME.bodies.earth, time: 2 });
+    expect(full.pose).toMatchObject({ lightAngle: 0, isTurned: false, viewElevation: 0 });
+    expect(full.pose.phase).toBeCloseTo(Math.PI / 2);
+    expect(half.pose).toMatchObject({ lightAngle: Math.PI, isTurned: true });
+    expect(half.pose.phase).toBeCloseTo(0);
   });
 });

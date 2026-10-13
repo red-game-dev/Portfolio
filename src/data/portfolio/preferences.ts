@@ -36,6 +36,19 @@ export const preferencesContent: Pick<PortfolioData, "preferences"> = {
           "asteroid belts, nebulae and planetary rings. Real: space is far too empty to slow a ship, so how fast you go is up to your engines.",
         options: { felt: "Felt", real: "Real" },
       },
+      "voyage-clock": {
+        name: "Space time",
+        description: "How fast the planets and moons move. Real: as fast as the real ones, so the Moon takes 27 days to go round Earth. " +
+          "Fast: half an hour every second. Faster: six hours every second, so the Moon goes round Earth in under two minutes. The daily " +
+          "voyage always runs Fast, so everyone flying it meets the same sky.",
+        options: { real: "Real", fast: "Fast", faster: "Faster" },
+      },
+      "voyage-keys": {
+        name: "Keys",
+        description: "Direction: the arrows or WASD fly the ship the way they point on the screen, two together for a diagonal, and " +
+          "Space brakes. Turn and burn: left and right turn the ship, up burns along its nose, and down or Space brakes.",
+        options: { direction: "Direction", turn: "Turn and burn" },
+      },
       "tilt-steering": {
         name: "Steer by tilting",
         description: "On a phone or tablet, tilt it the way you want to fly. The further you tilt, the harder you burn. " +

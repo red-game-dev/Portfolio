@@ -1,6 +1,6 @@
-import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState, WheelEvent } from "react";
+import { KeyboardEvent, PointerEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { PHOTO_PAN, slotOf, VOYAGE_KEYS, VOYAGE_ZOOM, voyageKeyAction } from "@/components/Finale/Voyage/controls";
+import { heldSteer, PHOTO_PAN, slotOf, VOYAGE_KEYS, VOYAGE_ZOOM, voyageKeyAction } from "@/components/Finale/Voyage/controls";
 import { usePilotSync } from "@/components/Finale/Voyage/hooks/usePilotSync";
 import { useTiltSteering } from "@/components/Finale/Voyage/hooks/useTiltSteering";
 import { canTilt } from "@/components/Finale/Voyage/tilt";
@@ -209,6 +209,12 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     game?.setSpaceDrag(preferences["space-drag"]);
   }, [game, preferences]);
 
+  const clockSpeed = preferences["voyage-clock"];
+
+  useEffect(() => {
+    game?.setClockSpeed(clockSpeed);
+  }, [clockSpeed, game]);
+
   const aimMode = preferences["voyage-aim"];
   const isManual = aimMode === "manual";
 
@@ -271,7 +277,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       setIsMapOpen(false);
     }
 
-    game?.setKeys({ turn: 0, thrust: 0, brake: false });
+    game?.setKeys({ turn: 0, thrust: 0, brake: false, lean: null });
     game?.play(mode);
     setIsPaused(false);
     stage.current?.focus();
@@ -433,9 +439,18 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [pause]);
 
+  const keyMode = preferences["voyage-keys"];
+
   const applyKeys = useCallback(() => {
-    game?.setKeys({ turn: held.axis("left", "right"), thrust: held.isHeld("burn") ? 1 : 0, brake: held.isHeld("brake") });
-  }, [game, held]);
+    game?.setKeys(heldSteer((command) => held.isHeld(command), keyMode));
+  }, [game, held, keyMode]);
+
+  // A change of the setting takes any keys held now with it.
+  useEffect(() => {
+    if (held.size > 0) {
+      applyKeys();
+    }
+  }, [applyKeys, held]);
 
   // What each key does is the voyage's key map and `voyageKeyAction`; carrying it out is here. A key that means
   // nothing right now is left to the browser, so Escape with nothing open reaches the dialog, which asks before a run is left.
@@ -536,9 +551,47 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
   }, [applyKeys, held]);
 
-  const onWheel = useCallback((event: WheelEvent<HTMLElement>) => {
-    game?.zoomBy(zoom.wheel(event.deltaY));
-  }, [game, zoom]);
+  // A wheel or a trackpad's scroll over the stage zooms the voyage, and a trackpad's pinch (a wheel with the control
+  // key held) zooms it anywhere in the dialog, never the page behind it; a scroll over a panel still scrolls the panel.
+  // React's own wheel listener is passive, so it could not hold the page's zoom back. Safari sends its pinch as gestures
+  // of its own instead, which zoom by their scale.
+  useEffect(() => {
+    const element = stage.current?.closest("dialog") ?? stage.current;
+
+    if (!element || !game) {
+      return undefined;
+    }
+
+    let isGesture = false;
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !stage.current?.contains(event.target as Node)) {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (!isGesture) {
+        game.zoomBy(zoom.wheel(event.deltaY, event.deltaMode, event.ctrlKey));
+      }
+    };
+    const onGesture = (event: Event) => {
+      event.preventDefault();
+      isGesture = event.type !== "gestureend";
+
+      if (event.type !== "gestureend") {
+        game.zoomBy(zoom.gesture((event as Event & { scale?: number }).scale ?? 1, event.type === "gesturestart"));
+      }
+    };
+    const gestures = ["gesturestart", "gesturechange", "gestureend"];
+
+    element.addEventListener("wheel", onWheel, { passive: false });
+    gestures.forEach((type) => element.addEventListener(type, onGesture));
+
+    return () => {
+      element.removeEventListener("wheel", onWheel);
+      gestures.forEach((type) => element.removeEventListener(type, onGesture));
+    };
+  }, [game, stage, zoom]);
 
   const pointAt = useCallback((event: PointerEvent<HTMLElement>) => {
     game?.point(localPoint(event, event.currentTarget));
@@ -631,6 +684,13 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       return;
     }
 
+    // A press on the radar opens the map.
+    if (game?.isOnRadar(localPoint(event, event.currentTarget))) {
+      toggleMap();
+
+      return;
+    }
+
     // A click or a tap on someone locks the guns on them; on nothing, lets go. Held while coming down, it is the
     // burn: the pilot's on the landing engine, or one that aborts the landing under fire.
     game?.lockAt(localPoint(event, event.currentTarget));
@@ -645,7 +705,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     }
 
     pointAt(event);
-  }, [dragPhoto, game, isManual, isPhoto, moveStick, pointAt, trackTouch, unlockSound]);
+  }, [dragPhoto, game, isManual, isPhoto, moveStick, pointAt, toggleMap, trackTouch, unlockSound]);
 
   const onPointerMove = useCallback((event: PointerEvent<HTMLElement>) => {
     if (isPhoto) {
@@ -665,10 +725,23 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       return;
     }
 
+    // A mouse over the radar points at it to open the map, not to fly into the corner.
+    if (event.pointerType === "mouse") {
+      const isOverRadar = Boolean(game?.isOnRadar(localPoint(event, event.currentTarget)));
+
+      event.currentTarget.dataset.overRadar = String(isOverRadar);
+
+      if (isOverRadar) {
+        game?.point(null);
+
+        return;
+      }
+    }
+
     if (event.pointerType === "mouse" || event.currentTarget.hasPointerCapture(event.pointerId)) {
       pointAt(event);
     }
-  }, [dragPhoto, isManual, isPhoto, moveStick, pointAt, trackTouch]);
+  }, [dragPhoto, game, isManual, isPhoto, moveStick, pointAt, trackTouch]);
 
   // A finger lifted, or the mouse gone from the stage: the ship coasts.
   const onPointerEnd = useCallback((event: PointerEvent<HTMLElement>) => {
@@ -854,7 +927,6 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
     toggleGuns,
     onKeyDown,
     onKeyUp,
-    onWheel,
     onPointerDown,
     onPointerMove,
     onPointerEnd,

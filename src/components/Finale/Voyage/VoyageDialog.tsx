@@ -768,7 +768,6 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         onPointerUp={voyage.onPointerEnd}
         onPointerCancel={voyage.onPointerEnd}
         onPointerLeave={voyage.onPointerEnd}
-        onWheel={voyage.onWheel}
       >
         <Canvas ref={backRef} aria-hidden="true" />
         <LensCanvas ref={lensRef} aria-hidden="true" />

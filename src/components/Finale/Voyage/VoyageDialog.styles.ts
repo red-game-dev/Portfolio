@@ -34,6 +34,11 @@ export const Stage = styled.div(() => [
     user-select: none;
     -webkit-user-select: none;
     cursor: crosshair;
+
+    /* Over the radar, which opens the map. */
+    &[data-over-radar="true"] {
+      cursor: pointer;
+    }
   `,
 ]);
 

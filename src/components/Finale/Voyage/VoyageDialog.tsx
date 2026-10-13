@@ -203,6 +203,24 @@ const MESSAGE_QUEUE = 4;
 // How far a look round button moves the view, as an arrow key does in photo mode.
 const PHOTO_STEP = 60;
 
+// A line the voyage has spoken; each spoken region keeps its last few.
+interface SpokenLine {
+  id: number;
+  text: string;
+}
+
+const SPOKEN_KEPT = 4;
+
+interface SpokenLines {
+  polite: SpokenLine[];
+  urgent: SpokenLine[];
+}
+
+// The spoken lines with one more, in its region, keeping each region's last few.
+const withSpoken = (lines: SpokenLines, line: SpokenLine, isUrgent: boolean): SpokenLines => (isUrgent
+  ? { ...lines, urgent: [...lines.urgent, line].slice(-SPOKEN_KEPT) }
+  : { ...lines, polite: [...lines.polite, line].slice(-SPOKEN_KEPT) });
+
 // Hull green turning red as it fails, shields blue, fuel gold; a hurt system amber, then red.
 const BAR_COLOUR = { hull: "#6ee7a8", hullLow: "#ff4d5e", shields: "#4fd8ff", fuel: "#ffd76a", rounds: "#c9cfdf", worn: "#ffb347", failing: "#ff4d5e" };
 
@@ -325,10 +343,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   // What the voyage says, one line at a time: a burst waits its turn.
   const [messages, setMessages] = useState<QueuedLine[]>([]);
   const messageId = useRef(0);
-  // What the voyage says aloud: each line once, as it is said, through one polite and one urgent region that stay
-  // mounted (a region mounted with its words already in it is often not read). The id alternates a mark so the same
-  // words said twice are read twice.
-  const [spoken, setSpoken] = useState<{ id: number; text: string; isUrgent: boolean } | null>(null);
+  // What the voyage says aloud: each line once, in order, through one polite and one urgent region that stay mounted
+  // (a region mounted with its words already in it is often not read). Each keeps its last few lines as separate
+  // children, so lines said in the same moment (a chapter told and the next one opening, a danger and a reward) are
+  // each read, rather than the last one alone.
+  const [spoken, setSpoken] = useState<SpokenLines>({ polite: [], urgent: [] });
   const message = messages[0] ?? null;
   const previous = useRef<VoyageSnapshot | null>(null);
   // The guided step whose coin or core has been set out this run, so pausing or the hangar never sets out another.
@@ -358,7 +377,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       const next = { id: messageId.current, text, isKept, isUrgent, isQuest, card };
 
       setMessages((queue) => queueLine(queue, next, MESSAGE_QUEUE));
-      setSpoken({ id: messageId.current, text, isUrgent });
+      setSpoken((lines) => withSpoken(lines, { id: messageId.current, text }, isUrgent));
     }
   };
   // The answer to a tap shows at once, in place of the line already seen (unless it is kept), and the rest still wait
@@ -369,21 +388,40 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     const next = { id: messageId.current, text, isKept: false, isUrgent: false };
 
     setMessages((queue) => replyLine(queue, next));
-    setSpoken({ id: messageId.current, text, isUrgent: false });
+    setSpoken((lines) => withSpoken(lines, { id: messageId.current, text }, false));
   };
 
-  // Each line shows for its moment, then the next; held while the run is paused or the hangar is open, so pausing
-  // gives a reader all the time they need (WCAG 2.2.1).
+  // Each line shows for its moment, then the next; held while the run is paused or the hangar is open (its fade held
+  // with it, through the Message's data-held), so pausing gives a reader all the time they need (WCAG 2.2.1), and on
+  // resuming it runs only the time it had left.
   const isLineHeld = isPaused || isHangarOpen;
+  const lineClock = useRef<{ id: number; startedAt: number; leftMs: number } | null>(null);
 
   useEffect(() => {
-    if (!message || isLineHeld) {
+    if (!message) {
+      lineClock.current = null;
+
       return undefined;
     }
 
-    const timer = window.setTimeout(() => setMessages((queue) => queue.slice(1)), lineMs(message));
+    if (lineClock.current?.id !== message.id) {
+      lineClock.current = { id: message.id, startedAt: 0, leftMs: lineMs(message) };
+    }
 
-    return () => window.clearTimeout(timer);
+    const clock = lineClock.current;
+
+    if (isLineHeld) {
+      return undefined;
+    }
+
+    clock.startedAt = performance.now();
+
+    const timer = window.setTimeout(() => setMessages((queue) => queue.slice(1)), clock.leftMs);
+
+    return () => {
+      window.clearTimeout(timer);
+      clock.leftMs = Math.max(0, clock.leftMs - (performance.now() - clock.startedAt));
+    };
   }, [message, isLineHeld]);
 
   useEffect(() => {
@@ -735,12 +773,6 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       {isMapView && (
         <MapBar aria-label={content.map}>
           <MapTitle>{content.map}</MapTitle>
-          <IconButton type="button" onClick={() => voyage.zoomStep(1)} aria-label={content.hud.zoomIn}>
-            <FontAwesomeIcon icon={faMagnifyingGlassPlus} aria-hidden="true" />
-          </IconButton>
-          <IconButton type="button" onClick={() => voyage.zoomStep(-1)} aria-label={content.hud.zoomOut}>
-            <FontAwesomeIcon icon={faMagnifyingGlassMinus} aria-hidden="true" />
-          </IconButton>
           <IconButton type="button" onClick={toggleMap} aria-label={content.closeMap}>
             <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
           </IconButton>
@@ -1037,7 +1069,13 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         />
       )}
       {message && status === "flying" && !isHudAside && (
-        <Message key={message.id} data-hud-layer="" isCard={Boolean(message.card)} style={{ "--message-ms": `${lineMs(message)}ms` } as CSSProperties}>
+        <Message
+          key={message.id}
+          data-hud-layer=""
+          data-held={isLineHeld ? "" : undefined}
+          isCard={Boolean(message.card)}
+          style={{ "--message-ms": `${lineMs(message)}ms` } as CSSProperties}
+        >
           {message.card ? (
             <CardText>
               <CardTitle>
@@ -1232,8 +1270,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </Card>
         </Overlay>
       )}
-      <LiveRegion aria-live="polite" aria-atomic="true">{spoken && !spoken.isUrgent ? `${spoken.text}${spoken.id % 2 ? "\u200b" : ""}` : ""}</LiveRegion>
-      <LiveRegion role="alert">{spoken?.isUrgent ? `${spoken.text}${spoken.id % 2 ? "\u200b" : ""}` : ""}</LiveRegion>
+      <LiveRegion aria-live="polite" aria-relevant="additions">
+        {spoken.polite.map((line) => <p key={line.id}>{line.text}</p>)}
+      </LiveRegion>
+      <LiveRegion role="alert" aria-atomic="false" aria-relevant="additions">
+        {spoken.urgent.map((line) => <p key={line.id}>{line.text}</p>)}
+      </LiveRegion>
     </Dialog>
   );
 };

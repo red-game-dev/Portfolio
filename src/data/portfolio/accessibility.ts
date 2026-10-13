@@ -25,6 +25,8 @@ export const accessibilityContent: Pick<PortfolioData, "accessibility"> = {
     limits: [
       "The voyage at the end is a real time space game drawn on a canvas. It can be played with a keyboard, a pointer, a touch screen or a " +
         "controller, and its moments are read out, but its map and flight are visual and have no full text equivalent.",
+      "In the voyage's flight on a touch screen, zooming is by pinch only; the map shows the wider view with one tap, and photo mode has " +
+        "zoom and look round buttons.",
       "Bug Raid, the arcade game in the game world, is drawn on a canvas: it plays from the keyboard and its score and end are read out, but " +
         "play itself is visual.",
       "At very high zoom in a small window, the fixed header and the game bars take much of the screen.",

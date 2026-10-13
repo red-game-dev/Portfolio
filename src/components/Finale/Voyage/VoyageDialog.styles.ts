@@ -578,6 +578,11 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
     width: max-content;
     max-width: min(66vw, 520px);
     ${voyagePanel(0.72, 0.35)}
+
+    /* Held, while the run is paused or the hangar is open: the fade waits with the line. */
+    &[data-held] {
+      animation-play-state: paused;
+    }
     ${isCard ? "text-align: left; border-left: 2px solid #ff9f5a;" : ""}
     animation: ${fadeLine} var(--message-ms, 2800ms) ease both;
 
@@ -1078,7 +1083,7 @@ export const MapBar = styled.header(() => [
   css`
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
 
-    /* The name on the left, its zoom buttons and the way back on the right. */
+    /* The name on the left, the way back on the right. */
     & > :first-child {
       margin-right: auto;
     }

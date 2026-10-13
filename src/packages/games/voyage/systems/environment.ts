@@ -24,8 +24,10 @@ export interface Environment {
   temperatureC: number;
   sunlight: number;
   radiation: number;
-  // The direction (world angle) the heat comes from, for where it marks the hull.
+  // The direction (world angle) the heat comes from, for where it marks the hull, and the star whose light it is
+  // (null where no starlight reaches).
   heatAngle: number;
+  heatFrom: string | null;
 }
 
 // What surrounds the ship: the temperature it is driven towards, the sunlight on it and the radiation through
@@ -36,7 +38,7 @@ export const environmentAt = (context: VoyageContext, body: Body, ship: Ship): E
   const { state } = context;
 
   if (!isInSystem(context)) {
-    return { temperatureC: DEEP_SPACE_C, sunlight: 0, radiation: COSMIC + state.stormDose, heatAngle: 0 };
+    return { temperatureC: DEEP_SPACE_C, sunlight: 0, radiation: COSMIC + state.stormDose, heatAngle: 0, heatFrom: null };
   }
 
   const { system } = state;
@@ -113,5 +115,5 @@ export const environmentAt = (context: VoyageContext, body: Body, ship: Ship): E
     temperatureC = lerp(temperatureC, state.readings.airC, weight);
   }
 
-  return { temperatureC, sunlight, radiation, heatAngle };
+  return { temperatureC, sunlight, radiation, heatAngle, heatFrom: isDark ? null : brightest.id };
 };

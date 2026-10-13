@@ -624,6 +624,8 @@ export interface FinaleVoyage {
   // "{system}" is replaced.
   failing: string;
   gone: string;
+  // "{temperature}" and "{star}" are replaced.
+  heating: string;
   // "{temperature}" is replaced.
   melting: string;
   // Universes past the site's zones are named from these syllables, and a faction by its manner.

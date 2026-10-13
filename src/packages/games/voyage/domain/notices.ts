@@ -32,6 +32,7 @@ export type VoyageNotice =
   // A storm reaching the ship, or turned aside by a magnetic shield.
   | { kind: "storm"; isTurned: boolean }
   | { kind: "failing"; module: ModuleId; isGone: boolean }
+  | { kind: "heating"; temperatureC: number; star: string }
   | { kind: "melting"; temperatureC: number }
   | { kind: "impactAlert"; target: string; diameterKm: number; seconds: number }
   | { kind: "impact"; target: string; outcome: ImpactOutcome; craterKm: number }

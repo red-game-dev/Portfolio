@@ -40,7 +40,7 @@ const STORY_NOTICES: ReadonlyArray<VoyageNotice["kind"]> = ["storyStep", "storyC
 
 // Dangers the pilot must hear at once: something about to hit or go off, the ship failing, captured or lost.
 const URGENT_NOTICES: ReadonlyArray<VoyageNotice["kind"]> = [
-  "impactAlert", "supernova", "burst", "bossMove", "storm", "groundFire", "melting", "failing", "stranded", "emergency", "captured", "destroyed",
+  "impactAlert", "supernova", "burst", "bossMove", "storm", "groundFire", "heating", "melting", "failing", "stranded", "emergency", "captured", "destroyed",
 ];
 
 export const isUrgentNotice = (notice: VoyageNotice): boolean => URGENT_NOTICES.includes(notice.kind);
@@ -162,7 +162,8 @@ export const voyagePlace = (content: FinaleVoyage, snapshot: VoyageSnapshot, uni
 
 // What to say when something happens that the snapshot does not show: each phase of a way down and how the
 // touchdown went, a lift off, an emergency burn,
-// the moment a black hole takes the ship, a solar flare and its storm, a system failing, the hull melting, and
+// the moment a black hole takes the ship, a solar flare and its storm, a system failing, the hull heating in a star's
+// light and then melting, and
 // the economy's moments (a wreck salvaged, a fault, an upgrade, a big payout). The end of a run has its own card.
 export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): string | null => {
   switch (notice.kind) {
@@ -176,6 +177,8 @@ export const voyageNotice = (content: FinaleVoyage, notice: VoyageNotice): strin
       return notice.isTurned ? content.stormTurned : content.storm;
     case "failing":
       return fill(notice.isGone ? content.gone : content.failing, { system: content.systems.names[notice.module] ?? notice.module });
+    case "heating":
+      return fill(content.heating, { temperature: Math.round(notice.temperatureC), star: placeName(content, notice.star) });
     case "melting":
       return fill(content.melting, { temperature: Math.round(notice.temperatureC) });
     case "impactAlert":

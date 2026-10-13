@@ -84,6 +84,9 @@ export interface ThermalConfig {
   // Fuel boils off above this temperature (Celsius), this much a second for each 100 degrees past it.
   boilOffC: number;
   boilOff: number;
+  // Heating in a star's light, the pilot is warned this many degrees before the first harm (the fuel boiling off, or
+  // the lowest rating), and warned again only once the hull has cooled as far again below that.
+  warnMarginC: number;
   // The pressure (bar) the hull is built for.
   pressureBar: number;
 }
@@ -337,6 +340,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     melt: 160,
     boilOffC: 90,
     boilOff: 3,
+    warnMarginC: 25,
     pressureBar: 50,
   },
   weather: { every: [55, 120], speed: [0.45, 1.2], width: [0.6, 1.5], heading: 0.45, drain: 280, sensors: 0.2, radiation: 60000, auroraFade: 0.05 },

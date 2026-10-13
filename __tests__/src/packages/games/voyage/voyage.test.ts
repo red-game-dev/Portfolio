@@ -364,6 +364,78 @@ describe("heat and cold", () => {
     expect(simulation.state.status).toBe("over");
   });
 
+  test("a ship left alone falls sunward and is warned once, before anything wears, early enough to burn clear untouched", () => {
+    const simulation = create({ faults: { ...defaults.faults, rate: 0 } });
+    const heating: Array<{ temperatureC: number; star: string }> = [];
+    const failing: string[] = [];
+    const { star } = simulation.state.system;
+    const fuel = partsOf(simulation).ship.fuel;
+
+    simulation.events.on("heating", (event) => heating.push(event));
+    simulation.events.on("failing", ({ module }) => failing.push(module));
+
+    for (let tick = 0; tick < 1500 && heating.length === 0; tick += 1) {
+      simulation.step(100);
+    }
+
+    expect(heating).toHaveLength(1);
+    expect(heating[0].star).toBe("sun");
+    expect(heating[0].temperatureC).toBeLessThan(defaults.thermal.boilOffC);
+    expect(partsOf(simulation).ship.fuel).toBe(fuel);
+    // Radiation has worn the sensors by a hair, as it always does; heat has worn nothing.
+    expect(Math.min(...Object.values(partsOf(simulation).modules))).toBeGreaterThan(0.995);
+
+    // Burning straight away from the Sun from the moment of the warning, nothing is harmed.
+    for (let tick = 0; tick < 200; tick += 1) {
+      const { body } = partsOf(simulation);
+
+      simulation.step(100, burn(1, { x: body.x + (body.x - star.x) * 10, y: body.y + (body.y - star.y) * 10 }));
+    }
+
+    expect(failing).toEqual([]);
+    expect(partsOf(simulation).health.hull).toBe(defaults.ship.hull);
+    expect(partsOf(simulation).ship.temperatureC).toBeLessThan(heating[0].temperatureC);
+    expect(heating).toHaveLength(1);
+  });
+
+  test("the heat warning comes again only after the hull has cooled well below it, and never on the ground", () => {
+    const simulation = create({ faults: { ...defaults.faults, rate: 0 } });
+    const heating: number[] = [];
+    const { scale } = simulation.state.system;
+    // 0.6 AU is hotter than the warning and cooler than the fuel boiling; 1.5 AU is cold.
+    const hot = openSpace(simulation, radiusForAu(scale, 0.6));
+    const cold = openSpace(simulation, radiusForAu(scale, 1.5));
+    const hold = (spot: { x: number; y: number }, seconds: number) => {
+      for (let tick = 0; tick < seconds * 10; tick += 1) {
+        place(simulation, spot.x, spot.y);
+        simulation.step(100);
+      }
+    };
+
+    simulation.events.on("heating", ({ temperatureC }) => heating.push(temperatureC));
+    hold(hot, 15);
+    expect(heating).toHaveLength(1);
+    hold(cold, 15);
+    hold(hot, 15);
+    expect(heating).toHaveLength(2);
+
+    // On Mercury's day side the ground is far hotter, and it is the ground's heat, not the open sky's.
+    const landed = create({ faults: { ...defaults.faults, rate: 0 } });
+    const mercury = bodyOf(landed, "mercury");
+    const sun = landed.state.system.star;
+    const out = Math.hypot(sun.x - mercury.x, sun.y - mercury.y);
+    const contact = mercury.radius + defaults.ship.radius;
+    const grounded: number[] = [];
+
+    landed.events.on("heating", ({ temperatureC }) => grounded.push(temperatureC));
+    partsOf(landed).ship.landedOn = "mercury";
+    partsOf(landed).ship.landedOffset = { x: ((sun.x - mercury.x) / out) * contact, y: ((sun.y - mercury.y) / out) * contact };
+    landed.step(10000);
+    expect(partsOf(landed).ship.landedOn).toBe("mercury");
+    expect(partsOf(landed).ship.temperatureC).toBeGreaterThan(defaults.thermal.boilOffC);
+    expect(grounded).toEqual([]);
+  });
+
   test("far out it is the cold of the outer system, and in a planet's shadow the sunlight is gone", () => {
     const far = create();
     const spot = openSpace(far, radiusForAu(far.state.system.scale, 30));

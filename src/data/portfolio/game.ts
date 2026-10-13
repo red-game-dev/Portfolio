@@ -305,6 +305,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       stormTurned: "The magnetic shield turns the storm aside",
       failing: "{system} failing",
       gone: "{system} lost",
+      heating: "The hull is heating up, {temperature} \u00b0C this close to {star}. Burn away before the fuel boils and the sensors fail.",
       melting: "The hull is melting at {temperature} \u00b0C. Turn back.",
       universeNames: {
         starts: ["Vel", "Ka", "Or", "Thal", "Zir", "Ny", "Eld", "Mor", "Sel", "Vex", "Ar", "Qua", "Ish", "Dro", "Tem", "Lys"],

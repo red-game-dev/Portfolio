@@ -104,6 +104,30 @@ describe("the real solar system", () => {
     });
   });
 
+  test("every moon sits by its own planet, well within the room before the next orbit, clear of its planet's surface", () => {
+    const system = systemOf();
+    const planets = system.bodies.filter((body) => body.kind !== "moon");
+    const orbitOf = (id: string) => {
+      const planet = planets.find((body) => body.id === id);
+
+      return planet?.orbit?.kind === "sun" ? radiusForAu(system.scale, planet.orbit.elements.a.value) : 0;
+    };
+
+    system.bodies.filter((body) => body.orbit?.kind === "moon").forEach((moon) => {
+      const parent = planets.find((body) => body.id === moon.parent);
+      const distance = moon.orbit?.kind === "moon" ? moon.orbit.distance : 0;
+      const nearestOrbit = Math.min(...planets.filter((body) => body.id !== moon.parent).map((body) => Math.abs(orbitOf(body.id) - orbitOf(moon.parent ?? ""))));
+
+      expect(distance).toBeLessThan(nearestOrbit / 2);
+      expect(distance).toBeGreaterThan((parent?.radius ?? 0) + moon.radius);
+    });
+
+    // The Moon was the one that reached for Venus: it now keeps to Earth.
+    const moon = system.bodies.find((body) => body.id === "moon");
+
+    expect(moon?.orbit?.kind === "moon" ? moon.orbit.distance : Infinity).toBeLessThan(orbitOf("earth") - orbitOf("venus"));
+  });
+
   test("Earth's orbit is the scale's unit, and the Sun's surface maps back to its real radius", () => {
     const { scale, star } = systemOf();
 

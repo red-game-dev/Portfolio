@@ -22,6 +22,12 @@ export interface SystemLayout {
 const EARTH_RADIUS_KM = 6371;
 const KM_PER_AU = 149597870.7;
 
+// The share of the room between a planet's orbit and its nearest neighbour's that its moons may take. Sizes are drawn
+// far larger than life and distances compressed, so a moon set out by its real distance in its planet's radii can
+// reach the next orbit (the Moon, sixty Earth radii out, came within reach of Venus); held to this share, a moon
+// always sits by its own planet.
+const MOON_ROOM = 0.35;
+
 // Lays the real solar system out as a playable world: the Sun at the centre, every body where it really is on
 // the mission clock (placed each step by the orbit system), distances from the Sun compressed by `SystemScale`,
 // sizes compressed by a power so Jupiter is big but Pluto still visible, and moons set out from their planets
@@ -54,7 +60,7 @@ export class SystemMapper extends Mapper<SolarSystemData, StarSystem> {
         orbit: null,
       },
       companions: [],
-      bodies: bodies.map((body) => this.body(body, radii)),
+      bodies: keepMoonsClose(bodies.map((body) => this.body(body, radii)), scale),
       belts: belts.map((belt) => ({
         id: belt.id,
         inner: radiusForAu(scale, belt.fromAu),
@@ -113,6 +119,39 @@ export class SystemMapper extends Mapper<SolarSystemData, StarSystem> {
     };
   }
 }
+
+// Each planet's moons drawn in, together, until the farthest is within `MOON_ROOM` of the room to the nearest
+// neighbouring orbit: only the height above the planet's surface shrinks, the same share for every moon of it, so
+// they keep their order and their spacing against each other. A planet whose moons already fit keeps them as they are.
+const keepMoonsClose = (bodies: SystemBody[], scale: SystemScale): SystemBody[] => {
+  const orbits = new Map(bodies.flatMap((body) => (body.orbit?.kind === "sun" ? [[body.id, radiusForAu(scale, body.orbit.elements.a.value)] as const] : [])));
+  const roomOf = (id: string): number => {
+    const own = orbits.get(id) ?? 0;
+    const gaps = [...orbits].filter(([other]) => other !== id).map(([, orbit]) => Math.abs(orbit - own));
+
+    return Math.min(own - scale.starRadius, ...gaps) * MOON_ROOM;
+  };
+  const shrink = new Map<string, number>();
+
+  bodies.forEach((planet) => {
+    const moons = bodies.filter((moon) => moon.orbit?.kind === "moon" && moon.orbit.parent === planet.id);
+    const farthest = Math.max(0, ...moons.map((moon) => (moon.orbit?.kind === "moon" ? moon.orbit.distance : 0)));
+    const room = roomOf(planet.id);
+
+    if (moons.length > 0 && farthest > room && farthest > planet.radius) {
+      shrink.set(planet.id, Math.max(0, room - planet.radius) / (farthest - planet.radius));
+    }
+  });
+
+  return bodies.map((body) => {
+    const parent = body.orbit?.kind === "moon" ? bodies.find((planet) => planet.id === body.parent) : undefined;
+    const share = body.parent ? shrink.get(body.parent) : undefined;
+
+    return body.orbit?.kind === "moon" && parent && share !== undefined
+      ? { ...body, orbit: { ...body.orbit, distance: parent.radius + (body.orbit.distance - parent.radius) * share } }
+      : body;
+  });
+};
 
 // Never used: the validator refuses a body that circles the Sun without elements.
 const MISSING_ELEMENTS = {

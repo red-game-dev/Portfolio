@@ -56,6 +56,8 @@ export interface VoyageEvents {
   storm: { strength: number; isTurned: boolean };
   // A system has fallen below half, or has gone.
   failing: { module: ModuleId; isGone: boolean };
+  // The hull is heating in a star's light towards the first harm: how hot, and the star.
+  heating: { temperatureC: number; star: string };
   // The hull has passed the temperature it was built for.
   melting: { temperatureC: number };
   // A shot fired: what with, for which side, the ammunition it took (null for none) and the piece that fired it.

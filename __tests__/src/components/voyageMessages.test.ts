@@ -128,7 +128,7 @@ describe("the voyage's messages", () => {
     expect(strandedLine(voyage, at())).toBeNull();
   });
 
-  test("flares, storms, failing systems and a melting hull are said as they happen", () => {
+  test("flares, storms, failing systems, a hull heating in a star's light and a melting hull are said as they happen", () => {
     expect(voyageNotice(voyage, { kind: "flare", flareClass: "X", isHeading: true })).toContain("class X");
     expect(voyageNotice(voyage, { kind: "flare", flareClass: "C", isHeading: false })).toBe("Solar flare, class C");
     expect(voyageNotice(voyage, { kind: "storm", isTurned: false })).toBe(voyage.storm);
@@ -136,6 +136,10 @@ describe("the voyage's messages", () => {
     expect(voyageNotice(voyage, { kind: "failing", module: "sensors", isGone: false })).toBe("Sensors failing");
     expect(voyageNotice(voyage, { kind: "failing", module: "engines", isGone: true })).toBe("Engines lost");
     expect(voyageNotice(voyage, { kind: "melting", temperatureC: 641.4 })).toContain("641");
+    expect(voyageNotice(voyage, { kind: "heating", temperatureC: 65.4, star: "sun" }))
+      .toBe("The hull is heating up, 65 \u00b0C this close to the Sun. Burn away before the fuel boils and the sensors fail.");
+    expect(voyageNotice(voyage, { kind: "heating", temperatureC: 70, star: "Veldara" })).toContain("close to Veldara.");
+    expect(isUrgentNotice({ kind: "heating", temperatureC: 70, star: "sun" })).toBe(true);
   });
 
   test("rocks headed for worlds, what they do, the boss and the strange things are said as they happen", () => {

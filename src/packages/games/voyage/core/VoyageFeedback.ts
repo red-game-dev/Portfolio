@@ -119,6 +119,7 @@ export class VoyageFeedback {
         }
       }),
       events.on("failing", () => play("alarm")),
+      events.on("heating", () => play("warning")),
       events.on("melting", () => play("alarm")),
       events.on("bossMove", ({ isWindup, kind }) => {
         if (isWindup) {

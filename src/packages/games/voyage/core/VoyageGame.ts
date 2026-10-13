@@ -1389,6 +1389,7 @@ export class VoyageGame extends FrameLoop {
       tell("flare", ({ class: flareClass, isHeading }) => ({ kind: "flare", flareClass, isHeading })),
       tell("storm", ({ isTurned }) => ({ kind: "storm", isTurned })),
       tell("failing", ({ module, isGone }) => ({ kind: "failing", module, isGone })),
+      tell("heating", ({ temperatureC, star }) => ({ kind: "heating", temperatureC, star: this.nameOf(star) })),
       tell("melting", ({ temperatureC }) => ({ kind: "melting", temperatureC })),
       tell("impactAlert", ({ target, diameterKm, seconds }) => ({ kind: "impactAlert", target: this.nameOf(target), diameterKm, seconds })),
       tell("impact", ({ target, outcome, craterKm }) => ({ kind: "impact", target: this.nameOf(target), outcome, craterKm })),

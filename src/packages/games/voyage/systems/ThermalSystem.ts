@@ -16,13 +16,19 @@ const SINK_SPEED = 0.15;
 // Heat and what it does: the hull drifts towards the temperature of its surroundings (cooling slower as its
 // radiators fail), each system past the temperature it was built for wears out (the sensors first, then the
 // shields, the tank boils, the plating melts, the engines last), a holed tank leaks, and radiation eats at the
-// sensors. Each system that falls below half, or goes, is announced once.
+// sensors. Each system that falls below half, or goes, is announced once. Heating in a star's light, the pilot is
+// warned before any of it begins, early enough to burn away: a ship left alone falls sunward.
 export class ThermalSystem implements System<VoyageContext> {
   public readonly name = "thermal";
   private isMelting = false;
+  private isWarned = false;
+  // Since when (ms on the run's clock) a warned hull has been cool enough to be warned again; null while it is not.
+  private coolSince: number | null = null;
 
   public reset(): void {
     this.isMelting = false;
+    this.isWarned = false;
+    this.coolSince = null;
   }
 
   public update(context: VoyageContext, dt: number): void {
@@ -54,13 +60,22 @@ export class ThermalSystem implements System<VoyageContext> {
 
     ship.temperatureC += (around - ship.temperatureC) * (1 - Math.exp(-dt / timeConstant));
 
+    // The first harm heat does: the fuel boiling off, or the system built for the least heat starting to wear.
+    let firstHarmC = config.thermal.boilOffC;
+
     MODULE_IDS.forEach((id) => {
       const over = (ship.temperatureC - ratings[id]) / Math.max(100, ratings[id]);
+
+      firstHarmC = Math.min(firstHarmC, ratings[id]);
 
       if (over > 0 && !isSunk) {
         this.wear(context, id, config.thermal.wear * over * dt);
       }
     });
+
+    // Only the open sky's heat is warned of: the environment names no star on or just over the ground, or in air, which
+    // have their own dangers and lines, and none is named while landed or coming down.
+    this.warn(context, ship.temperatureC, around, ship.landedOn ? null : environment.heatFrom, firstHarmC);
 
     const shielded = health.shields > 0 ? 0.2 : 1;
 
@@ -88,6 +103,30 @@ export class ThermalSystem implements System<VoyageContext> {
     }
 
     this.isMelting = melting > 0;
+  }
+
+  // Still heating in a star's light (`star`, null elsewhere) and within the margin of the first harm, the pilot is
+  // told once, and again only once the hull has stayed as far below the warning as the margin for a while, so a pass
+  // through a world's shadow on each orbit of Mercury does not say it again.
+  private warn({ state, config, events }: VoyageContext, temperatureC: number, aroundC: number, star: string | null, firstHarmC: number): void {
+    const { warnMarginC, warnAgainSeconds } = config.thermal;
+    const warnC = firstHarmC - warnMarginC;
+
+    if (!this.isWarned) {
+      if (star !== null && temperatureC >= warnC && aroundC > temperatureC) {
+        this.isWarned = true;
+        events.emit("heating", { temperatureC, star });
+      }
+
+      return;
+    }
+
+    this.coolSince = temperatureC < warnC - warnMarginC ? this.coolSince ?? state.elapsedMs : null;
+
+    if (this.coolSince !== null && state.elapsedMs - this.coolSince >= warnAgainSeconds * 1000) {
+      this.isWarned = false;
+      this.coolSince = null;
+    }
   }
 
   private wear({ world, state, events }: VoyageContext, id: ModuleId, amount: number): void {

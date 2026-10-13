@@ -23,6 +23,37 @@ const efficiency = (hull: number, maxHull: number, engines: number) => (0.55 + 0
 // fuel. Landed, a burn lifts off with the ground's own motion, once the way down is over (until then a burn is the
 // pilot's hand on the landing engine, if anyone's; with the ground firing on it, a burn aborts the landing, up to
 // the low gate where a pilot takes over) and, home, once the new rocket is on the pad.
+// Within this far (world units) a world counts as close by on a lift off, and one within this angle of straight up
+// tips the climb aside until it is that far off.
+const NEARBY = 3;
+const CLEAR_ANGLE = Math.PI / 3;
+
+// The way a lift off climbs: straight up from the ground, tipped aside from any world close by and nearly overhead.
+const climbDirection = (context: VoyageContext, ground: { id: string; x: number; y: number }, at: { x: number; y: number }): { x: number; y: number } => {
+  const outX = at.x - ground.x;
+  const outY = at.y - ground.y;
+  const length = Math.hypot(outX, outY) || 1;
+  let angle = Math.atan2(outY / length, outX / length);
+
+  context.state.system.bodies.forEach((other) => {
+    const towardX = other.x - at.x;
+    const towardY = other.y - at.y;
+
+    if (other.id === ground.id || Math.hypot(towardX, towardY) - other.radius > NEARBY) {
+      return;
+    }
+
+    const toward = Math.atan2(towardY, towardX);
+    const off = angleBetween(toward, angle);
+
+    if (Math.abs(off) < CLEAR_ANGLE) {
+      angle = toward + (off >= 0 ? CLEAR_ANGLE : -CLEAR_ANGLE);
+    }
+  });
+
+  return { x: Math.cos(angle), y: Math.sin(angle) };
+};
+
 export class ControlSystem implements System<VoyageContext> {
   public readonly name = "control";
 
@@ -71,15 +102,15 @@ export class ControlSystem implements System<VoyageContext> {
         events.emit("tookOff", { body: ship.landedOn });
 
         // Straight up from the ground, climbing at a share of the world's escape speed, with a few seconds before its
-        // pull returns in full: a short burn (a tap on a phone) clears the ground instead of falling straight back.
-        const upX = ground ? body.x - ground.x : 0;
-        const upY = ground ? body.y - ground.y : -1;
-        const up = Math.hypot(upX, upY) || 1;
+        // pull returns in full: a short burn (a tap on a phone) clears the ground instead of falling straight back. A
+        // world close by and nearly overhead (Earth, seen from the Moon's near side) tips the climb aside, so it rises
+        // past that world rather than into it.
+        const up = ground ? climbDirection(context, ground, body) : { x: 0, y: -1 };
         const climb = ground ? Math.max(config.flight.liftoffFloor, escapeSpeed(ground.mu, ground.radius) * config.flight.liftoffClimb) : 0;
 
-        ship.angle = Math.atan2(upY, upX);
-        body.vx = (ground?.vx ?? 0) + (upX / up) * climb;
-        body.vy = (ground?.vy ?? 0) + (upY / up) * climb;
+        ship.angle = Math.atan2(up.y, up.x);
+        body.vx = (ground?.vx ?? 0) + up.x * climb;
+        body.vy = (ground?.vy ?? 0) + up.y * climb;
         state.liftoff = ground ? { body: ground.id, sinceMs: state.elapsedMs, untilMs: state.elapsedMs + config.flight.liftoffSeconds * 1000 } : null;
         ship.landedOn = null;
         ship.landedOffset = null;

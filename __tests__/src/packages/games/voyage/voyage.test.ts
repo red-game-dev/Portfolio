@@ -398,7 +398,7 @@ describe("heat and cold", () => {
     expect(heating).toHaveLength(1);
   });
 
-  test("the heat warning comes again only after the hull has cooled well below it, and never on the ground", () => {
+  test("the heat warning comes again only after the hull has stayed cool a while, not on each pass through a shadow", () => {
     const simulation = create({ faults: { ...defaults.faults, rate: 0 } });
     const heating: number[] = [];
     const { scale } = simulation.state.system;
@@ -415,43 +415,49 @@ describe("heat and cold", () => {
     simulation.events.on("heating", ({ temperatureC }) => heating.push(temperatureC));
     hold(hot, 15);
     expect(heating).toHaveLength(1);
-    hold(cold, 15);
+
+    // A few seconds' cool, as a world's shadow gives on each orbit, is not enough to be told again.
+    hold(cold, 5);
+    hold(hot, 15);
+    expect(heating).toHaveLength(1);
+
+    hold(cold, defaults.thermal.warnAgainSeconds + 5);
     hold(hot, 15);
     expect(heating).toHaveLength(2);
-
-    // On Mercury's day side the ground is far hotter, and it is the ground's heat, not the open sky's.
-    const landed = create({ faults: { ...defaults.faults, rate: 0 } });
-    const mercury = bodyOf(landed, "mercury");
-    const sun = landed.state.system.star;
-    const out = Math.hypot(sun.x - mercury.x, sun.y - mercury.y);
-    const contact = mercury.radius + defaults.ship.radius;
-    const grounded: number[] = [];
-
-    landed.events.on("heating", ({ temperatureC }) => grounded.push(temperatureC));
-    partsOf(landed).ship.landedOn = "mercury";
-    partsOf(landed).ship.landedOffset = { x: ((sun.x - mercury.x) / out) * contact, y: ((sun.y - mercury.y) / out) * contact };
-    landed.step(10000);
-    expect(partsOf(landed).ship.landedOn).toBe("mercury");
-    expect(partsOf(landed).ship.temperatureC).toBeGreaterThan(defaults.thermal.boilOffC);
-    expect(grounded).toEqual([]);
   });
 
-  test("far out it is the cold of the outer system, and in a planet's shadow the sunlight is gone", () => {
-    const far = create();
-    const spot = openSpace(far, radiusForAu(far.state.system.scale, 30));
+  test("the heat warning stays quiet on a hot airless day side, and as the ship lifts off from it", () => {
+    const simulation = create({ faults: { ...defaults.faults, rate: 0 } });
+    const moon = bodyOf(simulation, "moon");
+    const sun = simulation.state.system.star;
+    const out = Math.hypot(sun.x - moon.x, sun.y - moon.y);
+    const contact = moon.radius + defaults.ship.radius;
+    const heating: number[] = [];
+    const tookOff: string[] = [];
 
-    place(far, spot.x, spot.y);
-    far.step(defaults.stepMs);
-    expect(far.snapshot.telemetry.outsideC).toBeCloseTo(278.6 / Math.sqrt(30) - 273.15, -1);
+    simulation.events.on("heating", ({ temperatureC }) => heating.push(temperatureC));
+    simulation.events.on("tookOff", ({ body }) => tookOff.push(body));
+    // Set down under the Sun, where the ground is hotter than the warning.
+    partsOf(simulation).ship.landedOn = "moon";
+    partsOf(simulation).ship.landedOffset = { x: ((sun.x - moon.x) / out) * contact, y: ((sun.y - moon.y) / out) * contact };
 
-    const near = create();
-    const earth = bodyOf(near, "earth");
-    const { star } = near.state.system;
-    const out = Math.hypot(earth.x - star.x, earth.y - star.y);
+    for (let tick = 0; tick < 400; tick += 1) {
+      simulation.step(100);
+    }
 
-    place(near, earth.x + ((earth.x - star.x) / out) * earth.radius * 1.4, earth.y + ((earth.y - star.y) / out) * earth.radius * 1.4);
-    near.step(defaults.stepMs);
-    expect(near.snapshot.telemetry.sunlight).toBe(0);
+    expect(simulation.state.descent?.downAt).not.toBeNull();
+    expect(simulation.state.readings.environmentC).toBeGreaterThan(defaults.thermal.boilOffC);
+
+    // A tap lifts off (straight up, which here is towards the Sun), and the ship coasts up through the hot band over
+    // the ground with its hull still as warm as the ground left it.
+    simulation.step(100, burn(1));
+
+    for (let tick = 0; tick < 30; tick += 1) {
+      simulation.step(100);
+    }
+
+    expect(tookOff).toEqual(["moon"]);
+    expect(heating).toEqual([]);
   });
 });
 

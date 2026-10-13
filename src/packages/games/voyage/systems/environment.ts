@@ -24,8 +24,8 @@ export interface Environment {
   temperatureC: number;
   sunlight: number;
   radiation: number;
-  // The direction (world angle) the heat comes from, for where it marks the hull, and the star whose light it is
-  // (null where no starlight reaches).
+  // The direction (world angle) the heat comes from, for where it marks the hull, and the star whose light sets the
+  // temperature (null where none does: in the dark, on or just over the ground, or in air).
   heatAngle: number;
   heatFrom: string | null;
 }
@@ -80,6 +80,7 @@ export const environmentAt = (context: VoyageContext, body: Body, ship: Ship): E
   const lit = EQUILIBRIUM_1AU * flux ** 0.25 + ABSOLUTE_ZERO;
   const radiant = inside && inside.luminosity > 0 ? inside.temperatureK + ABSOLUTE_ZERO : isDark ? DEEP_SPACE_C : lit;
   let temperatureC = radiant;
+  let heatFrom: string | null = isDark ? null : brightest.id;
   let radiation = COSMIC + SOLAR * flux + state.stormDose;
 
   bodies.forEach((place) => {
@@ -105,6 +106,7 @@ export const environmentAt = (context: VoyageContext, body: Body, ship: Ship): E
       const facing = ((body.x - place.x) * (sun.x - place.x) + (body.y - place.y) * (sun.y - place.y)) / (away * Math.hypot(sun.x - place.x, sun.y - place.y) || 1);
 
       temperatureC = lerp(place.nightC, place.dayC, Math.max(0, facing));
+      heatFrom = null;
     }
   });
 
@@ -113,7 +115,8 @@ export const environmentAt = (context: VoyageContext, body: Body, ship: Ship): E
     const weight = Math.min(1, state.readings.pressureBar / 0.05);
 
     temperatureC = lerp(temperatureC, state.readings.airC, weight);
+    heatFrom = null;
   }
 
-  return { temperatureC, sunlight, radiation, heatAngle, heatFrom: isDark ? null : brightest.id };
+  return { temperatureC, sunlight, radiation, heatAngle, heatFrom };
 };

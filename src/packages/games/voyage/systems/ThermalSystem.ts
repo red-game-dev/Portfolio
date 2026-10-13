@@ -22,10 +22,13 @@ export class ThermalSystem implements System<VoyageContext> {
   public readonly name = "thermal";
   private isMelting = false;
   private isWarned = false;
+  // Since when (ms on the run's clock) a warned hull has been cool enough to be warned again; null while it is not.
+  private coolSince: number | null = null;
 
   public reset(): void {
     this.isMelting = false;
     this.isWarned = false;
+    this.coolSince = null;
   }
 
   public update(context: VoyageContext, dt: number): void {
@@ -70,10 +73,9 @@ export class ThermalSystem implements System<VoyageContext> {
       }
     });
 
-    // Only the open sky's heat is warned of: air and the ground have their own dangers and their own lines.
-    const isInStarlight = environment.heatFrom !== null && state.readings.airC === null && !ship.landedOn;
-
-    this.warn(context, ship.temperatureC, around, isInStarlight ? environment.heatFrom : null, firstHarmC);
+    // Only the open sky's heat is warned of: the environment names no star on or just over the ground, or in air, which
+    // have their own dangers and lines, and none is named while landed or coming down.
+    this.warn(context, ship.temperatureC, around, ship.landedOn ? null : environment.heatFrom, firstHarmC);
 
     const shielded = health.shields > 0 ? 0.2 : 1;
 
@@ -104,16 +106,26 @@ export class ThermalSystem implements System<VoyageContext> {
   }
 
   // Still heating in a star's light (`star`, null elsewhere) and within the margin of the first harm, the pilot is
-  // told once, and again only once the hull has cooled as far below the warning as the margin.
-  private warn({ config, events }: VoyageContext, temperatureC: number, aroundC: number, star: string | null, firstHarmC: number): void {
-    const { warnMarginC } = config.thermal;
+  // told once, and again only once the hull has stayed as far below the warning as the margin for a while, so a pass
+  // through a world's shadow on each orbit of Mercury does not say it again.
+  private warn({ state, config, events }: VoyageContext, temperatureC: number, aroundC: number, star: string | null, firstHarmC: number): void {
+    const { warnMarginC, warnAgainSeconds } = config.thermal;
     const warnC = firstHarmC - warnMarginC;
 
-    if (!this.isWarned && star !== null && temperatureC >= warnC && aroundC > temperatureC) {
-      this.isWarned = true;
-      events.emit("heating", { temperatureC, star });
-    } else if (this.isWarned && temperatureC < warnC - warnMarginC) {
+    if (!this.isWarned) {
+      if (star !== null && temperatureC >= warnC && aroundC > temperatureC) {
+        this.isWarned = true;
+        events.emit("heating", { temperatureC, star });
+      }
+
+      return;
+    }
+
+    this.coolSince = temperatureC < warnC - warnMarginC ? this.coolSince ?? state.elapsedMs : null;
+
+    if (this.coolSince !== null && state.elapsedMs - this.coolSince >= warnAgainSeconds * 1000) {
       this.isWarned = false;
+      this.coolSince = null;
     }
   }
 

@@ -80,14 +80,12 @@ const Sprite = styled.span(() => [
 
     ${svgFill}
 
+    /* The still rule sits inside the hover rule: the other way round, its & would put the hover inside the root. */
     button:hover &,
     button:focus-visible & {
       animation: ${idle} 0.7s steps(2) infinite;
-    }
 
-    ${media.reducedMotion} {
-      button:hover &,
-      button:focus-visible & {
+      ${media.reducedMotion} {
         animation: none;
       }
     }

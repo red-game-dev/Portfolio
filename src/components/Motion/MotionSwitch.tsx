@@ -18,8 +18,9 @@ interface MotionSwitchProps {
   variant?: "icon" | "row";
 }
 
+// From the small breakpoint up; on a phone the menu carries the switch as a row, leaving the header its room.
 const Square = styled.button(({ isPressed }: { isPressed: boolean }) => [
-  tw`flex items-center justify-center w-[32px] h-[32px] p-0 cursor-pointer text-[13px] text-white bg-[rgba(16, 16, 16, 0.85)]
+  tw`hidden sm:flex items-center justify-center w-[32px] h-[32px] p-0 cursor-pointer text-[13px] text-white bg-[rgba(16, 16, 16, 0.85)]
      border-[1px] border-solid border-[#2a2a2a] rounded-[2px]`,
   isPressed && tw`border-[var(--accent)] text-[var(--accent)]`,
   css`
@@ -47,7 +48,7 @@ const Row = styled.button(({ isPressed }: { isPressed: boolean }) => [
 
 // The page's own way to keep still (WCAG 2.2.2 asks for one on the page, not only the device's setting): pressed, the
 // backdrops, the typing, the falling code and every animation stop; pressed again, they play. It moves the `motion`
-// setting, so it is remembered like every other and shows in the Settings and the terminal too.
+// setting, so it is remembered like every other, on the accessibility page's settings and in the terminal too.
 export const MotionSwitch: FC<MotionSwitchProps> = ({ label, variant = "icon" }: MotionSwitchProps) => {
   const { set } = usePreferencesStateHook();
   const isReduced = useReducedMotion();

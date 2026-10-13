@@ -89,6 +89,7 @@ const Timer = styled.span(({ ms, isRunning }: { ms: number; isRunning: boolean }
     animation: ${shrink} ${ms}ms linear both;
     animation-play-state: ${isRunning ? "running" : "paused"};
   `,
+  noAnimationWhenReduced,
 ]);
 
 const Round = tw.span`text-[11px] font-semibold opacity-60`;

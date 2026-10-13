@@ -100,8 +100,9 @@ export const Portrait: FC<PortraitProps> = ({ src, fallbackSrc, alt, labels }: P
   return (
     <Frame ref={frameRef}>
       <Photo src={src} alt={alt} width="200" height="267" fallbackSrc={fallbackSrc} />
-      <Canvas ref={canvasRef} isDone={isDone} aria-hidden="true" />
-      {stage && <Stage isDone={isDone} aria-hidden="true">{labels[STAGE_LABELS[stage === "done" ? "enhance" : stage]]}</Stage>}
+      {/* Kept still, no reveal: the photo shows as it is, with nothing drawn over it. */}
+      <Canvas ref={canvasRef} isDone={isDone || isReduced} aria-hidden="true" />
+      {stage && !isReduced && <Stage isDone={isDone} aria-hidden="true">{labels[STAGE_LABELS[stage === "done" ? "enhance" : stage]]}</Stage>}
     </Frame>
   );
 };

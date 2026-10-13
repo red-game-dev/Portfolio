@@ -3,10 +3,15 @@ import tw, { css, styled } from "twin.macro";
 
 import Link from "next/link";
 
+import { SettingsPanel } from "@/components/Preferences/SettingsPanel";
+import { PreferenceName } from "@/config/preferences";
 import { portfolioData } from "@/data/resume";
 import { focusRing } from "@/styles/mixins";
 
 const { accessibility: statement, details } = portfolioData;
+
+// The settings the statement offers: how much the page moves, and the single key shortcuts.
+const STATEMENT_SETTINGS: readonly PreferenceName[] = ["motion", "shortcuts"];
 
 const Page = tw.main`mx-auto max-w-[72ch] px-[20px] py-[48px] md:py-[72px] text-[#ccc] leading-relaxed`;
 
@@ -31,6 +36,8 @@ const Back = styled(Link)(() => [tw`inline-block mt-[40px] text-sm font-semibold
 
 const Reviewed = tw.p`m-0 mt-[28px] text-sm text-[#9a9a9a]`;
 
+const Settings = tw.div`mt-[16px] p-[16px] bg-[#151515] border-[1px] border-solid border-[#2a2a2a] rounded-[4px]`;
+
 // The accessibility statement: the standard the site aims for, what it does, what it does not yet, how it is tested
 // and how to report a problem, read from the content. A plain page, so it works with nothing else loaded.
 export default function Accessibility() {
@@ -52,6 +59,11 @@ export default function Accessibility() {
         <List>
           {statement.limits.map((line) => <li key={line}>{line}</li>)}
         </List>
+        <Heading>{statement.settingsTitle}</Heading>
+        <Paragraph>{statement.settingsNote}</Paragraph>
+        <Settings>
+          <SettingsPanel copy={portfolioData.preferences} names={STATEMENT_SETTINGS} />
+        </Settings>
         <Heading>{statement.testingTitle}</Heading>
         <Paragraph>{statement.testing}</Paragraph>
         <Heading>{statement.reportTitle}</Heading>

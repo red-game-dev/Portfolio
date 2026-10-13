@@ -30,6 +30,7 @@ import {
   Toggle,
   Top,
 } from "@/components/Menu/MobileMenu.styles";
+import { MotionSwitch } from "@/components/Motion/MotionSwitch";
 import { JOURNEY_STOPS } from "@/config/journey";
 import { SOCIAL_URLS } from "@/config/social";
 import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
@@ -163,6 +164,7 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
                 {content.linkedIn}
               </Action>
             </Actions>
+            <MotionSwitch label={content.motion} variant="row" />
           </Panel>
         )}
       </Dialog>

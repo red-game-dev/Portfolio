@@ -6,7 +6,7 @@ import { BINARY_RAIN_VIEW } from "@/components/BinaryRain/config";
 import { BINARY_RAIN_CONFIG } from "@/config/theme";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useInView from "@/hooks/useInView";
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import type { RainConfigOverrides } from "@/packages/effects/binary-rain";
 
 interface BinaryRainProps {
@@ -25,6 +25,8 @@ export const BinaryRain: FC<BinaryRainProps> = ({ message, config = BINARY_RAIN_
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isVisible = useInView(containerRef, { once: false, threshold: BINARY_RAIN_VIEW.decodeThreshold });
+  // Still while motion is reduced, from the page's switch or the device's setting; rebuilt when that changes.
+  const isReduced = useReducedMotion();
   const engine = useCanvasEngine(canvasRef, {
     sizeRef: containerRef,
     // Opaque: the renderer paints its own background, so the page never has to blend this layer.
@@ -32,10 +34,10 @@ export const BinaryRain: FC<BinaryRainProps> = ({ message, config = BINARY_RAIN_
     create: async (context) => {
       const { BinaryRainEngine } = await import("@/packages/effects/binary-rain");
 
-      return BinaryRainEngine.forCanvas(context, { message, isStatic: prefersReducedMotion(), config });
+      return BinaryRainEngine.forCanvas(context, { message, isStatic: isReduced, config });
     },
     resize: (rain, { width, height, pixelRatio }) => rain.resize(width, height, pixelRatio),
-  }, [config, message]);
+  }, [config, message, isReduced]);
 
   useEffect(() => {
     if (!engine) {

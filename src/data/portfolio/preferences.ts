@@ -6,6 +6,18 @@ export const preferencesContent: Pick<PortfolioData, "preferences"> = {
     title: "Settings",
     note: "Kept in this browser only. Change them here, or in the terminal: type settings.",
     items: {
+      "motion": {
+        name: "Motion",
+        description: "How much the page moves: the backdrops, the typing, the falling code and every animation. As your device asks " +
+          "follows its reduced motion setting; Still keeps everything still; Full plays it all. The switch in the header does the same.",
+        options: { system: "As your device asks", reduced: "Still", full: "Full" },
+      },
+      "shortcuts": {
+        name: "Keyboard shortcuts",
+        description: "Pressing / or the backtick key anywhere opens the terminal. Turn this off if it gets in the way, for example " +
+          "with speech input.",
+        options: { on: "On", off: "Off" },
+      },
       "landing-time": {
         name: "Landing time",
         description: "Real descents take minutes, and Huygens took over two hours to fall to Titan. Sped up plays every world forty times " +

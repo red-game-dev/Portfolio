@@ -21,7 +21,10 @@ export const media = {
   shortestPortrait: "@media (orientation: portrait) and (max-height: 520px)",
   // A phone on its side, of any width: too short for a column down either edge.
   shortLandscape: "@media (orientation: landscape) and (max-height: 500px)",
-  reducedMotion: "@media (prefers-reduced-motion: reduce)",
+  // Not a media query: the root's data-motion, set from the reader's switch on the page or their device's reduced
+  // motion setting (packages/accessibility/motion), so the page can be kept still from the page itself. Written the
+  // same way, `${media.reducedMotion} { ... }`.
+  reducedMotion: ':root[data-motion="reduced"] &',
 };
 
 // For a reader who asked for less motion: no animation, no transition, or not shown at all (a purely

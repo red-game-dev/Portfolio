@@ -67,9 +67,10 @@ const HumanSide = styled(Side)(({ isRevealed, isLoser }: SideProps) => [
     opacity: 0;
     transition: opacity 0.4s ease 0.15s, transform 0.4s cubic-bezier(0.165, 0.85, 0.45, 1) 0.15s;
 
+    /* No slide and no fade: the side appears as it is revealed. No opacity here, since a rule under the root's
+       attribute outranks the reveal's below and would keep a losing side from dimming. */
     ${media.reducedMotion} {
       transform: none;
-      opacity: 1;
       transition: none;
     }
   `,

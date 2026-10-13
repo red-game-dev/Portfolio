@@ -11,7 +11,6 @@ import { ActionButton, ActionLink, actionStyle } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import { useInvite } from "@/components/Finale/hooks/useInvite";
 import { useLaunch } from "@/components/Finale/hooks/useLaunch";
-import { INVITE_SECONDS } from "@/components/Finale/invite";
 import { LazyVoyageDialog } from "@/components/Finale/Voyage/LazyVoyageDialog";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
@@ -20,7 +19,6 @@ import { SECTION_IDS } from "@/config/sections";
 import { SITE_URL } from "@/config/site";
 import { SOCIAL_URLS } from "@/config/social";
 import { CROSSED_ZONES, ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
-import useFocusLeave from "@/hooks/useFocusLeave";
 import useInView from "@/hooks/useInView";
 import { scrollBehavior } from "@/packages/accessibility/motion";
 import type { LaunchSnapshot } from "@/packages/games/launch";
@@ -77,7 +75,7 @@ const LaunchButton = styled.button(() => [
 
 const Hint = tw.p`m-0 text-xs text-[#999] max-w-[60ch]`;
 
-// In orbit: would the reader like to play? The first time, with a count before the journey goes on by itself.
+// In orbit: would the reader like to play? Asked until answered, with nothing opening by itself.
 const Choice = tw.div``;
 
 const Ask = tw.div`flex flex-col gap-[4px] mt-[18px]`;
@@ -233,14 +231,7 @@ export const Finale: FC<FinaleProps> = ({
   const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
   const [isVoyaging, setIsVoyaging] = useState(false);
   const [runMs, setRunMs] = useState<number | null>(null);
-  // Whether the board is on screen now, not just once, so the count before the journey goes on by itself only
-  // runs while the ship can be seen.
-  const isBoardShown = useInView(boardRef, { threshold: 0.6, once: false });
   const openVoyage = useCallback(() => setIsVoyaging(true), []);
-  // Focus on the choice in orbit holds the count, so a keyboard reader is never rushed while deciding. Whatever
-  // held focus before orbit (the launch button) is gone by then, so reaching or leaving orbit starts afresh.
-  const [isChoosing, setIsChoosing] = useState(false);
-  const onChoiceBlur = useFocusLeave(() => setIsChoosing(false));
   const zoneCount = ZONE_BOUNDARIES.length;
 
   // Read the first time the end is reached and kept, so the number neither ticks while it is read nor
@@ -262,12 +253,7 @@ export const Finale: FC<FinaleProps> = ({
   const isOrbit = snapshot.status === "orbit";
   // In orbit, or blowing up there: the choices of what to do next stay on screen.
   const isAloft = isOrbit || snapshot.status === "destructing" || snapshot.status === "exploding";
-  const invite = useInvite({ isOrbit, isInView: isBoardShown, isOpen: isVoyaging, isChoosing, open: openVoyage });
-  const isCounting = invite.count !== null;
-
-  useEffect(() => {
-    setIsChoosing(false);
-  }, [isAloft]);
+  const invite = useInvite(openVoyage);
   const isOnPad = snapshot.status === "ready" || snapshot.status === "charging";
   // One star per stat, lit as each zone falls behind, the last one in orbit.
   const isLit = (index: number) => isOrbit || snapshot.passed > index;
@@ -289,11 +275,10 @@ export const Finale: FC<FinaleProps> = ({
           <Canvas ref={canvasRef} aria-hidden="true" />
           <Status role="status">{statusOf(content.launch, snapshot, zoneLabels, site)}</Status>
         </Board>
-        <Choice onFocus={() => setIsChoosing(isAloft)} onBlur={onChoiceBlur}>
+        <Choice>
           {isAloft && (
             <Ask>
               <AskTitle>{content.launch.invite.question}</AskTitle>
-              {isCounting && <Hint role="status">{fill(content.launch.invite.starting, { seconds: INVITE_SECONDS })}</Hint>}
             </Ask>
           )}
           <Controls>
@@ -301,9 +286,9 @@ export const Finale: FC<FinaleProps> = ({
               <>
                 <ActionButton type="button" isPrimary disabled={!isOrbit} onClick={invite.accept}>
                   <FontAwesomeIcon icon={faRocket} aria-hidden="true" />
-                  {isCounting ? fill(content.launch.invite.playIn, { seconds: invite.count ?? 0 }) : content.launch.invite.play}
+                  {content.launch.invite.play}
                 </ActionButton>
-                {isCounting && (
+                {invite.isAsking && (
                   <ActionButton type="button" isPrimary={false} onClick={invite.decline}>
                     {content.launch.invite.decline}
                   </ActionButton>

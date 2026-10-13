@@ -56,9 +56,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       hint: "It launches by itself when you get here. To launch it yourself, hold the button, or press it once. Space and Enter work too.",
       invite: {
         question: "Want to play a game?",
-        starting: "The journey goes on by itself in {seconds} seconds, unless you choose No thanks.",
         play: "Yes, continue the journey",
-        playIn: "Yes, continue the journey ({seconds})",
         decline: "No thanks",
       },
       doNotPress: "Do not press",

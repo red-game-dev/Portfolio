@@ -5,6 +5,7 @@ import { LAUNCH_TEXTURES, LAUNCH_THEME } from "@/config/theme";
 import { CROSSED_ZONES } from "@/config/zones";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useInView from "@/hooks/useInView";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { decodeImage } from "@/packages/browser/images";
 import type { LaunchSnapshot } from "@/packages/games/launch";
@@ -85,6 +86,22 @@ export const useLaunch = (boardRef: RefObject<HTMLElement>, canvasRef: RefObject
       game?.launch();
     }
   }, [game]);
+
+  // Kept still while it climbs or blows up: straight to orbit, as a launch with reduced motion goes from the start.
+  const isReduced = useReducedMotion();
+
+  useEffect(() => {
+    if (!game || !isReduced) {
+      return;
+    }
+
+    if (snapshot.status === "charging" || snapshot.status === "launching") {
+      game.complete();
+    } else if (snapshot.status === "destructing" || snapshot.status === "exploding") {
+      game.reset();
+      game.complete();
+    }
+  }, [game, isReduced, snapshot.status]);
 
   // Once a visit, as the reader arrives: the ship does not wait to be asked.
   useEffect(() => {

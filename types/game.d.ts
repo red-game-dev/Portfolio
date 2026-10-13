@@ -67,13 +67,10 @@ export interface FinaleRank {
 }
 
 // The launch out of the game world, and what each moment of it is called.
-// Whether the reader wants to play: the first time, the journey goes on by itself after a count unless they say
-// no thanks. "{seconds}" is replaced.
+// Whether the reader wants to play: asked until they answer, and nothing opens by itself.
 export interface FinaleInvite {
   question: string;
-  starting: string;
   play: string;
-  playIn: string;
   decline: string;
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { prefersReducedMotion } from "@/packages/accessibility/motion";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 export interface TypewriterTiming {
   typeMs: number;
@@ -28,7 +28,8 @@ const DEFAULT_TIMING: TypewriterTiming = { typeMs: 110, deleteMs: 45, holdMs: 18
 const INITIAL: StepState = { index: 0, typed: 0, isDeleting: false };
 
 // The typewriter's next move: type a letter, hold the full phrase, delete a letter, or move to the next
-// phrase. With reduced motion every phrase shows whole and simply rotates. No phrases, no move.
+// phrase. With reduced motion the phrase shows whole and stays (the screen reader copy lists every one). No phrases,
+// no move.
 export const nextTypewriterStep = (state: StepState, lengths: number[], timing: TypewriterTiming, isReduced: boolean): Step | null => {
   if (lengths.length === 0) {
     return null;
@@ -38,10 +39,8 @@ export const nextTypewriterStep = (state: StepState, lengths: number[], timing: 
   const following = (state.index + 1) % lengths.length;
 
   if (isReduced) {
-    // The current phrase whole at once, then the next one whole after a hold.
-    return state.typed < length
-      ? { next: { ...state, typed: length, isDeleting: false }, delay: 0 }
-      : { next: { index: following, typed: lengths[following], isDeleting: false }, delay: timing.holdMs * 1.5 };
+    // The current phrase whole at once, then nothing more until motion is allowed again.
+    return state.typed < length ? { next: { ...state, typed: length, isDeleting: false }, delay: 0 } : null;
   }
 
   if (!state.isDeleting) {
@@ -59,9 +58,10 @@ export const nextTypewriterStep = (state: StepState, lengths: number[], timing: 
 // decides how the characters are drawn. Waits where it is while `isActive` is off, such as off screen.
 export const useTypewriter = (lengths: number[], isActive = true, timing: TypewriterTiming = DEFAULT_TIMING): TypewriterState => {
   const [state, setState] = useState(INITIAL);
+  const isReduced = useReducedMotion();
 
   useEffect(() => {
-    const step = isActive ? nextTypewriterStep(state, lengths, timing, prefersReducedMotion()) : null;
+    const step = isActive ? nextTypewriterStep(state, lengths, timing, isReduced) : null;
 
     if (!step) {
       return;
@@ -70,7 +70,7 @@ export const useTypewriter = (lengths: number[], isActive = true, timing: Typewr
     const timeout = window.setTimeout(() => setState(step.next), step.delay);
 
     return () => window.clearTimeout(timeout);
-  }, [isActive, lengths, state, timing]);
+  }, [isActive, isReduced, lengths, state, timing]);
 
   return { index: state.index, typed: state.typed };
 };

@@ -519,9 +519,6 @@ const showStrip = keyframes`
 // any phone on its side however wide.
 const STRIP = "@media (max-width: 767px) and (max-height: 720px), (orientation: portrait) and (max-width: 479px), " +
   "(orientation: landscape) and (max-height: 500px)";
-const STRIP_STILL = "@media (max-width: 767px) and (max-height: 720px) and (prefers-reduced-motion: reduce), " +
-  "(orientation: portrait) and (max-width: 479px) and (prefers-reduced-motion: reduce), " +
-  "(orientation: landscape) and (max-height: 500px) and (prefers-reduced-motion: reduce)";
 
 // The same without the movement: there for its moment, then gone.
 const showLine = keyframes`
@@ -655,8 +652,11 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       }
     }
 
-    ${STRIP_STILL} {
-      animation-name: ${showStrip};
+    /* Kept still, the strip shows without the slide; written after the line's own still rule, which it overrides. */
+    ${STRIP} {
+      ${media.reducedMotion} {
+        animation-name: ${showStrip};
+      }
     }
   `,
 ]);

@@ -37,6 +37,7 @@ export const navigationContent: Pick<PortfolioData, "lens" | "blueprintLabels" |
     cv: "Download CV",
     email: "Email me",
     linkedIn: "LinkedIn",
+    motion: "Keep the page still",
   },
   carouselLabels: {
     previous: "Previous",

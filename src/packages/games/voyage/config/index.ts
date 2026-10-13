@@ -32,6 +32,12 @@ export interface ShipConfig {
 export interface FlightConfig {
   // Slower than this (against the ground), touching a rocky surface is a landing; faster is a crash.
   safeLanding: number;
+  // Lifting off: the ship rises straight up at this share of the world's escape speed (never less than
+  // `liftoffFloor`), and for `liftoffSeconds` that world's pull eases back in from nothing while the ship cannot
+  // settle back onto it, so a short burn clears the ground rather than falling straight back.
+  liftoffClimb: number;
+  liftoffFloor: number;
+  liftoffSeconds: number;
   // Hull damage per (speed over safe)^2 on a crash.
   crash: number;
   drag: number;
@@ -319,7 +325,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
     maxSpeed: 3.2,
     resist: 0,
   },
-  flight: { safeLanding: 0.42, crash: 520, drag: 0.8, crush: 600, skim: 12, impact: 70 },
+  flight: { safeLanding: 0.42, liftoffClimb: 0.8, liftoffFloor: 0.35, liftoffSeconds: 3, crash: 520, drag: 0.8, crush: 600, skim: 12, impact: 70 },
   descent: {
     speedUp: 40, longest: 15, settleSeconds: 1.2, recoverySeconds: 6, recoveryDays: 3, strandedSeconds: 15, rescueFewestDays: 3, fireAltitude: 8000, groundFire: 15,
   },

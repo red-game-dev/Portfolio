@@ -25,9 +25,9 @@ const CALM: Partial<VoyageConfig> = {
   distress: { ...defaults.distress, first: 1e6, every: [1e6, 1e6] },
 };
 
-// A run already flying from Earth in a calm sky.
-export const createFlying = (overrides: Partial<VoyageConfig> = {}, seed = 7): VoyageSimulation => {
-  const simulation = new VoyageSimulation(systemOf(), { config: resolveVoyageConfig({ ...CALM, ...overrides }), random: createSeededRandom(seed), epochMs: EPOCH });
+// A run already flying from Earth in a calm sky (from noon on the test's day, or another moment).
+export const createFlying = (overrides: Partial<VoyageConfig> = {}, seed = 7, epochMs = EPOCH): VoyageSimulation => {
+  const simulation = new VoyageSimulation(systemOf(), { config: resolveVoyageConfig({ ...CALM, ...overrides }), random: createSeededRandom(seed), epochMs });
 
   simulation.setView(2, 1.4);
   simulation.start();

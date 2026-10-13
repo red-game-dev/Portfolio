@@ -14,7 +14,7 @@ import { saveBlob } from "@/packages/browser/files";
 import type { HapticName } from "@/packages/browser/haptics";
 import { decodeImage } from "@/packages/browser/images";
 import type {
-  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, PadIntent, PerkId, PilotProfile, ProgressView, RunSummary, SkyEvent, Suggestion,
+  ArmoryView, CareerView, EconomyView, HomePad, LandingOptions, PadIntent, PerkId, PilotProfile, ProgressView, RunSummary, ScreenBox, SkyEvent, Suggestion,
   UniverseNames, VoyageAction, VoyageGame, VoyageNotice, VoyageSnapshot,
 } from "@/packages/games/voyage";
 import type { GamepadInput } from "@/packages/interaction/gamepad";
@@ -811,10 +811,12 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
   // Buttons for what a pinch or a drag does, so one finger or a pointer does it too (WCAG 2.5.1 and 2.5.7).
   const zoomStep = useCallback((direction: 1 | -1) => game?.zoomBy(zoom.step(direction)), [game, zoom]);
   const look = useCallback((x: number, y: number) => game?.panBy(x, y), [game]);
+  const setCovered = useCallback((boxes: readonly ScreenBox[]) => game?.setCovered(boxes), [game]);
 
   return {
     zoomStep,
     look,
+    setCovered,
     transfer,
     snapshot,
     landing,

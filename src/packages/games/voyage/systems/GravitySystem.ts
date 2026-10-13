@@ -1,15 +1,29 @@
 import type { System } from "@/packages/games/engine";
-import { tidalAcceleration } from "@/packages/physics/newtonian";
+import { GravitySource, innermostStableOrbit, tidalAcceleration } from "@/packages/physics/newtonian";
 
 import { SystemStar } from "../domain/content";
 import { auForRadius } from "../utils/scale";
 import { wellPull } from "./boosts";
 import { VoyageContext } from "./context";
 import { tear } from "./damage";
+import { gravityFelt } from "./liftoff";
 import { isInSystem, shipOf } from "./queries";
 
 // The least distance outside a black hole's horizon its pull is told at, as a share of the horizon.
 const HORIZON_FLOOR = 0.05;
+
+// Whether a point lies inside three horizons of any black hole among the sources from `first` on.
+const isSwallowed = (sources: readonly GravitySource[], first: number, x: number, y: number): boolean => {
+  for (let index = first; index < sources.length; index += 1) {
+    const hole = sources[index];
+
+    if (Math.hypot(x - hole.x, y - hole.y) < innermostStableOrbit(hole.horizon ?? 0)) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 const KM_PER_AU = 149597870.7;
 
@@ -52,6 +66,9 @@ export class GravitySystem implements System<VoyageContext> {
       });
     }
 
+    // The black holes go last, so the swallowing below walks only them.
+    const firstHole = sources.length;
+
     world.stores.hole.entities.forEach((entity, index) => {
       const body = world.stores.body.get(entity);
       const hole = world.stores.hole.values[index];
@@ -64,9 +81,17 @@ export class GravitySystem implements System<VoyageContext> {
 
     field.setSources(sources);
 
-    // Drifting rocks, and rocks headed for worlds, fall as everything does.
+    // Drifting rocks, rocks headed for worlds and wrecks fall as everything does; inside three horizons of a black hole,
+    // where nothing can circle, they are gone into it, rather than swinging through and out again at many times the
+    // ship's speed, which would make the plunge on to the next universe a lottery.
     [world.stores.hazard, world.stores.impactor, world.stores.wreck].forEach((store) => store.entities.forEach((entity) => {
       const body = world.stores.body.get(entity);
+
+      if (body && firstHole < sources.length && isSwallowed(sources, firstHole, body.x, body.y)) {
+        world.despawn(entity);
+
+        return;
+      }
 
       if (body) {
         field.sample(body.x, body.y, sample);
@@ -90,10 +115,17 @@ export class GravitySystem implements System<VoyageContext> {
     }
 
     const { body } = parts;
+    // Just lifted off, gravity comes back only as fast as the grace runs, so the climb clears the ground and anything
+    // pulling beside it.
+    const felt = gravityFelt(state);
 
     field.sample(body.x, body.y, sample);
-    body.vx += sample.ax * dt;
-    body.vy += sample.ay * dt;
+    body.vx += sample.ax * felt * dt;
+    body.vy += sample.ay * felt * dt;
+
+    if (state.liftoff && state.elapsedMs >= state.liftoff.untilMs) {
+      state.liftoff = null;
+    }
 
     // What pulls hardest is decided by the pulls the ship feels; the reading is that body's pull in real units.
     const source = sources[sample.dominant];

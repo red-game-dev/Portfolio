@@ -102,6 +102,53 @@ const withPhenomenon = (simulation: VoyageSimulation, phenomenon: Partial<Phenom
 };
 
 describe("universes", () => {
+  test("nothing collides as drawn: worlds clear of their star and of each other, moons and all, and moons clear of each other", () => {
+    for (let seed = 1; seed <= 30; seed += 1) {
+      [5, 6, 7, 9].forEach((index) => {
+        const { system } = generator.generate(index, seed * 7919 + index, null);
+        const planets = system.bodies.filter((body) => body.orbit.kind === "circle");
+        const distanceOf = (body: typeof planets[number]) => (body.orbit.kind === "circle" ? body.orbit.distance : 0);
+        const moonsOf = (planet: typeof planets[number]) => system.bodies.filter((moon) => moon.parent === planet.id);
+        const moonReach = (moon: typeof planets[number]) => (moon.orbit.kind === "moon" ? moon.orbit.distance : 0) + moon.radius;
+        const reachOf = (planet: typeof planets[number]) => Math.max(planet.radius, ...moonsOf(planet).map(moonReach));
+        const byHost = new Map<string, typeof planets>();
+
+        planets.forEach((planet) => {
+          const host = planet.orbit.kind === "circle" ? planet.orbit.host ?? "" : "";
+
+          byHost.set(host, [...(byHost.get(host) ?? []), planet]);
+        });
+        byHost.forEach((group) => {
+          const sorted = [...group].sort((first, second) => distanceOf(first) - distanceOf(second));
+
+          sorted.forEach((planet, order) => {
+            const next = sorted[order + 1];
+
+            if (next) {
+              expect(distanceOf(next) - distanceOf(planet)).toBeGreaterThan(reachOf(planet) + reachOf(next));
+            }
+
+            const moons = moonsOf(planet).sort((first, second) => moonReach(first) - first.radius - (moonReach(second) - second.radius));
+
+            moons.forEach((moon, at) => {
+              const distance = moon.orbit.kind === "moon" ? moon.orbit.distance : 0;
+              const after = moons[at + 1];
+
+              expect(distance).toBeGreaterThan(planet.radius + moon.radius);
+
+              if (after && after.orbit.kind === "moon") {
+                expect(after.orbit.distance - distance).toBeGreaterThan(moon.radius + after.radius);
+              }
+            });
+          });
+        });
+        planets.filter((planet) => planet.orbit.kind === "circle" && !planet.orbit.host).forEach((planet) => {
+          expect(distanceOf(planet) - reachOf(planet)).toBeGreaterThan(system.star.radius);
+        });
+      });
+    }
+  });
+
   test("the same seed makes the same universe; different seeds make different ones", () => {
     const first = generator.generate(6, 1234, null);
     const again = generator.generate(6, 1234, null);

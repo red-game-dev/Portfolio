@@ -435,7 +435,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           plans: "Plans",
           codex: "Codex",
           badges: "Badges",
-          ledger: "Ledger",
+          // Named for what a pilot finds in it, their coins in and out; underneath it is the double entry ledger.
+          ledger: "Coins",
           settings: "Settings",
         },
         ready: "something to do here",
@@ -491,7 +492,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         closeHangar: "Close the hangar",
         privacy: "Your ship, hold and Red Coin are kept only in this browser, on this device. Nothing is sent anywhere unless you " +
           "put a daily run on the board, and then only your initials and score.",
-        tabs: { ship: "Ship", hold: "Hold", plans: "Plans", ledger: "Ledger" },
+        tabs: { ship: "Ship", hold: "Hold", plans: "Plans", ledger: "Coins" },
         shipName: "{tier} Mk {mark}",
         marks: ["I", "II", "III", "IV", "V"],
         tiers: { rocket: "Rocket", shuttle: "Shuttle", corvette: "Corvette", starship: "Starship", intergalactic: "Intergalactic starship", titan: "Titan" },

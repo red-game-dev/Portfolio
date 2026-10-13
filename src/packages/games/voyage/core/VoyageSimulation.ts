@@ -38,6 +38,7 @@ import { GateSystem } from "../systems/GateSystem";
 import { GravitySystem } from "../systems/GravitySystem";
 import { HealthSystem } from "../systems/HealthSystem";
 import { ImpactSystem } from "../systems/ImpactSystem";
+import { climbDirection } from "../systems/liftoff";
 import { MalfunctionSystem } from "../systems/MalfunctionSystem";
 import { MotionSystem } from "../systems/MotionSystem";
 import { NavigationSystem } from "../systems/NavigationSystem";
@@ -546,23 +547,29 @@ export class VoyageSimulation {
     const { config, state } = this.context;
     const ship = this.world.spawn();
     const earth = state.system.bodies.find((body) => body.id === HOME_WORLD) ?? state.system.bodies[0];
-    const x = earth ? earth.x : state.system.star.x + state.system.star.radius * 4;
-    const y = earth ? earth.y - earth.radius * START_RADII : state.system.star.y;
+    // Up from Earth, unless the Moon (or anything close) is overhead, when the climb starts tipped aside from it.
+    const up = earth ? climbDirection(this.context, earth, { x: earth.x, y: earth.y - earth.radius * START_RADII }) : { x: 0, y: -1 };
+    const x = earth ? earth.x + up.x * earth.radius * START_RADII : state.system.star.x + state.system.star.radius * 4;
+    const y = earth ? earth.y + up.y * earth.radius * START_RADII : state.system.star.y;
     const isFlying = state.status === "flying";
+    const angle = Math.atan2(up.y, up.x);
 
     this.world.stores.body.set(ship, {
       x,
       y,
-      vx: earth?.vx ?? 0,
-      vy: (earth?.vy ?? 0) + (isFlying ? -START_SPEED : 0),
+      vx: (earth?.vx ?? 0) + (isFlying ? up.x * START_SPEED : 0),
+      vy: (earth?.vy ?? 0) + (isFlying ? up.y * START_SPEED : 0),
       prevX: x,
       prevY: y,
       radius: config.ship.radius,
       mass: config.ship.mass,
     });
+    // A run starts as a lift off does: Earth's pull eases back in over the first seconds, so the ship climbs clear and
+    // a new pilot has time to find the controls before it drifts back.
+    state.liftoff = earth && isFlying ? { body: earth.id, sinceMs: state.elapsedMs, untilMs: state.elapsedMs + config.flight.liftoffSeconds * 1000 } : null;
     this.world.stores.ship.set(ship, {
-      angle: -Math.PI / 2,
-      prevAngle: -Math.PI / 2,
+      angle,
+      prevAngle: angle,
       thrust: 0,
       isBraking: false,
       fuel: config.ship.fuel,
@@ -661,6 +668,7 @@ export class VoyageSimulation {
       nextWreckAt: null,
       descent: null,
       homecoming: null,
+      liftoff: null,
       speedLimit: config.ship.maxSpeed,
       stranded: null,
       boosts: [],

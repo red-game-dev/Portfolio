@@ -33,8 +33,14 @@ export class MotionSystem implements System<VoyageContext> {
 
       ship.prevAngle = ship.angle;
 
+      // Coasting free while a lift off's grace lasts, so the climb carries the ship well clear before the dampers and
+      // the world's pull take hold again.
+      const isLiftingOff = state.liftoff !== null && state.elapsedMs < state.liftoff.untilMs;
+
       if (!state.capture) {
-        damp(body, config.ship.dampers, dt);
+        if (!isLiftingOff) {
+          damp(body, config.ship.dampers, dt);
+        }
 
         // How fast it can go is the engines' top speed, and with space felt, as the space round it allows. The limit
         // eases from one kind of space to the next, so entering denser space slows the ship rather than stopping it

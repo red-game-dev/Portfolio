@@ -54,6 +54,17 @@ export class SurfaceSystem implements System<VoyageContext> {
       const vy = body.vy - place.vy;
       const speed = Math.hypot(vx, vy);
       const inward = vx * nx + vy * ny;
+      const isLiftingOff = state.liftoff?.body === place.id && state.elapsedMs < state.liftoff.untilMs;
+
+      // A world just lifted off from is left to climb away from, not landed on again while the ship rises; coming back
+      // down onto it is a landing (or a crash) as ever, and ends the climb's grace.
+      if (isLiftingOff && inward > 0) {
+        continue;
+      }
+
+      if (isLiftingOff) {
+        state.liftoff = null;
+      }
 
       body.x = place.x + nx * contact;
       body.y = place.y + ny * contact;
@@ -64,6 +75,7 @@ export class SurfaceSystem implements System<VoyageContext> {
         ship.angle = Math.atan2(ny, nx);
         ship.landedOn = place.id;
         ship.landedOffset = { x: nx * contact, y: ny * contact };
+        state.liftoff = null;
       } else {
         applyDamage(context, config.flight.crash * Math.max(0, speed - config.flight.safeLanding) ** 2, Math.atan2(-ny, -nx), "crash");
 

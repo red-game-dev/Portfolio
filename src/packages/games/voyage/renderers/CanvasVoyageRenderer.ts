@@ -40,7 +40,7 @@ import { ShipLook } from "./look";
 import { cutShards } from "./paint/damage";
 import { paintGlow, paintShip, SHIP_HEIGHT, SHIP_WIDTH } from "./paint/space";
 import { ParticleSystem } from "./ParticleSystem";
-import { Surface } from "./Surface";
+import { ScreenBox, Surface } from "./Surface";
 import { SurfaceCache } from "./SurfaceCache";
 
 export interface VoyageRenderer {
@@ -58,6 +58,8 @@ export interface VoyageRenderer {
   setQuality(level: number): void;
   // The ghost to fly beside the ship, or none.
   setGhost(run: GhostRun | null): void;
+  // The panels the page lays over the view, which arrows at the screen's edge keep clear of.
+  setCovered(boxes: readonly ScreenBox[]): void;
   // Photo mode: no radar, map, compass or arrows.
   setPhoto(isOn: boolean): void;
   // The pad at home a new rocket stands on once a crew is back.
@@ -206,6 +208,10 @@ export class CanvasVoyageRenderer implements VoyageRenderer {
 
   public setGhost(run: GhostRun | null): void {
     this.ghost.run = run;
+  }
+
+  public setCovered(boxes: readonly ScreenBox[]): void {
+    this.kit.front.covered = boxes;
   }
 
   public setPhoto(isOn: boolean): void {

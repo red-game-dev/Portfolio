@@ -234,6 +234,9 @@ export interface VoyageState {
   // The landing under way, or the last one while the ship still stands where it came down; and a crew coming home.
   descent: Descent | null;
   homecoming: Homecoming | null;
+  // A ship that just lifted off a world: until `untilMs` (ms on the run's clock) that world's pull eases back in from
+  // nothing, from `sinceMs`, and the ship cannot settle back onto it.
+  liftoff: { body: string; sinceMs: number; untilMs: number } | null;
   // Since when (ms on the run's clock) the ship has had no fuel to leave where it is, if it has none.
   stranded: { since: number } | null;
   // The boosts at work, when each can be used again (ms on the run's clock), the blocks of a block shield still

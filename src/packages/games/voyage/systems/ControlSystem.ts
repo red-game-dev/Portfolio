@@ -1,11 +1,13 @@
 import type { System } from "@/packages/games/engine";
 import { angleBetween } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
+import { escapeSpeed } from "@/packages/physics/newtonian";
 
 import { boostStrength } from "../utils/boosts";
 import { levelOf } from "./boosts";
 import { VoyageContext } from "./context";
 import { isMisfiring } from "./faults";
+import { climbDirection } from "./liftoff";
 import { bodyById, shipOf } from "./queries";
 
 // An ion burn's share of the usual push; a solar sail's push at Earth's sunlight (W/m^2), and the most sunlight's
@@ -68,10 +70,20 @@ export class ControlSystem implements System<VoyageContext> {
 
       if (power > 0.15 && !isHeld) {
         events.emit("tookOff", { body: ship.landedOn });
+
+        // Straight up from the ground, climbing at a share of the world's escape speed, with a few seconds before its
+        // pull returns in full: a short burn (a tap on a phone) clears the ground instead of falling straight back. A
+        // world close by and nearly overhead (Earth, seen from the Moon's near side) tips the climb aside, so it rises
+        // past that world rather than into it.
+        const up = ground ? climbDirection(context, ground, body) : { x: 0, y: -1 };
+        const climb = ground ? Math.max(config.flight.liftoffFloor, escapeSpeed(ground.mu, ground.radius) * config.flight.liftoffClimb) : 0;
+
+        ship.angle = Math.atan2(up.y, up.x);
+        body.vx = (ground?.vx ?? 0) + up.x * climb;
+        body.vy = (ground?.vy ?? 0) + up.y * climb;
+        state.liftoff = ground ? { body: ground.id, sinceMs: state.elapsedMs, untilMs: state.elapsedMs + config.flight.liftoffSeconds * 1000 } : null;
         ship.landedOn = null;
         ship.landedOffset = null;
-        body.vx = ground?.vx ?? 0;
-        body.vy = ground?.vy ?? 0;
       } else {
         body.vx = ground?.vx ?? 0;
         body.vy = ground?.vy ?? 0;

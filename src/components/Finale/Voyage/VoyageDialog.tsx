@@ -45,7 +45,7 @@ import { HangarPanel, HangarTab } from "@/components/Finale/Voyage/Hangar/Hangar
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
-import { hudLayout, SMALL_HUD_SCREEN } from "@/components/Finale/Voyage/hud";
+import { boxesKey, coveredBoxes, hudLayout, SMALL_HUD_SCREEN } from "@/components/Finale/Voyage/hud";
 import {
   isKeptNotice,
   isQuestNotice,
@@ -202,6 +202,9 @@ const MESSAGE_QUEUE = 4;
 
 // How far a look round button moves the view, as an arrow key does in photo mode.
 const PHOTO_STEP = 60;
+
+// How often the panels over the view are measured, for the arrows at its edge to keep clear of (ms).
+const COVERED_MS = 500;
 
 // A line the voyage has spoken; each spoken region keeps its last few.
 interface SpokenLine {
@@ -363,6 +366,40 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   useEffect(() => {
     dialogRef.current?.querySelectorAll<HTMLElement>("[data-hud-layer]").forEach((layer) => layer.toggleAttribute("inert", isHangarOpen || isDocked));
   });
+
+  // Where the solid panels sit over the view (the ability bar, the readout), a few times a second while a run is under
+  // way, so the arrows the game draws at the screen's edge are never hidden under them.
+  const { setCovered } = voyage;
+
+  useEffect(() => {
+    if (status !== "flying") {
+      return undefined;
+    }
+
+    let last: string | null = null;
+    const measure = () => {
+      const stage = stageRef.current;
+      const panels = dialogRef.current?.querySelectorAll<HTMLElement>("[data-covers]");
+
+      if (!stage || !panels) {
+        return;
+      }
+
+      const boxes = coveredBoxes(stage.getBoundingClientRect(), [...panels].map((panel) => panel.getBoundingClientRect()));
+      const key = boxesKey(boxes);
+
+      if (key !== last) {
+        last = key;
+        setCovered(boxes);
+      }
+    };
+
+    measure();
+
+    const timer = window.setInterval(measure, COVERED_MS);
+
+    return () => window.clearInterval(timer);
+  }, [setCovered, status]);
   // Stranded adrift, the countdown shows over the view; down on a world, the surface card says it.
   const adrift = snapshot && !snapshot.landedOn ? strandedLine(content, snapshot) : null;
   const surfaceTitle = snapshot?.surface ? surfaceHeading(content, snapshot) : "";
@@ -374,10 +411,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     if (text) {
       messageId.current += 1;
 
+      // The id is taken now: an update runs later, when several lines said in the same moment have all moved it on.
       const next = { id: messageId.current, text, isKept, isUrgent, isQuest, card };
 
       setMessages((queue) => queueLine(queue, next, MESSAGE_QUEUE));
-      setSpoken((lines) => withSpoken(lines, { id: messageId.current, text }, isUrgent));
+      setSpoken((lines) => withSpoken(lines, { id: next.id, text }, isUrgent));
     }
   };
   // The answer to a tap shows at once, in place of the line already seen (unless it is kept), and the rest still wait
@@ -388,7 +426,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     const next = { id: messageId.current, text, isKept: false, isUrgent: false };
 
     setMessages((queue) => replyLine(queue, next));
-    setSpoken((lines) => withSpoken(lines, { id: messageId.current, text }, false));
+    setSpoken((lines) => withSpoken(lines, { id: next.id, text }, false));
   };
 
   // Each line shows for its moment, then the next; held while the run is paused or the hangar is open (its fade held
@@ -965,7 +1003,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </SurfaceCard>
       )}
       {snapshot && status === "flying" && !isHangarOpen && !isHudAside && (
-        <TelemetryPanel aria-label={content.telemetry.title} isYielding={Boolean(snapshot.descent || snapshot.surface)}>
+        <TelemetryPanel aria-label={content.telemetry.title} isYielding={Boolean(snapshot.descent || snapshot.surface)} data-covers="">
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>
             {telemetryRows(content, snapshot).map((row) => (

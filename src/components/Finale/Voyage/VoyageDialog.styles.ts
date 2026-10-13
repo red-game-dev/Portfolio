@@ -612,7 +612,7 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       padding: 6px 10px;
       font-size: 12px;
       line-height: 1.35;
-      background: rgba(5, 8, 18, 0.9);
+      background: rgb(5, 8, 18);
       animation-name: ${fadeStrip};
 
       & > button {

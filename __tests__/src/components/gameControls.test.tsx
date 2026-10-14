@@ -459,6 +459,32 @@ describe("the voyage's controls", () => {
     expect(game.zoomBy).toHaveBeenLastCalledWith(Math.exp(10 * 0.012));
   });
 
+  it("zooms by Safari's pinch on a Mac trackpad, but not by the gestures an iPhone sends with fingers on the screen", async () => {
+    const { game, stage, fly } = await build();
+    const gesture = (type: string, scale: number) => {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+
+      Object.assign(event, { scale });
+      stage.dispatchEvent(event);
+
+      return event;
+    };
+
+    fly();
+    game.zoomBy.mockClear();
+    expect(gesture("gesturestart", 1).defaultPrevented).toBe(true);
+    gesture("gesturechange", 1.5);
+    expect(game.zoomBy).toHaveBeenLastCalledWith(1.5);
+    gesture("gestureend", 1.5);
+
+    game.zoomBy.mockClear();
+    fireEvent.pointerDown(stage, { pointerType: "touch", pointerId: 3, clientX: 110, clientY: 20 });
+    expect(gesture("gesturestart", 1).defaultPrevented).toBe(true);
+    gesture("gesturechange", 1.5);
+    expect(game.zoomBy).not.toHaveBeenCalledWith(1.5);
+    fireEvent.pointerUp(stage, { pointerType: "touch", pointerId: 3 });
+  });
+
   it("opens the map from a press on the radar, without steering or locking on there", async () => {
     const { game, stage, fly, state } = await build();
 

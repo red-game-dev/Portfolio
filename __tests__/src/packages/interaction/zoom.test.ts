@@ -20,6 +20,9 @@ describe("ZoomInput", () => {
     expect(input.wheel(1, 2)).toBeCloseTo(input.wheel(800));
     expect(input.wheel(-10, 0, true)).toBeCloseTo(Math.exp(0.12));
     expect(input.wheel(-10, 0, true)).toBeGreaterThan(input.wheel(-10));
+    // Ctrl and a mouse wheel's notch zoom as the wheel does, not a whole range at once.
+    expect(input.wheel(100, 0, true)).toBeCloseTo(input.wheel(100));
+    expect(input.wheel(3, 1, true)).toBeCloseTo(input.wheel(48));
   });
 
   test("turns Safari's pinch, a scale since the gesture began, into a factor since the last reading", () => {

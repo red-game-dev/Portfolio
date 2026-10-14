@@ -1,6 +1,8 @@
 import {
   DEFAULT_VOYAGE_CONFIG, DEFAULT_VOYAGE_THEME, Hangar, newProfile, VoyageGame, VoyageInput, VoyageRenderer, VoyageSimulation,
 } from "@/packages/games/voyage";
+import { VoyageContext } from "@/packages/games/voyage/systems/context";
+import { bodyAhead } from "@/packages/games/voyage/systems/impacts";
 
 import { createFlying, EPOCH } from "./fixtures/simulation";
 
@@ -130,5 +132,29 @@ describe("the mission clock", () => {
     expect(simulation.state.clock).toEqual({ epochMs: EPOCH, hoursPerSecond: 0.5 });
     simulation.setClockSpeed("real");
     expect(simulation.state.clock).toEqual({ epochMs: EPOCH, hoursPerSecond: 0.5 });
+  });
+});
+
+describe("rocks headed for worlds, with the clock running fast", () => {
+  test("are aimed at where a moon will be round its planet, not where a straight line would put it", () => {
+    const simulation = createFlying();
+    const context = (simulation as unknown as { context: VoyageContext }).context;
+
+    simulation.setClockSpeed("faster");
+    simulation.step(100);
+
+    const moon = simulation.state.system.bodies.find((body) => body.id === "moon");
+
+    if (!moon) {
+      throw new Error("no Moon");
+    }
+
+    const seconds = 12;
+    const ahead = bodyAhead(context, moon, seconds);
+    const line = { x: moon.x + moon.vx * seconds, y: moon.y + moon.vy * seconds };
+
+    simulation.step(seconds * 1000);
+    expect(Math.hypot(moon.x - ahead.x, moon.y - ahead.y)).toBeLessThan(moon.radius / 2);
+    expect(Math.hypot(moon.x - line.x, moon.y - line.y)).toBeGreaterThan(moon.radius);
   });
 });

@@ -161,7 +161,6 @@ const isDrawable = (source: TexImageSource | CanvasImageSource | OffscreenCanvas
 // sharpness steps down until it can, which cuts the GPU's fill work by up to three quarters.
 const QUALITY_RATIOS: readonly number[] = [2, 1.5, 1.25, 1];
 
-// What changes the snapshot at once rather than on the next tick.
 // What the held keys ask of the ship: a turn (-1 to 1), a burn (0 to 1) and the brake, or, pointing the way to fly,
 // a lean (x right, y down, -1 to 1) with the burn kept for the way down, where only a burn is flown.
 export interface VoyageKeys {
@@ -173,6 +172,7 @@ export interface VoyageKeys {
 
 const isKeyed = (keys: VoyageKeys): boolean => keys.turn !== 0 || keys.thrust !== 0 || keys.brake || keys.lean !== null;
 
+// What changes the snapshot at once rather than on the next tick.
 interface Moment {
   status: string;
   phase: string;
@@ -720,14 +720,14 @@ export class VoyageGame extends FrameLoop {
     }
   }
 
-  // Locks the guns on whoever, or whatever rock, is under a point on the screen (CSS pixels); a point on
-  // nothing lets go. Returns whether something was locked.
   // Whether a point on the canvas (CSS pixels) is on the radar, where a press opens the map rather than steering or
   // locking on.
   public isOnRadar(position: { x: number; y: number }): boolean {
     return !this.isPhoto && this.renderer.radarAt(position.x, position.y);
   }
 
+  // Locks the guns on whoever, or whatever rock, is under a point on the screen (CSS pixels); a point on
+  // nothing lets go. Returns whether something was locked.
   public lockAt(position: { x: number; y: number }): boolean {
     const { world, state } = this.simulation;
     const x = this.camera.toWorldX(position.x);

@@ -53,18 +53,20 @@ export class GlobesLayer implements RenderLayer<VoyageFrame> {
   }
 
   // A body as it looks in another world's sky: its own globe from its maps, north up, `lit` of its face lit (0 new, 1
-  // full) from `lightSide` (-1 the left, 1 the right). Answers false where it has no look, or is too small to be more
-  // than a point.
+  // full) from `lightSide` (-1 the left, 1 the right), a moon that keeps one face to its planet showing that face to
+  // whoever stands on the planet. Answers false where it has no look, is too small to be more than a point, or the GPU
+  // is not drawing (the 2D fallback has no phases, so the painter's own lit disc is truer).
   public drawInSky(
     { state, now, theme }: VoyageFrame, body: SystemBody, target: Canvas2DContext, x: number, y: number, radius: number, lit: number, lightSide: number,
   ): boolean {
     const look = theme.bodies[body.id] ?? state.cosmos?.looks[body.id];
 
-    if (!look || radius < POINT_RADIUS) {
+    if (!look || radius < POINT_RADIUS || !this.kit.globes.isGpu) {
       return false;
     }
 
     const lightAngle = lightSide > 0 ? 0 : Math.PI;
+    const isTurned = northUp(lightAngle, false);
 
     this.kit.globes.drawGlobe(target, {
       x,
@@ -76,9 +78,11 @@ export class GlobesLayer implements RenderLayer<VoyageFrame> {
         subsolarLatitude: body.subsolarLatitude,
         subsolarLongitude: body.subsolarLongitude,
         viewElevation: 0,
-        isTurned: northUp(lightAngle, false),
+        isTurned,
         // The share lit is half of one plus the cosine of the angle between the star and the viewer, seen from the body.
         phase: Math.asin(clamp(2 * lit - 1, -1, 1)),
+        // Longitude 0, the face kept to the planet, a quarter turn on from the screen's x, which points at the viewer.
+        facing: body.dayHours === null ? lightAngle + (isTurned ? Math.PI : 0) + Math.PI / 2 : undefined,
       },
       time: now / 1000,
       light: lightOn(lightAt(state.system, body.x, body.y).flux),

@@ -52,11 +52,24 @@ describe("the voyage's keys", () => {
     expect(VOYAGE_KEYS.intentOf(keyPress("q"))).toBeNull();
   });
 
-  test("steer with the arrows, WASD and Space while flying, and not otherwise", () => {
+  test("steer with the arrows, WASD and Space while the run moves, and not paused, docked or between runs", () => {
     (["left", "right", "up", "down", "brake"] as const).forEach((command) => {
       expect(voyageKeyAction(command, state())).toBe("steer");
       expect(voyageKeyAction(command, state({ isFlying: false }))).toBeNull();
+      expect(voyageKeyAction(command, state({ isPaused: true }))).toBeNull();
+      expect(voyageKeyAction(command, state({ isDocked: true }))).toBeNull();
     });
+  });
+
+  test("leave Space to a focused button, which it presses, and brake with it anywhere else", () => {
+    const button = document.createElement("button");
+    const tab = document.createElement("div");
+
+    tab.setAttribute("role", "tab");
+    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: button } as never))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: tab } as never))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: document.body } as never))).toBe("brake");
+    expect(VOYAGE_KEYS.intentOf(keyPress("w", { target: button } as never))).toBe("up");
   });
 
   test("pointing the way to fly, the arrows lean the ship that way on screen, two for a diagonal, and only Space brakes", () => {

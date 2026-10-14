@@ -68,10 +68,94 @@ export interface Approach {
   distance: number;
 }
 
+// How a body moves over a rock's flight: round the centre it circles (a moon's planet, a made world's star) at its rate
+// on the mission clock, the centre carried on in a line; a planet on its elements carried on in a line, as it nearly
+// is over a few seconds. With the clock running fast a moon goes round in seconds, so a line would miss it.
+interface Track {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  angle: number;
+  rate: number;
+}
+
+// Reused, so following a course allocates nothing.
+const TRACK: Track = { x: 0, y: 0, vx: 0, vy: 0, radius: 0, angle: 0, rate: 0 };
+const AHEAD = { x: 0, y: 0 };
+
+const ORIGIN = { x: 0, y: 0 };
+
+// What a body circles: a moon its planet, a made world its star (or the system's centre), a planet on its elements
+// nothing.
+const centreOf = ({ state }: VoyageContext, body: SystemBody): { x: number; y: number; vx?: number; vy?: number } | undefined => {
+  const { orbit } = body;
+  const { star, companions, bodies } = state.system;
+
+  if (orbit.kind === "moon") {
+    return bodies.find((other) => other.id === orbit.parent);
+  }
+
+  if (orbit.kind === "circle") {
+    return !orbit.host ? ORIGIN : star.id === orbit.host ? star : companions.find((other) => other.id === orbit.host);
+  }
+
+  return undefined;
+};
+
+const trackOf = (context: VoyageContext, body: SystemBody): Track => {
+  const { orbit } = body;
+  const centre = centreOf(context, body);
+
+  if (orbit.kind === "sun" || !centre) {
+    TRACK.x = body.x;
+    TRACK.y = body.y;
+    TRACK.vx = body.vx;
+    TRACK.vy = body.vy;
+    TRACK.radius = 0;
+    TRACK.angle = 0;
+    TRACK.rate = 0;
+
+    return TRACK;
+  }
+
+  // Screen y runs down, so a circle's angle is read with y turned over, as `placeBodies` places it.
+  TRACK.x = centre.x;
+  TRACK.y = centre.y;
+  TRACK.vx = centre.vx ?? 0;
+  TRACK.vy = centre.vy ?? 0;
+  TRACK.radius = Math.hypot(body.x - centre.x, body.y - centre.y);
+  TRACK.angle = Math.atan2(-(body.y - centre.y), body.x - centre.x);
+  TRACK.rate = (TAU / orbit.periodDays) * (context.state.clock.hoursPerSecond / 24);
+
+  return TRACK;
+};
+
+// Where a body on its track is `time` seconds on.
+const aheadOn = (track: Track, time: number): { x: number; y: number } => {
+  const angle = track.angle + track.rate * time;
+
+  AHEAD.x = track.x + track.vx * time + Math.cos(angle) * track.radius;
+  AHEAD.y = track.y + track.vy * time - Math.sin(angle) * track.radius;
+
+  return AHEAD;
+};
+
+// Where a body will be `seconds` from now: round its planet or star for a moon or a made world, else in a line.
+export const bodyAhead = (context: VoyageContext, body: SystemBody, seconds: number): { x: number; y: number } => {
+  const at = aheadOn(trackOf(context, body), seconds);
+
+  return { x: at.x, y: at.y };
+};
+
 // Where a rock will pass nearest its target: its path followed through the same gravity the world moves it by
-// (every body and star pulling, its target included), the target moving on as it does, until the rock arrives,
-// or has clearly passed. The offset from the target's centre at that moment, and how far.
-export const predictApproach = ({ field, sample }: VoyageContext, rock: { x: number; y: number; vx: number; vy: number }, body: SystemBody): Approach => {
+// (every body and star pulling, its target included), the target moving on as it does (round its planet, for a
+// moon), until the rock arrives, or has clearly passed. The offset from the target's centre at that moment, and how
+// far.
+export const predictApproach = (context: VoyageContext, rock: { x: number; y: number; vx: number; vy: number }, body: SystemBody): Approach => {
+  const { field, sample } = context;
+  const track = trackOf(context, body);
   let { x, y, vx, vy } = rock;
   let best: Approach = { dx: x - body.x, dy: y - body.y, distance: Math.hypot(x - body.x, y - body.y) };
 
@@ -82,8 +166,9 @@ export const predictApproach = ({ field, sample }: VoyageContext, rock: { x: num
     x += vx * COURSE_STEP;
     y += vy * COURSE_STEP;
 
-    const dx = x - (body.x + body.vx * time);
-    const dy = y - (body.y + body.vy * time);
+    const target = aheadOn(track, time);
+    const dx = x - target.x;
+    const dy = y - target.y;
     const distance = Math.hypot(dx, dy);
 
     if (distance < best.distance) {

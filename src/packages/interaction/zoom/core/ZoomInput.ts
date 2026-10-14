@@ -5,6 +5,9 @@ import { ZoomDirection, ZoomInputOptions } from "../domain/types";
 // A wheel's travel in lines or in pages (its deltaMode 1 and 2, as a mouse wheel reports in some browsers), in pixels.
 const LINE_PIXELS = 16;
 const PAGE_PIXELS = 800;
+// A trackpad's pinch moves a few pixels at a time; a step larger than this with the control key held is a mouse
+// wheel's notch (Ctrl and the wheel, a common way to zoom), read at the wheel's rate.
+const PINCH_MOST = 40;
 
 // One zoom from every way of asking for it: a wheel or a trackpad's scroll, a trackpad's pinch, two fingers
 // pinching on a touch screen, and keys such as + and -. Each answers a factor to multiply the zoom by, so the host
@@ -32,8 +35,9 @@ export class ZoomInput {
   // with the control key held (`isPinch`), in steps too small for the wheel's rate.
   public wheel(deltaY: number, deltaMode = 0, isPinch = false): number {
     const pixels = deltaY * (deltaMode === 1 ? LINE_PIXELS : deltaMode === 2 ? PAGE_PIXELS : 1);
+    const isFine = isPinch && Math.abs(pixels) <= PINCH_MOST;
 
-    return Math.exp(-pixels * (isPinch ? this.options.pinch : this.options.wheel));
+    return Math.exp(-pixels * (isFine ? this.options.pinch : this.options.wheel));
   }
 
   // Safari's own trackpad pinch: its gesture's scale since it began (1 at the start), as the factor since the last

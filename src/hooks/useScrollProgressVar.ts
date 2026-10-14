@@ -39,6 +39,7 @@ export default function useScrollProgressVar<TElement extends HTMLElement>(
 
     let isDone = false;
     let unsubscribe: (() => void) | null = null;
+    let stopLast: (() => void) | null = null;
 
     const task = {
       read: ({ viewportHeight }: { viewportHeight: number }) => {
@@ -64,10 +65,21 @@ export default function useScrollProgressVar<TElement extends HTMLElement>(
         unsubscribe = getScrollFrame().subscribe(task);
       } else if (!entry.isIntersecting && unsubscribe) {
         // One last measure on the way out, so the element settles at 0 or 1 rather than wherever the last
-        // frame left it. Observer callbacks run after layout, so this read is free.
-        task.write(task.read({ viewportHeight: window.innerHeight }));
+        // frame left it: taken with the next frame's reads, since a read here, in the observer's callback, lays
+        // out the whole page whenever anything has changed it since the last frame.
         unsubscribe();
         unsubscribe = null;
+        stopLast?.();
+        const stop = getScrollFrame().subscribe({
+          read: task.read,
+          write: (progress: number) => {
+            task.write(progress);
+            stop();
+            stopLast = null;
+          },
+        });
+
+        stopLast = stop;
       }
     });
 
@@ -76,6 +88,7 @@ export default function useScrollProgressVar<TElement extends HTMLElement>(
     return () => {
       observer.disconnect();
       unsubscribe?.();
+      stopLast?.();
     };
   }, [anchor, doneAt, isSticky, property, ref]);
 }

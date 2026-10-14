@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 /* - Zone theme
-   The accent follows the journey: each zone sets data-zone on the root and the colour animates across.
-   Registered properties are what let a custom property transition; browsers without them switch instantly. */
+   Each run of sections carries its zone's accent (data-zone on the run, components/Zone), so it keeps its colour
+   however far the reader has gone and a crossing never restyles the page's sections. The root follows the journey
+   too (data-zone on it, set by the Journey) for what lies outside every run, the header, the trail and the game HUD,
+   and there the colour animates across: registered properties are what let a custom property transition; browsers
+   without them switch instantly. */
 @property --accent {
   syntax: "<color>";
   inherits: true;
@@ -17,38 +20,42 @@
   initial-value: #2f6b4d;
 }
 
-:root {
+:root,
+[data-zone="matrix"] {
   --accent: #4bffa5;
   --accent-muted: #2f6b4d;
   --accent-rgb: 75, 255, 165;
+}
+
+:root {
   transition: --accent 1.4s ease, --accent-muted 1.4s ease;
 }
 
-:root[data-zone="ai"] {
+[data-zone="ai"] {
   --accent: #4fd8ff;
   --accent-muted: #24596b;
   --accent-rgb: 79, 216, 255;
 }
 
-:root[data-zone="chain"] {
+[data-zone="chain"] {
   --accent: #b896ff;
   --accent-muted: #4b3a6b;
   --accent-rgb: 184, 150, 255;
 }
 
-:root[data-zone="casino"] {
+[data-zone="casino"] {
   --accent: #ff5fa2;
   --accent-muted: #6b2a48;
   --accent-rgb: 255, 95, 162;
 }
 
-:root[data-zone="mmo"] {
+[data-zone="mmo"] {
   --accent: #ffc45c;
   --accent-muted: #6b5226;
   --accent-rgb: 255, 196, 92;
 }
 
-:root[data-zone="beyond"] {
+[data-zone="beyond"] {
   --accent: #c4d2ff;
   --accent-muted: #3e4a6b;
   --accent-rgb: 196, 210, 255;

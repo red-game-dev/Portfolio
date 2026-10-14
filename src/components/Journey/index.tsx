@@ -17,8 +17,9 @@ interface JourneyProps {
   trail: { sections: TrailSection[]; labels: JourneyTrailContent };
 }
 
-// The page as a journey through four zones. Crossing into one changes the world itself: the backdrop plays
-// a transition into the next scene and the whole page takes on the zone's accent. No labels needed.
+// The page as a journey through its zones. Crossing into one changes the world itself: the backdrop plays a
+// transition into the next scene, and what lies outside the sections (the header, the trail, the HUD) takes on the
+// zone's accent, each run of sections keeping its own (components/Zone). No labels needed.
 export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProps) => {
   const progressRef = useRef<HTMLDivElement>(null);
   const hudRef = useRef<HTMLDivElement>(null);

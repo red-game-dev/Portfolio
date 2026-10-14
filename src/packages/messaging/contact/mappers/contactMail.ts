@@ -28,7 +28,7 @@ export const contactMail = (request: ContactRequest, route: ContactRoute): Mail 
     to: route.to,
     subject: `[${route.site}] ${subject}`,
     text: `${request.message.trim()}\n\nFrom: ${from}\nSent with the ${request.kind === "feedback" ? "feedback" : "message"} form on ${route.site}`,
-    ...(route.look ? { html: contactHtml(request, subject, from === "Anonymous" ? null : from, route.look.theme, route.look.words) } : {}),
+    ...(route.look ? { html: contactHtml(request, subject, name || email ? from : null, route.look.theme, route.look.words) } : {}),
     ...(email ? { replyTo: email } : {}),
   };
 };

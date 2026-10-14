@@ -185,7 +185,7 @@ describe("the site's messages and feedback", () => {
 
 describe("the email a message becomes", () => {
   const THEME: EmailTheme = {
-    background: "#0b0b0b", panel: "#101010", border: "#1e1e1e", text: "#d6dcd9", muted: "#8a948f",
+    background: "#0b0b0b", panel: "#101010", border: "#1e1e1e", heading: "#ffffff", text: "#d6dcd9", muted: "#8a948f",
     accents: { message: "#4bffa5", feedback: "#c4d2ff" }, font: "Roboto, sans-serif", mono: "monospace", siteUrl: "https://www.example.test",
   };
   const WORDS: EmailWords = { kinds: { message: "Message", feedback: "Feedback" }, from: "From", anonymous: "Anonymous", reply: "Reply goes back.", footer: "Sent on" };
@@ -194,7 +194,7 @@ describe("the email a message becomes", () => {
     const message = contactHtml(MESSAGE, "Hiring: CTO", "Ada <visitor@example.test>", THEME, WORDS);
     const feedback = contactHtml({ kind: "feedback", message: "More case studies, please." }, "Feedback", null, THEME, WORDS);
 
-    expect(message).toContain("height:3px;line-height:3px;font-size:0;background:#4bffa5;");
+    expect(message).toContain("mso-line-height-rule:exactly;font-size:0;background:#4bffa5;");
     expect(message).toContain(">Message<");
     expect(message).toContain("Hiring: CTO");
     expect(message).toContain("Reply goes back.");
@@ -206,12 +206,26 @@ describe("the email a message becomes", () => {
 
   test("moves lightly where a mail app plays it, never for a reader who asked for less, and looks the same where motion is stripped", () => {
     const html = contactHtml(MESSAGE, "Hiring: CTO", null, THEME, WORDS);
+    const style = /<style>([\s\S]*)<\/style>/.exec(html)?.[1] ?? "";
+    const withoutKeyframes = style.replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, "");
 
     expect(html).toContain("@keyframes rg-shine");
     expect(html).toContain("@media (prefers-reduced-motion: reduce) { .rg-bar, .rg-rise { animation: none !important; } }");
     // The bar's colour and the panel's look stand inline, so a mail app that drops the style block loses nothing.
     expect(html).toMatch(/class="rg-bar"[^>]*style="[^"]*background:#4bffa5/);
     expect(html).toMatch(/class="rg-rise"[^>]*style="[^"]*border-left:2px solid #4bffa5/);
+    // A mail app that keeps the styles but drops the animation (Gmail) leaves the bar its plain colour: the glint and
+    // anything that could hide the message live only inside the animation.
+    expect(withoutKeyframes).not.toContain("gradient");
+    expect(style).not.toContain("opacity");
+  });
+
+  test("wraps a long unbroken word, such as a link, rather than widening the email past the screen", () => {
+    const html = contactHtml({ ...MESSAGE, message: `See https://example.test/${"a".repeat(150)}` }, "Hiring", "Ada <a@b.test>", THEME, WORDS);
+
+    expect(html).toMatch(/overflow-wrap:anywhere;">See https/);
+    expect(html).toMatch(/<h1 style="[^"]*overflow-wrap:anywhere;">Hiring<\/h1>/);
+    expect(html).toMatch(/overflow-wrap:anywhere;">\n<span[^>]*>From<\/span> Ada/);
   });
 
   test("escapes everything a visitor wrote, keeping their line breaks, so nothing in a message can change the email", () => {
@@ -221,6 +235,15 @@ describe("the email a message becomes", () => {
     expect(html).not.toContain("<b>Hiring</b>");
     expect(html).toContain("Hi<br>&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;quotes&quot;");
     expect(html).toContain("Ada &lt;a@b.test&gt;");
+  });
+
+  test("escapes a hostile name and subject on the way the site really sends, through the mail it builds", () => {
+    const hostile = { ...MESSAGE, name: "<img src=x onerror=alert(1)>", subject: "\"><script>x</script>" };
+    const html = contactMail(hostile, { ...ROUTE, look: { theme: THEME, words: WORDS } }).html ?? "";
+
+    expect(html).not.toMatch(/<img|<script/);
+    expect(html).toContain("&lt;img src=x onerror=alert(1)&gt;");
+    expect(html).toContain("&quot;&gt;&lt;script&gt;x&lt;/script&gt;");
   });
 
   test("goes with the plain text where the site gives it a look, and as plain text alone where it does not", () => {

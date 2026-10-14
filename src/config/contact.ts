@@ -29,6 +29,7 @@ export const EMAIL_THEME: EmailTheme = {
   background: "#0b0b0b",
   panel: "#101010",
   border: "#1e1e1e",
+  heading: "#ffffff",
   text: "#d6dcd9",
   muted: "#8a948f",
   accents: { message: ZONE_ACCENTS.matrix, feedback: ZONE_ACCENTS.beyond },

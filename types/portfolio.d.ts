@@ -8,6 +8,7 @@ import { CvDocument } from "@/types/cv-document";
 import { Detail } from "@/types/details";
 import { IGamingContent, Web3Content } from "@/types/domains";
 import { ForgeContent, TalentsContent } from "@/types/forge";
+import { FormsContent } from "@/types/forms";
 import { ArenaContent, BossLabels, Duels, FinaleContent, HudLabels, JourneyTrailContent } from "@/types/game";
 import { Github } from "@/types/general";
 import { Headline } from "@/types/headline";
@@ -35,6 +36,7 @@ export interface DocumentLink {
 // the page, gathered into portfolioData by src/data/resume.ts.
 export interface PortfolioData {
   accessibility: AccessibilityContent;
+  forms: FormsContent;
   intro: string;
   headline: Headline;
   terminal: TerminalContent;

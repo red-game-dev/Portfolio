@@ -3,6 +3,7 @@ import { aiUsageContent } from "@/data/portfolio/aiUsage";
 import { caseStudiesContent } from "@/data/portfolio/caseStudies";
 import { cvDocumentContent } from "@/data/portfolio/cvDocument";
 import { domainsContent } from "@/data/portfolio/domains";
+import { formsContent } from "@/data/portfolio/forms";
 import { gameContent } from "@/data/portfolio/game";
 import { historyContent } from "@/data/portfolio/history";
 import { navigationContent } from "@/data/portfolio/navigation";
@@ -39,4 +40,5 @@ export const portfolioData: PortfolioData = {
   ...cvDocumentContent,
   ...preferencesContent,
   ...accessibilityContent,
+  ...formsContent,
 };

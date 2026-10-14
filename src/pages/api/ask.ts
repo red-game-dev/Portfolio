@@ -2,25 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { ASK_ERROR_STATUS, AskErrorCode, encodeAskEvent } from "@/packages/ai/ask";
 import { getAskService, visitorKey } from "@/services/ask/server";
+import { clientAddress, isSameOrigin } from "@/services/http/request";
 
 export const config = { api: { bodyParser: { sizeLimit: "16kb" } } };
-
-const firstHeader = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value)?.split(",")[0].trim();
-
-// Only the site itself may ask: a browser on another origin cannot forge this header.
-const isSameOrigin = (request: NextApiRequest) => {
-  const origin = firstHeader(request.headers.origin);
-
-  if (!origin) {
-    return false;
-  }
-
-  try {
-    return new URL(origin).host === request.headers.host;
-  } catch {
-    return false;
-  }
-};
 
 const refuse = (response: NextApiResponse, code: AskErrorCode) => response.status(ASK_ERROR_STATUS[code]).json({ error: code });
 
@@ -33,6 +17,7 @@ const handler = async (request: NextApiRequest, response: NextApiResponse) => {
     return response.status(405).json({ error: "invalid" });
   }
 
+  // Only the site itself may ask.
   if (!isSameOrigin(request)) {
     return refuse(response, "invalid");
   }
@@ -43,8 +28,7 @@ const handler = async (request: NextApiRequest, response: NextApiResponse) => {
     return refuse(response, "unavailable");
   }
 
-  const address = firstHeader(request.headers["x-real-ip"]) ?? firstHeader(request.headers["x-forwarded-for"]) ?? request.socket.remoteAddress ?? "unknown";
-  const prepared = await service.prepare(request.body, visitorKey(address));
+  const prepared = await service.prepare(request.body, visitorKey(clientAddress(request)));
 
   if ("error" in prepared) {
     return refuse(response, prepared.error);

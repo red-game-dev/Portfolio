@@ -32,6 +32,19 @@ export class DailyQuota implements Quota {
     }
   }
 
+  // Spends one at once and says whether it fit, so concurrent work can never pass the ceiling: what the counter reads
+  // after the add is this one's place in the day.
+  public async take(): Promise<boolean> {
+    const { value } = await this.store.add(this.key(), 1, DAY_MS * 2);
+
+    return value <= this.limit;
+  }
+
+  // Gives one back, for work taken that never happened (a send that failed).
+  public async refund(): Promise<void> {
+    await this.store.add(this.key(), -1, DAY_MS * 2);
+  }
+
   private key(): string {
     return `${this.prefix}:${new Date(this.now()).toISOString()
 .slice(0, 10)}`;

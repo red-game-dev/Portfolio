@@ -33,6 +33,13 @@ import { createPortfolioTerminal } from "@/services/terminal/portfolioTerminal";
 const aiUsage = aiUsageService.getView();
 const forgeStations = createForgeStations(portfolioData);
 const hireDialogs = createHireDialogs(portfolioData);
+// The message form in the contact and hire cards: its words, and the address and reply time it names.
+const messageForm = {
+  words: portfolioData.forms.message,
+  shared: portfolioData.forms.shared,
+  email: portfolioData.details.email,
+  contactTime: portfolioData.details.contactTime,
+};
 
 export default function Home() {
   return (
@@ -68,6 +75,7 @@ export default function Home() {
           intro={portfolioData.sections.terminal}
           content={portfolioData.terminal}
           createSession={createPortfolioTerminal}
+          messageForm={messageForm}
         />
         <Services
           groups={portfolioData.serviceGroups}
@@ -114,6 +122,7 @@ export default function Home() {
           hireDialogs={hireDialogs}
           carouselLabels={portfolioData.carouselLabels}
           closeLabel={portfolioData.terminal.red.labels.close}
+          messageForm={messageForm}
         />
         <SkillForge intro={portfolioData.sections.forge} stations={forgeStations} content={portfolioData.forge} />
         <Talents
@@ -153,6 +162,8 @@ export default function Home() {
           linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn}
           cvUrl={portfolioData.cv}
           settings={portfolioData.preferences}
+          feedback={portfolioData.forms.feedback}
+          formWords={portfolioData.forms.shared}
         />
         <Timelapse intro={portfolioData.sections.timelapse} content={portfolioData.timelapse} />
       </BlueprintLabelsProvider>

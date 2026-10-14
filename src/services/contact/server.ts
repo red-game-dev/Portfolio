@@ -3,6 +3,7 @@ import { formsContent } from "@/data/portfolio/forms";
 import { ContactRoute, ContactService, SendRecord } from "@/packages/messaging/contact";
 import { MailAdapter, MailService, ResendMailAdapter } from "@/packages/server/mail";
 import { DailyQuota, SlidingWindowLimiter } from "@/packages/server/quota";
+import { emailArtLinks } from "@/services/contact/art";
 import { sharedStore } from "@/services/store/server";
 import { visitorOf } from "@/services/store/visitor";
 
@@ -27,13 +28,13 @@ export const MAIL_ADAPTERS: Record<string, () => MailAdapter | null> = {
 export const mailAdapters = (order = process.env.MAIL_PROVIDERS?.split(",") ?? CONTACT_CONFIG.mailProviders): MailAdapter[] =>
   order.map((id) => MAIL_ADAPTERS[id.trim()]?.() ?? null).filter((adapter): adapter is MailAdapter => adapter !== null);
 
-// Where a message goes: from the site's sender to the owner's inbox (CONTACT_INBOX), styled as the site looks; none
-// without an inbox.
+// Where a message goes: from the site's sender to the owner's inbox (CONTACT_INBOX), styled as the site looks, with the
+// art along its top bar; none without an inbox.
 export const contactRoute = (inbox = process.env.CONTACT_INBOX): ContactRoute | null => (inbox ? {
   sender: { name: CONTACT_CONFIG.senderName, user: CONTACT_CONFIG.senderUser, domain: CONTACT_CONFIG.domain },
   to: inbox,
   site: CONTACT_CONFIG.site,
-  look: { theme: EMAIL_THEME, words: formsContent.forms.email },
+  look: { theme: EMAIL_THEME, words: formsContent.forms.email, art: emailArtLinks() },
 } : null);
 
 // The contact service, built once: the mail service over the providers set up, the owner's inbox from CONTACT_INBOX,

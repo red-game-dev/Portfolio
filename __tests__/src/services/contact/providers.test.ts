@@ -2,8 +2,10 @@
  * @jest-environment node
  */
 import { EMAIL_THEME } from "@/config/contact";
+import { SITE_URL } from "@/config/site";
 import { contactMail } from "@/packages/messaging/contact";
 import { ResendMailAdapter } from "@/packages/server/mail";
+import { ART_VERSION, artOrigin, emailArt, emailArtLinks } from "@/services/contact/art";
 import { contactRoute, MAIL_ADAPTERS, mailAdapters } from "@/services/contact/server";
 
 describe("the mail providers the site can send through", () => {
@@ -38,9 +40,41 @@ describe("where a message goes", () => {
     expect(route?.look?.theme).toBe(EMAIL_THEME);
     expect(mail?.to).toBe("inbox@example.test");
     expect(mail?.html).toContain(EMAIL_THEME.accents.message);
+    expect(mail?.html).toContain(`<img src="${SITE_URL}/api/email/message.gif?v=${ART_VERSION}"`);
   });
 
   test("nowhere without an inbox, when the service says it cannot send", () => {
     expect(contactRoute("")).toBeNull();
+  });
+});
+
+describe("the art in the emails", () => {
+  test("is each kind's light along the bar and its bar at rest, as GIFs drawn once, and nothing else", () => {
+    const moving = emailArt("message.gif");
+    const still = emailArt("feedback-still.gif");
+
+    expect(Buffer.from(moving ?? []).subarray(0, 6)
+      .toString()).toBe("GIF89a");
+    expect(emailArt("message.gif")).toBe(moving);
+    expect(still?.length).toBeLessThan(moving?.length ?? 0);
+    // Light enough for an email: a few tens of kilobytes for the motion.
+    expect(moving?.length).toBeLessThan(60_000);
+    expect(emailArt("../server.ts")).toBeNull();
+    expect(emailArt("message.png")).toBeNull();
+    expect(emailArt("other.gif")).toBeNull();
+  });
+
+  test("is fetched from the preview itself while the site is a preview, so its emails show what it would ship, else from the site", () => {
+    expect(artOrigin("preview", "portfolio-abc.vercel.app")).toBe("https://portfolio-abc.vercel.app");
+    expect(artOrigin("production", "portfolio-abc.vercel.app")).toBe(SITE_URL);
+    expect(artOrigin(undefined, undefined)).toBe(SITE_URL);
+  });
+
+  test("lives at addresses carrying its version, so new art is never hidden behind what an inbox has kept", () => {
+    expect(emailArtLinks("https://art.test")).toEqual({
+      message: { moving: `https://art.test/api/email/message.gif?v=${ART_VERSION}`, still: `https://art.test/api/email/message-still.gif?v=${ART_VERSION}` },
+      feedback: { moving: `https://art.test/api/email/feedback.gif?v=${ART_VERSION}`, still: `https://art.test/api/email/feedback-still.gif?v=${ART_VERSION}` },
+    });
+    expect(ART_VERSION).toMatch(/^[0-9a-f]{8}$/);
   });
 });

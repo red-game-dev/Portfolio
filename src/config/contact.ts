@@ -1,5 +1,5 @@
 import { SITE_URL } from "@/config/site";
-import { ZONE_ACCENTS } from "@/config/zones";
+import { ZONE_ACCENTS, ZONE_BOUNDARIES } from "@/config/zones";
 import type { EmailTheme } from "@/packages/messaging/contact";
 
 // The site's messages and feedback. They are sent through a mail provider, from an address on the domain it has verified
@@ -24,7 +24,8 @@ export const CONTACT_CONFIG = {
 } as const;
 
 // How the emails look, as the page does: its near black, the panels and their borders, Roboto, a message in the
-// engineering zone's green where the site begins and feedback in the blue of Beyond, where the feedback form is.
+// engineering zone's green where the site begins and feedback in the blue of Beyond, where the feedback form is, and
+// the zones' accents in the order the page crosses them, for the light that passes along the top bar.
 export const EMAIL_THEME: EmailTheme = {
   background: "#0b0b0b",
   panel: "#101010",
@@ -33,6 +34,7 @@ export const EMAIL_THEME: EmailTheme = {
   text: "#d6dcd9",
   muted: "#8a948f",
   accents: { message: ZONE_ACCENTS.matrix, feedback: ZONE_ACCENTS.beyond },
+  journey: ZONE_BOUNDARIES.map(({ zone }) => ZONE_ACCENTS[zone]),
   font: "Roboto, Helvetica, Arial, sans-serif",
   mono: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
   siteUrl: SITE_URL,

@@ -1,7 +1,7 @@
 import type { Mail, MailSender } from "@/packages/server/mail";
 
 import { ContactRequest } from "../domain/types";
-import { contactHtml, EmailTheme, EmailWords } from "./contactHtml";
+import { contactHtml, EmailLook } from "./contactHtml";
 
 // Where a message comes from and goes: the site's sender, the owner's inbox, the site's name for the subject, and how
 // the email looks (without it, plain text alone).
@@ -9,7 +9,7 @@ export interface ContactRoute {
   sender: MailSender;
   to: string;
   site: string;
-  look?: { theme: EmailTheme; words: EmailWords };
+  look?: EmailLook;
 }
 
 // Text with no line breaks, for a subject or a header line a visitor wrote.
@@ -28,7 +28,7 @@ export const contactMail = (request: ContactRequest, route: ContactRoute): Mail 
     to: route.to,
     subject: `[${route.site}] ${subject}`,
     text: `${request.message.trim()}\n\nFrom: ${from}\nSent with the ${request.kind === "feedback" ? "feedback" : "message"} form on ${route.site}`,
-    ...(route.look ? { html: contactHtml(request, subject, name || email ? from : null, route.look.theme, route.look.words) } : {}),
+    ...(route.look ? { html: contactHtml(request, subject, name || email ? from : null, route.look) } : {}),
     ...(email ? { replyTo: email } : {}),
   };
 };

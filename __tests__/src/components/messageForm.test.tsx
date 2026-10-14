@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { MessageForm } from "@/components/Contact/MessageForm";
+import { SECTION_IDS } from "@/config/sections";
 import { portfolioData } from "@/data/resume";
 
 import { stubCanvases } from "./fixtures/canvas";
@@ -196,5 +197,46 @@ describe("the message and feedback form", () => {
     // What the server found wrong shows on its field, as the form's own checks would.
     expect(screen.getByText(forms.shared.problems.emailInvalid)).toBeInTheDocument();
     expect(client.sendContact).not.toHaveBeenCalled();
+  });
+
+  it("plays the zone it sits in: a scan by default, a warp out past the game world at the finale", async () => {
+    const { container, unmount } = renderForm("feedback");
+
+    await waitFor(() => expect(container.querySelector("form")).toHaveAttribute("data-effect", "scan"));
+    unmount();
+
+    const finale = document.createElement("section");
+
+    finale.id = SECTION_IDS.finale;
+    document.body.appendChild(finale);
+
+    const beyond = render(
+      <MessageForm kind="feedback" subject={forms.feedback.subject} email={details.email} contactTime={details.contactTime} words={forms.feedback}
+        shared={forms.shared} />,
+      { container: finale },
+    );
+
+    await waitFor(() => expect(beyond.container.querySelector("form")).toHaveAttribute("data-effect", "warp"));
+    beyond.unmount();
+    finale.remove();
+  });
+
+  it("marks the send button while the message is on its way, and the line saying it went, for their animations", async () => {
+    let finish: (value: unknown) => void = () => undefined;
+
+    client.sendContact.mockImplementation(() => new Promise((resolve) => {
+      finish = resolve;
+    }));
+    renderForm("feedback");
+    await waitFor(() => expect(client.contactIsOpen).toHaveBeenCalled());
+    fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.message)), { target: { value: "More case studies, please." } });
+    fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: forms.shared.sending })).toHaveAttribute("aria-disabled", "true"));
+    expect(screen.getByRole("status")).not.toHaveAttribute("data-sent");
+    await act(async () => {
+      finish({ kind: "sent" });
+    });
+    expect(screen.getByRole("status")).toHaveAttribute("data-sent", "true");
   });
 });

@@ -1,6 +1,8 @@
 import { ChangeEvent, FC, FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 
-import { ActionButton, ActionLink } from "@/components/Controls";
+import { ActionLink } from "@/components/Controls";
+import { switchEffectFor, SwitchEffect } from "@/components/SwitchStage/config";
+import { zoneOf } from "@/components/SwitchStage/zoneOf";
 import useInView from "@/hooks/useInView";
 import {
   CONTACT_LIMITS, ContactDelivery, ContactKind, ContactProblem, contactProblems, ContactRefusal, ContactRequest, DeliveryStatus,
@@ -9,7 +11,9 @@ import { fill } from "@/packages/text/format";
 import { contactFallback } from "@/services/contact/fallback";
 import { FeedbackFormContent, FormsSharedContent, MessageFormContent } from "@/types/forms";
 
-import { Field, Form, Heading, Input, Intro, Label, Marker, Note, Problem, Row, Status, TextArea, Trap } from "./MessageForm.styles";
+import {
+  Field, FieldFrame, FocusTrace, Form, Heading, Input, Intro, Label, Marker, Note, Problem, Row, SendButton, Status, TextArea, Trap,
+} from "./MessageForm.styles";
 
 interface MessageFormProps {
   kind: ContactKind;
@@ -71,6 +75,9 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   // Whether the site can send: not asked yet (null), open, closed, or no answer, when the send button stays.
   const [isOpen, setIsOpen] = useState<DeliveryStatus | null>(null);
   const isNear = useInView(formRef, { once: true, threshold: 0 });
+  // The zone the form sits in, read after mount (the server cannot know), for its focus, sending and sent to play as the
+  // zone's switches do.
+  const [effect, setEffect] = useState<SwitchEffect | null>(null);
   const isMessage = kind === "message";
   const fieldId = (name: FieldName | "trap") => `${id}-${name}`;
   const fallback = useMemo(() => contactFallback(email, subject), [email, subject]);
@@ -121,6 +128,10 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
       void askStatus().then(setIsOpen);
     }
   };
+
+  useEffect(() => {
+    setEffect(switchEffectFor(zoneOf(formRef.current)));
+  }, []);
 
   // Once the message is on its way the fields go, so the line saying so takes focus.
   useEffect(() => {
@@ -213,13 +224,16 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
         {label}
         <Marker>{`(${isRequired ? shared.required : shared.optional})`}</Marker>
       </Label>
-      {isLong ? (
-        <TextArea id={fieldId(name)} name={name} value={values[name]} onChange={onChange(name)} aria-required={isRequired}
-          aria-invalid={problemsOf(name).length > 0} aria-describedby={describedBy(name)} />
-      ) : (
-        <Input id={fieldId(name)} name={name} type={name === "email" ? "email" : "text"} autoComplete={name === "email" ? "email" : "name"}
-          value={values[name]} onChange={onChange(name)} aria-required={isRequired} aria-invalid={problemsOf(name).length > 0} aria-describedby={describedBy(name)} />
-      )}
+      <FieldFrame data-frame="">
+        {isLong ? (
+          <TextArea id={fieldId(name)} name={name} value={values[name]} onChange={onChange(name)} aria-required={isRequired}
+            aria-invalid={problemsOf(name).length > 0} aria-describedby={describedBy(name)} />
+        ) : (
+          <Input id={fieldId(name)} name={name} type={name === "email" ? "email" : "text"} autoComplete={name === "email" ? "email" : "name"}
+            value={values[name]} onChange={onChange(name)} aria-required={isRequired} aria-invalid={problemsOf(name).length > 0} aria-describedby={describedBy(name)} />
+        )}
+        <FocusTrace aria-hidden="true" />
+      </FieldFrame>
       {problemsOf(name).length > 0 && (
         <Problem id={`${fieldId(name)}-problem`}>
           {problemsOf(name).map(problemText)
@@ -230,7 +244,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   );
 
   return (
-    <Form ref={formRef} onSubmit={(event) => void onSubmit(event)} onFocus={onFocus} noValidate aria-labelledby={`${id}-heading`}>
+    <Form ref={formRef} onSubmit={(event) => void onSubmit(event)} onFocus={onFocus} noValidate aria-labelledby={`${id}-heading`} data-effect={effect ?? undefined}>
       <Heading id={`${id}-heading`}>{words.heading}</Heading>
       <Intro>{words.intro}</Intro>
       {state !== "sent" && (
@@ -246,9 +260,9 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
           </Trap>
           <Row>
             {isOpen !== "closed" && (
-              <ActionButton type="submit" isPrimary aria-disabled={state === "sending"}>
+              <SendButton type="submit" isPrimary aria-disabled={state === "sending"}>
                 {state === "sending" ? shared.sending : words.send}
-              </ActionButton>
+              </SendButton>
             )}
             <ActionLink href={mailto} isPrimary={isOpen === "closed"}>{shared.ownApp}</ActionLink>
           </Row>
@@ -256,7 +270,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
           <Note>{shared.privacy}</Note>
         </>
       )}
-      <Status ref={statusRef} role="status" tabIndex={-1}>{status}</Status>
+      <Status ref={statusRef} role="status" tabIndex={-1} data-sent={state === "sent" || undefined}>{status}</Status>
     </Form>
   );
 };

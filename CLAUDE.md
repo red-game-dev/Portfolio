@@ -21,6 +21,8 @@ npx jest __tests__/src/pages/index.test.tsx --watchAll=false   # single test fil
 npx jest -t "renders every section" --watchAll=false           # single test by name
 ANALYZE=true npm run build                   # bundle analysis (@next/bundle-analyzer, does not auto-open)
 npm run timelapse                            # rewrite the repo time-lapse's history from git (commit the JSON)
+npm run email:portrait                       # rewrite the portrait the emails reveal, from the profile picture (commit the JSON)
+HUD_LAB_URL=<deployment> PLAYWRIGHT_CHANNEL=chrome npm run test:hud   # the HUD overlap check against a deployment
 ```
 
 Icons are the free Font Awesome set (`@fortawesome/free-solid-svg-icons`, `free-brands`), installed from the public npm registry with no token. The committed project `.npmrc` points the `@fortawesome` scope at registry.npmjs.org, overriding any global `~/.npmrc` that still routes it to the Pro registry; it must never hold a token, since this repo is public. The few icons the free set lacks (castle, candlestick chart, treasure chest) are drawn in `src/config/icons.ts` on Font Awesome's 512 unit grid.
@@ -50,6 +52,8 @@ Every pull request and push to main runs `.github/workflows/ci.yml`: `npm run li
 `next dev` and `next build` share `.next`, and a dev server started over a production build dies with `ENOENT: .next/fallback-build-manifest.json`. If you do run locally, `rm -rf .next` between the two.
 
 `.playwright-mcp/` holds console logs and page snapshots from those runs and is gitignored.
+
+The voyage's HUD has a layout check of its own in a real browser, since jsdom does no layout: `/hud-lab/` (noindex, linked from nowhere) holds the HUD still with every panel it can show at once (`labVoyage` in `Finale/Voyage/lab`, handed to `VoyageDialog` as its `source` in place of the live game; `?moment=flight|descent&hud=full|compact`), and `e2e/hud.spec.ts` (Playwright, `playwright.config.ts`) measures what each `[data-hud-area]` paints at eleven screen sizes and fails on two panels that overlap or one that leaves the screen. It runs in CI on every Vercel preview (`.github/workflows/hud.yml`, on `deployment_status`). `e2e/hud-known.json` lists the overlaps the HUD has today, so the check guards against new ones; the grid rebuild clears it. Jest ignores `e2e/`.
 
 Hydration mismatches only surface in the browser console, so they are invisible to `tsc`, ESLint, `next build` and jest. All four can be green while the page is broken at runtime. The console check is the only thing that catches them.
 

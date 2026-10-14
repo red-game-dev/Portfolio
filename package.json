@@ -7,12 +7,13 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint src __tests__/src --fix",
-    "lint:check": "eslint src __tests__/src --max-warnings 0",
+    "lint": "eslint src __tests__/src e2e --fix",
+    "lint:check": "eslint src __tests__/src e2e --max-warnings 0",
     "test": "jest --watch",
     "fix:links": "npx @next/codemod new-link .",
     "test:ci": "jest --watchAll=false",
     "test:coverage": "jest --watchAll=false --coverage",
+    "test:hud": "playwright test",
     "timelapse": "node scripts/timelapse.mjs",
     "email:portrait": "node scripts/email-portrait.mjs"
   },
@@ -34,6 +35,7 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "13.0.1",
+    "@playwright/test": "^1.64.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.6.7",

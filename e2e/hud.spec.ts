@@ -28,6 +28,7 @@ const SCREENS = [
   { name: "phone-landscape-large", width: 932, height: 430 },
   { name: "tablet", width: 768, height: 1024 },
   { name: "tablet-landscape", width: 1024, height: 768 },
+  { name: "laptop-small", width: 900, height: 600 },
   { name: "laptop", width: 1280, height: 800 },
   { name: "desktop", width: 1920, height: 1080 },
 ];

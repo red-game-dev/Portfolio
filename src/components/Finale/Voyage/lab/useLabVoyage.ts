@@ -29,12 +29,18 @@ const startingSnapshot = (): VoyageSnapshot => {
   return simulation.snapshot;
 };
 
-// Every panel the HUD can show in flight at once, each at its longest: a locked target and the universe's boss with
-// long names, a rock on its way, a call for help, a wreck being salvaged, a port alongside, three faults, hurt systems,
-// a boss's attack winding up and a countdown with no fuel to leave.
+// Every panel the HUD can show in flight at once, each at its longest: deep in a maze universe (the longest place there
+// is), a locked target and the universe's boss with long names, a rock on its way, a call for help, a wreck being
+// salvaged, a port alongside, three faults, hurt systems, a boss's attack winding up and a countdown with no fuel to
+// leave.
 export const worstFlight = (base: VoyageSnapshot): VoyageSnapshot => ({
   ...base,
   status: "flying",
+  phase: "universe",
+  universe: 7,
+  universes: 7,
+  universeName: "Kethrionvale",
+  maze: { system: "Vash Toranis", systems: 8, explored: 3, isExit: false },
   hull: base.maxHull * 0.42,
   shields: base.maxShields * 0.3,
   fuel: base.maxFuel * 0.25,

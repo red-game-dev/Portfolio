@@ -3,100 +3,66 @@ import { act, renderHook } from "@testing-library/react";
 import { useFoldedAlerts } from "@/components/Finale/Voyage/hooks/useFoldedAlerts";
 import { SMALL_HUD_SCREEN } from "@/components/Finale/Voyage/hud";
 
-// An IntersectionObserver the test drives: it keeps what it watches and the options it was made with, and hands entries
-// to its callback when told.
-class Observer {
-  public static last: Observer | null = null;
-  public readonly watched: Element[] = [];
-  public readonly options: IntersectionObserverInit;
-  private readonly callback: IntersectionObserverCallback;
+// An element standing where a test puts it: its top on the page, which is all the folding reads.
+const at = <T extends HTMLElement>(element: T, top: number): T => {
+  element.getBoundingClientRect = () => ({ top, left: 0, right: 100, bottom: top + 40, width: 100, height: 40, x: 0, y: top, toJSON: () => ({}) });
 
-  constructor(callback: IntersectionObserverCallback, options: IntersectionObserverInit = {}) {
-    this.callback = callback;
-    this.options = options;
-    Observer.last = this;
-  }
+  return element;
+};
 
-  public observe(element: Element) {
-    this.watched.push(element);
-  }
-
-  public disconnect() {
-    this.watched.length = 0;
-  }
-
-  public unobserve() {
-    return undefined;
-  }
-
-  public takeRecords() {
-    return [];
-  }
-
-  public tell(shares: number[]) {
-    const entries = this.watched.map((target, index) => ({ target, intersectionRatio: shares[index] ?? 1 } as IntersectionObserverEntry));
-
-    this.callback(entries, this as unknown as IntersectionObserver);
-  }
-}
-
-const listOf = (count: number) => {
-  const list = document.createElement("div");
+// A list whose top is at 100, with the line standing for folded alerts and an alert at each top given.
+const listOf = (tops: number[]) => {
+  const list = at(document.createElement("div"), 100);
   const more = document.createElement("button");
 
   more.setAttribute("data-alerts-more", "");
-  list.append(more, ...Array.from({ length: count }, () => document.createElement("section")));
+  list.append(more, ...tops.map((top) => at(document.createElement("section"), top)));
 
   return list;
 };
 
+const foldedOf = (list: HTMLElement) => [...list.querySelectorAll("section")].map((alert) => alert.hasAttribute("data-folded"));
+
 describe("the voyage's alerts", () => {
-  const original = window.IntersectionObserver;
-
-  beforeEach(() => {
-    window.IntersectionObserver = Observer as unknown as typeof IntersectionObserver;
-  });
-
-  afterEach(() => {
-    window.IntersectionObserver = original;
-  });
-
-  it("folds each alert with no whole room, keeping the line's room at the top, and counts them", () => {
-    const list = listOf(3);
+  it("folds every alert with no whole room, and those under the line's room once any is cut", () => {
+    // The first is cut off at the top; the second starts inside the line's 28px; the last has its room.
+    const list = listOf([60, 120, 200]);
     const { result } = renderHook(() => useFoldedAlerts(list, 28, false));
-    const observer = Observer.last as Observer;
-
-    // The line standing for them is never one of them.
-    expect(observer.watched).toHaveLength(3);
-    expect(observer.options.rootMargin).toBe("-28px 0px 0px 0px");
-    act(() => observer.tell([0, 0.5, 1]));
 
     expect(result.current).toBe(2);
-    expect([...list.querySelectorAll("section")].map((alert) => alert.hasAttribute("data-folded"))).toEqual([true, true, false]);
+    expect(foldedOf(list)).toEqual([true, true, false]);
   });
 
-  it("folds nothing while they are opened to be scrolled through, or while there is no list", () => {
-    const list = listOf(2);
-
-    list.querySelectorAll("section").forEach((alert) => alert.setAttribute("data-folded", ""));
-
-    const { result } = renderHook(() => useFoldedAlerts(list, 28, true));
-    const empty = renderHook(() => useFoldedAlerts(null, 28, false));
+  it("keeps an alert that fits whole, even at the very top, while none is cut", () => {
+    const list = listOf([100, 180]);
+    const { result } = renderHook(() => useFoldedAlerts(list, 28, false));
 
     expect(result.current).toBe(0);
-    expect(list.querySelectorAll("[data-folded]")).toHaveLength(0);
-    expect(empty.result.current).toBe(0);
+    expect(foldedOf(list)).toEqual([false, false]);
   });
 
-  it("watches an alert that comes later, as well as those already there", async () => {
-    const list = listOf(1);
+  it("folds nothing while they are opened, keeping the count so the line stays put, and nothing without a list", () => {
+    const list = listOf([60, 200]);
+    const { result, rerender } = renderHook(({ isOpen }) => useFoldedAlerts(list, 28, isOpen), { initialProps: { isOpen: false } });
 
-    renderHook(() => useFoldedAlerts(list, 28, false));
-    list.append(document.createElement("section"));
-    // The list's children are watched afresh once the change is heard.
+    expect(result.current).toBe(1);
+    rerender({ isOpen: true });
+
+    expect(result.current).toBe(1);
+    expect(foldedOf(list)).toEqual([false, false]);
+    expect(renderHook(() => useFoldedAlerts(null, 28, false)).result.current).toBe(0);
+  });
+
+  it("reads them again when an alert comes", async () => {
+    const list = listOf([200]);
+    const { result } = renderHook(() => useFoldedAlerts(list, 28, false));
+
+    expect(result.current).toBe(0);
+    list.prepend(at(document.createElement("section"), 50));
+    // The change is heard, then the alerts are read afresh.
     await act(async () => Promise.resolve());
 
-    expect((Observer.last as Observer).watched).toHaveLength(2);
+    expect(result.current).toBe(1);
   });
 
   it("is compact by itself on a phone held upright and short, and on any phone on its side", () => {

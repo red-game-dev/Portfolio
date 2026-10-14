@@ -73,6 +73,8 @@ const halo = "text-shadow: 0 0 2px #000000, 0 1px 3px rgba(0, 0, 0, 0.9);";
 export const Hud = styled.header(() => [
   tw`absolute inset-0 grid gap-[8px] p-[14px] md:p-[18px] pointer-events-none`,
   css`
+    /* Its own stacking context, so the gradient below sits behind every panel rather than over them. */
+    isolation: isolate;
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-rows: auto auto auto minmax(0, auto) auto minmax(96px, 1fr) auto;
     grid-template-areas:
@@ -94,11 +96,14 @@ export const Hud = styled.header(() => [
       height: 200px;
       background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
       pointer-events: none;
+      z-index: -1;
     }
 
+    /* The column down the left as wide as its bars (and the faults beside them) at most, so a long place or a world's
+       card wraps rather than taking the room the middle needs. */
     ${media.voyageWide} {
       column-gap: 12px;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-columns: fit-content(260px) minmax(0, 1fr) auto;
       grid-template-rows: auto auto minmax(0, 1fr) auto;
       grid-template-areas:
         "place  readout buttons"
@@ -110,7 +115,7 @@ export const Hud = styled.header(() => [
     /* The readout's row is tall enough for the line's strip laid over it. */
     ${media.shortLandscape} {
       column-gap: 12px;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-columns: fit-content(260px) minmax(0, 1fr) auto;
       grid-template-rows: auto minmax(32px, auto) minmax(0, 1fr) auto;
       grid-template-areas:
         "place  buttons buttons"
@@ -435,8 +440,8 @@ export const HudButtons = styled.div(() => [
   `,
 ]);
 
-// The ship's systems, listed only once one of them is hurt, each with a small bar; on the shortest upright phone
-// narrow enough to clear the telemetry beside it.
+// The ship's systems, listed only once one of them is hurt, each with a small bar; a little narrower on the shortest
+// upright phone.
 export const Systems = styled.dl(() => [
   tw`m-0 mt-[4px] flex flex-col gap-[3px] w-[150px] md:w-[210px]`,
   css`
@@ -473,9 +478,8 @@ export const SystemTrack = tw.dd`relative m-0 h-[4px] overflow-hidden bg-[rgba(2
 
 export const Credits = tw.p`m-0 text-[11px] text-[#7d859c] leading-snug`;
 
-// MMO frames: the target under the vitals (on the shortest upright phone narrow enough to clear the telemetry); the
-// boss and any rock headed for a world centred under the HUD on narrow screens and along the bottom where there is
-// room.
+// MMO frames: the target under the vitals (a little narrower on the shortest upright phone); the boss and any rock
+// headed for a world among the alerts.
 export const TargetFrame = styled.section(() => [
   tw`mt-[6px] flex flex-col gap-[3px] w-[150px] md:w-[210px] p-[6px] bg-[rgba(5,8,18,0.7)]`,
   css`
@@ -522,19 +526,24 @@ export const Frames = styled.div(() => [
       visibility: hidden;
     }
 
+    /* Opened, only the alerts themselves take a press (and scroll the list), never the empty room round them, where
+       the ship is steered. */
     &[data-expanded] {
       justify-content: flex-start;
       overflow-y: auto;
-      pointer-events: auto;
       scrollbar-width: thin;
+    }
+
+    &[data-expanded] > * {
+      pointer-events: auto;
     }
   `,
 ]);
 
 // The line standing for the folded alerts, at the top of their room: how many more, pressed to open them all.
 export const AlertsMore = styled.button(() => [
-  tw`absolute top-0 left-1/2 flex items-center justify-center h-[24px] px-[10px] text-[11px] font-semibold text-[#c4d2ff] cursor-pointer pointer-events-auto
-    bg-[rgba(10,14,30,0.85)] border-[1px] border-solid border-[#2a3350] rounded-full`,
+  tw`absolute top-0 left-1/2 flex items-center justify-center h-[24px] px-[10px] text-[11px] font-semibold whitespace-nowrap text-[#c4d2ff]
+    cursor-pointer pointer-events-auto bg-[rgba(10,14,30,0.85)] border-[1px] border-solid border-[#2a3350] rounded-full`,
   css`
     transform: translateX(-50%);
     ${focusRing("#c4d2ff", 2)}
@@ -749,8 +758,7 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
 // The quest followed, under the bars in the left column: its objective and how far along it is, and what it belongs
 // to, read through like the rest of the HUD so it never takes the pointer that steers; only its scroll opens the
 // quest log. On a short upright phone in full it steps aside while a system is hurt or a fault waits, which need its
-// room more (a compact HUD keeps those behind its info button, so the quest stays), and on the shortest, in full,
-// while a world's card rises over the column (marked data-under-card).
+// room more (a compact HUD keeps those behind its info button, so the quest stays).
 export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolean }) => [
   tw`flex flex-row items-center gap-[6px] w-[150px] md:w-[210px] mt-[2px] pl-[8px] py-[4px] pr-[4px]`,
   css`
@@ -759,12 +767,6 @@ export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolea
 
     ${media.shortPortrait} {
       ${isYielding ? "display: none;" : ""}
-    }
-
-    ${media.shortestPortrait} {
-      [data-hud="full"] &[data-under-card] {
-        display: none;
-      }
     }
   `,
 ]);

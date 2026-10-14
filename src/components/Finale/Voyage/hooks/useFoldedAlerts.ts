@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 
-// Short of whole by less than this share, an alert counts as having its room (rounding at the room's edge).
-const WHOLE = 0.99;
+// Room an alert may be short of the top by and still count as whole, for rounding (px).
+const SLACK = 0.5;
 
-// How many of the alerts in a list have no whole room in it, watched as they come and go and as their room changes,
-// each one marked data-folded so it hides and a line can stand for them; `reserve` px at the top are kept for that
-// line. Nothing folds while they are opened to be scrolled through, or while there is no list.
+// How many of the alerts in a list have no whole room in it, each marked data-folded so it hides and a line can stand
+// for them. The alerts stack up from the list's bottom, so it is those at the top that run out of room; once any does,
+// `reserve` px at the top are kept for the line too. Read afresh whenever the list or an alert changes size, or one
+// comes or goes; folding only hides an alert, so it never moves the others. Opened to be scrolled through, nothing is
+// folded and the last count is kept, so the line standing for them stays put while it says how to close them.
 export const useFoldedAlerts = (list: HTMLElement | null, reserve: number, isExpanded: boolean): number => {
   const [folded, setFolded] = useState(0);
 
@@ -18,26 +20,34 @@ export const useFoldedAlerts = (list: HTMLElement | null, reserve: number, isExp
 
     const alerts = () => [...list.children].filter((child) => !child.hasAttribute("data-alerts-more"));
 
-    if (isExpanded || typeof IntersectionObserver === "undefined") {
+    if (isExpanded) {
       alerts().forEach((alert) => alert.removeAttribute("data-folded"));
-      setFolded(0);
 
       return undefined;
     }
 
-    const shares = new Map<Element, number>();
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        shares.set(entry.target, entry.intersectionRatio);
-        entry.target.toggleAttribute("data-folded", entry.intersectionRatio < WHOLE);
+    const refold = () => {
+      const top = list.getBoundingClientRect().top;
+      const shown = alerts();
+      const isCut = shown.some((alert) => alert.getBoundingClientRect().top < top - SLACK);
+      const limit = top + (isCut ? reserve : 0) - SLACK;
+      let count = 0;
+
+      shown.forEach((alert) => {
+        const isFolded = alert.getBoundingClientRect().top < limit;
+
+        alert.toggleAttribute("data-folded", isFolded);
+        count += isFolded ? 1 : 0;
       });
-      setFolded([...shares.values()].filter((share) => share < WHOLE).length);
-    }, { root: list, rootMargin: `-${reserve}px 0px 0px 0px`, threshold: [0, WHOLE, 1] });
-    // Every alert there now, watched afresh whenever one comes or goes.
+      setFolded(count);
+    };
+    const sizes = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(refold);
+    // Every alert there now watched for its size, afresh whenever one comes or goes.
     const watch = () => {
-      observer.disconnect();
-      shares.clear();
-      alerts().forEach((alert) => observer.observe(alert));
+      sizes?.disconnect();
+      sizes?.observe(list);
+      alerts().forEach((alert) => sizes?.observe(alert));
+      refold();
     };
     const changes = new MutationObserver(watch);
 
@@ -45,7 +55,7 @@ export const useFoldedAlerts = (list: HTMLElement | null, reserve: number, isExp
     changes.observe(list, { childList: true });
 
     return () => {
-      observer.disconnect();
+      sizes?.disconnect();
       changes.disconnect();
     };
   }, [list, reserve, isExpanded]);

@@ -777,7 +777,6 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       onKeyUp={voyage.onKeyUp}
       aria-label={content.title}
       data-hud={hud.isCompact ? "compact" : "full"}
-      data-hud-toggle={hud.canCompact ? "" : undefined}
     >
       <Stage
         ref={stageRef}
@@ -838,7 +837,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </MapBar>
       )}
       <Hud hidden={isHudAside} data-hud-layer="">
-        <Place data-hud-place="" data-hud-area="place">{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
+        <Place data-hud-area="place">{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
         <Vitals data-hud-area="vitals">
           {economy && (
             <ShipLine>
@@ -873,7 +872,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </BarsRow>
           )}
           {tracked && status === "flying" && !isHangarOpen && !isChoosing && !isDocked && (
-            <Tracker isYielding={isTroubled && !hud.isCompact} data-under-card={snapshot?.descent || snapshot?.surface ? "" : undefined}>
+            <Tracker isYielding={isTroubled && !hud.isCompact}>
               <TrackerText>
                 <TrackerName>
                   <span>{trackedName}</span>
@@ -1039,7 +1038,6 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           economy?.suggestion || snapshot.dockable || snapshot.distress) && !isHangarOpen && !isHudAside && (
           <Frames
             ref={setAlertsList}
-            data-target={snapshot.target ? "" : undefined}
             data-expanded={isAlertsOpen ? "" : undefined}
             data-hud-layer=""
             data-hud-area="frames"

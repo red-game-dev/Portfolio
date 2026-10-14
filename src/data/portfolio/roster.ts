@@ -134,7 +134,11 @@ export const rosterContent: Pick<PortfolioData, "roster"> = {
           { name: "Encryption & Compression", value: 80 },
         ],
         abilities: ["Smart contracts", "Attack vector defence", "Exchanges and tokens", "Wallets, indexers and bridges"],
-        qualities: ["Audits contracts for attack paths before money moves.", "Ships on chain as if it cannot be patched.", "Builds for exchange and DeFi volume from day one."],
+        qualities: [
+          "Audits contracts for attack paths before money moves.",
+          "Ships on chain as if it cannot be patched.",
+          "Builds for exchange and DeFi volume from day one.",
+        ],
         note: `I design against the known attack vectors: reentrancy, front running and MEV, oracle manipulation, signature replay, broken
         access control, unlimited approvals and flash loan abuse. No change ships without its security review.`,
       },

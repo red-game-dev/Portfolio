@@ -55,50 +55,111 @@ export const LensCanvas = styled.canvas(() => [
 // How to play, always there for a screen reader, whatever card is showing.
 export const ControlsNote = tw.p`sr-only`;
 
-// Static, for legibility over a bright planet; nothing behind it moves the gradient. On a narrow upright phone the
-// buttons leave the place no room beside them, so it stacks: the buttons on their own row, the readout under them, then
-// the place, the ship and the bars at the column's full width.
-export const Hud = styled.header(() => [
-  tw`absolute top-0 left-0 right-0 flex flex-row items-start justify-between gap-[12px] p-[14px] md:p-[18px] pointer-events-none`,
-  css`
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
-    /* A dark halo round every letter, so the readings keep their contrast over the Sun's glare or a day sky. */
-    text-shadow: 0 0 2px #000000, 0 1px 3px rgba(0, 0, 0, 0.9);
+// A dark halo round every letter, so the readings that stand on the view itself keep their contrast over the Sun's glare
+// or a day sky.
+const halo = "text-shadow: 0 0 2px #000000, 0 1px 3px rgba(0, 0, 0, 0.9);";
 
-    ${media.narrowPortrait} {
-      flex-direction: column;
-      gap: 8px;
+// The HUD as one grid over the view, every panel in an area of its own, so none can cover another however long what it
+// says or however many alerts are up (e2e/hud.spec.ts measures it at every size). Three layouts:
+// - a phone held upright (and a tablet held upright): the buttons, the readout and the place each a row across the top,
+//   then the column of bars with the ability bar down the right beside it, the voyage's line, the alerts, and along the
+//   bottom the radar and the telemetry;
+// - a wider screen: the place and the column of bars down the left, the readout and the buttons along the top, the
+//   line and the alerts between the column and the telemetry on the right, the radar and the ability bar along the
+//   bottom;
+// - a phone on its side: as wide, the readout under the buttons and the ability bar between the radar and the corner.
+// The column of bars takes the room it needs, short of the alerts' least, and cuts off what has no room; the alerts take
+// the rest. The line's strip on a phone is the one overlap by design, over the readout and the place for its moment.
+export const Hud = styled.header(() => [
+  tw`absolute inset-0 grid gap-[8px] p-[14px] md:p-[18px] pointer-events-none`,
+  css`
+    /* Its own stacking context, so the gradient below sits behind every panel rather than over them. */
+    isolation: isolate;
+    /* The radar's size as MapLayer draws it: a radius of 58, 44 on a smaller screen, 38 on the smallest. */
+    --radar: 116px;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-rows: auto auto auto minmax(0, auto) auto minmax(96px, 1fr) auto;
+    grid-template-areas:
+      "buttons buttons buttons"
+      "readout readout readout"
+      "place   place   place"
+      "vitals  vitals  bar"
+      "message message bar"
+      "alerts  alerts  bar"
+      "radar   side    side";
+
+    /* Static, for legibility over a bright planet; nothing behind it moves the gradient. */
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+      pointer-events: none;
+      z-index: -1;
     }
 
-    /* Hidden in photo mode. */
+    @media (max-width: 639px), (max-height: 419px) {
+      --radar: 88px;
+    }
+
+    @media (max-height: 359px), (max-width: 299px), (orientation: portrait) and (max-height: 520px) {
+      --radar: 76px;
+    }
+
+    /* Where there is room: the first column exactly the radar's width, so the ability bar spans from the radar to the
+       telemetry along the bottom; the place and the column down the left span it and a second column, together at
+       most 260px wide (as wide as the bars and the faults beside them), so a long place or a world's card wraps
+       rather than taking the room the middle needs. */
+    ${media.voyageWide} {
+      column-gap: 12px;
+      grid-template-columns: var(--radar) fit-content(calc(260px - var(--radar) - 12px)) minmax(0, 1fr) auto;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "place  place  readout buttons"
+        "vitals vitals message ."
+        "vitals vitals alerts  side"
+        "radar  bar    bar     side";
+    }
+
+    /* The readout's row is tall enough for the line's strip laid over it. */
+    ${media.shortLandscape} {
+      column-gap: 12px;
+      grid-template-columns: var(--radar) fit-content(calc(260px - var(--radar) - 12px)) minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(32px, auto) minmax(0, 1fr) auto;
+      grid-template-areas:
+        "place  place  buttons buttons"
+        "vitals vitals readout readout"
+        "vitals vitals alerts  side"
+        "radar  bar    bar     side";
+    }
+
+    /* Hidden in photo mode and on the map. */
     ${honourHidden}
   `,
 ]);
 
-// The column of the place, the ship and the bars; on a narrow upright phone as wide as the screen but short of the
-// ability bar down the right (wider where it folds into two columns), so a long place wraps before it.
+// The column of the ship and the bars, the quest followed, what is hurt and the target; what has no room in its area
+// is cut off rather than reaching another panel.
 export const Vitals = styled.div(() => [
-  tw`flex flex-col gap-[6px] min-w-0`,
+  tw`flex flex-col gap-[6px] min-w-0 min-h-0 overflow-hidden`,
   css`
-    ${media.narrowPortrait} {
-      align-self: stretch;
-      padding-right: 52px;
-    }
-
-    ${media.narrowPortrait} and (max-height: 520px) {
-      padding-right: 84px;
-    }
+    grid-area: vitals;
+    align-self: start;
+    max-height: 100%;
+    ${halo}
   `,
 ]);
 
-// Two lines tall on a phone whatever it says, so the bars below always clear the readout row beside it; on a narrow
-// upright phone the readout sits above it instead, so it takes the lines it needs.
+// Where the ship is, over the column (a row of its own across a phone held upright).
 export const Place = styled.p(() => [
-  tw`m-0 min-h-[40px] md:min-h-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`,
+  tw`m-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`,
   css`
-    ${media.narrowPortrait} {
-      min-height: 0;
-    }
+    grid-area: place;
+    align-self: start;
+    ${halo}
   `,
 ]);
 
@@ -205,22 +266,27 @@ export const BarFill = styled.div(({ colour }: { colour: string }) => [
   `,
 ]);
 
-// Where the ship stands on a world: in the corner the radar keeps in flight, wider on a narrow upright phone where the
-// telemetry steps aside for it (short of the ability bar down the right); on a phone on its side, in the bottom right
-// corner instead (where the telemetry steps aside for it), so it stays clear of the column of bars on the left.
+// Where the ship stands on a world: in the corner the radar keeps in flight (as wide as the screen allows on an
+// upright phone, where the telemetry steps aside for it); on a phone on its side, in the telemetry's corner instead,
+// where it steps aside for it, clear of the column of bars on the left.
 export const SurfaceCard = styled.section(() => [
-  tw`absolute left-[10px] bottom-[10px] md:left-[18px] md:bottom-[18px] m-0 p-[8px] md:p-[12px] flex flex-col gap-[2px] pointer-events-none`,
+  tw`m-0 p-[8px] md:p-[12px] flex flex-col gap-[2px] min-w-0 pointer-events-none`,
   css`
-    max-width: min(44vw, 300px);
+    grid-area: radar;
+    align-self: end;
+    justify-self: start;
+    max-width: min(100%, 300px);
     ${voyagePanel()}
 
-    ${media.narrowPortrait} {
-      max-width: min(70vw, 260px);
+    /* Where there is room it takes the radar's corner and the column's width beside it (the bar keeping to the middle
+       while it shows, the HUD marked data-card). */
+    ${media.voyageWide} {
+      grid-column: 1 / 3;
     }
 
     ${media.shortLandscape} {
-      left: auto;
-      right: 10px;
+      grid-area: side;
+      justify-self: end;
       max-width: min(28vw, 190px);
     }
   `,
@@ -287,8 +353,11 @@ export const SurfaceHint = tw.p`m-0 mt-[4px] text-[11px] md:text-xs text-[#9aa3b
 // The live readings in the bottom right; on a narrow upright phone, where the two would overlap, and on a phone on
 // its side it steps aside while a world's card shows.
 export const TelemetryPanel = styled.section(({ isYielding = false }: { isYielding?: boolean }) => [
-  tw`absolute right-[10px] bottom-[10px] md:right-[18px] md:bottom-[18px] p-[8px] md:p-[12px] pointer-events-none`,
+  tw`p-[8px] md:p-[12px] pointer-events-none`,
   css`
+    grid-area: side;
+    align-self: end;
+    justify-self: end;
     min-width: 170px;
     max-width: min(66vw, 300px);
     ${voyagePanel()}
@@ -299,11 +368,6 @@ export const TelemetryPanel = styled.section(({ isYielding = false }: { isYieldi
 
     ${media.narrowPortrait} {
       ${isYielding ? "display: none;" : ""}
-    }
-
-    /* On the shortest upright phone the column runs down beside it, so a long reading wraps rather than widening it. */
-    ${media.shortestPortrait} {
-      max-width: calc(100vw - 150px);
     }
 
     ${media.shortLandscape} {
@@ -347,18 +411,24 @@ export const TelemetryName = tw.dt`text-[#9aa3bb]`;
 
 export const TelemetryValue = tw.dd`m-0 text-right text-white`;
 
-// On a phone, a row of its own under the buttons, so the place and the bars keep their room; between them where
-// there is space. On a narrow upright phone it heads the column instead, at the right under the buttons, so however
-// it wraps the place starts below it.
+// The score and the purse: a row of its own at the right under the buttons on a phone, between the place and the
+// buttons where there is room.
 export const Readout = styled.dl(() => [
-  tw`m-0 absolute right-[14px] top-[60px] flex flex-row flex-wrap items-center justify-end gap-x-[12px] gap-y-[2px]
-    md:static md:gap-x-[16px] md:gap-y-[4px] text-sm tabular-nums pointer-events-none`,
+  tw`m-0 flex flex-row flex-wrap items-center justify-end gap-x-[12px] gap-y-[2px] md:gap-x-[16px] md:gap-y-[4px] text-sm tabular-nums pointer-events-none`,
   css`
-    ${media.narrowPortrait} {
-      position: static;
-      order: -1;
-      align-self: flex-end;
-      margin-top: 46px;
+    grid-area: readout;
+    justify-self: end;
+    align-self: center;
+    ${halo}
+
+    ${media.voyageWide} {
+      justify-self: center;
+      align-self: start;
+    }
+
+    ${media.shortLandscape} {
+      justify-self: end;
+      align-self: center;
     }
   `,
 ]);
@@ -369,16 +439,13 @@ export const ReadingName = tw.dt`text-xs text-[#9aa3bb]`;
 
 export const ReadingValue = tw.dd`m-0 font-semibold text-white`;
 
-// Beside the place where there is room; on a narrow upright phone a row of their own at the top right, a little
-// smaller where all six would not fit at full size (a foldable's cover screen).
+// The buttons at the top right, a little smaller where all six would not fit at full size (a foldable's cover screen).
 export const HudButtons = styled.div(() => [
   tw`flex flex-row gap-[8px] pointer-events-auto`,
   css`
-    ${media.narrowPortrait} {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-    }
+    grid-area: buttons;
+    justify-self: end;
+    align-self: start;
 
     ${media.narrow} {
       gap: 5px;
@@ -391,8 +458,8 @@ export const HudButtons = styled.div(() => [
   `,
 ]);
 
-// The ship's systems, listed only once one of them is hurt, each with a small bar; on the shortest upright phone
-// narrow enough to clear the telemetry beside it.
+// The ship's systems, listed only once one of them is hurt, each with a small bar; a little narrower on the shortest
+// upright phone.
 export const Systems = styled.dl(() => [
   tw`m-0 mt-[4px] flex flex-col gap-[3px] w-[150px] md:w-[210px]`,
   css`
@@ -429,9 +496,8 @@ export const SystemTrack = tw.dd`relative m-0 h-[4px] overflow-hidden bg-[rgba(2
 
 export const Credits = tw.p`m-0 text-[11px] text-[#7d859c] leading-snug`;
 
-// MMO frames: the target under the vitals (on the shortest upright phone narrow enough to clear the telemetry); the
-// boss and any rock headed for a world centred under the HUD on narrow screens and along the bottom where there is
-// room.
+// MMO frames: the target under the vitals (a little narrower on the shortest upright phone); the boss and any rock
+// headed for a world among the alerts.
 export const TargetFrame = styled.section(() => [
   tw`mt-[6px] flex flex-col gap-[3px] w-[150px] md:w-[210px] p-[6px] bg-[rgba(5,8,18,0.7)]`,
   css`
@@ -443,55 +509,87 @@ export const TargetFrame = styled.section(() => [
   `,
 ]);
 
-// A frame's name and its standing; on the shortest upright phone, where the target's frame is narrow, the standing
-// wraps under the name rather than being cut off.
+// A frame's name and its standing: a long name is cut short with an ellipsis and the standing always shows beside it;
+// on the shortest upright phone, where the target's frame is narrow, the standing wraps under the name instead.
 export const FrameName = styled.p(() => [
-  tw`m-0 flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white truncate`,
+  tw`m-0 flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white min-w-0`,
   css`
     ${media.shortestPortrait} {
       flex-wrap: wrap;
       gap: 0 6px;
-      white-space: normal;
     }
   `,
 ]);
 
-export const FrameMeta = tw.span`text-[10px] md:text-[11px] font-normal text-[#9aa3bb] whitespace-nowrap`;
+export const FrameTitle = tw.span`min-w-0 truncate`;
+
+export const FrameMeta = tw.span`flex-shrink-0 text-[10px] md:text-[11px] font-normal text-[#9aa3bb] whitespace-nowrap`;
 
 export const FrameTrack = tw.div`relative h-[5px] overflow-hidden bg-[rgba(255,255,255,0.12)]`;
 
-// On a phone, above the radar and the telemetry, narrow enough to clear the ability bar down the right edge and
-// clear of the HUD's bars at the top (on the shortest upright phone beside the column, under the bar, since the column
-// reaches down to the telemetry there); above the bar along the bottom where there is room.
+// The room the line standing for alerts with no room keeps at the top of theirs (px).
+export const ALERTS_MORE_PX = 28;
+
+// The alerts in the room between the column and the bottom, stacked up from the bottom, nearest the ship, the most
+// urgent lowest: what has no whole room above them folds away (marked data-folded) under one line saying how many more
+// there are, which opens them all to be scrolled through in the same room (data-expanded).
 export const Frames = styled.div(() => [
-  tw`absolute left-1/2 bottom-[150px] md:bottom-[82px] flex flex-col gap-[6px] pointer-events-none`,
+  tw`relative flex flex-col justify-end gap-[6px] w-full min-h-0 overflow-hidden pointer-events-none`,
   css`
-    width: min(66vw, 420px);
+    grid-area: alerts;
+    justify-self: center;
+    max-width: 420px;
+
+    & > [data-folded] {
+      visibility: hidden;
+    }
+
+    /* Opened, only the alerts themselves take a press (and scroll the list), never the empty room round them, where
+       the ship is steered. */
+    &[data-expanded] {
+      justify-content: flex-start;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    &[data-expanded] > * {
+      pointer-events: auto;
+    }
+  `,
+]);
+
+// The line standing for the folded alerts, at the top of their room: how many more, pressed to open them all.
+export const AlertsMore = styled.button(() => [
+  tw`absolute top-0 left-1/2 flex items-center justify-center h-[24px] px-[10px] text-[11px] font-semibold whitespace-nowrap text-[#c4d2ff]
+    cursor-pointer pointer-events-auto bg-[rgba(10,14,30,0.85)] border-[1px] border-solid border-[#2a3350] rounded-full`,
+  css`
     transform: translateX(-50%);
+    ${focusRing("#c4d2ff", 2)}
 
-    ${media.md} {
-      width: min(88vw, 420px);
-    }
-
-    ${media.shortestPortrait} {
-      left: 140px;
-      right: 8px;
-      width: auto;
+    [data-expanded] > & {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      align-self: center;
       transform: none;
-
-      /* The compact column ends high, so the frames take the room under it, short of the bar folded beside them;
-         beside it still while a target's frame lengthens it (marked data-target). */
-      ${COMPACT}:not([data-target]) {
-        left: 14px;
-        right: 96px;
-      }
     }
+  `,
+]);
 
-    /* On a phone on its side: just above the ability bar along the bottom, narrow enough to clear the radar and the
-       corner cards, below the ship. */
-    ${media.shortLandscape} {
-      bottom: 56px;
-      width: min(36vw, 240px);
+// The room the radar is drawn in on the canvas, bottom left, kept clear of the panels: as big as MapLayer draws it
+// (the HUD's --radar, 14px in from the corner).
+export const RadarSpace = styled.div(() => [
+  tw`pointer-events-none`,
+  css`
+    grid-area: radar;
+    align-self: end;
+    justify-self: start;
+    width: var(--radar);
+    height: var(--radar);
+
+    /* The HUD's own margin is 18px there, the radar's 14px. */
+    ${media.md} {
+      margin: 0 0 -4px -4px;
     }
   `,
 ]);
@@ -515,12 +613,12 @@ export const IconButton = styled.button(() => [
   focusRing("#c4d2ff", 2),
 ]);
 
-// Centred all the way through: a step without a transform would ease towards none and slide the line sideways.
+// Rising into its place, then fading.
 const fadeLine = keyframes`
-  0% { opacity: 0; transform: translate(-50%, 6px); }
-  12% { opacity: 1; transform: translate(-50%, 0); }
-  80% { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, 0); }
+  0% { opacity: 0; transform: translateY(6px); }
+  12% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
 `;
 
 // On a short phone the line is a strip across the top instead, so it eases in from above without moving sideways.
@@ -545,15 +643,13 @@ const STRIP = "@media (max-width: 767px) and (max-height: 720px), (orientation: 
 
 // The same without the movement: there for its moment, then gone.
 const showLine = keyframes`
-  0%, 99% { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, 0); }
+  0%, 99% { opacity: 1; }
+  100% { opacity: 0; }
 `;
 
 // Each moment of the voyage, said once and gone, for as long as "--message-ms" gives it to be read. Keyed per
-// message, so a new one plays from the start. On a phone it sits under the HUD's bars and the quest followed rather
-// than over them, as wide
-// as its words need but narrow enough to clear the ability bar down the right edge, so a long line of the story
-// reads in a few lines without hiding the hull.
+// message, so a new one plays from the start. In its own area of the HUD's grid, between the column and the telemetry,
+// as wide as its words need, so a long line of the story reads in a few lines without hiding anything.
 // A quest done, as a card in the line's place: what kind of quest, its name, what it paid, and for a chapter the line
 // it decoded to. Spans, since it lives in the line's paragraph.
 export const CardText = tw.span`flex flex-col gap-[2px] min-w-0`;
@@ -578,10 +674,13 @@ export const CardLine = styled.span(() => [
 ]);
 
 export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
-  tw`absolute left-1/2 top-[288px] md:top-[84px] m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
+  tw`m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
   css`
+    grid-area: message;
+    justify-self: center;
+    align-self: start;
     width: max-content;
-    max-width: min(66vw, 520px);
+    max-width: min(100%, 520px);
     ${voyagePanel(0.72, 0.35)}
 
     /* Held, while the run is paused or the hangar is open: the fade waits with the line. */
@@ -590,11 +689,6 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
     }
     ${isCard ? "text-align: left; border-left: 2px solid #ff9f5a;" : ""}
     animation: ${fadeLine} var(--message-ms, 2800ms) ease both;
-
-    ${media.md} {
-      width: auto;
-      max-width: min(90vw, 520px);
-    }
 
     ${media.reducedMotion} {
       animation-name: ${showLine};
@@ -605,9 +699,15 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
        buttons, over the place and the readout for its moment, its way to the quest log beside the words rather than
        under them, so up to three lines stay clear of the bars, the ship and the faults. */
     ${STRIP} {
-      top: 54px;
-      left: 8px;
-      right: 8px;
+      position: absolute;
+      inset: 0;
+      grid-area: auto;
+      grid-row: readout-start / place-end;
+      grid-column: 1 / -1;
+      /* Exactly its rows, however much it says: what has no room is cut off, never laid over the bars below. */
+      align-self: stretch;
+      justify-self: stretch;
+      overflow: hidden;
       width: auto;
       max-width: none;
       display: flex;
@@ -625,7 +725,8 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
         margin-left: 0;
       }
 
-      ${isCard ? "justify-content: space-between;" : ""}
+      /* A card starts at its top, so what is cut off for the strip's height is its end, not its name. */
+      ${isCard ? "justify-content: space-between; align-items: flex-start;" : ""}
 
       /* The chip beside it says it is a quest, so the card's kind gives its room to the chapter's line. */
       ${CardTitle} {
@@ -638,7 +739,7 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
 
       ${CardLine} {
         display: -webkit-box;
-        -webkit-line-clamp: 3;
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         font-size: 11px;
@@ -646,38 +747,11 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       }
     }
 
-    /* Where the screen is short enough for the ability bar down the right to start under the readout, the strip
-       stops short of it. */
-    @media (max-width: 767px) and (max-height: 699px) {
-      right: 72px;
-    }
-
-    /* Short of the bar folded into two columns, which a tall line (a quest done) could otherwise reach, and with its
-       way to the quest log under the words, which the narrower strip has no room for beside them. */
-    ${media.shortestPortrait} {
-      right: 96px;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    /* On its side the bar runs along the bottom, so the strip keeps its width; and the bars sit higher, so it starts
-       beside their column rather than across it (a wider column from the tablet breakpoint up). */
+    /* On a phone on its side the strip lies over the readout's row only, beside the column of bars. */
     ${media.shortLandscape} {
-      left: 176px;
-      right: 8px;
-
-      /* Past the compact HUD's info button beside the bars, where the setting offers it on a phone on its side. */
-      [data-hud-toggle] & {
-        left: 214px;
-      }
-    }
-
-    @media (orientation: landscape) and (max-height: 500px) and (min-width: 768px) {
-      left: 240px;
-
-      [data-hud-toggle] & {
-        left: 278px;
-      }
+      grid-row: auto;
+      grid-column: auto;
+      grid-area: readout;
     }
 
     /* Kept still, the strip shows without the slide; written after the line's own still rule, which it overrides. */
@@ -692,8 +766,7 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
 // The quest followed, under the bars in the left column: its objective and how far along it is, and what it belongs
 // to, read through like the rest of the HUD so it never takes the pointer that steers; only its scroll opens the
 // quest log. On a short upright phone in full it steps aside while a system is hurt or a fault waits, which need its
-// room more (a compact HUD keeps those behind its info button, so the quest stays), and on the shortest, in full,
-// while a world's card rises over the column (marked data-under-card).
+// room more (a compact HUD keeps those behind its info button, so the quest stays).
 export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolean }) => [
   tw`flex flex-row items-center gap-[6px] w-[150px] md:w-[210px] mt-[2px] pl-[8px] py-[4px] pr-[4px]`,
   css`
@@ -702,12 +775,6 @@ export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolea
 
     ${media.shortPortrait} {
       ${isYielding ? "display: none;" : ""}
-    }
-
-    ${media.shortestPortrait} {
-      [data-hud="full"] &[data-under-card] {
-        display: none;
-      }
     }
   `,
 ]);

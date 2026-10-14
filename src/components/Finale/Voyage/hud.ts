@@ -4,8 +4,9 @@ import type { ScreenBox } from "@/packages/games/voyage";
 export type HudSetting = SitePreferences["voyage-hud"]["options"][number];
 
 // A screen too small for the whole HUD: a phone held upright with under 520px of height, such as a small one with the
-// browser's bars showing (`media.shortestPortrait`, written here for `matchMedia`).
-export const SMALL_HUD_SCREEN = "(orientation: portrait) and (max-height: 520px)";
+// browser's bars showing (`media.shortestPortrait`), or any phone on its side (`media.shortLandscape`), whose column
+// of bars has under 300px to run down; written here for `matchMedia`.
+export const SMALL_HUD_SCREEN = "(orientation: portrait) and (max-height: 520px), (orientation: landscape) and (max-height: 500px)";
 
 export interface HudLayout {
   // Whether the HUD can be compact at all, and so offers its info button.

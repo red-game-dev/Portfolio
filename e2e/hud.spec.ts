@@ -28,6 +28,7 @@ const SCREENS = [
   { name: "phone-landscape-large", width: 932, height: 430 },
   { name: "tablet", width: 768, height: 1024 },
   { name: "tablet-landscape", width: 1024, height: 768 },
+  { name: "laptop-small", width: 900, height: 600 },
   { name: "laptop", width: 1280, height: 800 },
   { name: "desktop", width: 1920, height: 1080 },
 ];
@@ -54,8 +55,7 @@ const radarOf = (width: number, height: number): Area => {
 
 // Every HUD panel on screen by its area, as the parts it paints (its text, and everything inside with a background, a
 // border or an image), each cut to whatever clips it inside the panel: a container stretched wider than what it holds,
-// or a name cut short with an ellipsis, is measured by what shows. The place's own parts, which the strip may cover,
-// and whether the strip is in force.
+// or a name cut short with an ellipsis, is measured by what shows. And whether the strip is in force.
 const measure = (page: Page, strip: string) => page.evaluate((query) => {
   interface Box {
     left: number;
@@ -125,9 +125,8 @@ const measure = (page: Page, strip: string) => page.evaluate((query) => {
   const areas = [...document.querySelectorAll<HTMLElement>("[data-hud-area]")]
     .map((element) => ({ area: element.dataset.hudArea ?? "", rects: painted(element, []) }))
     .filter(({ rects }) => rects.length > 0);
-  const place = document.querySelector("[data-hud-place]");
 
-  return { areas, place: place ? painted(place, []) : [], isStrip: window.matchMedia(query).matches };
+  return { areas, isStrip: window.matchMedia(query).matches };
 }, strip);
 
 const overlap = (one: Rect, two: Rect) =>
@@ -136,16 +135,9 @@ const overlap = (one: Rect, two: Rect) =>
 const within = (inner: Rect, outer: Rect) =>
   inner.left >= outer.left - SLACK && inner.top >= outer.top - SLACK && inner.right <= outer.right + SLACK && inner.bottom <= outer.bottom + SLACK;
 
-const shared = (one: Rect, two: Rect): Rect => ({
-  left: Math.max(one.left, two.left),
-  top: Math.max(one.top, two.top),
-  right: Math.min(one.right, two.right),
-  bottom: Math.min(one.bottom, two.bottom),
-});
-
-// The overlaps the HUD is known to have today, by screen, moment and layout, as CI's Linux browser measures them, kept so
-// the check guards against new ones; there an entry that no longer happens fails too, so the list only ever shrinks
-// (elsewhere, where fonts render a pixel apart, it is only noted). The grid rebuild clears it.
+// Overlaps the HUD is known to have, by screen, moment and layout, as CI's Linux browser measures them: none since the
+// grid, and a new one is to be fixed rather than listed. An entry that no longer happens fails there too, so the list
+// only ever shrinks (elsewhere, where fonts render a pixel apart, it is only noted).
 const KNOWN = known as Record<string, string[]>;
 
 for (const screen of SCREENS) {
@@ -162,7 +154,7 @@ for (const screen of SCREENS) {
         await page.evaluate(() => document.fonts.ready.then(() => undefined));
         await page.waitForTimeout(800);
 
-        const { areas, place, isStrip } = await measure(page, STRIP);
+        const { areas, isStrip } = await measure(page, STRIP);
         const all = moment === "flight" ? [...areas, radarOf(screen.width, screen.height)] : areas;
         const found = new Set<string>();
         const screenBox = { left: 0, top: 0, right: screen.width, bottom: screen.height };
@@ -182,10 +174,8 @@ for (const screen of SCREENS) {
                 return;
               }
 
-              // On a phone the line is a strip that covers the readout, and the place at the top of the column, for its
-              // moment, as designed.
-              const isDesigned = isStrip && (pair === "message|readout" ||
-                (pair === "message|vitals" && place.some((placeRect) => within(shared(rect, otherRect), placeRect))));
+              // On a phone the line is a strip that covers the readout and the place for its moment, as designed.
+              const isDesigned = isStrip && (pair === "message|readout" || pair === "message|place");
 
               if (!isDesigned) {
                 found.add(pair);

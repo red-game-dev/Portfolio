@@ -650,6 +650,9 @@ export interface FinaleVoyage {
     // "{diameter}", "{target}" and "{seconds}" are replaced.
     incoming: string;
     willMiss: string;
+    // The line standing for the alerts with no room to show ("{count}" is replaced), and the way back from them all.
+    moreAlerts: string;
+    fewerAlerts: string;
   };
   // "{diameter}", "{target}" and "{seconds}" are replaced.
   impactAlert: string;

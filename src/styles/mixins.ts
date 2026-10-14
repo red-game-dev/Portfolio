@@ -21,6 +21,9 @@ export const media = {
   shortestPortrait: "@media (orientation: portrait) and (max-height: 520px)",
   // A phone on its side, of any width: too short for a column down either edge.
   shortLandscape: "@media (orientation: landscape) and (max-height: 500px)",
+  // Wide enough for the voyage's HUD to keep a column down each side with the ship between them: a laptop or desktop,
+  // or a tablet on its side (a phone on its side, shortLandscape, has a layout of its own written after this one).
+  voyageWide: "@media (min-width: 1024px), (min-width: 768px) and (orientation: landscape)",
   // Not a media query: the root's data-motion, set from the reader's switch on the page or their device's reduced
   // motion setting (packages/accessibility/motion), so the page can be kept still from the page itself. Written the
   // same way, `${media.reducedMotion} { ... }`.

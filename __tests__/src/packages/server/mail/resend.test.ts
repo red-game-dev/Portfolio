@@ -27,7 +27,7 @@ describe("sending mail through Resend", () => {
     const { client, calls } = clientAnswering(200);
     const sender = new ResendMailSender("re_test", client);
 
-    expect(await sender.send(mail, "key-1")).toBe("sent");
+    expect(await sender.send(mail, "key-1")).toEqual({ outcome: "sent", status: 200 });
     expect(calls.config).toMatchObject({ baseURL: "https://api.resend.com", headers: { Authorization: "Bearer re_test" }, retry: { retries: 0 } });
     expect(calls.posts[0]).toEqual({
       path: "/emails",
@@ -40,8 +40,8 @@ describe("sending mail through Resend", () => {
   });
 
   test("reads Resend's limits as limited, and anything else that fails as failed", async () => {
-    expect(await new ResendMailSender("re_test", clientAnswering(429).client).send(mail)).toBe("limited");
-    expect(await new ResendMailSender("re_test", clientAnswering(403).client).send(mail)).toBe("failed");
-    expect(await new ResendMailSender("re_test", clientAnswering(0).client).send(mail)).toBe("failed");
+    expect(await new ResendMailSender("re_test", clientAnswering(429).client).send(mail)).toEqual({ outcome: "limited", status: 429 });
+    expect(await new ResendMailSender("re_test", clientAnswering(403).client).send(mail)).toEqual({ outcome: "failed", status: 403 });
+    expect(await new ResendMailSender("re_test", clientAnswering(0).client).send(mail)).toEqual({ outcome: "failed", status: 0 });
   });
 });

@@ -34,7 +34,7 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `server/kv` | `KeyValueStore` with `MemoryStore`, `UpstashStore` (pipelined, through the official client) and `ResilientStore` (memory for a cooldown when the shared store fails): counters, strings with a time to live, and ranked lists that keep each member's best (`RankStore`) |
 | `server/quota` | `SlidingWindowLimiter` and `DailyQuota` over a shared counter (`take` spends one at once and says whether it fit, `refund` gives one back) |
 | `server/mail` | `MailSender`, the port a mail provider answers, and `ResendMailSender` on an instance of the shared API client (no retries, an idempotency key for a retry on purpose) |
-| `contact` | The site's messages and feedback: `isContactRequest`, `contactProblems`, `contactMail` and `ContactService` (bot field, validation, a limit per visitor and a ceiling per day, then the send; a failed send gives its place in the day back) |
+| `messaging/contact` | The site's messages and feedback: `isContactRequest`, `contactProblems`, `contactMail` and `ContactService` (bot field, validation, a limit per visitor and a ceiling per day, then the send; a failed send gives its place in the day back, a refusal that is not the provider's limits marks it down for a while, and each send is logged without the visitor) |
 | `accessibility/motion` | The reduced motion preference, safe to call during server rendering |
 | `accessibility/roving` | `rovingTarget`, where arrows, Home and End move focus in a row of tabs or cards (Home and End can be left to the browser) |
 | `browser/storage` | `readStored` and `writeStored`: guarded localStorage that validates what it reads and survives private windows and full quotas |

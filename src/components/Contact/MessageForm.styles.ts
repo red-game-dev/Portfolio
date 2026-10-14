@@ -16,14 +16,15 @@ export const Label = tw.label`text-sm text-[#d6dcd9]`;
 export const Marker = tw.span`ml-[6px] text-xs text-[#8a948f]`;
 
 const control = [
-  tw`w-full box-border px-[12px] py-[10px] text-sm text-white bg-[#101411] rounded-[2px] border-[1px] border-solid border-[#2c3530]`,
+  // The border is the field's only edge against the panel behind it, so it keeps 3:1 (WCAG 1.4.11).
+  tw`w-full box-border px-[12px] py-[10px] text-sm text-white bg-[#101411] rounded-[2px] border-[1px] border-solid border-[#5f6b65]`,
   css`
     font: inherit;
     min-height: 44px;
     transition: border-color 0.2s ease;
 
     &:hover {
-      border-color: #44514a;
+      border-color: #85928b;
     }
 
     &[aria-invalid="true"] {

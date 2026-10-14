@@ -58,5 +58,9 @@ describe("DailyQuota", () => {
     expect(await fresh.hasRoom()).toBe(true);
     expect(await fresh.take()).toBe(true);
     expect(await fresh.take()).toBe(false);
+
+    // A take refused at the ceiling holds no place, so a send that failed and is refunded frees one.
+    await fresh.refund();
+    expect(await fresh.hasRoom()).toBe(true);
   });
 });

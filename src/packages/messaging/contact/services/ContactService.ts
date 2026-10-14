@@ -1,7 +1,7 @@
 import type { MailSender } from "@/packages/server/mail";
 import type { Limiter } from "@/packages/server/quota";
 
-import { ContactOutcome, ContactStatus } from "../domain/types";
+import { ContactOutcome, ContactRefusal, ContactStatus } from "../domain/types";
 import { isContactRequest } from "../guards/isContactRequest";
 import { ContactRoute, contactMail } from "../mappers/contactMail";
 import { contactProblems } from "../validators/contactProblems";
@@ -13,12 +13,30 @@ export interface SendCeiling {
   refund(): Promise<void>;
 }
 
+// Whether the mail service has been refusing lately, so the form offers the visitor's own email app from the start
+// rather than letting every visitor write a message that fails.
+export interface SendHealth {
+  isDown(): Promise<boolean>;
+  reportDown(): Promise<void>;
+}
+
+// One send, for the log: what became of it, the provider's status (null when nothing was sent) and how long it took.
+// Nothing about the visitor or the message.
+export interface SendRecord {
+  outcome: "sent" | ContactRefusal;
+  providerStatus: number | null;
+  ms: number;
+}
+
 export interface ContactServiceOptions {
   // The way to send and where to, or null when the site has none set up.
   sender: MailSender | null;
   route: ContactRoute | null;
   visitor: Limiter;
   day: SendCeiling;
+  health?: SendHealth;
+  onSend?: (record: SendRecord) => void;
+  now?: () => number;
 }
 
 // The site's messages and feedback: a request is guarded, checked for a bot, validated, counted against the visitor
@@ -32,9 +50,9 @@ export class ContactService {
   }
 
   public async status(): Promise<ContactStatus> {
-    const { sender, route, day } = this.options;
+    const { sender, route, day, health } = this.options;
 
-    return { isOpen: sender !== null && route !== null && await day.hasRoom() };
+    return { isOpen: sender !== null && route !== null && !(await health?.isDown()) && await day.hasRoom() };
   }
 
   public async send(body: unknown, visitor: string): Promise<ContactOutcome> {
@@ -66,14 +84,24 @@ export class ContactService {
       return { error: "full" };
     }
 
-    const outcome = await sender.send(contactMail(body, route));
+    const now = this.options.now ?? Date.now;
+    const started = now();
+    const { outcome, status } = await sender.send(contactMail(body, route));
+    const result: ContactOutcome = outcome === "sent" ? { ok: true } : { error: outcome === "limited" ? "full" : "failed" };
 
-    if (outcome === "sent") {
-      return { ok: true };
+    this.options.onSend?.({ outcome: "ok" in result ? "sent" : result.error, providerStatus: status, ms: now() - started });
+
+    if ("ok" in result) {
+      return result;
     }
 
     await day.refund();
 
-    return { error: outcome === "limited" ? "full" : "failed" };
+    // A refusal that is not the provider's limits (a revoked key, a sender no longer verified) is likely to repeat.
+    if (outcome === "failed") {
+      await this.options.health?.reportDown();
+    }
+
+    return result;
   }
 }

@@ -12,7 +12,13 @@ export interface Mail {
 // a sender not verified, the provider down).
 export type MailOutcome = "sent" | "limited" | "failed";
 
+// The outcome, with the provider's HTTP status (0 when no answer came), for the log.
+export interface MailResult {
+  outcome: MailOutcome;
+  status: number;
+}
+
 // The port a mail provider answers.
 export interface MailSender {
-  send(mail: Mail, idempotencyKey?: string): Promise<MailOutcome>;
+  send(mail: Mail, idempotencyKey?: string): Promise<MailResult>;
 }

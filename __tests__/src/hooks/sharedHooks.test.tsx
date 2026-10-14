@@ -65,13 +65,20 @@ describe("useModalDialog", () => {
     unmount();
   });
 
-  it("closes on a click on the backdrop, not on its content", () => {
+  it("closes on a press on the backdrop, not on its content, nor on a drag out of it that lets go over the backdrop", () => {
     const onClose = jest.fn();
     const { getByLabelText, getByText, unmount } = render(<Modal isOpen onClose={onClose} />);
 
+    fireEvent.pointerDown(getByText("inside"));
     fireEvent.click(getByText("inside"));
     expect(onClose).not.toHaveBeenCalled();
 
+    // Text selected inside, let go over the backdrop: the browser clicks the dialog itself.
+    fireEvent.pointerDown(getByText("inside"));
+    fireEvent.click(getByLabelText("modal"));
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(getByLabelText("modal"));
     fireEvent.click(getByLabelText("modal"));
     expect(onClose).toHaveBeenCalledTimes(1);
     unmount();

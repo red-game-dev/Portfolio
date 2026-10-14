@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { CONTACT_STATUS } from "@/packages/contact";
+import { CONTACT_STATUS } from "@/packages/messaging/contact";
 import { contactVisitor, getContactService } from "@/services/contact/server";
 import { clientAddress, isSameOrigin } from "@/services/http/request";
 

@@ -20,11 +20,11 @@ describe("the form's client", () => {
     expect(await contactIsOpen()).toBe(false);
   });
 
-  test("reads a refusal from its status, and a server that cannot be reached as a failure", async () => {
+  test("reads a refusal from its status (a full day and no way to send alike), and a server that cannot be reached as a failure", async () => {
     answering({ ok: true, status: 200, data: { ok: true } });
     expect(await sendContact(MESSAGE)).toEqual({ ok: true });
 
-    const cases: Array<[number, string]> = [[400, "invalid"], [429, "limited"], [503, "full"], [502, "failed"], [500, "failed"], [0, "failed"]];
+    const cases: Array<[number, string]> = [[400, "invalid"], [429, "limited"], [503, "unavailable"], [502, "failed"], [500, "failed"], [0, "failed"]];
 
     for (const [status, error] of cases) {
       answering({ ok: false, status, message: "", isCancelled: false });

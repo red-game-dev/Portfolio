@@ -6,4 +6,4 @@ export { ContactService } from "./services/ContactService";
 export { contactProblems } from "./validators/contactProblems";
 export type { ContactKind, ContactOutcome, ContactProblem, ContactRefusal, ContactRequest, ContactStatus } from "./domain/types";
 export type { ContactRoute } from "./mappers/contactMail";
-export type { ContactServiceOptions, SendCeiling } from "./services/ContactService";
+export type { ContactServiceOptions, SendCeiling, SendHealth, SendRecord } from "./services/ContactService";

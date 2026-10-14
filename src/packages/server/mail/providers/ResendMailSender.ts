@@ -1,6 +1,6 @@
 import { ApiClient } from "@/packages/http/api-client";
 
-import { Mail, MailOutcome, MailSender } from "../domain/types";
+import { Mail, MailResult, MailSender } from "../domain/types";
 
 const RESEND_URL = "https://api.resend.com";
 // Long enough for the provider to answer, short enough that a visitor waiting on the form is not left hanging.
@@ -20,7 +20,7 @@ export class ResendMailSender implements MailSender {
     });
   }
 
-  public async send(mail: Mail, idempotencyKey?: string): Promise<MailOutcome> {
+  public async send(mail: Mail, idempotencyKey?: string): Promise<MailResult> {
     const result = await this.client.post<{ id?: string }>("/emails", {
       from: mail.from,
       to: mail.to,
@@ -30,9 +30,9 @@ export class ResendMailSender implements MailSender {
     }, idempotencyKey ? { headers: { "Idempotency-Key": idempotencyKey } } : {});
 
     if (result.ok) {
-      return "sent";
+      return { outcome: "sent", status: result.status };
     }
 
-    return result.status === 429 ? "limited" : "failed";
+    return { outcome: result.status === 429 ? "limited" : "failed", status: result.status };
   }
 }

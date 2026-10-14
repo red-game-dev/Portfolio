@@ -1,5 +1,5 @@
-import { CONTACT_STATUS, ContactRefusal, ContactRequest } from "@/packages/contact";
 import { ApiClient } from "@/packages/http/api-client";
+import { CONTACT_STATUS, ContactRefusal, ContactRequest } from "@/packages/messaging/contact";
 
 const ENDPOINT = "/api/contact/";
 
@@ -12,10 +12,10 @@ export const contactIsOpen = async (): Promise<boolean> => {
 };
 
 // A refusal from its status (the form checks a message with the same rules before sending, so it knows what was
-// wrong); a server that cannot be reached, or answers with anything else, failed. Full and unavailable read alike to a
-// visitor: the site cannot send it now.
+// wrong); a server that cannot be reached, or answers with anything else, failed. A full day and no way to send share
+// a status, and read alike to a visitor: the site cannot send it now.
 const refusalOf = (status: number): ContactRefusal => {
-  const found = (Object.keys(CONTACT_STATUS) as ContactRefusal[]).find((refusal) => refusal !== "unavailable" && CONTACT_STATUS[refusal] === status);
+  const found = (Object.keys(CONTACT_STATUS) as ContactRefusal[]).find((refusal) => refusal !== "full" && CONTACT_STATUS[refusal] === status);
 
   return found ?? "failed";
 };

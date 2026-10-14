@@ -2,7 +2,7 @@ import { ChangeEvent, FC, FormEvent, useEffect, useId, useRef, useState } from "
 
 import { ActionButton, ActionLink } from "@/components/Controls";
 import useInView from "@/hooks/useInView";
-import { CONTACT_LIMITS, ContactKind, ContactProblem, contactProblems, ContactRefusal, ContactRequest } from "@/packages/contact";
+import { CONTACT_LIMITS, ContactKind, ContactProblem, contactProblems, ContactRefusal, ContactRequest } from "@/packages/messaging/contact";
 import { fill } from "@/packages/text/format";
 import { FeedbackFormContent, FormsSharedContent, MessageFormContent } from "@/types/forms";
 
@@ -36,6 +36,9 @@ const FIELD_OF: Record<ContactProblem, FieldName | null> = {
 
 const FIELD_ORDER: readonly FieldName[] = ["name", "email", "message"];
 
+// The most of a message a link to the visitor's own email app carries: some mail apps refuse a longer link.
+const MAILTO_MOST = 1800;
+
 // A message to me or feedback, sent by the site, or written in the visitor's own email app with what they typed
 // already in it: the way when the site cannot send now (no way to send set up, or the day's sends used up), when a
 // send is refused or fails, and always beside the send button. Feedback may stay anonymous. Every field has its label
@@ -61,11 +64,15 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
 
     let isCurrent = true;
 
-    void import("@/services/contact/client").then(({ contactIsOpen }) => contactIsOpen()).then((open) => {
-      if (isCurrent) {
-        setIsOpen(open);
-      }
-    });
+    // Code that cannot be loaded (no connection, a new release since the page loaded) reads as the site not sending.
+    void import("@/services/contact/client")
+      .then(({ contactIsOpen }) => contactIsOpen())
+      .catch(() => false)
+      .then((open) => {
+        if (isCurrent) {
+          setIsOpen(open);
+        }
+      });
 
     return () => {
       isCurrent = false;
@@ -79,7 +86,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     }
   }, [state]);
 
-  const mailto = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(values.message.trim())}`;
+  const mailto = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(values.message.trim().slice(0, MAILTO_MOST))}`;
   const onChange = (name: keyof typeof values) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setValues((current) => ({ ...current, [name]: event.target.value }));
   };
@@ -104,6 +111,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     const found = contactProblems(request);
 
     setProblems(found);
+    setState("idle");
 
     if (found.length > 0) {
       const first = FIELD_ORDER.find((name) => found.some((problem) => FIELD_OF[problem] === name));
@@ -117,14 +125,19 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
 
     setState("sending");
 
-    const { sendContact } = await import("@/services/contact/client");
-    const result = await sendContact(request);
+    try {
+      const { sendContact } = await import("@/services/contact/client");
+      const result = await sendContact(request);
 
-    if ("ok" in result) {
-      setValues({ name: "", email: "", message: "", website: "" });
-      setState("sent");
-    } else {
-      setState(result.error);
+      if ("ok" in result) {
+        setValues({ name: "", email: "", message: "", website: "" });
+        setState("sent");
+      } else {
+        setState(result.error);
+      }
+    } catch {
+      // The code that sends could not be loaded: the visitor's own email app is the way.
+      setState("failed");
     }
   };
 
@@ -132,11 +145,12 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   const problemText = (problem: ContactProblem) =>
     fill(shared.problems[problem], { least: CONTACT_LIMITS.messageLeast, most: problem === "nameLong" ? CONTACT_LIMITS.nameMost : CONTACT_LIMITS.messageMost });
   const describedBy = (name: FieldName) => (problemsOf(name).length > 0 ? `${fieldId(name)}-problem` : undefined);
-  const refusal = ({ full: shared.full, limited: shared.limited, invalid: shared.failed, unavailable: shared.failed, failed: shared.failed } as const)[
+  const refusal = ({ full: shared.closed, unavailable: shared.closed, limited: shared.limited, invalid: shared.failed, failed: shared.failed } as const)[
     state as ContactRefusal] ?? null;
+  // Said as it changes: sent, sending, what to fix (the fields say what, the line says so), or that the site cannot send.
   const status = state === "sent"
     ? fill(words.sent, { time: contactTime.toLowerCase() })
-    : state === "sending" ? shared.sending : isOpen === false ? shared.closed : "";
+    : state === "sending" ? shared.sending : problems.length > 0 ? shared.check : isOpen === false ? shared.closed : "";
 
   const field = (name: FieldName, label: string, isRequired: boolean, isLong = false) => (
     <Field>
@@ -172,7 +186,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
           <Trap aria-hidden="true">
             <label htmlFor={fieldId("trap")}>
               {shared.trap}
-              <input id={fieldId("trap")} name="website" type="text" tabIndex={-1} autoComplete="off" value={values.website} onChange={onChange("website")} />
+              <input id={fieldId("trap")} name="contact-extra" type="text" tabIndex={-1} autoComplete="off" value={values.website} onChange={onChange("website")} />
             </label>
           </Trap>
           <Row>

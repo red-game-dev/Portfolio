@@ -32,9 +32,10 @@ export interface FormsSharedContent {
   ownApp: string;
   // A field only a bot sees and fills in: its label.
   trap: string;
-  // The site cannot send now (no way to send set up, or the day's sends used up before the form opened).
+  // The site cannot send now: no way to send set up, the day's sends used up, or the mail service refusing.
   closed: string;
-  full: string;
+  // Said when fields need fixing, while each says what.
+  check: string;
   limited: string;
   failed: string;
   problems: {

@@ -1,16 +1,16 @@
-import { CONTACT_LIMITS, contactMail, contactProblems, ContactService, isContactRequest, SendCeiling } from "@/packages/contact";
+import { CONTACT_LIMITS, contactMail, contactProblems, ContactService, isContactRequest, SendCeiling, SendRecord } from "@/packages/messaging/contact";
 import type { Mail, MailOutcome, MailSender } from "@/packages/server/mail";
 
 const ROUTE = { from: "Site <site@example.test>", to: "inbox@example.test", site: "example.test" };
 const MESSAGE = { kind: "message" as const, message: "Hello, I would like to talk about a role.", email: "visitor@example.test", name: "Ada", subject: "Hiring: CTO" };
 
 // A sender that keeps what it was asked to send and answers as told.
-const senderAnswering = (outcome: MailOutcome) => {
+const senderAnswering = (outcome: MailOutcome, status = outcome === "sent" ? 200 : outcome === "limited" ? 429 : 403) => {
   const sent: Mail[] = [];
   const sender: MailSender = { send: async (mail) => {
     sent.push(mail);
 
-    return outcome;
+    return { outcome, status };
   } };
 
   return { sender, sent };
@@ -116,5 +116,39 @@ describe("the site's messages and feedback", () => {
     const limited = new ContactService({ sender: senderAnswering("limited").sender, route: ROUTE, visitor: visitorAllowing(true), day: ceiling(5).day });
 
     expect(await limited.send(MESSAGE, "visitor")).toEqual({ error: "full" });
+  });
+
+  test("logs each send with its outcome, the provider's status and its time, and nothing about the visitor or the message", async () => {
+    const records: SendRecord[] = [];
+    let now = 1000;
+    const sender: MailSender = { send: async () => {
+      now += 240;
+
+      return { outcome: "sent", status: 200 };
+    } };
+    const service = new ContactService({
+      sender, route: ROUTE, visitor: visitorAllowing(true), day: ceiling(5).day, onSend: (record) => records.push(record), now: () => now,
+    });
+
+    await service.send(MESSAGE, "visitor");
+    expect(records).toEqual([{ outcome: "sent", providerStatus: 200, ms: 240 }]);
+    expect(JSON.stringify(records)).not.toContain("visitor@example.test");
+  });
+
+  test("after the mail service refuses for a reason other than its limits, the site says it cannot send for a while", async () => {
+    let isDown = false;
+    const health = { isDown: async () => isDown, reportDown: async () => {
+      isDown = true;
+    } };
+    const limited = new ContactService({ sender: senderAnswering("limited").sender, route: ROUTE, visitor: visitorAllowing(true), day: ceiling(5).day, health });
+
+    await limited.send(MESSAGE, "visitor");
+    expect(isDown).toBe(false);
+
+    const failing = new ContactService({ sender: senderAnswering("failed").sender, route: ROUTE, visitor: visitorAllowing(true), day: ceiling(5).day, health });
+
+    expect(await failing.status()).toEqual({ isOpen: true });
+    await failing.send(MESSAGE, "visitor");
+    expect(await failing.status()).toEqual({ isOpen: false });
   });
 });

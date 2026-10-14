@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { MemoryStore } from "@/packages/server/kv";
 import { visitorOf } from "@/services/store/visitor";
 

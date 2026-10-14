@@ -39,6 +39,7 @@ describe("the message and feedback form", () => {
 
   it("says what is wrong, field by field, and puts focus on the first wrong one, sending nothing", async () => {
     renderForm("message");
+    await waitFor(() => expect(client.contactIsOpen).toHaveBeenCalled());
     fireEvent.change(screen.getByLabelText(new RegExp(forms.message.message)), { target: { value: "hi" } });
     fireEvent.click(screen.getByRole("button", { name: forms.message.send }));
 
@@ -48,6 +49,7 @@ describe("the message and feedback form", () => {
     expect(email).toHaveFocus();
     expect(screen.getByText(forms.shared.problems.emailMissing)).toBeInTheDocument();
     expect(screen.getByText(/at least 10 characters/)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(forms.shared.check);
     expect(client.sendContact).not.toHaveBeenCalled();
   });
 
@@ -65,8 +67,8 @@ describe("the message and feedback form", () => {
     expect(screen.getByRole("status")).toHaveFocus();
   });
 
-  it("when the day is full, says so and offers the visitor's own email app with what they wrote", async () => {
-    client.sendContact.mockResolvedValue({ error: "full" });
+  it("when the site cannot send it now, says so and offers the visitor's own email app with what they wrote", async () => {
+    client.sendContact.mockResolvedValue({ error: "unavailable" });
     renderForm("message");
     fireEvent.change(screen.getByLabelText(new RegExp(forms.message.email)), { target: { value: "ada@example.test" } });
     fireEvent.change(screen.getByLabelText(new RegExp(forms.message.message)), { target: { value: "Shall we talk about the role?" } });
@@ -75,24 +77,29 @@ describe("the message and feedback form", () => {
     });
 
     expect(client.sendContact).toHaveBeenCalledWith({ kind: "message", message: "Shall we talk about the role?", email: "ada@example.test", subject: "Hiring: CTO" });
-    expect(screen.getByRole("alert")).toHaveTextContent(forms.shared.full);
+    expect(screen.getByRole("alert")).toHaveTextContent(forms.shared.closed);
     expect(screen.getByRole("link", { name: forms.shared.ownApp }))
       .toHaveAttribute("href", `mailto:${details.email}?subject=Hiring%3A%20CTO&body=Shall%20we%20talk%20about%20the%20role%3F`);
   });
 
-  it("when the site cannot send at all, the visitor's own email app is the way, from the start", async () => {
+  it("when the site cannot send at all, or its code cannot load, the visitor's own email app is the way, from the start", async () => {
     client.contactIsOpen.mockResolvedValue(false);
-    renderForm("feedback");
+    const { unmount } = renderForm("feedback");
 
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(forms.shared.closed));
     expect(screen.queryByRole("button", { name: forms.feedback.send })).toBeNull();
     expect(screen.getByRole("link", { name: forms.shared.ownApp })).toBeInTheDocument();
+    unmount();
+
+    client.contactIsOpen.mockRejectedValue(new Error("chunk failed"));
+    renderForm("feedback");
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(forms.shared.closed));
   });
 
   it("keeps the field for bots out of sight and out of reach, and passes on what a bot fills in, for the server to drop", async () => {
     client.sendContact.mockResolvedValue({ ok: true });
     const { container } = renderForm("feedback");
-    const trap = container.querySelector("input[name='website']");
+    const trap = container.querySelector("input[name='contact-extra']");
 
     expect(trap).toHaveAttribute("tabindex", "-1");
     expect(trap?.closest("[aria-hidden='true']")).not.toBeNull();
@@ -103,5 +110,27 @@ describe("the message and feedback form", () => {
       fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
     });
     expect(client.sendContact).toHaveBeenCalledWith(expect.objectContaining({ website: "https://spam.example" }));
+  });
+
+  it("when the code that sends cannot load, says it did not go through and offers the visitor's own email app, never stuck sending", async () => {
+    client.sendContact.mockRejectedValue(new Error("chunk failed"));
+    renderForm("feedback");
+    await waitFor(() => expect(client.contactIsOpen).toHaveBeenCalled());
+    fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.message)), { target: { value: "More case studies, please." } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(forms.shared.failed);
+    expect(screen.getByRole("button", { name: forms.feedback.send })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: forms.shared.ownApp })).toBeInTheDocument();
+  });
+
+  it("keeps a link to the visitor's own email app short enough for every mail app", async () => {
+    renderForm("feedback");
+    await waitFor(() => expect(client.contactIsOpen).toHaveBeenCalled());
+    fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.message)), { target: { value: "a".repeat(3000) } });
+
+    expect(screen.getByRole("link", { name: forms.shared.ownApp }).getAttribute("href")).toMatch(/body=a{1800}$/);
   });
 });

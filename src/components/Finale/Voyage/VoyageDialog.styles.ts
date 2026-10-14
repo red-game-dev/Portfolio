@@ -687,6 +687,9 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
       grid-area: auto;
       grid-row: readout-start / place-end;
       grid-column: 1 / -1;
+      /* Exactly its rows, however much it says: what has no room is cut off, never laid over the bars below. */
+      align-self: stretch;
+      justify-self: stretch;
       overflow: hidden;
       width: auto;
       max-width: none;

@@ -12,6 +12,7 @@ Single-page personal portfolio (Redeemer Pace) built on Next.js **Pages Router**
 npm run dev                                  # dev server (localhost:3000), webpack not Turbopack
 npm run build && npm start                   # production build / serve
 npm run lint                                 # eslint --fix over src/ and __tests__/src/
+npm run lint:check                           # the same without --fix, failing on any warning (what CI runs)
 npx tsc --noEmit                             # typecheck (there is no script for it)
 npm test                                     # jest --watch
 npm run test:ci                              # every suite once
@@ -39,6 +40,8 @@ The repo carries its own agent setup; the skills hold procedure and point back h
 - No MCP configuration is committed: the browser tools the verification needs come with the session.
 
 ## Verifying changes
+
+Every pull request and push to main runs `.github/workflows/ci.yml`: `npm run lint:check`, the typecheck and the whole Jest suite, needing no secrets (the live evals skip themselves).
 
 **Verify against the deployed Vercel preview using the Playwright MCP tools, not a local dev server or local build.** Push the branch, let the preview deploy, then drive Playwright against the preview URL and read its console. Local runs are slow, crash-prone on this machine, and do not reflect what actually ships.
 

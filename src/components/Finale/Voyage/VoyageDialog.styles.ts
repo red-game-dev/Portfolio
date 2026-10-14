@@ -989,8 +989,7 @@ export const Stat = styled.div(({ isWide = false }: { isWide?: boolean }) => [
 ]);
 
 // A card's actions, held at the bottom of the screen while the rest of a long card scrolls under them; always the
-// card's last part, so it reaches the card's edges.
-// A card's actions, kept in view at the foot of a card taller than the screen (marked for the HUD check).
+// card's last part, so it reaches the card's edges (marked for the HUD check, which asks that they stay in view).
 export const CardButtons = styled.div.attrs({ "data-card-actions": "" })(() => [
   tw`flex flex-row flex-wrap gap-[10px] mt-[6px] px-[22px] pt-[12px] pb-[18px] md:px-[28px] md:pb-[24px]`,
   css`

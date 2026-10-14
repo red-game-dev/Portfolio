@@ -1,5 +1,6 @@
 import { expect, Page, test } from "@playwright/test";
 
+import { HUD_MOMENTS, LAB_MOMENTS } from "../src/components/Finale/Voyage/lab/moments";
 import known from "./hud-known.json";
 
 interface Rect {
@@ -33,16 +34,10 @@ const SCREENS = [
   { name: "desktop", width: 1920, height: 1080 },
 ];
 
-// The HUD itself in flight and coming down, in both layouts; and each thing that lies over it or takes its place, in
-// the full HUD: the card before a run, the pause card, the card at a run's end, a perk's choice, the hangar, a port's
-// trade, and photo mode's and the map's bars.
-const HUD_MOMENTS = ["flight", "descent"] as const;
-const OVER_MOMENTS = ["ready", "paused", "over", "perk", "hangar", "station", "photo", "map"] as const;
+// Every moment the lab holds (the HUD itself in flight and coming down, and each thing that lies over it or takes its
+// place), in both layouts.
 const LAYOUTS = ["full", "compact"] as const;
-const CASES = [
-  ...HUD_MOMENTS.flatMap((moment) => LAYOUTS.map((layout) => ({ moment, layout }))),
-  ...OVER_MOMENTS.map((moment) => ({ moment, layout: "full" as const })),
-];
+const CASES = LAB_MOMENTS.flatMap((moment) => LAYOUTS.map((layout) => ({ moment, layout })));
 
 // Room two parts may share, or a part may reach past the screen's edge, for rounding (px).
 const SLACK = 1;
@@ -138,7 +133,11 @@ const measure = (page: Page, strip: string) => page.evaluate((query) => {
   const surfaces = [...document.querySelectorAll<HTMLElement>("[data-hud-surface]")].filter(isShown).map((element) => {
     const { left, top, right, bottom } = element.getBoundingClientRect();
     const holder = element.parentElement;
-    const scrolls = holder !== null && ["auto", "scroll"].includes(getComputedStyle(holder).overflowY) && holder.scrollHeight > holder.clientHeight;
+    const holderStyle = holder ? getComputedStyle(holder) : null;
+    // Taller than the room inside its overlay, so it has to scroll there (not just pushed down by something else).
+    const room = holder && holderStyle ? holder.clientHeight - parseFloat(holderStyle.paddingTop) - parseFloat(holderStyle.paddingBottom) : 0;
+    const scrolls = holder !== null && holderStyle !== null && ["auto", "scroll"].includes(holderStyle.overflowY)
+      && holder.scrollHeight > holder.clientHeight && bottom - top > room;
     const actionsBox = element.querySelector("[data-card-actions]")?.getBoundingClientRect();
     const actions = actionsBox ? { left: actionsBox.left, top: actionsBox.top, right: actionsBox.right, bottom: actionsBox.bottom } : null;
 
@@ -218,7 +217,7 @@ for (const screen of SCREENS) {
       // paused; and a drawer covers a panel of the HUD whole or not at all, never cutting one in two.
       surfaces.forEach((surface) => {
         const isScrolled = surface.kind === "card" && across(surface, screenBox) && surface.top >= -SLACK && surface.scrolls
-          && (surface.actions === null || within(surface.actions, screenBox));
+          && surface.actions !== null && within(surface.actions, screenBox);
 
         if (!within(surface, screenBox) && !isScrolled) {
           found.add(`${surface.kind}|screen`);

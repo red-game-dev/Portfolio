@@ -1,8 +1,9 @@
 import { useMemo, useRef } from "react";
 
 import type { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
+import type { LabMoment } from "@/components/Finale/Voyage/lab/moments";
 import {
-  Armory, armoryView, Career, Hangar, ITEMS, newProfile, Progress, progressView, rackFor, resolveVoyageConfig, SolarSystemSource, stationView, SystemService,
+  Armory, armoryView, Career, GEAR_BASES, Hangar, ITEMS, newProfile, Progress, progressView, rackFor, resolveVoyageConfig, SolarSystemSource, stationView, SystemService,
   VoyageSimulation,
 } from "@/packages/games/voyage";
 import type { RunSummary, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
@@ -11,21 +12,25 @@ import { createSeededRandom } from "@/packages/math/random";
 // Where the voyage dialog gets everything it shows: the live game, or the lab's still life of it.
 export type VoyageSource = typeof useVoyage;
 
-// The moments the lab can hold the HUD at: in flight with everything it can show at once, coming down on a world with
-// its card beside the telemetry, and each thing that lies over the HUD or takes its place: the card before a run, the
-// pause card, the card at a run's end, the choice of a perk, the hangar, a port's trade, photo mode and the map.
-export const LAB_MOMENTS = ["flight", "descent", "ready", "paused", "over", "perk", "hangar", "station", "photo", "map"] as const;
+export type { LabMoment };
 
-export type LabMoment = typeof LAB_MOMENTS[number];
-
-// A run's end with every figure the card shows.
+// A run's end with every figure the card shows, gear found and badges won among them.
 const LAB_SUMMARY: RunSummary = {
   seconds: 754, score: 1234567, places: 9, landings: 3, kills: 42, bestStreak: 7, coin: 1250, exp: 980, levels: 2, level: 6, universes: 2, stars: 4,
-  gear: [], achievements: [], isDaily: false,
+  gear: GEAR_BASES.slice(-3).map((base) => ({ base: base.id, rarity: "legendary" })),
+  achievements: ["firstFlight", "firstLanding", "moonWalker", "redPlanet"],
+  isDaily: false,
 };
 
-// The station round Earth, as a port the ship is docked at.
-const LAB_PORT = { kind: "station" as const, id: "lab-earth", anchor: "earth", faction: -1, seed: 7, depth: 0 };
+// The station round Earth, as a port the ship is docked at, as deep as the lab's universe so every good is on sale.
+const LAB_PORT = { kind: "station" as const, id: "lab-earth", anchor: "earth", faction: -1, seed: 7, depth: 6 };
+
+// Today's sky at its fullest: a shower at its peak, two planets close together and one opposite the Sun.
+const LAB_SKY = [
+  { id: "shower:perseids", kind: "shower" as const, subjects: ["perseids"], isPeak: true },
+  { id: "conjunction:mars:jupiter", kind: "conjunction" as const, subjects: ["mars", "jupiter"], isPeak: false },
+  { id: "opposition:saturn", kind: "opposition" as const, subjects: ["saturn"], isPeak: false },
+];
 
 // Noon UTC on a fixed day, so the lab shows the same sky every time.
 const EPOCH = Date.parse("2026-10-09T12:00:00Z");
@@ -105,7 +110,7 @@ export const labVoyage = (moment: LabMoment, chapter: string): VoyageSource => f
       ...flying,
       ...(moment === "ready" ? { status: "ready" } : {}),
       ...(moment === "over" ? { status: "over" } : {}),
-      ...(moment === "perk" ? { perkOffer: ["hotBarrels", "heavyRounds", "thickPlating"], perks: [] } : {}),
+      ...(moment === "perk" ? { perkOffer: ["hotBarrels", "heavyRounds", "thickPlating"], perks: ["hotBarrels", "thickPlating"] } : {}),
       ...(moment === "station" ? { docked: { kind: "station", anchor: "earth", anchorName: null, faction: null } } : {}),
     };
     const status = { isFlying: true, faults: snapshot.faults, hull: 0.42, fuel: 0.25, shields: 0.3, heat: 0.4 };
@@ -150,11 +155,10 @@ export const labVoyage = (moment: LabMoment, chapter: string): VoyageSource => f
     setHangar: noop,
     act: () => false,
     follow: () => false,
-
     castOff: noop,
     choosePerk: noop,
     composePhoto: () => null,
-    skyToday: [],
+    skyToday: LAB_SKY,
     isReady: true,
     isPaused: moment === "paused",
     isMapOpen: moment === "map",

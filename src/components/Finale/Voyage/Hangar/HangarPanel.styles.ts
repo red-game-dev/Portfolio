@@ -24,23 +24,22 @@ const tint = (share: number) => css`
   background: color-mix(in srgb, var(--tab-accent) ${share}%, transparent);
 `;
 
-// A drawer along the right on wide screens, the whole screen on a phone, over the voyage, lit along its top edge in
-// the open tab's accent.
-// The hangar's and a port's drawer: the whole screen until the HUD has its wide layout (a tablet held upright keeps
-// the phone's, whose rows a narrower drawer would cut in two), then a column on the right beside the HUD's own.
+// The hangar's and a port's drawer over the voyage, lit along its top edge in the open tab's accent: the whole screen
+// until the HUD has its wide layout (a tablet held upright keeps the phone's, whose rows a narrower drawer would cut in
+// two), then a column on the right beside the HUD's own.
 export const Panel = styled.section(() => [
   tw`absolute top-0 right-0 bottom-0 flex flex-col w-full text-white`,
   css`
-    ${media.voyageWide} {
-      width: 460px;
-    }
-
     --tab-accent: #ffd76a;
     --accent: var(--tab-accent);
     background: #05081a;
     border-left: 1px solid ${RIM};
     box-shadow: inset 0 2px 0 var(--tab-accent);
     z-index: 2;
+
+    ${media.voyageWide} {
+      width: 460px;
+    }
   `,
 ]);
 

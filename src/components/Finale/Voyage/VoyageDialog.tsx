@@ -451,10 +451,10 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     setSpoken((lines) => withSpoken(lines, { id: next.id, text }, false));
   };
 
-  // Each line shows for its moment, then the next; held while the run is paused or the hangar is open (its fade held
-  // with it, through the Message's data-held), so pausing gives a reader all the time they need (WCAG 2.2.1), and on
-  // resuming it runs only the time it had left.
-  const isLineHeld = isPaused || isHangarOpen;
+  // Each line shows for its moment, then the next; held while the run is paused or the hangar or a port is open (its
+  // fade held with it, through the Message's data-held), so pausing gives a reader all the time they need (WCAG 2.2.1),
+  // and on resuming it runs only the time it had left.
+  const isLineHeld = isPaused || isHangarOpen || isDocked;
   const lineClock = useRef<{ id: number; startedAt: number; leftMs: number } | null>(null);
 
   useEffect(() => {

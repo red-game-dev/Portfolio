@@ -5,7 +5,8 @@ import { NextSeo } from "next-seo";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
-import type { LabMoment } from "@/components/Finale/Voyage/lab/useLabVoyage";
+import { LAB_MOMENTS } from "@/components/Finale/Voyage/lab/moments";
+import type { LabMoment } from "@/components/Finale/Voyage/lab/moments";
 import { usePreferencesStateHook } from "@/components/Preferences/hooks/usePreferencesStateHook";
 import { CROSSED_ZONES } from "@/config/zones";
 import { portfolioData } from "@/data/resume";
@@ -38,7 +39,7 @@ const LabDialog = dynamic(async () => {
 }, { ssr: false });
 
 // Every moment the lab can hold (the dialog's code, with the list, loads only with the lab dialog).
-const MOMENTS: readonly LabMoment[] = ["flight", "descent", "ready", "paused", "over", "perk", "hangar", "station", "photo", "map"];
+
 
 // The chapter of the story whose decoded line is longest, for the largest card the line's place shows.
 const LONGEST_CHAPTER = Object.entries(portfolioData.finale.voyage.career.story.chapters)
@@ -54,7 +55,7 @@ export default function HudLab() {
   const { query, isReady } = useRouter();
   const { set } = usePreferencesStateHook();
   const [isSet, setIsSet] = useState(false);
-  const moment = MOMENTS.find((name) => name === query.moment) ?? "flight";
+  const moment = LAB_MOMENTS.find((name) => name === query.moment) ?? "flight";
   const layout = LAYOUTS.find((name) => name === query.hud) ?? null;
 
   useEffect(() => {

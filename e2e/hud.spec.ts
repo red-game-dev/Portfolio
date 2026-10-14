@@ -133,11 +133,16 @@ const measure = (page: Page, strip: string) => page.evaluate((query) => {
   const areas = [...document.querySelectorAll<HTMLElement>("[data-hud-area]")]
     .map((element) => ({ area: element.dataset.hudArea ?? "", rects: painted(element, []) }))
     .filter(({ rects }) => rects.length > 0);
-  // What lies over the HUD or takes its place, by kind (a card, a drawer, a bar), as the box it fills.
+  // What lies over the HUD or takes its place, by kind (a card, a drawer, a bar), as the box it fills; and for a card,
+  // whether the overlay it sits in scrolls and where its actions are.
   const surfaces = [...document.querySelectorAll<HTMLElement>("[data-hud-surface]")].filter(isShown).map((element) => {
     const { left, top, right, bottom } = element.getBoundingClientRect();
+    const holder = element.parentElement;
+    const scrolls = holder !== null && ["auto", "scroll"].includes(getComputedStyle(holder).overflowY) && holder.scrollHeight > holder.clientHeight;
+    const actionsBox = element.querySelector("[data-card-actions]")?.getBoundingClientRect();
+    const actions = actionsBox ? { left: actionsBox.left, top: actionsBox.top, right: actionsBox.right, bottom: actionsBox.bottom } : null;
 
-    return { kind: element.dataset.hudSurface ?? "", left, top, right, bottom };
+    return { kind: element.dataset.hudSurface ?? "", left, top, right, bottom, scrolls, actions };
   });
 
   return { areas, surfaces, isStrip: window.matchMedia(query).matches };
@@ -146,8 +151,9 @@ const measure = (page: Page, strip: string) => page.evaluate((query) => {
 const overlap = (one: Rect, two: Rect) =>
   Math.min(one.right, two.right) - Math.max(one.left, two.left) > SLACK && Math.min(one.bottom, two.bottom) - Math.max(one.top, two.top) > SLACK;
 
-const within = (inner: Rect, outer: Rect) =>
-  inner.left >= outer.left - SLACK && inner.top >= outer.top - SLACK && inner.right <= outer.right + SLACK && inner.bottom <= outer.bottom + SLACK;
+const across = (inner: Rect, outer: Rect) => inner.left >= outer.left - SLACK && inner.right <= outer.right + SLACK;
+
+const within = (inner: Rect, outer: Rect) => across(inner, outer) && inner.top >= outer.top - SLACK && inner.bottom <= outer.bottom + SLACK;
 
 // Overlaps the HUD is known to have, by screen, moment and layout, as CI's Linux browser measures them: none since the
 // grid, and a new one is to be fixed rather than listed. An entry that no longer happens fails there too, so the list
@@ -207,10 +213,14 @@ for (const screen of SCREENS) {
         });
       });
 
-      // What lies over the HUD stays on the screen; a card never covers the buttons, so the run can still be closed or
+      // What lies over the HUD stays on the screen, but for a card taller than it, which fits across, scrolls in its
+      // overlay and keeps its actions in view; a card never covers the buttons, so the run can still be closed or
       // paused; and a drawer covers a panel of the HUD whole or not at all, never cutting one in two.
       surfaces.forEach((surface) => {
-        if (!within(surface, screenBox)) {
+        const isScrolled = surface.kind === "card" && across(surface, screenBox) && surface.top >= -SLACK && surface.scrolls
+          && (surface.actions === null || within(surface.actions, screenBox));
+
+        if (!within(surface, screenBox) && !isScrolled) {
           found.add(`${surface.kind}|screen`);
         }
 

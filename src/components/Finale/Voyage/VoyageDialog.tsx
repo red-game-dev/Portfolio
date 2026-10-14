@@ -836,7 +836,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </IconButton>
         </MapBar>
       )}
-      <Hud hidden={isHudAside} data-hud-layer="" data-card={status === "flying" && (snapshot?.descent || snapshot?.surface) ? "" : undefined}>
+      <Hud
+        hidden={isHudAside}
+        data-hud-layer=""
+        data-card={status === "flying" && (snapshot?.descent || snapshot?.surface) ? "" : undefined}
+        data-drawer={isHangarOpen || isDocked ? "" : undefined}
+      >
         <Place data-hud-area="place">{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
         <Vitals data-hud-area="vitals">
           {economy && (
@@ -1199,7 +1204,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       {(status !== "flying" || isPaused) && !isHangarOpen && !isPhoto && (
         <Overlay isPassThrough={status === "flying"}>
-          <Card ref={cardRef} data-hud-surface="card" isPassThrough={status === "flying"} accent={status === "over" ? "#ffd76a" : isAskingToLeave ? "#ff9aa5" : "#c4d2ff"}>
+          <Card
+            ref={cardRef}
+            data-hud-surface="card"
+            isPassThrough={status === "flying"}
+            accent={status === "over" ? "#ffd76a" : isAskingToLeave ? "#ff9aa5" : "#c4d2ff"}
+          >
             {status === "ready" && (
               <>
                 <Title>{content.title}</Title>

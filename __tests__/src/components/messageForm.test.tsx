@@ -5,7 +5,12 @@ import { portfolioData } from "@/data/resume";
 
 import { stubCanvases } from "./fixtures/canvas";
 
-jest.mock("@/services/contact/client", () => ({ contactIsOpen: jest.fn(), sendContact: jest.fn() }));
+jest.mock("@/services/contact/client", () => {
+  const contactIsOpen = jest.fn();
+  const sendContact = jest.fn();
+
+  return { contactIsOpen, sendContact, createContactDelivery: () => ({ isOpen: () => contactIsOpen(), deliver: (request: unknown) => sendContact(request) }) };
+});
 
 const client = jest.requireMock<{ contactIsOpen: jest.Mock; sendContact: jest.Mock }>("@/services/contact/client");
 const { forms, details } = portfolioData;
@@ -54,7 +59,7 @@ describe("the message and feedback form", () => {
   });
 
   it("sends anonymous feedback, then says it is on its way and moves focus to that line", async () => {
-    client.sendContact.mockResolvedValue({ ok: true });
+    client.sendContact.mockResolvedValue({ kind: "sent" });
     renderForm("feedback");
     expect(screen.queryByLabelText(new RegExp(forms.message.name))).toBeNull();
     fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.message)), { target: { value: "More case studies, please." } });
@@ -67,8 +72,8 @@ describe("the message and feedback form", () => {
     expect(screen.getByRole("status")).toHaveFocus();
   });
 
-  it("when the site cannot send it now, says so and offers the visitor's own email app with what they wrote", async () => {
-    client.sendContact.mockResolvedValue({ error: "unavailable" });
+  it("when the day is full, says so and offers the visitor's own email app with what they wrote", async () => {
+    client.sendContact.mockResolvedValue({ kind: "fallback", href: "mailto:x", refusal: "full" });
     renderForm("message");
     fireEvent.change(screen.getByLabelText(new RegExp(forms.message.email)), { target: { value: "ada@example.test" } });
     fireEvent.change(screen.getByLabelText(new RegExp(forms.message.message)), { target: { value: "Shall we talk about the role?" } });
@@ -77,7 +82,7 @@ describe("the message and feedback form", () => {
     });
 
     expect(client.sendContact).toHaveBeenCalledWith({ kind: "message", message: "Shall we talk about the role?", email: "ada@example.test", subject: "Hiring: CTO" });
-    expect(screen.getByRole("alert")).toHaveTextContent(forms.shared.closed);
+    expect(screen.getByRole("alert")).toHaveTextContent(forms.shared.full);
     expect(screen.getByRole("link", { name: forms.shared.ownApp }))
       .toHaveAttribute("href", `mailto:${details.email}?subject=Hiring%3A%20CTO&body=Shall%20we%20talk%20about%20the%20role%3F`);
   });
@@ -97,7 +102,7 @@ describe("the message and feedback form", () => {
   });
 
   it("keeps the field for bots out of sight and out of reach, and passes on what a bot fills in, for the server to drop", async () => {
-    client.sendContact.mockResolvedValue({ ok: true });
+    client.sendContact.mockResolvedValue({ kind: "sent" });
     const { container } = renderForm("feedback");
     const trap = container.querySelector("input[name='contact-extra']");
 
@@ -132,5 +137,24 @@ describe("the message and feedback form", () => {
     fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.message)), { target: { value: "a".repeat(3000) } });
 
     expect(screen.getByRole("link", { name: forms.shared.ownApp }).getAttribute("href")).toMatch(/body=a{1800}$/);
+  });
+
+  it("delivers through whichever delivery it is given, the email app staying the fallback", async () => {
+    const delivery = { isOpen: jest.fn(async () => true), deliver: jest.fn(async () => ({ kind: "invalid" as const, problems: ["emailInvalid" as const] })) };
+
+    render(
+      <MessageForm kind="feedback" subject={forms.feedback.subject} email={details.email} contactTime={details.contactTime} words={forms.feedback}
+        shared={forms.shared} loadDelivery={async () => delivery as never} />,
+    );
+    await waitFor(() => expect(delivery.isOpen).toHaveBeenCalled());
+    fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.message)), { target: { value: "More case studies, please." } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
+    });
+
+    expect(delivery.deliver).toHaveBeenCalledWith({ kind: "feedback", message: "More case studies, please." });
+    // What the server found wrong shows on its field, as the form's own checks would.
+    expect(screen.getByText(forms.shared.problems.emailInvalid)).toBeInTheDocument();
+    expect(client.sendContact).not.toHaveBeenCalled();
   });
 });

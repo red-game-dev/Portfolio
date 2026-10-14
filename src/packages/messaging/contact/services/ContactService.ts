@@ -1,4 +1,4 @@
-import type { MailSender } from "@/packages/server/mail";
+import type { Mailer } from "@/packages/server/mail";
 import type { Limiter } from "@/packages/server/quota";
 
 import { ContactOutcome, ContactRefusal, ContactStatus } from "../domain/types";
@@ -13,30 +13,30 @@ export interface SendCeiling {
   refund(): Promise<void>;
 }
 
-// Whether the mail service has been refusing lately, so the form offers the visitor's own email app from the start
-// rather than letting every visitor write a message that fails.
+// Whether mail has been failing lately, so the form offers the visitor's own email app from the start rather than
+// letting every visitor write a message that fails.
 export interface SendHealth {
   isDown(): Promise<boolean>;
   reportDown(): Promise<void>;
 }
 
-// One send, for the log: what became of it, the provider's status (null when nothing was sent) and how long it took.
-// Nothing about the visitor or the message.
+// One send, for the log: what became of it, which provider tried last and its status (null when nothing was sent) and
+// how long it took. Nothing about the visitor or the message.
 export interface SendRecord {
   outcome: "sent" | ContactRefusal;
+  adapter: string | null;
   providerStatus: number | null;
   ms: number;
 }
 
 export interface ContactServiceOptions {
-  // The way to send and where to, or null when the site has none set up.
-  sender: MailSender | null;
+  // What sends the mail (a mail service over the providers set up) and where to, or null when the site has none.
+  mailer: Mailer | null;
   route: ContactRoute | null;
   visitor: Limiter;
   day: SendCeiling;
   health?: SendHealth;
   onSend?: (record: SendRecord) => void;
-  now?: () => number;
 }
 
 // The site's messages and feedback: a request is guarded, checked for a bot, validated, counted against the visitor
@@ -50,13 +50,13 @@ export class ContactService {
   }
 
   public async status(): Promise<ContactStatus> {
-    const { sender, route, day, health } = this.options;
+    const { mailer, route, day, health } = this.options;
 
-    return { isOpen: sender !== null && route !== null && !(await health?.isDown()) && await day.hasRoom() };
+    return { isOpen: mailer !== null && route !== null && !(await health?.isDown()) && await day.hasRoom() };
   }
 
   public async send(body: unknown, visitor: string): Promise<ContactOutcome> {
-    const { sender, route, day } = this.options;
+    const { mailer, route, day } = this.options;
 
     if (!isContactRequest(body)) {
       return { error: "invalid" };
@@ -72,7 +72,7 @@ export class ContactService {
       return { error: "invalid", problems };
     }
 
-    if (!sender || !route) {
+    if (!mailer || !route) {
       return { error: "unavailable" };
     }
 
@@ -84,12 +84,10 @@ export class ContactService {
       return { error: "full" };
     }
 
-    const now = this.options.now ?? Date.now;
-    const started = now();
-    const { outcome, status } = await sender.send(contactMail(body, route));
-    const result: ContactOutcome = outcome === "sent" ? { ok: true } : { error: outcome === "limited" ? "full" : "failed" };
+    const sent = await mailer.send(contactMail(body, route));
+    const result: ContactOutcome = sent.outcome === "sent" ? { ok: true } : { error: sent.outcome === "limited" ? "full" : "failed" };
 
-    this.options.onSend?.({ outcome: "ok" in result ? "sent" : result.error, providerStatus: status, ms: now() - started });
+    this.options.onSend?.({ outcome: "ok" in result ? "sent" : result.error, adapter: sent.adapter, providerStatus: sent.adapter ? sent.status : null, ms: sent.ms });
 
     if ("ok" in result) {
       return result;
@@ -97,8 +95,8 @@ export class ContactService {
 
     await day.refund();
 
-    // A refusal that is not the provider's limits (a revoked key, a sender no longer verified) is likely to repeat.
-    if (outcome === "failed") {
+    // A refusal that is not the providers' limits (a revoked key, a sender no longer verified) is likely to repeat.
+    if (sent.outcome === "failed") {
       await this.options.health?.reportDown();
     }
 

@@ -1,34 +1,24 @@
 import { ApiClient } from "@/packages/http/api-client";
-import { contactIsOpen, sendContact } from "@/services/contact/client";
 
-const MESSAGE = { kind: "feedback" as const, message: "More case studies, please." };
-
-describe("the form's client", () => {
+describe("the forms' delivery", () => {
   afterEach(() => jest.restoreAllMocks());
 
-  const answering = (result: unknown) => jest.spyOn(ApiClient, "global").mockReturnValue({
-    get: async () => result,
-    post: async () => result,
-  } as unknown as ApiClient);
+  test("is the site's own server first, then the visitor's own email app, the server's channel one for the whole page", async () => {
+    const instance = {
+      get: jest.fn(async () => ({ ok: true, status: 200, data: { isOpen: true } })),
+      post: jest.fn(async () => ({ ok: false, status: 503, message: "", isCancelled: false, data: { error: "full" } })),
+    };
 
-  test("says the site can send only when it says so plainly", async () => {
-    answering({ ok: true, status: 200, data: { isOpen: true } });
-    expect(await contactIsOpen()).toBe(true);
-    answering({ ok: true, status: 200, data: { isOpen: false } });
-    expect(await contactIsOpen()).toBe(false);
-    answering({ ok: false, status: 0, message: "offline", isCancelled: false });
-    expect(await contactIsOpen()).toBe(false);
-  });
+    jest.spyOn(ApiClient, "global").mockReturnValue({ withConfig: () => instance } as unknown as ApiClient);
 
-  test("reads a refusal from its status (a full day and no way to send alike), and a server that cannot be reached as a failure", async () => {
-    answering({ ok: true, status: 200, data: { ok: true } });
-    expect(await sendContact(MESSAGE)).toEqual({ ok: true });
+    const { createContactDelivery } = await import("@/services/contact/client");
+    const card = createContactDelivery("inbox@example.test", "Hiring: CTO");
+    const finale = createContactDelivery("inbox@example.test", "Feedback");
 
-    const cases: Array<[number, string]> = [[400, "invalid"], [429, "limited"], [503, "unavailable"], [502, "failed"], [500, "failed"], [0, "failed"]];
-
-    for (const [status, error] of cases) {
-      answering({ ok: false, status, message: "", isCancelled: false });
-      expect(await sendContact(MESSAGE)).toEqual({ error });
-    }
+    expect(await card.isOpen()).toBe(true);
+    expect(await finale.isOpen()).toBe(true);
+    expect(await card.deliver({ kind: "message", message: "Shall we talk about the role?", email: "a@example.test", subject: "Hiring: CTO" }))
+      .toMatchObject({ kind: "fallback", refusal: "full", href: expect.stringContaining("mailto:inbox@example.test?subject=Hiring%3A%20CTO") });
+    expect(instance.post).toHaveBeenCalledWith("/api/contact/", expect.objectContaining({ kind: "message" }));
   });
 });

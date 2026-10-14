@@ -1,12 +1,15 @@
 import { SITE_URL } from "@/config/site";
 
-// The site's messages and feedback. They are sent from an address on the domain Resend has verified (its integration
-// sets RESEND_EMAIL_DOMAIN; the site's own domain where it does not), to the inbox in CONTACT_INBOX, which is kept in
-// Vercel's environment rather than here. A visitor may send a few an hour, and the site at most the free plan's 100 a
+// The site's messages and feedback. They are sent through a mail provider, from an address on the domain it has verified
+// (the site's own where it names none), to the inbox in CONTACT_INBOX, which is kept in Vercel's environment rather
+// than here. A visitor may send a few an hour, and the site at most the free plan's 100 a
 // day; past either, the form offers the visitor's own email app instead.
 const SITE_DOMAIN = new URL(SITE_URL).hostname.replace(/^www\./, "");
 
 export const CONTACT_CONFIG = {
+  // The mail providers the site sends through, in the order they are tried, from those `services/contact/server.ts`
+  // knows; MAIL_PROVIDERS in the environment (comma separated) sets another order or another provider without a release.
+  mailProviders: ["resend"],
   senderName: "Redeemer Pace's site",
   senderUser: "site",
   domain: SITE_DOMAIN,

@@ -63,6 +63,8 @@ export class ApiClient {
       timeout: options.timeout ?? this.config.timeout,
       retry: this.config.retry,
       signal: options.signal,
+      ...(options.cacheSeconds === undefined ? {} : { cacheTime: options.cacheSeconds }),
+      ...(options.dedupeMs === undefined ? {} : { dedupeTime: options.dedupeMs }),
       strategy: "softFail",
       ...(this.fetcher ? { fetcher: this.fetcher } : {}),
     });

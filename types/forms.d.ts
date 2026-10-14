@@ -36,6 +36,8 @@ export interface FormsSharedContent {
   closed: string;
   // Said when fields need fixing, while each says what.
   check: string;
+  // The day's sends are used up.
+  full: string;
   limited: string;
   failed: string;
   problems: {

@@ -1,8 +1,10 @@
-import { ChangeEvent, FC, FormEvent, useEffect, useId, useRef, useState } from "react";
+import { ChangeEvent, FC, FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { ActionButton, ActionLink } from "@/components/Controls";
 import useInView from "@/hooks/useInView";
-import { CONTACT_LIMITS, ContactKind, ContactProblem, contactProblems, ContactRefusal, ContactRequest } from "@/packages/messaging/contact";
+import {
+  CONTACT_LIMITS, ContactDelivery, ContactKind, ContactProblem, contactProblems, ContactRefusal, ContactRequest, MailtoChannel,
+} from "@/packages/messaging/contact";
 import { fill } from "@/packages/text/format";
 import { FeedbackFormContent, FormsSharedContent, MessageFormContent } from "@/types/forms";
 
@@ -18,7 +20,14 @@ interface MessageFormProps {
   contactTime: string;
   words: MessageFormContent | FeedbackFormContent;
   shared: FormsSharedContent;
+  // How a message is delivered, loaded on first use: the site's own server, then the visitor's email app, unless given
+  // another.
+  loadDelivery?: (address: string, subject: string) => Promise<ContactDelivery>;
 }
+
+// The site's delivery, its code loaded only when the form first needs it.
+const loadSiteDelivery = (address: string, subject: string) =>
+  import("@/services/contact/client").then((module) => module.createContactDelivery(address, subject));
 
 type FieldName = "name" | "email" | "message";
 
@@ -36,15 +45,12 @@ const FIELD_OF: Record<ContactProblem, FieldName | null> = {
 
 const FIELD_ORDER: readonly FieldName[] = ["name", "email", "message"];
 
-// The most of a message a link to the visitor's own email app carries: some mail apps refuse a longer link.
-const MAILTO_MOST = 1800;
-
-// A message to me or feedback, sent by the site, or written in the visitor's own email app with what they typed
-// already in it: the way when the site cannot send now (no way to send set up, or the day's sends used up), when a
-// send is refused or fails, and always beside the send button. Feedback may stay anonymous. Every field has its label
+// A message to me or feedback, delivered through the site's channels (its own server, then the fallback, the visitor's
+// own email app with what they typed already in it): the email app is the way when the site cannot send now (no way to
+// send set up, or the day's sends used up), when a send is refused or fails, and always beside the send button. Feedback may stay anonymous. Every field has its label
 // and says whether it is needed, a wrong one says why and takes focus, what becomes of the message is said as it
 // happens, and a field no person sees catches bots.
-export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contactTime, words, shared }: MessageFormProps) => {
+export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contactTime, words, shared, loadDelivery = loadSiteDelivery }: MessageFormProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLParagraphElement>(null);
   const id = useId();
@@ -55,6 +61,18 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   const isNear = useInView(formRef, { once: true, threshold: 0 });
   const isMessage = kind === "message";
   const fieldId = (name: FieldName | "trap") => `${id}-${name}`;
+  const fallback = useMemo(() => new MailtoChannel(email, subject), [email, subject]);
+  const delivery = useRef<Promise<ContactDelivery> | null>(null);
+  // The delivery, loaded once for this form; a load that failed is tried afresh next time.
+  const deliveryOf = () => {
+    delivery.current ??= loadDelivery(email, subject).catch((error: unknown) => {
+      delivery.current = null;
+
+      throw error;
+    });
+
+    return delivery.current;
+  };
 
   // Whether the site can send is asked once the form is near, with the code that asks loaded only then.
   useEffect(() => {
@@ -65,8 +83,8 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     let isCurrent = true;
 
     // Code that cannot be loaded (no connection, a new release since the page loaded) reads as the site not sending.
-    void import("@/services/contact/client")
-      .then(({ contactIsOpen }) => contactIsOpen())
+    void deliveryOf()
+      .then((loaded) => loaded.isOpen())
       .catch(() => false)
       .then((open) => {
         if (isCurrent) {
@@ -77,6 +95,8 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     return () => {
       isCurrent = false;
     };
+    // Asked once, when the form first comes near.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNear, isOpen]);
 
   // Once the message is on its way the fields go, so the line saying so takes focus.
@@ -86,7 +106,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     }
   }, [state]);
 
-  const mailto = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(values.message.trim().slice(0, MAILTO_MOST))}`;
+  const mailto = fallback.linkFor({ message: values.message });
   const onChange = (name: keyof typeof values) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setValues((current) => ({ ...current, [name]: event.target.value }));
   };
@@ -126,14 +146,16 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     setState("sending");
 
     try {
-      const { sendContact } = await import("@/services/contact/client");
-      const result = await sendContact(request);
+      const result = await (await deliveryOf()).deliver(request);
 
-      if ("ok" in result) {
+      if (result.kind === "sent") {
         setValues({ name: "", email: "", message: "", website: "" });
         setState("sent");
+      } else if (result.kind === "invalid") {
+        setProblems(result.problems);
+        setState("idle");
       } else {
-        setState(result.error);
+        setState(result.refusal ?? "unavailable");
       }
     } catch {
       // The code that sends could not be loaded: the visitor's own email app is the way.
@@ -145,7 +167,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   const problemText = (problem: ContactProblem) =>
     fill(shared.problems[problem], { least: CONTACT_LIMITS.messageLeast, most: problem === "nameLong" ? CONTACT_LIMITS.nameMost : CONTACT_LIMITS.messageMost });
   const describedBy = (name: FieldName) => (problemsOf(name).length > 0 ? `${fieldId(name)}-problem` : undefined);
-  const refusal = ({ full: shared.closed, unavailable: shared.closed, limited: shared.limited, invalid: shared.failed, failed: shared.failed } as const)[
+  const refusal = ({ full: shared.full, unavailable: shared.closed, limited: shared.limited, invalid: shared.failed, failed: shared.failed } as const)[
     state as ContactRefusal] ?? null;
   // Said as it changes: sent, sending, what to fix (the fields say what, the line says so), or that the site cannot send.
   const status = state === "sent"

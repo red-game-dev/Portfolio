@@ -1,7 +1,14 @@
-// One email: who it is from (a sender the provider has verified, "Name <address>"), to, its subject and plain text,
-// and where a reply goes.
+// Who an email is from: a name, and the part of the address before the @. The domain is one the sending provider has
+// verified, so the adapter that sends it supplies it where it names one, and `domain` stands in where it does not.
+export interface MailSender {
+  name: string;
+  user: string;
+  domain: string;
+}
+
+// One email: who it is from, to, its subject and plain text, and where a reply goes.
 export interface Mail {
-  from: string;
+  sender: MailSender;
   to: string;
   subject: string;
   text: string;
@@ -12,13 +19,16 @@ export interface Mail {
 // a sender not verified, the provider down).
 export type MailOutcome = "sent" | "limited" | "failed";
 
-// The outcome, with the provider's HTTP status (0 when no answer came), for the log.
+// The outcome, which adapter it came from (null when none could try), the provider's HTTP status (0 when no answer
+// came) and how long it took, for the log.
 export interface MailResult {
   outcome: MailOutcome;
+  adapter: string | null;
   status: number;
+  ms: number;
 }
 
-// The port a mail provider answers.
-export interface MailSender {
+// What sends mail, as a caller sees it: one adapter, or the service that tries several.
+export interface Mailer {
   send(mail: Mail, idempotencyKey?: string): Promise<MailResult>;
 }

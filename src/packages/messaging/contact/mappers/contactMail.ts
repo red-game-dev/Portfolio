@@ -1,10 +1,10 @@
-import type { Mail } from "@/packages/server/mail";
+import type { Mail, MailSender } from "@/packages/server/mail";
 
 import { ContactRequest } from "../domain/types";
 
-// Where a message comes from and goes: the verified sender, the owner's inbox, and the site's name for the subject.
+// Where a message comes from and goes: the site's sender, the owner's inbox, and the site's name for the subject.
 export interface ContactRoute {
-  from: string;
+  sender: MailSender;
   to: string;
   site: string;
 }
@@ -21,7 +21,7 @@ export const contactMail = (request: ContactRequest, route: ContactRoute): Mail 
   const from = [name, email && `<${email}>`].filter(Boolean).join(" ") || "Anonymous";
 
   return {
-    from: route.from,
+    sender: route.sender,
     to: route.to,
     subject: `[${route.site}] ${subject}`,
     text: `${request.message.trim()}\n\nFrom: ${from}\nSent with the ${request.kind === "feedback" ? "feedback" : "message"} form on ${route.site}`,

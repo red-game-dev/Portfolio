@@ -43,6 +43,7 @@ export const timelapseContent: Pick<PortfolioData, "timelapse"> = {
       { date: "2026-10-06", label: "Blueprints in every zone, and three ways to read the site" },
       { date: "2026-10-07", label: "The live table, the GitHub run, the carousels" },
       { date: "2026-10-08", label: "The CV for AI roles, Ask Red and Beyond" },
+      { date: "2026-10-09", label: "The voyage: fly the real solar system" },
     ],
     play: "Play",
     pause: "Pause",

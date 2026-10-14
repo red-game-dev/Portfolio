@@ -591,10 +591,13 @@ export class VoyageGame extends FrameLoop {
   // What the held keys ask: a turn, a burn and the brake, or a lean the way they point on the screen (x right, y
   // down, -1 to 1) with the burn kept for the way down.
   public setKeys(keys: VoyageKeys): void {
+    const wasKeyed = isKeyed(this.keys);
+
     this.keys = keys;
 
-    // Keys take over from the pointer, which steers again only once it moves after they are let go.
-    if (isKeyed(keys)) {
+    // Keys take over from the pointer, and let go, the ship coasts until the pointer moves again, wherever a mouse
+    // drifted to while they were held.
+    if (wasKeyed || isKeyed(keys)) {
       this.pointer = null;
     }
   }

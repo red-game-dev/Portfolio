@@ -65,8 +65,8 @@ describe("steering the voyage", () => {
     game.point(pointer);
     expect(inputOf(game)).toMatchObject({ aim: null, turn: -1, thrust: 1, brake: true });
 
+    // Let go, the ship coasts, though the mouse moved while the keys were held, until it moves again.
     game.setKeys({ turn: 0, thrust: 0, brake: false, lean: null });
-    game.point(null);
     expect(inputOf(game)).toMatchObject({ aim: null, turn: 0, thrust: 0, brake: false });
     game.point(pointer);
     expect(inputOf(game).aim).not.toBeNull();

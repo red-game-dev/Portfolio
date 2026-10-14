@@ -451,10 +451,10 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
     setSpoken((lines) => withSpoken(lines, { id: next.id, text }, false));
   };
 
-  // Each line shows for its moment, then the next; held while the run is paused or the hangar is open (its fade held
-  // with it, through the Message's data-held), so pausing gives a reader all the time they need (WCAG 2.2.1), and on
-  // resuming it runs only the time it had left.
-  const isLineHeld = isPaused || isHangarOpen;
+  // Each line shows for its moment, then the next; held while the run is paused or the hangar or a port is open (its
+  // fade held with it, through the Message's data-held), so pausing gives a reader all the time they need (WCAG 2.2.1),
+  // and on resuming it runs only the time it had left.
+  const isLineHeld = isPaused || isHangarOpen || isDocked;
   const lineClock = useRef<{ id: number; startedAt: number; leftMs: number } | null>(null);
 
   useEffect(() => {
@@ -797,7 +797,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         {isManual && isTouch && <TouchStick ref={stickRef} aria-hidden="true" />}
       </Stage>
       {isPhoto && (
-        <PhotoBar aria-label={content.career.photo.title}>
+        <PhotoBar aria-label={content.career.photo.title} data-hud-surface="bar">
           <PhotoHint role="status">{content.career.photo.hint}</PhotoHint>
           <PadButtons>
             <IconButton type="button" onClick={() => voyage.look(PHOTO_STEP, 0)} aria-label={content.career.photo.look.left}>
@@ -829,14 +829,19 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </PhotoBar>
       )}
       {isMapView && (
-        <MapBar aria-label={content.map}>
+        <MapBar aria-label={content.map} data-hud-surface="bar">
           <MapTitle>{content.map}</MapTitle>
           <IconButton type="button" onClick={toggleMap} aria-label={content.closeMap}>
             <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
           </IconButton>
         </MapBar>
       )}
-      <Hud hidden={isHudAside} data-hud-layer="" data-card={status === "flying" && (snapshot?.descent || snapshot?.surface) ? "" : undefined}>
+      <Hud
+        hidden={isHudAside}
+        data-hud-layer=""
+        data-card={status === "flying" && (snapshot?.descent || snapshot?.surface) ? "" : undefined}
+        data-drawer={isHangarOpen || isDocked ? "" : undefined}
+      >
         <Place data-hud-area="place">{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
         <Vitals data-hud-area="vitals">
           {economy && (
@@ -1199,7 +1204,12 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       {(status !== "flying" || isPaused) && !isHangarOpen && !isPhoto && (
         <Overlay isPassThrough={status === "flying"}>
-          <Card ref={cardRef} isPassThrough={status === "flying"} accent={status === "over" ? "#ffd76a" : isAskingToLeave ? "#ff9aa5" : "#c4d2ff"}>
+          <Card
+            ref={cardRef}
+            data-hud-surface="card"
+            isPassThrough={status === "flying"}
+            accent={status === "over" ? "#ffd76a" : isAskingToLeave ? "#ff9aa5" : "#c4d2ff"}
+          >
             {status === "ready" && (
               <>
                 <Title>{content.title}</Title>

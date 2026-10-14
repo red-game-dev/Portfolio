@@ -1,5 +1,6 @@
 import { expect, Page, test } from "@playwright/test";
 
+import { HUD_MOMENTS, LAB_MOMENTS } from "../src/components/Finale/Voyage/lab/moments";
 import known from "./hud-known.json";
 
 interface Rect {
@@ -33,8 +34,10 @@ const SCREENS = [
   { name: "desktop", width: 1920, height: 1080 },
 ];
 
-const MOMENTS = ["flight", "descent"] as const;
+// Every moment the lab holds (the HUD itself in flight and coming down, and each thing that lies over it or takes its
+// place), in both layouts.
 const LAYOUTS = ["full", "compact"] as const;
+const CASES = LAB_MOMENTS.flatMap((moment) => LAYOUTS.map((layout) => ({ moment, layout })));
 
 // Room two parts may share, or a part may reach past the screen's edge, for rounding (px).
 const SLACK = 1;
@@ -125,15 +128,31 @@ const measure = (page: Page, strip: string) => page.evaluate((query) => {
   const areas = [...document.querySelectorAll<HTMLElement>("[data-hud-area]")]
     .map((element) => ({ area: element.dataset.hudArea ?? "", rects: painted(element, []) }))
     .filter(({ rects }) => rects.length > 0);
+  // What lies over the HUD or takes its place, by kind (a card, a drawer, a bar), as the box it fills; and for a card,
+  // whether the overlay it sits in scrolls and where its actions are.
+  const surfaces = [...document.querySelectorAll<HTMLElement>("[data-hud-surface]")].filter(isShown).map((element) => {
+    const { left, top, right, bottom } = element.getBoundingClientRect();
+    const holder = element.parentElement;
+    const holderStyle = holder ? getComputedStyle(holder) : null;
+    // Taller than the room inside its overlay, so it has to scroll there (not just pushed down by something else).
+    const room = holder && holderStyle ? holder.clientHeight - parseFloat(holderStyle.paddingTop) - parseFloat(holderStyle.paddingBottom) : 0;
+    const scrolls = holder !== null && holderStyle !== null && ["auto", "scroll"].includes(holderStyle.overflowY)
+      && holder.scrollHeight > holder.clientHeight && bottom - top > room;
+    const actionsBox = element.querySelector("[data-card-actions]")?.getBoundingClientRect();
+    const actions = actionsBox ? { left: actionsBox.left, top: actionsBox.top, right: actionsBox.right, bottom: actionsBox.bottom } : null;
 
-  return { areas, isStrip: window.matchMedia(query).matches };
+    return { kind: element.dataset.hudSurface ?? "", left, top, right, bottom, scrolls, actions };
+  });
+
+  return { areas, surfaces, isStrip: window.matchMedia(query).matches };
 }, strip);
 
 const overlap = (one: Rect, two: Rect) =>
   Math.min(one.right, two.right) - Math.max(one.left, two.left) > SLACK && Math.min(one.bottom, two.bottom) - Math.max(one.top, two.top) > SLACK;
 
-const within = (inner: Rect, outer: Rect) =>
-  inner.left >= outer.left - SLACK && inner.top >= outer.top - SLACK && inner.right <= outer.right + SLACK && inner.bottom <= outer.bottom + SLACK;
+const across = (inner: Rect, outer: Rect) => inner.left >= outer.left - SLACK && inner.right <= outer.right + SLACK;
+
+const within = (inner: Rect, outer: Rect) => across(inner, outer) && inner.top >= outer.top - SLACK && inner.bottom <= outer.bottom + SLACK;
 
 // Overlaps the HUD is known to have, by screen, moment and layout, as CI's Linux browser measures them: none since the
 // grid, and a new one is to be fixed rather than listed. An entry that no longer happens fails there too, so the list
@@ -141,61 +160,93 @@ const within = (inner: Rect, outer: Rect) =>
 const KNOWN = known as Record<string, string[]>;
 
 for (const screen of SCREENS) {
-  for (const moment of MOMENTS) {
-    for (const layout of LAYOUTS) {
-      const name = `${screen.name} ${moment} ${layout}`;
+  for (const { moment, layout } of CASES) {
+    const name = `${screen.name} ${moment} ${layout}`;
+    const isHudMoment = (HUD_MOMENTS as readonly string[]).includes(moment);
 
-      test(`the HUD's panels never overlap or leave the screen: ${name}`, async ({ page }) => {
-        await page.setViewportSize({ width: screen.width, height: screen.height });
-        await page.goto(`/hud-lab/?moment=${moment}&hud=${layout}`, { waitUntil: "domcontentloaded" });
+    test(`the HUD's panels never overlap or leave the screen: ${name}`, async ({ page }) => {
+      await page.setViewportSize({ width: screen.width, height: screen.height });
+      await page.goto(`/hud-lab/?moment=${moment}&hud=${layout}`, { waitUntil: "domcontentloaded" });
+
+      if (isHudMoment) {
         await page.locator("[data-hud-area='bar']").waitFor({ timeout: SHOWN_MS });
         await page.locator("[data-hud-area='message']").waitFor({ timeout: SHOWN_MS });
-        // Measured in the site's own font once it has loaded, and once the line has settled in from its entrance.
-        await page.evaluate(() => document.fonts.ready.then(() => undefined));
-        await page.waitForTimeout(800);
+      } else {
+        await page.locator("[data-hud-surface]").first()
+          .waitFor({ timeout: SHOWN_MS });
+      }
 
-        const { areas, isStrip } = await measure(page, STRIP);
-        const all = moment === "flight" ? [...areas, radarOf(screen.width, screen.height)] : areas;
-        const found = new Set<string>();
-        const screenBox = { left: 0, top: 0, right: screen.width, bottom: screen.height };
+      // Measured in the site's own font once it has loaded, and once the line has settled in from its entrance.
+      await page.evaluate(() => document.fonts.ready.then(() => undefined));
+      await page.waitForTimeout(800);
 
+      const { areas, surfaces, isStrip } = await measure(page, STRIP);
+      const all = moment === "flight" ? [...areas, radarOf(screen.width, screen.height)] : areas;
+      const found = new Set<string>();
+      const screenBox = { left: 0, top: 0, right: screen.width, bottom: screen.height };
+
+      if (isHudMoment) {
         expect(all.map(({ area }) => area), "the line is still showing when measured").toContain("message");
+      }
 
-        all.forEach((one, index) => {
-          if (one.rects.some((rect) => !within(rect, screenBox))) {
-            found.add(`${one.area}|screen`);
+      all.forEach((one, index) => {
+        if (one.rects.some((rect) => !within(rect, screenBox))) {
+          found.add(`${one.area}|screen`);
+        }
+
+        all.slice(index + 1).forEach((other) => {
+          const pair = [one.area, other.area].sort().join("|");
+
+          one.rects.forEach((rect) => other.rects.forEach((otherRect) => {
+            if (!overlap(rect, otherRect)) {
+              return;
+            }
+
+            // On a phone the line is a strip that covers the readout and the place for its moment, as designed.
+            const isDesigned = isStrip && (pair === "message|readout" || pair === "message|place");
+
+            if (!isDesigned) {
+              found.add(pair);
+            }
+          }));
+        });
+      });
+
+      // What lies over the HUD stays on the screen, but for a card taller than it, which fits across, scrolls in its
+      // overlay and keeps its actions in view; a card never covers the buttons, so the run can still be closed or
+      // paused; and a drawer covers a panel of the HUD whole or not at all, never cutting one in two.
+      surfaces.forEach((surface) => {
+        const isScrolled = surface.kind === "card" && across(surface, screenBox) && surface.top >= -SLACK && surface.scrolls
+          && surface.actions !== null && within(surface.actions, screenBox);
+
+        if (!within(surface, screenBox) && !isScrolled) {
+          found.add(`${surface.kind}|screen`);
+        }
+
+        all.forEach((one) => {
+          const touching = one.rects.filter((rect) => overlap(rect, surface));
+
+          if (surface.kind === "card" && one.area === "buttons" && touching.length > 0) {
+            found.add("buttons|card");
           }
 
-          all.slice(index + 1).forEach((other) => {
-            const pair = [one.area, other.area].sort().join("|");
-
-            one.rects.forEach((rect) => other.rects.forEach((otherRect) => {
-              if (!overlap(rect, otherRect)) {
-                return;
-              }
-
-              // On a phone the line is a strip that covers the readout and the place for its moment, as designed.
-              const isDesigned = isStrip && (pair === "message|readout" || pair === "message|place");
-
-              if (!isDesigned) {
-                found.add(pair);
-              }
-            }));
-          });
+          if (surface.kind === "drawer" && touching.length > 0 && !one.rects.every((rect) => within(rect, surface))) {
+            found.add(`${one.area}|drawer`);
+          }
         });
-
-        const expected = KNOWN[name] ?? [];
-        const unexpected = [...found].filter((pair) => !expected.includes(pair));
-        const gone = expected.filter((pair) => !found.has(pair));
-
-        expect(unexpected, `panels overlapping on ${name}: ${JSON.stringify(all)}`).toEqual([]);
-
-        if (process.env.CI) {
-          expect(gone, `no longer overlapping on ${name}: take them out of e2e/hud-known.json`).toEqual([]);
-        } else if (gone.length > 0) {
-          test.info().annotations.push({ type: "no longer overlapping", description: gone.join(", ") });
-        }
       });
-    }
+
+      const expected = KNOWN[name] ?? [];
+      const unexpected = [...found].filter((pair) => !expected.includes(pair));
+      const gone = expected.filter((pair) => !found.has(pair));
+
+      expect(unexpected, `panels overlapping on ${name}: ${JSON.stringify({ all, surfaces })}`).toEqual([]);
+
+      if (process.env.CI) {
+        expect(gone, `no longer overlapping on ${name}: take them out of e2e/hud-known.json`).toEqual([]);
+      } else if (gone.length > 0) {
+        test.info().annotations.push({ type: "no longer overlapping", description: gone.join(", ") });
+      }
+    });
   }
 }

@@ -136,6 +136,12 @@ export const Hud = styled.header(() => [
         "radar  bar    bar     side";
     }
 
+    /* Beside the hangar's or a port's drawer (data-drawer) only the column down the left stays, the ship's state while it
+       is mended or refitted; the rest, inert under the drawer and cut by it, steps aside until it closes. */
+    &[data-drawer] > :not([data-hud-area="place"]):not([data-hud-area="vitals"]) {
+      visibility: hidden;
+    }
+
     /* Hidden in photo mode and on the map. */
     ${honourHidden}
   `,
@@ -983,8 +989,8 @@ export const Stat = styled.div(({ isWide = false }: { isWide?: boolean }) => [
 ]);
 
 // A card's actions, held at the bottom of the screen while the rest of a long card scrolls under them; always the
-// card's last part, so it reaches the card's edges.
-export const CardButtons = styled.div(() => [
+// card's last part, so it reaches the card's edges (marked for the HUD check, which asks that they stay in view).
+export const CardButtons = styled.div.attrs({ "data-card-actions": "" })(() => [
   tw`flex flex-row flex-wrap gap-[10px] mt-[6px] px-[22px] pt-[12px] pb-[18px] md:px-[28px] md:pb-[24px]`,
   css`
     position: sticky;

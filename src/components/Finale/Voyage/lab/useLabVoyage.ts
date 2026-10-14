@@ -1,18 +1,36 @@
 import { useMemo, useRef } from "react";
 
 import type { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
+import type { LabMoment } from "@/components/Finale/Voyage/lab/moments";
 import {
-  Armory, armoryView, Career, Hangar, newProfile, Progress, progressView, resolveVoyageConfig, SolarSystemSource, SystemService, VoyageSimulation,
+  Armory, armoryView, Career, GEAR_BASES, Hangar, ITEMS, newProfile, Progress, progressView, rackFor, resolveVoyageConfig, SolarSystemSource, stationView, SystemService,
+  VoyageSimulation,
 } from "@/packages/games/voyage";
-import type { VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
+import type { RunSummary, VoyageNotice, VoyageSnapshot } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
 
 // Where the voyage dialog gets everything it shows: the live game, or the lab's still life of it.
 export type VoyageSource = typeof useVoyage;
 
-// The moments the lab can hold the HUD at: in flight with everything it can show at once, or coming down on a world
-// with its card beside the telemetry.
-export type LabMoment = "flight" | "descent";
+export type { LabMoment };
+
+// A run's end with every figure the card shows, gear found and badges won among them.
+const LAB_SUMMARY: RunSummary = {
+  seconds: 754, score: 1234567, places: 9, landings: 3, kills: 42, bestStreak: 7, coin: 1250, exp: 980, levels: 2, level: 6, universes: 2, stars: 4,
+  gear: GEAR_BASES.slice(-3).map((base) => ({ base: base.id, rarity: "legendary" })),
+  achievements: ["firstFlight", "firstLanding", "moonWalker", "redPlanet"],
+  isDaily: false,
+};
+
+// The station round Earth, as a port the ship is docked at, as deep as the lab's universe so every good is on sale.
+const LAB_PORT = { kind: "station" as const, id: "lab-earth", anchor: "earth", faction: -1, seed: 7, depth: 6 };
+
+// Today's sky at its fullest: a shower at its peak, two planets close together and one opposite the Sun.
+const LAB_SKY = [
+  { id: "shower:perseids", kind: "shower" as const, subjects: ["perseids"], isPeak: true },
+  { id: "conjunction:mars:jupiter", kind: "conjunction" as const, subjects: ["mars", "jupiter"], isPeak: false },
+  { id: "opposition:saturn", kind: "opposition" as const, subjects: ["saturn"], isPeak: false },
+];
 
 // Noon UTC on a fixed day, so the lab shows the same sky every time.
 const EPOCH = Date.parse("2026-10-09T12:00:00Z");
@@ -87,10 +105,33 @@ export const labVoyage = (moment: LabMoment, chapter: string): VoyageSource => f
     const hangar = new Hangar(profile, { weapons: armory.port() });
     const career = new Career(profile.career);
     const base = startingSnapshot();
-    const snapshot = moment === "descent" ? worstDescent(base) : worstFlight(base);
+    const flying = moment === "descent" ? worstDescent(base) : worstFlight(base);
+    const snapshot: VoyageSnapshot = {
+      ...flying,
+      ...(moment === "ready" ? { status: "ready" } : {}),
+      ...(moment === "over" ? { status: "over" } : {}),
+      ...(moment === "perk" ? { perkOffer: ["hotBarrels", "heavyRounds", "thickPlating"], perks: ["hotBarrels", "thickPlating"] } : {}),
+      ...(moment === "station" ? { docked: { kind: "station", anchor: "earth", anchorName: null, faction: null } } : {}),
+    };
     const status = { isFlying: true, faults: snapshot.faults, hull: 0.42, fuel: 0.25, shields: 0.3, heat: 0.4 };
+    const station = moment === "station"
+      ? stationView(LAB_PORT, {
+        cargo: hangar.view().cargo,
+        coin: hangar.purse.RED,
+        ammo: armory.stock,
+        rack: (type) => rackFor(type, 0),
+        missing: { repair: 0.58, refuel: 0.75, recharge: 0.7 },
+      }, ITEMS)
+      : null;
 
-    return { snapshot, economy: hangar.view(status), career: career.view(), gear: armoryView(armory, hangar, progress), progress: progressView(progress) };
+    return {
+      snapshot,
+      station,
+      economy: hangar.view(status),
+      career: career.view(),
+      gear: armoryView(armory, hangar, progress),
+      progress: progressView(progress),
+    };
   }, []);
 
   return {
@@ -100,28 +141,27 @@ export const labVoyage = (moment: LabMoment, chapter: string): VoyageSource => f
     setCovered: noop,
     transfer: { link: async () => null, file: async () => null, read: async () => null, adopt: noop },
     landing: { time: "compressed", control: "auto" },
-    summary: null,
+    summary: moment === "over" ? LAB_SUMMARY : null,
     isManual: false,
     stickRef,
     drawShip: noop,
     guideSpawn: noop,
     notices,
     takeNotices: noop,
-    isPhoto: false,
+    isPhoto: moment === "photo",
     togglePhoto: noop,
     savePhoto: noop,
-    isHangarOpen: false,
+    isHangarOpen: moment === "hangar",
     setHangar: noop,
     act: () => false,
     follow: () => false,
-    station: null,
     castOff: noop,
     choosePerk: noop,
     composePhoto: () => null,
-    skyToday: [],
+    skyToday: LAB_SKY,
     isReady: true,
-    isPaused: false,
-    isMapOpen: false,
+    isPaused: moment === "paused",
+    isMapOpen: moment === "map",
     play: noop,
     pause: () => false,
     resume: noop,

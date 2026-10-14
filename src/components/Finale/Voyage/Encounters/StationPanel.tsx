@@ -186,7 +186,7 @@ export const StationPanel: FC<StationPanelProps> = ({ content, station, port, on
   };
 
   return (
-    <Panel aria-labelledby="station-heading">
+    <Panel aria-labelledby="station-heading" data-hud-surface="drawer">
       <Header>
         <Heading id="station-heading" ref={headingRef} tabIndex={-1}>{name}</Heading>
         <PurseText>{fillNodes(copy.coin, { coin: price(station.coin) })}</PurseText>

@@ -5,7 +5,8 @@ import { NextSeo } from "next-seo";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
-import type { LabMoment } from "@/components/Finale/Voyage/lab/useLabVoyage";
+import { LAB_MOMENTS } from "@/components/Finale/Voyage/lab/moments";
+import type { LabMoment } from "@/components/Finale/Voyage/lab/moments";
 import { usePreferencesStateHook } from "@/components/Preferences/hooks/usePreferencesStateHook";
 import { CROSSED_ZONES } from "@/config/zones";
 import { portfolioData } from "@/data/resume";
@@ -37,7 +38,8 @@ const LabDialog = dynamic(async () => {
   return LabVoyageDialog;
 }, { ssr: false });
 
-const MOMENTS: readonly LabMoment[] = ["flight", "descent"];
+// Every moment the lab can hold (the dialog's code, with the list, loads only with the lab dialog).
+
 
 // The chapter of the story whose decoded line is longest, for the largest card the line's place shows.
 const LONGEST_CHAPTER = Object.entries(portfolioData.finale.voyage.career.story.chapters)
@@ -45,14 +47,15 @@ const LONGEST_CHAPTER = Object.entries(portfolioData.finale.voyage.career.story.
 const LAYOUTS = ["auto", "compact", "full"] as const;
 
 // The voyage's HUD held still with every panel it can show at once, for a browser to measure at every screen size and
-// fail on any two that overlap (e2e/hud.spec.ts). `?moment=flight|descent` picks what is shown, `?hud=auto|compact|full`
+// fail on any two that overlap (e2e/hud.spec.ts). `?moment=` picks what is shown (flight, descent, or one of the things
+// that lie over the HUD: ready, paused, over, perk, hangar, station, photo, map), `?hud=auto|compact|full`
 // the HUD's layout (setting this browser's voyage-hud setting, as the hangar would, only when it is given). Kept out of
 // search, and linked from nowhere.
 export default function HudLab() {
   const { query, isReady } = useRouter();
   const { set } = usePreferencesStateHook();
   const [isSet, setIsSet] = useState(false);
-  const moment = MOMENTS.find((name) => name === query.moment) ?? "flight";
+  const moment = LAB_MOMENTS.find((name) => name === query.moment) ?? "flight";
   const layout = LAYOUTS.find((name) => name === query.hud) ?? null;
 
   useEffect(() => {

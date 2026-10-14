@@ -92,15 +92,22 @@ describe("the site's messages and feedback", () => {
   test("becomes an email under the visitor's subject, saying who it is from, with replies going straight back", () => {
     const mail = contactMail({ ...MESSAGE, subject: "Hiring:\n CTO" }, ROUTE);
 
-    expect(mail).toMatchObject({ sender: ROUTE.sender, to: ROUTE.to, subject: "[example.test] Hiring: CTO", replyTo: "visitor@example.test" });
+    expect(mail).toMatchObject({ sender: ROUTE.sender, to: ROUTE.to, subject: "Hiring: CTO | example.test", replyTo: "visitor@example.test" });
     expect(mail.text).toContain(MESSAGE.message);
     expect(mail.text).toContain("From: Ada <visitor@example.test>");
 
     const feedback = contactMail({ kind: "feedback", message: "More case studies, please." }, ROUTE);
 
-    expect(feedback.subject).toBe("[example.test] Feedback");
+    expect(feedback.subject).toBe("Feedback | example.test");
     expect(feedback.text).toContain("From: Anonymous");
     expect(feedback.replyTo).toBeUndefined();
+  });
+
+  test("puts the site's name after the form's subject in the inbox, never twice", () => {
+    expect(contactMail({ kind: "feedback", message: "More case studies, please.", subject: "Feedback on your site" }, ROUTE).subject)
+      .toBe("Feedback on your site | example.test");
+    expect(contactMail({ ...MESSAGE, subject: "Hello from Example.test" }, ROUTE).subject).toBe("Hello from Example.test");
+    expect(contactMail({ ...MESSAGE, subject: "  " }, ROUTE).subject).toBe("Message | example.test");
   });
 
   test("is sent under its key once it is valid and neither the visitor nor the day has run out, logged without the visitor", async () => {

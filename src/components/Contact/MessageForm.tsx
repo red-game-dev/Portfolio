@@ -160,7 +160,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     message: values.message,
     ...(values.email.trim() ? { email: values.email.trim() } : {}),
     ...(isMessage && values.name.trim() ? { name: values.name.trim() } : {}),
-    ...(isMessage ? { subject } : {}),
+    subject,
     ...(values.website ? { website: values.website } : {}),
   });
 

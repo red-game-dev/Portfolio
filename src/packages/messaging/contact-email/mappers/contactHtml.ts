@@ -2,7 +2,7 @@ import type { ContactRequest } from "@/packages/messaging/contact";
 import { escapeHtml } from "@/packages/text/format";
 
 import { CONTACT_ART } from "./contactArt";
-import { CONTACT_AVATAR } from "./contactAvatar";
+import { CONTACT_PORTRAIT } from "./contactPortrait";
 
 // How the email looks, given by the site so it matches the page: its background, the panel the message sits in, the
 // accent for each kind of message, the colours of the journey a light passes through along the top bar, its text
@@ -36,11 +36,11 @@ export interface EmailArt {
   still: string;
 }
 
-// The email's art: the top bar for each kind of message (the light passing, `contactArt`) and the portrait beside the
-// header (the site's reveal, `contactAvatar`).
+// The email's art: the top bar for each kind of message (the light passing, `contactArt`) and my portrait beside the
+// header (the site's reveal, `contactPortrait`).
 export interface EmailArtwork {
   bars: Record<ContactRequest["kind"], EmailArt>;
-  avatar?: EmailArt;
+  portrait?: EmailArt;
 }
 
 // Everything the email's look is given: the theme, the words, and the art, without which the bar is plain and there is
@@ -80,28 +80,28 @@ const barRow = (accent: string, art: EmailArt | undefined) => {
   return `<tr><td aria-hidden="true" style="padding:0;line-height:0;font-size:0;${underneath}"><picture>${still}${image}</picture></td></tr>`;
 };
 
-// The portrait, round, at the size the email shows it: its reveal, and the portrait at rest in its place for a reader
-// who asked for less motion and for classic Outlook, which would show only the reveal's first frame.
-const avatarOf = (art: EmailArt) => {
-  const { shown } = CONTACT_AVATAR;
-  const size = `width="${shown}" height="${shown}" alt=""`;
-  const style = `display:block;width:${shown}px;height:${shown}px;border:0;border-radius:50%;`;
+// My portrait at the size the email shows it (smaller on a phone): its reveal, and the portrait at rest in its place for
+// a reader who asked for less motion and for classic Outlook, which would show only the reveal's first frame.
+const portraitOf = (art: EmailArt, border: string) => {
+  const { width, height } = CONTACT_PORTRAIT;
+  const size = `width="${width}" height="${height}" alt=""`;
+  const style = `display:block;width:${width}px;height:${height}px;border:1px solid ${border};`;
   const still = `<source srcset="${escapeHtml(art.still)}" media="(prefers-reduced-motion: reduce)">`;
 
-  return `<!--[if mso]><img src="${escapeHtml(art.still)}" ${size} style="display:block;border:0;"><![endif]-->` +
-    `<!--[if !mso]><!--><picture>${still}<img src="${escapeHtml(art.moving)}" ${size} style="${style}"></picture><!--<![endif]-->`;
+  return `<!--[if mso]><img src="${escapeHtml(art.still)}" ${size} style="display:block;border:1px solid ${border};"><![endif]-->` +
+    `<!--[if !mso]><!--><picture>${still}<img class="rg-portrait" src="${escapeHtml(art.moving)}" ${size} style="${style}"></picture><!--<![endif]-->`;
 };
 
-// The email as the site looks: a dark panel under a bar in the kind's accent, my portrait, the site's name, the kind as
-// a badge, the subject, the message on its own darker panel, who sent it (a reply goes straight back to them), and the
-// form it came from. Laid out in tables with the styles inline, as mail apps need (and held to 600px in classic Outlook,
-// which ignores a maximum width), with less room round the message on a phone, and everything the visitor wrote
-// escaped, so nothing in a message can change the email. A light touch of motion where the art is given, as images,
-// since a GIF plays where CSS motion is stripped (Gmail): a light passes once along the bar through the journey's
-// colours, and the portrait comes in as the site's does, from binary through pixels to the picture; and the message
-// rises a little into place in the mail apps that play CSS (Apple's). Nothing ever hides anything: the bar's first and
-// last frames are the bar at rest, the portrait rests on the picture, the rise moves without fading, and nothing moves
-// for a reader who asked for less motion wherever the mail app says so.
+// The email as the site looks: a dark panel under a bar in the kind's accent, my portrait with the site's name, the kind
+// as a badge and the subject beside it, the message on its own darker panel, who sent it (a reply goes straight back to
+// them), and the form it came from. Laid out in tables with the styles inline, as mail apps need (and held to 600px in
+// classic Outlook, which ignores a maximum width), with less room round the message on a phone, and everything the
+// visitor wrote escaped, so nothing in a message can change the email. A light touch of motion where the art is given,
+// as images, since a GIF plays where CSS motion is stripped (Gmail): a light passes once along the bar through the
+// journey's colours, and the portrait comes in as the site's does, from binary through pixels to the picture; and the
+// message rises a little into place in the mail apps that play CSS (Apple's). Nothing ever hides anything: the bar's
+// first and last frames are the bar at rest, the portrait rests on the picture, the rise moves without fading, and
+// nothing moves for a reader who asked for less motion wherever the mail app says so.
 export const contactHtml = (request: ContactRequest, subject: string, from: string | null, { theme, words, art }: EmailLook): string => {
   const accent = theme.accents[request.kind];
   const site = new URL(theme.siteUrl).hostname.replace(/^www\./, "");
@@ -118,13 +118,16 @@ export const contactHtml = (request: ContactRequest, subject: string, from: stri
   const link = `<a href="${escapeHtml(theme.siteUrl)}" style="color:${accent};text-decoration:underline;">${escapeHtml(site)}</a>`;
   const footer = `<p style="${footerStyle}">${escapeHtml(words.footer)} ${link}</p>`;
   const hostStyle = `font-family:${theme.mono};font-size:12px;letter-spacing:0.04em;color:${accent};`;
-  // The site's name and the kind, with the portrait before them where there is one.
+  const heading = `<h1 style="${headingStyle}">${escapeHtml(subject)}</h1>`;
+  // The site's name, the kind and the subject: beside my portrait where there is one, else one under the other.
   const titlePad = "padding:22px 28px 0;";
-  const title = art?.avatar
-    ? `<tr><td class="rg-pad" style="${titlePad}"><table role="presentation" cellpadding="0" cellspacing="0"><tr>` +
-      `<td style="padding-right:14px;vertical-align:middle;line-height:0;font-size:0;">${avatarOf(art.avatar)}</td>` +
-      `<td style="vertical-align:middle;${hostStyle}">${escapeHtml(site)}\n${badge}</td></tr></table></td></tr>`
-    : `<tr><td class="rg-pad" style="${titlePad}${hostStyle}">${escapeHtml(site)}\n${badge}\n</td></tr>`;
+  const portraitCell = `width:${CONTACT_PORTRAIT.width + 2}px;padding-right:18px;vertical-align:top;line-height:0;font-size:0;`;
+  const title = art?.portrait
+    ? `<tr><td class="rg-pad" style="${titlePad}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
+      `<td style="${portraitCell}">${portraitOf(art.portrait, theme.border)}</td>` +
+      `<td style="vertical-align:top;"><p style="margin:0 0 12px;${hostStyle}">${escapeHtml(site)}\n${badge}</p>${heading}</td></tr></table></td></tr>`
+    : `<tr><td class="rg-pad" style="${titlePad}${hostStyle}">${escapeHtml(site)}\n${badge}\n</td></tr>\n` +
+      `<tr><td class="rg-pad" style="padding:14px 28px 0;">${heading}</td></tr>`;
 
   return `<!doctype html>
 <html lang="en">
@@ -141,6 +144,7 @@ export const contactHtml = (request: ContactRequest, subject: string, from: stri
   .rg-frame { padding: 16px 8px !important; }
   .rg-pad { padding-left: 18px !important; padding-right: 18px !important; }
   .rg-note { padding: 14px !important; }
+  .rg-portrait { width: 72px !important; height: 96px !important; }
 }
 </style>
 </head>
@@ -152,7 +156,6 @@ export const contactHtml = (request: ContactRequest, subject: string, from: stri
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:${theme.panel};border:1px solid ${theme.border};">
 ${barRow(accent, art?.bars[request.kind])}
 ${title}
-<tr><td class="rg-pad" style="padding:14px 28px 0;"><h1 style="${headingStyle}">${escapeHtml(subject)}</h1></td></tr>
 <tr><td class="rg-pad" style="padding:18px 28px 0;">
 <table class="rg-rise" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${theme.background};border-left:2px solid ${accent};">
 <tr><td class="rg-note" style="${noteStyle}">${paragraphs(request.message)}</td></tr>

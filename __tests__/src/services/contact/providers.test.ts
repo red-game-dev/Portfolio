@@ -44,7 +44,7 @@ describe("where a message goes", () => {
     expect(mail?.to).toBe("inbox@example.test");
     expect(mail?.html).toContain(EMAIL_THEME.accents.message);
     expect(mail?.html).toContain(`<img src="${SITE_URL}/api/email/message.gif?v=${artVersion()}"`);
-    expect(mail?.html).toContain(`<img src="${SITE_URL}/api/email/avatar.gif?v=${artVersion()}"`);
+    expect(mail?.html).toContain(`src="${SITE_URL}/api/email/portrait.gif?v=${artVersion()}"`);
   });
 
   test("nowhere without an inbox, when the service says it cannot send", () => {
@@ -63,11 +63,11 @@ describe("the art in the emails", () => {
     expect(still?.length).toBeLessThan(moving?.length ?? 0);
     // Light enough for an email: a few tens of kilobytes for the motion.
     expect(moving?.length).toBeLessThan(60_000);
-    expect(Buffer.from(emailArt("avatar.gif") ?? []).subarray(0, 6)
+    expect(Buffer.from(emailArt("portrait.gif") ?? []).subarray(0, 6)
       .toString()).toBe("GIF89a");
-    expect(emailArt("avatar-still.gif")?.length).toBeLessThan(emailArt("avatar.gif")?.length ?? 0);
-    // The portrait's reveal stays light too, under a hundred and twenty kilobytes.
-    expect(emailArt("avatar.gif")?.length).toBeLessThan(120_000);
+    expect(emailArt("portrait-still.gif")?.length).toBeLessThan(emailArt("portrait.gif")?.length ?? 0);
+    // The portrait's reveal stays light for a whole picture, under a hundred and fifty kilobytes.
+    expect(emailArt("portrait.gif")?.length).toBeLessThan(150_000);
     expect(emailArt("../server.ts")).toBeNull();
     expect(emailArt("message.png")).toBeNull();
     expect(emailArt("other.gif")).toBeNull();
@@ -82,7 +82,7 @@ describe("the art in the emails", () => {
   test("lives at addresses carrying a version read from its own bytes, so new art is never hidden behind what an inbox has kept", () => {
     const hash = createHash("sha256");
 
-    ["message.gif", "message-still.gif", "feedback.gif", "feedback-still.gif", "avatar.gif", "avatar-still.gif"]
+    ["message.gif", "message-still.gif", "feedback.gif", "feedback-still.gif", "portrait.gif", "portrait-still.gif"]
       .forEach((name) => hash.update(emailArt(name) ?? new Uint8Array()));
 
     const version = hash.digest("hex").slice(0, 8);
@@ -93,7 +93,7 @@ describe("the art in the emails", () => {
         message: { moving: `https://art.test/api/email/message.gif?v=${version}`, still: `https://art.test/api/email/message-still.gif?v=${version}` },
         feedback: { moving: `https://art.test/api/email/feedback.gif?v=${version}`, still: `https://art.test/api/email/feedback-still.gif?v=${version}` },
       },
-      avatar: { moving: `https://art.test/api/email/avatar.gif?v=${version}`, still: `https://art.test/api/email/avatar-still.gif?v=${version}` },
+      portrait: { moving: `https://art.test/api/email/portrait.gif?v=${version}`, still: `https://art.test/api/email/portrait-still.gif?v=${version}` },
     });
   });
 

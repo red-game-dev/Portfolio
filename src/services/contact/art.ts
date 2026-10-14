@@ -1,36 +1,37 @@
 import { createHash } from "crypto";
+import { inflateSync } from "zlib";
 
 import { EMAIL_THEME } from "@/config/contact";
 import { SITE_URL } from "@/config/site";
 import portrait from "@/data/email/portrait.json";
 import { encodeGif, GifImage } from "@/packages/graphics/gif";
 import type { ContactKind } from "@/packages/messaging/contact";
-import { contactArt, contactAvatar, EmailArt, EmailArtwork } from "@/packages/messaging/contact-email";
+import { contactArt, contactPortrait, EmailArt, EmailArtwork } from "@/packages/messaging/contact-email";
 
 const KINDS = Object.keys(EMAIL_THEME.accents) as ContactKind[];
 
 // The art's names: each kind's bar, and my portrait, each moving and at rest.
-const PIECES = [...KINDS, "avatar"];
+const PIECES = [...KINDS, "portrait"];
 const NAMES = PIECES.flatMap((piece) => [`${piece}.gif`, `${piece}-still.gif`]);
 const NAME = new RegExp(`^(${PIECES.join("|")})(-still)?\\.gif$`);
 
-// The portrait as raw pixels, written by `npm run email:portrait` from the profile picture, in the engineering green
-// the site's own portrait reveals in.
-const avatarArt = () => contactAvatar(
-  { width: portrait.width, height: portrait.height, pixels: new Uint8Array(Buffer.from(portrait.pixels, "base64")) },
+// The portrait as raw pixels, deflated, written by `npm run email:portrait` from the profile picture, revealed in the
+// engineering green the site's own portrait reveals in.
+const portraitArt = () => contactPortrait(
+  { width: portrait.width, height: portrait.height, pixels: new Uint8Array(inflateSync(Uint8Array.from(Buffer.from(portrait.pixels, "base64")))) },
   EMAIL_THEME.accents.message,
   EMAIL_THEME.panel,
 );
 
-const artOf = (piece: string): { moving: GifImage; still: GifImage } => (piece === "avatar"
-  ? avatarArt()
+const artOf = (piece: string): { moving: GifImage; still: GifImage } => (piece === "portrait"
+  ? portraitArt()
   : contactArt(EMAIL_THEME.accents[piece as ContactKind], EMAIL_THEME.journey, EMAIL_THEME.panel));
 
 const drawn = new Map<string, Uint8Array>();
 let version: string | null = null;
 
-// The email's art by its name ("message.gif", "feedback-still.gif", "avatar.gif"), drawn once an instance, or null for any
-// other name.
+// The email's art by its name ("message.gif", "feedback-still.gif", "portrait.gif"), drawn once an instance, or null for
+// any other name.
 export const emailArt = (name: string): Uint8Array | null => {
   const match = NAME.exec(name);
 
@@ -75,7 +76,7 @@ export const emailArtLinks = (origin = artOrigin(), versionOf = artVersion): Ema
       still: `${origin}/api/email/${piece}-still.gif?v=${current}`,
     });
 
-    return { bars: Object.fromEntries(KINDS.map((kind) => [kind, linkOf(kind)])) as Record<ContactKind, EmailArt>, avatar: linkOf("avatar") };
+    return { bars: Object.fromEntries(KINDS.map((kind) => [kind, linkOf(kind)])) as Record<ContactKind, EmailArt>, portrait: linkOf("portrait") };
   } catch {
     return undefined;
   }

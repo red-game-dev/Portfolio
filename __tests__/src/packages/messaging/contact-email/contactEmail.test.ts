@@ -1,5 +1,7 @@
 import { contactMail, ContactRoute } from "@/packages/messaging/contact";
-import { CONTACT_ART, contactArt, CONTACT_AVATAR, contactAvatar, contactHtml, EmailArtwork, EmailLook, EmailTheme, EmailWords } from "@/packages/messaging/contact-email";
+import {
+  CONTACT_ART, contactArt, contactHtml, CONTACT_PORTRAIT, contactPortrait, EmailArtwork, EmailLook, EmailTheme, EmailWords,
+} from "@/packages/messaging/contact-email";
 
 const ROUTE: ContactRoute = { sender: { name: "Site", user: "site", domain: "example.test" }, to: "inbox@example.test", site: "example.test" };
 const MESSAGE = { kind: "message" as const, message: "Hello, I would like to talk about a role.", email: "visitor@example.test", name: "Ada", subject: "Hiring: CTO" };
@@ -19,7 +21,7 @@ describe("the email a message becomes", () => {
       message: { moving: "https://art.test/message.gif?v=1", still: "https://art.test/message-still.gif?v=1" },
       feedback: { moving: "https://art.test/feedback.gif?v=1", still: "https://art.test/feedback-still.gif?v=1" },
     },
-    avatar: { moving: "https://art.test/avatar.gif?v=1", still: "https://art.test/avatar-still.gif?v=1" },
+    portrait: { moving: "https://art.test/portrait.gif?v=1", still: "https://art.test/portrait-still.gif?v=1" },
   };
   const LOOK: EmailLook = { theme: THEME, words: WORDS };
 
@@ -52,16 +54,23 @@ describe("the email a message becomes", () => {
     expect(feedback).toContain('<img src="https://art.test/feedback.gif?v=1"');
   });
 
-  test("puts my portrait before the site's name, revealing where it can, at rest for less motion and in classic Outlook", () => {
+  test("puts my whole portrait beside the site's name and the subject, revealing where it can, at rest for less motion and in classic Outlook", () => {
     const html = contactHtml(MESSAGE, "Hiring: CTO", null, { ...LOOK, art: ART });
-    const { shown } = CONTACT_AVATAR;
+    const { width, height } = CONTACT_PORTRAIT;
+    const plain = contactHtml(MESSAGE, "Hiring: CTO", null, { ...LOOK, art: { bars: ART.bars } });
 
-    expect(html).toContain(`<!--[if mso]><img src="https://art.test/avatar-still.gif?v=1" width="${shown}" height="${shown}" alt=""`);
-    expect(html).toContain('<!--[if !mso]><!--><picture><source srcset="https://art.test/avatar-still.gif?v=1" media="(prefers-reduced-motion: reduce)">' +
-      `<img src="https://art.test/avatar.gif?v=1" width="${shown}" height="${shown}" alt=""`);
-    expect(html).toMatch(/avatar\.gif\?v=1"[^>]*border-radius:50%;"><\/picture><!--<!\[endif\]--><\/td><td style="vertical-align:middle;[^"]*">example\.test\n<span/);
-    // Without a portrait, the site's name stands alone as before.
-    expect(contactHtml(MESSAGE, "Hiring: CTO", null, { ...LOOK, art: { bars: ART.bars } })).not.toContain("avatar");
+    expect(html).toContain(`<!--[if mso]><img src="https://art.test/portrait-still.gif?v=1" width="${width}" height="${height}" alt=""`);
+    expect(html).toContain('<!--[if !mso]><!--><picture><source srcset="https://art.test/portrait-still.gif?v=1" media="(prefers-reduced-motion: reduce)">' +
+      `<img class="rg-portrait" src="https://art.test/portrait.gif?v=1" width="${width}" height="${height}" alt=""`);
+    // The name, the kind and the subject stand in the cell beside it, and the subject is said once.
+    expect(html).toMatch(new RegExp("</picture><!--<!\\[endif\\]--></td><td style=\"vertical-align:top;\"><p style=\"margin:0 0 12px;[^\"]*\">" +
+      "example\\.test\\n<span[^>]*>Message</span></p><h1"));
+    expect(html.match(/<h1/g)).toHaveLength(1);
+    // Smaller on a phone, in the picture's own shape.
+    expect(html).toContain(".rg-portrait { width: 72px !important; height: 96px !important; }");
+    // Without a portrait, the site's name stands alone and the subject under it, as before.
+    expect(plain).not.toContain("portrait.gif");
+    expect(plain.match(/<h1/g)).toHaveLength(1);
   });
 
   test("moves lightly where a mail app plays CSS, never for a reader who asked for less, and hides nothing where motion is stripped", () => {
@@ -112,7 +121,7 @@ describe("the email a message becomes", () => {
     expect(html).toContain("&quot;&gt;&lt;script&gt;x&lt;/script&gt;");
     // With the art, its own pictures are the only images: the bar, and the portrait (twice, the still for classic Outlook).
     expect(withArt.match(/<img[^>]*>/g)).toHaveLength(3);
-    expect(withArt.match(/<img[^>]*>/g)?.every((tag) => tag.startsWith('<img src="https://art.test/'))).toBe(true);
+    expect(withArt.match(/<img[^>]*>/g)?.every((tag) => /^<img (class="rg-portrait" )?src="https:\/\/art\.test\//.test(tag))).toBe(true);
     expect(withArt).not.toContain("<script");
   });
 
@@ -170,43 +179,46 @@ describe("the art along the email's top bar", () => {
 });
 
 describe("my portrait beside the email's header", () => {
-  // A 32 by 32 portrait, light in the middle and dark at the edges, as a face against a night sky.
-  const size = 32;
+  // A 24 by 32 portrait in the picture's own 3:4, light in the middle and dark at the edges, as a face against a night sky.
+  const width = 24;
+  const height = 32;
   const portrait = {
-    width: size,
-    height: size,
-    pixels: Uint8Array.from({ length: size * size * 3 }, (_, index) => {
+    width,
+    height,
+    pixels: Uint8Array.from({ length: width * height * 3 }, (_, index) => {
       const pixel = Math.floor(index / 3);
-      const from = Math.hypot((pixel % size) - size / 2, Math.floor(pixel / size) - size / 2);
+      const from = Math.hypot((pixel % width) - width / 2, Math.floor(pixel / width) - height / 2);
 
       return Math.max(20, Math.round(230 - from * 12));
     }),
   };
-  const { moving, still } = contactAvatar(portrait, "#4bffa5", "#101010");
-  const colourAt = (indices: Uint8Array, x: number, y: number) => [...moving.palette[indices[y * size + x]]];
+  const { moving, still } = contactPortrait(portrait, "#4bffa5", "#101010");
+  const colourAt = (indices: Uint8Array, x: number, y: number) => [...moving.palette[indices[y * width + x]]];
 
   test("reveals the portrait as the site does, from binary in the accent to the picture, played once within five seconds", () => {
     const first = moving.frames[0].indices;
-    const total = moving.frames.reduce((sum, { delayMs }) => sum + delayMs, 0);
+    const total = moving.frames.reduce((sum, frame) => sum + frame.delayMs, 0);
 
-    expect(Array.from({ length: size * size }, (_, pixel) => colourAt(first, pixel % size, Math.floor(pixel / size)))
+    expect(moving.width).toBe(width);
+    expect(moving.height).toBe(height);
+    expect(Array.from({ length: width * height }, (_, pixel) => colourAt(first, pixel % width, Math.floor(pixel / width)))
       .some(([red, green, blue]) => green > 60 && green > red * 1.4 && green > blue)).toBe(true);
     expect(moving.loops).toBeUndefined();
     expect(total).toBeLessThan(5000);
     expect(moving.palette.length).toBeLessThanOrEqual(256);
   });
 
-  test("rests on the picture, round, ringed in the accent and set on the panel, which is all the still shows", () => {
+  test("rests on the whole picture as it is, which is all the still shows", () => {
     const last = moving.frames[moving.frames.length - 1].indices;
+    const error = Array.from({ length: width * height }, (_, pixel) => {
+      const [red, green, blue] = colourAt(last, pixel % width, Math.floor(pixel / width));
 
-    expect(colourAt(last, size / 2, size / 2)).toEqual([230, 230, 230]);
-    // The corners are the panel itself, so the round picture meets the email without a seam.
-    expect([colourAt(last, 0, 0), colourAt(last, size - 1, 0), colourAt(last, 0, size - 1), colourAt(last, size - 1, size - 1)])
-      .toEqual([[16, 16, 16], [16, 16, 16], [16, 16, 16], [16, 16, 16]]);
-    // The ring at the edge leans to the accent's green.
-    const [red, green] = colourAt(last, size / 2, 1);
+      return Math.abs(red - portrait.pixels[pixel * 3]) + Math.abs(green - portrait.pixels[pixel * 3 + 1]) + Math.abs(blue - portrait.pixels[pixel * 3 + 2]);
+    });
 
-    expect(green).toBeGreaterThan(red + 40);
+    expect(colourAt(last, width / 2, height / 2)).toEqual([230, 230, 230]);
+    // Within what a palette of 256 colours shared with the reveal's greens loses, a few levels a channel.
+    expect(Math.max(...error)).toBeLessThanOrEqual(24);
     expect(still.frames).toEqual([moving.frames[moving.frames.length - 1]]);
   });
 });

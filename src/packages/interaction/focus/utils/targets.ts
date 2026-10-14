@@ -17,6 +17,13 @@ export const focusLeaves = (container: Node | null | undefined, next: EventTarge
 export const isTypingTarget = (target: EventTarget | null | undefined): boolean => typeof HTMLElement !== "undefined"
   && target instanceof HTMLElement && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable === true);
 
+// Controls that Space presses: buttons, links, tabs, switches, check boxes and the like.
+const PRESSABLE = "button, a[href], summary, select, input[type='checkbox'], input[type='radio'], [role='button'], [role='tab'], [role='switch'], " +
+  "[role='checkbox'], [role='radio'], [role='menuitem'], [role='option']";
+
+// Whether a key went to a control that Space presses, so a shortcut on Space leaves it alone.
+export const isPressTarget = (target: EventTarget | null | undefined): boolean => closestTo(target, PRESSABLE) !== null;
+
 // The nearest element from `target` outwards that matches `selector`, or null.
 export const closestTo = (target: EventTarget | null | undefined, selector: string): Element | null => (isElement(target) ? target.closest(selector) : null);
 

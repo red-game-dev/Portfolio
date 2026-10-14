@@ -42,6 +42,12 @@ const placeStars = (system: StarSystem, days: number): void => {
 // The real moment the mission clock reads after `elapsedMs` of flying.
 export const missionTime = (clock: MissionClock, elapsedMs: number): number => clock.epochMs + (elapsedMs / 1000) * clock.hoursPerSecond * MS_PER_HOUR;
 
+// The clock running at another rate from `elapsedMs` on, reading the same moment there, so nothing jumps.
+export const rebaseClock = (clock: MissionClock, elapsedMs: number, hoursPerSecond: number): MissionClock => ({
+  epochMs: missionTime(clock, elapsedMs) - (elapsedMs / 1000) * hoursPerSecond * MS_PER_HOUR,
+  hoursPerSecond,
+});
+
 // Puts every body where it is at a moment: planets round the Sun by their elements, mapped into the world by
 // the system's scale (their real direction kept), moons on their circles round their planets, and the point
 // under the Sun on each: Earth's from the real time of day, a locked moon's left to whoever draws it (it faces

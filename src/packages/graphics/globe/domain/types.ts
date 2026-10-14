@@ -89,6 +89,9 @@ export interface GlobePose {
   // For a body that keeps one face to another: the screen angle its longitude 0 faces, which then sets how it
   // turns instead of `subsolarLongitude`.
   facing?: number;
+  // How far (radians) the light comes out of the screen towards the viewer: a half lit globe at 0, full at a quarter
+  // turn, a thin crescent towards minus a quarter turn. Left out, the usual view of a globe in space (`PHASE`).
+  phase?: number;
 }
 
 export interface GlobeDraw {

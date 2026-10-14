@@ -106,6 +106,7 @@ export { StepRandom } from "./utils/stepRandom";
 export { PilotLink } from "./services/PilotLink";
 export type {
   ClockConfig,
+  ClockSpeed,
   DescentConfig,
   FlightConfig,
   HoleConfig,
@@ -118,7 +119,7 @@ export type {
   VoyageUniverseTheme,
   WeatherConfig,
 } from "./config";
-export type { LandingForecaster, VoyageCanvases, VoyageCanvasOptions, VoyageOptions } from "./core/VoyageGame";
+export type { LandingForecaster, VoyageCanvases, VoyageCanvasOptions, VoyageKeys, VoyageOptions } from "./core/VoyageGame";
 export type { LandingOptions } from "./domain/input";
 export type { LandingMethod, LandingPhase } from "./landing";
 export type { SlotRefusal, VoyageAction, VoyageNotice } from "./domain/notices";

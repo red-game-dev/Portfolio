@@ -7,7 +7,7 @@ import { RandomSource } from "@/packages/math/random";
 
 import { CareerView } from "../career/domain/career";
 import { Career } from "../career/services/Career";
-import { DEFAULT_VOYAGE_THEME, resolveVoyageConfig, VoyageConfigOverrides, VoyageTheme } from "../config";
+import { ClockSpeed, DEFAULT_VOYAGE_THEME, resolveVoyageConfig, VoyageConfigOverrides, VoyageTheme } from "../config";
 import { MODULE_IDS } from "../domain/components";
 import { StarSystem } from "../domain/content";
 import { VoyageEvents } from "../domain/events";
@@ -136,7 +136,8 @@ export interface VoyageCanvasOptions extends VoyageOptions {
 const TICK_MS = 250;
 // After the ship is lost the loop runs this long more for the wreck to finish, then stops on its last frame.
 const WRECK_MS = 3200;
-// Tilting aims the ship at a point this far ahead of it the way the device leans (world units).
+// A lean (a tilt, a thumb stick, a controller's stick, or keys pointing the way to fly) aims the ship at a point this
+// far ahead of it the way it leans (world units).
 const TILT_REACH = 3;
 
 // A pointer this close to the ship (in CSS pixels) asks for no thrust; this far or more, full thrust.
@@ -159,6 +160,17 @@ const isDrawable = (source: TexImageSource | CanvasImageSource | OffscreenCanvas
 // The most pixels per CSS pixel the canvases draw at, by quality level: a phone that cannot keep up at its full
 // sharpness steps down until it can, which cuts the GPU's fill work by up to three quarters.
 const QUALITY_RATIOS: readonly number[] = [2, 1.5, 1.25, 1];
+
+// What the held keys ask of the ship: a turn (-1 to 1), a burn (0 to 1) and the brake, or, pointing the way to fly,
+// a lean (x right, y down, -1 to 1) with the burn kept for the way down, where only a burn is flown.
+export interface VoyageKeys {
+  turn: number;
+  thrust: number;
+  brake: boolean;
+  lean: { x: number; y: number } | null;
+}
+
+const isKeyed = (keys: VoyageKeys): boolean => keys.turn !== 0 || keys.thrust !== 0 || keys.brake || keys.lean !== null;
 
 // What changes the snapshot at once rather than on the next tick.
 interface Moment {
@@ -200,7 +212,7 @@ export class VoyageGame extends FrameLoop {
   private pointer: { x: number; y: number } | null = null;
   private isPressing = false;
   private zoomBias = 1;
-  private keys = { turn: 0, thrust: 0, brake: false };
+  private keys: VoyageKeys = { turn: 0, thrust: 0, brake: false, lean: null };
   // A phone or tablet tilted to steer: the way to fly on screen (x right, y down) and how hard, 0 to 1; null when
   // tilting does not steer.
   private tilt: { x: number; y: number } | null = null;
@@ -576,11 +588,16 @@ export class VoyageGame extends FrameLoop {
     this.tilt = tilt;
   }
 
-  public setKeys(keys: { turn: number; thrust: number; brake: boolean }): void {
+  // What the held keys ask: a turn, a burn and the brake, or a lean the way they point on the screen (x right, y
+  // down, -1 to 1) with the burn kept for the way down.
+  public setKeys(keys: VoyageKeys): void {
+    const wasKeyed = isKeyed(this.keys);
+
     this.keys = keys;
 
-    // Keys take over from the pointer until it moves again.
-    if (keys.turn !== 0 || keys.thrust !== 0 || keys.brake) {
+    // Keys take over from the pointer, and let go, the ship coasts until the pointer moves again, wherever a mouse
+    // drifted to while they were held.
+    if (wasKeyed || isKeyed(keys)) {
       this.pointer = null;
     }
   }
@@ -706,6 +723,12 @@ export class VoyageGame extends FrameLoop {
     }
   }
 
+  // Whether a point on the canvas (CSS pixels) is on the radar, where a press opens the map rather than steering or
+  // locking on.
+  public isOnRadar(position: { x: number; y: number }): boolean {
+    return !this.isPhoto && this.renderer.radarAt(position.x, position.y);
+  }
+
   // Locks the guns on whoever, or whatever rock, is under a point on the screen (CSS pixels); a point on
   // nothing lets go. Returns whether something was locked.
   public lockAt(position: { x: number; y: number }): boolean {
@@ -798,6 +821,11 @@ export class VoyageGame extends FrameLoop {
 
   public setSpaceDrag(drag: SpaceDrag): void {
     this.simulation.setSpaceDrag(drag);
+  }
+
+  // How fast the mission clock runs: as the real one does, or faster (the daily voyage keeps its own).
+  public setClockSpeed(speed: ClockSpeed): void {
+    this.simulation.setClockSpeed(speed);
   }
 
 
@@ -1251,11 +1279,12 @@ export class VoyageGame extends FrameLoop {
     }
 
     const parts = this.shipScreen();
-    const isKeyed = this.keys.turn !== 0 || this.keys.thrust !== 0 || this.keys.brake;
-    const lean = !isKeyed ? this.stick ?? this.padLean ?? this.tilt : null;
+    const keyed = isKeyed(this.keys);
+    // Held keys fly the ship whatever else would: pointing the way they fly, they lean as a thumb stick does.
+    const lean = keyed ? this.keys.lean : this.stick ?? this.padLean ?? this.tilt;
 
-    // A thumb stick or a tilt steers: towards the way it leans, as hard as it leans, unless keys are flying it. A
-    // finger on the screen still locks the guns (or aims them, by hand) but no longer steers.
+    // A thumb stick, a tilt or the keys pointing the way to fly steer: towards the way they lean, as hard as they
+    // lean. A finger on the screen still locks the guns (or aims them, by hand) but no longer steers.
     if (lean) {
       const strength = Math.min(1, Math.hypot(lean.x, lean.y));
       const body = this.simulation.world.stores.body.get(this.simulation.state.ship);
@@ -1264,10 +1293,14 @@ export class VoyageGame extends FrameLoop {
         aim: body && strength > 0 ? { x: body.x + (lean.x / strength) * TILT_REACH, y: body.y + (lean.y / strength) * TILT_REACH } : null,
         thrust: strength,
         turn: 0,
-        brake: this.isPadBraking,
+        brake: keyed ? this.keys.brake : this.isPadBraking,
         target,
         fire,
       };
+    }
+
+    if (keyed) {
+      return { aim: null, thrust: this.keys.thrust, turn: this.keys.turn, brake: this.keys.brake, target, fire };
     }
 
     if (!isManual && this.pointer && parts) {

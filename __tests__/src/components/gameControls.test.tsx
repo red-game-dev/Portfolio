@@ -7,6 +7,7 @@ import { portfolioData } from "@/data/resume";
 import type { BugRaidGame as BugRaidGameClass } from "@/packages/games/bug-raid";
 import type { LaunchGame as LaunchGameClass, LaunchSnapshot } from "@/packages/games/launch";
 import type { EconomyView, VoyageGame as VoyageGameClass, VoyageSnapshot } from "@/packages/games/voyage";
+import { preferences } from "@/services/preferences/store";
 import type { Pilot } from "@/services/voyage/pilot";
 
 import { stubCanvases } from "./fixtures/canvas";
@@ -209,7 +210,7 @@ describe("the launch button", () => {
 const VOYAGE_METHODS = [
   "stop", "dispose", "resize", "setTexture", "setKeys", "play", "pause", "resume", "zoomBy", "point", "lockAt", "panBy", "setPhotoMode", "setMap",
   "setAutoFire", "act", "follow", "photo", "setLanding", "setSpaceDrag", "setTilt", "press", "setAimMode", "setDifficulty", "setStick", "guideSpawn",
-  "setVibrate", "setReducedMotion", "setSound", "drawShipPreview",
+  "setVibrate", "setReducedMotion", "setSound", "drawShipPreview", "setClockSpeed", "isOnRadar",
 ] as const;
 
 const Voyage = () => {
@@ -233,7 +234,6 @@ const Voyage = () => {
         onPointerUp={voyage.onPointerEnd}
         onPointerCancel={voyage.onPointerEnd}
         onPointerLeave={voyage.onPointerEnd}
-        onWheel={voyage.onWheel}
       >
         <canvas ref={back} />
         <canvas ref={lens} />
@@ -278,30 +278,47 @@ describe("the voyage's controls", () => {
     return { game, stage, fly, suggest, state: () => screen.getByLabelText("state").textContent };
   };
 
-  it("steers with the arrows and WASD in flight, each key held until it comes up", async () => {
+  it("flies the way the arrows and WASD point in flight, two for a diagonal, each key held until it comes up", async () => {
     const { game, stage, fly } = await build();
+    const lean = () => (game.setKeys.mock.calls.at(-1) as [{ lean: { x: number; y: number } | null; thrust: number; brake: boolean }])[0];
 
     fly();
     expect(fireEvent.keyDown(stage, { key: "ArrowLeft" })).toBe(false);
-    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: -1, thrust: 0, brake: false });
+    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: 0, thrust: 0, brake: false, lean: { x: -1, y: 0 } });
 
     fireEvent.keyDown(stage, { key: "W", shiftKey: true });
-    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: -1, thrust: 1, brake: false });
+    expect(lean().lean?.x).toBeCloseTo(-Math.SQRT1_2);
+    expect(lean().lean?.y).toBeCloseTo(-Math.SQRT1_2);
+    expect(lean().thrust).toBe(1);
 
     fireEvent.keyDown(stage, { key: "a" });
     fireEvent.keyUp(stage, { key: "ArrowLeft" });
-    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: -1, thrust: 1, brake: false });
+    expect(lean().lean?.x).toBeCloseTo(-Math.SQRT1_2);
     fireEvent.keyUp(stage, { key: "A" });
-    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: 0, thrust: 1, brake: false });
+    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: 0, thrust: 1, brake: false, lean: { x: 0, y: -1 } });
 
-    fireEvent.keyDown(stage, { key: "s" });
-    fireEvent.keyDown(stage, { key: "ArrowRight" });
-    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: 1, thrust: 1, brake: true });
+    fireEvent.keyUp(stage, { key: "w" });
+    fireEvent.keyDown(stage, { key: " " });
+    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: 0, thrust: 0, brake: true, lean: null });
 
     const calls = game.setKeys.mock.calls.length;
 
     fireEvent.keyUp(stage, { key: "q" });
     expect(game.setKeys).toHaveBeenCalledTimes(calls);
+  });
+
+  it("turns and burns with the keys when the pilot picks it, down or Space braking", async () => {
+    preferences.set("voyage-keys", "turn");
+
+    const { game, stage, fly } = await build();
+
+    fly();
+    fireEvent.keyDown(stage, { key: "ArrowLeft" });
+    fireEvent.keyDown(stage, { key: "w" });
+    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: -1, thrust: 1, brake: false, lean: null });
+    fireEvent.keyDown(stage, { key: "s" });
+    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: -1, thrust: 1, brake: true, lean: null });
+    preferences.reset("voyage-keys");
   });
 
   it("leaves the keys to the browser before a run, and with Ctrl, Cmd or Alt down", async () => {
@@ -425,7 +442,7 @@ describe("the voyage's controls", () => {
     expect(state()).toBe("");
   });
 
-  it("zooms with + and - in flight and with the wheel", async () => {
+  it("zooms with + and - in flight, with the wheel, and with a trackpad's pinch, keeping the page's own zoom out of it", async () => {
     const { game, stage, fly } = await build();
 
     fly();
@@ -434,8 +451,59 @@ describe("the voyage's controls", () => {
     fireEvent.keyDown(stage, { key: "-" });
     expect(game.zoomBy).toHaveBeenLastCalledWith(0.8);
 
-    fireEvent.wheel(stage, { deltaY: 100 });
+    expect(fireEvent.wheel(stage, { deltaY: 100 })).toBe(false);
     expect(game.zoomBy).toHaveBeenLastCalledWith(Math.exp(-100 * 0.0015));
+
+    // A trackpad's pinch is a wheel with the control key held, in small steps, zoomed at its own rate.
+    expect(fireEvent.wheel(stage, { deltaY: -10, ctrlKey: true })).toBe(false);
+    expect(game.zoomBy).toHaveBeenLastCalledWith(Math.exp(10 * 0.012));
+  });
+
+  it("zooms by Safari's pinch on a Mac trackpad, but not by the gestures an iPhone sends with fingers on the screen", async () => {
+    const { game, stage, fly } = await build();
+    const gesture = (type: string, scale: number) => {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+
+      Object.assign(event, { scale });
+      stage.dispatchEvent(event);
+
+      return event;
+    };
+
+    fly();
+    game.zoomBy.mockClear();
+    expect(gesture("gesturestart", 1).defaultPrevented).toBe(true);
+    gesture("gesturechange", 1.5);
+    expect(game.zoomBy).toHaveBeenLastCalledWith(1.5);
+    gesture("gestureend", 1.5);
+
+    game.zoomBy.mockClear();
+    fireEvent.pointerDown(stage, { pointerType: "touch", pointerId: 3, clientX: 110, clientY: 20 });
+    expect(gesture("gesturestart", 1).defaultPrevented).toBe(true);
+    gesture("gesturechange", 1.5);
+    expect(game.zoomBy).not.toHaveBeenCalledWith(1.5);
+    fireEvent.pointerUp(stage, { pointerType: "touch", pointerId: 3 });
+  });
+
+  it("opens the map from a press on the radar, without steering or locking on there", async () => {
+    const { game, stage, fly, state } = await build();
+
+    fly();
+    game.isOnRadar.mockReturnValue(true);
+    fireEvent.pointerDown(stage, { pointerType: "mouse", clientX: 50, clientY: 320 });
+    expect(game.isOnRadar).toHaveBeenLastCalledWith({ x: 40, y: 300 });
+    expect(game.setMap).toHaveBeenLastCalledWith(true);
+    expect(state()).toContain("map");
+    expect(game.lockAt).not.toHaveBeenCalled();
+
+    fireEvent.pointerMove(stage, { pointerType: "mouse", clientX: 50, clientY: 320 });
+    expect(stage.dataset.overRadar).toBe("true");
+    expect(game.point).toHaveBeenLastCalledWith(null);
+
+    game.isOnRadar.mockReturnValue(false);
+    fireEvent.pointerMove(stage, { pointerType: "mouse", clientX: 110, clientY: 70 });
+    expect(stage.dataset.overRadar).toBe("false");
+    expect(game.point).toHaveBeenLastCalledWith({ x: 100, y: 50 });
   });
 
   it("lets go of every held key when a run starts", async () => {
@@ -444,7 +512,7 @@ describe("the voyage's controls", () => {
     fly();
     fireEvent.keyDown(stage, { key: "ArrowLeft" });
     fireEvent.click(screen.getByRole("button", { name: "play" }));
-    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: 0, thrust: 0, brake: false });
+    expect(game.setKeys).toHaveBeenLastCalledWith({ turn: 0, thrust: 0, brake: false, lean: null });
     expect(game.play).toHaveBeenCalledWith("free");
 
     const calls = game.setKeys.mock.calls.length;

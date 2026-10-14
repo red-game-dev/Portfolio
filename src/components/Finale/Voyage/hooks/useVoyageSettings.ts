@@ -6,8 +6,8 @@ import { PreferenceName } from "@/config/preferences";
 import { canVibrate } from "@/packages/browser/haptics";
 
 const VOYAGE_SETTINGS: readonly PreferenceName[] = [
-  "voyage-aim", "voyage-difficulty", "landing-time", "landing-control", "space-drag", "tilt-steering", "voyage-sound", "voyage-music", "voyage-haptics",
-  "voyage-hud",
+  "voyage-aim", "voyage-difficulty", "voyage-keys", "voyage-clock", "landing-time", "landing-control", "space-drag", "tilt-steering", "voyage-sound",
+  "voyage-music", "voyage-haptics", "voyage-hud",
 ];
 
 // What the first flight asks: the few that change how it plays; the rest wait in the hangar's Settings.

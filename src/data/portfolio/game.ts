@@ -140,8 +140,10 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       intro: "The real solar system, every planet and moon where it is today, turning as it really turns. Fly to Venus, to the Sun or " +
         "behind it, land on the Moon or Mars, skim the giants for fuel. Too near the Sun and the ship melts, one system at a time. Past " +
         "the Kuiper belt, something waits.",
-      controls: "Point where to fly: the ship turns and burns towards it, harder the further you point. Arrow keys turn and burn, Down " +
-        "brakes. The wheel, a pinch or + and - zoom, M opens the map, which holds the run still. The guns aim themselves at threats; " +
+      controls: "Point where to fly: the ship turns and burns towards it, harder the further you point. The arrows or WASD fly it the " +
+        "way they point (or turn and burn, if you pick that in Settings), and Space brakes. The wheel, a trackpad pinch or + and - " +
+        "zoom, M or a click on the radar opens the map, which " +
+        "holds the run still. The guns aim themselves at threats; " +
         "click someone to lock on, F " +
         "holds fire. Rocks and crashes cannot destroy the ship in the solar system, but the Sun can, and past the Kuiper belt anything " +
         "can. Fly through gold coins to pick up Red Coin. Hold still beside a wreck to salvage it. H opens the hangar and U does " +
@@ -150,7 +152,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
       controlsTouch: "Hold a finger where to fly: the ship turns and burns towards it, harder the further you point. Pinch to zoom. " +
         "The guns aim themselves; tap someone to lock on. Fly through gold coins for Red Coin, and hold still beside a wreck to " +
         "salvage it. Slow down beside a station or a trader and tap Dock to trade. The buttons at the top open the hangar, the map and " +
-        "photo mode, and the ability bar uses weapons, boosts and things from the hold.",
+        "photo mode, a tap on the radar opens the map too, and the ability bar uses weapons, boosts and things from the hold.",
       howToFly: "How to fly",
       canvasLabel: "Your ship, flying out through space",
       setup: {

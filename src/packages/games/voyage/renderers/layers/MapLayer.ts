@@ -78,11 +78,20 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
   public isHidden = false;
   public hidesRadar = false;
   public missions: MissionMarks = NO_MISSION_MARKS;
+  // Where the radar was drawn last (CSS pixels), for a press on it to open the map; a radius of 0 when it was not.
+  private readonly radar = { x: 0, y: 0, radius: 0 };
 
   constructor(private readonly kit: RenderKit) {}
 
+  // Whether a point on the screen (CSS pixels) is on the radar as it was last drawn.
+  public radarAt(x: number, y: number): boolean {
+    return this.radar.radius > 0 && Math.hypot(x - this.radar.x, y - this.radar.y) <= this.radar.radius;
+  }
+
   public draw(frame: VoyageFrame): void {
     const { state } = frame;
+
+    this.radar.radius = 0;
 
     if (state.phase === "lost" || state.status === "ready" || this.isHidden) {
       return;
@@ -336,6 +345,10 @@ export class MapLayer implements RenderLayer<VoyageFrame> {
     const cx = RADAR_MARGIN + radius;
     const cy = front.height - RADAR_MARGIN - radius;
     const scale = radius / RADAR_RANGE;
+
+    this.radar.x = cx;
+    this.radar.y = cy;
+    this.radar.radius = radius;
     const shipX = lerpX(ship, alpha);
     const shipY = lerpY(ship, alpha);
     const inSystem = state.phase !== "lost";

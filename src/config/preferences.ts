@@ -18,6 +18,13 @@ export const SITE_PREFERENCES = {
   // How much the space round the ship slows it: felt, in the real order (voids emptiest, rings and nebulae
   // densest), or strictly real, where space is too empty to slow a ship at all.
   "space-drag": { kind: "choice", options: ["felt", "real"], initial: "felt" },
+  // How fast the mission clock runs: as the real one does (the Moon takes 27 days to go round), half an hour a second,
+  // or six hours a second, when the Moon goes round Earth in under two minutes. The daily voyage keeps the middle one,
+  // so everyone flying it meets the same sky.
+  "voyage-clock": { kind: "choice", options: ["real", "fast", "faster"], initial: "fast" },
+  // What the arrows and WASD do: fly the way they point on the screen, as a thumb stick does, or turn the ship and
+  // burn along its nose.
+  "voyage-keys": { kind: "choice", options: ["direction", "turn"], initial: "direction" },
   // On a phone or tablet, steering by tilting it: off until the reader turns it on.
   "tilt-steering": { kind: "toggle", initial: false },
   // How the guns aim: by themselves (spending more ammunition), or by hand, as a twin stick game aims.

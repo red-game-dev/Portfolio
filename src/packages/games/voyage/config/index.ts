@@ -192,9 +192,14 @@ export interface FaultConfig {
   groundFixSeconds: number;
 }
 
+// How fast the mission clock can run, as the pilot picks it: as the real one does, or faster.
+export type ClockSpeed = "real" | "fast" | "faster";
+
 export interface ClockConfig {
-  // Mission hours that pass for each second flown.
+  // Mission hours that pass for each second flown, unless the pilot picks another speed; the daily voyage always
+  // keeps this one.
   hoursPerSecond: number;
+  speeds: Record<ClockSpeed, number>;
 }
 
 export interface SpawnConfig {
@@ -312,7 +317,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
   stepMs: 1000 / 120,
   maxSteps: 10,
   layout: { unitsPerRootAu: 20, earthRadius: 0.35, radiusExponent: 0.45, gravityScale: 0.09, starSurfaceAcceleration: 1.1 },
-  clock: { hoursPerSecond: 0.5 },
+  clock: { hoursPerSecond: 0.5, speeds: { real: 1 / 3600, fast: 0.5, faster: 6 } },
   ship: {
     radius: 0.06,
     mass: 1,

@@ -6,7 +6,9 @@ import { pick, randomBetween } from "@/packages/math/random";
 import { SystemBody } from "../domain/content";
 import { VoyageContext } from "./context";
 import { applyDamage } from "./damage";
-import { addCrater, arrivalSpeed, bindingEnergy, craterKm, impactEnergy, impactorMass, impactOutcome, isOnCourseNow, predictApproach } from "./impacts";
+import {
+  addCrater, arrivalSpeed, bindingEnergy, bodyAhead, craterKm, impactEnergy, impactorMass, impactOutcome, isOnCourseNow, predictApproach,
+} from "./impacts";
 import { isInSystem, isSolar, shipOf } from "./queries";
 
 // Worlds within this distance of the ship can be the target of a rock (world units), and how far from its
@@ -122,11 +124,12 @@ export class ImpactSystem implements System<VoyageContext> {
     events.emit("impactAlert", { target: target.id, diameterKm, seconds });
   }
 
-  // A velocity that will hit: aimed at where the target will be, then corrected by however far its path through
-  // the world's gravity still misses, a few times over.
+  // A velocity that will hit: aimed at where the target will be (round its planet, for a moon), then corrected by
+  // however far its path through the world's gravity still misses, a few times over.
   private aim(context: VoyageContext, target: SystemBody, x: number, y: number, seconds: number, speed: number): { vx: number; vy: number } | null {
-    let aimX = target.x + target.vx * seconds;
-    let aimY = target.y + target.vy * seconds;
+    const ahead = bodyAhead(context, target, seconds);
+    let aimX = ahead.x;
+    let aimY = ahead.y;
 
     for (let attempt = 0; attempt < AIM_ATTEMPTS; attempt += 1) {
       const length = Math.hypot(aimX - x, aimY - y) || 1;

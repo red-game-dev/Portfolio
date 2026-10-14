@@ -1,4 +1,4 @@
-import { PHOTO_PAN, slotOf, VOYAGE_KEYS, voyageKeyAction, VoyageKeyState } from "@/components/Finale/Voyage/controls";
+import { heldSteer, PHOTO_PAN, slotOf, SteerCommand, VOYAGE_KEYS, voyageKeyAction, VoyageKeyState } from "@/components/Finale/Voyage/controls";
 
 import { keyPress } from "../packages/interaction/fixtures/events";
 
@@ -30,8 +30,11 @@ describe("the voyage's keys", () => {
   test("name a command for every key the voyage answers, in either case", () => {
     expect(VOYAGE_KEYS.intentOf(keyPress("ArrowLeft"))).toBe("left");
     expect(VOYAGE_KEYS.intentOf(keyPress("D"))).toBe("right");
-    expect(VOYAGE_KEYS.intentOf(keyPress("w"))).toBe("burn");
-    expect(VOYAGE_KEYS.intentOf(keyPress("ArrowDown"))).toBe("brake");
+    expect(VOYAGE_KEYS.intentOf(keyPress("w"))).toBe("up");
+    expect(VOYAGE_KEYS.intentOf(keyPress("ArrowUp"))).toBe("up");
+    expect(VOYAGE_KEYS.intentOf(keyPress("ArrowDown"))).toBe("down");
+    expect(VOYAGE_KEYS.intentOf(keyPress("S"))).toBe("down");
+    expect(VOYAGE_KEYS.intentOf(keyPress(" "))).toBe("brake");
     expect(VOYAGE_KEYS.intentOf(keyPress("p"))).toBe("pause");
     expect(VOYAGE_KEYS.intentOf(keyPress("M"))).toBe("map");
     expect(VOYAGE_KEYS.intentOf(keyPress("f"))).toBe("guns");
@@ -47,6 +50,49 @@ describe("the voyage's keys", () => {
     expect(VOYAGE_KEYS.intentOf(keyPress("6"))).toBe("slot6");
     expect(VOYAGE_KEYS.intentOf(keyPress("7"))).toBeNull();
     expect(VOYAGE_KEYS.intentOf(keyPress("q"))).toBeNull();
+  });
+
+  test("steer with the arrows, WASD and Space while the run moves, and not paused, docked or between runs", () => {
+    (["left", "right", "up", "down", "brake"] as const).forEach((command) => {
+      expect(voyageKeyAction(command, state())).toBe("steer");
+      expect(voyageKeyAction(command, state({ isFlying: false }))).toBeNull();
+      expect(voyageKeyAction(command, state({ isPaused: true }))).toBeNull();
+      expect(voyageKeyAction(command, state({ isDocked: true }))).toBeNull();
+    });
+  });
+
+  test("leave Space to a focused button, which it presses, and brake with it anywhere else", () => {
+    const button = document.createElement("button");
+    const tab = document.createElement("div");
+
+    tab.setAttribute("role", "tab");
+    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: button } as never))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: tab } as never))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: document.body } as never))).toBe("brake");
+    expect(VOYAGE_KEYS.intentOf(keyPress("w", { target: button } as never))).toBe("up");
+  });
+
+  test("pointing the way to fly, the arrows lean the ship that way on screen, two for a diagonal, and only Space brakes", () => {
+    const holding = (...keys: SteerCommand[]) => (command: SteerCommand) => keys.includes(command);
+    const diagonal = heldSteer(holding("up", "left"), "direction");
+
+    expect(heldSteer(holding(), "direction")).toEqual({ turn: 0, thrust: 0, brake: false, lean: null });
+    expect(heldSteer(holding("right"), "direction")).toEqual({ turn: 0, thrust: 0, brake: false, lean: { x: 1, y: 0 } });
+    expect(heldSteer(holding("down"), "direction")).toEqual({ turn: 0, thrust: 0, brake: false, lean: { x: 0, y: 1 } });
+    expect(diagonal.lean?.x).toBeCloseTo(-Math.SQRT1_2);
+    expect(diagonal.lean?.y).toBeCloseTo(-Math.SQRT1_2);
+    // Up is still the burn, for the way down, where only a burn is flown.
+    expect(diagonal.thrust).toBe(1);
+    expect(heldSteer(holding("left", "right"), "direction").lean).toBeNull();
+    expect(heldSteer(holding("brake"), "direction")).toEqual({ turn: 0, thrust: 0, brake: true, lean: null });
+  });
+
+  test("turning and burning, left and right turn, up burns along the nose, and down or Space brakes", () => {
+    const holding = (...keys: SteerCommand[]) => (command: SteerCommand) => keys.includes(command);
+
+    expect(heldSteer(holding("left", "up"), "turn")).toEqual({ turn: -1, thrust: 1, brake: false, lean: null });
+    expect(heldSteer(holding("down"), "turn")).toEqual({ turn: 0, thrust: 0, brake: true, lean: null });
+    expect(heldSteer(holding("brake", "right"), "turn")).toEqual({ turn: 1, thrust: 0, brake: true, lean: null });
   });
 
   test("leave the browser's own shortcuts to the browser, but not Shift", () => {
@@ -119,7 +165,7 @@ describe("voyageKeyAction", () => {
     expect(voyageKeyAction("back", photo)).toBe("photo");
     expect(voyageKeyAction("zoomIn", photo)).toBe("zoomIn");
     expect(voyageKeyAction("zoomOut", photo)).toBe("zoomOut");
-    (["left", "burn", "pause", "map", "guns", "hangar", "follow"] as const).forEach((command) => expect(voyageKeyAction(command, photo)).toBeNull());
+    (["left", "up", "brake", "pause", "map", "guns", "hangar", "follow"] as const).forEach((command) => expect(voyageKeyAction(command, photo)).toBeNull());
   });
 
   test("steps back out of the hangar before photo mode, and with nothing open asks to leave a run, or leaves Escape alone", () => {

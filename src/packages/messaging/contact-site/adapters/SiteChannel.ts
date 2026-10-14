@@ -7,7 +7,7 @@ const STATUS_SECONDS = 30;
 const STATUS_DEDUPE_MS = 2000;
 // One retry for the read, on no answer at all (status 0: a dropped connection or a timeout) or a busy server; a send is
 // never retried here, since its idempotency key is the server's to use.
-const READ_RETRY: RetryPolicy = { retries: 1, delay: 400, methods: ["GET"], retryOn: [0, 408, 500, 502, 504] };
+const READ_RETRY: RetryPolicy = { retries: 1, delay: 400, methods: ["GET"], retryOn: [0, 408, 500, 502, 503, 504] };
 const READ_TIMEOUT_MS = 8 * 1000;
 // A send waits longer than the server's mail deadline, so the visitor hears the server's answer, not a timeout.
 const SEND_TIMEOUT_MS = 25 * 1000;

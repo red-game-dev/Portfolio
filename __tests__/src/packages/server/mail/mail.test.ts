@@ -69,12 +69,15 @@ describe("mail adapters", () => {
     expect(calls.posts[1].options).toEqual({ headers: {} });
   });
 
-  test("a provider's limits read as limited, another refusal as rejected, and no answer or its own error as failed", async () => {
+  test("a provider's limits read as limited, a refusal of who is sending as rejected, and anything else as maybe gone", async () => {
     const outcomeFor = async (status: number) => (await new ResendMailAdapter("re_test", { client: clientAnswering(status).client }).send(MAIL)).outcome;
 
     expect(await outcomeFor(429)).toBe("limited");
+    expect(await outcomeFor(401)).toBe("rejected");
     expect(await outcomeFor(403)).toBe("rejected");
-    expect(await outcomeFor(422)).toBe("rejected");
+    // A key still being worked on, or reused for another email, refuses this email alone, and it may have gone.
+    expect(await outcomeFor(409)).toBe("failed");
+    expect(await outcomeFor(422)).toBe("failed");
     expect(await outcomeFor(500)).toBe("failed");
     expect(await outcomeFor(0)).toBe("failed");
   });
@@ -91,17 +94,22 @@ describe("the mail service", () => {
     expect(result.attempts.map((attempt) => `${attempt.adapter}:${attempt.outcome}`)).toEqual(["first:limited", "second:rejected", "third:sent"]);
   });
 
-  test("tries a provider that gave no answer once more with the same key, and never hands it on, which could send it twice", async () => {
+  test("tries a provider that gave no answer once more with the same key, after a pause, and never hands it on, which could send it twice", async () => {
     const flaky = new FakeAdapter("flaky", ["failed", "sent"]);
     const next = new FakeAdapter("next", ["sent"]);
+    const pauses: number[] = [];
+    const pause = async (ms: number) => {
+      pauses.push(ms);
+    };
 
-    expect((await new MailService([flaky, next]).send(MAIL, "key-1")).outcome).toBe("sent");
+    expect((await new MailService([flaky, next], { pause }).send(MAIL, "key-1")).outcome).toBe("sent");
     expect(flaky.keys).toEqual(["key-1", "key-1"]);
     expect(next.keys).toEqual([]);
+    expect(pauses).toEqual([750]);
 
     const down = new FakeAdapter("down", ["failed"]);
     const spare = new FakeAdapter("spare", ["sent"]);
-    const result = await new MailService([down, spare]).send(MAIL, "key-2");
+    const result = await new MailService([down, spare], { pause }).send(MAIL, "key-2");
 
     expect(result.outcome).toBe("failed");
     expect(spare.keys).toEqual([]);
@@ -109,12 +117,12 @@ describe("the mail service", () => {
     // Without a key a second try could send it twice, so there is none.
     const unkeyed = new FakeAdapter("unkeyed", ["failed", "sent"]);
 
-    expect((await new MailService([unkeyed]).send(MAIL)).outcome).toBe("failed");
+    expect((await new MailService([unkeyed], { pause }).send(MAIL)).outcome).toBe("failed");
     expect(unkeyed.keys).toHaveLength(1);
   });
 
   test("counts a provider that throws as failing, and starts no new try past its deadline", async () => {
-    expect(await new MailService([new FakeAdapter("broken", [new Error("SDK blew up")])]).send(MAIL))
+    expect(await new MailService([new FakeAdapter("broken", [new Error("SDK blew up")])], { pause: async () => undefined }).send(MAIL))
       .toMatchObject({ outcome: "failed", attempts: [{ adapter: "broken", outcome: "failed", status: 0 }] });
 
     let now = 0;

@@ -44,12 +44,8 @@ export const getContactService = (): ContactService => {
       health: {
         isDown: async () => Boolean(await store.get(DOWN_KEY)),
         reportDown: () => store.set(DOWN_KEY, "1", CONTACT_CONFIG.downMs),
-        // Only written when it was down: a store write per send would cost every send a round trip.
-        clear: async () => {
-          if (await store.get(DOWN_KEY)) {
-            await store.set(DOWN_KEY, "", 1);
-          }
-        },
+        // An empty value gone at once: one round trip, as reading it first would be.
+        clear: () => store.set(DOWN_KEY, "", 1),
       },
       onSend: logSend,
     });

@@ -16,7 +16,8 @@ const importsOf = (source: string): string[] => {
   const found: string[] = [];
   const patterns = [
     /^\s*import\s+(?!type\b)([\s\S]*?)\s+from\s+["']([^"']+)["']/gm,
-    /^\s*export\s+(?!type\b)(?:\*|\{[\s\S]*?\})\s+from\s+["']([^"']+)["']/gm,
+    /^\s*export\s+(?!type\b)(?:\*(?:\s+as\s+\w+)?|\{[\s\S]*?\})\s+from\s+["']([^"']+)["']/gm,
+    /^\s*import\s+\w+\s*=\s*require\(\s*["']([^"']+)["']\s*\)/gm,
     /^\s*import\s+["']([^"']+)["']/gm,
   ];
 
@@ -39,6 +40,8 @@ const importsOf = (source: string): string[] => {
   return found;
 };
 
+// A module the page names, as a file, or null for a package. One of the site's own that cannot be found fails the walk
+// rather than being skipped, so nothing slips past unread.
 const resolve = (specifier: string, from: string): string | null => {
   const alias = ALIASES.find(([prefix]) => specifier.startsWith(prefix));
   const base = specifier.startsWith(".") ? path.resolve(path.dirname(from), specifier) : alias ? path.join(ROOT, alias[1], specifier.slice(alias[0].length)) : null;
@@ -47,7 +50,15 @@ const resolve = (specifier: string, from: string): string | null => {
     return null;
   }
 
-  return EXTENSIONS.map((extension) => `${base}${extension}`).find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) ?? null;
+  const file = EXTENSIONS.map((extension) => `${base}${extension}`).find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile());
+  // Declarations (types/*.d.ts) carry no code into the bundle.
+  const isDeclaration = fs.existsSync(`${base}.d.ts`);
+
+  if (!file && !isDeclaration && !/\.(css|scss|svg|png|jpg|webp)$/.test(specifier)) {
+    throw new Error(`${path.relative(ROOT, from)} imports ${specifier}, which the walk cannot find`);
+  }
+
+  return file ?? null;
 };
 
 // Every module the page and the app shell carry before anything loads on demand, and every package they name.
@@ -69,7 +80,7 @@ const firstLoad = () => {
 
       if (resolved) {
         queue.push(resolved);
-      } else if (!specifier.startsWith(".")) {
+      } else if (!specifier.startsWith(".") && !specifier.startsWith("@/")) {
         externals.add(specifier.startsWith("@") ? specifier.split("/").slice(0, 2)
 .join("/") : specifier.split("/")[0]);
       }

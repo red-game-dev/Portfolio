@@ -82,9 +82,9 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   const fieldId = (name: FieldName | "trap") => `${id}-${name}`;
   const fallback = useMemo(() => contactFallback(email, subject), [email, subject]);
   const delivery = useRef<Promise<ContactDelivery> | null>(null);
-  // The key the message being written goes under, kept while its text stays the same, so a send tried again is the
-  // same message to the server.
-  const sendKey = useRef<{ message: string; key: string } | null>(null);
+  // The key the message being written goes under, kept while everything it sends stays the same, so a send tried again
+  // is the same message to the server, and one changed (an email corrected) is a new one.
+  const sendKey = useRef<{ request: string; key: string } | null>(null);
   // The delivery, loaded once for this form; a load that failed is tried afresh next time.
   const deliveryOf = () => {
     delivery.current ??= loadDelivery(email, subject).catch((error: unknown) => {
@@ -145,18 +145,19 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     setValues((current) => ({ ...current, [name]: event.target.value }));
   };
 
-  const keyFor = (message: string) => {
-    if (sendKey.current?.message !== message) {
-      sendKey.current = { message, key: newKey() };
+  const keyed = (request: ContactRequest): ContactRequest => {
+    const sent = JSON.stringify([request.kind, request.message, request.email, request.name, request.subject]);
+
+    if (sendKey.current?.request !== sent) {
+      sendKey.current = { request: sent, key: newKey() };
     }
 
-    return sendKey.current.key;
+    return { ...request, key: sendKey.current.key };
   };
 
-  const requestOf = (): ContactRequest => ({
+  const requestOf = (): ContactRequest => keyed({
     kind,
     message: values.message,
-    key: keyFor(values.message),
     ...(values.email.trim() ? { email: values.email.trim() } : {}),
     ...(isMessage && values.name.trim() ? { name: values.name.trim() } : {}),
     ...(isMessage ? { subject } : {}),

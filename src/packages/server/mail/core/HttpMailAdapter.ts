@@ -38,14 +38,17 @@ export abstract class HttpMailAdapter<TBody> extends MailAdapter {
     return { adapter: this.id, outcome: result.ok ? "sent" : this.outcomeOf(result), status: result.status, ms: this.now() - started };
   }
 
-  // A provider's refusal, from its status (and its body, for one that says more there): its limits (429) for now, any
-  // other refusal (4xx) definite, and no answer or its own error (5xx) failed, when the email may or may not have gone.
+  // A provider's refusal, from its status (and its body, for one that says more there): its limits (429) for now; a
+  // rejection only where the provider refuses who is sending (401, 403: a revoked key, a sender not verified), which will
+  // happen again until someone changes something; and anything else failed, when the email may or may not have gone (no
+  // answer, its own error, or a refusal of this email alone, such as a key it is still working on, 409), which is never
+  // handed to another provider nor marks mail down.
   protected outcomeOf(failure: ApiFailure): MailOutcome {
     if (failure.status === 429) {
       return "limited";
     }
 
-    return failure.status >= 400 && failure.status < 500 ? "rejected" : "failed";
+    return failure.status === 401 || failure.status === 403 ? "rejected" : "failed";
   }
 
   protected abstract bodyOf(mail: Mail): TBody;

@@ -120,7 +120,7 @@ describe("the message and feedback form", () => {
     expect(screen.getByRole("button", { name: forms.feedback.send })).toBeInTheDocument();
   });
 
-  it("sends a message tried again under the same key, and a changed one under a new key", async () => {
+  it("sends a message tried again under the same key, and a changed one (its text or its email) under a new key", async () => {
     client.sendContact.mockResolvedValue({ kind: "fallback", href: "mailto:x", refusal: "failed" });
     renderForm("feedback");
     await waitFor(() => expect(client.contactIsOpen).toHaveBeenCalled());
@@ -135,11 +135,14 @@ describe("the message and feedback form", () => {
     await send();
     fireEvent.change(field, { target: { value: "More case studies and blueprints, please." } });
     await send();
+    fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.email)), { target: { value: "ada@example.test" } });
+    await send();
 
     const keys = client.sendContact.mock.calls.map(([request]) => (request as { key: string }).key);
 
     expect(keys[0]).toBe(keys[1]);
     expect(keys[2]).not.toBe(keys[0]);
+    expect(keys[3]).not.toBe(keys[2]);
   });
 
   it("keeps the field for bots out of sight and out of reach, and passes on what a bot fills in, for the server to drop", async () => {

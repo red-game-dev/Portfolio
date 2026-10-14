@@ -1,4 +1,5 @@
-import { CONTACT_CONFIG } from "@/config/contact";
+import { CONTACT_CONFIG, EMAIL_THEME } from "@/config/contact";
+import { formsContent } from "@/data/portfolio/forms";
 import { ContactService, SendRecord } from "@/packages/messaging/contact";
 import { MailAdapter, MailService, ResendMailAdapter } from "@/packages/server/mail";
 import { DailyQuota, SlidingWindowLimiter } from "@/packages/server/quota";
@@ -38,7 +39,7 @@ export const getContactService = (): ContactService => {
 
     service = new ContactService({
       mailer: mail.isReady ? mail : null,
-      route: inbox ? { sender, to: inbox, site: CONTACT_CONFIG.site } : null,
+      route: inbox ? { sender, to: inbox, site: CONTACT_CONFIG.site, look: { theme: EMAIL_THEME, words: formsContent.forms.email } } : null,
       visitor: new SlidingWindowLimiter(store, "contact:rate:visitor", CONTACT_CONFIG.perVisitor),
       day: new DailyQuota(store, "contact:sent", CONTACT_CONFIG.perDay),
       health: {

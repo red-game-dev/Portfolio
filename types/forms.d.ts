@@ -58,8 +58,18 @@ export interface MessageFormSetup {
   contactTime: string;
 }
 
+// The words of the email a message becomes: the badge for each kind, who sent it, and the line under it all.
+export interface FormEmailContent {
+  kinds: { message: string; feedback: string };
+  from: string;
+  anonymous: string;
+  reply: string;
+  footer: string;
+}
+
 export interface FormsContent {
   message: MessageFormContent;
   feedback: FeedbackFormContent;
   shared: FormsSharedContent;
+  email: FormEmailContent;
 }

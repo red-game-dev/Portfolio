@@ -42,5 +42,12 @@ export const formsContent: Pick<PortfolioData, "forms"> = {
         subjectLong: "The subject is too long.",
       },
     },
+    email: {
+      kinds: { message: "Message", feedback: "Feedback" },
+      from: "From",
+      anonymous: "Anonymous",
+      reply: "Reply to this email and it goes straight back to them.",
+      footer: "Sent with a form on",
+    },
   },
 };

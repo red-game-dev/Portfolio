@@ -1,6 +1,6 @@
 import {
-  CONTACT_LIMITS, ContactChannel, ContactDelivery, contactMail, contactProblems, ContactService, Delivery, isContactRequest, MAILTO_MOST, MailtoChannel,
-  SendCeiling, SendHealth, SendRecord,
+  CONTACT_LIMITS, ContactChannel, ContactDelivery, contactHtml, contactMail, contactProblems, ContactService, Delivery, EmailTheme, EmailWords,
+  isContactRequest, MAILTO_MOST, MailtoChannel, SendCeiling, SendHealth, SendRecord,
 } from "@/packages/messaging/contact";
 import type { Mail, Mailer, MailOutcome } from "@/packages/server/mail";
 
@@ -180,6 +180,52 @@ describe("the site's messages and feedback", () => {
     healed.kept.isDown = true;
     await healed.service.send(MESSAGE, "visitor");
     expect(healed.kept.isDown).toBe(false);
+  });
+});
+
+describe("the email a message becomes", () => {
+  const THEME: EmailTheme = {
+    background: "#0b0b0b", panel: "#101010", border: "#1e1e1e", text: "#d6dcd9", muted: "#8a948f",
+    accents: { message: "#4bffa5", feedback: "#c4d2ff" }, font: "Roboto, sans-serif", mono: "monospace", siteUrl: "https://www.example.test",
+  };
+  const WORDS: EmailWords = { kinds: { message: "Message", feedback: "Feedback" }, from: "From", anonymous: "Anonymous", reply: "Reply goes back.", footer: "Sent on" };
+
+  test("looks as the site does, in the accent of its kind, saying who sent it and that a reply goes back only when it can", () => {
+    const message = contactHtml(MESSAGE, "Hiring: CTO", "Ada <visitor@example.test>", THEME, WORDS);
+    const feedback = contactHtml({ kind: "feedback", message: "More case studies, please." }, "Feedback", null, THEME, WORDS);
+
+    expect(message).toContain("height:3px;line-height:3px;font-size:0;background:#4bffa5;");
+    expect(message).toContain(">Message<");
+    expect(message).toContain("Hiring: CTO");
+    expect(message).toContain("Reply goes back.");
+    expect(message).toContain("example.test");
+    expect(feedback).toContain("background:#c4d2ff;");
+    expect(feedback).toContain("Anonymous");
+    expect(feedback).not.toContain("Reply goes back.");
+  });
+
+  test("moves lightly where a mail app plays it, never for a reader who asked for less, and looks the same where motion is stripped", () => {
+    const html = contactHtml(MESSAGE, "Hiring: CTO", null, THEME, WORDS);
+
+    expect(html).toContain("@keyframes rg-shine");
+    expect(html).toContain("@media (prefers-reduced-motion: reduce) { .rg-bar, .rg-rise { animation: none !important; } }");
+    // The bar's colour and the panel's look stand inline, so a mail app that drops the style block loses nothing.
+    expect(html).toMatch(/class="rg-bar"[^>]*style="[^"]*background:#4bffa5/);
+    expect(html).toMatch(/class="rg-rise"[^>]*style="[^"]*border-left:2px solid #4bffa5/);
+  });
+
+  test("escapes everything a visitor wrote, keeping their line breaks, so nothing in a message can change the email", () => {
+    const html = contactHtml({ ...MESSAGE, message: "Hi\n<script>alert(1)</script> & \"quotes\"" }, "<b>Hiring</b>", "Ada <a@b.test>", THEME, WORDS);
+
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("<b>Hiring</b>");
+    expect(html).toContain("Hi<br>&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;quotes&quot;");
+    expect(html).toContain("Ada &lt;a@b.test&gt;");
+  });
+
+  test("goes with the plain text where the site gives it a look, and as plain text alone where it does not", () => {
+    expect(contactMail(MESSAGE, { ...ROUTE, look: { theme: THEME, words: WORDS } }).html).toContain("<!doctype html>");
+    expect(contactMail(MESSAGE, ROUTE).html).toBeUndefined();
   });
 });
 

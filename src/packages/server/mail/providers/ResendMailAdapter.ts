@@ -8,6 +8,7 @@ interface ResendBody {
   to: string;
   subject: string;
   text: string;
+  html?: string;
   reply_to?: string;
 }
 
@@ -28,6 +29,7 @@ export class ResendMailAdapter extends HttpMailAdapter<ResendBody> {
       to: mail.to,
       subject: mail.subject,
       text: mail.text,
+      ...(mail.html ? { html: mail.html } : {}),
       ...(mail.replyTo ? { reply_to: mail.replyTo } : {}),
     };
   }

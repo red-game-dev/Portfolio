@@ -28,7 +28,7 @@ export const PerkCard: FC<PerkCardProps> = ({ content, offer, taken, onChoose })
 
   return (
     <Overlay isPassThrough={false}>
-      <Card isPassThrough={false} aria-labelledby="perk-title">
+      <Card isPassThrough={false} aria-labelledby="perk-title" data-hud-surface="card">
         <Title id="perk-title">{copy.title}</Title>
         <Text>{copy.note}</Text>
         <PerkList>

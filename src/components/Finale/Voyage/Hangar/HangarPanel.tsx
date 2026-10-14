@@ -231,7 +231,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
   })();
 
   return (
-    <Panel aria-labelledby="hangar-heading" style={{ "--tab-accent": tabSpec.accent } as CSSProperties}>
+    <Panel aria-labelledby="hangar-heading" data-hud-surface="drawer" style={{ "--tab-accent": tabSpec.accent } as CSSProperties}>
       <Header>
         <Heading id="hangar-heading" ref={headingRef} tabIndex={-1}>{copy.hangar}</Heading>
         <Purse>

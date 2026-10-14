@@ -797,7 +797,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         {isManual && isTouch && <TouchStick ref={stickRef} aria-hidden="true" />}
       </Stage>
       {isPhoto && (
-        <PhotoBar aria-label={content.career.photo.title}>
+        <PhotoBar aria-label={content.career.photo.title} data-hud-surface="bar">
           <PhotoHint role="status">{content.career.photo.hint}</PhotoHint>
           <PadButtons>
             <IconButton type="button" onClick={() => voyage.look(PHOTO_STEP, 0)} aria-label={content.career.photo.look.left}>
@@ -829,7 +829,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </PhotoBar>
       )}
       {isMapView && (
-        <MapBar aria-label={content.map}>
+        <MapBar aria-label={content.map} data-hud-surface="bar">
           <MapTitle>{content.map}</MapTitle>
           <IconButton type="button" onClick={toggleMap} aria-label={content.closeMap}>
             <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
@@ -1199,7 +1199,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       {(status !== "flying" || isPaused) && !isHangarOpen && !isPhoto && (
         <Overlay isPassThrough={status === "flying"}>
-          <Card ref={cardRef} isPassThrough={status === "flying"} accent={status === "over" ? "#ffd76a" : isAskingToLeave ? "#ff9aa5" : "#c4d2ff"}>
+          <Card ref={cardRef} data-hud-surface="card" isPassThrough={status === "flying"} accent={status === "over" ? "#ffd76a" : isAskingToLeave ? "#ff9aa5" : "#c4d2ff"}>
             {status === "ready" && (
               <>
                 <Title>{content.title}</Title>

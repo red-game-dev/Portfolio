@@ -36,6 +36,7 @@ export const createContactDialog = (data: PortfolioData): TerminalDialog => {
       { heading: data.terminal.red.labels.recommendations, items: quotesOf(data) },
     ],
     actions: contactActions(data, contact.subject),
+    compose: { subject: contact.subject },
   };
 };
 
@@ -53,6 +54,7 @@ export const createHireDialog = (data: PortfolioData, character: Character): Ter
       { heading: red.labels.recommendations, items: quotesOf(data) },
     ],
     actions: contactActions(data, fill(red.hireSubject, { role: character.characterClass })),
+    compose: { subject: fill(red.hireSubject, { role: character.characterClass }) },
   };
 };
 

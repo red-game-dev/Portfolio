@@ -42,4 +42,25 @@ describe("DailyQuota", () => {
     now = Date.UTC(2026, 9, 9, 0, 1);
     expect(await quota.hasRoom()).toBe(true);
   });
+
+  test("takes one at a time, never past the limit however many ask at once, and gives back what was never spent", async () => {
+    const now = Date.UTC(2026, 9, 8, 12, 0);
+    const quota = new DailyQuota(new MemoryStore(() => now), "sent", 3, () => now);
+    const taken = await Promise.all([quota.take(), quota.take(), quota.take(), quota.take(), quota.take()]);
+
+    expect(taken.filter(Boolean)).toHaveLength(3);
+    expect(await quota.hasRoom()).toBe(false);
+
+    const fresh = new DailyQuota(new MemoryStore(() => now), "sent", 1, () => now);
+
+    expect(await fresh.take()).toBe(true);
+    await fresh.refund();
+    expect(await fresh.hasRoom()).toBe(true);
+    expect(await fresh.take()).toBe(true);
+    expect(await fresh.take()).toBe(false);
+
+    // A take refused at the ceiling holds no place, so a send that failed and is refunded frees one.
+    await fresh.refund();
+    expect(await fresh.hasRoom()).toBe(true);
+  });
 });

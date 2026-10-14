@@ -17,6 +17,7 @@ import { scrollToElement } from "@/packages/interaction/scroll-frame";
 import { TerminalDialog as TerminalDialogContent } from "@/packages/interaction/terminal";
 import { createRosterLevels } from "@/services/roster";
 import { CarouselLabels } from "@/types/carousel";
+import { MessageFormSetup } from "@/types/forms";
 import { Roster as RosterContent } from "@/types/roster";
 import { SectionIntros } from "@/types/sections-intros";
 
@@ -26,6 +27,8 @@ interface RosterProps extends RosterContent {
   hireDialogs: Record<string, TerminalDialogContent>;
   carouselLabels: CarouselLabels;
   closeLabel: string;
+  // The words for a message written from a role's card.
+  messageForm?: MessageFormSetup;
 }
 
 const Cards = tw.div`mt-[10px]`;
@@ -41,7 +44,7 @@ const goTo = (target: string) => {
 // The roles I have held as an MMO party, two at a time, and the reader's character select. Level is
 // computed from real dates, never typed in by hand. Picking a character also opens its card, with every
 // way to get in touch.
-export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters, hireDialogs, carouselLabels, closeLabel }: RosterProps) => {
+export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters, hireDialogs, carouselLabels, closeLabel, messageForm }: RosterProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const isRevealed = useInView(gridRef, { threshold: 0.15 });
   const levels = useMemo(() => createRosterLevels({ asOf }), [asOf]);
@@ -84,7 +87,7 @@ export const Roster: FC<RosterProps> = ({ intro, asOf, labels, characters, hireD
           />
         </Cards>
       </Panel>
-      {dialog && <LazyTerminalDialog dialog={dialog} closeLabel={closeLabel} onClose={() => setDialog(null)} onNavigate={goTo} />}
+      {dialog && <LazyTerminalDialog dialog={dialog} closeLabel={closeLabel} onClose={() => setDialog(null)} onNavigate={goTo} messageForm={messageForm} />}
     </Section>
   );
 };

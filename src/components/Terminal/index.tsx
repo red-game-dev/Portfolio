@@ -31,6 +31,7 @@ import {
 import { fill } from "@/packages/text/format";
 import { caretBlink } from "@/styles/keyframes";
 import { accentFillOnHover, media, noAnimationWhenReduced } from "@/styles/mixins";
+import { MessageFormSetup } from "@/types/forms";
 import { SectionIntros } from "@/types/sections-intros";
 import { TerminalContent } from "@/types/terminal";
 
@@ -38,6 +39,8 @@ interface TerminalProps {
   intro: SectionIntros;
   content: TerminalContent;
   createSession: () => TerminalSession;
+  // The words for a message written from the contact card.
+  messageForm?: MessageFormSetup;
 }
 
 // New output arrives a line at a time, like a model streaming its answer.
@@ -206,7 +209,7 @@ const PROMPT_KEYS = new KeyMap<"previous" | "next" | "complete">({ ArrowUp: "pre
 
 // A real command line over the portfolio. The session is plain state from the terminal package; this
 // component only renders it and carries out the effects a command asks for.
-export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: TerminalProps) => {
+export const Terminal: FC<TerminalProps> = ({ intro, content, createSession, messageForm }: TerminalProps) => {
   const [session] = useState(createSession);
   const [, setVersion] = useState(0);
   const [value, setValue] = useState("");
@@ -455,6 +458,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession }: T
             inputRef.current?.focus({ preventScroll: true });
           }}
           onNavigate={scrollToSection}
+          messageForm={messageForm}
         />
       )}
     </Section>

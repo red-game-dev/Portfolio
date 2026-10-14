@@ -19,12 +19,22 @@ export interface CallOptions {
   timeout?: number;
 }
 
+// A read can also be kept for `cacheSeconds`, and reads of the same thing within `dedupeMs` of each other share one
+// request (fetchff's cache and dedupe), so every part of a page asking the same question costs one request. Only reads:
+// a kept POST would answer a second send from the first, and a shared stream can be read once.
+export interface ReadOptions extends CallOptions {
+  cacheSeconds?: number;
+  dedupeMs?: number;
+}
+
 export interface ApiFailure {
   ok: false;
   // The HTTP status, or 0 when no response arrived (offline, timed out, cancelled).
   status: number;
   message: string;
   isCancelled: boolean;
+  // The body a server answered the failure with (parsed JSON, as the caller must guard it), or null for none.
+  data: unknown;
 }
 
 // What a call came back with: the data, or why there is none. Calls never throw, so a caller decides with types,

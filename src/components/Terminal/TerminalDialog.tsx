@@ -3,17 +3,21 @@ import { FC, useId, useRef } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
+import { MessageForm } from "@/components/Contact/MessageForm";
 import { ActionButton, ActionLink } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import useModalDialog from "@/hooks/useModalDialog";
 import { TerminalDialog as TerminalDialogContent } from "@/packages/interaction/terminal";
 import { media, squareBullet } from "@/styles/mixins";
+import { MessageFormSetup } from "@/types/forms";
 
 interface TerminalDialogProps {
   dialog: TerminalDialogContent | null;
   closeLabel: string;
   onClose: () => void;
   onNavigate: (target: string) => void;
+  // The words for a message written from the dialog, when it offers one.
+  messageForm?: MessageFormSetup;
 }
 
 const materialise = keyframes`
@@ -83,7 +87,7 @@ const Actions = tw.div`flex flex-row flex-wrap gap-[10px] pt-[6px]`;
 const Close = tw.button`absolute top-[10px] right-[12px] z-[2] cursor-pointer text-xs text-[#8a948f] bg-transparent border-0 p-[6px] hover:text-white`;
 
 // The rich answer to a terminal request, styled as a quest card that materialises over the page.
-export const TerminalDialog: FC<TerminalDialogProps> = ({ dialog, closeLabel, onClose, onNavigate }: TerminalDialogProps) => {
+export const TerminalDialog: FC<TerminalDialogProps> = ({ dialog, closeLabel, onClose, onNavigate, messageForm }: TerminalDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -109,6 +113,10 @@ export const TerminalDialog: FC<TerminalDialogProps> = ({ dialog, closeLabel, on
                 </Items>
               </Group>
             ))}
+            {dialog.compose && messageForm && (
+              <MessageForm kind="message" subject={dialog.compose.subject} email={messageForm.email} contactTime={messageForm.contactTime}
+                words={messageForm.words} shared={messageForm.shared} />
+            )}
             <Actions>
               {dialog.actions.map((action, index) => (action.kind === "link" ? (
                 <ActionLink key={action.label} href={action.target} isPrimary={index === 0} target={action.target.startsWith("http") ? "_blank" : undefined}

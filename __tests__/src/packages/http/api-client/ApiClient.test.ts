@@ -43,10 +43,30 @@ describe("ApiClient", () => {
     expect(result.ok && await new Response(result.data).text()).toBe("data: 1\n\n");
   });
 
-  test("a failure is a result with its status, never a throw", async () => {
+  test("a failure is a result with its status, never a throw, carrying the body a server answered it with", async () => {
     const result = await new ApiClient({}, fakeFetcher([{ status: 401, body: "no" }])).postStream("https://api.example/s", {});
 
-    expect(result).toMatchObject({ ok: false, status: 401, isCancelled: false });
+    expect(result).toMatchObject({ ok: false, status: 401, isCancelled: false, data: null });
+
+    const refused = await new ApiClient({}, fakeFetcher([{ status: 400, body: "{\"error\":\"invalid\",\"problems\":[\"messageShort\"]}" }]))
+      .post("https://api.example/contact", {});
+
+    expect(refused).toMatchObject({ ok: false, status: 400, data: { error: "invalid", problems: ["messageShort"] } });
+
+    const plain = await new ApiClient({}, fakeFetcher([{ status: 502, body: "<html>Bad gateway</html>" }])).post("https://api.example/contact", {});
+
+    expect(plain).toMatchObject({ ok: false, status: 502, data: null });
+  });
+
+  test("a read can be kept a moment and shared, so asking again costs no request", async () => {
+    const seen: SeenRequest[] = [];
+    const client = new ApiClient({}, fakeFetcher([{ status: 200, body: "{\"isOpen\":true}" }], seen));
+    const url = `https://api.example/status-${Math.random().toString(36)
+.slice(2)}`;
+
+    await Promise.all([client.get(url, { cacheSeconds: 30, dedupeMs: 2000 }), client.get(url, { cacheSeconds: 30, dedupeMs: 2000 })]);
+    expect((await client.get<{ isOpen: boolean }>(url, { cacheSeconds: 30, dedupeMs: 2000 }))).toMatchObject({ ok: true, data: { isOpen: true } });
+    expect(seen).toHaveLength(1);
   });
 
   test("a POST is retried only when the policy says so", async () => {

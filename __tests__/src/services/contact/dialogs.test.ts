@@ -26,6 +26,7 @@ describe("contact service", () => {
 
     expect(dialog.sections[0].items).toContain(portfolioData.details.email);
     expect(dialog.actions).toHaveLength(4);
+    expect(dialog.compose).toEqual({ subject: portfolioData.terminal.contact.subject });
   });
 
   it("opens a hire card per character, with its level and abilities, naming no employer outside the quotes", () => {
@@ -40,6 +41,7 @@ describe("contact service", () => {
 
       expect(dialog.subtitle).toMatch(new RegExp(`^${character.characterClass}, .+ \\d+$`));
       expect(dialog.sections[0].items).toEqual(character.abilities);
+      expect(dialog.compose?.subject).toContain(character.characterClass);
       companies.forEach((company) => expect(text).not.toContain(company));
     });
   });

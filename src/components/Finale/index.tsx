@@ -7,6 +7,7 @@ import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
 import { faArrowRotateLeft, faEnvelope, faFileArrowDown, faRocket, faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { MessageForm } from "@/components/Contact/MessageForm";
 import { ActionButton, ActionLink, actionStyle } from "@/components/Controls";
 import { DecodedText } from "@/components/DecodedText";
 import { useInvite } from "@/components/Finale/hooks/useInvite";
@@ -24,6 +25,7 @@ import { scrollBehavior } from "@/packages/accessibility/motion";
 import type { LaunchSnapshot } from "@/packages/games/launch";
 import { fill, formatDuration, formatLocalTime } from "@/packages/text/format";
 import { focusRing, noAnimationWhenReduced } from "@/styles/mixins";
+import { FeedbackFormContent, FormsSharedContent } from "@/types/forms";
 import { FinaleContent, FinaleLaunch, FinaleLaunchSite, FinaleRank } from "@/types/game";
 import { DocumentLink } from "@/types/portfolio";
 import { PreferencesContent } from "@/types/preferences";
@@ -40,6 +42,9 @@ interface FinaleProps {
   cvUrl: string;
   // The reader's settings, offered in the voyage's hangar.
   settings: PreferencesContent;
+  // Feedback, at the very end: what I could do better.
+  feedback: FeedbackFormContent;
+  formWords: FormsSharedContent;
 }
 
 const shake = keyframes`
@@ -186,6 +191,9 @@ const Referral = tw.p`m-0 flex flex-row flex-wrap items-center gap-x-[14px] gap-
 
 const ReferralLink = tw.a`text-[#c4d2ff] underline hover:text-white`;
 
+// The feedback form, set apart from the ways to get in touch above it, and no wider than reads well.
+const Feedback = tw.div`mt-[10px] pt-[22px] border-0 border-t-[1px] border-solid border-[#252a3a] max-w-[640px]`;
+
 const Restart = styled.button(() => actionStyle(false));
 
 const rankFor = (ranks: FinaleRank[], done: number) => [...ranks].sort((first, second) => second.min - first.min).find((rank) => done >= rank.min) ?? ranks[0];
@@ -220,7 +228,7 @@ const statusOf = (launch: FinaleLaunch, { status, passed, countdown, milestone }
 // they crossed, their run lights up as stars on the way, and the journey closes on where I want to go next,
 // with one last quest: get in touch.
 export const Finale: FC<FinaleProps> = ({
-  content, zoneLabels, contactTime, bossCount, duelCount, email, linkedInUsername, cvUrl, fullResume, settings,
+  content, zoneLabels, contactTime, bossCount, duelCount, email, linkedInUsername, cvUrl, fullResume, settings, feedback, formWords,
 }: FinaleProps) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -436,6 +444,9 @@ export const Finale: FC<FinaleProps> = ({
               {content.referral.recommend}
             </ReferralLink>
           </Referral>
+          <Feedback>
+            <MessageForm kind="feedback" subject={feedback.subject} email={email} contactTime={contactTime} words={feedback} shared={formWords} />
+          </Feedback>
         </Quest>
       </Panel>
     </Section>

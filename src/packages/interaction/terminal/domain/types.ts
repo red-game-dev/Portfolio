@@ -23,6 +23,8 @@ export interface TerminalDialog {
   subtitle?: string;
   sections: TerminalDialogSection[];
   actions: TerminalDialogAction[];
+  // A message the reader can write from the dialog itself, under this subject; the host draws the form.
+  compose?: { subject: string };
 }
 
 // Something the host should do after a command runs. The terminal never touches the page itself.

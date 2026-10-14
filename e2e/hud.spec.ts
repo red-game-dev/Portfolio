@@ -41,23 +41,57 @@ const radarOf = (width: number, height: number): Box => {
   return { area: "radar", left: 14, top: height - 14 - radius * 2, right: 14 + radius * 2, bottom: height - 14 };
 };
 
-// Every HUD panel on screen, by its area: each element marked data-hud-area that takes up room, and the place's own box
+// Every HUD panel on screen, by its area, as far as it is painted: the union of what shows inside each element marked
+// data-hud-area (its text, and every part with a background, a border or an image), so a container stretched wider
+// than what it holds (the column of bars on an upright phone) is measured by what it shows. And the place's own text
 // (the line the voyage says may cover it, as it covers the readout, for its moment).
 const measure = (page: Page) => page.evaluate(() => {
-  const boxOf = (element: Element) => {
-    const { left, top, right, bottom } = element.getBoundingClientRect();
+  interface Rect { left: number; top: number; right: number; bottom: number }
+  const isShown = (element: Element) => {
     const style = getComputedStyle(element);
 
-    return right - left > 0 && bottom - top > 0 && style.visibility !== "hidden" && style.display !== "none" ? { left, top, right, bottom } : null;
+    return style.visibility !== "hidden" && style.display !== "none" && Number(style.opacity) > 0;
+  };
+  const isPainted = (element: Element) => {
+    const style = getComputedStyle(element);
+    const hasBackground = style.backgroundColor !== "rgba(0, 0, 0, 0)" && style.backgroundColor !== "transparent";
+    const hasBorder = ["Top", "Right", "Bottom", "Left"].some((side) => parseFloat(style.getPropertyValue(`border-${side.toLowerCase()}-width`)) > 0);
+
+    return hasBackground || hasBorder || style.backgroundImage !== "none" || ["IMG", "SVG", "CANVAS", "svg"].includes(element.tagName);
+  };
+  const union = (rects: Rect[]): Rect | null => (rects.length === 0 ? null : {
+    left: Math.min(...rects.map((rect) => rect.left)),
+    top: Math.min(...rects.map((rect) => rect.top)),
+    right: Math.max(...rects.map((rect) => rect.right)),
+    bottom: Math.max(...rects.map((rect) => rect.bottom)),
+  });
+  const textRects = (element: Element): Rect[] => [...element.childNodes]
+    .filter((node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim() !== "")
+    .flatMap((node) => {
+      const range = document.createRange();
+
+      range.selectNodeContents(node);
+
+      return [...range.getClientRects()];
+    });
+  const painted = (element: Element): Rect[] => {
+    if (!isShown(element)) {
+      return [];
+    }
+
+    const own = isPainted(element) ? [element.getBoundingClientRect()] : [];
+
+    return [...own, ...textRects(element), ...[...element.children].flatMap(painted)]
+      .filter((rect) => rect.right - rect.left > 0 && rect.bottom - rect.top > 0);
   };
   const boxes = [...document.querySelectorAll<HTMLElement>("[data-hud-area]")].flatMap((element) => {
-    const box = boxOf(element);
+    const box = union(painted(element));
 
     return box ? [{ area: element.dataset.hudArea ?? "", ...box }] : [];
   });
   const place = document.querySelector("[data-hud-place]");
 
-  return { boxes, place: place ? boxOf(place) : null };
+  return { boxes, place: place ? union(painted(place)) : null };
 });
 
 const overlap = (one: Box, two: Box) =>

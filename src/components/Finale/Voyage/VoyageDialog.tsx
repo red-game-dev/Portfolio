@@ -839,7 +839,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       <Hud hidden={isHudAside} data-hud-layer="">
         <Place data-hud-place="" data-hud-area="place">{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
-        <Vitals data-hud-area="vitals" data-covers="">
+        <Vitals data-hud-area="vitals">
           {economy && (
             <ShipLine>
               {career ? fill(content.career.shipLine, { rank: rankName(content, career.rankId), ship }) : ship}
@@ -1043,7 +1043,6 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             data-expanded={isAlertsOpen ? "" : undefined}
             data-hud-layer=""
             data-hud-area="frames"
-            data-covers=""
           >
             {foldedAlerts > 0 || isAlertsOpen ? (
               <AlertsMore type="button" data-alerts-more="" aria-expanded={isAlertsOpen} onClick={() => setIsAlertsOpen(!isAlertsOpen)}>

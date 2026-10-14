@@ -61,7 +61,7 @@ export const worstDescent = (base: VoyageSnapshot): VoyageSnapshot => ({
     method: "chuteAndBurn", phase: "main", altitude: 8400, speed: 120, fall: 95, load: 2.1, heating: 0.2, throttle: 0, canFly: true, isPilot: false,
     isUnderFire: false, reserve: 1, safeSpeed: 6, pace: 40,
   },
-  people: { name: "The Ochre Assembly", disposition: "territorial" },
+  people: { name: "Ochre Assembly", disposition: "territorial" },
 });
 
 

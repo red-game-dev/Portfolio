@@ -134,9 +134,9 @@ const overlap = (one: Rect, two: Rect) =>
 const within = (inner: Rect, outer: Rect) =>
   inner.left >= outer.left - SLACK && inner.top >= outer.top - SLACK && inner.right <= outer.right + SLACK && inner.bottom <= outer.bottom + SLACK;
 
-// The overlaps the HUD is known to have today, by screen, moment and layout, as CI's Linux browser measures them, kept so
-// the check guards against new ones; there an entry that no longer happens fails too, so the list only ever shrinks
-// (elsewhere, where fonts render a pixel apart, it is only noted). The grid rebuild clears it.
+// Overlaps the HUD is known to have, by screen, moment and layout, as CI's Linux browser measures them: none since the
+// grid, and a new one is to be fixed rather than listed. An entry that no longer happens fails there too, so the list
+// only ever shrinks (elsewhere, where fonts render a pixel apart, it is only noted).
 const KNOWN = known as Record<string, string[]>;
 
 for (const screen of SCREENS) {

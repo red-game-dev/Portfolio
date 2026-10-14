@@ -708,7 +708,8 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
         margin-left: 0;
       }
 
-      ${isCard ? "justify-content: space-between;" : ""}
+      /* A card starts at its top, so what is cut off for the strip's height is its end, not its name. */
+      ${isCard ? "justify-content: space-between; align-items: flex-start;" : ""}
 
       /* The chip beside it says it is a quest, so the card's kind gives its room to the chapter's line. */
       ${CardTitle} {
@@ -721,7 +722,7 @@ export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
 
       ${CardLine} {
         display: -webkit-box;
-        -webkit-line-clamp: 3;
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         font-size: 11px;

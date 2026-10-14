@@ -32,6 +32,7 @@ export interface TerminalRed {
     services: string;
     proof: string;
     abilities: string;
+    qualities: string;
     recommendations: string;
     level: string;
     email: string;

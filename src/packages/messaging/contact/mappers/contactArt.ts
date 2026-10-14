@@ -51,26 +51,40 @@ const along = (path: Rgb[], share: number): Rgb => {
 const paletteOf = (path: Rgb[], panel: Rgb): Rgb[] => Array.from({ length: HUES }, (_, hue) => along(path, hue / (HUES - 1)))
   .flatMap((colour) => LIGHTS.map((light) => (light <= 1 ? mixRgb(panel, colour, light) : mixRgb(colour, WHITE, ((light - 1) / 0.3) * WHITE_MOST))));
 
-// The nearest step of light to any light, looked up a thousandth at a time rather than searched for every pixel.
+// The nearest step of light to any light, looked up a thousandth at a time rather than searched for every pixel, the
+// table built on first use (this module reaches the page through the package's entry, and the page never draws).
 const FINEST = 1000;
 const BRIGHTEST = LIGHTS[LIGHTS.length - 1];
-const NEAREST = Uint8Array.from({ length: Math.round(BRIGHTEST * FINEST) + 1 }, (_, fine) =>
-  LIGHTS.reduce((best, level, index) => (Math.abs(level - fine / FINEST) < Math.abs(LIGHTS[best] - fine / FINEST) ? index : best), 0));
+let nearest: Uint8Array | null = null;
 
-const indexOf = (hue: number, light: number) =>
-  Math.round(clamp(hue, 0, 1) * (HUES - 1)) * LIGHTS.length + NEAREST[Math.round(clamp(light, 0, BRIGHTEST) * FINEST)];
+const nearestLight = (light: number) => {
+  nearest ??= Uint8Array.from({ length: Math.round(BRIGHTEST * FINEST) + 1 }, (_, fine) =>
+    LIGHTS.reduce((best, level, index) => (Math.abs(level - fine / FINEST) < Math.abs(LIGHTS[best] - fine / FINEST) ? index : best), 0));
 
-// A row softened by a box blur run twice, so the glow under the bar spreads like light rather than in steps.
+  return nearest[Math.round(clamp(light, 0, BRIGHTEST) * FINEST)];
+};
+
+const indexOf = (hue: number, light: number) => Math.round(clamp(hue, 0, 1) * (HUES - 1)) * LIGHTS.length + nearestLight(light);
+
+// A row softened by a box blur run twice, so the glow under the bar spreads like light rather than in steps: a running
+// total over the window, its ends held at the row's own ends.
 const softened = (row: Float32Array, radius: number): Float32Array => {
-  const pass = (from: Float32Array) => Float32Array.from(from, (_, x) => {
+  const pass = (from: Float32Array) => {
+    const last = from.length - 1;
+    const to = new Float32Array(from.length);
     let total = 0;
 
     for (let offset = -radius; offset <= radius; offset += 1) {
-      total += from[clamp(x + offset, 0, from.length - 1)];
+      total += from[clamp(offset, 0, last)];
     }
 
-    return total / (radius * 2 + 1);
-  });
+    for (let x = 0; x < from.length; x += 1) {
+      to[x] = total / (radius * 2 + 1);
+      total += from[Math.min(last, x + radius + 1)] - from[Math.max(0, x - radius)];
+    }
+
+    return to;
+  };
 
   return pass(pass(row));
 };

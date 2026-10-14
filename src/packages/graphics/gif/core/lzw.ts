@@ -77,6 +77,12 @@ export const writeLzw = (out: ByteWriter, indices: Uint8Array, leastCodeSize: nu
   }
 
   emit(prefix);
+
+  // A reader adds one more entry on that last code, and widens as it does, so the end code goes at the width it reads.
+  if (nextCode === 2 ** codeSize && codeSize < 12) {
+    codeSize += 1;
+  }
+
   emit(endCode);
 
   if (bitCount > 0) {

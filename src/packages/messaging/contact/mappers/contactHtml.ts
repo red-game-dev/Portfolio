@@ -53,19 +53,22 @@ const PREVIEW_FILL = "&#847;&zwnj;&nbsp;".repeat(60);
 
 // The top bar: its art where there is some, drawn twice as wide as it is made and kept at its own height, the bar at
 // rest in its place for a reader who asked for less motion (where a mail app reads that, as Apple's do; Gmail keeps
-// only the image inside); else the bar in the accent alone.
+// only the image inside); else the bar in the accent alone. Under the art the cell draws the bar too, which the art
+// covers once it loads, so a mail app that holds back images, or art that fails to come, still shows the bar.
 const barRow = (accent: string, art: EmailArt | undefined) => {
   if (!art) {
     return `<tr><td aria-hidden="true" height="3" style="height:3px;line-height:3px;mso-line-height-rule:exactly;font-size:0;background:${accent};">&nbsp;</td></tr>`;
   }
 
-  const width = CONTACT_ART.width * 2;
-  const { height } = CONTACT_ART;
+  // As wide as the panel inside its border, for classic Outlook, which takes the width given rather than the style's.
+  const width = CONTACT_ART.width * 2 - 2;
+  const { height, bar } = CONTACT_ART;
+  const underneath = `background-image:linear-gradient(${accent},${accent});background-size:100% ${bar}px;background-repeat:no-repeat;`;
   const image = `<img src="${escapeHtml(art.moving)}" width="${width}" height="${height}" alt="" ` +
     `style="display:block;width:100%;height:${height}px;border:0;outline:none;">`;
   const still = `<source srcset="${escapeHtml(art.still)}" media="(prefers-reduced-motion: reduce)">`;
 
-  return `<tr><td aria-hidden="true" style="padding:0;line-height:0;font-size:0;"><picture>${still}${image}</picture></td></tr>`;
+  return `<tr><td aria-hidden="true" style="padding:0;line-height:0;font-size:0;${underneath}"><picture>${still}${image}</picture></td></tr>`;
 };
 
 // The email as the site looks: a dark panel under a bar in the kind's accent, the site's name, the kind as a badge, the

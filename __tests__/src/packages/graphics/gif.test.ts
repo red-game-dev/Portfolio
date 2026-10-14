@@ -66,6 +66,22 @@ describe("encodeGif", () => {
     expect(Array.from(decoded.frames[1].indices)).toEqual(Array.from(second));
   });
 
+  test("writes the end code at the width a reader has grown to by then", () => {
+    // The table reaches a power of two on the last code here, so a reader widens before the end code.
+    const indices = Uint8Array.of(0, 3, 2, 1, 1, 0, 3, 2, 2, 1, 0, 3, 3, 2, 1);
+    const decoded = decodeGif(encodeGif({ width: 15, height: 1, palette: GREYS.slice(0, 4), frames: [{ indices, delayMs: 0 }] }));
+
+    expect(Array.from(decoded.frames[0].indices)).toEqual(Array.from(indices));
+
+    for (let seed = 1; seed <= 300; seed += 1) {
+      const width = 5 + (seed % 40);
+      const scattered = scatter(width * 3, seed, 2 + (seed % 7));
+
+      expect(Array.from(decodeGif(encodeGif({ width, height: 3, palette: GREYS.slice(0, 8), frames: [{ indices: scattered, delayMs: 0 }] })).frames[0].indices))
+        .toEqual(Array.from(scattered));
+    }
+  });
+
   test("writes a small palette as the power of two above it, with codes of at least three bits", () => {
     const three = decodeGif(encodeGif({ width: 2, height: 2, palette: GREYS.slice(0, 3), frames: [{ indices: Uint8Array.of(0, 1, 2, 1), delayMs: 0 }] }));
     const one = decodeGif(encodeGif({ width: 1, height: 1, palette: [[9, 9, 9]], frames: [{ indices: Uint8Array.of(0), delayMs: 0 }] }));

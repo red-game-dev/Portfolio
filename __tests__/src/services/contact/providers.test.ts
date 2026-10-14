@@ -1,11 +1,13 @@
 /**
  * @jest-environment node
  */
+import { createHash } from "crypto";
+
 import { EMAIL_THEME } from "@/config/contact";
 import { SITE_URL } from "@/config/site";
 import { contactMail } from "@/packages/messaging/contact";
 import { ResendMailAdapter } from "@/packages/server/mail";
-import { ART_VERSION, artOrigin, emailArt, emailArtLinks } from "@/services/contact/art";
+import { artOrigin, artVersion, emailArt, emailArtLinks } from "@/services/contact/art";
 import { contactRoute, MAIL_ADAPTERS, mailAdapters } from "@/services/contact/server";
 
 describe("the mail providers the site can send through", () => {
@@ -40,7 +42,7 @@ describe("where a message goes", () => {
     expect(route?.look?.theme).toBe(EMAIL_THEME);
     expect(mail?.to).toBe("inbox@example.test");
     expect(mail?.html).toContain(EMAIL_THEME.accents.message);
-    expect(mail?.html).toContain(`<img src="${SITE_URL}/api/email/message.gif?v=${ART_VERSION}"`);
+    expect(mail?.html).toContain(`<img src="${SITE_URL}/api/email/message.gif?v=${artVersion()}"`);
   });
 
   test("nowhere without an inbox, when the service says it cannot send", () => {
@@ -70,11 +72,23 @@ describe("the art in the emails", () => {
     expect(artOrigin(undefined, undefined)).toBe(SITE_URL);
   });
 
-  test("lives at addresses carrying its version, so new art is never hidden behind what an inbox has kept", () => {
+  test("lives at addresses carrying a version read from its own bytes, so new art is never hidden behind what an inbox has kept", () => {
+    const hash = createHash("sha256");
+
+    ["message.gif", "message-still.gif", "feedback.gif", "feedback-still.gif"].forEach((name) => hash.update(emailArt(name) ?? new Uint8Array()));
+
+    const version = hash.digest("hex").slice(0, 8);
+
+    expect(artVersion()).toBe(version);
     expect(emailArtLinks("https://art.test")).toEqual({
-      message: { moving: `https://art.test/api/email/message.gif?v=${ART_VERSION}`, still: `https://art.test/api/email/message-still.gif?v=${ART_VERSION}` },
-      feedback: { moving: `https://art.test/api/email/feedback.gif?v=${ART_VERSION}`, still: `https://art.test/api/email/feedback-still.gif?v=${ART_VERSION}` },
+      message: { moving: `https://art.test/api/email/message.gif?v=${version}`, still: `https://art.test/api/email/message-still.gif?v=${version}` },
+      feedback: { moving: `https://art.test/api/email/feedback.gif?v=${version}`, still: `https://art.test/api/email/feedback-still.gif?v=${version}` },
     });
-    expect(ART_VERSION).toMatch(/^[0-9a-f]{8}$/);
+  });
+
+  test("never stops an email going out: art that cannot be drawn leaves the plain bar", () => {
+    expect(emailArtLinks("https://art.test", () => {
+      throw new Error("no art");
+    })).toBeUndefined();
   });
 });

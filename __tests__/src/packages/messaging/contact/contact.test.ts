@@ -216,10 +216,12 @@ describe("the email a message becomes", () => {
 
     expect(message).toContain('<picture><source srcset="https://art.test/message-still.gif?v=1" media="(prefers-reduced-motion: reduce)">' +
       '<img src="https://art.test/message.gif?v=1"');
-    // Drawn across the panel at its own height, however wide the screen.
-    expect(message).toContain(`width="${CONTACT_ART.width * 2}" height="${CONTACT_ART.height}" alt=""`);
+    // Drawn across the panel at its own height, however wide the screen, and as wide as the panel inside its border.
+    expect(message).toContain(`width="${CONTACT_ART.width * 2 - 2}" height="${CONTACT_ART.height}" alt=""`);
     expect(message).toContain(`style="display:block;width:100%;height:${CONTACT_ART.height}px;`);
     expect(message).not.toContain("mso-line-height-rule:exactly;font-size:0;background:#4bffa5;");
+    // The bar is drawn under the art too, so held back images or art that fails to come still leave the bar.
+    expect(message).toContain(`background-image:linear-gradient(#4bffa5,#4bffa5);background-size:100% ${CONTACT_ART.bar}px;background-repeat:no-repeat;`);
     expect(feedback).toContain('<img src="https://art.test/feedback.gif?v=1"');
   });
 

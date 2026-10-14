@@ -42,6 +42,7 @@ import { StationPanel } from "@/components/Finale/Voyage/Encounters/StationPanel
 import { summaryRows } from "@/components/Finale/Voyage/gear";
 import { Guide } from "@/components/Finale/Voyage/Guide";
 import { HangarPanel, HangarTab } from "@/components/Finale/Voyage/Hangar/HangarPanel";
+import { useFoldedAlerts } from "@/components/Finale/Voyage/hooks/useFoldedAlerts";
 import { useGains } from "@/components/Finale/Voyage/hooks/useGains";
 import { useVoyage } from "@/components/Finale/Voyage/hooks/useVoyage";
 import { useVoyageSettings } from "@/components/Finale/Voyage/hooks/useVoyageSettings";
@@ -90,6 +91,9 @@ import {
   Dialog,
   FrameMeta,
   FrameName,
+  FrameTitle,
+  ALERTS_MORE_PX,
+  AlertsMore,
   Frames,
   FrameTrack,
   Gain,
@@ -119,6 +123,7 @@ import {
   PhotoBar,
   PhotoHint,
   Place,
+  RadarSpace,
   ReadyButton,
   Reading,
   ReadingName,
@@ -332,6 +337,10 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const { career, isPhoto, togglePhoto, savePhoto, landing } = voyage;
   const { gear, progress, summary, isManual, stickRef, drawShip, guideSpawn } = voyage;
   const { station, castOff, choosePerk, composePhoto, skyToday } = voyage;
+  // The alerts' list, and whether its folded alerts are opened to be scrolled through; how many have no room to show.
+  const [alertsList, setAlertsList] = useState<HTMLDivElement | null>(null);
+  const [isAlertsOpen, setIsAlertsOpen] = useState(false);
+  const foldedAlerts = useFoldedAlerts(alertsList, ALERTS_MORE_PX, isAlertsOpen);
   // The hangar opens on its first tab, or on the Loadout when an empty slot of the bar is pressed.
   const [hangarTab, setHangarTab] = useState<HangarTab | null>(null);
   const [pay, setPay] = useState<number | null>(null);
@@ -370,6 +379,15 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   useEffect(() => {
     dialogRef.current?.querySelectorAll<HTMLElement>("[data-hud-layer]").forEach((layer) => layer.toggleAttribute("inert", isHangarOpen || isDocked));
   });
+
+  // Opened, the alerts show the most urgent first, at the bottom; once none are up, they close again.
+  useEffect(() => {
+    if (!alertsList) {
+      setIsAlertsOpen(false);
+    } else if (isAlertsOpen) {
+      alertsList.scrollTop = alertsList.scrollHeight;
+    }
+  }, [alertsList, isAlertsOpen]);
 
   // Where the solid panels sit over the view (the ability bar, the readout), a few times a second while a run is under
   // way, so the arrows the game draws at the screen's edge are never hidden under them.
@@ -820,8 +838,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </MapBar>
       )}
       <Hud hidden={isHudAside} data-hud-layer="">
-        <Vitals data-hud-area="vitals">
-          <Place data-hud-place="">{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
+        <Place data-hud-place="" data-hud-area="place">{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
+        <Vitals data-hud-area="vitals" data-covers="">
           {economy && (
             <ShipLine>
               {career ? fill(content.career.shipLine, { rank: rankName(content, career.rankId), ship }) : ship}
@@ -920,14 +938,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           {status === "flying" && snapshot?.target && (
             <TargetFrame aria-label={describe(snapshot.target).name}>
               <FrameName>
-                {describe(snapshot.target).name}
+                <FrameTitle>{describe(snapshot.target).name}</FrameTitle>
                 <FrameMeta>{describe(snapshot.target).meta}</FrameMeta>
               </FrameName>
               {frameBars(snapshot.target)}
             </TargetFrame>
           )}
         </Vitals>
-        <Readout data-hud-area="readout">
+        <Readout data-hud-area="readout" data-covers="">
           <Reading>
             <ReadingName>{content.score}</ReadingName>
             <ReadingValue>{snapshot?.score ?? 0}</ReadingValue>
@@ -955,7 +973,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </>
           )}
         </Readout>
-        <HudButtons data-hud-area="buttons">
+        <HudButtons data-hud-area="buttons" data-covers="">
           {economy && (
             <IconButton type="button" onClick={() => setHangar(!isHangarOpen)} aria-label={isHangarOpen ? copy.closeHangar : copy.openHangar} aria-pressed={isHangarOpen}>
               <FontAwesomeIcon icon={faWarehouse} aria-hidden="true" />
@@ -985,163 +1003,177 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
           </IconButton>
         </HudButtons>
-      </Hud>
-      {snapshot?.descent && status === "flying" && !isHangarOpen && !isHudAside && (
-        <SurfaceCard aria-label={fill(content.descent.title, { body: comingDownOn })} data-hud-area="surface">
-          <SurfaceTitle>{fill(content.descent.title, { body: comingDownOn })}</SurfaceTitle>
-          <SurfaceMethod>{descentMethod(content, snapshot.descent, snapshot.surface?.isHome ?? false)}</SurfaceMethod>
-          <SurfacePhase>{content.descent.phases[snapshot.descent.phase]}</SurfacePhase>
-          {descentRows(content, snapshot.descent).map(({ text, isSlim }) => <SurfaceLine key={text} data-slim={isSlim ? "" : undefined}>{text}</SurfaceLine>)}
-          {snapshot.people && <SurfaceLine>{fill(content.surface.people, { faction: snapshot.people.name })}</SurfaceLine>}
-          {readingsInCorner.map((row) => <SurfaceReading key={row.label}>{`${row.label} ${row.value}`}</SurfaceReading>)}
-          {descentHint(content, snapshot.descent, landing.control === "manual").map((line) => <SurfaceHint key={line}>{line}</SurfaceHint>)}
-        </SurfaceCard>
-      )}
-      {!snapshot?.descent && snapshot?.surface && status === "flying" && !isHangarOpen && !isHudAside && (
-        <SurfaceCard aria-label={surfaceTitle} data-hud-area="surface">
-          <SurfaceTitle>{surfaceTitle}</SurfaceTitle>
-          {surfaceLines(content, snapshot, home?.name ?? null).map((line) => <SurfaceLine key={line}>{line}</SurfaceLine>)}
-          {readingsInCorner.map((row) => <SurfaceReading key={row.label}>{`${row.label} ${row.value}`}</SurfaceReading>)}
-          <SurfaceHint>{surfaceHint(content, snapshot, home?.name ?? null)}</SurfaceHint>
-        </SurfaceCard>
-      )}
-      {snapshot && status === "flying" && !isHangarOpen && !isHudAside && (
-        <TelemetryPanel aria-label={content.telemetry.title} isYielding={Boolean(snapshot.descent || snapshot.surface)} data-covers="" data-hud-area="telemetry">
-          <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
-          <TelemetryList>
-            {telemetryRows(content, snapshot).map((row) => (
-              <TelemetryRow key={row.label} isKey={row.isKey} data-slim={row.isSlim ? "" : undefined}>
-                <TelemetryName>{row.label}</TelemetryName>
-                <TelemetryValue>{row.value}</TelemetryValue>
-              </TelemetryRow>
-            ))}
-          </TelemetryList>
-        </TelemetryPanel>
-      )}
-      {status === "flying" && snapshot && !isChoosing && !isDocked && (isGuiding || snapshot.boss || snapshot.incoming || snapshot.salvage || adrift ||
-        economy?.suggestion || snapshot.dockable || snapshot.distress) && !isHangarOpen && !isHudAside && (
-        <Frames data-target={snapshot.target ? "" : undefined} data-hud-layer="" data-hud-area="frames">
-          {snapshot.dockable && (
-            <DockButton type="button" onClick={() => act({ kind: "dock" })}>
-              <FontAwesomeIcon icon={faAnchor} aria-hidden="true" />
-              {fill(content.encounters.station.dockAt, { port: portName(content, snapshot.dockable) })}
-            </DockButton>
-          )}
-          {snapshot.distress && (
-            <DistressFrame>
-              {fill(content.encounters.distress.frame, { seconds: snapshot.distress.seconds })}
-              {snapshot.distress.isNear && (
-                <span>{snapshot.distress.progress > 0 ? content.encounters.distress.boarding : content.encounters.distress.hold}</span>
-              )}
-              {snapshot.distress.progress > 0 && (
+        {snapshot?.descent && status === "flying" && !isHangarOpen && !isHudAside && (
+          <SurfaceCard aria-label={fill(content.descent.title, { body: comingDownOn })} data-hud-area="surface">
+            <SurfaceTitle>{fill(content.descent.title, { body: comingDownOn })}</SurfaceTitle>
+            <SurfaceMethod>{descentMethod(content, snapshot.descent, snapshot.surface?.isHome ?? false)}</SurfaceMethod>
+            <SurfacePhase>{content.descent.phases[snapshot.descent.phase]}</SurfacePhase>
+            {descentRows(content, snapshot.descent).map(({ text, isSlim }) => <SurfaceLine key={text} data-slim={isSlim ? "" : undefined}>{text}</SurfaceLine>)}
+            {snapshot.people && <SurfaceLine>{fill(content.surface.people, { faction: snapshot.people.name })}</SurfaceLine>}
+            {readingsInCorner.map((row) => <SurfaceReading key={row.label}>{`${row.label} ${row.value}`}</SurfaceReading>)}
+            {descentHint(content, snapshot.descent, landing.control === "manual").map((line) => <SurfaceHint key={line}>{line}</SurfaceHint>)}
+          </SurfaceCard>
+        )}
+        {!snapshot?.descent && snapshot?.surface && status === "flying" && !isHangarOpen && !isHudAside && (
+          <SurfaceCard aria-label={surfaceTitle} data-hud-area="surface">
+            <SurfaceTitle>{surfaceTitle}</SurfaceTitle>
+            {surfaceLines(content, snapshot, home?.name ?? null).map((line) => <SurfaceLine key={line}>{line}</SurfaceLine>)}
+            {readingsInCorner.map((row) => <SurfaceReading key={row.label}>{`${row.label} ${row.value}`}</SurfaceReading>)}
+            <SurfaceHint>{surfaceHint(content, snapshot, home?.name ?? null)}</SurfaceHint>
+          </SurfaceCard>
+        )}
+        {snapshot && status === "flying" && !isHangarOpen && !isHudAside && (
+          <TelemetryPanel aria-label={content.telemetry.title} isYielding={Boolean(snapshot.descent || snapshot.surface)} data-covers="" data-hud-area="telemetry">
+            <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
+            <TelemetryList>
+              {telemetryRows(content, snapshot).map((row) => (
+                <TelemetryRow key={row.label} isKey={row.isKey} data-slim={row.isSlim ? "" : undefined}>
+                  <TelemetryName>{row.label}</TelemetryName>
+                  <TelemetryValue>{row.value}</TelemetryValue>
+                </TelemetryRow>
+              ))}
+            </TelemetryList>
+          </TelemetryPanel>
+        )}
+        {status === "flying" && snapshot && !isChoosing && !isDocked && (isGuiding || snapshot.boss || snapshot.incoming || snapshot.salvage || adrift ||
+          economy?.suggestion || snapshot.dockable || snapshot.distress) && !isHangarOpen && !isHudAside && (
+          <Frames
+            ref={setAlertsList}
+            data-target={snapshot.target ? "" : undefined}
+            data-expanded={isAlertsOpen ? "" : undefined}
+            data-hud-layer=""
+            data-hud-area="frames"
+            data-covers=""
+          >
+            {foldedAlerts > 0 || isAlertsOpen ? (
+              <AlertsMore type="button" data-alerts-more="" aria-expanded={isAlertsOpen} onClick={() => setIsAlertsOpen(!isAlertsOpen)}>
+                {isAlertsOpen ? combat.fewerAlerts : fill(combat.moreAlerts, { count: foldedAlerts })}
+              </AlertsMore>
+            ) : null}
+            {isGuiding && guideStep !== null && (
+              <Guide content={content} step={guideStep} isTouch={isTouch} onNext={nextGuide} onSkip={() => act({ kind: "skipGuide" })} />
+            )}
+            {economy?.suggestion && (
+              <ReadyButton type="button" onClick={() => economy.suggestion && follow(economy.suggestion)}>
+                <FontAwesomeIcon icon={faCircleUp} aria-hidden="true" />
+                {/* The key that does it is said only where there are keys. */}
+                {isTouch ? suggestionText(copy, economy.suggestion) : fill(copy.suggestion.hint, { action: suggestionText(copy, economy.suggestion) })}
+              </ReadyButton>
+            )}
+            {snapshot.dockable && (
+              <DockButton type="button" onClick={() => act({ kind: "dock" })}>
+                <FontAwesomeIcon icon={faAnchor} aria-hidden="true" />
+                {fill(content.encounters.station.dockAt, { port: portName(content, snapshot.dockable) })}
+              </DockButton>
+            )}
+            {snapshot.salvage && (
+              <Salvage role="status" aria-label={fill(copy.salvage.progress, { wreck: copy.salvage.wrecks[snapshot.salvage.kind] })}>
+                {fill(copy.salvage.progress, { wreck: copy.salvage.wrecks[snapshot.salvage.kind] })}
                 <FrameTrack
                   role="meter"
-                  aria-label={content.encounters.distress.boarding}
+                  aria-label={copy.salvage.wrecks[snapshot.salvage.kind]}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-valuenow={Math.round(snapshot.distress.progress * 100)}
+                  aria-valuenow={Math.round(snapshot.salvage.progress * 100)}
                 >
-                  <BarFill colour="#ffb347" style={{ transform: `scaleX(${snapshot.distress.progress})` }} />
+                  <BarFill colour="#7dffcf" style={{ transform: `scaleX(${snapshot.salvage.progress})` }} />
                 </FrameTrack>
-              )}
-            </DistressFrame>
-          )}
-          {isGuiding && guideStep !== null && (
-            <Guide content={content} step={guideStep} isTouch={isTouch} onNext={nextGuide} onSkip={() => act({ kind: "skipGuide" })} />
-          )}
-          {adrift && <Incoming>{adrift}</Incoming>}
-          {economy?.suggestion && (
-            <ReadyButton type="button" onClick={() => economy.suggestion && follow(economy.suggestion)}>
-              <FontAwesomeIcon icon={faCircleUp} aria-hidden="true" />
-              {/* The key that does it is said only where there are keys. */}
-              {isTouch ? suggestionText(copy, economy.suggestion) : fill(copy.suggestion.hint, { action: suggestionText(copy, economy.suggestion) })}
-            </ReadyButton>
-          )}
-          {snapshot.salvage && (
-            <Salvage role="status" aria-label={fill(copy.salvage.progress, { wreck: copy.salvage.wrecks[snapshot.salvage.kind] })}>
-              {fill(copy.salvage.progress, { wreck: copy.salvage.wrecks[snapshot.salvage.kind] })}
-              <FrameTrack
-                role="meter"
-                aria-label={copy.salvage.wrecks[snapshot.salvage.kind]}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(snapshot.salvage.progress * 100)}
-              >
-                <BarFill colour="#7dffcf" style={{ transform: `scaleX(${snapshot.salvage.progress})` }} />
-              </FrameTrack>
-            </Salvage>
-          )}
-          {snapshot.boss && (
-            <BossFrame aria-label={combat.boss}>
-              <FrameName>
-                {snapshot.boss.name}
-                <FrameMeta>{`${combat.boss}, ${fill(combat.level, { level: snapshot.boss.level })}`}</FrameMeta>
-              </FrameName>
-              {frameBars(snapshot.boss)}
-              {snapshot.bossMove && <BossTell>{content.encounters.bossTells[snapshot.bossMove]}</BossTell>}
-            </BossFrame>
-          )}
-          {snapshot.incoming && (
-            <Incoming>
-              {fill(combat.incoming, {
-                diameter: snapshot.incoming.diameterKm,
-                target: content.stops[snapshot.incoming.target] ?? snapshot.incoming.target,
-                seconds: snapshot.incoming.seconds,
-              })}
-              {!snapshot.incoming.isOnCourse && ` (${combat.willMiss})`}
-              <FrameTrack role="meter" aria-label={combat.rock} aria-valuemin={0} aria-valuemax={snapshot.incoming.maxHp} aria-valuenow={snapshot.incoming.hp}>
-                <BarFill
-                  colour={BAR_COLOUR.hullLow}
-                  style={{ transform: `scaleX(${snapshot.incoming.maxHp > 0 ? snapshot.incoming.hp / snapshot.incoming.maxHp : 0})` }}
-                />
-              </FrameTrack>
-            </Incoming>
-          )}
-        </Frames>
-      )}
-      {economy && snapshot && status === "flying" && !isPaused && !isHangarOpen && !isHudAside && !isChoosing && !isDocked && (
-        <AbilityBar
-          content={content}
-          rows={economy.bar}
-          boosts={snapshot.boosts}
-          weapons={snapshot.weapons}
-          onUse={(index) => act({ kind: "slot", index })}
-          onFill={openLoadout}
-        />
-      )}
-      {message && status === "flying" && !isHudAside && (
-        <Message
-          key={message.id}
-          data-hud-layer=""
-          data-hud-area="message"
-          data-held={isLineHeld ? "" : undefined}
-          isCard={Boolean(message.card)}
-          style={{ "--message-ms": `${lineMs(message)}ms` } as CSSProperties}
-        >
-          {message.card ? (
-            <CardText>
-              <CardTitle>
+              </Salvage>
+            )}
+            {snapshot.distress && (
+              <DistressFrame>
+                {fill(content.encounters.distress.frame, { seconds: snapshot.distress.seconds })}
+                {snapshot.distress.isNear && (
+                  <span>{snapshot.distress.progress > 0 ? content.encounters.distress.boarding : content.encounters.distress.hold}</span>
+                )}
+                {snapshot.distress.progress > 0 && (
+                  <FrameTrack
+                    role="meter"
+                    aria-label={content.encounters.distress.boarding}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(snapshot.distress.progress * 100)}
+                  >
+                    <BarFill colour="#ffb347" style={{ transform: `scaleX(${snapshot.distress.progress})` }} />
+                  </FrameTrack>
+                )}
+              </DistressFrame>
+            )}
+            {adrift && <Incoming>{adrift}</Incoming>}
+            {snapshot.boss && (
+              <BossFrame aria-label={combat.boss}>
+                <FrameName>
+                  <FrameTitle>{snapshot.boss.name}</FrameTitle>
+                  <FrameMeta>{`${combat.boss}, ${fill(combat.level, { level: snapshot.boss.level })}`}</FrameMeta>
+                </FrameName>
+                {frameBars(snapshot.boss)}
+                {snapshot.bossMove && <BossTell>{content.encounters.bossTells[snapshot.bossMove]}</BossTell>}
+              </BossFrame>
+            )}
+            {snapshot.incoming && (
+              <Incoming>
+                {fill(combat.incoming, {
+                  diameter: snapshot.incoming.diameterKm,
+                  target: content.stops[snapshot.incoming.target] ?? snapshot.incoming.target,
+                  seconds: snapshot.incoming.seconds,
+                })}
+                {!snapshot.incoming.isOnCourse && ` (${combat.willMiss})`}
+                <FrameTrack role="meter" aria-label={combat.rock} aria-valuemin={0} aria-valuemax={snapshot.incoming.maxHp} aria-valuenow={snapshot.incoming.hp}>
+                  <BarFill
+                    colour={BAR_COLOUR.hullLow}
+                    style={{ transform: `scaleX(${snapshot.incoming.maxHp > 0 ? snapshot.incoming.hp / snapshot.incoming.maxHp : 0})` }}
+                  />
+                </FrameTrack>
+              </Incoming>
+            )}
+          </Frames>
+        )}
+        {economy && snapshot && status === "flying" && !isPaused && !isHangarOpen && !isHudAside && !isChoosing && !isDocked && (
+          <AbilityBar
+            content={content}
+            rows={economy.bar}
+            boosts={snapshot.boosts}
+            weapons={snapshot.weapons}
+            onUse={(index) => act({ kind: "slot", index })}
+            onFill={openLoadout}
+          />
+        )}
+        {message && status === "flying" && !isHudAside && (
+          <Message
+            key={message.id}
+            data-hud-layer=""
+            data-hud-area="message"
+            data-held={isLineHeld ? "" : undefined}
+            isCard={Boolean(message.card)}
+            style={{ "--message-ms": `${lineMs(message)}ms` } as CSSProperties}
+          >
+            {message.card ? (
+              <CardText>
+                <CardTitle>
+                  <FontAwesomeIcon icon={faScroll} aria-hidden="true" />
+                  {message.card.title}
+                </CardTitle>
+                <CardName>{message.card.name}</CardName>
+                {(message.card.xp > 0 || message.card.coin > 0) && (
+                  <CardReward>
+                    {message.card.xp > 0 && <span>{fill(content.hangar.quests.card.xp, { xp: message.card.xp })}</span>}
+                    {message.card.coin > 0 && <Money copy={copy} amount={message.card.coin} isSigned />}
+                  </CardReward>
+                )}
+                {message.card.line && <CardLine>{message.card.line}</CardLine>}
+              </CardText>
+            ) : message.text}
+            {message.isQuest && (
+              <MessageButton type="button" onClick={openQuests}>
                 <FontAwesomeIcon icon={faScroll} aria-hidden="true" />
-                {message.card.title}
-              </CardTitle>
-              <CardName>{message.card.name}</CardName>
-              {(message.card.xp > 0 || message.card.coin > 0) && (
-                <CardReward>
-                  {message.card.xp > 0 && <span>{fill(content.hangar.quests.card.xp, { xp: message.card.xp })}</span>}
-                  {message.card.coin > 0 && <Money copy={copy} amount={message.card.coin} isSigned />}
-                </CardReward>
-              )}
-              {message.card.line && <CardLine>{message.card.line}</CardLine>}
-            </CardText>
-          ) : message.text}
-          {message.isQuest && (
-            <MessageButton type="button" onClick={openQuests}>
-              <FontAwesomeIcon icon={faScroll} aria-hidden="true" />
-              {` ${content.hangar.quests.open}`}
-            </MessageButton>
-          )}
-        </Message>
-      )}
+                {` ${content.hangar.quests.open}`}
+              </MessageButton>
+            )}
+          </Message>
+        )}
+        {/* The room the radar is drawn in, kept clear of the panels, while no world's card takes its corner. */}
+        {status === "flying" && !snapshot?.descent && !snapshot?.surface && <RadarSpace aria-hidden="true" />}
+      </Hud>
       {isChoosing && snapshot?.perkOffer && !isHangarOpen && !isPhoto && (
         <PerkCard content={content} offer={snapshot.perkOffer} taken={snapshot.perks} onChoose={choosePerk} />
       )}

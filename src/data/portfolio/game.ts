@@ -331,6 +331,8 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         roles: { whale: "Void whales", trader: "Trader" },
         incoming: "{diameter} km rock to {target}, {seconds} s",
         willMiss: "will miss",
+        moreAlerts: "+{count} more",
+        fewerAlerts: "Show fewer",
       },
       impactAlert: "Impact alert: a {diameter} km rock will hit {target} in {seconds} seconds",
       impact: {

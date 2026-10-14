@@ -18,7 +18,7 @@ const LabDialog = dynamic(async () => {
   ]);
   const LabVoyageDialog = ({ moment }: { moment: LabMoment }) => {
     // One source for the dialog's whole life: a new moment is a new dialog.
-    const source = useMemo(() => labVoyage(moment), [moment]);
+    const source = useMemo(() => labVoyage(moment, LONGEST_CHAPTER), [moment]);
 
     return (
       <VoyageDialog
@@ -38,22 +38,29 @@ const LabDialog = dynamic(async () => {
 }, { ssr: false });
 
 const MOMENTS: readonly LabMoment[] = ["flight", "descent"];
+
+// The chapter of the story whose decoded line is longest, for the largest card the line's place shows.
+const LONGEST_CHAPTER = Object.entries(portfolioData.finale.voyage.career.story.chapters)
+  .reduce((longest, entry) => (entry[1].line.length > longest[1].line.length ? entry : longest))[0];
 const LAYOUTS = ["auto", "compact", "full"] as const;
 
 // The voyage's HUD held still with every panel it can show at once, for a browser to measure at every screen size and
 // fail on any two that overlap (e2e/hud.spec.ts). `?moment=flight|descent` picks what is shown, `?hud=auto|compact|full`
-// the HUD's layout (it sets this browser's voyage-hud setting, as the hangar would). Kept out of search, and linked from
-// nowhere.
+// the HUD's layout (setting this browser's voyage-hud setting, as the hangar would, only when it is given). Kept out of
+// search, and linked from nowhere.
 export default function HudLab() {
   const { query, isReady } = useRouter();
   const { set } = usePreferencesStateHook();
   const [isSet, setIsSet] = useState(false);
   const moment = MOMENTS.find((name) => name === query.moment) ?? "flight";
-  const layout = LAYOUTS.find((name) => name === query.hud) ?? "auto";
+  const layout = LAYOUTS.find((name) => name === query.hud) ?? null;
 
   useEffect(() => {
     if (isReady) {
-      set("voyage-hud", layout);
+      if (layout) {
+        set("voyage-hud", layout);
+      }
+
       setIsSet(true);
     }
   }, [isReady, layout, set]);
@@ -61,7 +68,7 @@ export default function HudLab() {
   return (
     <>
       <NextSeo title="HUD lab" noindex nofollow />
-      {isSet && <LabDialog key={`${moment}-${layout}`} moment={moment} />}
+      {isSet && <LabDialog key={`${moment}-${layout ?? "kept"}`} moment={moment} />}
     </>
   );
 }

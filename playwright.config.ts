@@ -8,6 +8,8 @@ export default defineConfig({
   fullyParallel: true,
   workers: process.env.CI ? 2 : 1,
   retries: process.env.CI ? 1 : 0,
+  // A lab that does not load fails a handful of cases and stops, rather than every case waiting out its time.
+  maxFailures: process.env.CI ? 6 : 0,
   reporter: process.env.CI ? [["list"], ["github"]] : "list",
   // PLAYWRIGHT_CHANNEL=chrome runs the Chrome already installed instead of downloading Playwright's own.
   use: { baseURL: process.env.HUD_LAB_URL ?? "http://localhost:3000", browserName: "chromium", channel: process.env.PLAYWRIGHT_CHANNEL },

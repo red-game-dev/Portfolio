@@ -2,12 +2,17 @@ import { expect, Page, test } from "@playwright/test";
 
 import known from "./hud-known.json";
 
-interface Box {
-  area: string;
+interface Rect {
   left: number;
   top: number;
   right: number;
   bottom: number;
+}
+
+// A panel as measured: its area, and every part of it that paints.
+interface Area {
+  area: string;
+  rects: Rect[];
 }
 
 // Screens from the smallest phone to a large desktop, upright and on their side, covering every layout the HUD has:
@@ -30,23 +35,35 @@ const SCREENS = [
 const MOMENTS = ["flight", "descent"] as const;
 const LAYOUTS = ["full", "compact"] as const;
 
-// Room a box may share with another, or reach past the screen's edge, for rounding (px).
+// Room two parts may share, or a part may reach past the screen's edge, for rounding (px).
 const SLACK = 1;
+// How long the lab has to show its HUD before a case gives up (ms).
+const SHOWN_MS = 15_000;
+
+// Where the line the voyage says becomes a strip across the top, drawn over the place and the readout for its moment
+// as designed: the same query as STRIP in Finale/Voyage/VoyageDialog.styles.ts.
+const STRIP = "(max-width: 767px) and (max-height: 720px), (orientation: portrait) and (max-width: 479px), (orientation: landscape) and (max-height: 500px)";
 
 // The radar is drawn on the canvas, not a panel, so its box comes from the same rules as MapLayer's: a circle in the
 // bottom left corner 14px in, smaller on smaller screens. It is not drawn while a world's card shows.
-const radarOf = (width: number, height: number): Box => {
+const radarOf = (width: number, height: number): Area => {
   const radius = height < 360 || width < 300 || (height <= 520 && height > width) ? 38 : width < 640 || height < 420 ? 44 : 58;
 
-  return { area: "radar", left: 14, top: height - 14 - radius * 2, right: 14 + radius * 2, bottom: height - 14 };
+  return { area: "radar", rects: [{ left: 14, top: height - 14 - radius * 2, right: 14 + radius * 2, bottom: height - 14 }] };
 };
 
-// Every HUD panel on screen, by its area, as far as it is painted: the union of what shows inside each element marked
-// data-hud-area (its text, and every part with a background, a border or an image), so a container stretched wider
-// than what it holds (the column of bars on an upright phone) is measured by what it shows. And the place's own text
-// (the line the voyage says may cover it, as it covers the readout, for its moment).
-const measure = (page: Page) => page.evaluate(() => {
-  interface Rect { left: number; top: number; right: number; bottom: number }
+// Every HUD panel on screen by its area, as the parts it paints (its text, and everything inside with a background, a
+// border or an image), each cut to whatever clips it inside the panel: a container stretched wider than what it holds,
+// or a name cut short with an ellipsis, is measured by what shows. The place's own parts, which the strip may cover,
+// and whether the strip is in force.
+const measure = (page: Page, strip: string) => page.evaluate((query) => {
+  interface Box {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+  }
+
   const isShown = (element: Element) => {
     const style = getComputedStyle(element);
 
@@ -55,17 +72,33 @@ const measure = (page: Page) => page.evaluate(() => {
   const isPainted = (element: Element) => {
     const style = getComputedStyle(element);
     const hasBackground = style.backgroundColor !== "rgba(0, 0, 0, 0)" && style.backgroundColor !== "transparent";
-    const hasBorder = ["Top", "Right", "Bottom", "Left"].some((side) => parseFloat(style.getPropertyValue(`border-${side.toLowerCase()}-width`)) > 0);
+    const hasBorder = ["top", "right", "bottom", "left"].some((side) => parseFloat(style.getPropertyValue(`border-${side}-width`)) > 0);
 
-    return hasBackground || hasBorder || style.backgroundImage !== "none" || ["IMG", "SVG", "CANVAS", "svg"].includes(element.tagName);
+    return hasBackground || hasBorder || style.backgroundImage !== "none" || ["IMG", "CANVAS", "svg"].includes(element.tagName);
   };
-  const union = (rects: Rect[]): Rect | null => (rects.length === 0 ? null : {
-    left: Math.min(...rects.map((rect) => rect.left)),
-    top: Math.min(...rects.map((rect) => rect.top)),
-    right: Math.max(...rects.map((rect) => rect.right)),
-    bottom: Math.max(...rects.map((rect) => rect.bottom)),
-  });
-  const textRects = (element: Element): Rect[] => [...element.childNodes]
+  const cut = (box: Box, clip: Box): Box | null => {
+    const left = Math.max(box.left, clip.left);
+    const top = Math.max(box.top, clip.top);
+    const right = Math.min(box.right, clip.right);
+    const bottom = Math.min(box.bottom, clip.bottom);
+
+    return right - left > 0 && bottom - top > 0 ? { left, top, right, bottom } : null;
+  };
+  // The room an element shows its content in, where it hides what overflows: inside its borders.
+  const clipOf = (element: Element): Box | null => {
+    const style = getComputedStyle(element);
+
+    if (style.overflowX === "visible" && style.overflowY === "visible") {
+      return null;
+    }
+
+    const box = element.getBoundingClientRect();
+    const left = box.left + element.clientLeft;
+    const top = box.top + element.clientTop;
+
+    return { left, top, right: left + element.clientWidth, bottom: top + element.clientHeight };
+  };
+  const textRects = (element: Element): Box[] => [...element.childNodes]
     .filter((node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim() !== "")
     .flatMap((node) => {
       const range = document.createRange();
@@ -74,34 +107,44 @@ const measure = (page: Page) => page.evaluate(() => {
 
       return [...range.getClientRects()];
     });
-  const painted = (element: Element): Rect[] => {
+  // What an element and everything inside it paints, each part cut to every clip on the way down from the panel.
+  const painted = (element: Element, clips: Box[]): Box[] => {
     if (!isShown(element)) {
       return [];
     }
 
-    const own = isPainted(element) ? [element.getBoundingClientRect()] : [];
+    const clip = clipOf(element);
+    const inner = clip ? [...clips, clip] : clips;
+    const cutTo = (within: Box[]) => (box: Box) => within.reduce<Box | null>((left, each) => (left ? cut(left, each) : null), box);
+    // Its own background is cut only by what clips it from outside; its text, like its children, by its own clip too.
+    const background = isPainted(element) ? [cutTo(clips)(element.getBoundingClientRect())] : [];
 
-    return [...own, ...textRects(element), ...[...element.children].flatMap(painted)]
-      .filter((rect) => rect.right - rect.left > 0 && rect.bottom - rect.top > 0);
+    return [...background, ...textRects(element).map(cutTo(inner)), ...[...element.children].flatMap((child) => painted(child, inner))]
+      .filter((box): box is Box => box !== null && box.right - box.left > 0 && box.bottom - box.top > 0);
   };
-  const boxes = [...document.querySelectorAll<HTMLElement>("[data-hud-area]")].flatMap((element) => {
-    const box = union(painted(element));
-
-    return box ? [{ area: element.dataset.hudArea ?? "", ...box }] : [];
-  });
+  const areas = [...document.querySelectorAll<HTMLElement>("[data-hud-area]")]
+    .map((element) => ({ area: element.dataset.hudArea ?? "", rects: painted(element, []) }))
+    .filter(({ rects }) => rects.length > 0);
   const place = document.querySelector("[data-hud-place]");
 
-  return { boxes, place: place ? union(painted(place)) : null };
-});
+  return { areas, place: place ? painted(place, []) : [], isStrip: window.matchMedia(query).matches };
+}, strip);
 
-const overlap = (one: Box, two: Box) =>
+const overlap = (one: Rect, two: Rect) =>
   Math.min(one.right, two.right) - Math.max(one.left, two.left) > SLACK && Math.min(one.bottom, two.bottom) - Math.max(one.top, two.top) > SLACK;
 
-const within = (inner: Omit<Box, "area">, outer: Omit<Box, "area">) =>
+const within = (inner: Rect, outer: Rect) =>
   inner.left >= outer.left - SLACK && inner.top >= outer.top - SLACK && inner.right <= outer.right + SLACK && inner.bottom <= outer.bottom + SLACK;
 
+const shared = (one: Rect, two: Rect): Rect => ({
+  left: Math.max(one.left, two.left),
+  top: Math.max(one.top, two.top),
+  right: Math.min(one.right, two.right),
+  bottom: Math.min(one.bottom, two.bottom),
+});
+
 // The overlaps the HUD is known to have today, by screen, moment and layout, kept so the check guards against new ones;
-// the grid rebuild clears this list.
+// an entry that no longer happens fails too, so the list only ever shrinks. The grid rebuild clears it.
 const KNOWN = known as Record<string, string[]>;
 
 for (const screen of SCREENS) {
@@ -111,41 +154,51 @@ for (const screen of SCREENS) {
 
       test(`the HUD's panels never overlap or leave the screen: ${name}`, async ({ page }) => {
         await page.setViewportSize({ width: screen.width, height: screen.height });
-        await page.goto(`/hud-lab/?moment=${moment}&hud=${layout}`);
-        await page.locator("[data-hud-area='bar']").waitFor();
-        await page.locator("[data-hud-area='message']").waitFor();
-        // The line the voyage says settles in from its entrance before it is measured.
+        await page.goto(`/hud-lab/?moment=${moment}&hud=${layout}`, { waitUntil: "domcontentloaded" });
+        await page.locator("[data-hud-area='bar']").waitFor({ timeout: SHOWN_MS });
+        await page.locator("[data-hud-area='message']").waitFor({ timeout: SHOWN_MS });
+        // Measured in the site's own font once it has loaded, and once the line has settled in from its entrance.
+        await page.evaluate(() => document.fonts.ready.then(() => undefined));
         await page.waitForTimeout(800);
 
-        const { boxes, place } = await measure(page);
-        const all: Box[] = moment === "flight" ? [...boxes, radarOf(screen.width, screen.height)] : boxes;
-        const found: string[] = [];
+        const { areas, place, isStrip } = await measure(page, STRIP);
+        const all = moment === "flight" ? [...areas, radarOf(screen.width, screen.height)] : areas;
+        const found = new Set<string>();
+        const screenBox = { left: 0, top: 0, right: screen.width, bottom: screen.height };
 
-        all.forEach((box, index) => {
-          if (!within(box, { left: 0, top: 0, right: screen.width, bottom: screen.height })) {
-            found.push(`${box.area}|screen`);
+        expect(all.map(({ area }) => area), "the line is still showing when measured").toContain("message");
+
+        all.forEach((one, index) => {
+          if (one.rects.some((rect) => !within(rect, screenBox))) {
+            found.add(`${one.area}|screen`);
           }
 
           all.slice(index + 1).forEach((other) => {
-            const pair = [box.area, other.area].sort();
-            const shared = {
-              left: Math.max(box.left, other.left),
-              top: Math.max(box.top, other.top),
-              right: Math.min(box.right, other.right),
-              bottom: Math.min(box.bottom, other.bottom),
-            };
-            // The line may cover the readout, and the place at the top of the column, for its moment, as designed.
-            const isDesigned = pair.join("|") === "message|readout" || (pair.join("|") === "message|vitals" && place !== null && within(shared, place));
+            const pair = [one.area, other.area].sort().join("|");
 
-            if (overlap(box, other) && !isDesigned) {
-              found.push(pair.join("|"));
-            }
+            one.rects.forEach((rect) => other.rects.forEach((otherRect) => {
+              if (!overlap(rect, otherRect)) {
+                return;
+              }
+
+              // On a phone the line is a strip that covers the readout, and the place at the top of the column, for its
+              // moment, as designed.
+              const isDesigned = isStrip && (pair === "message|readout" ||
+                (pair === "message|vitals" && place.some((placeRect) => within(shared(rect, otherRect), placeRect))));
+
+              if (!isDesigned) {
+                found.add(pair);
+              }
+            }));
           });
         });
 
-        const unexpected = found.filter((pair) => !(KNOWN[name] ?? []).includes(pair));
+        const expected = KNOWN[name] ?? [];
+        const unexpected = [...found].filter((pair) => !expected.includes(pair));
+        const gone = expected.filter((pair) => !found.has(pair));
 
         expect(unexpected, `panels overlapping on ${name}: ${JSON.stringify(all)}`).toEqual([]);
+        expect(gone, `no longer overlapping on ${name}: take them out of e2e/hud-known.json`).toEqual([]);
       });
     }
   }

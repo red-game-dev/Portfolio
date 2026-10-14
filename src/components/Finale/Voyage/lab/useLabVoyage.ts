@@ -64,16 +64,16 @@ export const worstDescent = (base: VoyageSnapshot): VoyageSnapshot => ({
   people: { name: "The Ochre Assembly", disposition: "territorial" },
 });
 
-// A danger said as it happens, the longest kind of line the HUD shows.
-const LAB_NOTICES: VoyageNotice[] = [{ kind: "stranded", body: null, seconds: 25, isRescue: true, isOver: false }];
 
 const noop = () => undefined;
 
 // The voyage as a still life, for the HUD lab: a new pilot's hangar, career, armoury and progress (as a first visit has
 // them) and a snapshot holding every panel at once, with nothing running and nothing kept. Shaped as the live hook is,
-// so the dialog draws it unchanged.
-export const labVoyage = (moment: LabMoment): VoyageSource => function useLabVoyage(): ReturnType<VoyageSource> {
+// so the dialog draws it unchanged. The line it says is a chapter of the story told (the one given, its decoded line the
+// longest), the largest thing the line's place shows and the one that stays longest, said once.
+export const labVoyage = (moment: LabMoment, chapter: string): VoyageSource => function useLabVoyage(): ReturnType<VoyageSource> {
   const stickRef = useRef<HTMLDivElement>(null);
+  const notices = useMemo<VoyageNotice[]>(() => [{ kind: "storyChapter", chapter }], []);
   const views = useMemo(() => {
     const profile = newProfile();
     const armory = new Armory(profile.armory);
@@ -99,7 +99,7 @@ export const labVoyage = (moment: LabMoment): VoyageSource => function useLabVoy
     stickRef,
     drawShip: noop,
     guideSpawn: noop,
-    notices: LAB_NOTICES,
+    notices,
     takeNotices: noop,
     isPhoto: false,
     togglePhoto: noop,

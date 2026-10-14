@@ -278,6 +278,12 @@ export const SurfaceCard = styled.section(() => [
     max-width: min(100%, 300px);
     ${voyagePanel()}
 
+    /* Where there is room it takes the radar's corner and the column's width beside it (the bar keeping to the middle
+       while it shows, the HUD marked data-card). */
+    ${media.voyageWide} {
+      grid-column: 1 / 3;
+    }
+
     ${media.shortLandscape} {
       grid-area: side;
       justify-self: end;

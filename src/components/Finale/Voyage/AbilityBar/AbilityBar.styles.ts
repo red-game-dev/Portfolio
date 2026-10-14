@@ -30,14 +30,24 @@ export const Bar = styled.div(() => [
       align-self: end;
       justify-self: center;
       flex-direction: row;
+
+      /* While a world's card takes the corner beside the radar, the bar keeps to the middle. */
+      [data-card] & {
+        grid-column: 3 / 4;
+      }
     }
 
+    /* A phone on its side keeps a world's card in the telemetry's corner, so the bar keeps its whole span. */
     ${media.shortLandscape} {
       display: flex;
       align-self: end;
       justify-self: center;
       flex-direction: row;
       gap: 5px;
+
+      [data-card] & {
+        grid-column: 2 / 4;
+      }
     }
   `,
 ]);

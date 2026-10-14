@@ -836,7 +836,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
           </IconButton>
         </MapBar>
       )}
-      <Hud hidden={isHudAside} data-hud-layer="">
+      <Hud hidden={isHudAside} data-hud-layer="" data-card={status === "flying" && (snapshot?.descent || snapshot?.surface) ? "" : undefined}>
         <Place data-hud-area="place">{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
         <Vitals data-hud-area="vitals">
           {economy && (

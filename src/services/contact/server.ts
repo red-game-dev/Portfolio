@@ -7,18 +7,19 @@ import { visitorOf } from "@/services/store/visitor";
 
 let service: ContactService | null = null;
 
-// The contact service, built once: Resend from RESEND_API_KEY (set by Vercel's Marketplace), the owner's inbox from
-// CONTACT_INBOX, and the shared store for the limits. Without a key or an inbox the service is still built, and says
-// it cannot send, so the form offers the visitor's own email app.
+// The contact service, built once: Resend from RESEND_API_KEY and the domain it verified from RESEND_EMAIL_DOMAIN (both
+// set by Vercel's Marketplace), the owner's inbox from CONTACT_INBOX, and the shared store for the limits. Without a
+// key or an inbox the service is still built, and says it cannot send, so the form offers the visitor's own email app.
 export const getContactService = (): ContactService => {
   if (!service) {
     const store = sharedStore("contact");
     const apiKey = process.env.RESEND_API_KEY;
     const inbox = process.env.CONTACT_INBOX;
+    const from = `${CONTACT_CONFIG.senderName} <${CONTACT_CONFIG.senderUser}@${process.env.RESEND_EMAIL_DOMAIN || CONTACT_CONFIG.domain}>`;
 
     service = new ContactService({
       sender: apiKey ? new ResendMailSender(apiKey) : null,
-      route: inbox ? { from: CONTACT_CONFIG.from, to: inbox, site: CONTACT_CONFIG.site } : null,
+      route: inbox ? { from, to: inbox, site: CONTACT_CONFIG.site } : null,
       visitor: new SlidingWindowLimiter(store, "contact:rate:visitor", CONTACT_CONFIG.perVisitor),
       day: new DailyQuota(store, "contact:sent", CONTACT_CONFIG.perDay),
     });

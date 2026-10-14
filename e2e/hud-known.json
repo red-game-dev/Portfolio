@@ -1,1 +1,177 @@
-{}
+{
+  "phone descent compact": [
+    "message|vitals"
+  ],
+  "phone descent full": [
+    "frames|surface",
+    "message|vitals"
+  ],
+  "phone flight compact": [
+    "buttons|frames",
+    "frames|message",
+    "frames|readout",
+    "frames|vitals",
+    "message|vitals"
+  ],
+  "phone flight full": [
+    "buttons|frames",
+    "frames|message",
+    "frames|readout",
+    "frames|vitals",
+    "message|vitals"
+  ],
+  "phone-landscape flight compact": [
+    "buttons|frames",
+    "frames|message",
+    "frames|readout",
+    "frames|screen"
+  ],
+  "phone-landscape flight full": [
+    "bar|vitals",
+    "buttons|frames",
+    "frames|message",
+    "frames|readout",
+    "frames|screen",
+    "radar|vitals",
+    "vitals|screen"
+  ],
+  "phone-landscape-large descent compact": [
+    "buttons|message"
+  ],
+  "phone-landscape-large descent full": [
+    "buttons|message"
+  ],
+  "phone-landscape-large flight compact": [
+    "buttons|message",
+    "frames|message",
+    "frames|readout",
+    "frames|screen"
+  ],
+  "phone-landscape-large flight full": [
+    "buttons|message",
+    "frames|message",
+    "frames|readout",
+    "frames|screen",
+    "radar|vitals",
+    "vitals|screen"
+  ],
+  "phone-large descent compact": [
+    "message|vitals"
+  ],
+  "phone-large descent full": [
+    "frames|surface",
+    "message|vitals"
+  ],
+  "phone-large flight compact": [
+    "message|vitals"
+  ],
+  "phone-large flight full": [
+    "frames|vitals",
+    "message|vitals"
+  ],
+  "phone-narrow descent compact": [
+    "bar|frames",
+    "message|vitals"
+  ],
+  "phone-narrow descent full": [
+    "bar|frames",
+    "frames|surface",
+    "message|vitals"
+  ],
+  "phone-narrow flight compact": [
+    "bar|frames",
+    "buttons|frames",
+    "frames|message",
+    "frames|readout",
+    "frames|screen",
+    "frames|vitals",
+    "message|vitals"
+  ],
+  "phone-narrow flight full": [
+    "bar|frames",
+    "buttons|frames",
+    "frames|message",
+    "frames|readout",
+    "frames|screen",
+    "frames|vitals",
+    "message|vitals",
+    "radar|vitals",
+    "telemetry|vitals"
+  ],
+  "phone-shortest descent compact": [
+    "message|vitals"
+  ],
+  "phone-shortest descent full": [
+    "bar|frames",
+    "frames|surface",
+    "message|vitals"
+  ],
+  "phone-shortest flight compact": [
+    "bar|frames",
+    "buttons|frames",
+    "frames|message",
+    "frames|readout",
+    "frames|screen",
+    "frames|vitals",
+    "message|vitals"
+  ],
+  "phone-shortest flight full": [
+    "bar|frames",
+    "buttons|frames",
+    "frames|message",
+    "frames|readout",
+    "frames|screen",
+    "frames|vitals",
+    "message|vitals",
+    "radar|vitals",
+    "vitals|screen"
+  ],
+  "phone-tall descent compact": [
+    "message|vitals"
+  ],
+  "phone-tall descent full": [
+    "frames|surface",
+    "message|vitals"
+  ],
+  "phone-tall flight compact": [
+    "frames|vitals",
+    "message|vitals"
+  ],
+  "phone-tall flight full": [
+    "frames|vitals",
+    "message|vitals"
+  ],
+  "tablet descent compact": [
+    "frames|surface",
+    "message|vitals"
+  ],
+  "tablet descent full": [
+    "bar|surface",
+    "bar|telemetry",
+    "frames|surface",
+    "frames|telemetry",
+    "message|vitals"
+  ],
+  "tablet flight compact": [
+    "message|vitals"
+  ],
+  "tablet flight full": [
+    "bar|telemetry",
+    "frames|telemetry",
+    "frames|vitals",
+    "message|vitals"
+  ],
+  "tablet-landscape descent compact": [
+    "message|vitals"
+  ],
+  "tablet-landscape descent full": [
+    "frames|surface"
+  ],
+  "tablet-landscape flight compact": [
+    "frames|message",
+    "message|vitals"
+  ],
+  "tablet-landscape flight full": [
+    "frames|message"
+  ]
+}

@@ -75,6 +75,8 @@ export const Hud = styled.header(() => [
   css`
     /* Its own stacking context, so the gradient below sits behind every panel rather than over them. */
     isolation: isolate;
+    /* The radar's size as MapLayer draws it: a radius of 58, 44 on a smaller screen, 38 on the smallest. */
+    --radar: 116px;
     grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-rows: auto auto auto minmax(0, auto) auto minmax(96px, 1fr) auto;
     grid-template-areas:
@@ -99,29 +101,39 @@ export const Hud = styled.header(() => [
       z-index: -1;
     }
 
-    /* The column down the left as wide as its bars (and the faults beside them) at most, so a long place or a world's
-       card wraps rather than taking the room the middle needs. */
+    @media (max-width: 639px), (max-height: 419px) {
+      --radar: 88px;
+    }
+
+    @media (max-height: 359px), (max-width: 299px), (orientation: portrait) and (max-height: 520px) {
+      --radar: 76px;
+    }
+
+    /* Where there is room: the first column exactly the radar's width, so the ability bar spans from the radar to the
+       telemetry along the bottom; the place and the column down the left span it and a second column, together at
+       most 260px wide (as wide as the bars and the faults beside them), so a long place or a world's card wraps
+       rather than taking the room the middle needs. */
     ${media.voyageWide} {
       column-gap: 12px;
-      grid-template-columns: fit-content(260px) minmax(0, 1fr) auto;
+      grid-template-columns: var(--radar) fit-content(calc(260px - var(--radar) - 12px)) minmax(0, 1fr) auto;
       grid-template-rows: auto auto minmax(0, 1fr) auto;
       grid-template-areas:
-        "place  readout buttons"
-        "vitals message ."
-        "vitals alerts  side"
-        "radar  bar     side";
+        "place  place  readout buttons"
+        "vitals vitals message ."
+        "vitals vitals alerts  side"
+        "radar  bar    bar     side";
     }
 
     /* The readout's row is tall enough for the line's strip laid over it. */
     ${media.shortLandscape} {
       column-gap: 12px;
-      grid-template-columns: fit-content(260px) minmax(0, 1fr) auto;
+      grid-template-columns: var(--radar) fit-content(calc(260px - var(--radar) - 12px)) minmax(0, 1fr) auto;
       grid-template-rows: auto minmax(32px, auto) minmax(0, 1fr) auto;
       grid-template-areas:
-        "place  buttons buttons"
-        "vitals readout readout"
-        "vitals alerts  side"
-        "radar  bar     side";
+        "place  place  buttons buttons"
+        "vitals vitals readout readout"
+        "vitals vitals alerts  side"
+        "radar  bar    bar     side";
     }
 
     /* Hidden in photo mode and on the map. */
@@ -559,25 +571,15 @@ export const AlertsMore = styled.button(() => [
 ]);
 
 // The room the radar is drawn in on the canvas, bottom left, kept clear of the panels: as big as MapLayer draws it
-// (a radius of 58, 44 on a smaller screen and 38 on the smallest, 14px in from the corner).
+// (the HUD's --radar, 14px in from the corner).
 export const RadarSpace = styled.div(() => [
   tw`pointer-events-none`,
   css`
     grid-area: radar;
     align-self: end;
     justify-self: start;
-    width: 116px;
-    height: 116px;
-
-    @media (max-width: 639px), (max-height: 419px) {
-      width: 88px;
-      height: 88px;
-    }
-
-    @media (max-height: 359px), (max-width: 299px), (orientation: portrait) and (max-height: 520px) {
-      width: 76px;
-      height: 76px;
-    }
+    width: var(--radar);
+    height: var(--radar);
 
     /* The HUD's own margin is 18px there, the radar's 14px. */
     ${media.md} {

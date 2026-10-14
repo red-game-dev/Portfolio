@@ -1,0 +1,50 @@
+name: CI
+
+# Lint, typecheck and the whole Jest suite on every pull request and every push to main,
+# so nothing is merged without them.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to a pull request cancels the run still going for the older one; every push to main runs to the end.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Lint, typecheck and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # Nothing is pushed back, so the token is not kept in the checkout.
+      - name: Check out the code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # The Node version comes from .nvmrc, the same one used locally.
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # No token is needed: the committed .npmrc points the Font Awesome scope at the public npm registry.
+      - name: Install dependencies
+        run: npm ci
+
+      # Reports problems without fixing them, unlike npm run lint.
+      - name: Lint
+        run: npm run lint:check
+
+      - name: Typecheck
+        run: npx tsc --noEmit -p .
+
+      # The live Ask Red evals skip themselves, since ASK_EVAL_URL is never set here.
+      - name: Test
+        run: npm run test:ci -- --maxWorkers=2

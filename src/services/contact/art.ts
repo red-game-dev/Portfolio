@@ -2,19 +2,35 @@ import { createHash } from "crypto";
 
 import { EMAIL_THEME } from "@/config/contact";
 import { SITE_URL } from "@/config/site";
-import { encodeGif } from "@/packages/graphics/gif";
-import { contactArt, ContactKind, EmailArt } from "@/packages/messaging/contact";
+import portrait from "@/data/email/portrait.json";
+import { encodeGif, GifImage } from "@/packages/graphics/gif";
+import type { ContactKind } from "@/packages/messaging/contact";
+import { contactArt, contactAvatar, EmailArt, EmailArtwork } from "@/packages/messaging/contact-email";
 
 const KINDS = Object.keys(EMAIL_THEME.accents) as ContactKind[];
 
-// The art's names: each kind's motion and its bar at rest.
-const NAMES = KINDS.flatMap((kind) => [`${kind}.gif`, `${kind}-still.gif`]);
-const NAME = new RegExp(`^(${KINDS.join("|")})(-still)?\\.gif$`);
+// The art's names: each kind's bar, and my portrait, each moving and at rest.
+const PIECES = [...KINDS, "avatar"];
+const NAMES = PIECES.flatMap((piece) => [`${piece}.gif`, `${piece}-still.gif`]);
+const NAME = new RegExp(`^(${PIECES.join("|")})(-still)?\\.gif$`);
+
+// The portrait as raw pixels, written by `npm run email:portrait` from the profile picture, in the engineering green
+// the site's own portrait reveals in.
+const avatarArt = () => contactAvatar(
+  { width: portrait.width, height: portrait.height, pixels: new Uint8Array(Buffer.from(portrait.pixels, "base64")) },
+  EMAIL_THEME.accents.message,
+  EMAIL_THEME.panel,
+);
+
+const artOf = (piece: string): { moving: GifImage; still: GifImage } => (piece === "avatar"
+  ? avatarArt()
+  : contactArt(EMAIL_THEME.accents[piece as ContactKind], EMAIL_THEME.journey, EMAIL_THEME.panel));
 
 const drawn = new Map<string, Uint8Array>();
 let version: string | null = null;
 
-// The email's art by its name ("message.gif", "feedback-still.gif"), drawn once an instance, or null for any other name.
+// The email's art by its name ("message.gif", "feedback-still.gif", "avatar.gif"), drawn once an instance, or null for any
+// other name.
 export const emailArt = (name: string): Uint8Array | null => {
   const match = NAME.exec(name);
 
@@ -23,7 +39,7 @@ export const emailArt = (name: string): Uint8Array | null => {
   }
 
   if (!drawn.has(name)) {
-    const art = contactArt(EMAIL_THEME.accents[match[1] as ContactKind], EMAIL_THEME.journey, EMAIL_THEME.panel);
+    const art = artOf(match[1]);
 
     drawn.set(name, encodeGif(match[2] ? art.still : art.moving));
   }
@@ -31,8 +47,8 @@ export const emailArt = (name: string): Uint8Array | null => {
   return drawn.get(name) ?? null;
 };
 
-// The art's version, from the bytes of every piece of it, so any change to the colours, the drawing or the encoder gives
-// new addresses, and nothing an inbox has kept hides the new art.
+// The art's version, from the bytes of every piece of it, so any change to the colours, the drawing, the portrait or the
+// encoder gives new addresses, and nothing an inbox has kept hides the new art.
 export const artVersion = (): string => {
   if (!version) {
     const hash = createHash("sha256");
@@ -49,16 +65,17 @@ export const artVersion = (): string => {
 export const artOrigin = (environment = process.env.VERCEL_ENV, deployment = process.env.VERCEL_URL): string =>
   (environment === "preview" && deployment ? `https://${deployment}` : SITE_URL);
 
-// Each kind's art as addresses on an origin, carrying the version; none, and so the plain bar, if the art cannot be drawn,
-// since the art must never stop an email going out.
-export const emailArtLinks = (origin = artOrigin(), versionOf = artVersion): Record<ContactKind, EmailArt> | undefined => {
+// The art as addresses on an origin, carrying the version; none, and so the plain bar and no portrait, if the art cannot
+// be drawn, since the art must never stop an email going out.
+export const emailArtLinks = (origin = artOrigin(), versionOf = artVersion): EmailArtwork | undefined => {
   try {
     const current = versionOf();
+    const linkOf = (piece: string): EmailArt => ({
+      moving: `${origin}/api/email/${piece}.gif?v=${current}`,
+      still: `${origin}/api/email/${piece}-still.gif?v=${current}`,
+    });
 
-    return Object.fromEntries(KINDS.map((kind) => [kind, {
-      moving: `${origin}/api/email/${kind}.gif?v=${current}`,
-      still: `${origin}/api/email/${kind}-still.gif?v=${current}`,
-    }])) as Record<ContactKind, EmailArt>;
+    return { bars: Object.fromEntries(KINDS.map((kind) => [kind, linkOf(kind)])) as Record<ContactKind, EmailArt>, avatar: linkOf("avatar") };
   } catch {
     return undefined;
   }

@@ -1,5 +1,5 @@
 import { ValidationError } from "@/packages/core/domain";
-import { encodeGif, GifColour, gifProblems, GifImage } from "@/packages/graphics/gif";
+import { encodeGif, GifColour, gifProblems, GifImage, quantize } from "@/packages/graphics/gif";
 
 import { decodeGif } from "./fixtures/decodeGif";
 
@@ -125,5 +125,39 @@ describe("encodeGif", () => {
       .toEqual(["frame 0 names a colour past the palette"]);
     expect(gifProblems({ width: 1, height: 1, palette: [], frames: [] })).toEqual(["palette has 0 colours, not 1 to 256", "there are no frames"]);
     expect(() => encodeGif(bad)).toThrow(ValidationError);
+  });
+});
+
+describe("quantize", () => {
+  const rgb = (colours: number[][]) => Uint8Array.from(colours.flat());
+
+  test("keeps a few colours exactly, and gives every pixel its own", () => {
+    const frame = rgb([[200, 30, 40], [10, 220, 90], [200, 30, 40], [40, 40, 250]]);
+    const { palette, frames } = quantize([frame]);
+
+    expect(frames[0].length).toBe(4);
+    expect(Array.from(frames[0]).map((index) => [...palette[index]])).toEqual([[200, 30, 40], [10, 220, 90], [200, 30, 40], [40, 40, 250]]);
+  });
+
+  test("keeps fixed colours first and exact, so an image meets its background without a seam", () => {
+    const panel: GifColour = [16, 16, 16];
+    // A colour a step off the panel shares its bin, and must not take the panel's place, nor the panel its.
+    const { palette, frames } = quantize([rgb([[16, 16, 16], [17, 15, 18], [16, 16, 16]])], { fixed: [panel] });
+
+    expect(palette[0]).toEqual(panel);
+    expect(frames[0][0]).toBe(0);
+    expect(frames[0][2]).toBe(0);
+  });
+
+  test("fits many colours across frames into the palette it is allowed, staying close to each", () => {
+    const ramp = (shift: number) => rgb(Array.from({ length: 4096 }, (_, index) => [index % 256, (index * 7 + shift) % 256, Math.floor(index / 16)]));
+    const frames = [ramp(0), ramp(90)];
+    const result = quantize(frames, { colours: 64 });
+    const error = frames.flatMap((pixels, frame) => Array.from(result.frames[frame], (index, pixel) =>
+      Math.abs(result.palette[index][0] - pixels[pixel * 3]) + Math.abs(result.palette[index][1] - pixels[pixel * 3 + 1]) +
+      Math.abs(result.palette[index][2] - pixels[pixel * 3 + 2])));
+
+    expect(result.palette.length).toBeLessThanOrEqual(64);
+    expect(error.reduce((total, value) => total + value, 0) / error.length).toBeLessThan(60);
   });
 });

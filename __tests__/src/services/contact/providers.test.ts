@@ -39,10 +39,12 @@ describe("where a message goes", () => {
     const route = contactRoute("inbox@example.test");
     const mail = route && contactMail({ kind: "message", subject: "Hiring", email: "visitor@example.test", message: "Hello there, a role for you." }, route);
 
-    expect(route?.look?.theme).toBe(EMAIL_THEME);
+    // From the portfolio, which is what a reader sees in their inbox: "Redeemer Pace's portfolio <portfolio@...>".
+    expect(route?.sender).toMatchObject({ name: "Redeemer Pace's portfolio", user: "portfolio" });
     expect(mail?.to).toBe("inbox@example.test");
     expect(mail?.html).toContain(EMAIL_THEME.accents.message);
     expect(mail?.html).toContain(`<img src="${SITE_URL}/api/email/message.gif?v=${artVersion()}"`);
+    expect(mail?.html).toContain(`<img src="${SITE_URL}/api/email/avatar.gif?v=${artVersion()}"`);
   });
 
   test("nowhere without an inbox, when the service says it cannot send", () => {
@@ -51,7 +53,7 @@ describe("where a message goes", () => {
 });
 
 describe("the art in the emails", () => {
-  test("is each kind's light along the bar and its bar at rest, as GIFs drawn once, and nothing else", () => {
+  test("is each kind's light along the bar and my portrait's reveal, each with its rest, as GIFs drawn once, and nothing else", () => {
     const moving = emailArt("message.gif");
     const still = emailArt("feedback-still.gif");
 
@@ -61,6 +63,11 @@ describe("the art in the emails", () => {
     expect(still?.length).toBeLessThan(moving?.length ?? 0);
     // Light enough for an email: a few tens of kilobytes for the motion.
     expect(moving?.length).toBeLessThan(60_000);
+    expect(Buffer.from(emailArt("avatar.gif") ?? []).subarray(0, 6)
+      .toString()).toBe("GIF89a");
+    expect(emailArt("avatar-still.gif")?.length).toBeLessThan(emailArt("avatar.gif")?.length ?? 0);
+    // The portrait's reveal stays light too, under a hundred and twenty kilobytes.
+    expect(emailArt("avatar.gif")?.length).toBeLessThan(120_000);
     expect(emailArt("../server.ts")).toBeNull();
     expect(emailArt("message.png")).toBeNull();
     expect(emailArt("other.gif")).toBeNull();
@@ -75,14 +82,18 @@ describe("the art in the emails", () => {
   test("lives at addresses carrying a version read from its own bytes, so new art is never hidden behind what an inbox has kept", () => {
     const hash = createHash("sha256");
 
-    ["message.gif", "message-still.gif", "feedback.gif", "feedback-still.gif"].forEach((name) => hash.update(emailArt(name) ?? new Uint8Array()));
+    ["message.gif", "message-still.gif", "feedback.gif", "feedback-still.gif", "avatar.gif", "avatar-still.gif"]
+      .forEach((name) => hash.update(emailArt(name) ?? new Uint8Array()));
 
     const version = hash.digest("hex").slice(0, 8);
 
     expect(artVersion()).toBe(version);
     expect(emailArtLinks("https://art.test")).toEqual({
-      message: { moving: `https://art.test/api/email/message.gif?v=${version}`, still: `https://art.test/api/email/message-still.gif?v=${version}` },
-      feedback: { moving: `https://art.test/api/email/feedback.gif?v=${version}`, still: `https://art.test/api/email/feedback-still.gif?v=${version}` },
+      bars: {
+        message: { moving: `https://art.test/api/email/message.gif?v=${version}`, still: `https://art.test/api/email/message-still.gif?v=${version}` },
+        feedback: { moving: `https://art.test/api/email/feedback.gif?v=${version}`, still: `https://art.test/api/email/feedback-still.gif?v=${version}` },
+      },
+      avatar: { moving: `https://art.test/api/email/avatar.gif?v=${version}`, still: `https://art.test/api/email/avatar-still.gif?v=${version}` },
     });
   });
 

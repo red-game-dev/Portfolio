@@ -1,6 +1,6 @@
 import { SITE_URL } from "@/config/site";
 import { ZONE_ACCENTS, ZONE_BOUNDARIES } from "@/config/zones";
-import type { EmailTheme } from "@/packages/messaging/contact";
+import type { EmailTheme } from "@/packages/messaging/contact-email";
 
 // The site's messages and feedback. They are sent through a mail provider, from an address on the domain it has verified
 // (the site's own where it names none), to the inbox in CONTACT_INBOX, which is kept in Vercel's environment rather
@@ -12,8 +12,8 @@ export const CONTACT_CONFIG = {
   // The mail providers the site sends through, in the order they are tried, from those `services/contact/server.ts`
   // knows; MAIL_PROVIDERS in the environment (comma separated) sets another order or another provider without a release.
   mailProviders: ["resend"],
-  senderName: "Redeemer Pace's site",
-  senderUser: "site",
+  senderName: "Redeemer Pace's portfolio",
+  senderUser: "portfolio",
   domain: SITE_DOMAIN,
   site: SITE_DOMAIN,
   // After the mail providers reject a send for certain (a revoked key, a sender no longer verified), the form offers the

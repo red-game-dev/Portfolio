@@ -2,8 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { emailArt } from "@/services/contact/art";
 
-// The art in the site's emails (the light along the top bar, and the bar at rest), drawn on the first request and kept
-// at the edge for good: its address carries a version, so new art comes at a new address.
+// The art in the site's emails (each kind's light along the top bar and my portrait's reveal, each with its rest), drawn
+// on the first request and kept at the edge for good: its address carries a version, so new art comes at a new address.
 const handler = (request: NextApiRequest, response: NextApiResponse) => {
   if (request.method !== "GET" && request.method !== "HEAD") {
     response.setHeader("Allow", "GET, HEAD");

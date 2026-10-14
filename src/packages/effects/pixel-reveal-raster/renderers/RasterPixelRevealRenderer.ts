@@ -1,9 +1,6 @@
+import { glyphFor, luminanceOf, PixelRevealConfig, PixelRevealFrame, PixelRevealRenderer } from "@/packages/effects/pixel-reveal";
 import type { CanvasSize } from "@/packages/graphics/canvas";
 import { hexToRgb, Rgb } from "@/packages/graphics/colour";
-
-import { PixelRevealConfig } from "../config";
-import { PixelRevealFrame, PixelRevealRenderer } from "../domain/types";
-import { glyphFor, luminanceOf } from "../utils/luminance";
 
 // A picture as raw pixels, three bytes a pixel (red, green, blue), row by row.
 export interface PixelRevealRaster {
@@ -24,8 +21,9 @@ const BINARY_HANDOVER = 0.55;
 const GLYPH_FLOOR = 0.12;
 const SPARKS = 14;
 
-// The same reveal as `CanvasPixelRevealRenderer`, drawn into raw pixels instead of a canvas, for places with no canvas
-// at all (a server drawing an email's animation frame by frame): binary glyphs lit by the picture's brightness, a mosaic
+// The same reveal as `effects/pixel-reveal`'s canvas renderer, drawn into raw pixels instead, for places with no canvas
+// at all (a server drawing an email's animation frame by frame), and an entry of its own so the page's reveal never
+// downloads it: binary glyphs lit by the picture's brightness, a mosaic
 // that sharpens step by step, then a scanline that enhances it to the full picture. `pixels` holds the frame drawn last.
 export class RasterPixelRevealRenderer implements PixelRevealRenderer {
   public pixels: Uint8Array;
@@ -132,7 +130,7 @@ export class RasterPixelRevealRenderer implements PixelRevealRenderer {
             const px = column * binaryCell + left + x;
             const py = row * binaryCell + top + y;
 
-            if (glyph[Math.floor(y / scale)][Math.floor(x / scale)] === "#" && px < width && py < height) {
+            if (glyph[Math.floor(y / scale)][Math.floor(x / scale)] === "#" && px >= 0 && py >= 0 && px < width && py < height) {
               this.blend(py * width + px, this.signal, Math.min(1, alpha));
             }
           }
@@ -252,7 +250,7 @@ export class RasterPixelRevealRenderer implements PixelRevealRenderer {
     return luminanceOf(rgba);
   }
 
-  // The source picture at a size, each pixel the nearest of the source's.
+  // The source picture at a size, each pixel the source's under its centre.
   private sampled(width: number, height: number): Uint8Array {
     const { source } = this;
 
@@ -264,7 +262,7 @@ export class RasterPixelRevealRenderer implements PixelRevealRenderer {
 
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
-        const from = (Math.floor((y * source.height) / height) * source.width + Math.floor((x * source.width) / width)) * 3;
+        const from = (Math.floor(((y + 0.5) * source.height) / height) * source.width + Math.floor(((x + 0.5) * source.width) / width)) * 3;
 
         out.set(source.pixels.subarray(from, from + 3), (y * width + x) * 3);
       }

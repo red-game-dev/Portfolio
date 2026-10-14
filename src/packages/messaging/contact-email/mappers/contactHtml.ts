@@ -36,7 +36,7 @@ export interface EmailArt {
   still: string;
 }
 
-// The email's art: the top bar for each kind of message (the light passing, `contactArt`) and my portrait beside the
+// The email's art: the top bar for each kind of message (the light passing, `contactArt`) and the portrait beside the
 // header (the site's reveal, `contactPortrait`).
 export interface EmailArtwork {
   bars: Record<ContactRequest["kind"], EmailArt>;
@@ -80,7 +80,7 @@ const barRow = (accent: string, art: EmailArt | undefined) => {
   return `<tr><td aria-hidden="true" style="padding:0;line-height:0;font-size:0;${underneath}"><picture>${still}${image}</picture></td></tr>`;
 };
 
-// My portrait at the size the email shows it (smaller on a phone): its reveal, and the portrait at rest in its place for
+// The portrait at the size the email shows it (smaller on a phone): its reveal, and the portrait at rest in its place for
 // a reader who asked for less motion and for classic Outlook, which would show only the reveal's first frame.
 const portraitOf = (art: EmailArt, border: string) => {
   const { width, height } = CONTACT_PORTRAIT;
@@ -92,7 +92,7 @@ const portraitOf = (art: EmailArt, border: string) => {
     `<!--[if !mso]><!--><picture>${still}<img class="rg-portrait" src="${escapeHtml(art.moving)}" ${size} style="${style}"></picture><!--<![endif]-->`;
 };
 
-// The email as the site looks: a dark panel under a bar in the kind's accent, my portrait with the site's name, the kind
+// The email as the site looks: a dark panel under a bar in the kind's accent, the portrait with the site's name, the kind
 // as a badge and the subject beside it, the message on its own darker panel, who sent it (a reply goes straight back to
 // them), and the form it came from. Laid out in tables with the styles inline, as mail apps need (and held to 600px in
 // classic Outlook, which ignores a maximum width), with less room round the message on a phone, and everything the
@@ -119,7 +119,7 @@ export const contactHtml = (request: ContactRequest, subject: string, from: stri
   const footer = `<p style="${footerStyle}">${escapeHtml(words.footer)} ${link}</p>`;
   const hostStyle = `font-family:${theme.mono};font-size:12px;letter-spacing:0.04em;color:${accent};`;
   const heading = `<h1 style="${headingStyle}">${escapeHtml(subject)}</h1>`;
-  // The site's name, the kind and the subject: beside my portrait where there is one, else one under the other.
+  // The site's name, the kind and the subject: beside the portrait where there is one, else one under the other.
   const titlePad = "padding:22px 28px 0;";
   const portraitCell = `width:${CONTACT_PORTRAIT.width + 2}px;padding-right:18px;vertical-align:top;line-height:0;font-size:0;`;
   const title = art?.portrait

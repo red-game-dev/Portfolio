@@ -2,9 +2,11 @@
  * @jest-environment node
  */
 import { createHash } from "crypto";
+import { readFileSync } from "fs";
 
 import { EMAIL_THEME } from "@/config/contact";
 import { SITE_URL } from "@/config/site";
+import portrait from "@/data/email/portrait.json";
 import { contactMail } from "@/packages/messaging/contact";
 import { ResendMailAdapter } from "@/packages/server/mail";
 import { artOrigin, artVersion, emailArt, emailArtLinks } from "@/services/contact/art";
@@ -43,8 +45,8 @@ describe("where a message goes", () => {
     expect(route?.sender).toMatchObject({ name: "Redeemer Pace's portfolio", user: "portfolio" });
     expect(mail?.to).toBe("inbox@example.test");
     expect(mail?.html).toContain(EMAIL_THEME.accents.message);
-    expect(mail?.html).toContain(`<img src="${SITE_URL}/api/email/message.gif?v=${artVersion()}"`);
-    expect(mail?.html).toContain(`src="${SITE_URL}/api/email/portrait.gif?v=${artVersion()}"`);
+    expect(mail?.html).toContain(`<img src="${SITE_URL}/api/email/message.gif?v=${artVersion("message")}"`);
+    expect(mail?.html).toContain(`src="${SITE_URL}/api/email/portrait.gif?v=${artVersion("portrait")}"`);
   });
 
   test("nowhere without an inbox, when the service says it cannot send", () => {
@@ -79,27 +81,50 @@ describe("the art in the emails", () => {
     expect(artOrigin(undefined, undefined)).toBe(SITE_URL);
   });
 
-  test("lives at addresses carrying a version read from its own bytes, so new art is never hidden behind what an inbox has kept", () => {
-    const hash = createHash("sha256");
+  test("lives at addresses carrying each piece's version, read from its own bytes, so new art is never hidden behind what an inbox has kept", () => {
+    const versionOf = (piece: string) => {
+      const hash = createHash("sha256");
 
-    ["message.gif", "message-still.gif", "feedback.gif", "feedback-still.gif", "portrait.gif", "portrait-still.gif"]
-      .forEach((name) => hash.update(emailArt(name) ?? new Uint8Array()));
+      [`${piece}.gif`, `${piece}-still.gif`].forEach((name) => hash.update(emailArt(name) ?? new Uint8Array()));
 
-    const version = hash.digest("hex").slice(0, 8);
-
-    expect(artVersion()).toBe(version);
-    expect(emailArtLinks("https://art.test")).toEqual({
-      bars: {
-        message: { moving: `https://art.test/api/email/message.gif?v=${version}`, still: `https://art.test/api/email/message-still.gif?v=${version}` },
-        feedback: { moving: `https://art.test/api/email/feedback.gif?v=${version}`, still: `https://art.test/api/email/feedback-still.gif?v=${version}` },
-      },
-      portrait: { moving: `https://art.test/api/email/portrait.gif?v=${version}`, still: `https://art.test/api/email/portrait-still.gif?v=${version}` },
+      return hash.digest("hex").slice(0, 8);
+    };
+    const linkOf = (piece: string) => ({
+      moving: `https://art.test/api/email/${piece}.gif?v=${versionOf(piece)}`,
+      still: `https://art.test/api/email/${piece}-still.gif?v=${versionOf(piece)}`,
     });
+
+    expect(artVersion("portrait")).toBe(versionOf("portrait"));
+    expect(artVersion("message")).not.toBe(artVersion("portrait"));
+    expect(emailArtLinks("https://art.test")).toEqual({ bars: { message: linkOf("message"), feedback: linkOf("feedback") }, portrait: linkOf("portrait") });
   });
 
-  test("never stops an email going out: art that cannot be drawn leaves the plain bar", () => {
-    expect(emailArtLinks("https://art.test", () => {
-      throw new Error("no art");
-    })).toBeUndefined();
+  test("never stops an email going out: a portrait that cannot be drawn leaves the bars, and bars that cannot leave the plain bar", () => {
+    const failing = (broken: string) => (piece: string) => {
+      if (piece === broken) {
+        throw new Error("no art");
+      }
+
+      return "v1";
+    };
+
+    expect(emailArtLinks("https://art.test", failing("portrait"))).toEqual({
+      bars: {
+        message: { moving: "https://art.test/api/email/message.gif?v=v1", still: "https://art.test/api/email/message-still.gif?v=v1" },
+        feedback: { moving: "https://art.test/api/email/feedback.gif?v=v1", still: "https://art.test/api/email/feedback-still.gif?v=v1" },
+      },
+    });
+    expect(emailArtLinks("https://art.test", failing("message"))).toBeUndefined();
+  });
+});
+
+describe("the portrait in the emails", () => {
+  test("is drawn from the profile picture as it is now: run npm run email:portrait when the picture changes", () => {
+    const hash = createHash("sha256").update(Uint8Array.from(readFileSync(portrait.source)))
+      .digest("hex")
+      .slice(0, 16);
+
+    expect(portrait.sourceHash).toBe(hash);
+    expect(portrait.width * 4).toBe(portrait.height * 3);
   });
 });

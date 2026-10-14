@@ -1,16 +1,17 @@
-import { frameAt, PixelRevealConfig, PixelRevealRaster, RasterPixelRevealRenderer, resolvePixelRevealConfig, totalDuration } from "@/packages/effects/pixel-reveal";
+import { frameAt, PixelRevealConfig, resolvePixelRevealConfig, totalDuration } from "@/packages/effects/pixel-reveal";
+import { PixelRevealRaster, RasterPixelRevealRenderer } from "@/packages/effects/pixel-reveal-raster";
 import { hexToRgb } from "@/packages/graphics/colour";
 import { GifFrame, GifImage, quantize } from "@/packages/graphics/gif";
 
-// My portrait beside the email's header, the whole picture as the About section shows it: shown at half the size it is
-// drawn, for sharp screens.
+// The portrait beside the email's header, the whole picture as the site's own reveal shows it: shown at half the size it
+// is drawn, for sharp screens.
 export const CONTACT_PORTRAIT = {
   width: 96,
   height: 128,
 } as const;
 
-// The site's portrait reveal at the email's size: the glyph cells and mosaic steps in pixels as drawn, the About
-// portrait's own scaled to a picture three fifths as wide.
+// The site's portrait reveal at the email's size: the glyph cells and mosaic steps in pixels as drawn, the site's own
+// scaled to a picture three fifths as wide.
 const REVEAL: Partial<PixelRevealConfig> = { binaryCell: 8, blockSizes: [24, 14, 10, 6, 4] };
 
 // The moments the animation keeps, as few as still read as the site's: the binary flickering every other beat, the

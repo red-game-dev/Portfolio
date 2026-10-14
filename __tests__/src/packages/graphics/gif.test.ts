@@ -149,6 +149,16 @@ describe("quantize", () => {
     expect(frames[0][2]).toBe(0);
   });
 
+  test("never makes a palette larger than it is allowed, nor spends a place on a copy of a fixed colour", () => {
+    const black: GifColour = [0, 0, 0];
+    const onlyFixed = quantize([rgb([[0, 0, 0], [250, 10, 10], [0, 0, 0]])], { colours: 1, fixed: [black] });
+    const copy = quantize([rgb([[16, 16, 16], [16, 16, 16]])], { fixed: [[16, 16, 16]] });
+
+    expect(onlyFixed.palette).toEqual([black]);
+    expect(Array.from(onlyFixed.frames[0])).toEqual([0, 0, 0]);
+    expect(copy.palette).toEqual([[16, 16, 16]]);
+  });
+
   test("fits many colours across frames into the palette it is allowed, staying close to each", () => {
     const ramp = (shift: number) => rgb(Array.from({ length: 4096 }, (_, index) => [index % 256, (index * 7 + shift) % 256, Math.floor(index / 16)]));
     const frames = [ramp(0), ramp(90)];

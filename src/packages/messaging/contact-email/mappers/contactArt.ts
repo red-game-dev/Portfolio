@@ -52,7 +52,7 @@ const paletteOf = (path: Rgb[], panel: Rgb): Rgb[] => Array.from({ length: HUES 
   .flatMap((colour) => LIGHTS.map((light) => (light <= 1 ? mixRgb(panel, colour, light) : mixRgb(colour, WHITE, ((light - 1) / 0.3) * WHITE_MOST))));
 
 // The nearest step of light to any light, looked up a thousandth at a time rather than searched for every pixel, the
-// table built on first use (this module reaches the page through the package's entry, and the page never draws).
+// table built on first use, so loading the module costs nothing.
 const FINEST = 1000;
 const BRIGHTEST = LIGHTS[LIGHTS.length - 1];
 let nearest: Uint8Array | null = null;

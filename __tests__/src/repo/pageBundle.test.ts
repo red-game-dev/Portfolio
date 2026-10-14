@@ -102,7 +102,13 @@ describe("the home page's first load", () => {
 
   test("carries none of the email's look or its drawing, which only the server needs", () => {
     const { modules } = firstLoad();
-    const serverOnly = ["src/packages/messaging/contact-email/", "src/packages/graphics/gif/", "src/services/contact/art.ts", "src/data/email/"];
+    const serverOnly = [
+      "src/packages/messaging/contact-email/",
+      "src/packages/effects/pixel-reveal-raster/",
+      "src/packages/graphics/gif/",
+      "src/services/contact/art.ts",
+      "src/data/email/",
+    ];
 
     expect(modules.filter((module) => serverOnly.some((prefix) => module.startsWith(prefix)))).toEqual([]);
     // The portrait's reveal engine loads on demand, so a page that reaches it statically has pulled it in by mistake.

@@ -73,9 +73,16 @@ const distance = (one: GifColour, two: GifColour) => (one[0] - two[0]) ** 2 + (o
 export const quantize = (frames: readonly Uint8Array[], { colours = 256, fixed = [] }: QuantizeOptions = {}): Quantized => {
   const counts = new Uint32Array(LEVELS ** 3);
   const sums = new Float64Array(LEVELS ** 3 * 3);
+  const exact = new Map(fixed.map(([red, green, blue], index) => [red * 65536 + green * 256 + blue, index]));
+  const room = Math.max(0, colours - fixed.length);
 
+  // A pixel of a fixed colour already has its place, so it is not counted towards the others.
   for (const pixels of frames) {
     for (let offset = 0; offset < pixels.length; offset += 3) {
+      if (exact.has(pixels[offset] * 65536 + pixels[offset + 1] * 256 + pixels[offset + 2])) {
+        continue;
+      }
+
       const bin = binOf(pixels[offset], pixels[offset + 1], pixels[offset + 2]);
 
       counts[bin] += 1;
@@ -86,10 +93,10 @@ export const quantize = (frames: readonly Uint8Array[], { colours = 256, fixed =
   }
 
   const used = Array.from(counts.keys()).filter((bin) => counts[bin] > 0);
-  const boxes: Box[] = used.length > 0 ? [{ bins: used, count: used.reduce((total, bin) => total + counts[bin], 0) }] : [];
+  const boxes: Box[] = used.length > 0 && room > 0 ? [{ bins: used, count: used.reduce((total, bin) => total + counts[bin], 0) }] : [];
 
   // The box most worth cutting is the one with the most pixels spread the widest.
-  while (boxes.length < colours - fixed.length) {
+  while (boxes.length < room) {
     const candidates = boxes.filter(({ bins }) => bins.length > 1);
 
     if (candidates.length === 0) {
@@ -104,7 +111,6 @@ export const quantize = (frames: readonly Uint8Array[], { colours = 256, fixed =
   const averageOf = ({ bins, count }: Box): GifColour => [0, 1, 2]
     .map((channel) => Math.round(bins.reduce((total, bin) => total + sums[bin * 3 + channel], 0) / count)) as unknown as GifColour;
   const palette: GifColour[] = [...fixed, ...boxes.map(averageOf)];
-  const exact = new Map(fixed.map(([red, green, blue], index) => [red * 65536 + green * 256 + blue, index]));
   const nearest = new Int16Array(LEVELS ** 3).fill(-1);
 
   const indexOf = (red: number, green: number, blue: number): number => {

@@ -51,7 +51,8 @@ Inside a package the folders follow one vocabulary, so any of them reads the sam
 | `core/domain` | `Validator` and `Mapper` base classes, `ValidationError`, primitive guards |
 | `effects/backdrop` | A scene engine for full page backgrounds: crossfades between scenes and plays a transition keyed by the pair of scenes it moves between; scenes from matrix rain to a starfield, transitions from a collapse to a warp |
 | `effects/binary-rain` | Falling binary rain that assembles a message, built on `frame-loop` and `graphics/canvas` |
-| `effects/pixel-reveal` | An image materialising from binary to pixels to full resolution, built on `frame-loop` and `graphics/canvas`; `RasterPixelRevealRenderer` draws the same reveal into raw pixels where there is no canvas |
+| `effects/pixel-reveal` | An image materialising from binary to pixels to full resolution, built on `frame-loop` and `graphics/canvas` |
+| `effects/pixel-reveal-raster` | `RasterPixelRevealRenderer`: the same reveal drawn into raw pixels where there is no canvas (a server drawing an email's frames), an entry of its own so the page's reveal never downloads it |
 | `encoding/binary` | Text to binary, same length masks, and the frame by frame decode used for text reveals |
 | `encoding/compact` | `packText` and `unpackText`: text deflated where the browser can and written as base64url, small enough to travel in a link |
 | `encoding/hash` | `hashText`: a stable, non cryptographic polynomial hash of text, the same on the server and in every browser, and `hexHash` for one written as so many hex digits |

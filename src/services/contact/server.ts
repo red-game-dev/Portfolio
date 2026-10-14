@@ -36,13 +36,19 @@ export const contactRoute = (inbox = process.env.CONTACT_INBOX): ContactRoute | 
     return null;
   }
 
-  const look: EmailLook = { theme: EMAIL_THEME, words: formsContent.forms.email, art: emailArtLinks() };
+  // The look, its art drawn on the first email rather than when the service is built, so reading whether the site can
+  // send never waits on drawing.
+  let look: EmailLook | null = null;
 
   return {
     sender: { name: CONTACT_CONFIG.senderName, user: CONTACT_CONFIG.senderUser, domain: CONTACT_CONFIG.domain },
     to: inbox,
     site: CONTACT_CONFIG.site,
-    html: (request, subject, from) => contactHtml(request, subject, from, look),
+    html: (request, subject, from) => {
+      look ??= { theme: EMAIL_THEME, words: formsContent.forms.email, art: emailArtLinks() };
+
+      return contactHtml(request, subject, from, look);
+    },
   };
 };
 

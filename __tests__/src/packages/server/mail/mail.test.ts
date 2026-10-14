@@ -63,7 +63,8 @@ describe("mail adapters", () => {
       options: { headers: { "Idempotency-Key": "key-1" } },
     });
 
-    await new ResendMailAdapter("re_test", { client }).send({ ...MAIL, replyTo: undefined });
+    await new ResendMailAdapter("re_test", { client }).send({ ...MAIL, html: "<p>Hi there</p>", replyTo: undefined });
+    expect(calls.posts[1].body).toMatchObject({ html: "<p>Hi there</p>", text: MAIL.text });
     expect(calls.posts[1].body).toMatchObject({ from: "Site <site@example.test>" });
     expect(calls.posts[1].body).not.toHaveProperty("reply_to");
     expect(calls.posts[1].options).toEqual({ headers: {} });

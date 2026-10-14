@@ -1,6 +1,14 @@
 import {
-  capitalise, collapseWhitespace, fill, formatDateTime, formatDuration, formatHours, formatLatLon, formatLocalTime, formatNumber, twoDigits, utcDay,
+  capitalise, collapseWhitespace, escapeHtml, fill, formatDateTime, formatDuration, formatHours, formatLatLon, formatLocalTime, formatNumber, twoDigits,
+  utcDay,
 } from "@/packages/text/format";
+
+describe("escapeHtml", () => {
+  it("makes text safe as HTML content or an attribute's value", () => {
+    expect(escapeHtml("<a href=\"x\" onclick='y'>Tom & Jerry</a>")).toBe("&lt;a href=&quot;x&quot; onclick=&#39;y&#39;&gt;Tom &amp; Jerry&lt;/a&gt;");
+    expect(escapeHtml("plain text")).toBe("plain text");
+  });
+});
 
 describe("fill", () => {
   it("fills every placeholder, numbers included, wherever and however often it appears", () => {

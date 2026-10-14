@@ -6,12 +6,14 @@ export interface MailSender {
   domain: string;
 }
 
-// One email: who it is from, to, its subject and plain text, and where a reply goes.
+// One email: who it is from, to, its subject, its plain text and (for mail apps that show it) its HTML, and where a
+// reply goes.
 export interface Mail {
   sender: MailSender;
   to: string;
   subject: string;
   text: string;
+  html?: string;
   replyTo?: string;
 }
 

@@ -13,7 +13,8 @@
     "fix:links": "npx @next/codemod new-link .",
     "test:ci": "jest --watchAll=false",
     "test:coverage": "jest --watchAll=false --coverage",
-    "timelapse": "node scripts/timelapse.mjs"
+    "timelapse": "node scripts/timelapse.mjs",
+    "email:portrait": "node scripts/email-portrait.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.2.1",

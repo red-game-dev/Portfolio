@@ -1,7 +1,10 @@
-import { CONTACT_CONFIG } from "@/config/contact";
-import { ContactService, SendRecord } from "@/packages/messaging/contact";
+import { CONTACT_CONFIG, EMAIL_THEME } from "@/config/contact";
+import { formsContent } from "@/data/portfolio/forms";
+import { ContactRoute, ContactService, SendRecord } from "@/packages/messaging/contact";
+import { contactHtml, EmailLook } from "@/packages/messaging/contact-email";
 import { MailAdapter, MailService, ResendMailAdapter } from "@/packages/server/mail";
 import { DailyQuota, SlidingWindowLimiter } from "@/packages/server/quota";
+import { emailArtLinks } from "@/services/contact/art";
 import { sharedStore } from "@/services/store/server";
 import { visitorOf } from "@/services/store/visitor";
 
@@ -26,6 +29,29 @@ export const MAIL_ADAPTERS: Record<string, () => MailAdapter | null> = {
 export const mailAdapters = (order = process.env.MAIL_PROVIDERS?.split(",") ?? CONTACT_CONFIG.mailProviders): MailAdapter[] =>
   order.map((id) => MAIL_ADAPTERS[id.trim()]?.() ?? null).filter((adapter): adapter is MailAdapter => adapter !== null);
 
+// Where a message goes: from the site's sender to the owner's inbox (CONTACT_INBOX), styled as the site looks, with the
+// art along its top bar and my portrait; none without an inbox.
+export const contactRoute = (inbox = process.env.CONTACT_INBOX): ContactRoute | null => {
+  if (!inbox) {
+    return null;
+  }
+
+  // The look, its art drawn on the first email rather than when the service is built, so reading whether the site can
+  // send never waits on drawing.
+  let look: EmailLook | null = null;
+
+  return {
+    sender: { name: CONTACT_CONFIG.senderName, user: CONTACT_CONFIG.senderUser, domain: CONTACT_CONFIG.domain },
+    to: inbox,
+    site: CONTACT_CONFIG.site,
+    html: (request, subject, from) => {
+      look ??= { theme: EMAIL_THEME, words: formsContent.forms.email, art: emailArtLinks() };
+
+      return contactHtml(request, subject, from, look);
+    },
+  };
+};
+
 // The contact service, built once: the mail service over the providers set up, the owner's inbox from CONTACT_INBOX,
 // and the shared store for the limits. With no provider set up or no inbox the service is still built, and says it
 // cannot send, so the form offers the visitor's own email app.
@@ -33,12 +59,10 @@ export const getContactService = (): ContactService => {
   if (!service) {
     const store = sharedStore("contact");
     const mail = new MailService(mailAdapters());
-    const inbox = process.env.CONTACT_INBOX;
-    const sender = { name: CONTACT_CONFIG.senderName, user: CONTACT_CONFIG.senderUser, domain: CONTACT_CONFIG.domain };
 
     service = new ContactService({
       mailer: mail.isReady ? mail : null,
-      route: inbox ? { sender, to: inbox, site: CONTACT_CONFIG.site } : null,
+      route: contactRoute(),
       visitor: new SlidingWindowLimiter(store, "contact:rate:visitor", CONTACT_CONFIG.perVisitor),
       day: new DailyQuota(store, "contact:sent", CONTACT_CONFIG.perDay),
       health: {

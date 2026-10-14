@@ -25,6 +25,8 @@ const customJestConfig = {
     "<rootDir>/node_modules/",
     "<rootDir>/__tests__/__mocks__/",
     "<rootDir>/__tests__/setups/",
+    // Layout checks run in a real browser through Playwright, never in jsdom.
+    "<rootDir>/e2e/",
     "/fixtures/",
   ],
   moduleNameMapper: {

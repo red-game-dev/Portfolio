@@ -185,6 +185,8 @@ interface VoyageDialogProps {
   settings: PreferencesContent;
   onRecord: (score: number) => void;
   onClose: () => void;
+  // Where everything shown comes from: the live game, unless the HUD lab hands in its still life of it.
+  source?: typeof useVoyage;
 }
 
 const CONTROLS_ID = "voyage-controls";
@@ -235,7 +237,7 @@ const SOUND = 0.995;
 // text everything it shows: where the ship is, its hull, shields and fuel as MMO bars, any system that is hurt,
 // the score, the live telemetry, and each moment said once. A card starts, pauses and ends a run; a button opens
 // the map. Opens itself on mount.
-export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, home, settings, onRecord, onClose }: VoyageDialogProps) => {
+export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, home, settings, onRecord, onClose, source = useVoyage }: VoyageDialogProps) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLCanvasElement>(null);
@@ -315,7 +317,9 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const startRef = useRef<() => void>(() => undefined);
   // Escape during a run asks before leaving it (defined below, so read through a ref).
   const leaveRef = useRef<() => void>(() => undefined);
-  const voyage = useVoyage(canvases, {
+  // The same hook for the whole life of the dialog, so its hooks run in the same order every render.
+  const useVoyageSource = source;
+  const voyage = useVoyageSource(canvases, {
     labels,
     universes,
     syllables: content.universeNames,
@@ -816,8 +820,8 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </MapBar>
       )}
       <Hud hidden={isHudAside} data-hud-layer="">
-        <Vitals>
-          <Place>{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
+        <Vitals data-hud-area="vitals">
+          <Place data-hud-place="">{snapshot && status !== "ready" ? voyagePlace(content, snapshot, universes) : ""}</Place>
           {economy && (
             <ShipLine>
               {career ? fill(content.career.shipLine, { rank: rankName(content, career.rankId), ship }) : ship}
@@ -923,7 +927,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </TargetFrame>
           )}
         </Vitals>
-        <Readout>
+        <Readout data-hud-area="readout">
           <Reading>
             <ReadingName>{content.score}</ReadingName>
             <ReadingValue>{snapshot?.score ?? 0}</ReadingValue>
@@ -951,7 +955,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             </>
           )}
         </Readout>
-        <HudButtons>
+        <HudButtons data-hud-area="buttons">
           {economy && (
             <IconButton type="button" onClick={() => setHangar(!isHangarOpen)} aria-label={isHangarOpen ? copy.closeHangar : copy.openHangar} aria-pressed={isHangarOpen}>
               <FontAwesomeIcon icon={faWarehouse} aria-hidden="true" />
@@ -983,7 +987,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </HudButtons>
       </Hud>
       {snapshot?.descent && status === "flying" && !isHangarOpen && !isHudAside && (
-        <SurfaceCard aria-label={fill(content.descent.title, { body: comingDownOn })}>
+        <SurfaceCard aria-label={fill(content.descent.title, { body: comingDownOn })} data-hud-area="surface">
           <SurfaceTitle>{fill(content.descent.title, { body: comingDownOn })}</SurfaceTitle>
           <SurfaceMethod>{descentMethod(content, snapshot.descent, snapshot.surface?.isHome ?? false)}</SurfaceMethod>
           <SurfacePhase>{content.descent.phases[snapshot.descent.phase]}</SurfacePhase>
@@ -994,7 +998,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </SurfaceCard>
       )}
       {!snapshot?.descent && snapshot?.surface && status === "flying" && !isHangarOpen && !isHudAside && (
-        <SurfaceCard aria-label={surfaceTitle}>
+        <SurfaceCard aria-label={surfaceTitle} data-hud-area="surface">
           <SurfaceTitle>{surfaceTitle}</SurfaceTitle>
           {surfaceLines(content, snapshot, home?.name ?? null).map((line) => <SurfaceLine key={line}>{line}</SurfaceLine>)}
           {readingsInCorner.map((row) => <SurfaceReading key={row.label}>{`${row.label} ${row.value}`}</SurfaceReading>)}
@@ -1002,7 +1006,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         </SurfaceCard>
       )}
       {snapshot && status === "flying" && !isHangarOpen && !isHudAside && (
-        <TelemetryPanel aria-label={content.telemetry.title} isYielding={Boolean(snapshot.descent || snapshot.surface)} data-covers="">
+        <TelemetryPanel aria-label={content.telemetry.title} isYielding={Boolean(snapshot.descent || snapshot.surface)} data-covers="" data-hud-area="telemetry">
           <TelemetryTitle>{content.telemetry.title}</TelemetryTitle>
           <TelemetryList>
             {telemetryRows(content, snapshot).map((row) => (
@@ -1016,7 +1020,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
       )}
       {status === "flying" && snapshot && !isChoosing && !isDocked && (isGuiding || snapshot.boss || snapshot.incoming || snapshot.salvage || adrift ||
         economy?.suggestion || snapshot.dockable || snapshot.distress) && !isHangarOpen && !isHudAside && (
-        <Frames data-target={snapshot.target ? "" : undefined} data-hud-layer="">
+        <Frames data-target={snapshot.target ? "" : undefined} data-hud-layer="" data-hud-area="frames">
           {snapshot.dockable && (
             <DockButton type="button" onClick={() => act({ kind: "dock" })}>
               <FontAwesomeIcon icon={faAnchor} aria-hidden="true" />
@@ -1109,6 +1113,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         <Message
           key={message.id}
           data-hud-layer=""
+          data-hud-area="message"
           data-held={isLineHeld ? "" : undefined}
           isCard={Boolean(message.card)}
           style={{ "--message-ms": `${lineMs(message)}ms` } as CSSProperties}

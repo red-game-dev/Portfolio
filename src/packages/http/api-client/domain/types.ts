@@ -12,13 +12,17 @@ export interface ApiClientConfig {
   retry?: RetryPolicy;
 }
 
-// Per call: cancel it, add headers, or give it a timeout of its own. A read can also be kept for `cacheSeconds`, and
-// reads of the same thing within `dedupeMs` of each other share one request (fetchff's cache and dedupe), so every
-// part of a page asking the same question costs one request.
+// Per call: cancel it, add headers, or give it a timeout of its own.
 export interface CallOptions {
   signal?: AbortSignal;
   headers?: Record<string, string>;
   timeout?: number;
+}
+
+// A read can also be kept for `cacheSeconds`, and reads of the same thing within `dedupeMs` of each other share one
+// request (fetchff's cache and dedupe), so every part of a page asking the same question costs one request. Only reads:
+// a kept POST would answer a second send from the first, and a shared stream can be read once.
+export interface ReadOptions extends CallOptions {
   cacheSeconds?: number;
   dedupeMs?: number;
 }

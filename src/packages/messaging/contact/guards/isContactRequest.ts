@@ -11,5 +11,5 @@ export const isContactRequest = (value: unknown): value is ContactRequest => {
   const body = value as Record<string, unknown>;
 
   return (body.kind === "message" || body.kind === "feedback") && typeof body.message === "string" &&
-    isOptionalText(body.name) && isOptionalText(body.email) && isOptionalText(body.subject) && isOptionalText(body.website);
+    isOptionalText(body.name) && isOptionalText(body.email) && isOptionalText(body.subject) && isOptionalText(body.website) && isOptionalText(body.key);
 };

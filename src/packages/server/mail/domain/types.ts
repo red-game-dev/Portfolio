@@ -15,20 +15,27 @@ export interface Mail {
   replyTo?: string;
 }
 
-// What became of a send: accepted, refused for now because the provider's limits are reached, or failed (a bad key,
-// a sender not verified, the provider down).
-export type MailOutcome = "sent" | "limited" | "failed";
+// What became of a send: accepted; refused for now because the provider's limits are reached; rejected, a definite
+// refusal that will happen again until someone changes something (a revoked key, a sender not verified); or failed, no
+// answer or the provider's own error, when it may or may not have gone.
+export type MailOutcome = "sent" | "limited" | "rejected" | "failed";
 
-// The outcome, which adapter it came from (null when none could try), the provider's HTTP status (0 when no answer
-// came) and how long it took, for the log.
-export interface MailResult {
+// One provider's try: which, what became of it, its HTTP status (0 when no answer came) and how long it took.
+export interface MailAttempt {
+  adapter: string;
   outcome: MailOutcome;
-  adapter: string | null;
   status: number;
   ms: number;
 }
 
-// What sends mail, as a caller sees it: one adapter, or the service that tries several.
+// What became of an email across every provider tried, for the caller and the log.
+export interface MailResult {
+  outcome: MailOutcome;
+  attempts: MailAttempt[];
+  ms: number;
+}
+
+// What sends mail, as a caller sees it. `idempotencyKey` names the email once, so a retry of it is sent at most once.
 export interface Mailer {
   send(mail: Mail, idempotencyKey?: string): Promise<MailResult>;
 }

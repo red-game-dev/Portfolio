@@ -11,10 +11,12 @@ interface ResendBody {
   reply_to?: string;
 }
 
-// Resend: its API's base URL and key, and an email as the body its /emails endpoint takes.
+// Resend: its API's base URL and key, its idempotency header, and an email as the body its /emails endpoint takes.
 export class ResendMailAdapter extends HttpMailAdapter<ResendBody> {
   public readonly id = "resend";
   protected readonly path = "/emails";
+  // Resend sends an email with the same key at most once, within a day.
+  protected readonly idempotencyHeader = "Idempotency-Key";
 
   constructor(apiKey: string, options: HttpMailAdapterOptions = {}) {
     super({ baseURL: RESEND_URL, headers: { Authorization: `Bearer ${apiKey}` } }, options);

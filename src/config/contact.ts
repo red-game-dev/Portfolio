@@ -14,8 +14,8 @@ export const CONTACT_CONFIG = {
   senderUser: "site",
   domain: SITE_DOMAIN,
   site: SITE_DOMAIN,
-  // After the mail service refuses a send for a reason other than its limits, the form offers the visitor's own email
-  // app from the start for this long, rather than letting every visitor write a message that fails.
+  // After the mail providers reject a send for certain (a revoked key, a sender no longer verified), the form offers the
+  // visitor's own email app from the start for this long, rather than letting every visitor write a message that fails.
   downMs: 10 * 60 * 1000,
   perVisitor: { limit: 5, windowMs: 60 * 60 * 1000 },
   perDay: 100,

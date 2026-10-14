@@ -9,8 +9,8 @@ let service: ContactService | null = null;
 
 const DOWN_KEY = "contact:down";
 
-// One JSON line per send on stdout, which Vercel keeps as the function's logs: the outcome, the provider's status and
-// the time it took, never who sent it or what it said.
+// One JSON line per send on stdout, which Vercel keeps as the function's logs: the outcome, every provider's try and the
+// time it took, never who sent it or what it said.
 const logSend = (record: SendRecord) => process.stdout.write(`${JSON.stringify({ event: "contact.send", ...record })}\n`);
 
 // Every mail provider the site knows, as its adapter, each built from its own environment, or null where that has no
@@ -42,8 +42,14 @@ export const getContactService = (): ContactService => {
       visitor: new SlidingWindowLimiter(store, "contact:rate:visitor", CONTACT_CONFIG.perVisitor),
       day: new DailyQuota(store, "contact:sent", CONTACT_CONFIG.perDay),
       health: {
-        isDown: async () => (await store.get(DOWN_KEY)) !== null,
+        isDown: async () => Boolean(await store.get(DOWN_KEY)),
         reportDown: () => store.set(DOWN_KEY, "1", CONTACT_CONFIG.downMs),
+        // Only written when it was down: a store write per send would cost every send a round trip.
+        clear: async () => {
+          if (await store.get(DOWN_KEY)) {
+            await store.set(DOWN_KEY, "", 1);
+          }
+        },
       },
       onSend: logSend,
     });

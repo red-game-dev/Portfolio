@@ -12,7 +12,9 @@ interface ModalOptions {
 // backdrop (the dialog element itself, outside its content) is clicked: pressed there and let go there, so text
 // selected in the dialog by dragging out over the backdrop (a message being written) never closes it.
 export default function useModalDialog(ref: RefObject<HTMLDialogElement>, isOpen: boolean, { lockScroll = true }: ModalOptions = {}) {
-  const isPressedOnBackdrop = useRef(false);
+  // Where the last press began and ended: a click the browser lands on the dialog itself after a drag between its
+  // content and the backdrop closes nothing.
+  const press = useRef({ isDownOnBackdrop: false, isUpOnBackdrop: false });
 
   useEffect(() => {
     const dialog = ref.current;
@@ -22,12 +24,19 @@ export default function useModalDialog(ref: RefObject<HTMLDialogElement>, isOpen
     }
 
     const onPointerDown = (event: PointerEvent) => {
-      isPressedOnBackdrop.current = event.target === dialog;
+      press.current.isDownOnBackdrop = event.target === dialog;
+    };
+    const onPointerUp = (event: PointerEvent) => {
+      press.current.isUpOnBackdrop = event.target === dialog;
     };
 
     dialog.addEventListener("pointerdown", onPointerDown);
+    dialog.addEventListener("pointerup", onPointerUp);
 
-    return () => dialog.removeEventListener("pointerdown", onPointerDown);
+    return () => {
+      dialog.removeEventListener("pointerdown", onPointerDown);
+      dialog.removeEventListener("pointerup", onPointerUp);
+    };
   }, [ref]);
 
   useEffect(() => {
@@ -47,10 +56,12 @@ export default function useModalDialog(ref: RefObject<HTMLDialogElement>, isOpen
   useScrollLock(lockScroll && isOpen);
 
   return useCallback((event: MouseEvent<HTMLDialogElement>) => {
-    if (event.target === event.currentTarget && isPressedOnBackdrop.current) {
+    const { isDownOnBackdrop, isUpOnBackdrop } = press.current;
+
+    if (event.target === event.currentTarget && isDownOnBackdrop && isUpOnBackdrop) {
       event.currentTarget.close();
     }
 
-    isPressedOnBackdrop.current = false;
+    press.current = { isDownOnBackdrop: false, isUpOnBackdrop: false };
   }, []);
 }

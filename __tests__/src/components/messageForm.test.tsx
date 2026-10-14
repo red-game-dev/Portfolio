@@ -9,7 +9,7 @@ jest.mock("@/services/contact/client", () => {
   const contactIsOpen = jest.fn();
   const sendContact = jest.fn();
 
-  return { contactIsOpen, sendContact, createContactDelivery: () => ({ isOpen: () => contactIsOpen(), deliver: (request: unknown) => sendContact(request) }) };
+  return { contactIsOpen, sendContact, createContactDelivery: () => ({ status: () => contactIsOpen(), deliver: (request: unknown) => sendContact(request) }) };
 });
 
 const client = jest.requireMock<{ contactIsOpen: jest.Mock; sendContact: jest.Mock }>("@/services/contact/client");
@@ -26,7 +26,7 @@ describe("the message and feedback form", () => {
   beforeEach(() => {
     // The form asks whether the site can send once it is on screen.
     restore = stubCanvases();
-    client.contactIsOpen.mockResolvedValue(true);
+    client.contactIsOpen.mockResolvedValue("open");
     client.sendContact.mockReset();
   });
 
@@ -67,7 +67,7 @@ describe("the message and feedback form", () => {
       fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
     });
 
-    expect(client.sendContact).toHaveBeenCalledWith({ kind: "feedback", message: "More case studies, please." });
+    expect(client.sendContact).toHaveBeenCalledWith({ kind: "feedback", message: "More case studies, please.", key: expect.any(String) });
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(forms.feedback.sent));
     expect(screen.getByRole("status")).toHaveFocus();
   });
@@ -81,24 +81,64 @@ describe("the message and feedback form", () => {
       fireEvent.click(screen.getByRole("button", { name: forms.message.send }));
     });
 
-    expect(client.sendContact).toHaveBeenCalledWith({ kind: "message", message: "Shall we talk about the role?", email: "ada@example.test", subject: "Hiring: CTO" });
+    expect(client.sendContact).toHaveBeenCalledWith({
+      kind: "message", message: "Shall we talk about the role?", email: "ada@example.test", subject: "Hiring: CTO", key: expect.any(String),
+    });
     expect(screen.getByRole("alert")).toHaveTextContent(forms.shared.full);
     expect(screen.getByRole("link", { name: forms.shared.ownApp }))
       .toHaveAttribute("href", `mailto:${details.email}?subject=Hiring%3A%20CTO&body=Shall%20we%20talk%20about%20the%20role%3F`);
   });
 
-  it("when the site cannot send at all, or its code cannot load, the visitor's own email app is the way, from the start", async () => {
-    client.contactIsOpen.mockResolvedValue(false);
-    const { unmount } = renderForm("feedback");
+  it("when the site says it cannot send, the email app is the way from the start, asked again as the visitor comes back", async () => {
+    client.contactIsOpen.mockResolvedValue("closed");
+    renderForm("feedback");
 
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(forms.shared.closed));
     expect(screen.queryByRole("button", { name: forms.feedback.send })).toBeNull();
     expect(screen.getByRole("link", { name: forms.shared.ownApp })).toBeInTheDocument();
+
+    client.contactIsOpen.mockResolvedValue("open");
+    await act(async () => {
+      fireEvent.focus(screen.getByLabelText(new RegExp(forms.feedback.message)));
+    });
+    expect(screen.getByRole("button", { name: forms.feedback.send })).toBeInTheDocument();
+  });
+
+  it("with no answer about whether the site can send, or code that cannot load, keeps the send button, the send's answer deciding", async () => {
+    client.contactIsOpen.mockResolvedValue("unknown");
+    const { unmount } = renderForm("feedback");
+
+    await waitFor(() => expect(client.contactIsOpen).toHaveBeenCalled());
+    expect(screen.getByRole("button", { name: forms.feedback.send })).toBeInTheDocument();
     unmount();
 
+    client.contactIsOpen.mockClear();
     client.contactIsOpen.mockRejectedValue(new Error("chunk failed"));
     renderForm("feedback");
-    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(forms.shared.closed));
+    await waitFor(() => expect(client.contactIsOpen).toHaveBeenCalled());
+    expect(screen.getByRole("button", { name: forms.feedback.send })).toBeInTheDocument();
+  });
+
+  it("sends a message tried again under the same key, and a changed one under a new key", async () => {
+    client.sendContact.mockResolvedValue({ kind: "fallback", href: "mailto:x", refusal: "failed" });
+    renderForm("feedback");
+    await waitFor(() => expect(client.contactIsOpen).toHaveBeenCalled());
+
+    const field = screen.getByLabelText(new RegExp(forms.feedback.message));
+    const send = async () => act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
+    });
+
+    fireEvent.change(field, { target: { value: "More case studies, please." } });
+    await send();
+    await send();
+    fireEvent.change(field, { target: { value: "More case studies and blueprints, please." } });
+    await send();
+
+    const keys = client.sendContact.mock.calls.map(([request]) => (request as { key: string }).key);
+
+    expect(keys[0]).toBe(keys[1]);
+    expect(keys[2]).not.toBe(keys[0]);
   });
 
   it("keeps the field for bots out of sight and out of reach, and passes on what a bot fills in, for the server to drop", async () => {
@@ -140,19 +180,19 @@ describe("the message and feedback form", () => {
   });
 
   it("delivers through whichever delivery it is given, the email app staying the fallback", async () => {
-    const delivery = { isOpen: jest.fn(async () => true), deliver: jest.fn(async () => ({ kind: "invalid" as const, problems: ["emailInvalid" as const] })) };
+    const delivery = { status: jest.fn(async () => "open"), deliver: jest.fn(async () => ({ kind: "invalid" as const, problems: ["emailInvalid" as const] })) };
 
     render(
       <MessageForm kind="feedback" subject={forms.feedback.subject} email={details.email} contactTime={details.contactTime} words={forms.feedback}
         shared={forms.shared} loadDelivery={async () => delivery as never} />,
     );
-    await waitFor(() => expect(delivery.isOpen).toHaveBeenCalled());
+    await waitFor(() => expect(delivery.status).toHaveBeenCalled());
     fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.message)), { target: { value: "More case studies, please." } });
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
     });
 
-    expect(delivery.deliver).toHaveBeenCalledWith({ kind: "feedback", message: "More case studies, please." });
+    expect(delivery.deliver).toHaveBeenCalledWith(expect.objectContaining({ kind: "feedback", message: "More case studies, please." }));
     // What the server found wrong shows on its field, as the form's own checks would.
     expect(screen.getByText(forms.shared.problems.emailInvalid)).toBeInTheDocument();
     expect(client.sendContact).not.toHaveBeenCalled();

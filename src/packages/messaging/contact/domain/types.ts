@@ -1,7 +1,8 @@
 // A message to the site's owner, to be answered, or feedback, which may stay anonymous.
 export type ContactKind = "message" | "feedback";
 
-// What a visitor sends. `website` is a field people never see: only a bot fills it in.
+// What a visitor sends. `website` is a field people never see: only a bot fills it in. `key` names the message once, so
+// a send of it retried (by the visitor, or by the server) arrives at most once.
 export interface ContactRequest {
   kind: ContactKind;
   message: string;
@@ -9,10 +10,13 @@ export interface ContactRequest {
   email?: string;
   subject?: string;
   website?: string;
+  key?: string;
 }
 
-// What is wrong with a request, field by field.
-export type ContactProblem = "messageShort" | "messageLong" | "emailMissing" | "emailInvalid" | "nameLong" | "subjectLong";
+// What can be wrong with a request, field by field.
+export const CONTACT_PROBLEMS = ["messageShort", "messageLong", "emailMissing", "emailInvalid", "nameLong", "subjectLong"] as const;
+
+export type ContactProblem = typeof CONTACT_PROBLEMS[number];
 
 // Why a request was not sent: not valid, too many from this visitor, the day's sends used up, no way to send set up,
 // or the provider failed. Every refusal but an invalid one leaves the visitor their own email app.

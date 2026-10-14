@@ -15,10 +15,11 @@ describe("the forms' delivery", () => {
     const card = createContactDelivery("inbox@example.test", "Hiring: CTO");
     const finale = createContactDelivery("inbox@example.test", "Feedback");
 
-    expect(await card.isOpen()).toBe(true);
-    expect(await finale.isOpen()).toBe(true);
+    expect(await card.status()).toBe("open");
+    expect(await finale.status()).toBe("open");
     expect(await card.deliver({ kind: "message", message: "Shall we talk about the role?", email: "a@example.test", subject: "Hiring: CTO" }))
       .toMatchObject({ kind: "fallback", refusal: "full", href: expect.stringContaining("mailto:inbox@example.test?subject=Hiring%3A%20CTO") });
-    expect(instance.post).toHaveBeenCalledWith("/api/contact/", expect.objectContaining({ kind: "message" }));
+    expect(instance.post).toHaveBeenCalledWith("/api/contact/", expect.objectContaining({ kind: "message" }), expect.anything());
+    expect(card.linkFor({ message: "Hi" })).toBe("mailto:inbox@example.test?subject=Hiring%3A%20CTO&body=Hi");
   });
 });

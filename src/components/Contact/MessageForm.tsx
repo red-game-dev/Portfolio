@@ -3,9 +3,10 @@ import { ChangeEvent, FC, FormEvent, useEffect, useId, useMemo, useRef, useState
 import { ActionButton, ActionLink } from "@/components/Controls";
 import useInView from "@/hooks/useInView";
 import {
-  CONTACT_LIMITS, ContactDelivery, ContactKind, ContactProblem, contactProblems, ContactRefusal, ContactRequest, MailtoChannel,
+  CONTACT_LIMITS, ContactDelivery, ContactKind, ContactProblem, contactProblems, ContactRefusal, ContactRequest, DeliveryStatus,
 } from "@/packages/messaging/contact";
 import { fill } from "@/packages/text/format";
+import { contactFallback } from "@/services/contact/fallback";
 import { FeedbackFormContent, FormsSharedContent, MessageFormContent } from "@/types/forms";
 
 import { Field, Form, Heading, Input, Intro, Label, Marker, Note, Problem, Row, Status, TextArea, Trap } from "./MessageForm.styles";
@@ -45,11 +46,21 @@ const FIELD_OF: Record<ContactProblem, FieldName | null> = {
 
 const FIELD_ORDER: readonly FieldName[] = ["name", "email", "message"];
 
+// A new key for a message, which names it once however often its send is tried.
+const newKey = (): string => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now().toString(36)}-${Math.random().toString(36)
+    .slice(2)}`;
+};
+
 // A message to me or feedback, delivered through the site's channels (its own server, then the fallback, the visitor's
-// own email app with what they typed already in it): the email app is the way when the site cannot send now (no way to
-// send set up, or the day's sends used up), when a send is refused or fails, and always beside the send button. Feedback may stay anonymous. Every field has its label
-// and says whether it is needed, a wrong one says why and takes focus, what becomes of the message is said as it
-// happens, and a field no person sees catches bots.
+// own email app with what they typed already in it): the email app is the way when the site says it cannot send now
+// (no way to send set up, or the day's sends used up), when a send is refused or fails, and always beside the send
+// button. Feedback may stay anonymous. Every field has its label and says whether it is needed, a wrong one says why
+// and takes focus, what becomes of the message is said as it happens, and a field no person sees catches bots.
 export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contactTime, words, shared, loadDelivery = loadSiteDelivery }: MessageFormProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLParagraphElement>(null);
@@ -57,12 +68,16 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   const [values, setValues] = useState({ name: "", email: "", message: "", website: "" });
   const [problems, setProblems] = useState<ContactProblem[]>([]);
   const [state, setState] = useState<SendState>("idle");
-  const [isOpen, setIsOpen] = useState<boolean | null>(null);
+  // Whether the site can send: not asked yet (null), open, closed, or no answer, when the send button stays.
+  const [isOpen, setIsOpen] = useState<DeliveryStatus | null>(null);
   const isNear = useInView(formRef, { once: true, threshold: 0 });
   const isMessage = kind === "message";
   const fieldId = (name: FieldName | "trap") => `${id}-${name}`;
-  const fallback = useMemo(() => new MailtoChannel(email, subject), [email, subject]);
+  const fallback = useMemo(() => contactFallback(email, subject), [email, subject]);
   const delivery = useRef<Promise<ContactDelivery> | null>(null);
+  // The key the message being written goes under, kept while its text stays the same, so a send tried again is the
+  // same message to the server.
+  const sendKey = useRef<{ message: string; key: string } | null>(null);
   // The delivery, loaded once for this form; a load that failed is tried afresh next time.
   const deliveryOf = () => {
     delivery.current ??= loadDelivery(email, subject).catch((error: unknown) => {
@@ -74,7 +89,12 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     return delivery.current;
   };
 
-  // Whether the site can send is asked once the form is near, with the code that asks loaded only then.
+  // Whether the site can send. Code that cannot be loaded, or no answer, is no way to tell, and the send button stays.
+  const askStatus = () => deliveryOf()
+    .then((loaded) => loaded.status())
+    .catch((): DeliveryStatus => "unknown");
+
+  // Asked once the form is near, with the code that asks loaded only then.
   useEffect(() => {
     if (!isNear || isOpen !== null) {
       return undefined;
@@ -82,15 +102,11 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
 
     let isCurrent = true;
 
-    // Code that cannot be loaded (no connection, a new release since the page loaded) reads as the site not sending.
-    void deliveryOf()
-      .then((loaded) => loaded.isOpen())
-      .catch(() => false)
-      .then((open) => {
-        if (isCurrent) {
-          setIsOpen(open);
-        }
-      });
+    void askStatus().then((status) => {
+      if (isCurrent) {
+        setIsOpen(status);
+      }
+    });
 
     return () => {
       isCurrent = false;
@@ -98,6 +114,13 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     // Asked once, when the form first comes near.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNear, isOpen]);
+
+  // Closed, asked again as the visitor comes back to the form (the answer is kept a moment, so this costs little).
+  const onFocus = () => {
+    if (isOpen === "closed") {
+      void askStatus().then(setIsOpen);
+    }
+  };
 
   // Once the message is on its way the fields go, so the line saying so takes focus.
   useEffect(() => {
@@ -111,9 +134,18 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
     setValues((current) => ({ ...current, [name]: event.target.value }));
   };
 
+  const keyFor = (message: string) => {
+    if (sendKey.current?.message !== message) {
+      sendKey.current = { message, key: newKey() };
+    }
+
+    return sendKey.current.key;
+  };
+
   const requestOf = (): ContactRequest => ({
     kind,
     message: values.message,
+    key: keyFor(values.message),
     ...(values.email.trim() ? { email: values.email.trim() } : {}),
     ...(isMessage && values.name.trim() ? { name: values.name.trim() } : {}),
     ...(isMessage ? { subject } : {}),
@@ -150,6 +182,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
 
       if (result.kind === "sent") {
         setValues({ name: "", email: "", message: "", website: "" });
+        sendKey.current = null;
         setState("sent");
       } else if (result.kind === "invalid") {
         setProblems(result.problems);
@@ -172,7 +205,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   // Said as it changes: sent, sending, what to fix (the fields say what, the line says so), or that the site cannot send.
   const status = state === "sent"
     ? fill(words.sent, { time: contactTime.toLowerCase() })
-    : state === "sending" ? shared.sending : problems.length > 0 ? shared.check : isOpen === false ? shared.closed : "";
+    : state === "sending" ? shared.sending : problems.length > 0 ? shared.check : isOpen === "closed" ? shared.closed : "";
 
   const field = (name: FieldName, label: string, isRequired: boolean, isLong = false) => (
     <Field>
@@ -197,7 +230,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   );
 
   return (
-    <Form ref={formRef} onSubmit={(event) => void onSubmit(event)} noValidate aria-labelledby={`${id}-heading`}>
+    <Form ref={formRef} onSubmit={(event) => void onSubmit(event)} onFocus={onFocus} noValidate aria-labelledby={`${id}-heading`}>
       <Heading id={`${id}-heading`}>{words.heading}</Heading>
       <Intro>{words.intro}</Intro>
       {state !== "sent" && (
@@ -212,12 +245,12 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
             </label>
           </Trap>
           <Row>
-            {isOpen !== false && (
+            {isOpen !== "closed" && (
               <ActionButton type="submit" isPrimary aria-disabled={state === "sending"}>
                 {state === "sending" ? shared.sending : words.send}
               </ActionButton>
             )}
-            <ActionLink href={mailto} isPrimary={isOpen === false}>{shared.ownApp}</ActionLink>
+            <ActionLink href={mailto} isPrimary={isOpen === "closed"}>{shared.ownApp}</ActionLink>
           </Row>
           {refusal && <Problem role="alert">{refusal}</Problem>}
           <Note>{shared.privacy}</Note>

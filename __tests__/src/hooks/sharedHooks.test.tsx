@@ -69,17 +69,22 @@ describe("useModalDialog", () => {
     const onClose = jest.fn();
     const { getByLabelText, getByText, unmount } = render(<Modal isOpen onClose={onClose} />);
 
-    fireEvent.pointerDown(getByText("inside"));
-    fireEvent.click(getByText("inside"));
+    const press = (down: HTMLElement, up: HTMLElement, clicked: HTMLElement) => {
+      fireEvent.pointerDown(down);
+      fireEvent.pointerUp(up);
+      fireEvent.click(clicked);
+    };
+
+    press(getByText("inside"), getByText("inside"), getByText("inside"));
     expect(onClose).not.toHaveBeenCalled();
 
-    // Text selected inside, let go over the backdrop: the browser clicks the dialog itself.
-    fireEvent.pointerDown(getByText("inside"));
-    fireEvent.click(getByLabelText("modal"));
+    // Text selected inside and let go over the backdrop, or pressed on the backdrop and let go inside: the browser
+    // clicks the dialog itself either way.
+    press(getByText("inside"), getByLabelText("modal"), getByLabelText("modal"));
+    press(getByLabelText("modal"), getByText("inside"), getByLabelText("modal"));
     expect(onClose).not.toHaveBeenCalled();
 
-    fireEvent.pointerDown(getByLabelText("modal"));
-    fireEvent.click(getByLabelText("modal"));
+    press(getByLabelText("modal"), getByLabelText("modal"), getByLabelText("modal"));
     expect(onClose).toHaveBeenCalledTimes(1);
     unmount();
   });

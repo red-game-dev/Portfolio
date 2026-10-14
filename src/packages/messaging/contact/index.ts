@@ -1,8 +1,8 @@
 export { MAILTO_MOST, MailtoChannel } from "./adapters/MailtoChannel";
-export { SiteChannel } from "./adapters/SiteChannel";
 export { CONTACT_LIMITS } from "./config";
 export { ContactChannel } from "./core/ContactChannel";
-export { CONTACT_STATUS } from "./domain/types";
+export { FallbackChannel } from "./core/FallbackChannel";
+export { CONTACT_PROBLEMS, CONTACT_STATUS } from "./domain/types";
 export { isContactRequest } from "./guards/isContactRequest";
 export { contactMail } from "./mappers/contactMail";
 export { ContactDelivery } from "./services/ContactDelivery";
@@ -11,5 +11,5 @@ export { contactProblems } from "./validators/contactProblems";
 export type { Delivery } from "./core/ContactChannel";
 export type { ContactKind, ContactOutcome, ContactProblem, ContactRefusal, ContactRequest, ContactStatus } from "./domain/types";
 export type { ContactRoute } from "./mappers/contactMail";
-export type { DeliveryResult } from "./services/ContactDelivery";
+export type { DeliveryResult, DeliveryStatus } from "./services/ContactDelivery";
 export type { ContactServiceOptions, SendCeiling, SendHealth, SendRecord } from "./services/ContactService";

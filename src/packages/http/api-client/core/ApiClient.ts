@@ -2,7 +2,7 @@ import { fetchf } from "fetchff";
 import type { CustomFetcher } from "fetchff";
 
 import { DEFAULT_API_CLIENT_CONFIG, mergeApiClientConfig } from "../config/defaults";
-import { ApiClientConfig, ApiResult, CallOptions } from "../domain/types";
+import { ApiClientConfig, ApiResult, CallOptions, ReadOptions } from "../domain/types";
 import { ApiResultMapper } from "../mappers/ApiResultMapper";
 
 // An HTTP client on fetchff, for JSON and for streamed bodies. There is one global client for the whole app,
@@ -36,7 +36,7 @@ export class ApiClient {
 
   // Nothing sent, the parsed JSON out, as the type the caller expects. Pair it with a guard where the response
   // crosses a trust boundary.
-  public get<TResponse>(path: string, options: CallOptions = {}): Promise<ApiResult<TResponse>> {
+  public get<TResponse>(path: string, options: ReadOptions = {}): Promise<ApiResult<TResponse>> {
     return this.send<TResponse>(path, undefined, "json", options, "GET");
   }
 
@@ -52,7 +52,7 @@ export class ApiClient {
   }
 
   // The body is serialised here, so fetchff sends it as it is and the caller's type stays the caller's.
-  private async send<TResponse>(path: string, body: unknown, responseType: "json" | "stream", options: CallOptions, method: "GET" | "POST" = "POST"):
+  private async send<TResponse>(path: string, body: unknown, responseType: "json" | "stream", options: ReadOptions, method: "GET" | "POST" = "POST"):
     Promise<ApiResult<TResponse>> {
     const response = await fetchf<TResponse>(path, {
       method,

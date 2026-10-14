@@ -1,4 +1,4 @@
-import type { Mailer } from "@/packages/server/mail";
+import type { MailAttempt, Mailer } from "@/packages/server/mail";
 import type { Limiter } from "@/packages/server/quota";
 
 import { ContactOutcome, ContactRefusal, ContactStatus } from "../domain/types";
@@ -13,21 +13,24 @@ export interface SendCeiling {
   refund(): Promise<void>;
 }
 
-// Whether mail has been failing lately, so the form offers the visitor's own email app from the start rather than
-// letting every visitor write a message that fails.
+// Whether mail has been rejected lately (a revoked key, a sender no longer verified), so the form offers the visitor's
+// own email app from the start rather than letting every visitor write a message that fails; a send that goes clears it.
 export interface SendHealth {
   isDown(): Promise<boolean>;
   reportDown(): Promise<void>;
+  clear(): Promise<void>;
 }
 
-// One send, for the log: what became of it, which provider tried last and its status (null when nothing was sent) and
+// One send, for the log: what became of it, every provider's try (which, what became of it, its status and time), and
 // how long it took. Nothing about the visitor or the message.
 export interface SendRecord {
   outcome: "sent" | ContactRefusal;
-  adapter: string | null;
-  providerStatus: number | null;
+  attempts: MailAttempt[];
   ms: number;
 }
+
+// A key that names a message once: letters, digits and dashes, short. Anything else is not passed on.
+const KEY = /^[\w-]{8,100}$/;
 
 export interface ContactServiceOptions {
   // What sends the mail (a mail service over the providers set up) and where to, or null when the site has none.
@@ -84,19 +87,22 @@ export class ContactService {
       return { error: "full" };
     }
 
-    const sent = await mailer.send(contactMail(body, route));
+    const key = body.key && KEY.test(body.key) ? body.key : undefined;
+    const sent = await mailer.send(contactMail(body, route), key).catch(() => ({ outcome: "failed" as const, attempts: [], ms: 0 }));
     const result: ContactOutcome = sent.outcome === "sent" ? { ok: true } : { error: sent.outcome === "limited" ? "full" : "failed" };
 
-    this.options.onSend?.({ outcome: "ok" in result ? "sent" : result.error, adapter: sent.adapter, providerStatus: sent.adapter ? sent.status : null, ms: sent.ms });
+    this.options.onSend?.({ outcome: "ok" in result ? "sent" : result.error, attempts: sent.attempts, ms: sent.ms });
 
     if ("ok" in result) {
+      await this.options.health?.clear();
+
       return result;
     }
 
     await day.refund();
 
-    // A refusal that is not the providers' limits (a revoked key, a sender no longer verified) is likely to repeat.
-    if (sent.outcome === "failed") {
+    // Only a definite rejection will happen again until someone changes something; no answer may be a blip.
+    if (sent.outcome === "rejected") {
       await this.options.health?.reportDown();
     }
 

@@ -91,7 +91,7 @@ export const rosterContent: Pick<PortfolioData, "roster"> = {
         abilities: ["Code review", "Delivery alignment", "Standards", "Mentoring"],
         qualities: [
           "Leads beyond the job title.",
-          "Steadies an unstable core that squads build on.",
+          "Turns an unstable app into a core squads build on.",
           "Brings test first habits to a whole organisation.",
           "Writes the patterns down so the team can grow.",
         ],
@@ -113,7 +113,7 @@ export const rosterContent: Pick<PortfolioData, "roster"> = {
         abilities: ["End to end features", "Zero to one", "Design systems", "Shipping with AI agents"],
         qualities: [
           "Turns early product ideas into production features.",
-          "Prioritises by user and business impact.",
+          "Helps prioritise fixes by user and business impact.",
           "Keeps critical flows safe while the product changes.",
           "Brings community feedback into the roadmap.",
         ],
@@ -134,7 +134,7 @@ export const rosterContent: Pick<PortfolioData, "roster"> = {
           { name: "Encryption & Compression", value: 80 },
         ],
         abilities: ["Smart contracts", "Attack vector defence", "Exchanges and tokens", "Wallets, indexers and bridges"],
-        qualities: ["No change ships without its security review.", "Ships on chain as if it cannot be patched.", "Builds for volume from day one."],
+        qualities: ["Audits contracts for attack paths before money moves.", "Ships on chain as if it cannot be patched.", "Builds for exchange and DeFi volume from day one."],
         note: `I design against the known attack vectors: reentrancy, front running and MEV, oracle manipulation, signature replay, broken
         access control, unlimited approvals and flash loan abuse. No change ships without its security review.`,
       },
@@ -175,7 +175,7 @@ export const rosterContent: Pick<PortfolioData, "roster"> = {
           "Thinks in systems, beyond the front end.",
           "Checks speed on real devices, before and after.",
           "Leaves legacy code simpler than it found it.",
-          "A problem solver at heart.",
+          "Profiles rendering to find the real bottleneck.",
         ],
       },
       {
@@ -213,8 +213,8 @@ export const rosterContent: Pick<PortfolioData, "roster"> = {
         abilities: ["Roadmaps", "Monetisation", "Stakeholder alignment", "Zero to one"],
         qualities: [
           "At home on the business side and the technical side.",
-          "Lets the data drive each iteration.",
-          "Launches slice by slice, with a way back.",
+          "Sets the KPIs that inform each iteration.",
+          "Builds interest and sign ups before each launch.",
           "Decides in writing, trade offs on the record.",
         ],
       },
@@ -232,7 +232,7 @@ export const rosterContent: Pick<PortfolioData, "roster"> = {
           { name: "Marketing", value: 50 },
         ],
         abilities: ["Product direction", "Paid acquisition", "Community building", "Monetisation"],
-        qualities: ["A CEO who also builds the product.", "Builds teams from nothing.", "Runs engineering, marketing and operations together."],
+        qualities: ["Runs the company and builds the product.", "Builds teams from nothing.", "Runs engineering, marketing and operations together."],
       },
     ],
   },

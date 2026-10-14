@@ -23,7 +23,7 @@ import { SectionIntros } from "@/types/sections-intros";
 
 interface RosterProps extends RosterContent {
   intro: SectionIntros;
-  // The card each role opens, by class name: level, abilities, what people say and how to reach me.
+  // The card each role opens, by class name: level, abilities, the qualities I bring to it and how to reach me.
   hireDialogs: Record<string, TerminalDialogContent>;
   carouselLabels: CarouselLabels;
   closeLabel: string;

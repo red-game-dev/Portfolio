@@ -31,7 +31,11 @@ describe("contact service", () => {
 
   it("opens a hire card per character, with its level, abilities and its own qualities, naming no employer anywhere", () => {
     const dialogs = createHireDialogs(portfolioData);
-    const companies = new Set(portfolioData.roster.characters.flatMap((character) => character.tenures.map((tenure) => tenure.company)));
+    // Every name a role could give away: where each was played, and every company a recommendation names.
+    const companies = new Set([
+      ...portfolioData.roster.characters.flatMap((character) => character.tenures.map((tenure) => tenure.company)),
+      ...portfolioData.recommendations.map((recommendation) => recommendation.company),
+    ]);
 
     expect(Object.keys(dialogs)).toEqual(portfolioData.roster.characters.map((character) => character.characterClass));
     portfolioData.roster.characters.forEach((character) => {

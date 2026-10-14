@@ -68,7 +68,9 @@ describe("the message and feedback form", () => {
       fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
     });
 
-    expect(client.sendContact).toHaveBeenCalledWith({ kind: "feedback", message: "More case studies, please.", key: expect.any(String) });
+    expect(client.sendContact).toHaveBeenCalledWith({
+      kind: "feedback", message: "More case studies, please.", subject: forms.feedback.subject, key: expect.any(String),
+    });
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(forms.feedback.sent));
     expect(screen.getByRole("status")).toHaveFocus();
   });
@@ -196,7 +198,8 @@ describe("the message and feedback form", () => {
       fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
     });
 
-    expect(delivery.deliver).toHaveBeenCalledWith(expect.objectContaining({ kind: "feedback", message: "More case studies, please." }));
+    // Feedback goes under the form's own subject too, so the inbox reads it as the form words it.
+    expect(delivery.deliver).toHaveBeenCalledWith(expect.objectContaining({ kind: "feedback", message: "More case studies, please.", subject: forms.feedback.subject }));
     // What the server found wrong shows on its field, as the form's own checks would.
     expect(screen.getByText(forms.shared.problems.emailInvalid)).toBeInTheDocument();
     expect(client.sendContact).not.toHaveBeenCalled();

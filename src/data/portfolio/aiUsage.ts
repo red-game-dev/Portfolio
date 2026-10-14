@@ -7,14 +7,14 @@ import { PortfolioData } from "@/types/portfolio";
 export const aiUsageContent: Pick<PortfolioData, "aiUsage"> = {
   aiUsage: {
     screen: {
-      message: ["33,000+ prompts", "on one machine", "Feb to Oct 2026"],
-      label: "At least 33,000 prompts to my main coding agent on one machine alone, February to October 2026. ChatGPT, Gemini, " +
-        "other tools, other machines and earlier years are not counted, so the real total is several times higher.",
+      message: ["33,000+ prompts", "on one machine", "all my accounts", "Feb to Oct 2026"],
+      label: "At least 33,000 prompts to my main coding agent on one machine, across every account I use on it, February to October " +
+        "2026. ChatGPT, Gemini, other tools, my other PC and earlier years are not counted, so the real total is several times higher.",
     },
     mix: {
       title: "AI is in the loop on all of it",
       description: [
-        "Where 33,000+ prompts went, on one machine, February to October 2026.",
+        "Where 33,000+ prompts went, on one machine, across every account, February to October 2026.",
       ],
       tasks: [
         { name: "Feature implementation and coding", count: 7916 },
@@ -31,8 +31,9 @@ export const aiUsageContent: Pick<PortfolioData, "aiUsage"> = {
         `Counts come from sorting prompt text by keyword, so they are approximate floors. A prompt can count in more than one row,
         so the rows do not add up to the total.`,
         `About half of all prompts are short steering turns like "continue" or "recheck", which sit outside these rows. The count
-        is one coding agent on one machine since February 2026. ChatGPT (much of my architecture research and stakeholder writing),
-        Gemini, other tools, other machines and the years before are not in it, so the real total is several times higher.`,
+        is every prompt to one coding agent on one machine since February 2026, across every account used on it. ChatGPT (much of
+        my architecture research and stakeholder writing), Gemini, other tools, my other PC and the years before are not in it, so
+        the real total is several times higher.`,
         `The mix moves with the work: architecture and consulting lean towards docs and stakeholder updates, and a verification
         heavy branch leans towards testing on the deployed build.`,
       ],
@@ -80,43 +81,73 @@ export const aiUsageContent: Pick<PortfolioData, "aiUsage"> = {
         {
           label: "Over a thousand prompts each",
           items: [
-            "Database and migrations",
+            "Agents, skills and automation",
+            "Domain architecture and shared packages",
+            "Docs, stakeholder updates and decks",
+            "Back office and admin tools",
+            "Ad campaigns and feed ranking",
             "Testing, unit to end to end",
-            "Ads and feed ranking",
+            "Database and migrations",
             "UI and design systems",
-            "CMS and content modelling",
-            "Stakeholder docs and decks",
-            "Authentication and identity",
             "CI/CD and hosting",
+            "CMS and content modelling",
+            "API design and endpoints",
           ],
         },
         {
           label: "Hundreds of prompts each",
           items: [
-            "Data analysis and audits",
-            "Architecture and design docs",
-            "KYC, AML, tax and legal compliance",
-            "Ledgers, wallets and treasury",
+            "Authentication and identity",
+            "Social feeds, posts and reactions",
+            "Email, notifications and forms",
+            "File uploads, images and media storage",
+            "Credits, rewards and referrals",
+            "Meeting notes and knowledge bases",
+            "Roles, permissions and policies",
+            "Code, content and data audits",
+            "Data exports and reporting",
+            "Data analysis",
             "Payments and subscriptions",
-            "Performance and optimisation",
+            "Client state and data sync",
+            "Diagrams and flowcharts",
+            "Error handling and resilience",
+            "Scale and capacity planning",
+            "Gap analysis and missed opportunities",
+            "Compliance, regulation and legal: KYC, AML, GDPR, tax",
+            "E-commerce and storefronts",
+            "Translations across locales",
             "Analytics and tracking",
             "Caching and CDN",
-            "Blockchain",
-            "Cost and vendor evaluation",
-            "Translations across locales",
-            "Observability",
-            "Mobile and offline",
-            "Security hardening",
+            "Design docs and decision records",
+            "Ledgers, wallets and treasury",
+            "Cost, budgets and vendor evaluation",
             "Real time streams",
-            "Developer platform and SDK design",
+            "Refactoring and code quality",
+            "Mobile and offline",
+            "Security reviews and hardening",
+            "Product strategy and roadmaps",
+            "Performance and optimisation",
+            "Observability",
+            "Games and simulations",
             "SEO",
+          ],
+        },
+        {
+          label: "Dozens of prompts each",
+          items: [
+            "Blockchain",
+            "Developer platform and SDK design",
+            "Marketing and growth",
+            "Hiring and interviews",
+            "Accessibility",
           ],
         },
       ],
       notes: [
         `Performance profiling and optimisation, especially for canvas and other compute heavy apps, has no row in the task split
         above: it is usually phrased as a bug, a test or a refactor, so a keyword split cannot isolate it.`,
-        "Canvas and game work barely shows here because most of it happened on my other PC, which is not counted.",
+        "Blockchain, canvas and game work show far less than they should: most of my blockchain work came before February 2026, " +
+          "and most canvas and game work happened on my other PC. Neither is counted.",
       ],
     },
     agents: {

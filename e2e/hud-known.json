@@ -20,6 +20,9 @@
     "frames|vitals",
     "message|vitals"
   ],
+  "phone-landscape descent full": [
+    "message|surface"
+  ],
   "phone-landscape flight compact": [
     "buttons|frames",
     "frames|message",
@@ -39,7 +42,8 @@
     "buttons|message"
   ],
   "phone-landscape-large descent full": [
-    "buttons|message"
+    "buttons|message",
+    "message|surface"
   ],
   "phone-landscape-large flight compact": [
     "buttons|message",

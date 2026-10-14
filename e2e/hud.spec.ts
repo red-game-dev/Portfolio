@@ -143,8 +143,9 @@ const shared = (one: Rect, two: Rect): Rect => ({
   bottom: Math.min(one.bottom, two.bottom),
 });
 
-// The overlaps the HUD is known to have today, by screen, moment and layout, kept so the check guards against new ones;
-// an entry that no longer happens fails too, so the list only ever shrinks. The grid rebuild clears it.
+// The overlaps the HUD is known to have today, by screen, moment and layout, as CI's Linux browser measures them, kept so
+// the check guards against new ones; there an entry that no longer happens fails too, so the list only ever shrinks
+// (elsewhere, where fonts render a pixel apart, it is only noted). The grid rebuild clears it.
 const KNOWN = known as Record<string, string[]>;
 
 for (const screen of SCREENS) {
@@ -198,7 +199,12 @@ for (const screen of SCREENS) {
         const gone = expected.filter((pair) => !found.has(pair));
 
         expect(unexpected, `panels overlapping on ${name}: ${JSON.stringify(all)}`).toEqual([]);
-        expect(gone, `no longer overlapping on ${name}: take them out of e2e/hud-known.json`).toEqual([]);
+
+        if (process.env.CI) {
+          expect(gone, `no longer overlapping on ${name}: take them out of e2e/hud-known.json`).toEqual([]);
+        } else if (gone.length > 0) {
+          test.info().annotations.push({ type: "no longer overlapping", description: gone.join(", ") });
+        }
       });
     }
   }

@@ -41,6 +41,7 @@ export const terminalContent: Pick<PortfolioData, "terminal"> = {
         services: "What I would do",
         proof: "Where I have done it",
         abilities: "Abilities",
+        qualities: "Qualities",
         recommendations: "What people say",
         level: "Level",
         email: "Email me about it",

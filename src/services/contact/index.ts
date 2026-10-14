@@ -40,8 +40,8 @@ export const createContactDialog = (data: PortfolioData): TerminalDialog => {
   };
 };
 
-// The card a role opens, from the terminal (red hire as ...) or from the character select: the level,
-// the abilities, what people say and a way to get in touch. It never names where the role was played.
+// The card a role opens, from the terminal (red hire as ...) or from the character select: the level, the abilities,
+// the qualities I bring to that role and a way to get in touch. It never names where the role was played.
 export const createHireDialog = (data: PortfolioData, character: Character): TerminalDialog => {
   const { red } = data.terminal;
   const level = createRosterLevels(data.roster).level(character);
@@ -51,7 +51,7 @@ export const createHireDialog = (data: PortfolioData, character: Character): Ter
     subtitle: `${character.characterClass}, ${red.labels.level} ${level}`,
     sections: [
       { heading: red.labels.abilities, items: character.abilities },
-      { heading: red.labels.recommendations, items: quotesOf(data) },
+      { heading: red.labels.qualities, items: character.qualities },
     ],
     actions: contactActions(data, fill(red.hireSubject, { role: character.characterClass })),
     compose: { subject: fill(red.hireSubject, { role: character.characterClass }) },

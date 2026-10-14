@@ -22,6 +22,8 @@ export interface Character {
   tenures: CharacterTenure[];
   stats: CharacterStat[];
   abilities: string[];
+  // What I bring to the role, each a short line drawn from what the site already says, shown on its hire card.
+  qualities: string[];
   // One line on how the role is played, where the abilities alone do not say it.
   note?: string;
 }

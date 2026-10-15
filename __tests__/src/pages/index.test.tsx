@@ -70,12 +70,22 @@ describe("Home", () => {
   // Each section sits in the run of its own zone, so it keeps that zone's accent however far the reader has gone, and
   // a crossing restyles none of them.
   it("keeps every section in the run of its own zone", () => {
+    // The recruiter's view, past the intro, so Glance is on the page too.
+    window.history.replaceState(null, "", "/?view=recruiter");
+
     const { container, unmount } = renderPage();
+
+    act(() => {
+      jest.advanceTimersByTime(4000);
+    });
+
     let zone: ZoneId = ZONE_BOUNDARIES[0].zone;
     const misplaced = Object.values(SECTION_IDS).flatMap((id) => {
       zone = ZONE_BOUNDARIES.find(({ startsAt }) => startsAt === id)?.zone ?? zone;
       const section = container.querySelector(`#${id}`);
-      const run = section ? section.closest("[data-zone]")?.getAttribute("data-zone") ?? null : undefined;
+      // The nearest run, never the root, which follows the reader and so carries a zone of its own.
+      const holder = section?.closest("[data-zone]");
+      const run = section ? (holder && holder !== document.documentElement ? holder.getAttribute("data-zone") : null) : undefined;
 
       return run === undefined || run === zone ? [] : [`${id} in ${run ?? "no zone"}, not ${zone}`];
     });

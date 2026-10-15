@@ -67,8 +67,6 @@ export default function useScrollProgressVar<TElement extends HTMLElement>(
         // One last measure on the way out, so the element settles at 0 or 1 rather than wherever the last
         // frame left it: taken with the next frame's reads, since a read here, in the observer's callback, lays
         // out the whole page whenever anything has changed it since the last frame.
-        unsubscribe();
-        unsubscribe = null;
         stopLast?.();
         const stop = getScrollFrame().subscribe({
           read: task.read,
@@ -80,6 +78,8 @@ export default function useScrollProgressVar<TElement extends HTMLElement>(
         });
 
         stopLast = stop;
+        unsubscribe();
+        unsubscribe = null;
       }
     });
 

@@ -4,6 +4,7 @@
 import { ApiClient, mergeApiClientConfig } from "@/packages/http/api-client";
 
 import { fakeFetcher, SeenRequest } from "../../ai/fixtures/streams";
+import { settled, useFetchClock } from "../fixtures/fakeClock";
 
 describe("ApiClient", () => {
   test("the global client is one instance until it is configured again", () => {
@@ -58,15 +59,20 @@ describe("ApiClient", () => {
     expect(plain).toMatchObject({ ok: false, status: 502, data: null });
   });
 
-  test("a read can be kept a moment and shared, so asking again costs no request", async () => {
-    const seen: SeenRequest[] = [];
-    const client = new ApiClient({}, fakeFetcher([{ status: 200, body: "{\"isOpen\":true}" }], seen));
-    const url = `https://api.example/status-${Math.random().toString(36)
-.slice(2)}`;
+  describe("a cached read", () => {
+    useFetchClock();
 
-    await Promise.all([client.get(url, { cacheSeconds: 30, dedupeMs: 2000 }), client.get(url, { cacheSeconds: 30, dedupeMs: 2000 })]);
-    expect((await client.get<{ isOpen: boolean }>(url, { cacheSeconds: 30, dedupeMs: 2000 }))).toMatchObject({ ok: true, data: { isOpen: true } });
-    expect(seen).toHaveLength(1);
+    test("can be kept a moment and shared, so asking again costs no request", async () => {
+      const seen: SeenRequest[] = [];
+      const client = new ApiClient({}, fakeFetcher([{ status: 200, body: "{\"isOpen\":true}" }], seen));
+      const url = `https://api.example/status-${Math.random().toString(36)
+.slice(2)}`;
+      const read = () => client.get<{ isOpen: boolean }>(url, { cacheSeconds: 30, dedupeMs: 2000 });
+
+      await settled(Promise.all([read(), read()]));
+      expect(await settled(read())).toMatchObject({ ok: true, data: { isOpen: true } });
+      expect(seen).toHaveLength(1);
+    });
   });
 
   test("a POST is retried only when the policy says so", async () => {

@@ -20,6 +20,10 @@ export const accessibilityContent: Pick<PortfolioData, "accessibility"> = {
         "live table and the launch among them, and the site follows your device's reduced motion setting.",
       "The invite to play at the end waits for your answer, with no countdown.",
       "The single key shortcuts that open the terminal (/ and the backtick) can be turned off below.",
+      "In the voyage, a line it shows waits while the run is paused or the hangar or a port is open, then goes on with the time it " +
+        "had left, so nothing passes unseen.",
+      "When the voyage has more alerts than room, the least urgent fold under one button that says how many more and opens them all.",
+      "On a small screen the voyage's HUD starts compact, with every panel a press away on its info button and a setting to keep it full.",
     ],
     limitsTitle: "What does not fully meet it yet",
     limits: [
@@ -33,10 +37,11 @@ export const accessibilityContent: Pick<PortfolioData, "accessibility"> = {
     ],
     settingsTitle: "Your settings",
     testingTitle: "How I test it",
-    testing: "With automated checks (Lighthouse), from the keyboard alone, and by reviewing the code against each WCAG 2.2 criterion.",
+    testing: "With automated checks (Lighthouse, and a check in a real browser at twelve screen sizes, from phones to desktops, that " +
+      "none of the voyage's panels covers another), from the keyboard alone, and by reviewing the code against each WCAG 2.2 criterion.",
     reportTitle: "Something in your way?",
     report: "Email me at {email} with the page and what you were trying to do, and I will fix it.",
-    reviewed: "Last reviewed on 13 October 2026.",
+    reviewed: "Last reviewed on 15 October 2026.",
     back: "Back to the site",
     link: "Accessibility",
   },

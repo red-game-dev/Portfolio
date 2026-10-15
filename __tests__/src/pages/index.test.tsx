@@ -9,6 +9,7 @@ import { PreferencesProvider } from "@/components/Preferences/context/Preference
 import { JOURNEY_STOPS } from "@/config/journey";
 import { LENSES } from "@/config/lenses";
 import { SECTION_IDS } from "@/config/sections";
+import { ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
 import Home from "@/pages/index";
 
 // The build hands next/image the images config from next.config.js; Jest does not, so it goes in here.
@@ -63,6 +64,33 @@ describe("Home", () => {
     expect(JOURNEY_STOPS.filter(({ href }) => !container.querySelector(href))).toEqual([]);
     expect(document.documentElement.dataset.lens).toBe(lens);
     expect(errors).not.toHaveBeenCalled();
+    unmount();
+  });
+
+  // Each section sits in the run of its own zone, so it keeps that zone's accent however far the reader has gone, and
+  // a crossing restyles none of them.
+  it("keeps every section in the run of its own zone", () => {
+    // The recruiter's view, past the intro, so Glance is on the page too.
+    window.history.replaceState(null, "", "/?view=recruiter");
+
+    const { container, unmount } = renderPage();
+
+    act(() => {
+      jest.advanceTimersByTime(4000);
+    });
+
+    let zone: ZoneId = ZONE_BOUNDARIES[0].zone;
+    const misplaced = Object.values(SECTION_IDS).flatMap((id) => {
+      zone = ZONE_BOUNDARIES.find(({ startsAt }) => startsAt === id)?.zone ?? zone;
+      const section = container.querySelector(`#${id}`);
+      // The nearest run, never the root, which follows the reader and so carries a zone of its own.
+      const holder = section?.closest("[data-zone]");
+      const run = section ? (holder && holder !== document.documentElement ? holder.getAttribute("data-zone") : null) : undefined;
+
+      return run === undefined || run === zone ? [] : [`${id} in ${run ?? "no zone"}, not ${zone}`];
+    });
+
+    expect(misplaced).toEqual([]);
     unmount();
   });
 

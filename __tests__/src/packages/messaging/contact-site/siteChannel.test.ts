@@ -28,29 +28,31 @@ const channelWith = (answers: Array<{ status: number; body: unknown } | "dropped
 .slice(2)}`, new ApiClient({}, fetcherAnswering(answers, seen)));
 
 describe("the site's channel, on the real client", () => {
-  useFetchClock();
+  describe("reading whether it can send", () => {
+    useFetchClock();
 
-  test("says whether it can send, once more after a dropped connection or a busy server, and that it cannot tell when no answer comes", async () => {
-    const dropped: string[] = [];
+    test("says whether it can send, once more after a dropped connection or a busy server, and that it cannot tell when no answer comes", async () => {
+      const dropped: string[] = [];
 
-    expect(await settled(channelWith(["dropped", { status: 200, body: { isOpen: true } }], dropped).isOpen())).toBe(true);
-    expect(dropped).toHaveLength(2);
+      expect(await settled(channelWith(["dropped", { status: 200, body: { isOpen: true } }], dropped).isOpen())).toBe(true);
+      expect(dropped).toHaveLength(2);
 
-    const busy: string[] = [];
+      const busy: string[] = [];
 
-    expect(await settled(channelWith([{ status: 502, body: {} }, { status: 200, body: { isOpen: false } }], busy).isOpen())).toBe(false);
-    expect(busy).toHaveLength(2);
+      expect(await settled(channelWith([{ status: 502, body: {} }, { status: 200, body: { isOpen: false } }], busy).isOpen())).toBe(false);
+      expect(busy).toHaveLength(2);
 
-    expect(await settled(channelWith(["dropped"]).isOpen())).toBeNull();
-  });
+      expect(await settled(channelWith(["dropped"]).isOpen())).toBeNull();
+    });
 
-  test("keeps the answer a moment, so every form on a page asks once", async () => {
-    const seen: string[] = [];
-    const channel = channelWith([{ status: 200, body: { isOpen: true } }], seen);
+    test("keeps the answer a moment, so every form on a page asks once", async () => {
+      const seen: string[] = [];
+      const channel = channelWith([{ status: 200, body: { isOpen: true } }], seen);
 
-    await settled(Promise.all([channel.isOpen(), channel.isOpen()]));
-    await settled(channel.isOpen());
-    expect(seen).toHaveLength(1);
+      await settled(Promise.all([channel.isOpen(), channel.isOpen()]));
+      await settled(channel.isOpen());
+      expect(seen).toHaveLength(1);
+    });
   });
 
   test("never retries a send, and answers with the server's own refusal, keeping only the problems it knows", async () => {

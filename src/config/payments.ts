@@ -18,7 +18,13 @@ export type PaymentMethodId =
   | "alipay"
   | "wechat"
   | "bitcoin"
-  | "ethereum";
+  | "ethereum"
+  | "solana"
+  | "arbitrum"
+  | "polygon"
+  | "bnb"
+  | "usdc"
+  | "usdt";
 
 export const PAY_GESTURES: Record<PaymentMethodId, PayGesture> = {
   visa: "insert",
@@ -34,17 +40,48 @@ export const PAY_GESTURES: Record<PaymentMethodId, PayGesture> = {
   wechat: "scan",
   bitcoin: "scan",
   ethereum: "scan",
+  solana: "scan",
+  arbitrum: "scan",
+  polygon: "scan",
+  bnb: "scan",
+  usdc: "scan",
+  usdt: "scan",
 };
 
-// The order the terminal offers them in: the card networks, the phone wallets, then the QR methods.
-export const PAYMENT_METHODS: PaymentMethodId[] = [
-  "visa", "mastercard", "amex", "discover", "jcb", "diners", "applePay", "googlePay", "paypal", "alipay", "wechat", "bitcoin", "ethereum",
-];
+// The groups the terminal offers them in, each with its name in the content (payments.terminal.groups).
+export type PaymentGroupId = "cards" | "wallets" | "qr" | "crypto";
 
-// The order a drawing's tabs pay in, one per switch: every method once, and no two in a row meeting the
-// terminal the same way, even as it wraps round, so consecutive switches never look alike.
+export const PAYMENT_GROUPS: Record<PaymentGroupId, PaymentMethodId[]> = {
+  cards: ["visa", "mastercard", "amex", "discover", "jcb", "diners"],
+  wallets: ["applePay", "googlePay"],
+  qr: ["paypal", "alipay", "wechat"],
+  crypto: ["bitcoin", "ethereum", "solana", "arbitrum", "polygon", "bnb", "usdc", "usdt"],
+};
+
+export const PAYMENT_GROUP_ORDER: PaymentGroupId[] = ["cards", "wallets", "qr", "crypto"];
+
+export const PAYMENT_METHODS: PaymentMethodId[] = PAYMENT_GROUP_ORDER.flatMap((group) => PAYMENT_GROUPS[group]);
+
+// The app the cashier opens on the till for each way to pay, as a smart terminal runs several: the card app for
+// cards and phone wallets, QR pay for the QR wallets, and the crypto app for every coin and chain.
+export type PayApp = "card" | "qr" | "crypto";
+
+export const PAY_APPS: PayApp[] = ["card", "qr", "crypto"];
+
+export const payAppOf = (method: PaymentMethodId): PayApp => {
+  if (PAYMENT_GROUPS.crypto.includes(method)) {
+    return "crypto";
+  }
+
+  return PAYMENT_GROUPS.qr.includes(method) ? "qr" : "card";
+};
+
+// The order a drawing's tabs pay in, one per switch: every card network and wallet, a share of the QR and crypto
+// methods between them, and no two in a row meeting the terminal the same way, even as it wraps round, so
+// consecutive switches never look alike.
 export const PAY_SEQUENCE: PaymentMethodId[] = [
-  "visa", "mastercard", "alipay", "applePay", "amex", "wechat", "jcb", "googlePay", "paypal", "discover", "bitcoin", "diners", "ethereum",
+  "visa", "mastercard", "alipay", "applePay", "amex", "solana", "jcb", "googlePay", "usdc", "discover", "wechat", "diners",
+  "bitcoin", "mastercard", "arbitrum", "applePay", "paypal", "visa", "ethereum",
 ];
 
 // A card is held in the hand; a wallet or a QR code is on a phone.

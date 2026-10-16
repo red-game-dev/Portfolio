@@ -4,7 +4,8 @@ import tw, { css, styled } from "twin.macro";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { CHIP_GOLD, MASTERCARD_COLOURS, PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
+import { CHIP_GOLD, PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
+import { DrawnMark } from "@/components/Payments/scene/Marks";
 import { PaymentMethodId } from "@/config/payments";
 
 // The card, the phone and the marks the payments scenes draw, all plain elements: nothing here moves on
@@ -16,16 +17,6 @@ const faceStyle = (method: PaymentMethodId): CSSProperties => {
   return { "--face-from": from, "--face-to": to, "--mark": PAYMENT_LOOKS[method].mark } as CSSProperties;
 };
 
-// Mastercard's mark: two circles and the orange where they overlap. The lens between them is the two arcs
-// that meet at (20, 4) and (20, 20), where circles of radius 10 twelve apart cross.
-const MastercardMark: FC<{ size: number }> = ({ size }) => (
-  <svg width={(size * 40) / 24} height={size} viewBox="0 0 40 24" aria-hidden="true" focusable="false">
-    <circle cx="14" cy="12" r="10" fill={MASTERCARD_COLOURS.red} />
-    <circle cx="26" cy="12" r="10" fill={MASTERCARD_COLOURS.yellow} />
-    <path d="M20 4A10 10 0 0 1 20 20A10 10 0 0 1 20 4Z" fill={MASTERCARD_COLOURS.overlap} />
-  </svg>
-);
-
 const IconMark = styled.span(() => [
   tw`inline-flex leading-none`,
   css`
@@ -35,10 +26,14 @@ const IconMark = styled.span(() => [
 
 // A way to pay's mark at a given height in pixels.
 export const Mark: FC<{ method: PaymentMethodId; size: number }> = ({ method, size }) => {
-  const { icon } = PAYMENT_LOOKS[method];
+  const { icon, drawn } = PAYMENT_LOOKS[method];
+
+  if (drawn) {
+    return <DrawnMark id={drawn} size={size} />;
+  }
 
   if (!icon) {
-    return <MastercardMark size={size} />;
+    return null;
   }
 
   return (

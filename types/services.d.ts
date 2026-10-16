@@ -7,6 +7,8 @@ export interface Service {
   points?: string[];
   // Subject line for the prefilled email link.
   emailSubject: string;
+  // A link to where the page shows this work.
+  see?: { label: string; href: string };
 }
 
 export interface ServiceGroup {

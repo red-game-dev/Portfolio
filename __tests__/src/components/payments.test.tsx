@@ -8,9 +8,9 @@ import { PaymentLayer } from "@/components/Payments/scene/PaymentLayer";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { isPaymentEffect, PaymentEffect, ZONE_EFFECTS } from "@/components/SwitchStage/config";
 import {
-  CARD_METHODS, isOnPhone, methodForSwitch, PAY_GESTURES, PAY_SEQUENCE, PAYMENT_DRAWING_ANCHORS, PAYMENT_METHODS,
+  CARD_METHODS, isOnPhone, methodForSwitch, PAY_GESTURES, PAY_SEQUENCE, payAppOf, PAYMENT_DRAWING_ANCHORS, PAYMENT_GROUPS, PAYMENT_METHODS,
 } from "@/config/payments";
-import { audienceForHash, PAYMENT_CASES_ANCHOR } from "@/config/sections";
+import { audienceForHash, PAYMENT_CASES_ANCHOR, SECTION_IDS } from "@/config/sections";
 import payments from "@/data/blueprints/payments";
 import { portfolioData } from "@/data/resume";
 import { MOTION_ATTRIBUTE } from "@/packages/accessibility/motion";
@@ -18,8 +18,13 @@ import { MOTION_ATTRIBUTE } from "@/packages/accessibility/motion";
 const PAYMENT_EFFECTS: PaymentEffect[] = ["pay", "tap", "sync", "route", "authorise", "split"];
 
 describe("the ways to pay", () => {
-  it("pays with every method once per round of switches", () => {
-    expect([...PAY_SEQUENCE].sort()).toEqual([...PAYMENT_METHODS].sort());
+  it("pays round the switches with every card network and wallet, and with QR apps and coins between them", () => {
+    const paid = new Set(PAY_SEQUENCE);
+
+    expect([...PAYMENT_GROUPS.cards, ...PAYMENT_GROUPS.wallets].filter((method) => !paid.has(method))).toEqual([]);
+    expect(PAY_SEQUENCE.some((method) => PAYMENT_GROUPS.qr.includes(method))).toBe(true);
+    expect(PAY_SEQUENCE.some((method) => PAYMENT_GROUPS.crypto.includes(method))).toBe(true);
+    expect(PAY_SEQUENCE.filter((method) => !PAYMENT_METHODS.includes(method))).toEqual([]);
   });
 
   it("never meets the terminal the same way twice in a row, even as the round wraps", () => {
@@ -40,10 +45,18 @@ describe("the ways to pay", () => {
     expect(PAYMENT_METHODS.filter((method) => PAY_GESTURES[method] === "wallet").every(isOnPhone)).toBe(true);
   });
 
-  it("names every method in the content", () => {
-    const { methods } = portfolioData.payments.terminal;
+  it("names every method and group in the content, and lists each method in one group only", () => {
+    const { methods, groups } = portfolioData.payments.terminal;
 
     expect(PAYMENT_METHODS.filter((method) => !methods[method])).toEqual([]);
+    expect(Object.values(groups).every(Boolean)).toBe(true);
+    expect(new Set(PAYMENT_METHODS).size).toBe(PAYMENT_METHODS.length);
+  });
+
+  it("opens the card app for cards and wallets, QR pay for the QR apps and the crypto app for every coin", () => {
+    expect([...PAYMENT_GROUPS.cards, ...PAYMENT_GROUPS.wallets].every((method) => payAppOf(method) === "card")).toBe(true);
+    expect(PAYMENT_GROUPS.qr.every((method) => payAppOf(method) === "qr")).toBe(true);
+    expect(PAYMENT_GROUPS.crypto.every((method) => payAppOf(method) === "crypto")).toBe(true);
   });
 });
 
@@ -95,6 +108,12 @@ describe("the payments switches", () => {
 });
 
 describe("the payments section's links", () => {
+  it("is linked from the Payments & Ledger Architecture service", () => {
+    const service = portfolioData.serviceGroups.flatMap((group) => group.services).find((item) => item.see);
+
+    expect(service?.see?.href).toBe(`#${SECTION_IDS.payments}`);
+  });
+
   it("opens the case studies on payments from the section's way on to them", () => {
     expect(audienceForHash(`#${PAYMENT_CASES_ANCHOR}`)).toBe("payments");
     expect(audienceForHash("#for-payments")).toBe("payments");
@@ -133,7 +152,7 @@ describe("PayTerminal", () => {
     fireEvent.click(screen.getByRole("button", { name: visa }));
 
     expect(onPaid).not.toHaveBeenCalled();
-    expect(screen.getByText(content.processing)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
 
     act(() => {
       jest.advanceTimersByTime(TERMINAL_PAY_MS * APPROVE_SHARE);
@@ -141,13 +160,13 @@ describe("PayTerminal", () => {
 
     expect(onPaid).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("status")).toHaveTextContent(`${content.methods.visa}: approved.`);
-    expect(screen.getByText(content.approved)).toBeInTheDocument();
 
     act(() => {
       jest.advanceTimersByTime(RESET_MS);
     });
 
-    expect(screen.getByText(content.amount)).toBeInTheDocument();
+    // Back to waiting, the total on the till for the next customer.
+    expect(screen.getAllByText(content.amount).length).toBeGreaterThan(0);
   });
 
   it("takes no second payment while one is going through", () => {
@@ -165,17 +184,13 @@ describe("PayTerminal", () => {
     expect(screen.getByRole("status")).toHaveTextContent(content.methods.visa);
   });
 
-  it("shows a QR method's code on the screen while the phone scans it", () => {
+  it("groups the ways to pay under their names", () => {
     render(<PayTerminal content={content} onPaid={jest.fn()} />);
-    fireEvent.click(screen.getByRole("button", { name: `Pay with ${content.methods.paypal}` }));
 
-    expect(screen.queryByText(content.amount)).toBeNull();
+    const crypto = screen.getByRole("group", { name: content.groups.crypto });
 
-    act(() => {
-      jest.advanceTimersByTime(TERMINAL_PAY_MS * APPROVE_SHARE);
-    });
-
-    expect(screen.getByText(content.approved)).toBeInTheDocument();
+    expect(crypto.querySelectorAll("button")).toHaveLength(PAYMENT_GROUPS.crypto.length);
+    expect(screen.getByRole("button", { name: `Pay with ${content.methods.solana}` })).toBeInTheDocument();
   });
 
   it("reads the same method paid twice out again, as a new line", () => {

@@ -5,11 +5,11 @@ import { PortfolioData } from "@/types/portfolio";
 export const paymentsContent: Pick<PortfolioData, "payments"> = {
   payments: {
     terminal: {
-      label: "A card terminal",
-      hint: "Pay with a card, a phone wallet or a QR code. Each payment opens the next drawing.",
+      label: "A shop counter with a card terminal",
+      hint: "You are the customer: pick how to pay. The cashier rings it up and opens the app for it, you pay at the terminal, " +
+        "and each payment opens the next drawing.",
       amount: "€18.40",
-      processing: "Processing",
-      approved: "Approved",
+      groups: { cards: "Cards", wallets: "Phone wallets", qr: "QR apps", crypto: "Crypto" },
       payWith: "Pay with {method}",
       approvedLine: "{method}: approved. The next drawing is open.",
       methods: {
@@ -26,8 +26,18 @@ export const paymentsContent: Pick<PortfolioData, "payments"> = {
         wechat: "WeChat Pay, by QR code",
         bitcoin: "Bitcoin, by QR code",
         ethereum: "Ethereum, by QR code",
+        solana: "Solana, by QR code",
+        arbitrum: "Arbitrum, by QR code",
+        polygon: "Polygon, by QR code",
+        bnb: "BNB Chain, by QR code",
+        usdc: "USDC, by QR code",
+        usdt: "USDT, by QR code",
       },
     },
-    caseStudies: "Payment problems I solved, as case studies",
+    caseStudies: {
+      title: "Payment problems I solved",
+      description: "Real problems I met building payments and the systems around them, each told in the case studies as a boss beaten.",
+      link: "Open the payment case studies",
+    },
   },
 };

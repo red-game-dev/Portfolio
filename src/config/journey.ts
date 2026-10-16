@@ -1,8 +1,9 @@
 import { PAYMENT_DRAWING_ANCHORS, PAYMENT_DRAWINGS, PaymentDrawingKey } from "@/config/payments";
 import { SECTION_IDS } from "@/config/sections";
+import type { SectionThemeId } from "@/config/themes";
 import { ZoneId } from "@/config/zones";
 
-export type StopKey = "who" | "offer" | "history" | "ai" | "web3" | "engineering" | "payments" | "igaming" | "game" | "beyond";
+export type StopKey = "who" | "offer" | "history" | "ai" | "web3" | "payments" | "engineering" | "igaming" | "game" | "beyond";
 
 export type StopPartKey = PaymentDrawingKey | "skills" | "caseStudies" | "projects" | "recommendations" | "arena";
 
@@ -26,14 +27,16 @@ export interface JourneyStop {
   href: string;
   zone: ZoneId;
   parts?: StopPart[];
+  // A stop that is one section with a theme of its own takes that theme's colour in the menus.
+  theme?: SectionThemeId;
 }
 
 const part = (key: StopPartKey, id: string, section = id): StopPart => ({ key, href: `#${id}`, section });
 
-const stop = (key: StopKey, zone: ZoneId, first: string | string[], last: string, parts?: StopPart[]): JourneyStop => {
+const stop = (key: StopKey, zone: ZoneId, first: string | string[], last: string, parts?: StopPart[], theme?: SectionThemeId): JourneyStop => {
   const ids = Array.isArray(first) ? first : [first];
 
-  return { key, zone, first, last, href: `#${ids[ids.length - 1]}`, ...(parts ? { parts } : {}) };
+  return { key, zone, first, last, href: `#${ids[ids.length - 1]}`, ...(parts ? { parts } : {}), ...(theme ? { theme } : {}) };
 };
 
 // The menus, the scroll spy and the SEO breadcrumb all follow these stops. Their names are content
@@ -44,10 +47,10 @@ export const JOURNEY_STOPS: JourneyStop[] = [
   stop("history", "matrix", SECTION_IDS.history, SECTION_IDS.history),
   stop("ai", "ai", SECTION_IDS.aiUsage, SECTION_IDS.aiUsage),
   stop("web3", "chain", SECTION_IDS.web3, SECTION_IDS.web3),
-  stop("engineering", "chain", SECTION_IDS.skillAreas, SECTION_IDS.codeReview),
   // One section, its drawings each linked by name: a link opens that drawing.
   stop("payments", "chain", SECTION_IDS.payments, SECTION_IDS.payments,
-    PAYMENT_DRAWINGS.map((drawing) => part(drawing, PAYMENT_DRAWING_ANCHORS[drawing], SECTION_IDS.payments))),
+    PAYMENT_DRAWINGS.map((drawing) => part(drawing, PAYMENT_DRAWING_ANCHORS[drawing], SECTION_IDS.payments)), "payments"),
+  stop("engineering", "chain", SECTION_IDS.skillAreas, SECTION_IDS.codeReview),
   stop("igaming", "casino", SECTION_IDS.igaming, SECTION_IDS.igaming),
   // The longest stop, and the one a recruiter looks inside by name: its parts are linked from the menu too.
   stop("game", "mmo", SECTION_IDS.roster, SECTION_IDS.arena, [

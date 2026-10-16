@@ -3,10 +3,10 @@ import { CSSProperties, FC, useCallback, useEffect, useRef, useState } from "rea
 import tw, { css, styled } from "twin.macro";
 
 import { APPROVE_SHARE, RESET_MS, TERMINAL_PAY_MS, TERMINAL_SCALE } from "@/components/Payments/config";
+import { Counter, COUNTER } from "@/components/Payments/scene/Counter";
 import { Mark } from "@/components/Payments/scene/Instrument";
 import { PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
-import { Qr, Scene, SCENE, ScreenText, ScreenTick } from "@/components/Payments/scene/Scene";
-import { PAY_GESTURES, PAYMENT_METHODS, PaymentMethodId } from "@/config/payments";
+import { PAYMENT_GROUP_ORDER, PAYMENT_GROUPS, PaymentMethodId } from "@/config/payments";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { fill } from "@/packages/text/format";
 import { focusRing, media } from "@/styles/mixins";
@@ -37,8 +37,8 @@ const SceneBox = styled.div(() => [
   tw`relative flex-shrink-0`,
   css`
     --scale: ${TERMINAL_SCALE.narrow};
-    width: calc(${SCENE.width}px * var(--scale));
-    height: calc(${SCENE.height}px * var(--scale));
+    width: calc(${COUNTER.width}px * var(--scale));
+    height: calc(${COUNTER.height}px * var(--scale));
 
     ${media.xl} {
       --scale: ${TERMINAL_SCALE.wide};
@@ -54,6 +54,12 @@ const SceneBox = styled.div(() => [
 const Side = tw.div`flex flex-col gap-[12px] w-full`;
 
 const Hint = tw.p`m-0 text-sm text-[#bbb]`;
+
+const Groups = tw.div`flex flex-col gap-[10px]`;
+
+const Group = tw.div`flex flex-col gap-[6px]`;
+
+const GroupName = tw.span`text-xs font-semibold text-[#8a8a8a]`;
 
 const Methods = tw.div`flex flex-row flex-wrap gap-[8px]`;
 
@@ -144,45 +150,45 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
 
   const shown = phase.kind === "idle" ? null : phase;
 
-  // A QR method shows its code for the phone to scan; the screen has room for nothing else beside it.
-  const isScanning = shown?.kind === "paying" && PAY_GESTURES[shown.method] === "scan";
-
-  const screen = isScanning ? <Qr /> : (
-    <>
-      {shown?.kind === "approved" && <ScreenTick />}
-      <ScreenText>{shown?.kind === "approved" ? content.approved : content.amount}</ScreenText>
-      {shown?.kind === "paying" && <ScreenText>{content.processing}</ScreenText>}
-    </>
-  );
+  // With less motion asked for nothing moves: the counter shows the payment approved at once.
+  const mode = shown ? (isStill ? "approved" : "playing") : "idle";
 
   return (
     <Wrap role="group" aria-label={content.label}>
       <SceneBox>
-        <Scene
+        <Counter
           key={shown?.press ?? 0}
-          method={shown?.method ?? PAYMENT_METHODS[0]}
+          method={shown?.method ?? PAYMENT_GROUPS.cards[0]}
+          variant="full"
+          mode={mode}
           durationMs={TERMINAL_PAY_MS}
-          isPlaying={Boolean(shown) && !isStill}
-          screen={screen}
+          amount={content.amount}
         />
       </SceneBox>
       <Side>
         <Hint>{content.hint}</Hint>
-        <Methods>
-          {PAYMENT_METHODS.map((method) => (
-            <MethodButton
-              key={method}
-              type="button"
-              style={faceOf(method)}
-              aria-label={fill(content.payWith, { method: content.methods[method] })}
-              data-current={shown?.method === method ? "" : undefined}
-              aria-disabled={phase.kind === "paying"}
-              onClick={() => pay(method)}
-            >
-              <Mark method={method} size={method === "mastercard" ? 16 : 17} />
-            </MethodButton>
+        <Groups>
+          {PAYMENT_GROUP_ORDER.map((group) => (
+            <Group key={group} role="group" aria-label={content.groups[group]}>
+              <GroupName aria-hidden="true">{content.groups[group]}</GroupName>
+              <Methods>
+                {PAYMENT_GROUPS[group].map((method) => (
+                  <MethodButton
+                    key={method}
+                    type="button"
+                    style={faceOf(method)}
+                    aria-label={fill(content.payWith, { method: content.methods[method] })}
+                    data-current={shown?.method === method ? "" : undefined}
+                    aria-disabled={phase.kind === "paying"}
+                    onClick={() => pay(method)}
+                  >
+                    <Mark method={method} size={method === "mastercard" ? 16 : 17} />
+                  </MethodButton>
+                ))}
+              </Methods>
+            </Group>
           ))}
-        </Methods>
+        </Groups>
         {/* A new node for every payment, so the same method paid twice is read out again. */}
         <Status role="status">{line && <span key={line.press}>{line.text}</span>}</Status>
       </Side>

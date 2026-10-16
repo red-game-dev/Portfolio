@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
-import { SwitchEffect, switchEffectFor } from "@/components/SwitchStage/config";
-import { zoneOf } from "@/components/SwitchStage/zoneOf";
+import { SwitchEffect, switchEffectFor, THEME_EFFECTS } from "@/components/SwitchStage/config";
+import { themeOf, zoneOf } from "@/components/SwitchStage/zoneOf";
 import { ZoneId } from "@/config/zones";
 
 export interface Switcher {
@@ -11,7 +11,8 @@ export interface Switcher {
   // Bumped on every switch, to key the layers that must play again.
   count: number;
   // A showcase whose content has a universe of its own (a drawing) passes it; otherwise the stage's place
-  // in the page decides. Content with a switch of its own (a payments drawing) passes that effect instead.
+  // in the page decides. A section theme's effect wins over either, and content with a switch of its own (a
+  // payments drawing) passes that effect, which wins over all.
   play: (direction: 1 | -1, zone?: ZoneId, effect?: SwitchEffect) => void;
 }
 
@@ -22,7 +23,8 @@ const useSwitch = (): Switcher => {
   const [state, setState] = useState<Pick<Switcher, "effect" | "direction" | "count">>({ effect: null, direction: 1, count: 0 });
 
   const play = useCallback((direction: 1 | -1, zone?: ZoneId, own?: SwitchEffect) => {
-    const effect = own ?? switchEffectFor(zone ?? zoneOf(ref.current));
+    const theme = themeOf(ref.current);
+    const effect = own ?? (theme && THEME_EFFECTS[theme]) ?? switchEffectFor(zone ?? zoneOf(ref.current));
 
     setState((previous) => ({ effect, direction, count: previous.count + 1 }));
   }, []);

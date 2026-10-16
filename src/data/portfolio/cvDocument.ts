@@ -25,6 +25,9 @@ export const cvDocumentContent: Pick<PortfolioData, "cvDocument"> = {
       `Migrations: a storefront in 16 markets from AEM to a headless CMS, market by market; Chiliz's unstable app to a V2 core;
       legacy Backbone to Redux and RxJS at AuthenticGaming; brownfield client systems at KPMG; Polkadot parachains to a chain of
       our own on Substrate.`,
+      `Payments: a POS and payment gateway of my own, live with merchants; card systems across acquiring and issuing at
+      companies I worked for, from terminals and HSMs to ISO 8583 links inside PCI DSS Level 1 environments; double entry
+      ledgers and payouts on my own platform.`,
       "Scale: 200M+ active users on products at companies I worked for, up to 7M+ sessions a month on one platform.",
       `Leadership: architecture direction across 7 squads and 30+ engineers at Chiliz and a 90+ person organisation at Conrad;
       CTO of a team of 10+ at CoinOn.`,

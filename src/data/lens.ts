@@ -66,6 +66,18 @@ export const lensContent: LensContent = {
           ],
         },
         {
+          id: "payments",
+          label: "Payments Engineer",
+          fit: "A POS and payment gateway of my own, card systems across acquiring and issuing at companies I worked for, and " +
+            "payments on double entry ledgers on my own platform.",
+          roleClasses: ["Architect", "Backend Engineer", "CTO"],
+          skillGroups: [
+            { label: "Payments", names: ["Stripe", "PayPal", "PostgreSQL", "Redis"] },
+            { label: "Services", names: ["TypeScript", "Node.js", "NestJS", "Java", "C/C++"] },
+            { label: "Tills and apps", names: ["Kotlin", "Swift", "React Native"] },
+          ],
+        },
+        {
           id: "cto",
           label: "CTO",
           fit: "CEO and CTO of my own social network and MMORPG, then co-founder and CTO of CoinOn: product, team and technology at once.",

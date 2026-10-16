@@ -9,8 +9,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { COUNTER } from "@/components/Payments/scene/Counter";
 import { RECEIPT_PAPER } from "@/components/Payments/scene/looks";
-import { SCENE } from "@/components/Payments/scene/Scene";
 import { noAnimationWhenReduced } from "@/styles/mixins";
 
 // The subjects the payments drawings open with, each told in under a second and a half: a payment routed
@@ -22,15 +22,15 @@ type Frames = ReturnType<typeof keyframes>;
 
 const NODE = 36;
 
-// The stories are drawn in a band of their own, centred in the panel the terminal's scene sets.
-const STORY_HEIGHT = 180;
+// The stories are drawn in a band of their own, centred in the panel the counter sets.
+const STORY = { width: 280, height: 180 } as const;
 
 const Stage = styled.div(() => [
   tw`relative`,
   css`
-    width: ${SCENE.width}px;
-    height: ${STORY_HEIGHT}px;
-    margin-top: ${(SCENE.height - STORY_HEIGHT) / 2}px;
+    width: ${STORY.width}px;
+    height: ${STORY.height}px;
+    margin: ${(COUNTER.height - STORY.height) / 2}px auto 0;
   `,
 ]);
 
@@ -80,7 +80,7 @@ const BADGE_AT = {
 };
 
 const Wires: FC<{ lines: Array<[number, number, number, number]> }> = ({ lines }) => (
-  <svg width={SCENE.width} height={STORY_HEIGHT} style={{ position: "absolute", inset: 0 }} aria-hidden="true" focusable="false">
+  <svg width={STORY.width} height={STORY.height} style={{ position: "absolute", inset: 0 }} aria-hidden="true" focusable="false">
     {lines.map(([x1, y1, x2, y2]) => (
       <line key={`${x1}-${y1}-${x2}-${y2}`} x1={x1} y1={y1} x2={x2} y2={y2} style={{ stroke: "var(--accent-muted)", strokeWidth: 1.5, strokeDasharray: "4 3" }} />
     ))}

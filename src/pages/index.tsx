@@ -21,6 +21,7 @@ import { SkillAreas } from "@/components/SkillAreas";
 import { SkillForge } from "@/components/SkillForge";
 import { Talents } from "@/components/Talents";
 import { Terminal } from "@/components/Terminal";
+import { Theme } from "@/components/Theme";
 import { Timelapse } from "@/components/Timelapse";
 import { Web3 } from "@/components/Web3";
 import { Zone } from "@/components/Zone";
@@ -33,6 +34,9 @@ import { createPortfolioTerminal } from "@/services/terminal/portfolioTerminal";
 
 // Runs at build time during static generation, so content that fails validation fails the build.
 const aiUsage = aiUsageService.getView();
+
+// The payments section closes on its case studies, listed by title.
+const paymentCases = portfolioData.caseStudies.filter((caseStudy) => caseStudy.audiences.includes("payments")).map((caseStudy) => caseStudy.title);
 const forgeStations = createForgeStations(portfolioData);
 const hireDialogs = createHireDialogs(portfolioData);
 // The message form in the contact and hire cards: its words, and the address and reply time it names.
@@ -101,24 +105,39 @@ export default function Home() {
           <AiUsage {...aiUsage} blueprintSection="ai" />
         </Zone>
         <Zone zone="chain">
-          <Web3
-            intro={portfolioData.sections.web3}
-            content={portfolioData.web3}
-            blueprintSection="chain"
-          />
-          <SkillAreas
-            areas={portfolioData.skillAreas}
-            examples={portfolioData.skillAreaExamples}
-            intro={portfolioData.sections.skillAreas}
-            blueprintSection="delivery"
-          />
-          <PlatformOverview
-            intro={portfolioData.sections.platform}
-            expertise={portfolioData.expertise}
-            blueprintSection="platform"
-          />
-          <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
-          <Payments intro={portfolioData.sections.payments} content={portfolioData.payments} blueprintSection="payments" />
+          <Theme theme="web3">
+            <Web3
+              intro={portfolioData.sections.web3}
+              content={portfolioData.web3}
+              blueprintSection="chain"
+            />
+          </Theme>
+          <Theme theme="payments">
+            <Payments
+              intro={portfolioData.sections.payments}
+              content={portfolioData.payments}
+              caseStudies={paymentCases}
+              blueprintSection="payments"
+            />
+          </Theme>
+          <Theme theme="skillAreas">
+            <SkillAreas
+              areas={portfolioData.skillAreas}
+              examples={portfolioData.skillAreaExamples}
+              intro={portfolioData.sections.skillAreas}
+              blueprintSection="delivery"
+            />
+          </Theme>
+          <Theme theme="platform">
+            <PlatformOverview
+              intro={portfolioData.sections.platform}
+              expertise={portfolioData.expertise}
+              blueprintSection="platform"
+            />
+          </Theme>
+          <Theme theme="codeReview">
+            <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
+          </Theme>
         </Zone>
         <Zone zone="casino">
           <IGaming

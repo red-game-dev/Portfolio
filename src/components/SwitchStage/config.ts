@@ -1,3 +1,4 @@
+import type { SectionThemeId } from "@/config/themes";
 import { ZoneId } from "@/config/zones";
 import { BlueprintMotion } from "@/types/blueprints";
 
@@ -22,7 +23,27 @@ export type ZoneEffect = "beam" | "blocks" | "deal" | "pixels" | "scan" | "warp"
 // inside one the tabs switch with the next way to pay at the terminal ("pay").
 export type PaymentEffect = BlueprintMotion | "pay";
 
-export type SwitchEffect = ZoneEffect | PaymentEffect;
+// A section with a theme of its own (config/themes.ts) switches by its subject: what I have built is drafted like a
+// blueprint, a delivery pipeline lights stage by stage for the skills by area, a diff applies for the code review.
+export type ThemeEffect = "draft" | "pipeline" | "diff";
+
+export type SwitchEffect = ZoneEffect | PaymentEffect | ThemeEffect;
+
+// How long a theme's switch plays: a little longer than a zone's, since each tells a small story.
+export const THEME_SWITCH_MS = 820;
+
+// Where a theme's subject has a switch of its own; Web3 keeps its zone's blocks, and the payments drawings
+// bring theirs (their `motion`).
+export const THEME_EFFECTS: Partial<Record<SectionThemeId, ZoneEffect | ThemeEffect>> = {
+  web3: "blocks",
+  skillAreas: "pipeline",
+  platform: "draft",
+  codeReview: "diff",
+};
+
+const THEME_EFFECT_SET: ReadonlySet<SwitchEffect> = new Set<SwitchEffect>(["draft", "pipeline", "diff"]);
+
+export const isThemeEffect = (effect: SwitchEffect): effect is ThemeEffect => THEME_EFFECT_SET.has(effect);
 
 export const ZONE_EFFECTS: Record<ZoneId, ZoneEffect> = {
   ai: "beam",
@@ -38,4 +59,4 @@ export const switchEffectFor = (zone: ZoneId): ZoneEffect => ZONE_EFFECTS[zone];
 
 const ZONE_EFFECT_SET: ReadonlySet<SwitchEffect> = new Set(Object.values(ZONE_EFFECTS));
 
-export const isPaymentEffect = (effect: SwitchEffect): effect is PaymentEffect => !ZONE_EFFECT_SET.has(effect);
+export const isPaymentEffect = (effect: SwitchEffect): effect is PaymentEffect => !ZONE_EFFECT_SET.has(effect) && !isThemeEffect(effect);

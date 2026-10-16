@@ -3,7 +3,9 @@ import { FC } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { BLOCK_GRID, isPaymentEffect, PAYMENT_SWITCH_MS, PIXEL_GRID, SWITCH_MS, SwitchEffect, ZoneEffect } from "@/components/SwitchStage/config";
+import {
+  BLOCK_GRID, isPaymentEffect, PAYMENT_SWITCH_MS, PIXEL_GRID, SWITCH_MS, SwitchEffect, THEME_SWITCH_MS, ThemeEffect, ZoneEffect,
+} from "@/components/SwitchStage/config";
 import { media } from "@/styles/mixins";
 
 const wipeIn = keyframes`
@@ -64,6 +66,57 @@ const paySettle = keyframes`
   100% { opacity: 1; }
 `;
 
+// What I have built: the new content comes up from a blueprint's pale lines into its own colours.
+const draftIn = keyframes`
+  0% { opacity: 0; filter: saturate(0) brightness(1.5); }
+  55% { opacity: 0.9; filter: saturate(0.4) brightness(1.15); }
+  100% { opacity: 1; filter: none; }
+`;
+
+// The drafting grid laid over it, fading as the content takes over.
+const gridIn = keyframes`
+  0% { opacity: 0; transform: scale(1.03); }
+  25% { opacity: 1; }
+  70% { opacity: 0.6; }
+  100% { opacity: 0; transform: scale(1); }
+`;
+
+// The frame traced round the new content from its top left corner, like a plotter's pen.
+const traceIn = keyframes`
+  0% { clip-path: inset(0 100% 100% 0); opacity: 1; }
+  55% { clip-path: inset(0 0 0 0); opacity: 1; }
+  100% { clip-path: inset(0 0 0 0); opacity: 0; }
+`;
+
+// The pipeline's progress filling, and each stage lighting as it is reached.
+const pipelineFill = keyframes`
+  0% { transform: scaleX(0); }
+  80%, 100% { transform: scaleX(1); }
+`;
+
+const stageLit = keyframes`
+  0% { background: #0d0d0d; transform: scale(1); }
+  40% { background: var(--accent); transform: scale(1.3); }
+  100% { background: var(--accent); transform: scale(1); }
+`;
+
+const trackOut = keyframes`
+  0%, 82% { opacity: 1; }
+  100% { opacity: 0; }
+`;
+
+// A diff applying: each removed line shrinks away, then its replacement grows in and fades into the content.
+const lineRemoved = keyframes`
+  0% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(0); opacity: 0.4; }
+`;
+
+const lineAdded = keyframes`
+  0% { transform: scaleX(0); opacity: 1; }
+  60% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+`;
+
 // A 2px line, so moving it by top costs nothing worth measuring.
 const scanLine = keyframes`
   0% { top: 0; opacity: 1; }
@@ -106,6 +159,16 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
   effect && isPaymentEffect(effect) && css`
     ${CONTENT} {
       animation: ${paySettle} ${PAYMENT_SWITCH_MS}ms ease-out both;
+    }
+  `,
+  effect === "draft" && css`
+    ${CONTENT} {
+      animation: ${draftIn} ${THEME_SWITCH_MS}ms ease-out both;
+    }
+  `,
+  (effect === "pipeline" || effect === "diff") && css`
+    ${CONTENT} {
+      animation: ${settle} ${THEME_SWITCH_MS}ms ease-out both;
     }
   `,
   css`
@@ -168,8 +231,115 @@ const Pixel = styled.span(({ delay, isLit }: { delay: number; isLit: boolean }) 
   `,
 ]);
 
+// What I have built: a drafting grid in the accent, and a dashed frame traced round the content.
+const Grid = styled.div(() => [
+  tw`absolute inset-0 z-[3] pointer-events-none`,
+  css`
+    background-image: linear-gradient(rgba(var(--accent-rgb), 0.28) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--accent-rgb), 0.28) 1px, transparent 1px);
+    background-size: 22px 22px;
+    animation: ${gridIn} ${THEME_SWITCH_MS}ms ease-out both;
+  `,
+]);
+
+const Trace = styled.div(() => [
+  tw`absolute inset-[6px] z-[3] pointer-events-none border-[1px] border-dashed border-[var(--accent)]`,
+  css`
+    animation: ${traceIn} ${THEME_SWITCH_MS}ms ease-in-out both;
+  `,
+]);
+
+// The skills by area: a delivery pipeline across the top, its stages lighting in turn (build, test, deploy,
+// observe) as the progress fills.
+const PIPELINE_STAGES = 4;
+
+const Track = styled.div(() => [
+  tw`absolute z-[3] top-[10px] left-[14px] right-[14px] h-[12px] pointer-events-none`,
+  css`
+    animation: ${trackOut} ${THEME_SWITCH_MS}ms linear both;
+  `,
+]);
+
+const TrackLine = tw.span`absolute left-0 right-0 top-[5px] h-[2px] bg-[var(--accent-muted)]`;
+
+const TrackFill = styled.span(() => [
+  tw`absolute left-0 right-0 top-[5px] h-[2px] bg-[var(--accent)] origin-left`,
+  css`
+    animation: ${pipelineFill} ${THEME_SWITCH_MS}ms ease-in-out both;
+  `,
+]);
+
+const PipelineStage = styled.span(({ index }: { index: number }) => [
+  tw`absolute top-0 w-[12px] h-[12px] rounded-full border-[2px] border-solid border-[var(--accent)]`,
+  css`
+    left: ${(index / (PIPELINE_STAGES - 1)) * 100}%;
+    margin-left: -6px;
+    background: #0d0d0d;
+    animation: ${stageLit} ${THEME_SWITCH_MS * 0.3}ms ease-out ${(index / (PIPELINE_STAGES - 1)) * THEME_SWITCH_MS * 0.8}ms both;
+  `,
+]);
+
+// The code review: a column of changed lines, each removed in red, then added back in the accent.
+const DIFF_LINES = [92, 64, 78, 50, 86, 70, 58];
+
+const Diff = tw.div`absolute inset-0 z-[3] flex flex-col gap-[7px] p-[12px] pointer-events-none`;
+
+const DiffLine = tw.span`relative block h-[8px]`;
+
+const Removed = styled.span(({ index }: { index: number }) => [
+  tw`absolute inset-0 block rounded-[2px] origin-right bg-[rgba(255,107,107,0.55)]`,
+  css`
+    animation: ${lineRemoved} ${THEME_SWITCH_MS * 0.35}ms ease-in ${index * 45}ms both;
+  `,
+]);
+
+const Added = styled.span(({ index }: { index: number }) => [
+  tw`absolute inset-0 block rounded-[2px] origin-left`,
+  css`
+    background: rgba(var(--accent-rgb), 0.55);
+    animation: ${lineAdded} ${THEME_SWITCH_MS * 0.55}ms ease-out ${THEME_SWITCH_MS * 0.3 + index * 45}ms both;
+  `,
+]);
+
+// The layer a theme's switch draws over the content.
+const ThemeLayer: FC<{ effect: ThemeEffect }> = ({ effect }) => {
+  if (effect === "draft") {
+    return (
+      <>
+        <Grid data-switch-fx aria-hidden="true" />
+        <Trace data-switch-fx aria-hidden="true" />
+      </>
+    );
+  }
+
+  if (effect === "pipeline") {
+    return (
+      <Track data-switch-fx aria-hidden="true">
+        <TrackLine />
+        <TrackFill />
+        {Array.from({ length: PIPELINE_STAGES }, (_, index) => <PipelineStage key={index} index={index} />)}
+      </Track>
+    );
+  }
+
+  return (
+    <Diff data-switch-fx aria-hidden="true">
+      {DIFF_LINES.map((width, index) => (
+        <DiffLine key={index} style={{ width: `${width}%` }}>
+          <Removed index={index} />
+          <Added index={index} />
+        </DiffLine>
+      ))}
+    </Diff>
+  );
+};
+
 // The layer an effect draws over the content, if it has one.
-export const SwitchLayer: FC<{ effect: ZoneEffect }> = ({ effect }) => {
+export const SwitchLayer: FC<{ effect: ZoneEffect | ThemeEffect }> = ({ effect }) => {
+  if (effect === "draft" || effect === "pipeline" || effect === "diff") {
+    return <ThemeLayer effect={effect} />;
+  }
+
   if (effect === "beam" || effect === "scan") {
     return <Line effect={effect} data-switch-fx aria-hidden="true" />;
   }

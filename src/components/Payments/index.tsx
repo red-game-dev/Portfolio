@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { BlueprintSection } from "@/components/Blueprint";
 import { NEAR_MARGIN } from "@/components/Blueprint/config";
 import { ActionLink } from "@/components/Controls";
+import { Panel, PanelText, PanelTitle } from "@/components/Panel";
 import { Anchor, Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { PAYMENT_DRAWING_ANCHORS, PAYMENT_DRAWINGS } from "@/config/payments";
@@ -20,6 +21,8 @@ import { SectionIntros } from "@/types/sections-intros";
 interface PaymentsProps {
   intro: SectionIntros;
   content: PaymentsContent;
+  // The titles of the payments case studies, which the section closes on.
+  caseStudies: string[];
   // Which drawings this section shows, fetched as it nears the screen.
   blueprintSection: BlueprintSectionId;
 }
@@ -50,11 +53,25 @@ const Drawings = tw.div`relative mt-[22px]`;
 // padding (unlike a section's Anchor, which cancels it to land the section's own top padding there).
 const DrawingAnchor = tw.span`absolute top-0 left-0`;
 
-const Foot = tw.div`mt-[22px] flex flex-row flex-wrap`;
+const Closing = tw.div`mt-[22px]`;
+
+const Cases = tw.ul`list-none m-[0 0 18px 0] p-0 flex flex-col gap-[8px]`;
+
+const CaseLink = styled.a(() => [
+  tw`text-[var(--accent)] underline`,
+  css`
+    text-underline-offset: 3px;
+    text-decoration-color: var(--accent-muted);
+
+    &:hover {
+      text-decoration-color: var(--accent);
+    }
+  `,
+]);
 
 // Payments from the till to the bank: a terminal the reader pays at, and the drawings it opens one by one.
 // Every word is in the intro and the content; the drawings are the payments blueprints.
-export const Payments: FC<PaymentsProps> = ({ intro, content, blueprintSection }: PaymentsProps) => {
+export const Payments: FC<PaymentsProps> = ({ intro, content, caseStudies, blueprintSection }: PaymentsProps) => {
   const slotRef = useRef<HTMLDivElement>(null);
   const isNear = useInView(slotRef, { once: true, threshold: 0, rootMargin: NEAR_MARGIN });
   // Each payment at the terminal opens the next drawing.
@@ -73,9 +90,18 @@ export const Payments: FC<PaymentsProps> = ({ intro, content, blueprintSection }
         {PAYMENT_DRAWINGS.map((drawing) => <DrawingAnchor key={drawing} id={PAYMENT_DRAWING_ANCHORS[drawing]} aria-hidden="true" />)}
         <BlueprintSection section={blueprintSection} advance={payments} />
       </Drawings>
-      <Foot>
-        <ActionLink isPrimary={false} href={`#${PAYMENT_CASES_ANCHOR}`}>{content.caseStudies}</ActionLink>
-      </Foot>
+      <Closing>
+        <Panel>
+          <PanelTitle>{content.caseStudies.title}</PanelTitle>
+          <PanelText>{content.caseStudies.description}</PanelText>
+          <Cases>
+            {caseStudies.map((title) => (
+              <li key={title}><CaseLink href={`#${PAYMENT_CASES_ANCHOR}`}>{title}</CaseLink></li>
+            ))}
+          </Cases>
+          <ActionLink isPrimary={false} href={`#${PAYMENT_CASES_ANCHOR}`}>{content.caseStudies.link}</ActionLink>
+        </Panel>
+      </Closing>
     </Section>
   );
 };

@@ -16,7 +16,8 @@ import { noAnimationWhenReduced } from "@/styles/mixins";
 // scanning the QR code on the screen. Everything moves by transform and opacity, timed as shares of
 // `--pay-ms`, so one scene serves the switches and the terminal a reader pays at.
 
-export const SCENE = { width: 280, height: 180 } as const;
+// Tall enough below the terminal for a card in the chip reader to show its network's mark.
+export const SCENE = { width: 280, height: 210 } as const;
 
 // Where the terminal stands in the scene.
 const TERMINAL = { left: 176, top: 34, width: 76, height: 104 } as const;
@@ -150,7 +151,7 @@ const Groove = styled.div(() => [
 ]);
 
 const Screen = tw.div`absolute left-[8px] top-[9px] w-[58px] h-[36px] rounded-[3px] overflow-hidden bg-[#0d1712]
-border-[1px] border-solid border-[#2a3a31] flex items-center justify-center text-center`;
+border-[1px] border-solid border-[#2a3a31] flex flex-col items-center justify-center gap-[2px] text-center`;
 
 const ScreenLayer = styled.div(({ move }: { move?: ReturnType<typeof keyframes> }) => [
   tw`absolute inset-0 flex flex-col items-center justify-center gap-[4px]`,

@@ -22,11 +22,15 @@ type Frames = ReturnType<typeof keyframes>;
 
 const NODE = 36;
 
+// The stories are drawn in a band of their own, centred in the panel the terminal's scene sets.
+const STORY_HEIGHT = 180;
+
 const Stage = styled.div(() => [
   tw`relative`,
   css`
     width: ${SCENE.width}px;
-    height: ${SCENE.height}px;
+    height: ${STORY_HEIGHT}px;
+    margin-top: ${(SCENE.height - STORY_HEIGHT) / 2}px;
   `,
 ]);
 
@@ -76,7 +80,7 @@ const BADGE_AT = {
 };
 
 const Wires: FC<{ lines: Array<[number, number, number, number]> }> = ({ lines }) => (
-  <svg width={SCENE.width} height={SCENE.height} style={{ position: "absolute", inset: 0 }} aria-hidden="true" focusable="false">
+  <svg width={SCENE.width} height={STORY_HEIGHT} style={{ position: "absolute", inset: 0 }} aria-hidden="true" focusable="false">
     {lines.map(([x1, y1, x2, y2]) => (
       <line key={`${x1}-${y1}-${x2}-${y2}`} x1={x1} y1={y1} x2={x2} y2={y2} style={{ stroke: "var(--accent-muted)", strokeWidth: 1.5, strokeDasharray: "4 3" }} />
     ))}
@@ -198,10 +202,30 @@ const Slash = styled.span(() => [
   noAnimationWhenReduced,
 ]);
 
+// A receipt, with two printed lines so it reads as one.
 const Slip = styled.span(({ frames }: { frames: Frames }) => [
   tw`absolute block w-[11px] h-[15px] rounded-[1px]`,
   css`
     background: ${RECEIPT_PAPER};
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      left: 2px;
+      height: 1px;
+      background: #9a968c;
+    }
+
+    &::before {
+      top: 4px;
+      right: 2px;
+    }
+
+    &::after {
+      top: 8px;
+      right: 4px;
+    }
   `,
   moving(frames, "ease-in"),
   noAnimationWhenReduced,

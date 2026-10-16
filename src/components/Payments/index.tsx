@@ -32,19 +32,23 @@ const PayTerminal = dynamic(() => import("@/components/Payments/PayTerminal").th
 const TerminalSlot = styled.div(() => [
   tw`mt-[25px] lg:mt-[35px]`,
   css`
-    min-height: 520px;
+    min-height: 550px;
 
     ${media.md} {
-      min-height: 440px;
+      min-height: 470px;
     }
 
     ${media.xl} {
-      min-height: 300px;
+      min-height: 330px;
     }
   `,
 ]);
 
-const Drawings = tw.div`mt-[22px]`;
+const Drawings = tw.div`relative mt-[22px]`;
+
+// Where a link to one drawing lands: the drawings' own top, kept clear of the fixed bars by the page's scroll
+// padding (unlike a section's Anchor, which cancels it to land the section's own top padding there).
+const DrawingAnchor = tw.span`absolute top-0 left-0`;
 
 const Foot = tw.div`mt-[22px] flex flex-row flex-wrap`;
 
@@ -64,9 +68,9 @@ export const Payments: FC<PaymentsProps> = ({ intro, content, blueprintSection }
       <TerminalSlot ref={slotRef}>
         {isNear && <PayTerminal content={content.terminal} onPaid={onPaid} />}
       </TerminalSlot>
-      {/* Where the menu's links to each drawing land; the showcase opens the one the link names. */}
-      {PAYMENT_DRAWINGS.map((drawing) => <Anchor key={drawing} id={PAYMENT_DRAWING_ANCHORS[drawing]} aria-hidden="true" />)}
       <Drawings>
+        {/* Where the menu's links to each drawing land; the showcase opens the one the link names. */}
+        {PAYMENT_DRAWINGS.map((drawing) => <DrawingAnchor key={drawing} id={PAYMENT_DRAWING_ANCHORS[drawing]} aria-hidden="true" />)}
         <BlueprintSection section={blueprintSection} advance={payments} />
       </Drawings>
       <Foot>

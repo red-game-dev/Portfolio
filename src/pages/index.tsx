@@ -117,8 +117,8 @@ export default function Home() {
             expertise={portfolioData.expertise}
             blueprintSection="platform"
           />
-          <Payments intro={portfolioData.sections.payments} content={portfolioData.payments} blueprintSection="payments" />
           <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
+          <Payments intro={portfolioData.sections.payments} content={portfolioData.payments} blueprintSection="payments" />
         </Zone>
         <Zone zone="casino">
           <IGaming

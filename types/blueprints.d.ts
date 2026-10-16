@@ -102,6 +102,8 @@ export interface Blueprint {
   // A payments drawing switches its own way: a showcase opens it with its subject, and its own tabs switch
   // with the next way to pay at the terminal. Without it, both play the zone's switch.
   motion?: BlueprintMotion;
+  // A link to #anchor opens this drawing in its showcase (the menu's Payments stop links each one).
+  anchor?: string;
   title: string;
   caption: string;
   summary: BlueprintSummary;

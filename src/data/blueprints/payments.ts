@@ -1,3 +1,4 @@
+import { PAYMENT_DRAWING_ANCHORS } from "@/config/payments";
 import { Blueprint } from "@/types/blueprints";
 
 // Payments, from the till to the bank: the POS and the gateway of my own payments company, and the card
@@ -10,6 +11,7 @@ const blueprints: Blueprint[] = [
     tab: "POS",
     zone: "matrix",
     motion: "tap",
+    anchor: PAYMENT_DRAWING_ANCHORS.pos,
     title: "A POS for shops, restaurants and chains, in store and online",
     caption: "Tills on Android, iOS, desktop and the payment terminal itself, joined to the card terminal four ways, " +
       "tables, tabs and split bills, one stock across every outlet and the online store, and fiscal receipts where the " +
@@ -188,6 +190,7 @@ const blueprints: Blueprint[] = [
     tab: "Offline",
     zone: "matrix",
     motion: "sync",
+    anchor: PAYMENT_DRAWING_ANCHORS.offline,
     title: "Selling through an outage, each sale counted once",
     caption: "With no internet the till keeps selling: every sale waits on the device and syncs once when the connection " +
       "returns, the terminal accepts cards offline under a floor limit, at the merchant's risk, and sends them for " +
@@ -327,6 +330,7 @@ const blueprints: Blueprint[] = [
     tab: "Gateway",
     zone: "matrix",
     motion: "route",
+    anchor: PAYMENT_DRAWING_ANCHORS.gateway,
     title: "A payment gateway of my own, across PSPs and an acquirer",
     caption: "One API and SDKs for merchants and developers in front of PSPs and an acquirer: routing by method and by " +
       "merchant with fail over, PSP and network tokens, a payment state machine on a double entry ledger, signed webhooks, " +
@@ -505,6 +509,7 @@ const blueprints: Blueprint[] = [
     tab: "Card payment",
     zone: "matrix",
     motion: "authorise",
+    anchor: PAYMENT_DRAWING_ANCHORS.cardPayment,
     title: "One card payment, end to end, at enterprise scale",
     caption: "From a tap at the terminal to money in the merchant's account: the terminal encrypts the card, the HSM decrypts " +
       "it and translates any online PIN, the authorisation crosses the card network to the issuer and back over ISO 8583, " +
@@ -683,6 +688,7 @@ const blueprints: Blueprint[] = [
     tab: "Payouts",
     zone: "matrix",
     motion: "split",
+    anchor: PAYMENT_DRAWING_ANCHORS.payouts,
     title: "Splits and payouts for merchants, sellers and developers",
     caption: "Each payment split between the platform's fee and every seller or developer in the basket, booked on the " +
       "ledger, then paid out on a schedule or at once, to a bank, a card, through the PSP or to a crypto wallet, with a " +

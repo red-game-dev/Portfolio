@@ -82,6 +82,8 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
       }
 
       window.history.replaceState(null, "", href);
+      // replaceState fires no event, so whatever reads the hash (a drawing a link names, a filter) is told directly.
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
     });
   };
 

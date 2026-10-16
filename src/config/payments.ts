@@ -56,3 +56,17 @@ export const CARD_METHODS: PaymentMethodId[] = PAYMENT_METHODS.filter((method) =
 // The method for the nth switch (counted from 1, as the switch counts them).
 export const methodForSwitch = (sequence: PaymentMethodId[], count: number): PaymentMethodId =>
   sequence[(((count - 1) % sequence.length) + sequence.length) % sequence.length];
+
+// The payments drawings a link opens by name, from the menu's Payments stop or shared: #payments-gateway
+// scrolls to the drawings and opens the gateway.
+export type PaymentDrawingKey = "pos" | "offline" | "gateway" | "cardPayment" | "payouts";
+
+export const PAYMENT_DRAWING_ANCHORS: Record<PaymentDrawingKey, string> = {
+  pos: "payments-pos",
+  offline: "payments-offline",
+  gateway: "payments-gateway",
+  cardPayment: "payments-card",
+  payouts: "payments-payouts",
+};
+
+export const PAYMENT_DRAWINGS = Object.keys(PAYMENT_DRAWING_ANCHORS) as PaymentDrawingKey[];

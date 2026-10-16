@@ -7,6 +7,7 @@ import { BLEED } from "@/components/Blueprint/config";
 import { renderPaymentLayer } from "@/components/Payments/scene/lazyLayer";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { Tab, TabList } from "@/components/Tabs";
+import { useHashValue } from "@/hooks/useHashState";
 import useTabs from "@/hooks/useTabs";
 import { media } from "@/styles/mixins";
 import { Blueprint as BlueprintContent, BlueprintLabels } from "@/types/blueprints";
@@ -49,6 +50,25 @@ export const BlueprintTabs: FC<BlueprintTabsProps> = ({ blueprints, labels, adva
       select((active + 1) % blueprints.length);
     }
   }, [advance, active, blueprints.length, select]);
+
+  // A link that names a drawing (#payments-gateway) opens it, once each time the hash comes to name it.
+  const linkedFrom = useCallback((hash: string) => {
+    const index = blueprints.findIndex((blueprint) => blueprint.anchor !== undefined && `#${blueprint.anchor}` === hash);
+
+    return index >= 0 ? index : null;
+  }, [blueprints]);
+  const linked = useHashValue(linkedFrom);
+  const opened = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (linked !== opened.current) {
+      opened.current = linked;
+
+      if (linked !== null) {
+        select(linked);
+      }
+    }
+  }, [linked, select]);
 
   return (
     <Showcase>

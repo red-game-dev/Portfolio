@@ -9,6 +9,7 @@ import { NEAR_MARGIN } from "@/components/Blueprint/config";
 import { ActionLink } from "@/components/Controls";
 import { Anchor, Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
+import { PAYMENT_DRAWING_ANCHORS, PAYMENT_DRAWINGS } from "@/config/payments";
 import { AUDIENCE_ANCHORS, PAYMENT_CASES_ANCHOR, SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
 import { media } from "@/styles/mixins";
@@ -63,6 +64,8 @@ export const Payments: FC<PaymentsProps> = ({ intro, content, blueprintSection }
       <TerminalSlot ref={slotRef}>
         {isNear && <PayTerminal content={content.terminal} onPaid={onPaid} />}
       </TerminalSlot>
+      {/* Where the menu's links to each drawing land; the showcase opens the one the link names. */}
+      {PAYMENT_DRAWINGS.map((drawing) => <Anchor key={drawing} id={PAYMENT_DRAWING_ANCHORS[drawing]} aria-hidden="true" />)}
       <Drawings>
         <BlueprintSection section={blueprintSection} advance={payments} />
       </Drawings>

@@ -8,7 +8,7 @@ import { PaymentLayer } from "@/components/Payments/scene/PaymentLayer";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { isPaymentEffect, PaymentEffect, ZONE_EFFECTS } from "@/components/SwitchStage/config";
 import {
-  CARD_METHODS, isOnPhone, methodForSwitch, PAY_GESTURES, PAY_SEQUENCE, PAYMENT_METHODS,
+  CARD_METHODS, isOnPhone, methodForSwitch, PAY_GESTURES, PAY_SEQUENCE, PAYMENT_DRAWING_ANCHORS, PAYMENT_METHODS,
 } from "@/config/payments";
 import { audienceForHash, PAYMENT_CASES_ANCHOR } from "@/config/sections";
 import payments from "@/data/blueprints/payments";
@@ -204,7 +204,41 @@ describe("PayTerminal", () => {
   });
 });
 
+describe("the links to each payments drawing", () => {
+  it("name every drawing once, each by its own anchor", () => {
+    expect(payments.map((blueprint) => blueprint.anchor).sort()).toEqual(Object.values(PAYMENT_DRAWING_ANCHORS).sort());
+  });
+});
+
 describe("BlueprintTabs", () => {
+  afterEach(() => {
+    window.history.replaceState(null, "", window.location.pathname);
+  });
+
+  it("opens the drawing a link names, when it arrives and as the hash changes", async () => {
+    const labels = portfolioData.blueprintLabels;
+    const selected = () => screen.getAllByRole("tab").find((tab) => tab.getAttribute("aria-selected") === "true")?.textContent;
+
+    window.history.replaceState(null, "", `#${PAYMENT_DRAWING_ANCHORS.gateway}`);
+    render(<LensProvider><BlueprintTabs blueprints={payments} labels={labels} /></LensProvider>);
+    expect(selected()).toBe("Gateway");
+
+    act(() => {
+      window.history.replaceState(null, "", `#${PAYMENT_DRAWING_ANCHORS.payouts}`);
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+    expect(selected()).toBe("Payouts");
+
+    // A tab chosen by hand stays chosen while the hash still names the other drawing.
+    fireEvent.click(screen.getByRole("tab", { name: "POS" }));
+    expect(selected()).toBe("POS");
+
+    await act(async () => {
+      await import("@/components/Payments/scene/PaymentLayer");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  });
+
   it("opens the next drawing on each advance, wrapping round", async () => {
     const labels = portfolioData.blueprintLabels;
     const { rerender } = render(<LensProvider><BlueprintTabs blueprints={payments} labels={labels} advance={0} /></LensProvider>);

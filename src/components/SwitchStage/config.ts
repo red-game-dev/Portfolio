@@ -1,4 +1,4 @@
-import type { SectionThemeId } from "@/config/themes";
+import type { SectionThemeId } from "@/config/sectionThemes";
 import { ZoneId } from "@/config/zones";
 import { BlueprintMotion } from "@/types/blueprints";
 
@@ -23,9 +23,9 @@ export type ZoneEffect = "beam" | "blocks" | "deal" | "pixels" | "scan" | "warp"
 // inside one the tabs switch with the next way to pay at the terminal ("pay").
 export type PaymentEffect = BlueprintMotion | "pay";
 
-// A section with a theme of its own (config/themes.ts) switches by its subject: what I have built is drafted like a
-// blueprint, a delivery pipeline lights stage by stage for the skills by area, a diff applies for the code review.
-export type ThemeEffect = "draft" | "pipeline" | "diff";
+// A section with a theme of its own (config/sectionThemes.ts) switches by its subject where its content switches: what
+// I have built is drafted like a blueprint, and a delivery pipeline lights stage by stage for the skills by area.
+export type ThemeEffect = "draft" | "pipeline";
 
 export type SwitchEffect = ZoneEffect | PaymentEffect | ThemeEffect;
 
@@ -38,10 +38,9 @@ export const THEME_EFFECTS: Partial<Record<SectionThemeId, ZoneEffect | ThemeEff
   web3: "blocks",
   skillAreas: "pipeline",
   platform: "draft",
-  codeReview: "diff",
 };
 
-const THEME_EFFECT_SET: ReadonlySet<SwitchEffect> = new Set<SwitchEffect>(["draft", "pipeline", "diff"]);
+const THEME_EFFECT_SET: ReadonlySet<SwitchEffect> = new Set<SwitchEffect>(["draft", "pipeline"]);
 
 export const isThemeEffect = (effect: SwitchEffect): effect is ThemeEffect => THEME_EFFECT_SET.has(effect);
 

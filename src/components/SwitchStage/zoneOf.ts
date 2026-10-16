@@ -1,4 +1,4 @@
-import type { SectionThemeId } from "@/config/themes";
+import type { SectionThemeId } from "@/config/sectionThemes";
 import { ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
 
 // The zone an element sits in: the last zone whose first section starts at or before it in the page.

@@ -1,6 +1,6 @@
 import { PAYMENT_DRAWING_ANCHORS, PAYMENT_DRAWINGS, PaymentDrawingKey } from "@/config/payments";
 import { SECTION_IDS } from "@/config/sections";
-import type { SectionThemeId } from "@/config/themes";
+import type { SectionThemeId } from "@/config/sectionThemes";
 import { ZoneId } from "@/config/zones";
 
 export type StopKey = "who" | "offer" | "history" | "ai" | "web3" | "payments" | "engineering" | "igaming" | "game" | "beyond";

@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
-import { SectionThemeId, THEME_ACCENTS, THEME_ZONES } from "@/config/themes";
+import { SectionThemeId, THEME_ACCENTS } from "@/config/sectionThemes";
 import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
 import { rgbChannels } from "@/packages/graphics/colour";
 
@@ -47,7 +47,7 @@ describe("section theme palette", () => {
     (Object.keys(THEME_ACCENTS) as SectionThemeId[]).forEach((theme) => {
       const sameAs = zoneColours.filter(([, colour]) => colour === THEME_ACCENTS[theme]).map(([zone]) => zone);
 
-      expect(sameAs).toEqual(theme === "web3" ? [THEME_ZONES[theme]] : []);
+      expect(sameAs).toEqual(theme === "web3" ? ["chain"] : []);
     });
   });
 });

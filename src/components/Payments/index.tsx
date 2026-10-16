@@ -13,7 +13,7 @@ import { SectionText } from "@/components/Text/SectionText";
 import { PAYMENT_DRAWING_ANCHORS, PAYMENT_DRAWINGS } from "@/config/payments";
 import { AUDIENCE_ANCHORS, PAYMENT_CASES_ANCHOR, SECTION_IDS } from "@/config/sections";
 import useInView from "@/hooks/useInView";
-import { media } from "@/styles/mixins";
+import { media, squareBullet } from "@/styles/mixins";
 import { BlueprintSection as BlueprintSectionId } from "@/types/blueprints";
 import { PaymentsContent } from "@/types/payments";
 import { SectionIntros } from "@/types/sections-intros";
@@ -30,19 +30,19 @@ interface PaymentsProps {
 // The terminal and its marks load with the drawings, once the section is within a screen of view.
 const PayTerminal = dynamic(() => import("@/components/Payments/PayTerminal").then((module) => module.PayTerminal), { ssr: false });
 
-// Room held for the terminal before it arrives, so the page below barely moves when it does: stacked on
-// phones and tablets, side by side on wide screens.
+// Room held for the counter before it arrives, so the page below barely moves when it does (measured on the preview:
+// stacked on phones and tablets, the ways to pay beside it on wide screens).
 const TerminalSlot = styled.div(() => [
   tw`mt-[25px] lg:mt-[35px]`,
   css`
-    min-height: 550px;
+    min-height: 780px;
 
     ${media.md} {
-      min-height: 470px;
+      min-height: 660px;
     }
 
     ${media.xl} {
-      min-height: 330px;
+      min-height: 500px;
     }
   `,
 ]);
@@ -57,17 +57,7 @@ const Closing = tw.div`mt-[22px]`;
 
 const Cases = tw.ul`list-none m-[0 0 18px 0] p-0 flex flex-col gap-[8px]`;
 
-const CaseLink = styled.a(() => [
-  tw`text-[var(--accent)] underline`,
-  css`
-    text-underline-offset: 3px;
-    text-decoration-color: var(--accent-muted);
-
-    &:hover {
-      text-decoration-color: var(--accent);
-    }
-  `,
-]);
+const Case = styled.li(() => [tw`relative pl-[16px] text-sm text-[#ddd]`, squareBullet({ radius: 1 })]);
 
 // Payments from the till to the bank: a terminal the reader pays at, and the drawings it opens one by one.
 // Every word is in the intro and the content; the drawings are the payments blueprints.
@@ -96,7 +86,7 @@ export const Payments: FC<PaymentsProps> = ({ intro, content, caseStudies, bluep
           <PanelText>{content.caseStudies.description}</PanelText>
           <Cases>
             {caseStudies.map((title) => (
-              <li key={title}><CaseLink href={`#${PAYMENT_CASES_ANCHOR}`}>{title}</CaseLink></li>
+              <Case key={title}>{title}</Case>
             ))}
           </Cases>
           <ActionLink isPrimary={false} href={`#${PAYMENT_CASES_ANCHOR}`}>{content.caseStudies.link}</ActionLink>

@@ -1,6 +1,6 @@
 import { FC, ReactNode } from "react";
 
-import type { SectionThemeId } from "@/config/themes";
+import type { SectionThemeId } from "@/config/sectionThemes";
 
 interface ThemeProps {
   theme: SectionThemeId;

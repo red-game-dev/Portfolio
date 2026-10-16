@@ -9,5 +9,6 @@ export const APPROVE_SHARE = APPROVED_AT;
 
 export const RESET_MS = 2600;
 
-// The counter drawn larger where there is room beside the ways to pay.
-export const TERMINAL_SCALE = { narrow: 1, wide: 1.3 } as const;
+// The counter drawn larger where there is room beside the ways to pay, and smaller on the narrowest phones, where
+// the room inside the section is less than the counter is wide.
+export const TERMINAL_SCALE = { narrowest: 0.78, narrower: 0.9, narrow: 1, wide: 1.3 } as const;

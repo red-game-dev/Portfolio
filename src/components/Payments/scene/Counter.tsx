@@ -46,8 +46,8 @@ const REACH: Record<PayGesture, Point[]> = {
   // Held to the contactless sign on the screen, pressed in a moment, held.
   tap: [{ x: 206, y: 96 }, { x: 204, y: 97 }],
   wallet: [{ x: 206, y: 94 }, { x: 204, y: 95 }],
-  // Brought to the chip reader at the foot, then pushed in.
-  insert: [{ x: 224, y: 140 }, { x: 216, y: 140 }],
+  // Brought to the chip reader at the foot, then pushed in until only its end shows beyond the terminal's side.
+  insert: [{ x: 232, y: 140 }, { x: 222, y: 140 }],
   // Run down the stripe reader at the side.
   swipe: [{ x: 220, y: 72 }, { x: 220, y: 128 }],
   // Held up to the screen while its camera reads the QR code.
@@ -198,6 +198,20 @@ const between = memo((key) => {
 
 const showing = (from: number, to: number) => between(`${from}-${to}`);
 
+// The phone's camera frame swept twice while it is held to the screen, inside the story, so nothing runs after it.
+const swept = memo((variant) => {
+  const { reach, done } = TIMINGS[variant as Variant];
+  const third = (done - reach) / 3;
+
+  return keyframes`
+    0%, ${reach}% { transform: translateY(0); }
+    ${Math.round(reach + third)}% { transform: translateY(13px); }
+    ${Math.round(reach + third * 2)}% { transform: translateY(0); }
+    ${done}% { transform: translateY(13px); }
+    ${Math.min(done + 4, 100)}%, 100% { transform: translateY(0); }
+  `;
+});
+
 const printed = memo((key) => {
   const [from, to] = key.split("-").map(Number);
 
@@ -214,11 +228,6 @@ const sent = keyframes`
   51%, 100% { transform: translateX(42px) translateY(-14px); opacity: 0; }
 `;
 
-const scanSweep = keyframes`
-  0% { transform: translateY(0); }
-  50% { transform: translateY(13px); }
-  100% { transform: translateY(0); }
-`;
 
 // What a moving part plays while the story runs; every one also carries noAnimationWhenReduced on its own class.
 const playing = (frames: ReturnType<typeof keyframes>, ease = "ease-in-out") => css`
@@ -332,10 +341,8 @@ const HELD_AT: Record<PayGesture, Point> = {
   scan: { x: -16, y: -16 },
 };
 
-const ScanLine = styled(PhoneScanLine)(() => [
-  css`
-    animation: ${scanSweep} 600ms ease-in-out infinite;
-  `,
+const ScanLine = styled(PhoneScanLine)(({ variant }: { variant: Variant }) => [
+  playing(swept(variant), "ease-in-out"),
   noAnimationWhenReduced,
 ]);
 
@@ -397,11 +404,9 @@ leading-none text-[var(--accent)]`;
 
 const Apps = tw.div`absolute left-[4px] right-[4px] bottom-[2px] flex justify-between`;
 
-const AppTile = styled.div(({ isChosen, frames }: { isChosen: boolean; frames?: ReturnType<typeof keyframes> }) => [
+const AppTile = styled.div(({ isChosen }: { isChosen: boolean }) => [
   tw`relative flex items-center justify-center w-[13px] h-[11px] rounded-[2px] text-[6px] text-[#0d0d0d] bg-[var(--accent-muted)]`,
   isChosen && tw`bg-[var(--accent)]`,
-  frames && playing(frames, "linear"),
-  noAnimationWhenReduced,
 ]);
 
 const APP_ICONS = { card: faCreditCard, qr: faQrcode, crypto: faCoins } as const;
@@ -441,7 +446,11 @@ const Dot = tw.span`block w-[3px] h-[3px] rounded-full bg-[var(--accent)]`;
 
 const Tick = tw.span`flex items-center justify-center w-[16px] h-[16px] rounded-full text-[9px] text-[#0d0d0d] bg-[var(--accent)]`;
 
-const Mouth = tw.div`absolute z-[8] h-[3px] rounded-[1px] bg-[#0a0a0a]`;
+const Mouth = tw.div`absolute z-[9] h-[3px] rounded-[1px] bg-[#0a0a0a]`;
+
+// The terminal's foot drawn over the arm while a card goes in, so the card disappears into the reader and only
+// its end shows, held, beyond the terminal's side.
+const Foot = tw.div`absolute z-[8] rounded-b-[7px] bg-[#1e1e20] border-[1px] border-t-0 border-solid border-[#454548]`;
 
 const Groove = tw.div`absolute z-[5] w-[2px] rounded-[1px] bg-[#0b0b0b]`;
 
@@ -532,10 +541,10 @@ export const Counter: FC<CounterProps> = ({ method, variant, mode, durationMs, a
               frames={isPlaying && isFull ? showing(from, 100) : undefined}
             />
           ))}
-          <Layer isShown={!isFull || !isPlaying} frames={isPlaying && isFull ? between("28-30") : undefined}>
+          <Layer isShown={!isFull || !isPlaying} frames={isPlaying && isFull ? between("27-31") : undefined}>
             <Total><span>&#8721;</span><Amount amount={amount} /></Total>
           </Layer>
-          <Layer isShown={false} frames={isPlaying && isFull ? between("31-42") : undefined}>
+          <Layer isShown={false} frames={isPlaying && isFull ? between("33-42") : undefined}>
             <Apps>
               {PAY_APPS.map((candidate) => (
                 <AppTile key={candidate} isChosen={candidate === app}>
@@ -580,6 +589,7 @@ export const Counter: FC<CounterProps> = ({ method, variant, mode, durationMs, a
           </ScreenLayer>
         </TerminalScreen>
       </TerminalBody>
+      {gesture === "insert" && isPlaying && <Foot style={at(TERMINAL.left, TERMINAL.top + TERMINAL.height - 20, TERMINAL.width, 20)} />}
       <Mouth style={at(TERMINAL.left + 6, TERMINAL.top + TERMINAL.height - 12, TERMINAL.width - 12)} />
       <Groove style={at(TERMINAL.left + TERMINAL.width - 4, TERMINAL.top + 16, undefined, TERMINAL.height - 40)} />
       <Part style={{ zIndex: 6 }}><Arm who="cashier" frames={cashier} /></Part>
@@ -587,7 +597,7 @@ export const Counter: FC<CounterProps> = ({ method, variant, mode, durationMs, a
         <Arm who="customer" frames={customer}>
           <Held heldAt={HELD_AT[gesture]} frames={isPlaying ? showing(timing.reachFrom + 1, timing.back - 2) : undefined}>
             {gesture === "wallet" || isScan
-              ? <PaymentPhone method={method} isScanning={isScan} scanLine={isScan ? <ScanLine /> : undefined} />
+              ? <PaymentPhone method={method} isScanning={isScan} scanLine={isScan ? <ScanLine variant={variant} /> : undefined} />
               : <PaymentCard method={method} isUpright={gesture === "swipe"} />}
           </Held>
         </Arm>

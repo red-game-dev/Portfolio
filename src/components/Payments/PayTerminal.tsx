@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, FC, useCallback, useEffect, useId, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -39,6 +39,14 @@ const SceneBox = styled.div(() => [
     --scale: ${TERMINAL_SCALE.narrow};
     width: calc(${COUNTER.width}px * var(--scale));
     height: calc(${COUNTER.height}px * var(--scale));
+
+    @media (max-width: 389px) {
+      --scale: ${TERMINAL_SCALE.narrower};
+    }
+
+    @media (max-width: 349px) {
+      --scale: ${TERMINAL_SCALE.narrowest};
+    }
 
     ${media.xl} {
       --scale: ${TERMINAL_SCALE.wide};
@@ -112,6 +120,7 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
   const isStill = useReducedMotion();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [line, setLine] = useState<{ text: string; press: number } | null>(null);
+  const groupId = useId();
   const presses = useRef(0);
   const timers = useRef<number[]>([]);
 
@@ -169,8 +178,8 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
         <Hint>{content.hint}</Hint>
         <Groups>
           {PAYMENT_GROUP_ORDER.map((group) => (
-            <Group key={group} role="group" aria-label={content.groups[group]}>
-              <GroupName aria-hidden="true">{content.groups[group]}</GroupName>
+            <Group key={group} role="group" aria-labelledby={`${groupId}-${group}`}>
+              <GroupName id={`${groupId}-${group}`}>{content.groups[group]}</GroupName>
               <Methods>
                 {PAYMENT_GROUPS[group].map((method) => (
                   <MethodButton

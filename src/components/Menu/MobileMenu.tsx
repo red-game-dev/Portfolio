@@ -32,8 +32,8 @@ import {
 } from "@/components/Menu/MobileMenu.styles";
 import { MotionSwitch } from "@/components/Motion/MotionSwitch";
 import { JOURNEY_STOPS, JourneyStop } from "@/config/journey";
+import { THEME_ACCENTS } from "@/config/sectionThemes";
 import { SOCIAL_URLS } from "@/config/social";
-import { THEME_ACCENTS } from "@/config/themes";
 import { ZONE_ACCENTS } from "@/config/zones";
 import useModalDialog from "@/hooks/useModalDialog";
 import { scrollBehavior } from "@/packages/accessibility/motion";

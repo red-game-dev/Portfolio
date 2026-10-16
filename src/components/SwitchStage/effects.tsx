@@ -4,7 +4,7 @@ import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import {
-  BLOCK_GRID, isPaymentEffect, PAYMENT_SWITCH_MS, PIXEL_GRID, SWITCH_MS, SwitchEffect, THEME_SWITCH_MS, ThemeEffect, ZoneEffect,
+  BLOCK_GRID, isPaymentEffect, isThemeEffect, PAYMENT_SWITCH_MS, PIXEL_GRID, SWITCH_MS, SwitchEffect, THEME_SWITCH_MS, ThemeEffect, ZoneEffect,
 } from "@/components/SwitchStage/config";
 import { media } from "@/styles/mixins";
 
@@ -105,18 +105,6 @@ const trackOut = keyframes`
   100% { opacity: 0; }
 `;
 
-// A diff applying: each removed line shrinks away, then its replacement grows in and fades into the content.
-const lineRemoved = keyframes`
-  0% { transform: scaleX(1); opacity: 1; }
-  100% { transform: scaleX(0); opacity: 0.4; }
-`;
-
-const lineAdded = keyframes`
-  0% { transform: scaleX(0); opacity: 1; }
-  60% { transform: scaleX(1); opacity: 1; }
-  100% { transform: scaleX(1); opacity: 0; }
-`;
-
 // A 2px line, so moving it by top costs nothing worth measuring.
 const scanLine = keyframes`
   0% { top: 0; opacity: 1; }
@@ -166,7 +154,7 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
       animation: ${draftIn} ${THEME_SWITCH_MS}ms ease-out both;
     }
   `,
-  (effect === "pipeline" || effect === "diff") && css`
+  effect === "pipeline" && css`
     ${CONTENT} {
       animation: ${settle} ${THEME_SWITCH_MS}ms ease-out both;
     }
@@ -279,28 +267,6 @@ const PipelineStage = styled.span(({ index }: { index: number }) => [
   `,
 ]);
 
-// The code review: a column of changed lines, each removed in red, then added back in the accent.
-const DIFF_LINES = [92, 64, 78, 50, 86, 70, 58];
-
-const Diff = tw.div`absolute inset-0 z-[3] flex flex-col gap-[7px] p-[12px] pointer-events-none`;
-
-const DiffLine = tw.span`relative block h-[8px]`;
-
-const Removed = styled.span(({ index }: { index: number }) => [
-  tw`absolute inset-0 block rounded-[2px] origin-right bg-[rgba(255,107,107,0.55)]`,
-  css`
-    animation: ${lineRemoved} ${THEME_SWITCH_MS * 0.35}ms ease-in ${index * 45}ms both;
-  `,
-]);
-
-const Added = styled.span(({ index }: { index: number }) => [
-  tw`absolute inset-0 block rounded-[2px] origin-left`,
-  css`
-    background: rgba(var(--accent-rgb), 0.55);
-    animation: ${lineAdded} ${THEME_SWITCH_MS * 0.55}ms ease-out ${THEME_SWITCH_MS * 0.3 + index * 45}ms both;
-  `,
-]);
-
 // The layer a theme's switch draws over the content.
 const ThemeLayer: FC<{ effect: ThemeEffect }> = ({ effect }) => {
   if (effect === "draft") {
@@ -312,31 +278,18 @@ const ThemeLayer: FC<{ effect: ThemeEffect }> = ({ effect }) => {
     );
   }
 
-  if (effect === "pipeline") {
-    return (
-      <Track data-switch-fx aria-hidden="true">
-        <TrackLine />
-        <TrackFill />
-        {Array.from({ length: PIPELINE_STAGES }, (_, index) => <PipelineStage key={index} index={index} />)}
-      </Track>
-    );
-  }
-
   return (
-    <Diff data-switch-fx aria-hidden="true">
-      {DIFF_LINES.map((width, index) => (
-        <DiffLine key={index} style={{ width: `${width}%` }}>
-          <Removed index={index} />
-          <Added index={index} />
-        </DiffLine>
-      ))}
-    </Diff>
+    <Track data-switch-fx aria-hidden="true">
+      <TrackLine />
+      <TrackFill />
+      {Array.from({ length: PIPELINE_STAGES }, (_, index) => <PipelineStage key={index} index={index} />)}
+    </Track>
   );
 };
 
 // The layer an effect draws over the content, if it has one.
 export const SwitchLayer: FC<{ effect: ZoneEffect | ThemeEffect }> = ({ effect }) => {
-  if (effect === "draft" || effect === "pipeline" || effect === "diff") {
+  if (isThemeEffect(effect)) {
     return <ThemeLayer effect={effect} />;
   }
 

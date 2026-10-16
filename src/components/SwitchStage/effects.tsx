@@ -3,7 +3,7 @@ import { FC } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { BLOCK_GRID, PIXEL_GRID, SWITCH_MS, SwitchEffect } from "@/components/SwitchStage/config";
+import { BLOCK_GRID, isPaymentEffect, PAYMENT_SWITCH_MS, PIXEL_GRID, SWITCH_MS, SwitchEffect, ZoneEffect } from "@/components/SwitchStage/config";
 import { media } from "@/styles/mixins";
 
 const wipeIn = keyframes`
@@ -58,6 +58,12 @@ const warpIn = keyframes`
   100% { opacity: 1; transform: none; filter: none; }
 `;
 
+// Under a payment's story the new content waits dimmed, then comes up as the payment is approved.
+const paySettle = keyframes`
+  0%, 45% { opacity: 0.14; }
+  100% { opacity: 1; }
+`;
+
 // A 2px line, so moving it by top costs nothing worth measuring.
 const scanLine = keyframes`
   0% { top: 0; opacity: 1; }
@@ -95,6 +101,11 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
   effect === "warp" && css`
     ${CONTENT} {
       animation: ${warpIn} ${SWITCH_MS}ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+  `,
+  effect && isPaymentEffect(effect) && css`
+    ${CONTENT} {
+      animation: ${paySettle} ${PAYMENT_SWITCH_MS}ms ease-out both;
     }
   `,
   css`
@@ -158,7 +169,7 @@ const Pixel = styled.span(({ delay, isLit }: { delay: number; isLit: boolean }) 
 ]);
 
 // The layer an effect draws over the content, if it has one.
-export const SwitchLayer: FC<{ effect: SwitchEffect }> = ({ effect }) => {
+export const SwitchLayer: FC<{ effect: ZoneEffect }> = ({ effect }) => {
   if (effect === "beam" || effect === "scan") {
     return <Line effect={effect} data-switch-fx aria-hidden="true" />;
   }

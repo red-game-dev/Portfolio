@@ -1,7 +1,12 @@
 import { ZoneId } from "@/config/zones";
+import { BlueprintMotion } from "@/types/blueprints";
 
 // How long a switch plays.
 export const SWITCH_MS = 650;
+
+// A payment's switch tells a short story (the card goes to the terminal, then it is approved), so it plays
+// longer. It never takes a press: the content under it can be used from the start.
+export const PAYMENT_SWITCH_MS = 1200;
 
 // The cells laid over the new content as it lands: blocks for Web3, pixels for the game world.
 export const BLOCK_GRID = { columns: 8, rows: 4 } as const;
@@ -11,9 +16,15 @@ export const PIXEL_GRID = { columns: 16, rows: 8 } as const;
 // confirm one after another in a diagonal wave. Casino: the content is dealt and flipped like a card.
 // Game world: a retro pixel dissolve. Engineering: a terminal refreshes top to bottom. Beyond: the content
 // drops out of warp, a little far and bright, and settles. Reduced motion just swaps.
-export type SwitchEffect = "beam" | "blocks" | "deal" | "pixels" | "scan" | "warp";
+export type ZoneEffect = "beam" | "blocks" | "deal" | "pixels" | "scan" | "warp";
 
-export const ZONE_EFFECTS: Record<ZoneId, SwitchEffect> = {
+// The payments drawings switch their own way: a showcase opens each with its subject (its motion), and
+// inside one the tabs switch with the next way to pay at the terminal ("pay").
+export type PaymentEffect = BlueprintMotion | "pay";
+
+export type SwitchEffect = ZoneEffect | PaymentEffect;
+
+export const ZONE_EFFECTS: Record<ZoneId, ZoneEffect> = {
   ai: "beam",
   chain: "blocks",
   casino: "deal",
@@ -23,4 +34,8 @@ export const ZONE_EFFECTS: Record<ZoneId, SwitchEffect> = {
 };
 
 // The effect a switch plays: the one of the zone it sits in.
-export const switchEffectFor = (zone: ZoneId): SwitchEffect => ZONE_EFFECTS[zone];
+export const switchEffectFor = (zone: ZoneId): ZoneEffect => ZONE_EFFECTS[zone];
+
+const ZONE_EFFECT_SET: ReadonlySet<SwitchEffect> = new Set(Object.values(ZONE_EFFECTS));
+
+export const isPaymentEffect = (effect: SwitchEffect): effect is PaymentEffect => !ZONE_EFFECT_SET.has(effect);

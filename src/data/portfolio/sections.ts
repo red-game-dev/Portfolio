@@ -211,6 +211,24 @@ export const sectionsContent: Pick<PortfolioData, "sections"> = {
         ],
       },
     },
+    payments: {
+      title: "Payments, from the till to the bank",
+      description: [
+        "Card payments from the counter to the merchant's account: the POS and the payment gateway of a payments company of my " +
+          "own, and the card systems I built at companies I worked for, on the acquiring, issuing and gateway sides.",
+        "Pay at the terminal with a card, a phone wallet or a QR code, and the next drawing opens.",
+      ],
+      lenses: {
+        recruiter: [
+          "Payments end to end: a POS and a gateway of my own, and card systems built at companies across acquiring, issuing " +
+            "and gateways, inside PCI DSS Level 1 environments. Each drawing opens on what I did and at what scale.",
+        ],
+        product: [
+          "What merchants, sellers and cardholders move through: a POS for shops, restaurants and chains, checkout across every " +
+            "major way to pay, payouts on a schedule or at once, and a card payment from the tap to the merchant's account.",
+        ],
+      },
+    },
     engineRoom: {
       title: "Engine Room",
       description: [

@@ -11,8 +11,8 @@ export interface Switcher {
   // Bumped on every switch, to key the layers that must play again.
   count: number;
   // A showcase whose content has a universe of its own (a drawing) passes it; otherwise the stage's place
-  // in the page decides.
-  play: (direction: 1 | -1, zone?: ZoneId) => void;
+  // in the page decides. Content with a switch of its own (a payments drawing) passes that effect instead.
+  play: (direction: 1 | -1, zone?: ZoneId, effect?: SwitchEffect) => void;
 }
 
 // The state behind a SwitchStage. Nothing plays until the first switch, so content never animates on
@@ -21,8 +21,8 @@ const useSwitch = (): Switcher => {
   const ref = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<Pick<Switcher, "effect" | "direction" | "count">>({ effect: null, direction: 1, count: 0 });
 
-  const play = useCallback((direction: 1 | -1, zone?: ZoneId) => {
-    const effect = switchEffectFor(zone ?? zoneOf(ref.current));
+  const play = useCallback((direction: 1 | -1, zone?: ZoneId, own?: SwitchEffect) => {
+    const effect = own ?? switchEffectFor(zone ?? zoneOf(ref.current));
 
     setState((previous) => ({ effect, direction, count: previous.count + 1 }));
   }, []);

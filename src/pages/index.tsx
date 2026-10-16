@@ -11,6 +11,7 @@ import { Finale } from "@/components/Finale";
 import { Glance } from "@/components/Glance";
 import { History } from "@/components/History";
 import { IGaming } from "@/components/IGaming";
+import { Payments } from "@/components/Payments";
 import { PlatformOverview } from "@/components/PlatformOverview";
 import { Projects } from "@/components/Projects";
 import { Recommendations } from "@/components/Recommendations";
@@ -116,6 +117,7 @@ export default function Home() {
             expertise={portfolioData.expertise}
             blueprintSection="platform"
           />
+          <Payments intro={portfolioData.sections.payments} content={portfolioData.payments} blueprintSection="payments" />
           <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
         </Zone>
         <Zone zone="casino">

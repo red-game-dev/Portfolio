@@ -3,7 +3,7 @@ import { ZoneId } from "@/config/zones";
 
 export type StopKey = "who" | "offer" | "history" | "ai" | "web3" | "engineering" | "igaming" | "game" | "beyond";
 
-export type StopPartKey = "skills" | "caseStudies" | "projects" | "recommendations" | "arena";
+export type StopPartKey = "payments" | "skills" | "caseStudies" | "projects" | "recommendations" | "arena";
 
 // A section inside a long stop that a reader may look for by name, linked straight from the menu.
 export interface StopPart {
@@ -39,7 +39,8 @@ export const JOURNEY_STOPS: JourneyStop[] = [
   stop("history", "matrix", SECTION_IDS.history, SECTION_IDS.history),
   stop("ai", "ai", SECTION_IDS.aiUsage, SECTION_IDS.aiUsage),
   stop("web3", "chain", SECTION_IDS.web3, SECTION_IDS.web3),
-  stop("engineering", "chain", SECTION_IDS.skillAreas, SECTION_IDS.codeReview),
+  // Payments sits inside, and a payments reader looks for it by name.
+  stop("engineering", "chain", SECTION_IDS.skillAreas, SECTION_IDS.codeReview, { payments: SECTION_IDS.payments }),
   stop("igaming", "casino", SECTION_IDS.igaming, SECTION_IDS.igaming),
   // The longest stop, and the one a recruiter looks inside by name: its parts are linked from the menu too.
   stop("game", "mmo", SECTION_IDS.roster, SECTION_IDS.arena, {

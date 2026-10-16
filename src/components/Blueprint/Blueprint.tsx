@@ -7,6 +7,7 @@ import { BLEED, NEAR_MARGIN } from "@/components/Blueprint/config";
 import { Wireframe } from "@/components/Blueprint/Wireframe";
 import { TagList } from "@/components/Controls";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { preloadPaymentLayer, renderPaymentLayer } from "@/components/Payments/scene/lazyLayer";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { Lens } from "@/config/lenses";
 import useInView from "@/hooks/useInView";
@@ -133,7 +134,7 @@ const JourneyList: FC<{ journeys: BlueprintJourney[] }> = ({ journeys }) => (
 // One system shown three ways: what I did and at what scale, how it is built, and what a user moves
 // through. All three stay in the page for every reader; only which one is open changes with the view.
 export const Blueprint: FC<BlueprintProps> = ({
-  zone, title, caption, summary, architecture, wireframe, journeys = [], labels, isBleed = true, isEager = false,
+  zone, motion, title, caption, summary, architecture, wireframe, journeys = [], labels, isBleed = true, isEager = false,
 }: BlueprintProps) => {
   const { lens } = useLensStateHook();
   const hasFlow = Boolean(wireframe) || journeys.length > 0;
@@ -152,10 +153,18 @@ export const Blueprint: FC<BlueprintProps> = ({
 
   const switcher = useSwitch();
 
-  // The overview, the architecture and the product flow swap in with the drawing's own universe.
+  // A payments drawing's switch is fetched as the drawing arrives, so its first switch never waits for it.
+  useEffect(() => {
+    if (motion) {
+      preloadPaymentLayer();
+    }
+  }, [motion]);
+
+  // The overview, the architecture and the product flow swap in with the drawing's own universe, or for a
+  // payments drawing with the next way to pay.
   const open = (next: View) => {
     if (next !== view) {
-      switcher.play(VIEW_ORDER.indexOf(next) > VIEW_ORDER.indexOf(view) ? 1 : -1, zone);
+      switcher.play(VIEW_ORDER.indexOf(next) > VIEW_ORDER.indexOf(view) ? 1 : -1, zone, motion ? "pay" : undefined);
       setView(next);
     }
   };
@@ -179,7 +188,7 @@ export const Blueprint: FC<BlueprintProps> = ({
           </Toggle>
         ))}
       </Toggles>
-      <Body id={bodyId} switcher={switcher}>
+      <Body id={bodyId} switcher={switcher} paymentLayer={motion ? renderPaymentLayer : undefined}>
         {view === "overview" && (
           <Facts>
             <Term>{labels.role}</Term>

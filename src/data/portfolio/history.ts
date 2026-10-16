@@ -819,6 +819,37 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
         "Built for scale from the start, held back only by licensing",
       ],
     },
+    {
+      // Unnamed on purpose, for now.
+      title: "Founder, CEO & CTO, POS and payments venture",
+      ventureRole: "Founder, CEO and CTO",
+      isVenture: true,
+      countsForSkills: false,
+      industries: ["fintech", "ecommerce"],
+      period: "A past venture",
+      // Undated on purpose: the year only places it on the timeline and is never shown. It ran twice, the
+      // second time around these years.
+      from: "2019",
+      to: "2021",
+      productOutcome:
+        "Shops, restaurants and chains took cards, phone wallets, local methods and crypto at the counter and online, through one POS " +
+        "and one gateway of my own",
+      description: [
+        `A POS and payments company of my own, started twice: the first went live with merchants, and the second, a rebuild, ran as a
+        pilot. Retail shops, restaurants, cafés, bars and chains, in store and online, in Malta, across the EU and beyond.`,
+      ],
+      bullets: [
+        "Tills on Android, iOS, desktop and the payment terminal itself, joined to card terminals four ways, SoftPOS among them",
+        "Tables, tabs, split bills and tips, one stock across outlets and the online store, and fiscal receipts where the law asks",
+        "Selling on through an outage: sales synced once each, and cards approved offline under a floor limit",
+        "My own gateway in front of PSPs and an acquirer: routing with fail over, PSP and network tokens, a double entry ledger",
+        "Visa, Mastercard, Amex, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Alipay, WeChat Pay and crypto",
+        "SDKs for .NET, Vue, Angular, PHP frameworks and more, for the developers building on it",
+        "The first core in C/C++, with bindings to Python, PHP and JavaScript for speed",
+      ],
+      techStack: ["C/C++", "Python", "PHP", "JavaScript", "Java", "TypeScript", "Node.js", "Kotlin", "Swift", "React", "React Native",
+        "PostgreSQL", "Redis"],
+    },
   ],
   education: [
     {

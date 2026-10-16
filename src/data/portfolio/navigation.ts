@@ -20,6 +20,7 @@ export const navigationContent: Pick<PortfolioData, "lens" | "blueprintLabels" |
       beyond: "Beyond",
     },
     parts: {
+      payments: "Payments",
       skills: "Skills",
       caseStudies: "Case studies",
       projects: "Projects",

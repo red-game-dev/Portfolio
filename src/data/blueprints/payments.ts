@@ -29,7 +29,6 @@ const blueprints: Blueprint[] = [
           place: { col: 1, row: 1 },
           nodes: [
             { id: "pos-apps", label: "Till apps", detail: "Android, iOS and desktop" },
-            { id: "pos-on-terminal", label: "On the terminal", detail: "The POS beside the payment app on an Android terminal" },
             { id: "pos-web", label: "Web back office", detail: "For the owner and head office" },
           ],
         },
@@ -50,9 +49,10 @@ const blueprints: Blueprint[] = [
           place: { col: 3, row: 1 },
           nodes: [
             { id: "pos-semi", label: "Semi-integrated", detail: "The till sends the amount, the terminal reads the card" },
+            { id: "pos-on-terminal", label: "On the terminal", detail: "The POS beside the payment app, on the terminal itself" },
             { id: "pos-cloud", label: "Cloud terminal API", detail: "The amount pushed to the terminal over the internet" },
             { id: "pos-softpos", label: "SoftPOS", detail: "The phone itself takes contactless cards" },
-            { id: "pos-scope", label: "No card data at the till", detail: "Only approved or declined comes back", kind: "decision" },
+            { id: "pos-scope", label: "No card data at the till", detail: "Only the result, a masked card number and the receipt lines come back", kind: "decision" },
           ],
         },
         {
@@ -105,7 +105,7 @@ const blueprints: Blueprint[] = [
         { from: "pos-apps", to: "pos-hardware", label: "drives" },
         { from: "pos-till", to: "pos-sale" },
         { from: "pos-pay", to: "pos-terminal", label: "the amount" },
-        { from: "pos-terminal", to: "pos-gateway", label: "approved or declined" },
+        { from: "pos-terminal", to: "pos-gateway", isTwoWay: true, label: "authorisation" },
         { from: "pos-sale", to: "pos-offline", style: "dashed", label: "no connection" },
         { from: "pos-sale", to: "pos-shift" },
         { from: "pos-z", to: "pos-reports" },
@@ -150,7 +150,8 @@ const blueprints: Blueprint[] = [
         },
       ],
       decision: "The till never sees a card number: however the terminal is joined, the till sends the amount and gets back " +
-        "approved or declined, so the POS stays out of the card data's PCI scope.",
+        "the result with a masked card number, so the till stays outside the card data environment and the merchant's PCI " +
+        "scope stays small.",
       outcome: "One POS ran a shop, a restaurant or a chain, in store and online, and kept selling through an outage.",
     },
     journeys: [
@@ -189,8 +190,8 @@ const blueprints: Blueprint[] = [
     motion: "sync",
     title: "Selling through an outage, each sale counted once",
     caption: "With no internet the till keeps selling: every sale waits on the device and syncs once when the connection " +
-      "returns, the terminal approves cards offline under a floor limit and sends them on later, and a late decline is " +
-      "flagged to the merchant.",
+      "returns, the terminal accepts cards offline under a floor limit, at the merchant's risk, and sends them for " +
+      "authorisation later, and a late decline is flagged to the merchant.",
     summary: {
       role: "Designed and built the offline mode and the sync, on the tills and through the terminals",
       scale: "Every till and terminal of every merchant, shops and restaurants alike",
@@ -213,8 +214,8 @@ const blueprints: Blueprint[] = [
           label: "On the terminal",
           place: { col: 2, row: 1 },
           nodes: [
-            { id: "off-limit", label: "Floor limit", detail: "Set per merchant, caps what an outage can cost", kind: "decision" },
-            { id: "off-approve", label: "Approved offline", detail: "Under the limit, by the card and the terminal" },
+            { id: "off-limit", label: "Floor limit", detail: "Set per merchant: above it, a card needs a connection", kind: "decision" },
+            { id: "off-approve", label: "Accepted offline", detail: "Under the limit, at the merchant's risk until the card's bank answers" },
             { id: "off-forward", label: "Store and forward", detail: "Held encrypted until online", kind: "store" },
           ],
         },
@@ -249,7 +250,7 @@ const blueprints: Blueprint[] = [
         },
         {
           id: "off-banks",
-          label: "Acquirer or PSP",
+          label: "Acquirer or PSP, and the card's bank",
           isExternal: true,
           place: { col: 4, row: 2 },
           nodes: [
@@ -298,7 +299,7 @@ const blueprints: Blueprint[] = [
         },
       ],
       decision: "Every sale is written on the device first under a key of its own, so sending it twice books it once, and " +
-        "the terminal's floor limit caps what an outage can cost.",
+        "the floor limit keeps each card taken offline small.",
       outcome: "Outlets kept selling through an outage, and a sale sent twice was booked once.",
     },
     journeys: [
@@ -307,14 +308,14 @@ const blueprints: Blueprint[] = [
         steps: [
           "The connection drops in the middle of service",
           "Sales and cash carry on, kept on the till",
-          "Cards under the floor limit are approved on the terminal",
+          "Cards under the floor limit are accepted on the terminal",
           "The connection returns and each sale syncs once",
         ],
       },
       {
         title: "A late decline",
         steps: [
-          "A card approved offline is sent on",
+          "A card accepted offline is sent for authorisation",
           "The card's bank declines it",
           "The merchant sees it flagged, to collect another way",
         ],
@@ -332,8 +333,8 @@ const blueprints: Blueprint[] = [
       "settlement files read back and reconciled, and chargebacks booked.",
     summary: {
       role: "Founder, CEO and CTO of my own payments company: designed and built the gateway, its API and SDKs, and the money behind it",
-      scale: "Every major card network, Apple Pay, Google Pay, PayPal, Alipay, WeChat Pay and crypto, for merchants in Malta, " +
-        "across the EU and beyond",
+      scale: "Visa, Mastercard, Amex, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Alipay, WeChat Pay and crypto, for " +
+        "merchants in Malta, across the EU and beyond",
       stack: ["C/C++", "Python", "PHP", "JavaScript", "TypeScript", "Node.js", "PostgreSQL", "Redis", ".NET", "Vue", "Angular"],
     },
     architecture: {
@@ -356,9 +357,9 @@ const blueprints: Blueprint[] = [
           place: { col: 2, row: 1 },
           nodes: [
             { id: "gw-kyb", label: "Merchant onboarding", detail: "KYB here, or at the PSP" },
-            { id: "gw-limits", label: "Limits and reserves", detail: "Per merchant, raised as it proves itself" },
+            { id: "gw-limits", label: "Limits and reserves", detail: "Set per merchant" },
             { id: "gw-fraud", label: "Fraud rules", detail: "Checked before a payment is sent" },
-            { id: "gw-3ds", label: "3-D Secure and SCA", detail: "For online cards in the EU" },
+            { id: "gw-3ds", label: "3-D Secure and SCA", detail: "For online cards, and SCA where PSD2 asks" },
           ],
         },
         {
@@ -367,8 +368,8 @@ const blueprints: Blueprint[] = [
           place: { col: 3, row: 1 },
           nodes: [
             { id: "gw-router", label: "Router", detail: "By method and by merchant", kind: "decision" },
-            { id: "gw-failover", label: "Fail over", detail: "On a provider's error, never on the bank's decline" },
-            { id: "gw-tokens", label: "Tokens", detail: "PSP tokens and network tokens, never a card number", kind: "store" },
+            { id: "gw-failover", label: "Fail over", detail: "When a provider fails before it authorises, never on a hard decline" },
+            { id: "gw-tokens", label: "Tokens", detail: "Network tokens move between providers, a PSP token stays with its PSP", kind: "store" },
           ],
         },
         {
@@ -378,7 +379,7 @@ const blueprints: Blueprint[] = [
           place: { col: 4, row: 1 },
           nodes: [
             { id: "gw-psps", label: "PSPs", detail: "Cards, wallets, PayPal and local methods" },
-            { id: "gw-acquirer", label: "Acquirer", detail: "Authorisations to the bank's host" },
+            { id: "gw-acquirer", label: "Acquirer", detail: "Carries authorisations to the card networks" },
             { id: "gw-banks", label: "Bank rails", detail: "SEPA and SEPA Instant" },
             { id: "gw-crypto", label: "Crypto rails", detail: "On chain, at the till or online" },
           ],
@@ -401,7 +402,7 @@ const blueprints: Blueprint[] = [
           place: { col: 3, row: 2 },
           nodes: [
             { id: "gw-webhooks", label: "Signed webhooks", detail: "Retried with backoff until acknowledged" },
-            { id: "gw-refunds", label: "Refunds and voids", detail: "A void before settlement, a refund after" },
+            { id: "gw-refunds", label: "Refunds and voids", detail: "A void before capture or clearing, a refund after" },
             { id: "gw-chargebacks", label: "Chargebacks", detail: "Evidence sent, the outcome booked" },
           ],
         },
@@ -466,7 +467,7 @@ const blueprints: Blueprint[] = [
         },
       ],
       decision: "The merchant talks to one API with an idempotency key on every write, and the router behind it fails over " +
-        "only on a provider's error: a card its bank declined is never sent again elsewhere.",
+        "only when a provider fails before it authorises: a hard decline from the card's bank is never sent again elsewhere.",
       outcome: "Merchants took every method through one integration, and every payment could be followed from the request " +
         "to the line in the settlement file.",
     },
@@ -477,7 +478,7 @@ const blueprints: Blueprint[] = [
           "The merchant sends it with an idempotency key",
           "Fraud rules and the merchant's limits pass",
           "The router picks the provider for the method and the merchant",
-          "That provider errors, so the next one takes it",
+          "That provider fails before authorising, so the next one takes it",
           "Authorised, and a signed webhook tells the merchant",
         ],
       },
@@ -506,12 +507,12 @@ const blueprints: Blueprint[] = [
     motion: "authorise",
     title: "One card payment, end to end, at enterprise scale",
     caption: "From a tap at the terminal to money in the merchant's account: the terminal encrypts the card, the HSM decrypts " +
-      "it and translates the PIN, the authorisation crosses the card network to the issuer and back over ISO 8583, and " +
-      "clearing, settlement and disputes run on their own cycle.",
+      "it and translates any online PIN, the authorisation crosses the card network to the issuer and back over ISO 8583, " +
+      "and clearing, settlement and disputes run on their own cycle.",
     summary: {
       role: "Built across the acquiring, issuing, gateway and merchant sides at companies I worked for, inside their PCI DSS " +
         "Level 1 certified environments",
-      scale: "Card present and online, every major network and the phone wallets, in systems still in use",
+      scale: "Card present and online, with the phone wallets, in systems still in use",
       stack: ["C/C++", "Java", "Kotlin", "C# (.NET)", "Go", "Node.js", "PHP", "ISO 8583", "EMV", "HSM"],
     },
     architecture: {
@@ -533,7 +534,7 @@ const blueprints: Blueprint[] = [
           place: { col: 2, row: 1 },
           nodes: [
             { id: "cp-switch", label: "Authorisation switch", detail: "Routes each request" },
-            { id: "cp-hsm", label: "HSM", detail: "Decrypts P2PE, translates the PIN" },
+            { id: "cp-hsm", label: "HSM", detail: "Decrypts P2PE, translates an online PIN" },
             { id: "cp-vault", label: "Token vault", detail: "Card numbers swapped for tokens", kind: "store" },
           ],
         },
@@ -561,12 +562,12 @@ const blueprints: Blueprint[] = [
         },
         {
           id: "cp-cde",
-          label: "PCI DSS Level 1 environment",
+          label: "Card data environment, PCI DSS Level 1",
           columns: 2,
           place: { col: 1, row: 2, colSpan: 2 },
           nodes: [
-            { id: "cp-scope", label: "Card data only in here", detail: "Everything outside holds a token", kind: "decision" },
-            { id: "cp-iso", label: "ISO 8583 links", detail: "Request and response, per network" },
+            { id: "cp-scope", label: "Card data only in here", detail: "The switch, the HSM and the vault; everything outside holds a token", kind: "decision" },
+            { id: "cp-iso", label: "ISO 8583 links", detail: "Request and response per network, with stand-in when a host is down" },
           ],
         },
         {
@@ -597,7 +598,7 @@ const blueprints: Blueprint[] = [
         { from: "cp-switch", to: "cp-iso" },
         { from: "cp-iso", to: "cp-network", isTwoWay: true, label: "authorisation" },
         { from: "cp-network", to: "cp-issuer", isTwoWay: true },
-        { from: "cp-standin", to: "cp-issuer", style: "dashed", label: "issuer down" },
+        { from: "cp-standin", to: "cp-issuer", style: "dashed", label: "advice once the issuer is back" },
         { from: "cp-tokens", to: "cp-wallets", style: "link" },
         { from: "cp-switch", to: "cp-pos", style: "dashed", label: "approved or declined" },
         { from: "cp-clearing", to: "cp-settlement" },
@@ -640,11 +641,11 @@ const blueprints: Blueprint[] = [
           ],
         },
       ],
-      decision: "The card leaves the terminal encrypted and is decrypted only inside the card data environment, the PIN is " +
-        "translated from the terminal's keys to the network's inside the HSM and never in the clear, and every system " +
+      decision: "The card leaves the terminal encrypted and is decrypted only inside the card data environment, an online PIN " +
+        "is translated from the terminal's keys to the network's inside the HSM and never in the clear, and every system " +
         "outside holds a token.",
-      outcome: "Both sides of a card payment, built end to end and still in use, with the card data kept to the smallest " +
-        "part of each system.",
+      outcome: "Both sides of a card payment, built across the companies I worked for and still in use, with the card data " +
+        "kept to the smallest part of each system.",
     },
     journeys: [
       {
@@ -652,7 +653,7 @@ const blueprints: Blueprint[] = [
         steps: [
           "The cardholder taps a card or a phone",
           "The terminal encrypts the card and sends it on",
-          "The HSM decrypts it and translates the PIN",
+          "The HSM decrypts it, and translates the PIN when one was entered online",
           "The network carries the request to the issuer",
           "The issuer approves on the balance and the rules",
           "Approved shows on the terminal",
@@ -733,7 +734,7 @@ const blueprints: Blueprint[] = [
           place: { col: 4, row: 1 },
           nodes: [
             { id: "po-bank", label: "Bank accounts", detail: "SEPA on a schedule, SEPA Instant at once" },
-            { id: "po-card", label: "Push to card", detail: "Visa Direct and Mastercard Send" },
+            { id: "po-card", label: "Push to card", detail: "Visa Direct and Mastercard Send, through an acquirer or PSP" },
             { id: "po-psp", label: "PSP payouts", detail: "Stripe Connect and the like" },
             { id: "po-crypto", label: "Crypto wallets", detail: "In a stablecoin or crypto" },
           ],

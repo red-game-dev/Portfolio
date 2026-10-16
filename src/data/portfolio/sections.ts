@@ -224,8 +224,8 @@ export const sectionsContent: Pick<PortfolioData, "sections"> = {
             "and gateways, inside PCI DSS Level 1 environments. Each drawing opens on what I did and at what scale.",
         ],
         product: [
-          "What merchants, sellers and cardholders move through: a POS for shops, restaurants and chains, checkout across every " +
-            "major way to pay, payouts on a schedule or at once, and a card payment from the tap to the merchant's account.",
+          "What merchants, sellers and cardholders move through: a POS for shops, restaurants and chains, checkout across cards, " +
+            "phone wallets, PayPal, Alipay, WeChat Pay and crypto, payouts on a schedule or at once, and a card payment from the tap to the merchant's account.",
         ],
       },
     },

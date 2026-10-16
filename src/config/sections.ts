@@ -43,6 +43,9 @@ export const AUDIENCE_ANCHORS: Record<Audience, string> = {
 // an anchor of its own, which opens them on payments just the same.
 export const PAYMENT_CASES_ANCHOR = "payments-case-studies";
 
+// Where a link to the case studies for one kind of role goes (the terminal's `cases payments`).
+export const CASE_STUDY_ANCHORS: Record<Audience, string> = { ...AUDIENCE_ANCHORS, payments: PAYMENT_CASES_ANCHOR };
+
 export const audienceForHash = (hash: string): Audience | null => {
   const anchor = hash.replace(/^#/, "");
 

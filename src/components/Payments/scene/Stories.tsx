@@ -1,4 +1,4 @@
-import { CSSProperties, FC, ReactNode } from "react";
+import { FC, ReactNode } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -278,7 +278,7 @@ const SplitStory: FC = () => (
         key={index}
         size={SPLIT.share}
         frames={frames}
-        style={{ left: SPLIT.coin.left + SPLIT.coin.size / 2 - SPLIT.share / 2, top: SPLIT.coin.top + SPLIT.coin.size / 2 - SPLIT.share / 2 } as CSSProperties}
+        style={{ left: SPLIT.coin.left + SPLIT.coin.size / 2 - SPLIT.share / 2, top: SPLIT.coin.top + SPLIT.coin.size / 2 - SPLIT.share / 2 }}
       />
     ))}
   </Stage>

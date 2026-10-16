@@ -5,8 +5,8 @@ import tw, { css, styled } from "twin.macro";
 import { APPROVE_SHARE, RESET_MS, TERMINAL_PAY_MS, TERMINAL_SCALE } from "@/components/Payments/config";
 import { Mark } from "@/components/Payments/scene/Instrument";
 import { PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
-import { Scene, SCENE, ScreenText, ScreenTick } from "@/components/Payments/scene/Scene";
-import { PAYMENT_METHODS, PaymentMethodId } from "@/config/payments";
+import { Qr, Scene, SCENE, ScreenText, ScreenTick } from "@/components/Payments/scene/Scene";
+import { PAY_GESTURES, PAYMENT_METHODS, PaymentMethodId } from "@/config/payments";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { fill } from "@/packages/text/format";
 import { focusRing, media } from "@/styles/mixins";
@@ -25,7 +25,7 @@ type Phase =
 const Wrap = styled.div(() => [
   tw`flex flex-col items-center gap-[18px] p-[18px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
   css`
-    ${media.lg} {
+    ${media.xl} {
       flex-direction: row;
       align-items: center;
       gap: 32px;
@@ -40,7 +40,7 @@ const SceneBox = styled.div(() => [
     width: calc(${SCENE.width}px * var(--scale));
     height: calc(${SCENE.height}px * var(--scale));
 
-    ${media.lg} {
+    ${media.xl} {
       --scale: ${TERMINAL_SCALE.wide};
     }
 
@@ -89,7 +89,8 @@ const MethodButton = styled.button(() => [
   focusRing("var(--accent)", 3),
 ]);
 
-const Status = tw.p`m-0 min-h-[1.25rem] text-sm text-[var(--accent)]`;
+// Two lines held, so the line wrapping on a phone never moves the drawings below.
+const Status = tw.p`m-0 min-h-[2.5rem] text-sm text-[var(--accent)]`;
 
 const clearAll = (pending: number[]) => {
   pending.splice(0).forEach((timer) => window.clearTimeout(timer));
@@ -104,7 +105,7 @@ const faceOf = (method: PaymentMethodId) =>
 export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTerminalProps) => {
   const isStill = useReducedMotion();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
-  const [line, setLine] = useState("");
+  const [line, setLine] = useState<{ text: string; press: number } | null>(null);
   const presses = useRef(0);
   const timers = useRef<number[]>([]);
 
@@ -123,13 +124,10 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
     presses.current += 1;
 
     const press = presses.current;
-    // Emptied first, so the same method paid twice is read out again.
-
-    setLine("");
 
     const approve = () => {
       setPhase({ kind: "approved", method, press });
-      setLine(fill(content.approvedLine, { method: content.methods[method] }));
+      setLine({ text: fill(content.approvedLine, { method: content.methods[method] }), press });
       onPaid();
       timers.current.push(window.setTimeout(() => setPhase({ kind: "idle" }), RESET_MS));
     };
@@ -146,7 +144,10 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
 
   const shown = phase.kind === "idle" ? null : phase;
 
-  const screen = (
+  // A QR method shows its code for the phone to scan; the screen has room for nothing else beside it.
+  const isScanning = shown?.kind === "paying" && PAY_GESTURES[shown.method] === "scan";
+
+  const screen = isScanning ? <Qr /> : (
     <>
       {shown?.kind === "approved" && <ScreenTick />}
       <ScreenText>{shown?.kind === "approved" ? content.approved : content.amount}</ScreenText>
@@ -182,7 +183,8 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
             </MethodButton>
           ))}
         </Methods>
-        <Status role="status">{line}</Status>
+        {/* A new node for every payment, so the same method paid twice is read out again. */}
+        <Status role="status">{line && <span key={line.press}>{line.text}</span>}</Status>
       </Side>
     </Wrap>
   );

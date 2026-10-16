@@ -165,6 +165,32 @@ describe("PayTerminal", () => {
     expect(screen.getByRole("status")).toHaveTextContent(content.methods.visa);
   });
 
+  it("shows a QR method's code on the screen while the phone scans it", () => {
+    render(<PayTerminal content={content} onPaid={jest.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: `Pay with ${content.methods.paypal}` }));
+
+    expect(screen.queryByText(content.amount)).toBeNull();
+
+    act(() => {
+      jest.advanceTimersByTime(TERMINAL_PAY_MS * APPROVE_SHARE);
+    });
+
+    expect(screen.getByText(content.approved)).toBeInTheDocument();
+  });
+
+  it("reads the same method paid twice out again, as a new line", () => {
+    document.documentElement.setAttribute(MOTION_ATTRIBUTE, "reduced");
+    render(<PayTerminal content={content} onPaid={jest.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: visa }));
+    const first = screen.getByRole("status").firstChild;
+
+    fireEvent.click(screen.getByRole("button", { name: visa }));
+
+    expect(screen.getByRole("status").firstChild).not.toBe(first);
+    expect(screen.getByRole("status")).toHaveTextContent(`${content.methods.visa}: approved.`);
+  });
+
   it("approves at once with nothing moving when the page keeps still", () => {
     document.documentElement.setAttribute(MOTION_ATTRIBUTE, "reduced");
 

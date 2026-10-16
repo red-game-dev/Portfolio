@@ -195,7 +195,7 @@ const QrGrid = styled.span(() => [
 
 const QrCell = styled.span(({ isOn }: { isOn: boolean }) => [tw`block`, isOn ? tw`bg-[#111]` : tw`bg-white`]);
 
-const Qr: FC = () => (
+export const Qr: FC = () => (
   <QrGrid aria-hidden="true">
     {Array.from({ length: QR_CELLS * QR_CELLS }, (_, index) => (
       <QrCell key={index} isOn={isDark(Math.floor(index / QR_CELLS), index % QR_CELLS)} />
@@ -241,7 +241,7 @@ const ReceiptLine = styled.span(({ width }: { width: number }) => [
   `,
 ]);
 
-const Hold = styled.div(({ gesture, isMoving }: { gesture: PayGesture; isMoving: boolean }) => [
+const Hold = styled.div(({ gesture }: { gesture: PayGesture }) => [
   tw`absolute`,
   // A card going into a reader passes behind the terminal; everything else is held in front of it.
   gesture === "insert" || gesture === "swipe" ? tw`z-[1]` : tw`z-[4]`,
@@ -250,7 +250,7 @@ const Hold = styled.div(({ gesture, isMoving }: { gesture: PayGesture; isMoving:
     top: ${POSITIONS[gesture].top}px;
     opacity: 0;
   `,
-  isMoving && playing(MOVES[gesture]),
+  playing(MOVES[gesture]),
   noAnimationWhenReduced,
 ]);
 
@@ -266,17 +266,16 @@ interface SceneProps {
   // What the screen shows, where the scene is the terminal a reader pays at; a switch tells it with the story.
   screen?: ReactNode;
   hasReceipt?: boolean;
-  className?: string;
 }
 
-export const Scene: FC<SceneProps> = ({ method, gesture: asked, durationMs, isPlaying, screen, hasReceipt = false, className }: SceneProps) => {
+export const Scene: FC<SceneProps> = ({ method, gesture: asked, durationMs, isPlaying, screen, hasReceipt = false }: SceneProps) => {
   const gesture = asked ?? PAY_GESTURES[method];
   const isStory = screen === undefined;
   const isScan = gesture === "scan";
   const style = { "width": SCENE.width, "height": SCENE.height, "--pay-ms": `${durationMs}ms` } as CSSProperties;
 
   return (
-    <Stage className={className} style={style} aria-hidden="true">
+    <Stage style={style} aria-hidden="true">
       {hasReceipt && (
         <Receipt isStory={isStory && isPlaying}>
           {[80, 55, 70, 40].map((width, index) => <ReceiptLine key={index} width={width} />)}
@@ -308,7 +307,7 @@ export const Scene: FC<SceneProps> = ({ method, gesture: asked, durationMs, isPl
       <Lip />
       <Groove />
       {isPlaying && (
-        <Hold gesture={gesture} isMoving={isPlaying}>
+        <Hold gesture={gesture}>
           {gesture === "wallet" || gesture === "scan"
             ? <PaymentPhone method={method} isScanning={isScan} scanLine={isScan ? <ScanLine /> : undefined} />
             : <PaymentCard method={method} isUpright={gesture === "insert" || gesture === "swipe"} />}

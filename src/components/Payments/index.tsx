@@ -26,14 +26,19 @@ interface PaymentsProps {
 // The terminal and its marks load with the drawings, once the section is within a screen of view.
 const PayTerminal = dynamic(() => import("@/components/Payments/PayTerminal").then((module) => module.PayTerminal), { ssr: false });
 
-// Room held for the terminal before it arrives, so the page below barely moves when it does.
+// Room held for the terminal before it arrives, so the page below barely moves when it does: stacked on
+// phones and tablets, side by side on wide screens.
 const TerminalSlot = styled.div(() => [
   tw`mt-[25px] lg:mt-[35px]`,
   css`
-    min-height: 430px;
+    min-height: 520px;
 
-    ${media.lg} {
-      min-height: 290px;
+    ${media.md} {
+      min-height: 440px;
+    }
+
+    ${media.xl} {
+      min-height: 300px;
     }
   `,
 ]);

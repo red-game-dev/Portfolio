@@ -141,8 +141,8 @@ const ITEM_AT: Record<CheckoutGesture, Pose[]> = {
   // lower right holds it.
   tap: [{ x: 153, y: 77, angle: -0.4, scale: 1.02 }, { x: 153, y: 79, angle: -0.38, scale: 0.99 }],
   wallet: [{ x: 152, y: 82, angle: -0.08, scale: 1.02 }, { x: 152, y: 84, angle: -0.06, scale: 0.99 }],
-  // Held up beside the screen, its camera on the QR code.
-  scan: [{ x: 214, y: 70, angle: -0.2, scale: 1.04 }, { x: 213, y: 71, angle: -0.19, scale: 1.03 }],
+  // Held up beside the screen, its camera on the QR code, low enough that the whole phone and the hand at its top show.
+  scan: [{ x: 214, y: 94, angle: -0.2, scale: 1.04 }, { x: 213, y: 95, angle: -0.19, scale: 1.03 }],
   // Under the chip reader at the foot, then pushed up into it.
   insert: [
     { x: 150, y: BODY.y + BODY.height + portraitHalf + 10, angle: 0, scale: 1 },

@@ -1,4 +1,5 @@
-import { approvedAt, checkoutAt, CHECKOUT_MODELS, checkoutStageMap, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
+import { approvedAt, checkoutAt, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
+import { CHECKOUT_MODELS, checkoutStageMap } from "@/packages/graphics/checkout-stage";
 
 const keys = keysFor("€18.40");
 

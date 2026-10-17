@@ -1,3 +1,4 @@
+import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import type { RigSkin } from "@/packages/graphics/rig";
 import type { Finish } from "@/packages/graphics/stage3d";
 
@@ -108,4 +109,14 @@ export interface CheckoutFrame {
   trail: CheckoutTrail[];
   // How much the customer's hand holds what it carries: 1 holding, 0 let go (a card left in the reader).
   hold: number;
+}
+
+// What draws the checkout's hands and what the customer holds on a 3D stage, from outside this package: each frame
+// into the checkout's canvas, at the stage's quality, saying when the stage loses its GPU, and giving its scene back.
+export interface CheckoutStage {
+  draw(context: Canvas2DContext, frame: CheckoutFrame): void;
+  quality(): number;
+  setQuality(level: number): void;
+  onLost(listener: () => void): () => void;
+  release(): void;
 }

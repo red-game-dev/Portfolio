@@ -148,21 +148,22 @@ export const meshSurface = (field: Field, bounds: { min: Vec3; max: Vec3 }, spac
     }
   };
 
-  for (let k = 1; k < cz; k += 1) {
-    for (let j = 1; j < cy; j += 1) {
-      for (let i = 1; i < cx; i += 1) {
+  // Each grid edge the surface crosses joins the four cells round it. An edge along an axis can start at that axis's
+  // first point; it needs a cell either side only across the other two.
+  for (let k = 0; k < cz; k += 1) {
+    for (let j = 0; j < cy; j += 1) {
+      for (let i = 0; i < cx; i += 1) {
         const inside = values[pointAt(i, j, k)] < 0;
 
-        // The edge along x from this point, then along y, then along z: each crossed edge joins the four cells round it.
-        if (inside !== values[pointAt(i + 1, j, k)] < 0) {
+        if (j > 0 && k > 0 && inside !== values[pointAt(i + 1, j, k)] < 0) {
           quad(cellVertex[cellAt(i, j - 1, k - 1)], cellVertex[cellAt(i, j, k - 1)], cellVertex[cellAt(i, j, k)], cellVertex[cellAt(i, j - 1, k)], inside);
         }
 
-        if (inside !== values[pointAt(i, j + 1, k)] < 0) {
+        if (i > 0 && k > 0 && inside !== values[pointAt(i, j + 1, k)] < 0) {
           quad(cellVertex[cellAt(i - 1, j, k - 1)], cellVertex[cellAt(i - 1, j, k)], cellVertex[cellAt(i, j, k)], cellVertex[cellAt(i, j, k - 1)], inside);
         }
 
-        if (inside !== values[pointAt(i, j, k + 1)] < 0) {
+        if (i > 0 && j > 0 && inside !== values[pointAt(i, j, k + 1)] < 0) {
           quad(cellVertex[cellAt(i - 1, j - 1, k)], cellVertex[cellAt(i, j - 1, k)], cellVertex[cellAt(i, j, k)], cellVertex[cellAt(i - 1, j, k)], inside);
         }
       }

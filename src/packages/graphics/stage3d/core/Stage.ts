@@ -1,6 +1,14 @@
 import { StageFrame, StageScene, StageTarget } from "../domain/types";
 import { ModelRegistry } from "../services/ModelRegistry";
 
+// Where in a 2D target a stage draws, in the target's own units.
+export interface StageBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 // A scene set up on a stage, for drawing its frames and taking it down again.
 export interface SceneHandle {
   readonly id: number;
@@ -18,6 +26,10 @@ export abstract class Stage {
   constructor(models: ModelRegistry) {
     this.models = models;
   }
+
+  // 0 (the least a weak device can keep up with) to 3 (all of it): the pixel ratio, the shadows' sharpness and the
+  // skin's fine detail follow it, and materials made from then on are lighter at the lower levels.
+  public abstract get quality(): number;
 
   public onLost(listener: () => void): () => void {
     this.lostListeners.add(listener);
@@ -40,13 +52,13 @@ export abstract class Stage {
   // A picture painted in 2D that a material shows (a card's face), handed again with a new version when it changes.
   public abstract setPicture(id: string, source: TexImageSource, version: number): void;
 
-  // Renders a scene's frame at `width` by `height` device pixels, then draws it into `target` over the given box.
-  public abstract draw(scene: SceneHandle, frame: StageFrame, target: StageTarget, box: { x: number; y: number; width: number; height: number }): void;
+  // Renders a scene's frame at the device pixel size the host draws it at, then draws it into `target` over `box`
+  // (in the target's own units).
+  public abstract draw(scene: SceneHandle, frame: StageFrame, target: StageTarget, box: StageBox, pixels: { width: number; height: number }): void;
 
   public abstract unmount(scene: SceneHandle): void;
 
-  // 0 (the least a weak device can keep up with) to 3 (all of it): the pixel ratio, the shadows' sharpness and the
-  // skin's fine detail follow it.
+  // Moves the quality to another level (see `quality`).
   public abstract setQuality(level: number): void;
 
   public abstract dispose(): void;

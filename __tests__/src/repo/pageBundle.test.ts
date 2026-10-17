@@ -114,4 +114,18 @@ describe("the home page's first load", () => {
     // The portrait's reveal engine loads on demand, so a page that reaches it statically has pulled it in by mistake.
     expect(modules.filter((module) => module.startsWith("src/packages/effects/pixel-reveal/"))).toEqual([]);
   });
+
+  test("carries no 3D: three.js, the stage, the hand and its builder load only once the counter asks for them", () => {
+    const { modules, externals } = firstLoad();
+    const onDemand = [
+      "src/packages/graphics/stage3d/",
+      "src/packages/graphics/stage3d-three/",
+      "src/packages/graphics/hand/",
+      "src/packages/graphics/checkout-stage/",
+      "src/services/stage/",
+    ];
+
+    expect(externals.has("three")).toBe(false);
+    expect(modules.filter((module) => onDemand.some((prefix) => module.startsWith(prefix)))).toEqual([]);
+  });
 });

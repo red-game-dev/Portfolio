@@ -1,15 +1,14 @@
 import {
   ACESFilmicToneMapping, Bone, BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, Color, CylinderGeometry, DirectionalLight, DoubleSide,
-  Group, HemisphereLight, Material, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, PCFShadowMap, PerspectiveCamera,
-  PlaneGeometry, PMREMGenerator, PointLight, Scene, ShadowMaterial, Skeleton as ThreeSkeleton, SkinnedMesh, SRGBColorSpace, Texture,
+  ExtrudeGeometry, Group, HemisphereLight, Material, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, PCFShadowMap, PerspectiveCamera,
+  PlaneGeometry, PMREMGenerator, PointLight, Scene, ShadowMaterial, Shape, Skeleton as ThreeSkeleton, SkinnedMesh, SRGBColorSpace, Texture,
   Vector3, WebGLRenderer,
 } from "three";
 
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
 import {
-  ActorSpec, Finish, MaterialSpec, MeshData, ModelAsset, ModelRegistry, SceneHandle, Stage, StageFrame, StageScene, StageTarget, StageView,
+  ActorSpec, Finish, MaterialSpec, MeshData, ModelAsset, ModelRegistry, SceneHandle, Stage, StageBox, StageFrame, StageScene, StageTarget, StageView,
 } from "@/packages/graphics/stage3d";
 
 import { makeSkin, SkinUniforms } from "./skinShader";
@@ -18,12 +17,14 @@ import { makeSkin, SkinUniforms } from "./skinShader";
 // has drawn and each frame rendered into its corner at the size it is drawn at, then copied into the 2D target. Each
 // model's geometry is uploaded once and shared by every actor and scene that shows it (each actor with a skeleton of
 // its own); a room's light gives skin and metal something to reflect; the key light throws soft shadows on a catcher
-// at the picture's plane, so a hand's shadow falls on the 2D drawing behind it.
+// at the picture's plane, so a hand's shadow falls on the 2D drawing behind it. A scene's shaders are compiled as it
+// is set up, so its first frame never stalls, and taking it down gives back everything it made.
 
 interface MountedActor {
   spec: ActorSpec;
   group: Group;
-  bones: Bone[];
+  // Each skinned model part's own bones, by part.
+  bones: Bone[][];
 }
 
 interface MountedScene {
@@ -31,9 +32,13 @@ interface MountedScene {
   actors: Map<string, MountedActor>;
   lights: Map<string, DirectionalLight | PointLight | HemisphereLight>;
   key: DirectionalLight | null;
+  // Where the key light stands from what it lights, kept as it follows the view.
+  keyOffset: Vector3;
   skins: SkinUniforms[];
-  materials: Material[];
+  // What the scene made and gives back when it is taken down.
+  disposables: Array<{ dispose(): void }>;
   models: string[];
+  pictures: string[];
 }
 
 // Each quality level's share of the device's pixels, the shadow map's size and the skin's fine detail.
@@ -44,13 +49,24 @@ const QUALITY = [
   { pixels: 1, shadow: 2048, detail: 1 },
 ];
 
-// Each finish as the physical material draws it: brushed metal streaked one way and coloured by its picture, a
-// laminated gloss, a velvet matte, frosted plastic the light passes through.
-const FINISHES: Record<Finish, ConstructorParameters<typeof MeshPhysicalMaterial>[0]> = {
-  metal: { metalness: 1, roughness: 0.34, anisotropy: 0.65, clearcoat: 0.2, clearcoatRoughness: 0.3 },
-  gloss: { roughness: 0.36, clearcoat: 1, clearcoatRoughness: 0.06 },
-  matte: { roughness: 0.88, sheen: 0.25, sheenRoughness: 0.8 },
-  frosted: { roughness: 0.5, transmission: 0.55, thickness: 0.8, ior: 1.46, transparent: true },
+// From this quality up, materials carry their costlier layers (sheen, clear coat, streaked metal, light through frost).
+const RICH = 2;
+
+type PhysicalParameters = ConstructorParameters<typeof MeshPhysicalMaterial>[0];
+
+// Each finish as the physical material draws it, rich and plain: brushed metal streaked one way and coloured by its
+// picture, a laminated gloss, a velvet matte, frosted plastic the light passes through (plain, only see through).
+const FINISHES: Record<Finish, { rich: PhysicalParameters; plain: PhysicalParameters }> = {
+  metal: {
+    rich: { metalness: 1, roughness: 0.34, anisotropy: 0.65, clearcoat: 0.2, clearcoatRoughness: 0.3 },
+    plain: { metalness: 1, roughness: 0.38 },
+  },
+  gloss: { rich: { roughness: 0.36, clearcoat: 1, clearcoatRoughness: 0.06 }, plain: { roughness: 0.3 } },
+  matte: { rich: { roughness: 0.88, sheen: 0.25, sheenRoughness: 0.8 }, plain: { roughness: 0.88 } },
+  frosted: {
+    rich: { roughness: 0.5, transmission: 0.55, thickness: 0.8, ior: 1.46, transparent: true },
+    plain: { roughness: 0.5, transparent: true, opacity: 0.82 },
+  },
 };
 
 // How far the shadow camera reaches round the view's centre, in picture units.
@@ -78,21 +94,58 @@ const geometryOf = (mesh: MeshData): BufferGeometry => {
   return geometry;
 };
 
+// A thin plate with round corners of any radius (a card, a phone), its picture laid across its face edge to edge.
+const plateGeometry = (width: number, height: number, depth: number, radius: number): BufferGeometry => {
+  const halfWidth = width / 2;
+  const halfHeight = height / 2;
+  const corner = Math.min(radius, halfWidth, halfHeight);
+  const outline = new Shape();
+
+  outline.moveTo(-halfWidth + corner, -halfHeight);
+  outline.lineTo(halfWidth - corner, -halfHeight);
+  outline.quadraticCurveTo(halfWidth, -halfHeight, halfWidth, -halfHeight + corner);
+  outline.lineTo(halfWidth, halfHeight - corner);
+  outline.quadraticCurveTo(halfWidth, halfHeight, halfWidth - corner, halfHeight);
+  outline.lineTo(-halfWidth + corner, halfHeight);
+  outline.quadraticCurveTo(-halfWidth, halfHeight, -halfWidth, halfHeight - corner);
+  outline.lineTo(-halfWidth, -halfHeight + corner);
+  outline.quadraticCurveTo(-halfWidth, -halfHeight, -halfWidth + corner, -halfHeight);
+
+  const geometry = new ExtrudeGeometry(outline, { depth, bevelEnabled: false, curveSegments: 8 });
+  const position = geometry.getAttribute("position");
+  const uv = geometry.getAttribute("uv");
+
+  geometry.translate(0, 0, -depth / 2);
+
+  for (let vertex = 0; vertex < position.count; vertex += 1) {
+    uv.setXY(vertex, (position.getX(vertex) + halfWidth) / width, (position.getY(vertex) + halfHeight) / height);
+  }
+
+  uv.needsUpdate = true;
+
+  return geometry;
+};
+
 export class ThreeStage extends Stage {
   public readonly id = "three";
   private renderer: WebGLRenderer | null = null;
   private environment: Texture | null = null;
-  private quality = QUALITY.length - 1;
+  private level = QUALITY.length - 1;
   private readonly geometries = new Map<string, { parts: BufferGeometry[]; users: number }>();
-  private readonly pictures = new Map<string, { texture: CanvasTexture; version: number }>();
+  private readonly pictures = new Map<string, { texture: CanvasTexture; version: number; users: number }>();
   private readonly scenes = new Map<number, MountedScene>();
   private readonly camera = new PerspectiveCamera(30, 1, 1, 4000);
+  private readonly scratch = { centre: new Vector3(), towards: new Vector3() };
   private bufferWidth = 0;
   private bufferHeight = 0;
   private nextId = 1;
 
   constructor(models: ModelRegistry) {
     super(models);
+  }
+
+  public get quality(): number {
+    return this.level;
   }
 
   public prepare(): Promise<boolean> {
@@ -102,7 +155,7 @@ export class ThreeStage extends Stage {
 
     try {
       const canvas = document.createElement("canvas");
-      const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, premultipliedAlpha: true, powerPreference: "high-performance" });
+      const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, premultipliedAlpha: true });
 
       renderer.outputColorSpace = SRGBColorSpace;
       renderer.toneMapping = ACESFilmicToneMapping;
@@ -131,7 +184,17 @@ export class ThreeStage extends Stage {
     const modelIds = [...new Set(spec.actors.flatMap((actor) => actor.parts.flatMap((part) => (part.shape.kind === "model" ? [part.shape.model] : []))))];
     const assets = new Map((await Promise.all(modelIds.map((model) => this.models.load(model)))).map((asset, index) => [modelIds[index], asset]));
     const scene = new Scene();
-    const mounted: MountedScene = { scene, actors: new Map(), lights: new Map(), key: null, skins: [], materials: [], models: modelIds };
+    const mounted: MountedScene = {
+      scene,
+      actors: new Map(),
+      lights: new Map(),
+      key: null,
+      keyOffset: new Vector3(),
+      skins: [],
+      disposables: [],
+      models: modelIds,
+      pictures: [],
+    };
 
     scene.environment = this.environment;
     scene.environmentIntensity = 0.35;
@@ -155,7 +218,9 @@ export class ThreeStage extends Stage {
         made.shadow.normalBias = 0.6;
         made.shadow.radius = 5;
         mounted.key = made;
+        mounted.keyOffset.copy(made.position).sub(made.target.position);
         scene.add(made.target);
+        mounted.disposables.push(made.shadow);
       }
 
       mounted.lights.set(light.id, made);
@@ -163,11 +228,13 @@ export class ThreeStage extends Stage {
     });
 
     if (spec.shadow) {
-      const catcher = new Mesh(new PlaneGeometry(4000, 4000), new ShadowMaterial({ opacity: spec.shadow.opacity }));
+      const plane = new PlaneGeometry(4000, 4000);
+      const material = new ShadowMaterial({ opacity: spec.shadow.opacity });
+      const catcher = new Mesh(plane, material);
 
       catcher.receiveShadow = true;
       scene.add(catcher);
-      mounted.materials.push(catcher.material);
+      mounted.disposables.push(plane, material);
     }
 
     spec.actors.forEach((actor) => mounted.actors.set(actor.id, this.build(actor, assets, mounted)));
@@ -177,6 +244,13 @@ export class ThreeStage extends Stage {
     this.nextId += 1;
     this.scenes.set(id, mounted);
     this.applyQuality(mounted);
+
+    // Every shader the scene needs, compiled now (off the main thread where the browser can), so its first frame
+    // draws at once.
+    if (this.renderer) {
+      this.look({ width: 300, height: 210, centre: { x: 150, y: 105 }, zoom: 1, fov: 30 });
+      await this.renderer.compileAsync(scene, this.camera).catch(() => undefined);
+    }
 
     return { id };
   }
@@ -193,7 +267,7 @@ export class ThreeStage extends Stage {
     picture.version = version;
   }
 
-  public draw(handle: SceneHandle, frame: StageFrame, target: StageTarget, box: { x: number; y: number; width: number; height: number }): void {
+  public draw(handle: SceneHandle, frame: StageFrame, target: StageTarget, box: StageBox, pixels: { width: number; height: number }): void {
     const renderer = this.renderer;
     const mounted = this.scenes.get(handle.id);
 
@@ -201,10 +275,9 @@ export class ThreeStage extends Stage {
       return;
     }
 
-    const transform = typeof target.getTransform === "function" ? target.getTransform() : null;
-    const share = QUALITY[this.quality].pixels;
-    const width = Math.max(1, Math.round(box.width * (transform ? Math.hypot(transform.a, transform.b) : 1) * share));
-    const height = Math.max(1, Math.round(box.height * (transform ? Math.hypot(transform.c, transform.d) : 1) * share));
+    const share = QUALITY[this.level].pixels;
+    const width = Math.max(1, Math.round(pixels.width * share));
+    const height = Math.max(1, Math.round(pixels.height * share));
 
     if (width > this.bufferWidth || height > this.bufferHeight) {
       this.bufferWidth = Math.max(width, this.bufferWidth);
@@ -213,7 +286,6 @@ export class ThreeStage extends Stage {
     }
 
     this.frame(mounted, frame);
-    this.look(frame.view);
     renderer.setViewport(0, 0, width, height);
     renderer.setScissor(0, 0, width, height);
     renderer.setScissorTest(true);
@@ -230,13 +302,14 @@ export class ThreeStage extends Stage {
       return;
     }
 
-    mounted.materials.forEach((material) => material.dispose());
+    mounted.disposables.forEach((disposable) => disposable.dispose());
     mounted.models.forEach((model) => this.release(model));
+    mounted.pictures.forEach((picture) => this.releasePicture(picture));
     this.scenes.delete(handle.id);
   }
 
   public setQuality(level: number): void {
-    this.quality = Math.min(Math.max(Math.round(level), 0), QUALITY.length - 1);
+    this.level = Math.min(Math.max(Math.round(level), 0), QUALITY.length - 1);
     this.scenes.forEach((mounted) => this.applyQuality(mounted));
   }
 
@@ -250,7 +323,7 @@ export class ThreeStage extends Stage {
   }
 
   // A picture's texture, made blank the first time a material or the host asks for it and filled when it is handed.
-  private pictureOf(id: string): { texture: CanvasTexture; version: number } {
+  private pictureOf(id: string): { texture: CanvasTexture; version: number; users: number } {
     const known = this.pictures.get(id);
 
     if (known) {
@@ -263,13 +336,29 @@ export class ThreeStage extends Stage {
     blank.height = 1;
 
     const texture = new CanvasTexture(blank);
-    const picture = { texture, version: -1 };
+    const picture = { texture, version: -1, users: 0 };
 
     texture.colorSpace = SRGBColorSpace;
     texture.anisotropy = 4;
     this.pictures.set(id, picture);
 
     return picture;
+  }
+
+  // A picture no scene shows any more is given back.
+  private releasePicture(id: string): void {
+    const picture = this.pictures.get(id);
+
+    if (!picture) {
+      return;
+    }
+
+    picture.users -= 1;
+
+    if (picture.users <= 0) {
+      picture.texture.dispose();
+      this.pictures.delete(id);
+    }
   }
 
   // A model's geometry, uploaded the first time a scene shows it and kept while any does.
@@ -302,6 +391,7 @@ export class ThreeStage extends Stage {
 
   private materialOf(spec: MaterialSpec, tint: string | undefined, mounted: MountedScene): Material {
     const colour = new Color(tint ?? spec.colour ?? "#ffffff");
+    const isRich = this.level >= RICH;
     let material: Material;
 
     if (spec.kind === "skin") {
@@ -309,44 +399,45 @@ export class ThreeStage extends Stage {
         color: colour,
         vertexColors: true,
         roughness: spec.roughness ?? 0.5,
-        sheen: 0.55,
-        sheenColor: new Color("#ffc6b2"),
-        sheenRoughness: 0.45,
-        clearcoat: 0.12,
-        clearcoatRoughness: 0.38,
         specularIntensity: 0.55,
+        ...(isRich ? { sheen: 0.55, sheenColor: new Color("#ffc6b2"), sheenRoughness: 0.45, clearcoat: 0.12, clearcoatRoughness: 0.38 } : {}),
       });
 
       mounted.skins.push(makeSkin(skin));
       material = skin;
     } else if (spec.kind === "nail") {
-      material = new MeshPhysicalMaterial({ vertexColors: true, roughness: 0.24, clearcoat: 0.85, clearcoatRoughness: 0.12, side: DoubleSide });
+      material = new MeshPhysicalMaterial({ vertexColors: true, roughness: 0.24, side: DoubleSide, ...(isRich ? { clearcoat: 0.85, clearcoatRoughness: 0.12 } : {}) });
     } else if (spec.kind === "cloth") {
       material = new MeshPhysicalMaterial({
         color: colour,
         roughness: spec.roughness ?? 0.88,
-        sheen: 0.7,
-        sheenColor: colour.clone().offsetHSL(0, 0, 0.2),
-        sheenRoughness: 0.6,
+        ...(isRich ? { sheen: 0.7, sheenColor: colour.clone().offsetHSL(0, 0, 0.2), sheenRoughness: 0.6 } : {}),
       });
     } else if (spec.kind === "metal") {
       material = new MeshStandardMaterial({ color: colour, metalness: 1, roughness: spec.roughness ?? 0.22 });
     } else if (spec.kind === "picture") {
+      const finish = FINISHES[spec.finish ?? "gloss"];
       const map = spec.picture ? this.pictureOf(spec.picture).texture : null;
 
-      material = new MeshPhysicalMaterial({ color: colour, map, ...FINISHES[spec.finish ?? "gloss"] });
+      if (spec.picture) {
+        this.pictureOf(spec.picture).users += 1;
+        mounted.pictures.push(spec.picture);
+      }
+
+      // Its picture's clipped corners left out, should the plate be squarer than the print.
+      material = new MeshPhysicalMaterial({ color: colour, map, alphaTest: 0.5, ...(isRich ? finish.rich : finish.plain) });
     } else {
       material = new MeshStandardMaterial({ color: colour, roughness: spec.roughness ?? 0.6 });
     }
 
-    mounted.materials.push(material);
+    mounted.disposables.push(material);
 
     return material;
   }
 
   private build(spec: ActorSpec, assets: Map<string, ModelAsset>, mounted: MountedScene): MountedActor {
     const group = new Group();
-    const bones: Bone[] = [];
+    const bones: Bone[][] = [];
 
     group.scale.setScalar(spec.unit ?? 1);
     group.visible = false;
@@ -371,35 +462,39 @@ export class ThreeStage extends Stage {
       if (part.shape.kind === "model") {
         const asset = assets.get(part.shape.model);
         const geometries = this.geometries.get(part.shape.model)?.parts ?? [];
+        const tints = part.shape.tints;
 
         if (!asset) {
           return;
         }
 
+        const partBones: Bone[] = [];
         let skeleton: ThreeSkeleton | null = null;
 
         if (asset.skeleton) {
-          asset.skeleton.joints.forEach((joint) => {
+          const { joints } = asset.skeleton;
+
+          joints.forEach((joint, index) => {
             const bone = new Bone();
-            const parent = joint.parent >= 0 ? asset.skeleton?.joints[joint.parent].position : { x: 0, y: 0, z: 0 };
+            const parent = joint.parent >= 0 ? joints[joint.parent].position : { x: 0, y: 0, z: 0 };
+            const bind = asset.bindTurns?.[index];
 
-            const bind = asset.bindTurns?.[bones.length];
-
-            bone.position.set(joint.position.x - (parent?.x ?? 0), joint.position.y - (parent?.y ?? 0), joint.position.z - (parent?.z ?? 0));
+            bone.position.set(joint.position.x - parent.x, joint.position.y - parent.y, joint.position.z - parent.z);
 
             if (bind) {
               bone.quaternion.set(bind.x, bind.y, bind.z, bind.w);
             }
 
-            (joint.parent >= 0 ? bones[joint.parent] : holder).add(bone);
-            bones.push(bone);
+            (joint.parent >= 0 ? partBones[joint.parent] : holder).add(bone);
+            partBones.push(bone);
           });
-          skeleton = new ThreeSkeleton(bones);
+          skeleton = new ThreeSkeleton(partBones);
+          mounted.disposables.push(skeleton);
+          bones.push(partBones);
         }
 
         asset.parts.forEach((assetPart, index) => {
-          const tint = part.shape.kind === "model" ? part.shape.tints?.[assetPart.name] : undefined;
-          const material = spec.isOccluder ? this.occluder(mounted) : this.materialOf(assetPart.material, tint, mounted);
+          const material = spec.isOccluder ? this.occluder(mounted) : this.materialOf(assetPart.material, tints?.[assetPart.name], mounted);
           const geometry = geometries[index];
           const mesh = skeleton && geometry.getAttribute("skinIndex") ? new SkinnedMesh(geometry, material) : new Mesh(geometry, material);
 
@@ -420,14 +515,17 @@ export class ThreeStage extends Stage {
       const geometry = shape.kind === "box"
         ? new BoxGeometry(shape.width, shape.height, shape.depth)
         : shape.kind === "plate"
-          ? new RoundedBoxGeometry(shape.width, shape.height, shape.depth, 3, shape.radius)
+          ? plateGeometry(shape.width, shape.height, shape.depth, shape.radius)
           : new CylinderGeometry(shape.radiusTop, shape.radiusBottom, shape.length, 28);
       const material = spec.isOccluder ? this.occluder(mounted) : this.materialOf(part.material ?? { kind: "matte" }, undefined, mounted);
       const mesh = new Mesh(geometry, material);
 
+      // An occluder's depth goes down before anything else is drawn, or what is nearer than its middle would be drawn
+      // first and not hidden.
+      mesh.renderOrder = spec.isOccluder ? -1 : 0;
       mesh.castShadow = Boolean(spec.castsShadow);
       holder.add(mesh);
-      mounted.materials.push({ dispose: () => geometry.dispose() } as Material);
+      mounted.disposables.push(geometry);
     });
 
     mounted.scene.add(group);
@@ -439,7 +537,7 @@ export class ThreeStage extends Stage {
   private occluder(mounted: MountedScene): Material {
     const material = new MeshStandardMaterial({ colorWrite: false });
 
-    mounted.materials.push(material);
+    mounted.disposables.push(material);
 
     return material;
   }
@@ -460,51 +558,64 @@ export class ThreeStage extends Stage {
 
       actor.group.position.set(state.position.x, state.position.y, state.position.z);
       actor.group.quaternion.set(state.rotation.x, state.rotation.y, state.rotation.z, state.rotation.w);
-      state.joints?.forEach((turn, index) => {
-        const bone = actor.bones[index];
 
-        if (bone) {
+      if (state.joints) {
+        const turns = state.joints;
+
+        actor.bones.forEach((partBones) => partBones.forEach((bone, index) => {
+          const turn = turns[index];
+
           bone.quaternion.set(turn?.x ?? 0, turn?.y ?? 0, turn?.z ?? 0, turn?.w ?? 1);
+        }));
+      }
+    });
+
+    if (frame.lights) {
+      Object.entries(frame.lights).forEach(([id, change]) => {
+        const light = mounted.lights.get(id);
+
+        if (light && change.intensity !== undefined) {
+          light.intensity = change.intensity;
+        }
+
+        if (light && change.colour) {
+          light.color.set(change.colour);
         }
       });
-    });
-
-    Object.entries(frame.lights ?? {}).forEach(([id, change]) => {
-      const light = mounted.lights.get(id);
-
-      if (light && change.intensity !== undefined) {
-        light.intensity = change.intensity;
-      }
-
-      if (light && change.colour) {
-        light.color.set(change.colour);
-      }
-    });
-
-    const centre = new Vector3(frame.view.centre.x, -frame.view.centre.y, 0);
-
-    if (mounted.key) {
-      const offset = mounted.key.position.clone().sub(mounted.key.target.position);
-
-      mounted.key.target.position.copy(centre);
-      mounted.key.position.copy(centre).add(offset);
-      mounted.key.updateMatrixWorld();
-      mounted.key.target.updateMatrixWorld();
     }
 
-    // The key light's direction in view space, for the skin's light through it.
     this.look(frame.view);
-    this.camera.updateMatrixWorld();
 
-    const towards = mounted.key ? mounted.key.position.clone().sub(mounted.key.target.position)
-.normalize() : new Vector3(0.3, 0.6, 0.7);
-    const inView = towards.transformDirection(this.camera.matrixWorldInverse);
-    const keyColour = mounted.key?.color ?? new Color(1, 1, 1);
-    const strength = mounted.key ? Math.min(mounted.key.intensity / 2.5, 1.5) : 1;
+    if (!mounted.key) {
+      return;
+    }
+
+    // The key light follows the view, so its shadow camera covers what is seen.
+    const { centre, towards } = this.scratch;
+
+    centre.set(frame.view.centre.x, -frame.view.centre.y, 0);
+    mounted.key.target.position.copy(centre);
+    mounted.key.position.copy(centre).add(mounted.keyOffset);
+    mounted.key.updateMatrixWorld();
+    mounted.key.target.updateMatrixWorld();
+
+    // Its direction in view space, for the skin's light through it.
+    towards.copy(mounted.keyOffset).normalize()
+.transformDirection(this.camera.matrixWorldInverse);
+
+    const strength = Math.min(mounted.key.intensity / 2.5, 1.5);
+    const { r, g, b } = mounted.key.color;
 
     mounted.skins.forEach((skin) => {
-      skin.keyDirection.value = { x: inView.x, y: inView.y, z: inView.z };
-      skin.keyColour.value = { r: keyColour.r * strength, g: keyColour.g * strength, b: keyColour.b * strength };
+      const direction = skin.keyDirection.value;
+      const colour = skin.keyColour.value;
+
+      direction.x = towards.x;
+      direction.y = towards.y;
+      direction.z = towards.z;
+      colour.r = r * strength;
+      colour.g = g * strength;
+      colour.b = b * strength;
     });
   }
 
@@ -520,10 +631,11 @@ export class ThreeStage extends Stage {
     this.camera.position.set(view.centre.x, -view.centre.y, distance);
     this.camera.lookAt(view.centre.x, -view.centre.y, 0);
     this.camera.updateProjectionMatrix();
+    this.camera.updateMatrixWorld();
   }
 
   private applyQuality(mounted: MountedScene): void {
-    const { shadow, detail } = QUALITY[this.quality];
+    const { shadow, detail } = QUALITY[this.level];
 
     if (mounted.key && mounted.key.shadow.mapSize.x !== shadow) {
       mounted.key.shadow.mapSize.set(shadow, shadow);
@@ -541,4 +653,3 @@ export class ThreeStage extends Stage {
     });
   }
 }
-

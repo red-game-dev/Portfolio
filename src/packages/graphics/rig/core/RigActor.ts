@@ -21,12 +21,13 @@ export interface RigActorOptions<TSkin extends RigSkin> {
 // frame loop. The page sizes it, picks a skin and plays cues; the actor does the rest.
 export class RigActor<TSkin extends RigSkin> extends FrameLoop {
   private readonly context: Canvas2DContext;
-  private readonly model: RigModel<TSkin>;
+  private model: RigModel<TSkin>;
   private readonly skins: TSkin[];
   private readonly animator: Animator;
-  private readonly renderer: RigRenderer<TSkin>;
+  private renderer: RigRenderer<TSkin>;
   private skinIndex = 0;
   private width = 0;
+  private scale = 1;
 
   constructor(context: Canvas2DContext, { model, skins, setup, framesPerSecond = 30, scheduler, random, renderer }: RigActorOptions<TSkin>) {
     super({ framesPerSecond, scheduler });
@@ -56,6 +57,7 @@ export class RigActor<TSkin extends RigSkin> extends FrameLoop {
     const scale = (width / this.model.width) * pixelRatio;
 
     this.width = width;
+    this.scale = scale;
     this.context.canvas.width = Math.ceil(this.model.width * scale);
     this.context.canvas.height = Math.ceil(this.model.height * scale);
     this.renderer.rescale(scale);
@@ -81,6 +83,15 @@ export class RigActor<TSkin extends RigSkin> extends FrameLoop {
 
   // A still frame, for reduced motion or before the loop starts.
   public renderStill(): void {
+    this.render();
+  }
+
+  // Draws another model of the same size from now on, its cues carrying on where they were: a richer model taken up
+  // once it is ready, or a plainer one when the richer cannot go on.
+  protected replaceModel(model: RigModel<TSkin>): void {
+    this.model = model;
+    this.renderer = new RigRenderer(model);
+    this.renderer.rescale(this.scale);
     this.render();
   }
 

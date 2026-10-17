@@ -1,12 +1,11 @@
 import type { RigChannels, RigLayer, RigModel, RigMotion } from "@/packages/graphics/rig";
 import { clamp01 } from "@/packages/math/clamp";
 
-import { CheckoutFrame, CheckoutGesture, CheckoutSkin, CheckoutTrail, CheckoutVariant, Pose, ScreenState } from "../domain/types";
+import { CheckoutFrame, CheckoutGesture, CheckoutSkin, CheckoutStage, CheckoutTrail, CheckoutVariant, Pose, ScreenState } from "../domain/types";
 import {
   paintBody, paintCard, paintCounter, paintGlass, paintItemShadow, paintPhone, paintReceipt, paintScreen, paintStand, paintSweep, paintVignette,
   paintWaves,
 } from "./CheckoutPainter";
-import type { CheckoutStage } from "./checkoutStage";
 import { BODY, COUNTER_TOP, keysFor, SCENE, SCREEN, STAND } from "./geometry";
 import {
   GRIPPING_BOUNDS, GRIPPING_SHADOW_BOUNDS, paintGrippingHand, paintGrippingShadow, paintPointingHand, paintPointingShadow, POINTING_BOUNDS,

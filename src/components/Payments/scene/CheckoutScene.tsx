@@ -6,6 +6,7 @@ import { PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
 import { markOf } from "@/components/Payments/scene/marks";
 import { PAY_APPS, PAY_GESTURES, payAppOf, PayGesture, PaymentMethodId } from "@/config/payments";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import type { CheckoutActor, CheckoutSkin, CheckoutVariant } from "@/packages/graphics/checkout";
 
 export type CheckoutMode = "idle" | "playing" | "approved";
@@ -24,6 +25,9 @@ interface CheckoutSceneProps {
   // Who the counter's cards are issued to, and the picture the red card prints; a switch shows them plain.
   cardholder?: { name: string; portrait: string };
 }
+
+// How long a new counter waits for its 3D hands before it starts flat (they come within it once the page has them).
+const STAGE_WAIT_MS = 350;
 
 // Drawn at the scene's own proportions, as wide as it is given.
 const Box = styled.div(() => [
@@ -58,24 +62,41 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({ method, variant, mode, d
     };
   }, [method, gesture, amount, accent, cardholder]);
   const portrait = skin.look.card?.issuer === "portrait" ? cardholder?.portrait : undefined;
+  // A still counter shows no hands, so it never needs the 3D stage.
+  const isStill = useReducedMotion();
   const actor = useCanvasEngine<CheckoutActor>(canvasRef, {
     sizeRef: boxRef,
     nearMargin: "100% 0px",
     create: async (context) => {
-      const [checkout, { stageReady }, { decodeImage }] = await Promise.all([
-        import("@/packages/graphics/checkout"),
-        import("@/services/stage"),
-        import("@/packages/browser/images"),
-      ]);
+      const [checkout, { decodeImage }] = await Promise.all([import("@/packages/graphics/checkout"), import("@/packages/browser/images")]);
       const picture = portrait ? await decodeImage(portrait).catch(() => null) : null;
       const dressed: CheckoutSkin = picture ? { ...skin, look: { ...skin.look, portrait: picture } } : skin;
-      const stage = await stageReady().catch(() => null);
-      const bound = stage ? await checkout.bindCheckoutStage(stage, dressed).catch(() => null) : null;
+      const flat = new checkout.CheckoutActor(context, { model: checkout.createCheckoutModel(dressed, variant), skins: [dressed], framesPerSecond: 60 });
 
-      return new checkout.CheckoutActor(context, { model: checkout.createCheckoutModel(dressed, variant, bound), skins: [dressed], framesPerSecond: 60 }, bound);
+      if (isStill) {
+        return flat;
+      }
+
+      // The 3D hands where the page has a stage: taken up at once when they are ready in time, otherwise the counter
+      // starts flat and takes them up between payments.
+      const staged = (async () => {
+        const [{ stageReady }, { bindCheckoutStage }] = await Promise.all([import("@/services/stage"), import("@/packages/graphics/checkout-stage")]);
+        const stage = await stageReady();
+
+        return stage ? bindCheckoutStage(stage, dressed) : null;
+      })().catch(() => null);
+      const quick = await Promise.race([staged, new Promise<"late">((resolve) => window.setTimeout(() => resolve("late"), STAGE_WAIT_MS))]);
+
+      if (quick && quick !== "late") {
+        flat.upgrade(quick, checkout.createCheckoutModel(dressed, variant, quick));
+      } else if (quick === "late") {
+        staged.then((bound) => bound && flat.upgrade(bound, checkout.createCheckoutModel(dressed, variant, bound))).catch(() => undefined);
+      }
+
+      return flat;
     },
     resize: (engine, { width, pixelRatio }) => engine.resize(width, pixelRatio),
-  }, [skin, variant, portrait]);
+  }, [skin, variant, portrait, isStill]);
 
   useEffect(() => {
     if (!actor) {

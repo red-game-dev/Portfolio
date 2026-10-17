@@ -5,7 +5,7 @@ export { transferablesOf, WorkerModelSource } from "./core/WorkerModelSource";
 export { ModelRegistry } from "./services/ModelRegistry";
 export { StageService } from "./services/StageService";
 export { attachBy, jointIndex, poseSkeleton, socketAt, socketBetween } from "./utils/kinematics";
-export type { SceneHandle } from "./core/Stage";
+export type { SceneHandle, StageBox } from "./core/Stage";
 export type { StageFactory } from "./services/StageService";
 export type { PosedSkeleton, Socketed } from "./utils/kinematics";
 export type {

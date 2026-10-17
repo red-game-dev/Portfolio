@@ -1,15 +1,13 @@
-import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { createDrawableSurface } from "@/packages/graphics/canvas";
+import { CHECKOUT_LAYOUT, paintCardPicture, paintPhone, paintSweep } from "@/packages/graphics/checkout";
+import type { CheckoutFrame, CheckoutSkin, CheckoutStage, Pose, ScreenState } from "@/packages/graphics/checkout";
 import { blendTurns, createHandPoser, HAND_MODELS, HAND_POSES, handSkeleton, handSockets, RIGHT_HAND } from "@/packages/graphics/hand";
+import { keepCamera } from "@/packages/graphics/rig";
 import type { ActorPart, ActorSpec, ActorState, JointTurns, SceneHandle, Stage, StageFrame, StageScene } from "@/packages/graphics/stage3d";
 import { attachBy, poseSkeleton, socketAt, socketBetween } from "@/packages/graphics/stage3d";
 import { clamp01 } from "@/packages/math/clamp";
 import { add, dot, fromAxisAngle, IDENTITY, multiply, normalize, Quat, rotate, scale, sub, Vec3, vec3 } from "@/packages/math/space";
 
-import { CheckoutFrame, CheckoutSkin, Pose, ScreenState } from "../domain/types";
-import { paintCardPicture } from "./cardFace";
-import { paintPhone, paintSweep } from "./CheckoutPainter";
-import { BODY, CARD, PHONE, SCENE } from "./geometry";
 
 // The checkout on a 3D stage: the story's moments as actors. The cashier's and the customer's hands are the hand model
 // in the pose they hold (pointing, or pinching a card or a phone), placed by their sockets: a fingertip's pad on the
@@ -168,14 +166,29 @@ export const checkoutStageMap = (skin: CheckoutSkin): CheckoutStageMap => {
   const pinchPosed = poseSkeleton(skeleton, pinchTurns);
   const pinch = socketBetween(socketAt(pinchPosed, sockets["thumb-pad"]), socketAt(pinchPosed, sockets["index-pad"]));
 
+  // The two held poses worked out once; only a press partway between them is blended each frame.
+  const pointSocket = socketAt(poseSkeleton(skeleton, point), sockets["index-pad"]);
+  const pressSocket = socketAt(poseSkeleton(skeleton, press), sockets["index-pad"]);
+  const fingertipOf = (pressing: number): { joints: JointTurns; socket: typeof pointSocket } => {
+    if (pressing <= 0) {
+      return { joints: point, socket: pointSocket };
+    }
+
+    if (pressing >= 1) {
+      return { joints: press, socket: pressSocket };
+    }
+
+    const joints = blendTurns(point, press, pressing);
+
+    return { joints, socket: socketAt(poseSkeleton(skeleton, joints), sockets["index-pad"]) };
+  };
+
   const pointing = (id: string, pose: Pose | null): ActorState => {
     if (!pose) {
       return HIDDEN(id);
     }
 
-    const pressing = clamp01((1.035 - pose.scale) / 0.05);
-    const joints: JointTurns = blendTurns(point, press, pressing);
-    const socket = socketAt(poseSkeleton(skeleton, joints), sockets["index-pad"]);
+    const { joints, socket } = fingertipOf(clamp01((1.035 - pose.scale) / 0.05));
     const along = vec3(Math.cos(pose.angle), -Math.sin(pose.angle), 0);
     const forward = normalize(add(scale(along, Math.cos(PITCH)), scale(AWAY_Z, Math.sin(PITCH))));
     const lift = 1.5 + Math.max(0, pose.scale - 0.985) * LIFT_PER_SCALE;
@@ -215,50 +228,61 @@ export const checkoutStageMap = (skin: CheckoutSkin): CheckoutStageMap => {
 
   return {
     scene: checkoutScene(skin),
-    frameOf: (frame) => ({
-      view: { width: SCENE.width, height: SCENE.height, centre: { x: frame.camera.x, y: frame.camera.y }, zoom: frame.camera.zoom, fov: 30 },
-      actors: [
-        pointing("cashier", frame.cashier),
-        pointing("pin", frame.customerPoint),
-        ...held(frame),
-        { id: "reader", isShown: true, position: vec3(), rotation: IDENTITY },
-      ],
-      lights: { glow: { intensity: GLOW[frame.screen.state] } },
-    }),
+    frameOf: (frame) => {
+      // The camera as the 2D drawing keeps it (never past the scene's edges), so the 3D lands where the 2D does.
+      const camera = keepCamera(frame.camera, SCENE.width, SCENE.height);
+
+      return {
+        view: { width: SCENE.width, height: SCENE.height, centre: { x: camera.x, y: camera.y }, zoom: camera.zoom, fov: 30 },
+        actors: [
+          pointing("cashier", frame.cashier),
+          pointing("pin", frame.customerPoint),
+          ...held(frame),
+          { id: "reader", isShown: true, position: vec3(), rotation: IDENTITY },
+        ],
+        lights: { glow: { intensity: GLOW[frame.screen.state] } },
+      };
+    },
   };
 };
+
+const { body: BODY, card: CARD, phone: PHONE, scene: SCENE } = CHECKOUT_LAYOUT;
 
 // The pictures a skin's card and phone show, at the size the stage draws them.
 const PHONE_PICTURE_SCALE = 8;
 
-const phonePicture = (skin: CheckoutSkin, sweep: number) => {
-  const surface = createDrawableSurface(PHONE.width * PHONE_PICTURE_SCALE, PHONE.height * PHONE_PICTURE_SCALE);
+// A phone's screen, painted again into the same surface as its camera sweeps.
+const phonePainter = (skin: CheckoutSkin) => {
+  const width = PHONE.width * PHONE_PICTURE_SCALE;
+  const height = PHONE.height * PHONE_PICTURE_SCALE;
+  const surface = createDrawableSurface(width, height);
 
-  if (!surface) {
-    return null;
-  }
+  return (sweep: number) => {
+    if (!surface) {
+      return null;
+    }
 
-  surface.context.scale(PHONE_PICTURE_SCALE, PHONE_PICTURE_SCALE);
-  surface.context.translate(PHONE.width / 2, PHONE.height / 2);
-  paintPhone(surface.context, skin.look);
+    const { context } = surface;
 
-  if (sweep > 0) {
-    paintSweep(surface.context, skin.accent, sweep);
-  }
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, width, height);
+    context.setTransform(PHONE_PICTURE_SCALE, 0, 0, PHONE_PICTURE_SCALE, (PHONE.width / 2) * PHONE_PICTURE_SCALE, (PHONE.height / 2) * PHONE_PICTURE_SCALE);
+    paintPhone(context, skin.look);
 
-  return surface.surface;
+    if (sweep > 0) {
+      paintSweep(context, skin.accent, sweep);
+    }
+
+    return surface.surface;
+  };
 };
-
-// What draws the 3D part of the checkout into its canvas: the hands, and what the customer holds.
-export interface CheckoutStage {
-  draw(context: Canvas2DContext, frame: CheckoutFrame): void;
-  release(): void;
-}
 
 // Sets the checkout's scene up on a stage and hands back what draws it each frame.
 export const bindCheckoutStage = async (stage: Stage, skin: CheckoutSkin): Promise<CheckoutStage> => {
   const map = checkoutStageMap(skin);
   const card = skin.look.card ? paintCardPicture(skin.look, skin.look.card) : null;
+  const isPhone = skin.look.gesture === "scan" || skin.look.gesture === "wallet";
+  const paintScreen = isPhone ? phonePainter(skin) : null;
   let sweepShown = -1;
 
   if (card) {
@@ -266,14 +290,15 @@ export const bindCheckoutStage = async (stage: Stage, skin: CheckoutSkin): Promi
   }
 
   const handle: SceneHandle = await stage.mount(map.scene);
+  const box = { x: 0, y: 0, width: SCENE.width, height: SCENE.height };
 
   return {
     draw: (context, frame) => {
       // A phone's camera sweep is part of its screen, painted again as it moves.
       const sweep = Math.round(frame.sweep * 40) / 40;
 
-      if (sweep !== sweepShown && (skin.look.gesture === "scan" || skin.look.gesture === "wallet")) {
-        const picture = phonePicture(skin, sweep);
+      if (paintScreen && sweep !== sweepShown) {
+        const picture = paintScreen(sweep);
 
         if (picture) {
           stage.setPicture(pictureOf("phone", skin), picture, sweep);
@@ -282,8 +307,12 @@ export const bindCheckoutStage = async (stage: Stage, skin: CheckoutSkin): Promi
         sweepShown = sweep;
       }
 
-      stage.draw(handle, map.frameOf(frame), context, { x: 0, y: 0, width: SCENE.width, height: SCENE.height });
+      // The stage fills the whole canvas, so it draws at the canvas's own size.
+      stage.draw(handle, map.frameOf(frame), context, box, { width: context.canvas.width, height: context.canvas.height });
     },
+    quality: () => stage.quality,
+    setQuality: (level) => stage.setQuality(level),
+    onLost: (listener) => stage.onLost(listener),
     release: () => stage.unmount(handle),
   };
 };

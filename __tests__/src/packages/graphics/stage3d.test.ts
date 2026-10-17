@@ -39,6 +39,10 @@ class FakeStage extends Stage {
     this.canDraw = canDraw;
   }
 
+  public get quality() {
+    return 3;
+  }
+
   public prepare() {
     return Promise.resolve(this.canDraw);
   }

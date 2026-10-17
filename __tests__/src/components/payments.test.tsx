@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 
 import { BlueprintTabs } from "@/components/Blueprint/BlueprintTabs";
 import { LensProvider } from "@/components/Lens/context/LensContext";
-import { approvedMsOf, payMsOf, RESET_MS } from "@/components/Payments/config";
+import { approvedMsOf, payMsOf, RESET_MS, START_WAIT_MS } from "@/components/Payments/config";
 import { PayTerminal } from "@/components/Payments/PayTerminal";
 import { PaymentLayer } from "@/components/Payments/scene/PaymentLayer";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
@@ -128,7 +128,8 @@ describe("the payments section's links", () => {
 describe("PayTerminal", () => {
   const content = portfolioData.payments.terminal;
   const visa = `Pay with ${content.methods.visa}`;
-  const visaApprovedMs = approvedMsOf("visa", content.amount);
+  // jsdom draws no counter, so it never says it started: the approval is counted from the press after the wait.
+  const visaApprovedMs = START_WAIT_MS + approvedMsOf("visa", content.amount);
   const visaMs = payMsOf("visa", content.amount);
 
   beforeEach(() => {
@@ -169,7 +170,7 @@ describe("PayTerminal", () => {
     expect(screen.getByRole("status")).toHaveTextContent(`${content.methods.visa}: approved.`);
 
     act(() => {
-      jest.advanceTimersByTime(visaMs - visaApprovedMs + RESET_MS);
+      jest.advanceTimersByTime(visaMs - approvedMsOf("visa", content.amount) + RESET_MS);
     });
 
     // Back to waiting for the next customer: no method is being paid with.

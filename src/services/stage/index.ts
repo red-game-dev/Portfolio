@@ -1,7 +1,7 @@
 import { RENDERING } from "@/config/rendering";
+import { CUSTOMER_MODEL } from "@/packages/graphics/checkout-stage";
 import { HAND_MODELS } from "@/packages/graphics/hand";
-import { HEAD_MODELS } from "@/packages/graphics/head";
-import { ModelRegistry, Stage, StageService, WorkerModelSource } from "@/packages/graphics/stage3d";
+import { GlbModelSource, ModelRegistry, Stage, StageService, WorkerModelSource } from "@/packages/graphics/stage3d";
 
 // The site's 3D stage and its models, made once for the page. The models are slots: each id is registered with the
 // source that builds it, in a worker, and nothing is built until a scene asks for it or a section coming near preloads
@@ -14,7 +14,20 @@ const inWorker = new WorkerModelSource(
 
 export const models = new ModelRegistry();
 
-[...Object.values(HAND_MODELS), ...Object.values(HEAD_MODELS)].forEach((model) => models.register(model, inWorker));
+Object.values(HAND_MODELS).forEach((model) => models.register(model, inWorker));
+
+// The customer who pays by face: a scanned head and shoulders made elsewhere ("Infinite", a 3D head scan by Lee
+// Perry-Smith, CC BY 3.0, credited where it shows), fetched as a file with its pictures, in millimetres.
+const fromFiles = new GlbModelSource({
+  [CUSTOMER_MODEL]: {
+    url: "/models/head/head.glb",
+    scale: 58,
+    name: "skin",
+    material: { kind: "skin", image: "/models/head/colour.jpg", normalImage: "/models/head/normal.jpg", roughness: 0.55 },
+  },
+});
+
+models.register(CUSTOMER_MODEL, fromFiles);
 
 const stages = new StageService(RENDERING.mode === "2d" ? [] : [
   async () => new (await import("@/packages/graphics/stage3d-three")).ThreeStage(models),
@@ -52,7 +65,7 @@ export const preloadCheckout = (): void => {
     return;
   }
 
-  models.preload(...Object.values(HAND_MODELS), ...Object.values(HEAD_MODELS));
+  models.preload(...Object.values(HAND_MODELS), CUSTOMER_MODEL);
   stageReady()
     .then(async (stage) => {
       if (stage) {

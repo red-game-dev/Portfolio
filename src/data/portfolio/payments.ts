@@ -17,6 +17,11 @@ export const paymentsContent: Pick<PortfolioData, "payments"> = {
       groups: { new: "New at the counter", cards: "Cards", wallets: "Phone wallets", qr: "QR apps", crypto: "Crypto" },
       payWith: "Pay with {method}",
       approvedLine: "{method}: approved. The next drawing is open.",
+      credit: {
+        text: "The customer paying by face is \"Infinite\", a 3D head scan by Lee Perry-Smith, based on a work at triplegangers.com, used under",
+        licence: "CC BY 3.0",
+        url: "https://creativecommons.org/licenses/by/3.0/",
+      },
       methods: {
         visa: "Visa, by chip and PIN",
         mastercard: "Mastercard, contactless",

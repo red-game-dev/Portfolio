@@ -1,7 +1,6 @@
 import { approvedAt, CHECKOUT_LAYOUT, checkoutAt, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
 import { CHECKOUT_MODELS, checkoutStageMap, warmCheckoutStage } from "@/packages/graphics/checkout-stage";
 import { HAND_GRIPS, handField, RIGHT_HAND } from "@/packages/graphics/hand";
-import { HEAD_MODELS } from "@/packages/graphics/head";
 import type { ActorState, Stage, StageScene } from "@/packages/graphics/stage3d";
 import { conjugate, rotate, vec3 } from "@/packages/math/space";
 
@@ -128,7 +127,7 @@ describe("the checkout on a 3D stage", () => {
     const cards = scene.actors.filter((actor) => actor.id.startsWith("card-"));
 
     // Every hand wears the same skin, so the pointing hand and one holding hand cover it; the customer's head too.
-    expect(new Set(models)).toEqual(new Set([CHECKOUT_MODELS.point, CHECKOUT_MODELS.card, HEAD_MODELS.customer]));
+    expect(new Set(models)).toEqual(new Set([CHECKOUT_MODELS.point, CHECKOUT_MODELS.card, CHECKOUT_MODELS.customer]));
     expect(scene.actors.some((actor) => actor.id === "phone")).toBe(true);
     expect(new Set(cards.map((card) => card.parts[0].material?.finish))).toEqual(new Set(["metal", "gloss", "matte", "frosted"]));
     expect(cards.filter((card) => card.hiddenInside)).toHaveLength(4);
@@ -140,7 +139,7 @@ describe("the checkout on a 3D stage", () => {
     const frames = Array.from({ length: 101 }, (_, step) => checkoutAt(step / 100, "full", "face", 0, keys));
     const scanning = frames.filter((frame) => frame.screen.state === "face").map((frame) => actorOf(map.frameOf(frame), "customer"));
 
-    expect(customer?.parts[0].shape).toEqual({ kind: "model", model: HEAD_MODELS.customer });
+    expect(customer?.parts[0].shape).toEqual({ kind: "model", model: CHECKOUT_MODELS.customer });
     expect(scanning.length).toBeGreaterThan(5);
     expect(scanning.every((state) => state?.isShown && state.scan)).toBe(true);
     expect(actorOf(map.frameOf(checkoutAt(null, "full", "face", 0, keys)), "customer")?.isShown).toBe(false);

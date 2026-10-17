@@ -2,7 +2,7 @@ import { CSSProperties, FC, useCallback, useEffect, useId, useMemo, useRef, useS
 
 import tw, { css, styled } from "twin.macro";
 
-import { approvedMsOf, payMsOf, RESET_MS, TERMINAL_SCALE } from "@/components/Payments/config";
+import { approvedMsOf, payMsOf, RESET_MS, START_WAIT_MS, TERMINAL_SCALE } from "@/components/Payments/config";
 import { CheckoutScene } from "@/components/Payments/scene/CheckoutScene";
 import { PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
 import { Mark } from "@/components/Payments/scene/Mark";
@@ -103,6 +103,16 @@ const MethodButton = styled.button(() => [
 // Two lines held, so the line wrapping on a phone never moves the drawings below.
 const Status = tw.p`m-0 min-h-[2.5rem] text-sm text-[var(--accent)]`;
 
+const Credit = styled.p(() => [
+  tw`m-0 text-xs text-[#8a8a8a]`,
+  css`
+    a {
+      color: inherit;
+      text-decoration: underline;
+    }
+  `,
+]);
+
 const clearAll = (pending: number[]) => {
   pending.splice(0).forEach((timer) => window.clearTimeout(timer));
 };
@@ -120,6 +130,9 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
   const groupId = useId();
   const presses = useRef(0);
   const timers = useRef<number[]>([]);
+  // The approval of the payment under way, counted from when the counter starts playing it, not from the press: a
+  // counter that takes a moment to set up still says approved when its screen does.
+  const started = useRef<{ press: number; begin: () => void } | null>(null);
   const cardholder = useMemo(() => ({ name: content.cardholder, portrait: content.portrait }), [content.cardholder, content.portrait]);
 
   useEffect(() => {
@@ -159,8 +172,27 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
     }
 
     setPhase({ kind: "paying", method, press });
-    timers.current.push(window.setTimeout(approve, approvedMs));
+
+    let isCounting = false;
+    const begin = () => {
+      if (isCounting) {
+        return;
+      }
+
+      isCounting = true;
+      timers.current.push(window.setTimeout(approve, approvedMs));
+    };
+
+    started.current = { press, begin };
+    // Counted from the press after all, should the counter never start.
+    timers.current.push(window.setTimeout(begin, START_WAIT_MS));
   }, [content, isStill, onPaid, phase.kind]);
+
+  const onStart = useCallback(() => {
+    if (started.current && started.current.press === presses.current) {
+      started.current.begin();
+    }
+  }, []);
 
   const shown = phase.kind === "idle" ? null : phase;
 
@@ -180,6 +212,7 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
           amount={content.amount}
           accent={THEME_ACCENTS.payments}
           cardholder={cardholder}
+          onStart={onStart}
         />
       </SceneBox>
       <Side>
@@ -208,6 +241,10 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
         </Groups>
         {/* A new node for every payment, so the same method paid twice is read out again. */}
         <Status role="status">{line && <span key={line.press}>{line.text}</span>}</Status>
+        <Credit>
+          {content.credit.text}{" "}
+          <a href={content.credit.url} target="_blank" rel="noopener noreferrer">{content.credit.licence}</a>.
+        </Credit>
       </Side>
     </Wrap>
   );

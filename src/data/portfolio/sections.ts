@@ -225,7 +225,8 @@ export const sectionsContent: Pick<PortfolioData, "sections"> = {
         ],
         product: [
           "What merchants, sellers and cardholders move through: a POS for shops, restaurants and chains, checkout across cards, " +
-            "phone wallets, PayPal, Alipay, WeChat Pay, GCash, Maya and crypto, payouts on a schedule or at once, and a card payment from the tap to the merchant's account.",
+            "phone wallets, PayPal, Alipay, WeChat Pay, GCash, Maya and crypto, payouts on a schedule or at once, " +
+            "and a card payment from the tap to the merchant's account.",
         ],
       },
     },

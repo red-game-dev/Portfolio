@@ -4,6 +4,9 @@ import { approvedAt, keysFor, storyMs } from "@/packages/graphics/checkout";
 // The counter waits for the next payment this long after a story ends.
 export const RESET_MS = 600;
 
+// How long the page waits for the counter to start a payment before counting its approval from the press anyway.
+export const START_WAIT_MS = 2500;
+
 const storyOf = (method: PaymentMethodId, amount: string) => [PAY_GESTURES[method], PAY_APPS.indexOf(payAppOf(method)), keysFor(amount)] as const;
 
 // How long a payment at the reader's counter takes, read from its story at a real counter's pace: the cashier keys

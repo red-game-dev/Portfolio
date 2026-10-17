@@ -5,7 +5,6 @@ import {
   blendTurns, createHandPoser, gripSocket, HAND_GRIPS, HAND_MODELS, HAND_POSES, handField, handSkeleton, handSockets, RIGHT_HAND,
 } from "@/packages/graphics/hand";
 import type { HandGrip } from "@/packages/graphics/hand";
-import { HEAD_MODELS } from "@/packages/graphics/head";
 import { keepCamera } from "@/packages/graphics/rig";
 import type { ActorPart, ActorSpec, ActorState, Finish, JointTurns, SceneHandle, Stage, StageFrame, StageScene } from "@/packages/graphics/stage3d";
 import { attachBy, poseSkeleton, socketAt } from "@/packages/graphics/stage3d";
@@ -21,8 +20,11 @@ import { add, conjugate, dot, fromAxisAngle, IDENTITY, multiply, normalize, Quat
 // inside the terminal's body is cut away. The screen's glow lights the hands and brightens as the payment is approved.
 // The 2D terminal is drawn under it all.
 
-// The models the scene fills its slots with: the hand meshed pointing, holding a card and holding a phone.
-export const CHECKOUT_MODELS = HAND_MODELS;
+// The models the scene fills its slots with: the hand meshed pointing, holding a card and holding a phone, and the
+// customer who pays by face, a scanned head and shoulders the host registers from a file.
+export const CUSTOMER_MODEL = "head.customer";
+
+export const CHECKOUT_MODELS = { ...HAND_MODELS, customer: CUSTOMER_MODEL } as const;
 
 // Picture units per millimetre of the hand: a card is 60 units for its 85.6 millimetres.
 const HAND_UNIT = 0.7;
@@ -92,23 +94,15 @@ const WATCH: ActorPart[] = [
 const CLOTH = { cashier: ["#2d3653", "#3a4566"], customer: ["#5d4c3b", "#6e5c48"] } as const;
 
 // The customer paying by face: their head and shoulders to the right of the terminal and a step back from it, turned to
-// look into its camera, so their face is seen as it is read. In the head's millimetres: the chin at the origin.
-const CUSTOMER = { position: vec3(262, -152, -170), turn: fromAxisAngle(vec3(0, 1, 0), -0.95) } as const;
+// look into its camera, so their face is seen as it is read. The scan's middle (about the base of the neck) at the
+// origin, in millimetres.
+const CUSTOMER = { position: vec3(300, -150, -380), turn: fromAxisAngle(vec3(0, 1, 0), -0.95) } as const;
 
 const customerActor = (): ActorSpec => ({
   id: "customer",
   unit: HAND_UNIT,
   castsShadow: true,
-  parts: [
-    { shape: { kind: "model", model: HEAD_MODELS.customer } },
-    // Their shoulders in the jacket the hand's sleeve is.
-    {
-      shape: { kind: "cylinder", radiusTop: 95, radiusBottom: 150, length: 230 },
-      material: { kind: "cloth", colour: CLOTH.customer[0] },
-      offset: vec3(0, -170, -22),
-      scale: vec3(1, 1, 0.55),
-    },
-  ],
+  parts: [{ shape: { kind: "model", model: CUSTOMER_MODEL } }],
 });
 
 const handActor = (id: string, model: string, who: keyof typeof CLOTH, extra: ActorPart[] = []): ActorSpec => ({

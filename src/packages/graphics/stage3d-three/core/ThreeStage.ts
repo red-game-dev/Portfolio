@@ -2,7 +2,7 @@ import {
   ACESFilmicToneMapping, Bone, BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, Color, CylinderGeometry, DataTexture, DirectionalLight,
   DoubleSide, ExtrudeGeometry, Group, HemisphereLight, LinearFilter, LinearMipmapLinearFilter, Material, Mesh, MeshPhysicalMaterial,
   MeshStandardMaterial, PCFShadowMap, PerspectiveCamera, Plane, PlaneGeometry, PMREMGenerator, PointLight, RGBAFormat, Scene, ShadowMaterial, Shape,
-  Skeleton as ThreeSkeleton, SkinnedMesh, SRGBColorSpace, Texture, Vector3, WebGLRenderer,
+  Skeleton as ThreeSkeleton, SkinnedMesh, SRGBColorSpace, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer,
 } from "three";
 
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
@@ -43,6 +43,7 @@ interface MountedScene {
   disposables: Array<{ dispose(): void }>;
   models: string[];
   pictures: string[];
+  images: string[];
 }
 
 // Each quality level's share of the device's pixels, the shadow map's size and the skin's fine detail.
@@ -162,6 +163,7 @@ export class ThreeStage extends Stage {
   private level = QUALITY.length - 1;
   private readonly geometries = new Map<string, { parts: BufferGeometry[]; textures: Map<string, DataTexture>; users: number }>();
   private readonly pictures = new Map<string, { texture: CanvasTexture; version: number; users: number }>();
+  private readonly images = new Map<string, { texture: Texture; users: number }>();
   private readonly scenes = new Map<number, MountedScene>();
   private readonly camera = new PerspectiveCamera(30, 1, 1, 4000);
   private readonly scratch = { centre: new Vector3(), towards: new Vector3(), colour: new Color() };
@@ -224,6 +226,7 @@ export class ThreeStage extends Stage {
       disposables: [],
       models: modelIds,
       pictures: [],
+      images: [],
     };
 
     scene.environment = this.environment;
@@ -335,6 +338,7 @@ export class ThreeStage extends Stage {
     mounted.disposables.forEach((disposable) => disposable.dispose());
     mounted.models.forEach((model) => this.release(model));
     mounted.pictures.forEach((picture) => this.releasePicture(picture));
+    mounted.images.forEach((image) => this.releaseImage(image));
     this.scenes.delete(handle.id);
   }
 
@@ -347,6 +351,8 @@ export class ThreeStage extends Stage {
     [...this.scenes.keys()].forEach((id) => this.unmount({ id }));
     this.pictures.forEach(({ texture }) => texture.dispose());
     this.pictures.clear();
+    this.images.forEach(({ texture }) => texture.dispose());
+    this.images.clear();
     this.environment?.dispose();
     this.renderer?.dispose();
     this.renderer = null;
@@ -373,6 +379,38 @@ export class ThreeStage extends Stage {
     this.pictures.set(id, picture);
 
     return picture;
+  }
+
+  // A picture by its address, loaded the first time a scene's material asks for it and kept while any does: a colour
+  // picture in sRGB, any other (a normal map) as its values.
+  private imageOf(url: string, mounted: MountedScene, isColour: boolean): Texture {
+    const known = this.images.get(url) ?? { texture: new TextureLoader().load(url), users: 0 };
+
+    if (isColour) {
+      known.texture.colorSpace = SRGBColorSpace;
+    }
+
+    known.texture.anisotropy = 4;
+    known.users += 1;
+    this.images.set(url, known);
+    mounted.images.push(url);
+
+    return known.texture;
+  }
+
+  private releaseImage(url: string): void {
+    const image = this.images.get(url);
+
+    if (!image) {
+      return;
+    }
+
+    image.users -= 1;
+
+    if (image.users <= 0) {
+      image.texture.dispose();
+      this.images.delete(url);
+    }
   }
 
   // A picture no scene shows any more is given back.
@@ -435,6 +473,8 @@ export class ThreeStage extends Stage {
         vertexColors: true,
         roughness: spec.roughness ?? 0.5,
         specularIntensity: 0.55,
+        ...(spec.image ? { map: this.imageOf(spec.image, mounted, true) } : {}),
+        ...(spec.normalImage ? { normalMap: this.imageOf(spec.normalImage, mounted, false), normalScale: new Vector2(0.8, 0.8) } : {}),
         ...(isRich ? { sheen: 0.55, sheenColor: new Color("#ffc6b2"), sheenRoughness: 0.45, clearcoat: 0.12, clearcoatRoughness: 0.38 } : {}),
       });
 
@@ -548,6 +588,11 @@ export class ThreeStage extends Stage {
           const skinsBefore = skins.length;
           const material = dressed(this.materialOf(assetPart.material, tints?.[assetPart.name], mounted, uploaded?.textures, skins));
           const geometry = geometries[index];
+
+          // A mesh with no colour per vertex is drawn in its material's own (or its picture's).
+          if (material instanceof MeshPhysicalMaterial && material.vertexColors && !geometry.getAttribute("color")) {
+            material.vertexColors = false;
+          }
 
           // A skin's read sweeps its own height.
           if (skins.length > skinsBefore) {

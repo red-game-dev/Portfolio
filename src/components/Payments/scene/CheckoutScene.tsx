@@ -26,6 +26,8 @@ interface CheckoutSceneProps {
   cardholder?: { name: string; portrait: string };
   // Which payment this is: a new one plays again even for the same way to pay.
   run?: number;
+  // Told when a payment starts playing, so the page counts its approval from then.
+  onStart?: () => void;
 }
 
 // How long a new counter waits for its 3D hands before it starts flat (they come within it once the page has them).
@@ -44,7 +46,9 @@ const Canvas = tw.canvas`block w-full h-full`;
 // The checkout on canvas: the terminal and its screen drawn by the rig engine, the hands and what the customer holds
 // drawn in 3D on the page's stage (or flat where there is none), the code loaded only once the scene is near. A
 // payment plays once and the scene rests after it; nothing runs while it waits.
-export const CheckoutScene: FC<CheckoutSceneProps> = ({ method, variant, mode, durationMs, amount, accent, gesture, cardholder, run = 0 }: CheckoutSceneProps) => {
+export const CheckoutScene: FC<CheckoutSceneProps> = ({
+  method, variant, mode, durationMs, amount, accent, gesture, cardholder, run = 0, onStart,
+}: CheckoutSceneProps) => {
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const skin = useMemo<CheckoutSkin>(() => {
@@ -122,6 +126,7 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({ method, variant, mode, d
 
     actor.play("pay", durationMs);
     actor.start();
+    onStart?.();
 
     // Rests once the payment has played, drawn as it ends.
     const rest = window.setTimeout(() => {
@@ -130,7 +135,7 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({ method, variant, mode, d
     }, durationMs + 60);
 
     return () => window.clearTimeout(rest);
-  }, [actor, mode, durationMs, run]);
+  }, [actor, mode, durationMs, run, onStart]);
 
   return (
     <Box ref={boxRef} aria-hidden="true">

@@ -74,6 +74,9 @@ export interface MaterialSpec {
   // The id of a texture its model carries, read as the kind reads it: for skin, red how far the skin stands up (a vein
   // under it), green how much a vein's blue shows through, blue how thick its fine hair grows.
   detail?: string;
+  // Pictures by their address, for a model made elsewhere: its colour, and the way its surface faces in fine detail.
+  image?: string;
+  normalImage?: string;
   // The id of a picture the host paints and hands the stage with `setPicture`, and how its surface is finished.
   picture?: string;
   finish?: Finish;

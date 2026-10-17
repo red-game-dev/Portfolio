@@ -1,0 +1,736 @@
+import type { Canvas2DContext } from "@/packages/graphics/canvas";
+
+import { CheckoutLook, CheckoutSkin, MarkShape, ScreenState } from "../domain/types";
+import { amountShown, APP_TILE, appCentre, BODY, CARD, COUNTER_TOP, KEYPAD, keyCentre, OK_KEY, PHONE, SCREEN, STAND, STRIPE } from "./geometry";
+
+// How the checkout scene is drawn: a smart terminal on a stand on a counter, lit from the top left, with shaded
+// glass; cards and phones in their own colours; and two hands, the cashier's pointing and the customer's holding
+// or pointing. Everything here paints at the scene's own units around a fixed origin, so the rig caches each part
+// once and only moves it.
+
+const SKIN = {
+  cashier: { light: "#e8b98f", dark: "#b8825b", line: "rgba(110, 64, 34, 0.45)" },
+  customer: { light: "#a8744f", dark: "#6c4429", line: "rgba(52, 28, 14, 0.55)" },
+} as const;
+
+const SLEEVE = {
+  cashier: { light: "#3a4256", dark: "#1d2230", cuff: "#596179" },
+  customer: { light: "#6b5b4a", dark: "#3b3128", cuff: "#85725e" },
+} as const;
+
+export type Hand = keyof typeof SKIN;
+
+const roundRect = (context: Canvas2DContext, x: number, y: number, width: number, height: number, radius: number) => {
+  const r = Math.min(radius, width / 2, height / 2);
+
+  context.beginPath();
+  context.moveTo(x + r, y);
+  context.arcTo(x + width, y, x + width, y + height, r);
+  context.arcTo(x + width, y + height, x, y + height, r);
+  context.arcTo(x, y + height, x, y, r);
+  context.arcTo(x, y, x + width, y, r);
+  context.closePath();
+};
+
+const capsule = (context: Canvas2DContext, x: number, y: number, length: number, thickness: number, angle: number) => {
+  context.save();
+  context.translate(x, y);
+  context.rotate(angle);
+  roundRect(context, 0, -thickness / 2, length, thickness, thickness / 2);
+  context.restore();
+};
+
+const linear = (context: Canvas2DContext, x0: number, y0: number, x1: number, y1: number, stops: Array<[number, string]>) => {
+  const gradient = context.createLinearGradient(x0, y0, x1, y1);
+
+  stops.forEach(([offset, colour]) => gradient.addColorStop(offset, colour));
+
+  return gradient;
+};
+
+const withAlpha = (hex: string, alpha: number) => {
+  const value = hex.replace("#", "");
+  const full = value.length === 3 ? value.split("").map((c) => c + c)
+.join("") : value;
+  const channel = (index: number) => parseInt(full.slice(index, index + 2), 16);
+
+  return `rgba(${channel(0)}, ${channel(2)}, ${channel(4)}, ${alpha})`;
+};
+
+// A mark from its path data, fitted into a box and centred in it.
+const paintMark = (context: Canvas2DContext, mark: MarkShape, box: { x: number; y: number; width: number; height: number }) => {
+  if (typeof Path2D === "undefined") {
+    return;
+  }
+
+  const scale = Math.min(box.width / mark.width, box.height / mark.height);
+
+  context.save();
+  context.translate(box.x + (box.width - mark.width * scale) / 2, box.y + (box.height - mark.height * scale) / 2);
+  context.scale(scale, scale);
+  mark.parts.forEach(({ d, fill, stroke, strokeWidth = 1 }) => {
+    const path = new Path2D(d);
+
+    if (fill) {
+      context.fillStyle = fill;
+      context.fill(path);
+    }
+
+    if (stroke) {
+      context.strokeStyle = stroke;
+      context.lineWidth = strokeWidth;
+      context.lineJoin = "round";
+      context.stroke(path);
+    }
+  });
+  context.restore();
+};
+
+const contactless = (context: Canvas2DContext, x: number, y: number, size: number, colour: string, width = 1.4) => {
+  context.save();
+  context.strokeStyle = colour;
+  context.lineWidth = width;
+  context.lineCap = "round";
+  [0.35, 0.65, 0.95].forEach((share) => {
+    context.beginPath();
+    context.arc(x - size * 0.5, y, size * share, -0.75, 0.75);
+    context.stroke();
+  });
+  context.restore();
+};
+
+export const paintCounter = (context: Canvas2DContext, accent: string) => {
+  context.fillStyle = linear(context, 0, COUNTER_TOP - 2, 0, COUNTER_TOP + 10, [[0, "#2c2d32"], [1, "#1b1c20"]]);
+  context.fillRect(0, COUNTER_TOP - 2, 300, 12);
+  context.fillStyle = linear(context, 0, COUNTER_TOP + 10, 0, 210, [[0, "#161719"], [1, "#0c0c0e"]]);
+  context.fillRect(0, COUNTER_TOP + 10, 300, 210 - COUNTER_TOP - 10);
+  context.fillStyle = "rgba(255, 255, 255, 0.07)";
+  context.fillRect(0, COUNTER_TOP - 2, 300, 1);
+  context.fillStyle = linear(context, 0, 0, 300, 0, [[0, withAlpha(accent, 0)], [0.5, withAlpha(accent, 0.35)], [1, withAlpha(accent, 0)]]);
+  context.fillRect(0, COUNTER_TOP + 9, 300, 1);
+};
+
+export const paintStand = (context: Canvas2DContext) => {
+  const { foot, neck } = STAND;
+  const shadow = context.createRadialGradient(foot.x, foot.y + 1, 2, foot.x, foot.y + 1, foot.rx + 14);
+
+  shadow.addColorStop(0, "rgba(0, 0, 0, 0.55)");
+  shadow.addColorStop(1, "rgba(0, 0, 0, 0)");
+  context.fillStyle = shadow;
+  context.beginPath();
+  context.ellipse(foot.x, foot.y + 1, foot.rx + 14, foot.ry + 4, 0, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = linear(context, foot.x - foot.rx, 0, foot.x + foot.rx, 0, [[0, "#1d1e22"], [0.4, "#45464c"], [1, "#18191c"]]);
+  context.beginPath();
+  context.ellipse(foot.x, foot.y, foot.rx, foot.ry, 0, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = linear(context, neck.x, 0, neck.x + neck.width, 0, [[0, "#1f2024"], [0.45, "#4a4b51"], [1, "#1a1b1e"]]);
+  roundRect(context, neck.x, BODY.y + BODY.height - 6, neck.width, foot.y - (BODY.y + BODY.height - 6), 3);
+  context.fill();
+};
+
+export const paintReceipt = (context: Canvas2DContext) => {
+  const width = 28;
+  const x = 150 - width / 2;
+  const top = BODY.y - 34;
+  const height = 46;
+
+  context.fillStyle = linear(context, x, 0, x + width, 0, [[0, "#e9e6de"], [0.5, "#f7f5ef"], [1, "#e2dfd6"]]);
+  context.beginPath();
+  context.moveTo(x, top + 3);
+
+  // A torn top edge.
+  for (let step = 0; step <= 7; step += 1) {
+    context.lineTo(x + (width / 7) * step, top + (step % 2 === 0 ? 3 : 0));
+  }
+
+  context.lineTo(x + width, top + height);
+  context.lineTo(x, top + height);
+  context.closePath();
+  context.fill();
+  context.fillStyle = "#a19d93";
+  [[0.7, 9], [0.5, 14], [0.6, 18], [0.35, 22]].forEach(([share, y]) => context.fillRect(x + 4, top + y, (width - 8) * share, 1.4));
+  context.fillRect(x + 4, top + 27, width - 8, 0.8);
+  context.fillRect(x + width - 12, top + 30, 8, 1.6);
+};
+
+export const paintBody = (context: Canvas2DContext, accent: string) => {
+  const { x, y, width, height, radius } = BODY;
+
+  context.save();
+  context.shadowColor = "rgba(0, 0, 0, 0.55)";
+  context.shadowBlur = 14;
+  context.shadowOffsetY = 6;
+  context.fillStyle = linear(context, 0, y, 0, y + height, [[0, "#38393f"], [0.55, "#26272c"], [1, "#1a1b1f"]]);
+  roundRect(context, x, y, width, height, radius);
+  context.fill();
+  context.restore();
+
+  // The light from the top left along the left edge, and the shade down the right.
+  context.save();
+  roundRect(context, x, y, width, height, radius);
+  context.clip();
+  context.fillStyle = linear(context, x, 0, x + width, 0, [
+    [0, "rgba(255, 255, 255, 0.10)"],
+    [0.25, "rgba(255, 255, 255, 0)"],
+    [0.8, "rgba(0, 0, 0, 0)"],
+    [1, "rgba(0, 0, 0, 0.28)"],
+  ]);
+  context.fillRect(x, y, width, height);
+  context.restore();
+
+  context.strokeStyle = "rgba(255, 255, 255, 0.10)";
+  context.lineWidth = 1;
+  roundRect(context, x + 0.5, y + 0.5, width - 1, height - 1, radius - 0.5);
+  context.stroke();
+
+  // The printer's mouth at the top.
+  context.fillStyle = "#0a0a0c";
+  roundRect(context, x + 13, y + 3, width - 26, 3.5, 1.5);
+  context.fill();
+  context.fillStyle = "rgba(255, 255, 255, 0.08)";
+  context.fillRect(x + 13, y + 7, width - 26, 0.7);
+
+  // The screen's black glass.
+  context.fillStyle = "#050506";
+  roundRect(context, SCREEN.x - 3, SCREEN.y - 3, SCREEN.width + 6, SCREEN.height + 6, SCREEN.radius + 2);
+  context.fill();
+
+  // A small light under the screen in the accent, and the speaker.
+  context.fillStyle = withAlpha(accent, 0.9);
+  context.beginPath();
+  context.arc(150, SCREEN.y + SCREEN.height + 9, 1.6, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = "rgba(0, 0, 0, 0.45)";
+  [-6, -3, 0, 3, 6].forEach((offset) => context.fillRect(150 + offset - 0.6, SCREEN.y + SCREEN.height + 15, 1.2, 4));
+
+  // The chip reader's mouth at the foot.
+  context.fillStyle = "#0b0b0d";
+  roundRect(context, x + 14, y + height - 6, width - 28, 4, 1.6);
+  context.fill();
+  context.fillStyle = "rgba(255, 255, 255, 0.06)";
+  context.fillRect(x + 14, y + height - 1.6, width - 28, 0.7);
+
+  // The stripe reader's groove down the right side.
+  context.fillStyle = "#0c0c0e";
+  context.fillRect(STRIPE.x - 3, STRIPE.top, 2.2, STRIPE.bottom - STRIPE.top);
+  context.fillStyle = "rgba(255, 255, 255, 0.08)";
+  context.fillRect(STRIPE.x - 0.8, STRIPE.top, 0.6, STRIPE.bottom - STRIPE.top);
+};
+
+// A soft reflection across the glass, over whatever the screen shows.
+export const paintGlass = (context: Canvas2DContext) => {
+  context.save();
+  roundRect(context, SCREEN.x, SCREEN.y, SCREEN.width, SCREEN.height, SCREEN.radius);
+  context.clip();
+  context.fillStyle = linear(context, SCREEN.x, SCREEN.y, SCREEN.x + SCREEN.width, SCREEN.y + SCREEN.height * 0.6, [
+    [0, "rgba(255, 255, 255, 0.10)"],
+    [0.35, "rgba(255, 255, 255, 0.03)"],
+    [0.36, "rgba(255, 255, 255, 0)"],
+    [1, "rgba(255, 255, 255, 0)"],
+  ]);
+  context.fillRect(SCREEN.x, SCREEN.y, SCREEN.width, SCREEN.height);
+  context.restore();
+};
+
+const FONT = "Roboto, Helvetica, Arial, sans-serif";
+
+const text = (context: Canvas2DContext, value: string, x: number, y: number, size: number, weight: number, colour: string) => {
+  context.font = `${weight} ${size}px ${FONT}`;
+  context.fillStyle = colour;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(value, x, y);
+};
+
+// The total, or where a switch carries no words, a bar standing for it.
+const total = (context: Canvas2DContext, value: string, x: number, y: number, size: number, colour: string, accent: string) => {
+  if (value) {
+    text(context, value, x, y, size, 700, colour);
+
+    return;
+  }
+
+  context.fillStyle = withAlpha(accent, 0.85);
+  roundRect(context, x - size, y - 2, size * 2, 4, 2);
+  context.fill();
+};
+
+const KEY_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", ""];
+
+const paintKeypad = (context: Canvas2DContext, accent: string, pressed: number | null) => {
+  KEY_LABELS.forEach((label, index) => {
+    const { x, y } = keyCentre(index);
+    const isOk = index === OK_KEY;
+    const isPressed = pressed === index;
+
+    context.fillStyle = isOk ? withAlpha(accent, isPressed ? 1 : 0.85) : isPressed ? withAlpha(accent, 0.55) : "#16221e";
+    roundRect(context, x - KEYPAD.width / 2, y - KEYPAD.height / 2, KEYPAD.width, KEYPAD.height, 2.5);
+    context.fill();
+
+    if (isOk) {
+      // A tick for OK, so the key needs no word.
+      context.strokeStyle = "#071410";
+      context.lineWidth = 1.6;
+      context.lineCap = "round";
+      context.beginPath();
+      context.moveTo(x - 3.5, y);
+      context.lineTo(x - 1, y + 2.6);
+      context.lineTo(x + 3.8, y - 2.6);
+      context.stroke();
+    } else {
+      text(context, label, x, y + 0.5, 7.5, 600, isPressed ? "#04110d" : "#d5ece4");
+    }
+  });
+};
+
+const paintAppIcon = (context: Canvas2DContext, app: number, x: number, y: number, colour: string) => {
+  context.save();
+  context.strokeStyle = colour;
+  context.fillStyle = colour;
+  context.lineWidth = 1.2;
+
+  if (app === 0) {
+    roundRect(context, x - 5.5, y - 3.8, 11, 7.6, 1.4);
+    context.stroke();
+    context.fillRect(x - 5.5, y - 1.6, 11, 1.4);
+  } else if (app === 1) {
+    [[-4.5, -4.5], [1.5, -4.5], [-4.5, 1.5]].forEach(([dx, dy]) => {
+      context.strokeRect(x + dx, y + dy, 3, 3);
+    });
+    context.fillRect(x + 2, y + 2, 1.6, 1.6);
+    context.fillRect(x + 3.6, y + 3.6, 1.2, 1.2);
+  } else {
+    context.beginPath();
+    context.arc(x, y, 4.6, 0, Math.PI * 2);
+    context.stroke();
+    context.beginPath();
+    context.arc(x, y, 2.2, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  context.restore();
+};
+
+// A QR code from a fixed pattern of modules, with its three finder squares.
+const paintQr = (context: Canvas2DContext, x: number, y: number, size: number) => {
+  const cells = 13;
+  const cell = size / cells;
+  const isFinder = (row: number, column: number) => [[0, 0], [0, cells - 5], [cells - 5, 0]]
+    .some(([top, left]) => row >= top && row < top + 5 && column >= left && column < left + 5);
+
+  context.fillStyle = "#f4f4f4";
+  roundRect(context, x - 2, y - 2, size + 4, size + 4, 2);
+  context.fill();
+  context.fillStyle = "#101010";
+
+  for (let row = 0; row < cells; row += 1) {
+    for (let column = 0; column < cells; column += 1) {
+      const finder = isFinder(row, column);
+      const ring = finder && (row % (cells - 5) === 0 || row % (cells - 5) === 4 || column % (cells - 5) === 0 || column % (cells - 5) === 4);
+      const centre = finder && !ring && (row % (cells - 5) === 1 || row % (cells - 5) === 3 || column % (cells - 5) === 1 || column % (cells - 5) === 3);
+      const isOn = finder ? !centre : (row * 7 + column * 11 + row * column) % 5 < 2;
+
+      if (isOn) {
+        context.fillRect(x + column * cell, y + row * cell, cell + 0.15, cell + 0.15);
+      }
+    }
+  }
+};
+
+export interface ScreenView {
+  state: ScreenState;
+  typed: number;
+  pin: number;
+  pressed: number | null;
+  spinner: number;
+}
+
+export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: ScreenView) => {
+  const { accent, amount, look } = skin;
+  const { x, y, width, height, radius } = SCREEN;
+  const centre = x + width / 2;
+
+  context.save();
+  roundRect(context, x, y, width, height, radius);
+  context.clip();
+  context.fillStyle = linear(context, 0, y, 0, y + height, [[0, "#0f1b18"], [1, "#07100d"]]);
+  context.fillRect(x, y, width, height);
+
+  const glow = context.createRadialGradient(centre, y + height * 0.45, 2, centre, y + height * 0.45, width);
+
+  glow.addColorStop(0, withAlpha(accent, 0.1));
+  glow.addColorStop(1, withAlpha(accent, 0));
+  context.fillStyle = glow;
+  context.fillRect(x, y, width, height);
+
+  // A status bar: the app's light on the left, signal and battery on the right.
+  context.fillStyle = withAlpha(accent, 0.9);
+  context.beginPath();
+  context.arc(x + 5, y + 4.5, 1.3, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = "rgba(213, 236, 228, 0.55)";
+  [1.5, 2.5, 3.5].forEach((bar, index) => context.fillRect(x + width - 16 + index * 2, y + 6 - bar, 1.2, bar));
+  context.strokeStyle = "rgba(213, 236, 228, 0.55)";
+  context.lineWidth = 0.7;
+  context.strokeRect(x + width - 8.5, y + 2.8, 5, 3);
+  context.fillRect(x + width - 7.8, y + 3.5, 3, 1.6);
+
+  const { state, typed, pin, pressed, spinner } = view;
+  const keyed = amountShown(amount, typed);
+
+  if (state === "idle") {
+    context.strokeStyle = withAlpha(accent, 0.85);
+    context.lineWidth = 1.6;
+    context.beginPath();
+    context.arc(centre, y + 40, 9, 0, Math.PI * 2);
+    context.stroke();
+    context.fillStyle = withAlpha(accent, 0.85);
+    context.beginPath();
+    context.arc(centre, y + 40, 3, 0, Math.PI * 2);
+    context.fill();
+    context.fillStyle = "rgba(213, 236, 228, 0.18)";
+    roundRect(context, centre - 16, y + 60, 32, 3, 1.5);
+    context.fill();
+    roundRect(context, centre - 10, y + 67, 20, 3, 1.5);
+    context.fill();
+  } else if (state === "keying" || state === "apps") {
+    text(context, keyed, centre, y + 15, 12, 700, "#eafff7");
+
+    if (state === "keying") {
+      // The caret after the amount being keyed.
+      context.font = `700 12px ${FONT}`;
+      const after = context.measureText(keyed).width / 2;
+
+      context.fillStyle = withAlpha(accent, 0.9);
+      context.fillRect(centre + after + 1.5, y + 9.5, 1, 11);
+      paintKeypad(context, accent, pressed);
+    } else {
+      [0, 1, 2].forEach((app) => {
+        const tile = appCentre(app);
+        const isChosen = pressed === app;
+
+        context.fillStyle = isChosen ? accent : "#16221e";
+        roundRect(context, tile.x - APP_TILE.size / 2, tile.y - APP_TILE.size / 2, APP_TILE.size, APP_TILE.size, 3.5);
+        context.fill();
+        paintAppIcon(context, app, tile.x, tile.y, isChosen ? "#04110d" : withAlpha(accent, 0.95));
+      });
+    }
+  } else if (state === "ask") {
+    total(context, amount, centre, y + 18, 13, "#eafff7", accent);
+
+    if (look.gesture === "scan") {
+      paintQr(context, centre - 19, y + 34, 38);
+    } else {
+      contactless(context, centre + 4, y + 48, 18, accent, 2);
+      // A card in the chip reader, for the ways in that need no phone.
+      context.strokeStyle = withAlpha(accent, 0.8);
+      context.lineWidth = 1.2;
+      roundRect(context, centre - 9, y + 66, 18, 12, 2);
+      context.stroke();
+      context.fillStyle = withAlpha(accent, 0.8);
+      context.fillRect(centre - 6, y + 69.5, 4, 3);
+      context.fillStyle = "rgba(213, 236, 228, 0.35)";
+      context.fillRect(centre - 12, y + 82, 24, 1.2);
+    }
+  } else if (state === "pin") {
+    [0, 1, 2, 3].forEach((digit) => {
+      const dot = centre - 13.5 + digit * 9;
+
+      context.beginPath();
+      context.arc(dot, y + 15, 3, 0, Math.PI * 2);
+
+      if (digit < pin) {
+        context.fillStyle = accent;
+        context.fill();
+      } else {
+        context.strokeStyle = withAlpha(accent, 0.7);
+        context.lineWidth = 1;
+        context.stroke();
+      }
+    });
+    paintKeypad(context, accent, pressed);
+  } else if (state === "processing") {
+    total(context, amount, centre, y + 18, 11, "rgba(234, 255, 247, 0.8)", accent);
+    context.strokeStyle = withAlpha(accent, 0.18);
+    context.lineWidth = 3;
+    context.beginPath();
+    context.arc(centre, y + 50, 12, 0, Math.PI * 2);
+    context.stroke();
+    context.strokeStyle = accent;
+    context.lineCap = "round";
+    context.beginPath();
+    const start = spinner * Math.PI * 3 - Math.PI / 2;
+
+    context.arc(centre, y + 50, 12, start, start + Math.PI * 0.75);
+    context.stroke();
+  } else {
+    context.fillStyle = accent;
+    context.beginPath();
+    context.arc(centre, y + 44, 14, 0, Math.PI * 2);
+    context.fill();
+    context.strokeStyle = "#04110d";
+    context.lineWidth = 2.6;
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    context.beginPath();
+    context.moveTo(centre - 6, y + 44);
+    context.lineTo(centre - 1.5, y + 48.5);
+    context.lineTo(centre + 6.5, y + 39.5);
+    context.stroke();
+    total(context, amount, centre, y + 72, 11, "#eafff7", accent);
+  }
+
+  context.restore();
+};
+
+// The contactless sign's glow, pulsing out from the top of the screen while a card or a phone is held to it.
+export const paintWaves = (context: Canvas2DContext, accent: string, strength: number) => {
+  if (strength <= 0) {
+    return;
+  }
+
+  [0, 1, 2].forEach((ring) => {
+    const grow = (strength + ring * 0.33) % 1;
+
+    context.strokeStyle = withAlpha(accent, 0.5 * strength * (1 - grow));
+    context.lineWidth = 1.6;
+    context.beginPath();
+    context.arc(150, SCREEN.y + 22, 10 + grow * 26, Math.PI * 1.05, Math.PI * 1.95);
+    context.stroke();
+  });
+};
+
+// A card in its network's colours: the chip, the contactless sign and the mark, with a sheen across the print.
+export const paintCard = (context: Canvas2DContext, look: CheckoutLook, isUpright: boolean) => {
+  const width = isUpright ? CARD.short : CARD.long;
+  const height = isUpright ? CARD.long : CARD.short;
+  const left = -width / 2;
+  const top = -height / 2;
+
+  context.save();
+  context.shadowColor = "rgba(0, 0, 0, 0.5)";
+  context.shadowBlur = 7;
+  context.shadowOffsetY = 3;
+  context.fillStyle = linear(context, left, top, left + width, top + height, [[0, look.face[0]], [1, look.face[1]]]);
+  roundRect(context, left, top, width, height, CARD.radius);
+  context.fill();
+  context.restore();
+
+  context.save();
+  roundRect(context, left, top, width, height, CARD.radius);
+  context.clip();
+  context.fillStyle = linear(context, left, top, left + width * 0.7, top + height, [
+    [0, "rgba(255, 255, 255, 0.22)"],
+    [0.45, "rgba(255, 255, 255, 0.04)"],
+    [0.46, "rgba(255, 255, 255, 0)"],
+    [1, "rgba(0, 0, 0, 0.12)"],
+  ]);
+  context.fillRect(left, top, width, height);
+  context.restore();
+
+  // The chip, near the leading edge as it goes into a reader.
+  const chip = isUpright ? { x: left + 6, y: top + 7 } : { x: left + 8, y: top + 12 };
+
+  context.fillStyle = linear(context, chip.x, chip.y, chip.x + 10, chip.y + 8, [[0, "#f0d58a"], [0.5, "#c9a24a"], [1, "#a8812f"]]);
+  roundRect(context, chip.x, chip.y, 10, 8, 1.6);
+  context.fill();
+  context.strokeStyle = "rgba(90, 64, 16, 0.6)";
+  context.lineWidth = 0.6;
+  context.beginPath();
+  context.moveTo(chip.x + 3.3, chip.y);
+  context.lineTo(chip.x + 3.3, chip.y + 8);
+  context.moveTo(chip.x + 6.7, chip.y);
+  context.lineTo(chip.x + 6.7, chip.y + 8);
+  context.moveTo(chip.x, chip.y + 4);
+  context.lineTo(chip.x + 10, chip.y + 4);
+  context.stroke();
+
+  contactless(context, chip.x + (isUpright ? 6 : 17), chip.y + (isUpright ? 16 : 4), 7, "rgba(255, 255, 255, 0.75)", 0.9);
+
+  const box = isUpright
+    ? { x: left + 5, y: top + height - 14, width: width - 10, height: 10 }
+    : { x: left + width - 24, y: top + height - 14, width: 20, height: 11 };
+
+  paintMark(context, look.mark, box);
+
+  context.strokeStyle = "rgba(255, 255, 255, 0.18)";
+  context.lineWidth = 0.7;
+  roundRect(context, left + 0.35, top + 0.35, width - 0.7, height - 0.7, CARD.radius);
+  context.stroke();
+};
+
+// A phone, its screen in the wallet's or the method's colours with the mark; a phone scanning shows its
+// camera's frame instead of the wallet's card.
+export const paintPhone = (context: Canvas2DContext, look: CheckoutLook) => {
+  const { width, height, radius } = PHONE;
+  const left = -width / 2;
+  const top = -height / 2;
+  const isScanning = look.gesture === "scan";
+
+  context.save();
+  context.shadowColor = "rgba(0, 0, 0, 0.55)";
+  context.shadowBlur = 8;
+  context.shadowOffsetY = 3;
+  context.fillStyle = linear(context, left, 0, left + width, 0, [[0, "#2a2b30"], [0.5, "#121215"], [1, "#2a2b30"]]);
+  roundRect(context, left, top, width, height, radius);
+  context.fill();
+  context.restore();
+
+  context.fillStyle = linear(context, left, top, left + width, top + height, [[0, look.face[0]], [1, look.face[1]]]);
+  roundRect(context, left + 2, top + 2, width - 4, height - 4, radius - 1.5);
+  context.fill();
+
+  if (isScanning) {
+    context.fillStyle = "rgba(0, 0, 0, 0.55)";
+    roundRect(context, left + 2, top + 2, width - 4, height - 4, radius - 1.5);
+    context.fill();
+    paintMark(context, look.mark, { x: left + 7, y: top + 8, width: width - 14, height: 8 });
+    context.strokeStyle = "rgba(255, 255, 255, 0.9)";
+    context.lineWidth = 1.2;
+    const frame = { x: left + 6, y: top + 20, size: width - 12 };
+    const corner = 4;
+
+    [[0, 0, 1, 1], [1, 0, -1, 1], [0, 1, 1, -1], [1, 1, -1, -1]].forEach(([cx, cy, dx, dy]) => {
+      const px = frame.x + cx * frame.size;
+      const py = frame.y + cy * frame.size;
+
+      context.beginPath();
+      context.moveTo(px, py + dy * corner);
+      context.lineTo(px, py);
+      context.lineTo(px + dx * corner, py);
+      context.stroke();
+    });
+  } else {
+    paintMark(context, look.mark, { x: left + 6, y: top + height / 2 - 8, width: width - 12, height: 16 });
+  }
+
+  // The camera notch and a highlight along the frame.
+  context.fillStyle = "#050506";
+  roundRect(context, -4, top + 3.5, 8, 2.4, 1.2);
+  context.fill();
+  context.strokeStyle = "rgba(255, 255, 255, 0.16)";
+  context.lineWidth = 0.7;
+  roundRect(context, left + 0.35, top + 0.35, width - 0.7, height - 0.7, radius);
+  context.stroke();
+};
+
+// The camera's scan line, swept across its frame while the phone reads the QR code.
+export const paintSweep = (context: Canvas2DContext, accent: string, sweep: number) => {
+  if (sweep <= 0) {
+    return;
+  }
+
+  const { width, height } = PHONE;
+  const top = -height / 2 + 20;
+  const size = width - 12;
+  const y = top + size * (0.5 - 0.5 * Math.cos(sweep * Math.PI * 4));
+
+  context.fillStyle = linear(context, -size / 2, 0, size / 2, 0, [[0, withAlpha(accent, 0)], [0.5, withAlpha(accent, 0.95)], [1, withAlpha(accent, 0)]]);
+  context.fillRect(-size / 2, y, size, 1.4);
+};
+
+const skinShapes = (context: Canvas2DContext, hand: Hand, top: number, bottom: number, draw: () => void) => {
+  const tone = SKIN[hand];
+
+  context.fillStyle = linear(context, 0, top, 0, bottom, [[0, tone.light], [1, tone.dark]]);
+  context.strokeStyle = tone.line;
+  context.lineWidth = 0.7;
+  draw();
+};
+
+const sleeve = (context: Canvas2DContext, hand: Hand, x: number, y: number, width: number, height: number, cuffAt: number) => {
+  const cloth = SLEEVE[hand];
+
+  context.fillStyle = linear(context, 0, y, 0, y + height, [[0, cloth.light], [1, cloth.dark]]);
+  roundRect(context, x, y, width, height, 6);
+  context.fill();
+  context.fillStyle = cloth.cuff;
+  roundRect(context, cuffAt, y + 1, 5, height - 2, 2);
+  context.fill();
+};
+
+// A hand pointing, the fingertip at the origin and the finger along the x axis, the arm behind it: the cashier
+// keying on the screen, or the customer keying a PIN.
+export const paintPointingHand = (context: Canvas2DContext, hand: Hand) => {
+  context.save();
+  context.shadowColor = "rgba(0, 0, 0, 0.35)";
+  context.shadowBlur = 6;
+  context.shadowOffsetY = 3;
+  sleeve(context, hand, -118, -17, 62, 34, -62);
+  context.restore();
+
+  skinShapes(context, hand, -17, 17, () => {
+    // The back of the hand.
+    context.beginPath();
+    context.moveTo(-60, -12);
+    context.bezierCurveTo(-47, -16, -31, -15, -21, -9);
+    context.bezierCurveTo(-15, -5, -15, 7, -22, 11);
+    context.bezierCurveTo(-33, 16, -49, 15, -60, 12);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    // The curled fingers, knuckles showing.
+    [[-27, 2.5], [-29, 7.5], [-32, 12]].forEach(([x, y]) => {
+      roundRect(context, x, y - 3.4, 11, 6.8, 3.4);
+      context.fill();
+      context.stroke();
+    });
+    // The thumb along the top.
+    capsule(context, -44, -14, 19, 7.4, 0.3);
+    context.fill();
+    context.stroke();
+    // The pointing finger.
+    capsule(context, -26, -1.5, 26.5, 8.2, 0.06);
+    context.fill();
+    context.stroke();
+  });
+
+  // The nail, and a crease at the knuckle.
+  context.fillStyle = "rgba(255, 236, 220, 0.55)";
+  roundRect(context, -7.2, -3.4, 6.2, 5.2, 2.4);
+  context.fill();
+  context.strokeStyle = SKIN[hand].line;
+  context.lineWidth = 0.6;
+  context.beginPath();
+  context.moveTo(-14, -3.5);
+  context.lineTo(-13.3, 1.5);
+  context.stroke();
+};
+
+// A hand gripping what it holds by its edge, the grip at the origin and the arm out to the right: fingers over
+// the edge in front, the thumb along the top.
+export const paintGrippingHand = (context: Canvas2DContext, hand: Hand) => {
+  context.save();
+  context.shadowColor = "rgba(0, 0, 0, 0.35)";
+  context.shadowBlur = 6;
+  context.shadowOffsetY = 3;
+  sleeve(context, hand, 30, -15, 66, 32, 30);
+  context.restore();
+
+  skinShapes(context, hand, -16, 18, () => {
+    // The palm.
+    context.beginPath();
+    context.ellipse(17, 2, 17, 13, 0, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+    // Four fingers wrapped over the edge.
+    [-9.5, -3.3, 2.9, 9].forEach((y, index) => {
+      roundRect(context, -7 + index * 0.8, y - 3, 17, 6, 3);
+      context.fill();
+      context.stroke();
+    });
+    // The thumb along the top, its tip over the face.
+    capsule(context, 10, -11, 19, 7.2, Math.PI + 0.42);
+    context.fill();
+    context.stroke();
+  });
+
+  context.fillStyle = "rgba(255, 236, 220, 0.4)";
+  [-9.5, -3.3, 2.9, 9].forEach((y, index) => {
+    roundRect(context, -6 + index * 0.8, y - 2, 4, 4, 1.8);
+    context.fill();
+  });
+};

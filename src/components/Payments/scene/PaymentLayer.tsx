@@ -3,10 +3,12 @@ import { CSSProperties, FC, useLayoutEffect, useRef, useState } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { Counter, COUNTER } from "@/components/Payments/scene/Counter";
+import { CheckoutScene } from "@/components/Payments/scene/CheckoutScene";
 import { STORIES } from "@/components/Payments/scene/Stories";
 import { PAYMENT_SWITCH_MS, PaymentEffect } from "@/components/SwitchStage/config";
 import { CARD_METHODS, methodForSwitch, PAY_SEQUENCE } from "@/config/payments";
+import { THEME_ACCENTS } from "@/config/sectionThemes";
+import { CHECKOUT_SCENE as COUNTER } from "@/packages/graphics/checkout";
 import { noAnimationWhenReduced } from "@/styles/mixins";
 
 // Scaled by --fit where the drawing is narrower than the counter, so nobody at it is cut off.
@@ -57,12 +59,14 @@ export const PaymentLayer: FC<{ effect: PaymentEffect; count: number }> = ({ eff
 
     return (
       <Panel ref={panelRef} data-switch-fx aria-hidden="true" style={style}>
-        <Counter
+        <CheckoutScene
           method={method}
           variant="quick"
           mode="playing"
           gesture={effect === "tap" ? "tap" : undefined}
           durationMs={PAYMENT_SWITCH_MS}
+          amount=""
+          accent={THEME_ACCENTS.payments}
         />
       </Panel>
     );

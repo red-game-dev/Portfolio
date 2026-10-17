@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useCallback } from "react";
+import { CSSProperties, FC, useCallback, useLayoutEffect, useRef } from "react";
 
 import tw, { styled } from "twin.macro";
 
@@ -6,6 +6,7 @@ import { BlueprintSection } from "@/components/Blueprint";
 import { Tag } from "@/components/Controls";
 import { Panel as Intro, PanelText, PanelTitle } from "@/components/Panel";
 import { Section } from "@/components/Section";
+import { aimBurst } from "@/components/SkillAreas/burst";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
@@ -56,6 +57,22 @@ export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas, examples, bluepr
   const { play } = switcher;
   const onSelect = useCallback((next: number, previous: number) => play(next > previous ? 1 : -1), [play]);
   const { active, listProps, tabProps, panelProps } = useTabs({ count: areas.length, onSelect });
+  const tabId = tabProps(active).id;
+  const panelId = panelProps(active).id;
+  const hasSwitched = useRef(false);
+
+  // Before paint on every switch (not the first render, which plays nothing): aim the opening area's skills back at
+  // the tab picked, so they burst out of it.
+  useLayoutEffect(() => {
+    const tab = document.getElementById(tabId);
+    const panel = document.getElementById(panelId);
+
+    if (hasSwitched.current && tab && panel) {
+      aimBurst(tab, panel);
+    }
+
+    hasSwitched.current = true;
+  }, [tabId, panelId]);
 
   return (
     <Section id={SECTION_IDS.skillAreas}>

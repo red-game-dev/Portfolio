@@ -2,12 +2,14 @@ import { CSSProperties, FC, useCallback, useEffect, useId, useRef, useState } fr
 
 import tw, { css, styled } from "twin.macro";
 
-import { APPROVE_SHARE, RESET_MS, TERMINAL_PAY_MS, TERMINAL_SCALE } from "@/components/Payments/config";
-import { Counter, COUNTER } from "@/components/Payments/scene/Counter";
-import { Mark } from "@/components/Payments/scene/Instrument";
+import { approvedMsOf, payMsOf, RESET_MS, TERMINAL_SCALE } from "@/components/Payments/config";
+import { CheckoutScene } from "@/components/Payments/scene/CheckoutScene";
 import { PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
-import { PAYMENT_GROUP_ORDER, PAYMENT_GROUPS, PaymentMethodId } from "@/config/payments";
+import { Mark } from "@/components/Payments/scene/Mark";
+import { PAY_APPS, PAY_GESTURES, payAppOf, PAYMENT_GROUP_ORDER, PAYMENT_GROUPS, PaymentMethodId } from "@/config/payments";
+import { THEME_ACCENTS } from "@/config/sectionThemes";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { CHECKOUT_SCENE } from "@/packages/graphics/checkout";
 import { fill } from "@/packages/text/format";
 import { focusRing, media } from "@/styles/mixins";
 import { PaymentTerminalContent } from "@/types/payments";
@@ -37,8 +39,8 @@ const SceneBox = styled.div(() => [
   tw`relative flex-shrink-0`,
   css`
     --scale: ${TERMINAL_SCALE.narrow};
-    width: calc(${COUNTER.width}px * var(--scale));
-    height: calc(${COUNTER.height}px * var(--scale));
+    width: calc(${CHECKOUT_SCENE.width}px * var(--scale));
+    height: calc(${CHECKOUT_SCENE.height}px * var(--scale));
 
     @media (max-width: 389px) {
       --scale: ${TERMINAL_SCALE.narrower};
@@ -139,12 +141,15 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
     presses.current += 1;
 
     const press = presses.current;
+    const gesture = PAY_GESTURES[method];
+    const approvedMs = approvedMsOf(gesture, PAY_APPS.indexOf(payAppOf(method)), content.amount);
 
     const approve = () => {
       setPhase({ kind: "approved", method, press });
       setLine({ text: fill(content.approvedLine, { method: content.methods[method] }), press });
       onPaid();
-      timers.current.push(window.setTimeout(() => setPhase({ kind: "idle" }), RESET_MS));
+      // Waits for the story to end (the receipt printed, the hands gone), then for the next customer.
+      timers.current.push(window.setTimeout(() => setPhase({ kind: "idle" }), isStill ? RESET_MS : payMsOf(gesture) - approvedMs + RESET_MS));
     };
 
     if (isStill) {
@@ -154,7 +159,7 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
     }
 
     setPhase({ kind: "paying", method, press });
-    timers.current.push(window.setTimeout(approve, TERMINAL_PAY_MS * APPROVE_SHARE));
+    timers.current.push(window.setTimeout(approve, approvedMs));
   }, [content, isStill, onPaid, phase.kind]);
 
   const shown = phase.kind === "idle" ? null : phase;
@@ -165,13 +170,14 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
   return (
     <Wrap role="group" aria-label={content.label}>
       <SceneBox>
-        <Counter
+        <CheckoutScene
           key={shown?.press ?? 0}
           method={shown?.method ?? PAYMENT_GROUPS.cards[0]}
           variant="full"
           mode={mode}
-          durationMs={TERMINAL_PAY_MS}
+          durationMs={payMsOf(PAY_GESTURES[shown?.method ?? PAYMENT_GROUPS.cards[0]])}
           amount={content.amount}
+          accent={THEME_ACCENTS.payments}
         />
       </SceneBox>
       <Side>

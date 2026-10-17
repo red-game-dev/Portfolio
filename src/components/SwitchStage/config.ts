@@ -7,7 +7,7 @@ export const SWITCH_MS = 650;
 
 // A payment's switch tells a short story (the card goes to the terminal, then it is approved), so it plays
 // longer. It never takes a press: the content under it can be used from the start.
-export const PAYMENT_SWITCH_MS = 1200;
+export const PAYMENT_SWITCH_MS = 1400;
 
 // The cells laid over the new content as it lands: blocks for Web3, pixels for the game world.
 export const BLOCK_GRID = { columns: 8, rows: 4 } as const;
@@ -24,9 +24,10 @@ export type ZoneEffect = "beam" | "blocks" | "deal" | "pixels" | "scan" | "warp"
 export type PaymentEffect = BlueprintMotion | "pay";
 
 // A section with a theme of its own (config/sectionThemes.ts) switches by its subject where its content switches: what
-// I have built is drafted tile by tile like a plan, and the skills by area snap into place one after another. Both
-// animate the content's own items (marked data-switch-item, each with its place as --i).
-export type ThemeEffect = "draft" | "assemble";
+// I have built is drafted item by item like a plan, and the skills by area burst out of the tab picked. Both animate
+// the content's own items (marked data-switch-item, each with its place as --i): tiles and skills, and a drawing's
+// boxes, overview rows, screens and journeys.
+export type ThemeEffect = "draft" | "burst";
 
 export type SwitchEffect = ZoneEffect | PaymentEffect | ThemeEffect;
 
@@ -34,11 +35,11 @@ export type SwitchEffect = ZoneEffect | PaymentEffect | ThemeEffect;
 // bring theirs (their `motion`).
 export const THEME_EFFECTS: Partial<Record<SectionThemeId, ZoneEffect | ThemeEffect>> = {
   web3: "blocks",
-  skillAreas: "assemble",
+  skillAreas: "burst",
   platform: "draft",
 };
 
-const THEME_EFFECT_SET: ReadonlySet<SwitchEffect> = new Set<SwitchEffect>(["draft", "assemble"]);
+const THEME_EFFECT_SET: ReadonlySet<SwitchEffect> = new Set<SwitchEffect>(["draft", "burst"]);
 
 export const isThemeEffect = (effect: SwitchEffect): effect is ThemeEffect => THEME_EFFECT_SET.has(effect);
 

@@ -1,4 +1,4 @@
-import { FC, useId, useMemo, useRef, useState } from "react";
+import { CSSProperties, FC, useId, useMemo, useRef, useState } from "react";
 
 import { faDatabase, faMagnifyingGlassMinus, faMagnifyingGlassPlus, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -131,8 +131,10 @@ export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edg
           );
         })}
       </Wires>
-      {groups.map((group) => {
+      {groups.map((group, groupIndex) => {
         const groupColumns = group.columns ?? 1;
+        // A box's place across the whole drawing, for a section theme's switch that takes the boxes in turn.
+        const before = groups.slice(0, groupIndex).reduce((count, earlier) => count + earlier.nodes.length, 0);
 
         return (
           <Group
@@ -145,11 +147,19 @@ export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edg
           >
             {group.label && <GroupLabel>{group.label}</GroupLabel>}
             <Nodes>
-              {group.nodes.map((node) => {
+              {group.nodes.map((node, nodeIndex) => {
                 const icon = node.kind === "store" || node.kind === "actor" ? KIND_ICONS[node.kind] : null;
 
                 return (
-                  <Node key={node.id} data-bp-id={node.id} data-hash={blockHash(node.id)} zone={zone} kind={node.kind} style={nodeStyle(node, groupColumns)}>
+                  <Node
+                    key={node.id}
+                    data-bp-id={node.id}
+                    data-hash={blockHash(node.id)}
+                    data-switch-item
+                    zone={zone}
+                    kind={node.kind}
+                    style={{ ...nodeStyle(node, groupColumns), "--i": before + nodeIndex } as CSSProperties}
+                  >
                     <NodeLabel>
                       {icon && <KindIcon aria-hidden="true"><FontAwesomeIcon icon={icon} /></KindIcon>}
                       {node.kind === "decision" && <Diamond aria-hidden="true" />}

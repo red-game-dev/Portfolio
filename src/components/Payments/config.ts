@@ -1,13 +1,19 @@
-import { APPROVED_AT } from "@/components/Payments/scene/Counter";
+import { approvedAt, CheckoutGesture, keysFor } from "@/packages/graphics/checkout";
 
-// How long a payment at the reader's counter takes: the cashier rings it up and sends the total, the customer pays,
-// and it is approved at `APPROVE_SHARE` of the story, the next drawing opening at that moment; the counter waits for
-// the next payment `RESET_MS` after it.
-export const TERMINAL_PAY_MS = 3200;
+// How long a payment at the reader's counter takes: the cashier keys the amount and opens the app, then the
+// customer pays; a chip card also keys its PIN, so its story runs longer. The counter waits for the next payment
+// `RESET_MS` after the story ends.
+export const TERMINAL_PAY_MS = 4600;
 
-export const APPROVE_SHARE = APPROVED_AT;
+export const TERMINAL_PIN_PAY_MS = 6000;
 
-export const RESET_MS = 2600;
+export const RESET_MS = 900;
+
+export const payMsOf = (gesture: CheckoutGesture) => (gesture === "insert" ? TERMINAL_PIN_PAY_MS : TERMINAL_PAY_MS);
+
+// When, in milliseconds, the terminal approves a payment in the full story, for the page to say so then.
+export const approvedMsOf = (gesture: CheckoutGesture, app: number, amount: string) =>
+  approvedAt("full", gesture, app, keysFor(amount)) * payMsOf(gesture);
 
 // The counter drawn larger where there is room beside the ways to pay, and smaller on the narrowest phones, where
 // the room inside the section is less than the counter is wide.

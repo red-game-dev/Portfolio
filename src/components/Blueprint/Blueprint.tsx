@@ -1,4 +1,4 @@
-import { FC, useEffect, useId, useRef, useState } from "react";
+import { CSSProperties, FC, useEffect, useId, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -118,10 +118,13 @@ const defaultView = (lens: Lens, hasFlow: boolean): View => {
   return lens === "product" && hasFlow ? "flow" : "overview";
 };
 
+// A switch's item in its place, for a section theme's switch that takes them in turn.
+const itemAt = (index: number) => ({ "data-switch-item": true, "style": { "--i": index } as CSSProperties });
+
 const JourneyList: FC<{ journeys: BlueprintJourney[] }> = ({ journeys }) => (
   <Journeys>
-    {journeys.map((journey) => (
-      <Journey key={journey.title}>
+    {journeys.map((journey, index) => (
+      <Journey key={journey.title} {...itemAt(index + 1)}>
         <JourneyTitle>{journey.title}</JourneyTitle>
         <Steps>
           {journey.steps.map((step) => <li key={step}>{step}</li>)}
@@ -192,14 +195,14 @@ export const Blueprint: FC<BlueprintProps> = ({
         {view === "overview" && (
           <Facts>
             <Term>{labels.role}</Term>
-            <Value>{summary.role}</Value>
+            <Value {...itemAt(0)}>{summary.role}</Value>
             <Term>{labels.scale}</Term>
-            <Value>{summary.scale}</Value>
+            <Value {...itemAt(1)}>{summary.scale}</Value>
             {summary.stack && summary.stack.length > 0 && (
               <>
                 <Term>{labels.stack}</Term>
                 <Value>
-                  <TagList>{summary.stack.map((tech) => <Tech key={tech}>{tech}</Tech>)}</TagList>
+                  <TagList>{summary.stack.map((tech, index) => <Tech key={tech} {...itemAt(index + 2)}>{tech}</Tech>)}</TagList>
                 </Value>
               </>
             )}

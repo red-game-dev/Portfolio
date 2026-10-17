@@ -24,16 +24,19 @@ const pop = keyframes`
   100% { opacity: 1; transform: scale(1); }
 `;
 
+// Hidden until it starts, so the ring never shows before its dot lands.
 const ring = keyframes`
-  0% { opacity: 0.9; transform: scale(1); }
+  0% { opacity: 0; transform: scale(1); }
+  8% { opacity: 0.9; transform: scale(1.2); }
   100% { opacity: 0; transform: scale(3.2); }
 `;
 
-// The line and the shade under it are revealed left to right, the way the grids below load.
+// The line and the shade under it are revealed left to right at a steady pace, so each dot lands just as the line
+// reaches it.
 const Drawn = styled.g(({ isShown }: { isShown: boolean }) => [
   css`
     clip-path: inset(0 ${isShown ? 0 : 100}% 0 0);
-    transition: clip-path ${DRAW_MS}ms cubic-bezier(0.45, 0, 0.25, 1);
+    transition: clip-path ${DRAW_MS}ms linear;
 
     ${media.reducedMotion} {
       clip-path: none;

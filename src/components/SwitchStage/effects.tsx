@@ -66,12 +66,19 @@ const paySettle = keyframes`
   100% { opacity: 1; }
 `;
 
-// More Skills by Area: the open area's title and skills snap into place one after another, from the side of the tab
-// the reader came from, like tiles going into a toolbox. Each item carries its place as --i (data-switch-item).
-const assembleIn = keyframes`
-  0% { opacity: 0; transform: translateY(var(--assemble-y)) scale(0.9); }
-  60% { opacity: 1; transform: translateY(calc(var(--assemble-y) * -0.15)) scale(1.03); }
+// More Skills by Area: the open area's skills burst out of the tab the reader picked to their places in a quick fan,
+// each glowing as it lands. Each item carries its place as --i and, where the section measured it, the way back to
+// the tab as --from-x and --from-y; without them (a drawing's boxes) they rise from just below.
+const burstIn = keyframes`
+  0% { opacity: 0; transform: translate(var(--from-x, 0px), var(--from-y, 18px)) scale(0.3); }
+  65% { opacity: 1; transform: translate(0, 0) scale(1.06); }
   100% { opacity: 1; transform: none; }
+`;
+
+const landed = keyframes`
+  0%, 55% { opacity: 0; }
+  72% { opacity: 1; }
+  100% { opacity: 0; }
 `;
 
 // What I have built: each tile is drafted in turn, a pen tracing its frame from the top left corner over a drafting
@@ -104,7 +111,7 @@ const dimensioned = keyframes`
 `;
 
 // How long each item's part of a theme's switch takes, and the step between items.
-const ASSEMBLE = { ms: 360, stepMs: 16, most: 24 } as const;
+const BURST = { ms: 540, stepMs: 20, most: 24 } as const;
 
 const DRAFT = { ms: 560, stepMs: 70, most: 11 } as const;
 
@@ -154,10 +161,23 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
       animation: ${paySettle} ${PAYMENT_SWITCH_MS}ms ease-out both;
     }
   `,
-  effect === "assemble" && css`
+  effect === "burst" && css`
     ${ITEM} {
-      animation: ${assembleIn} ${ASSEMBLE.ms}ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
-      animation-delay: calc(min(var(--i, 0), ${ASSEMBLE.most}) * ${ASSEMBLE.stepMs}ms);
+      position: relative;
+      animation: ${burstIn} ${BURST.ms}ms cubic-bezier(0.2, 0.85, 0.3, 1.05) both;
+      animation-delay: calc(min(var(--i, 0), ${BURST.most}) * ${BURST.stepMs}ms);
+    }
+
+    ${ITEM}::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      pointer-events: none;
+      border-radius: inherit;
+      box-shadow: 0 0 0 1px var(--accent), 0 0 14px 2px rgba(var(--accent-rgb), 0.55);
+      opacity: 0;
+      animation: ${landed} ${BURST.ms}ms ease-out both;
+      animation-delay: inherit;
     }
   `,
   effect === "draft" && css`

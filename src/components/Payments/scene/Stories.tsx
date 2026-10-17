@@ -9,8 +9,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { COUNTER } from "@/components/Payments/scene/Counter";
 import { RECEIPT_PAPER } from "@/components/Payments/scene/looks";
+import { CHECKOUT_SCENE as COUNTER } from "@/packages/graphics/checkout";
 import { noAnimationWhenReduced } from "@/styles/mixins";
 
 // The subjects the payments drawings open with, each told in under a second and a half: a payment routed

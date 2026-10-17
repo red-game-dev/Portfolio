@@ -2,13 +2,14 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 
 import { BlueprintTabs } from "@/components/Blueprint/BlueprintTabs";
 import { LensProvider } from "@/components/Lens/context/LensContext";
-import { APPROVE_SHARE, RESET_MS, TERMINAL_PAY_MS } from "@/components/Payments/config";
+import { approvedMsOf, payMsOf, RESET_MS } from "@/components/Payments/config";
 import { PayTerminal } from "@/components/Payments/PayTerminal";
 import { PaymentLayer } from "@/components/Payments/scene/PaymentLayer";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
 import { isPaymentEffect, PaymentEffect, ZONE_EFFECTS } from "@/components/SwitchStage/config";
 import {
-  CARD_METHODS, isOnPhone, methodForSwitch, PAY_GESTURES, PAY_SEQUENCE, payAppOf, PAYMENT_DRAWING_ANCHORS, PAYMENT_GROUPS, PAYMENT_METHODS,
+  CARD_METHODS, isOnPhone, methodForSwitch, PAY_APPS, PAY_GESTURES, PAY_SEQUENCE, payAppOf, PAYMENT_DRAWING_ANCHORS, PAYMENT_GROUPS,
+  PAYMENT_METHODS,
 } from "@/config/payments";
 import { audienceForHash, PAYMENT_CASES_ANCHOR, SECTION_IDS } from "@/config/sections";
 import payments from "@/data/blueprints/payments";
@@ -123,6 +124,8 @@ describe("the payments section's links", () => {
 describe("PayTerminal", () => {
   const content = portfolioData.payments.terminal;
   const visa = `Pay with ${content.methods.visa}`;
+  const visaApprovedMs = approvedMsOf(PAY_GESTURES.visa, PAY_APPS.indexOf(payAppOf("visa")), content.amount);
+  const visaMs = payMsOf(PAY_GESTURES.visa);
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -155,18 +158,18 @@ describe("PayTerminal", () => {
     expect(screen.getByRole("status")).toBeEmptyDOMElement();
 
     act(() => {
-      jest.advanceTimersByTime(TERMINAL_PAY_MS * APPROVE_SHARE);
+      jest.advanceTimersByTime(visaApprovedMs);
     });
 
     expect(onPaid).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("status")).toHaveTextContent(`${content.methods.visa}: approved.`);
 
     act(() => {
-      jest.advanceTimersByTime(RESET_MS);
+      jest.advanceTimersByTime(visaMs - visaApprovedMs + RESET_MS);
     });
 
-    // Back to waiting, the total on the till for the next customer.
-    expect(screen.getAllByText(content.amount).length).toBeGreaterThan(0);
+    // Back to waiting for the next customer: no method is being paid with.
+    expect(screen.getByRole("button", { name: visa })).not.toHaveAttribute("data-current");
   });
 
   it("takes no second payment while one is going through", () => {
@@ -177,7 +180,7 @@ describe("PayTerminal", () => {
     fireEvent.click(screen.getByRole("button", { name: `Pay with ${content.methods.applePay}` }));
 
     act(() => {
-      jest.advanceTimersByTime(TERMINAL_PAY_MS);
+      jest.advanceTimersByTime(visaApprovedMs + 10);
     });
 
     expect(onPaid).toHaveBeenCalledTimes(1);

@@ -139,11 +139,13 @@ export const checkoutScene = (skin: CheckoutSkin): StageScene => {
 
 const HIDDEN = (id: string): ActorState => ({ id, isShown: false, position: vec3(), rotation: IDENTITY });
 
-// How what the customer holds is pinched: a card near its top right corner (on its side going into a reader, by its
-// lower end), a phone by its right edge, the thumb behind and the index fingertip over the front.
+// How what the customer holds is pinched, in its own frame: a card near its top right corner; on its end going up into
+// the chip reader, by its lower end; on its end down the stripe, by its outer edge, so the hand stays beside the
+// terminal; a phone by its right edge; always the thumb behind and the index fingertip over the front.
 const PINCH = {
   card: { at: vec3(21, 13, 0), forward: vec3(-1, -0.35, 0) },
   upright: { at: vec3(-20, 6, 0), forward: vec3(1, 0.3, 0) },
+  swipe: { at: vec3(6, -16, 0), forward: vec3(0.35, 1, 0) },
   phone: { at: vec3(12, -14, 0), forward: vec3(-1, 0.3, 0) },
 } as const;
 
@@ -168,7 +170,7 @@ export const checkoutStageMap = (skin: CheckoutSkin): CheckoutStageMap => {
   const pinchTurns = isPhone ? turnsOf("phone") : turnsOf("card");
   const pinchPosed = poseSkeleton(skeleton, pinchTurns);
   const pinch = socketBetween(socketAt(pinchPosed, sockets["thumb-pad"]), socketAt(pinchPosed, sockets["index-pad"]));
-  const way = isPhone ? PINCH.phone : isUpright ? PINCH.upright : PINCH.card;
+  const way = isPhone ? PINCH.phone : gesture === "swipe" ? PINCH.swipe : isUpright ? PINCH.upright : PINCH.card;
   const upright = isUpright ? fromAxisAngle(TOWARD_VIEWER, Math.PI / 2) : IDENTITY;
   // Where the hand pinches what it holds, held at `centre` and turned by `rotation`.
   const gripOn = (centre: Vec3, rotation: Quat) => attachBy(pinch, HAND_UNIT, {

@@ -94,6 +94,15 @@ describe("the checkout's story", () => {
     expect(Math.max(...scales)).toBeGreaterThan(1.03);
   });
 
+  it("guides a swiped card straight down the stripe, never swinging it into the terminal's side", () => {
+    const xs = Array.from({ length: 401 }, (_, step) => checkoutAt(step / 400, "full", "swipe", 0, keys).item)
+      .filter((item): item is NonNullable<typeof item> => item !== null && item.y > 40 && item.y < 150)
+      .map((item) => item.x);
+
+    expect(xs.length).toBeGreaterThan(10);
+    expect(Math.min(...xs)).toBeGreaterThan(198);
+  });
+
   it("keeps where each part was a frame and two frames ago, for its motion blur", () => {
     const frame = checkoutAt(approvedAt("full", "tap", 0, keys) - 0.1, "full", "tap", 0, keys);
 

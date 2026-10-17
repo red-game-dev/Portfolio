@@ -58,14 +58,15 @@ const segmentOf = <T>(keys: Array<Key<T>>, t: number): { from: T; to: T; k: numb
   return { from: last, to: last, k: 1 };
 };
 
-// A pose between keyframes: a press eased straight, a long move along an arc that settles past its mark.
+// A pose between keyframes: a press or a guided move eased straight, a long move along an arc that settles past its
+// mark.
 const poseAt = (keys: Array<Key<Pose>>, t: number): Pose => {
   const { from, to, k } = segmentOf(keys, t);
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const distance = Math.hypot(dx, dy);
 
-  if (distance < LONG_MOVE) {
+  if (distance < LONG_MOVE || to.isGuided) {
     return mixPose(from, to, smooth(k));
   }
 
@@ -144,10 +145,13 @@ const ITEM_AT: Record<CheckoutGesture, Pose[]> = {
   // Under the chip reader at the foot, then pushed up into it.
   insert: [
     { x: 150, y: BODY.y + BODY.height + portraitHalf + 10, angle: 0, scale: 1 },
-    { x: 150, y: BODY.y + BODY.height + portraitHalf - 30, angle: 0, scale: 1 },
+    { x: 150, y: BODY.y + BODY.height + portraitHalf - 30, angle: 0, scale: 1, isGuided: true },
   ],
   // Down the stripe reader at the side, top to bottom.
-  swipe: [{ x: STRIPE.x + 13, y: STRIPE.top - 4, angle: 0, scale: 1 }, { x: STRIPE.x + 13, y: STRIPE.bottom + 4, angle: 0, scale: 1 }],
+  swipe: [
+    { x: STRIPE.x + 13, y: STRIPE.top - 4, angle: 0, scale: 1, isGuided: true },
+    { x: STRIPE.x + 13, y: STRIPE.bottom + 4, angle: 0, scale: 1, isGuided: true },
+  ],
 };
 
 const SWIPED_AWAY: Pose = { x: 250, y: 290, angle: 0.3, scale: 1.1 };

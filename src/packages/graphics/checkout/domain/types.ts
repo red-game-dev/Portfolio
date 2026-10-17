@@ -63,6 +63,9 @@ export interface Pose {
   angle: number;
   // How near the camera it is: 1 at the terminal's face, more as a hand lifts towards the camera.
   scale: number;
+  // Reached along a reader's guide (onto and down the stripe, up into the chip slot): straight, without the arc of a
+  // free move or settling past it, which would take the card into the terminal.
+  isGuided?: boolean;
 }
 
 // Where the camera looks, as the rig takes it: the scene point at the middle of the view and the zoom.

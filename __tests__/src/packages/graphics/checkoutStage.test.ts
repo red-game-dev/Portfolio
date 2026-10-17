@@ -71,6 +71,23 @@ describe("the checkout on a 3D stage", () => {
     expect(grip && lowestOf(map.scene, grip)).toBeGreaterThanOrEqual(0);
   });
 
+  it("swipes with the hand beside the terminal, holding the card by its outer edge, never over the screen", () => {
+    const map = checkoutStageMap(skinOf("swipe"));
+    const { body, screen } = CHECKOUT_LAYOUT;
+
+    for (let step = 0; step <= 200; step += 1) {
+      const story = checkoutAt(step / 200, "full", "swipe", 0, keys);
+      const grip = actorOf(map.frameOf(story), "grip");
+
+      // Once the card is at the stripe, the hand's leftmost flesh is right of the screen.
+      if (grip?.isShown && story.item && story.item.y > body.y && story.item.x < body.x + body.width + 20) {
+        const leftmost = grip.position.x - 0.7 * handField(RIGHT_HAND, grip.joints ?? []).reach(rotate(conjugate(grip.rotation), vec3(-1, 0, 0)));
+
+        expect(leftmost).toBeGreaterThan(screen.x + screen.width);
+      }
+    }
+  });
+
   it("never lets a hand pass behind the terminal's glass, whatever the way to pay", () => {
     GESTURES.forEach((gesture) => {
       const map = checkoutStageMap(skinOf(gesture));

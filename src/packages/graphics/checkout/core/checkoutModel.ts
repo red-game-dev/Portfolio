@@ -3,8 +3,8 @@ import { clamp01 } from "@/packages/math/clamp";
 
 import { CheckoutFrame, CheckoutGesture, CheckoutSkin, CheckoutStage, CheckoutTrail, CheckoutVariant, Pose, ScreenState } from "../domain/types";
 import {
-  paintBody, paintCard, paintCounter, paintGlass, paintItemShadow, paintPhone, paintReceipt, paintScreen, paintStand, paintSweep, paintVignette,
-  paintWaves,
+  paintBody, paintCameraLight, paintCard, paintCounter, paintGlass, paintItemShadow, paintPhone, paintReceipt, paintScreen, paintStand, paintSweep,
+  paintVignette, paintWaves,
 } from "./CheckoutPainter";
 import { BODY, COUNTER_TOP, keysFor, SCENE, SCREEN, STAND } from "./geometry";
 import {
@@ -243,6 +243,8 @@ export const createCheckoutModel = (skin: CheckoutSkin, variant: CheckoutVariant
         }),
       },
       { id: "glass", bounds: SCREEN, paint: (context) => paintGlass(context) },
+      // The front camera lit while it reads a face.
+      { id: "camera", cache: false, paint: (context, dressed, channels) => paintCameraLight(context, dressed.accent, STATES[channels.screen] === "face") },
       { id: "waves", cache: false, paint: (context, dressed, channels) => paintWaves(context, dressed.accent, channels.waves) },
       ...front,
       { id: "vignette", isFixed: true, paint: (context) => paintVignette(context) },

@@ -62,7 +62,8 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({ method, variant, mode, d
       accent,
     };
   }, [method, gesture, amount, accent, cardholder]);
-  const portrait = skin.look.card?.issuer === "portrait" ? cardholder?.portrait : undefined;
+  // The holder's portrait, for the red card that prints it and the camera that reads a face to pay by.
+  const portrait = skin.look.card?.issuer === "portrait" || skin.look.gesture === "face" ? cardholder?.portrait : undefined;
   // A still counter shows no hands, so it never needs the 3D stage.
   const isStill = useReducedMotion();
   const actor = useCanvasEngine<CheckoutActor>(canvasRef, {

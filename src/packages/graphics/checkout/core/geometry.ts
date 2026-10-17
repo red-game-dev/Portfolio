@@ -14,6 +14,12 @@ export const STAND = { neck: { x: 141, width: 18 }, foot: { x: 150, y: 172, rx: 
 // The stripe reader runs down the terminal's right side.
 export const STRIPE = { x: BODY.x + BODY.width, top: 50, bottom: 140 } as const;
 
+// The terminal's front camera, in the top of its face beside the printer's mouth, which reads a face to pay by.
+export const CAMERA = { x: BODY.x + BODY.width - 7, y: BODY.y + 5, radius: 1.7 } as const;
+
+// The button on the screen the customer taps to pay with their face.
+export const SMILE_BUTTON = { x: SCREEN.x + SCREEN.width / 2, y: SCREEN.y + 76, width: 40, height: 13 } as const;
+
 // The keypad on the screen, three across and four down: 1 to 9, the separator, 0 and OK.
 export const KEYPAD = { left: 123, top: 58, width: 16, height: 12, gapX: 3, gapY: 3 } as const;
 

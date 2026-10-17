@@ -1,7 +1,7 @@
 import { clamp01 } from "@/packages/math/clamp";
 
 import { CheckoutCamera, CheckoutFrame, CheckoutGesture, CheckoutTrail, CheckoutVariant, Pose, ScreenState } from "../domain/types";
-import { appCentre, BODY, CARD, keyCentre, OK_KEY, SCENE, STRIPE } from "./geometry";
+import { appCentre, BODY, CARD, keyCentre, OK_KEY, SCENE, SMILE_BUTTON, STRIPE } from "./geometry";
 
 // The story of one payment, timed in milliseconds at a real counter's pace and read as a share of its length (0
 // to 1): where each hand and what the customer holds stand, what the terminal's screen shows, and where the camera
@@ -377,11 +377,16 @@ const build = (variant: CheckoutVariant, gesture: CheckoutGesture, app: number, 
   built.camera.push([reach, isFull ? MEET_CAMERA[gesture] : { ...MEET_CAMERA[gesture], zoom: QUICK_ZOOM }]);
 
   if (gesture === "face") {
-    // Nothing is held: the customer looks at the terminal's camera, which matches their face, and the bank answers.
-    const matched = reach + pace.face;
+    // Nothing is held: the customer taps to pay with their face, the terminal's camera turns on and reads it, and the
+    // bank answers.
+    const looked = reach + (isFull ? 300 : 120);
+    const matched = looked + pace.face;
 
-    built.screen.push([reach, "face"]);
-    built.sweep = [reach, matched];
+    built.point.push([start, REST.point]);
+    pressKey(built.point, SMILE_BUTTON, POINT_ANGLE, reach, -HOVER.lift);
+    built.point.push([reach + (isFull ? PIN.away : 260), REST.point]);
+    built.screen.push([reach + (isFull ? 120 : 60), "face"]);
+    built.sweep = [looked, matched];
     built.item = [[0, rest]];
     processing = matched;
     approved = matched + pace.answer.face;

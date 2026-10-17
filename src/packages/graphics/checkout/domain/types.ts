@@ -45,7 +45,8 @@ export interface CheckoutLook {
   // A card's print or a phone's screen, top left to bottom right.
   face: [string, string];
   mark: MarkShape;
-  // A card's own design, and the holder's portrait for one that prints it; a card without one is printed plainly.
+  // A card's own design, and the holder's portrait, for a card that prints it or the camera that reads a face to pay
+  // by; a card without one is printed plainly, and a face without one is drawn.
   card?: CardDesign;
   portrait?: CanvasImageSource | null;
 }

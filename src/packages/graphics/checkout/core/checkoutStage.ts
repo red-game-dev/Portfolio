@@ -141,7 +141,7 @@ const HIDDEN = (id: string): ActorState => ({ id, isShown: false, position: vec3
 // How what the customer holds is pinched: a card near its top right corner (on its side going into a reader, by its
 // lower end), a phone by its right edge, the thumb behind and the index fingertip over the front.
 const PINCH = {
-  card: { at: vec3(16, 14, 0), forward: vec3(-1, -0.35, 0) },
+  card: { at: vec3(21, 13, 0), forward: vec3(-1, -0.35, 0) },
   upright: { at: vec3(-20, 6, 0), forward: vec3(1, 0.3, 0) },
   phone: { at: vec3(12, -14, 0), forward: vec3(-1, 0.3, 0) },
 } as const;

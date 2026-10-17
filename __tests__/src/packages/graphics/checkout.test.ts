@@ -97,4 +97,12 @@ describe("the checkout's story", () => {
     expect(frame.trail).toHaveLength(2);
     expect(frame.trail[0].item).not.toBeNull();
   });
+
+  it("keeps the camera on the screen while the cashier keys, and every resting hand off the scene", () => {
+    const keying = checkoutAt(0.2, "full", "tap", 0, keys);
+
+    expect(keying.customerPoint).toBeNull();
+    expect(Math.abs(keying.camera.x - 150)).toBeLessThan(6);
+    expect(Math.abs(keying.camera.y - 80)).toBeLessThan(6);
+  });
 });

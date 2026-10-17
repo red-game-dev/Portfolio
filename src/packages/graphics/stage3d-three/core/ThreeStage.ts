@@ -1,6 +1,6 @@
 import {
   ACESFilmicToneMapping, Bone, BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, Color, CylinderGeometry, DirectionalLight, DoubleSide,
-  Group, HemisphereLight, Material, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera,
+  Group, HemisphereLight, Material, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, PCFShadowMap, PerspectiveCamera,
   PlaneGeometry, PMREMGenerator, PointLight, Scene, ShadowMaterial, Skeleton as ThreeSkeleton, SkinnedMesh, SRGBColorSpace, Texture,
   Vector3, WebGLRenderer,
 } from "three";
@@ -108,7 +108,7 @@ export class ThreeStage extends Stage {
       renderer.toneMapping = ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.05;
       renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = PCFSoftShadowMap;
+      renderer.shadowMap.type = PCFShadowMap;
       renderer.setClearColor(0x000000, 0);
       canvas.addEventListener("webglcontextlost", (event) => {
         event.preventDefault();

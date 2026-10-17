@@ -97,8 +97,8 @@ const paintPortrait = (context: Canvas2DContext, portrait: CanvasImageSource, in
       for (let column = 0; column < columns; column += 1) {
         const at = (row * columns + column) * 4;
         const light = (0.299 * pixels[at] + 0.587 * pixels[at + 1] + 0.114 * pixels[at + 2]) / 255;
-        // Fainter towards the card's middle (the left of the box), so the portrait melts into the print.
-        const fade = Math.min(1, column / (columns * 0.35));
+        // Fainter towards its sides, so the portrait melts into the print.
+        const fade = Math.min(1, column / (columns * 0.3), (columns - 1 - column) / (columns * 0.3));
         const radius = cell * 0.58 * Math.sqrt(Math.max(0, 1 - light)) * fade;
 
         if (radius > 0.02) {
@@ -186,8 +186,9 @@ export const paintCardFace = (context: Canvas2DContext, look: CheckoutLook, desi
   context.clip();
   paintFinish(context, design, width, height);
 
+  // The holder's portrait across the middle of the card, behind its print, where a hand at its edge leaves it seen.
   if (design.issuer === "portrait" && look.portrait) {
-    paintPortrait(context, look.portrait, "rgba(40, 0, 6, 0.55)", { x: width * 0.42, y: -1, width: width * 0.6, height: height + 2 });
+    paintPortrait(context, look.portrait, "rgba(40, 0, 6, 0.5)", { x: width * 0.22, y: -2, width: width * 0.5, height: height + 4 });
   }
 
   paintChip(context, 6.5, 13);

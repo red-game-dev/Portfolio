@@ -102,7 +102,7 @@ const within = (t: number, from: number, to: number) => t >= from && t < to;
 // customer's below it on the right.
 const REST = {
   cashier: { x: 6, y: -100, angle: 0.75, scale: 1.12 },
-  point: { x: 352, y: 268, angle: Math.PI + 0.62, scale: 1.12 },
+  point: { x: 380, y: 300, angle: Math.PI + 0.62, scale: 1.12 },
   grip: { x: 390, y: 296, angle: 1.15, scale: 1.1 },
 } as const;
 

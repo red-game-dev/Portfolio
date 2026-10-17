@@ -3,7 +3,9 @@ import { FC } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
-import { BLOCK_GRID, PIXEL_GRID, SWITCH_MS, SwitchEffect } from "@/components/SwitchStage/config";
+import {
+  BLOCK_GRID, isPaymentEffect, isThemeEffect, PAYMENT_SWITCH_MS, PIXEL_GRID, SWITCH_MS, SwitchEffect, ThemeEffect, ZoneEffect,
+} from "@/components/SwitchStage/config";
 import { media } from "@/styles/mixins";
 
 const wipeIn = keyframes`
@@ -58,6 +60,63 @@ const warpIn = keyframes`
   100% { opacity: 1; transform: none; filter: none; }
 `;
 
+// Under a payment's story the new content waits dimmed, then comes up as the payment is approved.
+const paySettle = keyframes`
+  0%, 45% { opacity: 0.14; }
+  100% { opacity: 1; }
+`;
+
+// More Skills by Area: the open area's skills burst out of the tab the reader picked to their places in a quick fan,
+// each glowing as it lands. Each item carries its place as --i and, where the section measured it, the way back to
+// the tab as --from-x and --from-y; without them (a drawing's boxes) they rise from just below.
+const burstIn = keyframes`
+  0% { opacity: 0; transform: translate(var(--from-x, 0px), var(--from-y, 18px)) scale(0.3); }
+  65% { opacity: 1; transform: translate(0, 0) scale(1.06); }
+  100% { opacity: 1; transform: none; }
+`;
+
+const landed = keyframes`
+  0%, 55% { opacity: 0; }
+  72% { opacity: 1; }
+  100% { opacity: 0; }
+`;
+
+// What I have built: each tile is drafted in turn, a pen tracing its frame from the top left corner over a drafting
+// grid, the tile coming up from a blueprint's pale lines into its own colours.
+const tileDrafted = keyframes`
+  0% { opacity: 0.15; filter: saturate(0) brightness(1.5); }
+  45% { opacity: 0.65; }
+  100% { opacity: 1; filter: none; }
+`;
+
+const tileTraced = keyframes`
+  0% { clip-path: inset(0 100% 100% 0); opacity: 1; }
+  32% { clip-path: inset(0 0 100% 0); }
+  62% { clip-path: inset(0 0 0 0); opacity: 1; }
+  100% { clip-path: inset(0 0 0 0); opacity: 0; }
+`;
+
+const penStroke = keyframes`
+  0% { transform: scaleX(0); opacity: 1; }
+  32% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+`;
+
+// A dimension line measured across the first tile, the way a plan gives its sizes.
+const dimensioned = keyframes`
+  0%, 18% { opacity: 0; transform: scaleX(0); }
+  40% { opacity: 1; transform: scaleX(1); }
+  78% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
+`;
+
+// How long each item's part of a theme's switch takes, and the step between items.
+const BURST = { ms: 540, stepMs: 20, most: 24 } as const;
+
+const DRAFT = { ms: 560, stepMs: 70, most: 11 } as const;
+
+const ITEM = "& > :not([data-switch-fx]) [data-switch-item]";
+
 // A 2px line, so moving it by top costs nothing worth measuring.
 const scanLine = keyframes`
   0% { top: 0; opacity: 1; }
@@ -97,9 +156,76 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
       animation: ${warpIn} ${SWITCH_MS}ms cubic-bezier(0.16, 1, 0.3, 1) both;
     }
   `,
+  effect && isPaymentEffect(effect) && css`
+    ${CONTENT} {
+      animation: ${paySettle} ${PAYMENT_SWITCH_MS}ms ease-out both;
+    }
+  `,
+  effect === "burst" && css`
+    ${ITEM} {
+      position: relative;
+      animation: ${burstIn} ${BURST.ms}ms cubic-bezier(0.2, 0.85, 0.3, 1.05) both;
+      animation-delay: calc(min(var(--i, 0), ${BURST.most}) * ${BURST.stepMs}ms);
+    }
+
+    ${ITEM}::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      pointer-events: none;
+      border-radius: inherit;
+      box-shadow: 0 0 0 1px var(--accent), 0 0 14px 2px rgba(var(--accent-rgb), 0.55);
+      opacity: 0;
+      animation: ${landed} ${BURST.ms}ms ease-out both;
+      animation-delay: inherit;
+    }
+  `,
+  effect === "draft" && css`
+    ${ITEM} {
+      position: relative;
+      animation: ${tileDrafted} ${DRAFT.ms}ms ease-out both;
+      animation-delay: calc(min(var(--i, 0), ${DRAFT.most}) * ${DRAFT.stepMs}ms);
+    }
+
+    ${ITEM}::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      pointer-events: none;
+      border: 1px dashed var(--accent);
+      background-image: linear-gradient(rgba(var(--accent-rgb), 0.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--accent-rgb), 0.22) 1px, transparent 1px);
+      background-size: 16px 16px;
+      animation: ${tileTraced} ${DRAFT.ms}ms ease-in-out both;
+      animation-delay: inherit;
+    }
+
+    ${ITEM}::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      right: -1px;
+      height: 2px;
+      pointer-events: none;
+      transform-origin: left center;
+      background: var(--accent);
+      box-shadow: 0 0 8px 1px rgba(var(--accent-rgb), 0.8);
+      animation: ${penStroke} ${DRAFT.ms}ms ease-in-out both;
+      animation-delay: inherit;
+    }
+
+    & > :not([data-switch-fx]) [data-switch-dimension] {
+      animation: ${dimensioned} ${DRAFT.ms + DRAFT.stepMs * 2}ms ease-out both;
+    }
+  `,
   css`
     ${media.reducedMotion} {
-      ${CONTENT} {
+      ${CONTENT},
+      ${ITEM},
+      ${ITEM}::before,
+      ${ITEM}::after,
+      & > :not([data-switch-fx]) [data-switch-dimension] {
         animation: none !important;
       }
 
@@ -158,7 +284,12 @@ const Pixel = styled.span(({ delay, isLit }: { delay: number; isLit: boolean }) 
 ]);
 
 // The layer an effect draws over the content, if it has one.
-export const SwitchLayer: FC<{ effect: SwitchEffect }> = ({ effect }) => {
+export const SwitchLayer: FC<{ effect: ZoneEffect | ThemeEffect }> = ({ effect }) => {
+  // A theme's switch animates the content's own items, with no layer over them.
+  if (isThemeEffect(effect)) {
+    return null;
+  }
+
   if (effect === "beam" || effect === "scan") {
     return <Line effect={effect} data-switch-fx aria-hidden="true" />;
   }

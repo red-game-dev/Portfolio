@@ -31,9 +31,10 @@ import {
   Top,
 } from "@/components/Menu/MobileMenu.styles";
 import { MotionSwitch } from "@/components/Motion/MotionSwitch";
-import { JOURNEY_STOPS } from "@/config/journey";
+import { JOURNEY_STOPS, JourneyStop } from "@/config/journey";
+import { THEME_ACCENTS } from "@/config/sectionThemes";
 import { SOCIAL_URLS } from "@/config/social";
-import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
+import { ZONE_ACCENTS } from "@/config/zones";
 import useModalDialog from "@/hooks/useModalDialog";
 import { scrollBehavior } from "@/packages/accessibility/motion";
 import { rgbChannels } from "@/packages/graphics/colour";
@@ -48,13 +49,16 @@ interface MobileMenuProps {
   contact: { cv: string; email: string; linkedIn: string };
 }
 
-const stopStyle = (zone: ZoneId, next: ZoneId) => ({
-  "--zone": ZONE_ACCENTS[zone],
-  "--zone-rgb": rgbChannels(ZONE_ACCENTS[zone]),
-  "--next-zone": ZONE_ACCENTS[next],
+// A stop's colour: its own section's theme where it is one themed section, else its zone's.
+const accentOf = (stop: JourneyStop) => (stop.theme ? THEME_ACCENTS[stop.theme] : ZONE_ACCENTS[stop.zone]);
+
+const stopStyle = (stop: JourneyStop, next: JourneyStop) => ({
+  "--zone": accentOf(stop),
+  "--zone-rgb": rgbChannels(accentOf(stop)),
+  "--next-zone": accentOf(next),
 } as CSSProperties);
 
-const hereStyle = (zone: ZoneId) => ({ "--here": ZONE_ACCENTS[zone], "--here-rgb": rgbChannels(ZONE_ACCENTS[zone]) } as CSSProperties);
+const hereStyle = (stop: JourneyStop) => ({ "--here": accentOf(stop), "--here-rgb": rgbChannels(accentOf(stop)) } as CSSProperties);
 
 // The journey on a phone, drawn as a route: a real button opens a full screen menu where every stop is a
 // node on one line in its zone's colour, the stops behind the reader filled in, the one they are at
@@ -82,6 +86,8 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
       }
 
       window.history.replaceState(null, "", href);
+      // replaceState fires no event, so whatever reads the hash (a drawing a link names, a filter) is told directly.
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
     });
   };
 
@@ -92,7 +98,7 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
         <span />
         <span />
       </Toggle>
-      <Dialog ref={dialogRef} aria-label={content.label} onClose={() => setIsOpen(false)} style={hereStyle(hereZone)}>
+      <Dialog ref={dialogRef} aria-label={content.label} onClose={() => setIsOpen(false)} style={hereStyle(JOURNEY_STOPS[here])}>
         {isOpen && (
           <Panel>
             <Top>
@@ -116,7 +122,7 @@ export const MobileMenu = ({ selected, content, contact }: MobileMenuProps) => {
                       key={item.key}
                       order={index}
                       isLast={index === JOURNEY_STOPS.length - 1}
-                      style={stopStyle(item.zone, JOURNEY_STOPS[index + 1]?.zone ?? item.zone)}
+                      style={stopStyle(item, JOURNEY_STOPS[index + 1] ?? item)}
                     >
                       <Node state={state} aria-hidden="true" />
                       <StopLink

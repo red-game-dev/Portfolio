@@ -61,6 +61,39 @@
   --accent-rgb: 196, 210, 255;
 }
 
+/* - Section themes
+   Sections that share a zone but not a subject (config/themes.ts, components/Theme): a run inside the zone's run, so
+   its accent wins for that section alone. */
+[data-theme="web3"] {
+  --accent: #b896ff;
+  --accent-muted: #4b3a6b;
+  --accent-rgb: 184, 150, 255;
+}
+
+[data-theme="payments"] {
+  --accent: #36e3c4;
+  --accent-muted: #1f6b5d;
+  --accent-rgb: 54, 227, 196;
+}
+
+[data-theme="skillAreas"] {
+  --accent: #ffb454;
+  --accent-muted: #6b4d26;
+  --accent-rgb: 255, 180, 84;
+}
+
+[data-theme="platform"] {
+  --accent: #6ea8ff;
+  --accent-muted: #2f4a6b;
+  --accent-rgb: 110, 168, 255;
+}
+
+[data-theme="codeReview"] {
+  --accent: #c6f26b;
+  --accent-muted: #556b2f;
+  --accent-rgb: 198, 242, 107;
+}
+
 /* Kept still: the reader's switch on the page or their device's setting (packages/accessibility/motion), so jumps on
    the page land at once rather than scrolling smoothly. */
 :root[data-motion="reduced"],

@@ -1,4 +1,4 @@
-import { AUDIENCE_ANCHORS, SECTION_IDS } from "@/config/sections";
+import { AUDIENCE_ANCHORS, CASE_STUDY_ANCHORS, SECTION_IDS } from "@/config/sections";
 import { hexHash } from "@/packages/encoding/hash";
 import { activityStats } from "@/packages/insights/activity";
 import { startYear } from "@/packages/insights/career";
@@ -53,7 +53,7 @@ export const createWorkCommands = (context: CommandContext): Command[] => {
         return {
           lines: [heading("Case studies"), ...list.map((item) => output(`  ${item.title}`))],
           // A filtered view is a hash link, so the case studies section applies the same filter.
-          effect: filter ? { type: "navigate", target: AUDIENCE_ANCHORS[filter] } : undefined,
+          effect: filter ? { type: "navigate", target: CASE_STUDY_ANCHORS[filter] } : undefined,
         };
       },
     },

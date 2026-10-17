@@ -27,7 +27,7 @@ describe("portfolio terminal", () => {
     const session = createPortfolioTerminal();
 
     expect(session.execute("goto history")).toEqual({ type: "navigate", target: "section-history" });
-    expect(session.execute("cases payments")).toEqual({ type: "navigate", target: "for-payments" });
+    expect(session.execute("cases payments")).toEqual({ type: "navigate", target: "payments-case-studies" });
     expect(session.execute("cv")).toEqual({ type: "open", url: "/cv/redeemer-pace-cv.pdf" });
   });
 

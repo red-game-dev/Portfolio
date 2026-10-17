@@ -1,0 +1,65 @@
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import {
+  faAlipay, faApplePay, faBitcoin, faCcAmex, faCcDinersClub, faCcDiscover, faCcJcb, faCcVisa, faEthereum, faGooglePay, faPaypal, faWeixin,
+} from "@fortawesome/free-brands-svg-icons";
+
+import { PaymentMethodId } from "@/config/payments";
+import type { CardDesign } from "@/packages/graphics/checkout";
+
+// How each way to pay looks: a card in its network's own colours, or a phone whose screen carries the wallet's or
+// the method's mark. A mark is the free Font Awesome brand icon in the mark's colour, or, where the free set has
+// none, one drawn in marks.ts in its own colours.
+export interface PaymentLook {
+  // The face, top left to bottom right: a card's print, or a phone's screen.
+  face: [string, string];
+  mark: string;
+  icon?: IconDefinition;
+  // A card as its issuer made it (the holder's name comes from the content), and the network whose mark it carries,
+  // where that is not the method itself (a Ramp card runs on Visa).
+  card?: Omit<CardDesign, "holder">;
+  network?: PaymentMethodId;
+}
+
+// The counter's cards, one of each finish: the holder's own red card with his portrait (the contactless one, so its
+// face is held up to be seen), brushed space grey and midnight blue metal, velvet matte black, frosted clear, a
+// laminated gloss, and a lemongrass corporate card with its issuer's own mark.
+const CARDS: Record<"visa" | "mastercard" | "amex" | "discover" | "jcb" | "diners" | "ramp", Omit<CardDesign, "holder">> = {
+  mastercard: { finish: "gloss", face: ["#e3262f", "#9e0d18"], ink: "#ffffff", issuer: "portrait", lastFour: "4580" },
+  visa: { finish: "metal", face: ["#6a6d75", "#2b2d33"], ink: "#eef0f3", issuer: "monogram", lastFour: "0217" },
+  amex: { finish: "metal", face: ["#2d5689", "#122a4d"], ink: "#e8eef7", issuer: "monogram", lastFour: "1009" },
+  discover: { finish: "matte", face: ["#232529", "#121316"], ink: "#ff8a2b", issuer: "monogram", lastFour: "6011" },
+  jcb: { finish: "frosted", face: ["#eef6ff", "#d6e9ff"], ink: "#0e4c96", issuer: "monogram", lastFour: "3530" },
+  diners: { finish: "gloss", face: ["#0079be", "#00467a"], ink: "#ffffff", issuer: "monogram", lastFour: "3056" },
+  ramp: { finish: "gloss", face: ["#e6ef6a", "#b8cc34"], ink: "#141414", issuer: "mark", lastFour: "7261" },
+};
+
+export const PAYMENT_LOOKS: Record<PaymentMethodId, PaymentLook> = {
+  visa: { face: ["#1a1f71", "#2c3fa8"], mark: "#ffffff", icon: faCcVisa, card: CARDS.visa },
+  mastercard: { face: ["#151515", "#3b3b3b"], mark: "#ffffff", card: CARDS.mastercard },
+  amex: { face: ["#0a8be0", "#0657a8"], mark: "#ffffff", icon: faCcAmex, card: CARDS.amex },
+  discover: { face: ["#f7f7f7", "#d9d9d9"], mark: "#1d1d1b", icon: faCcDiscover, card: CARDS.discover },
+  jcb: { face: ["#0e4c96", "#127a3d"], mark: "#ffffff", icon: faCcJcb, card: CARDS.jcb },
+  diners: { face: ["#0079be", "#00467a"], mark: "#ffffff", icon: faCcDinersClub, card: CARDS.diners },
+  ramp: { face: ["#e6ef6a", "#c2d43c"], mark: "#141414", card: CARDS.ramp, network: "visa" },
+  applePay: { face: ["#0a0a0a", "#1f1f21"], mark: "#ffffff", icon: faApplePay },
+  googlePay: { face: ["#202124", "#3c4043"], mark: "#ffffff", icon: faGooglePay },
+  paypal: { face: ["#ffffff", "#e6edf7"], mark: "#003087", icon: faPaypal },
+  alipay: { face: ["#1677ff", "#0b5ad6"], mark: "#ffffff", icon: faAlipay },
+  wechat: { face: ["#07c160", "#05a050"], mark: "#ffffff", icon: faWeixin },
+  gcash: { face: ["#007dfe", "#0050c8"], mark: "#ffffff" },
+  maya: { face: ["#00c868", "#009a50"], mark: "#ffffff" },
+  bitcoin: { face: ["#171717", "#2c2c2c"], mark: "#f7931a", icon: faBitcoin },
+  ethereum: { face: ["#14152b", "#2d3060"], mark: "#8c9eff", icon: faEthereum },
+  solana: { face: ["#120c24", "#1d1238"], mark: "#ffffff" },
+  arbitrum: { face: ["#16202f", "#22334b"], mark: "#ffffff" },
+  polygon: { face: ["#efe8fc", "#d9c9f7"], mark: "#8247e5" },
+  bnb: { face: ["#181a1e", "#2a2d33"], mark: "#f3ba2f" },
+  usdc: { face: ["#e9f1fb", "#cfe0f5"], mark: "#2775ca" },
+  usdt: { face: ["#e6f5f0", "#c7e9de"], mark: "#26a17b" },
+  revolut: { face: ["#0b0b0c", "#1f2226"], mark: "#ffffff" },
+};
+
+// The chip's gold, and the paper of a receipt.
+export const CHIP_GOLD: [string, string] = ["#e8c76a", "#b38b2d"];
+
+export const RECEIPT_PAPER = "#f2f0ea";

@@ -1,6 +1,6 @@
-import { FC, useCallback } from "react";
+import { CSSProperties, FC, useCallback } from "react";
 
-import tw, { styled } from "twin.macro";
+import tw, { css, styled } from "twin.macro";
 
 import { BlueprintSection } from "@/components/Blueprint";
 import { Tag, TagList } from "@/components/Controls";
@@ -30,7 +30,7 @@ const TilePanel = styled.div(() => [honourHidden]);
 
 const Tiles = tw.ul`list-none m-0 p-0 grid gap-[14px] md:grid-cols-2 xl:grid-cols-3`;
 
-const Tile = tw.li`flex flex-col gap-[10px] p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
+const Tile = tw.li`relative flex flex-col gap-[10px] p-[18px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
 const TileName = tw.h3`m-0 text-base font-semibold text-white`;
 
@@ -40,6 +40,30 @@ const TileDetail = tw.p`m-0 text-sm text-[#bbb] break-words`;
 const Places = styled(TagList)(() => [tw`mt-auto`]);
 
 const Example = tw.div`mt-[22px]`;
+
+// A dimension line across the first tile, shown only while the tiles are drafted (the switch animates it).
+const Dimension = styled.span(() => [
+  tw`absolute left-[18px] right-[18px] bottom-[8px] h-[1px] bg-[var(--accent)] opacity-0 pointer-events-none origin-center`,
+  css`
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      top: -3px;
+      width: 1px;
+      height: 7px;
+      background: var(--accent);
+    }
+
+    &::before {
+      left: 0;
+    }
+
+    &::after {
+      right: 0;
+    }
+  `,
+]);
 
 const Kinds = tw.section`flex flex-col gap-[10px] mb-[25px]`;
 
@@ -73,8 +97,9 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
       {expertise.tileGroups.map((group, index) => (
         <TilePanel key={group.label} {...panelProps(index)}>
           <Tiles>
-          {group.tiles.map((tile) => (
-            <Tile key={tile.name}>
+          {group.tiles.map((tile, order) => (
+            <Tile key={tile.name} data-switch-item style={{ "--i": order } as CSSProperties}>
+              {order === 0 && <Dimension data-switch-dimension aria-hidden="true" />}
               <TileName>{tile.name}</TileName>
               <TileDetail>{tile.detail}</TileDetail>
               <Places>

@@ -7,7 +7,7 @@ import { BossCard } from "@/components/CaseStudies/BossCard";
 import { FilterChip } from "@/components/Controls";
 import { Anchor, Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
-import { AUDIENCE_ANCHORS, audienceForHash, SECTION_IDS } from "@/config/sections";
+import { AUDIENCE_ANCHORS, audienceForHash, PAYMENT_CASES_ANCHOR, SECTION_IDS } from "@/config/sections";
 import { useHashValue } from "@/hooks/useHashState";
 import useIndustryFromHash from "@/hooks/useIndustryFromHash";
 import { CarouselLabels } from "@/types/carousel";
@@ -32,7 +32,8 @@ const Filters = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[25px] 
 
 const DOMAIN_ORDER: CaseStudyDomain[] = ["architecture", "payments", "web3", "igaming", "games", "mobile", "security", "ai"];
 
-// The first screen's links (#for-payments and so on) open the boss fights on the matching domain.
+// The first screen's links (#for-payments and so on) open the boss fights on the matching domain, and so
+// does the payments section's way on to them.
 const AUDIENCE_DOMAIN: Record<Audience, CaseStudyDomain> = { payments: "payments", architecture: "architecture", ai: "ai" };
 
 const Bosses = tw.div`mt-[25px]`;
@@ -59,7 +60,7 @@ export const CaseStudies: FC<CaseStudiesProps> = ({ intro, caseStudies, filters,
 
   return (
     <Section id={SECTION_IDS.caseStudies}>
-      <Anchor id={AUDIENCE_ANCHORS.payments} aria-hidden="true" />
+      <Anchor id={PAYMENT_CASES_ANCHOR} aria-hidden="true" />
       <Anchor id={AUDIENCE_ANCHORS.architecture} aria-hidden="true" />
       <SectionText intro={intro} />
       <Filters role="group" aria-label={filters.label}>

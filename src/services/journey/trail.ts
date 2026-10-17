@@ -16,6 +16,7 @@ export const createJourneyTrail = (data: PortfolioData): TrailSection[] => [
   { id: SECTION_IDS.history, title: data.sections.history.title },
   { id: SECTION_IDS.aiUsage, title: data.sections.aiUsage.title },
   { id: SECTION_IDS.web3, title: data.sections.web3.title },
+  { id: SECTION_IDS.payments, title: data.sections.payments.title },
   { id: SECTION_IDS.skillAreas, title: data.sections.skillAreas.title },
   { id: SECTION_IDS.platform, title: data.sections.platform.title },
   { id: SECTION_IDS.codeReview, title: data.sections.codeReview.title },

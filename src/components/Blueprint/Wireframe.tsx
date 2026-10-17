@@ -1,4 +1,4 @@
-import { FC, Fragment } from "react";
+import { CSSProperties, FC, Fragment } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -183,7 +183,13 @@ const RegionBox: FC<{ region: WireframeRegion }> = ({ region }) => (
 
 const AREAS = ["header", "left", "main", "right", "footer"] as const;
 
-const Screen: FC<{ screen: WireframeScreen; device: WireframeContent["device"]; isInFlow?: boolean }> = ({ screen, device, isInFlow = false }) => {
+interface ScreenProps {
+  screen: WireframeScreen;
+  device: WireframeContent["device"];
+  isInFlow?: boolean;
+}
+
+const Screen: FC<ScreenProps> = ({ screen, device, isInFlow = false }) => {
   if (device === "phone") {
     return <Phone>{screen.regions.map((region) => <RegionBox key={region.label} region={region} />)}</Phone>;
   }
@@ -214,7 +220,8 @@ export const Wireframe: FC<WireframeProps> = ({ device, screens, decision, outco
         {screens.map((screen, index) => (
           <Fragment key={screen.title}>
             {index > 0 && <Arrow aria-hidden="true">→</Arrow>}
-            <Step>
+            {/* A step is a switch's item in its place, for a section theme's switch that takes the screens in turn. */}
+            <Step data-switch-item style={{ "--i": index } as CSSProperties}>
               <StepTitle>
                 <StepNumber aria-hidden="true">{index + 1}</StepNumber>
                 {screen.title}

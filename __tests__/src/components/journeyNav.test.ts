@@ -53,13 +53,13 @@ describe("journey navigation", () => {
     expect([...zoneStarts].sort((first, second) => first - second)).toEqual(zoneStarts);
   });
 
-  test("a stop's parts are sections inside its own run, in page order, each with a name", () => {
+  test("a stop's parts are in sections inside its own run, in page order, each with a name", () => {
     const trail = createJourneyTrail(portfolioData).map((section) => section.id);
     const indexOf = (id: string) => trail.indexOf(id);
 
     JOURNEY_STOPS.filter((item) => item.parts).forEach((item) => {
       const first = (Array.isArray(item.first) ? item.first : [item.first]).map(indexOf).filter((index) => index >= 0)[0];
-      const places = (item.parts ?? []).map((part) => indexOf(part.href.slice(1)));
+      const places = (item.parts ?? []).map((part) => indexOf(part.section));
 
       expect(places.every((place) => place >= first && place <= indexOf(item.last))).toBe(true);
       expect([...places].sort((one, two) => one - two)).toEqual(places);

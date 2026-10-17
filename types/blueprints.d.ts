@@ -88,12 +88,22 @@ export interface BlueprintJourney {
   steps: string[];
 }
 
+// The subject a payments drawing plays as a showcase opens it: a card tapped at the terminal, sales synced
+// after an outage, a payment routed past a failing provider, an authorisation round the card networks, a
+// payment split into shares.
+export type BlueprintMotion = "tap" | "sync" | "route" | "authorise" | "split";
+
 export interface Blueprint {
   id: string;
   // A short name for its tab, where several blueprints share a section.
   tab?: string;
   // The world the drawing borrows its look from.
   zone: ZoneId;
+  // A payments drawing switches its own way: a showcase opens it with its subject, and its own tabs switch
+  // with the next way to pay at the terminal. Without it, both play the zone's switch.
+  motion?: BlueprintMotion;
+  // A link to #anchor opens this drawing in its showcase (the menu's Payments stop links each one).
+  anchor?: string;
   title: string;
   caption: string;
   summary: BlueprintSummary;
@@ -128,4 +138,4 @@ export interface BlueprintLabels {
 export type VentureBlueprintId = "goz" | "amw" | "arcavium" | "adotta" | "punti" | "casino" | "freight";
 
 // The page sections that carry blueprints, each loaded on demand.
-export type BlueprintSection = "ai" | "chain" | "delivery" | "platform" | "casino" | "mmo";
+export type BlueprintSection = "ai" | "chain" | "delivery" | "platform" | "payments" | "casino" | "mmo";

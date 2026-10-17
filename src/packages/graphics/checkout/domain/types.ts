@@ -45,6 +45,23 @@ export interface Pose {
   y: number;
   // Radians, turning clockwise.
   angle: number;
+  // How near the camera it is: 1 at the terminal's face, more as a hand lifts towards the camera.
+  scale: number;
+}
+
+// Where the camera looks, as the rig takes it: the scene point at the middle of the view and the zoom.
+export interface CheckoutCamera {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
+// Where each moving part was a moment ago, for its motion blur.
+export interface CheckoutTrail {
+  cashier: Pose | null;
+  customerGrip: Pose | null;
+  customerPoint: Pose | null;
+  item: Pose | null;
 }
 
 export type ScreenState = "idle" | "keying" | "apps" | "ask" | "pin" | "processing" | "approved";
@@ -71,4 +88,7 @@ export interface CheckoutFrame {
   waves: number;
   sweep: number;
   receipt: number;
+  camera: CheckoutCamera;
+  // The parts as they were a frame and two frames ago, nearest first.
+  trail: CheckoutTrail[];
 }

@@ -2,23 +2,11 @@ import type { Canvas2DContext } from "@/packages/graphics/canvas";
 
 import { CheckoutLook, CheckoutSkin, MarkShape, ScreenState } from "../domain/types";
 import { amountShown, APP_TILE, appCentre, BODY, CARD, COUNTER_TOP, KEYPAD, keyCentre, OK_KEY, PHONE, SCREEN, STAND, STRIPE } from "./geometry";
+import { paintSoftShadow } from "./hands";
 
 // How the checkout scene is drawn: a smart terminal on a stand on a counter, lit from the top left, with shaded
-// glass; cards and phones in their own colours; and two hands, the cashier's pointing and the customer's holding
-// or pointing. Everything here paints at the scene's own units around a fixed origin, so the rig caches each part
-// once and only moves it.
-
-const SKIN = {
-  cashier: { light: "#e8b98f", dark: "#b8825b", line: "rgba(110, 64, 34, 0.45)" },
-  customer: { light: "#a8744f", dark: "#6c4429", line: "rgba(52, 28, 14, 0.55)" },
-} as const;
-
-const SLEEVE = {
-  cashier: { light: "#3a4256", dark: "#1d2230", cuff: "#596179" },
-  customer: { light: "#6b5b4a", dark: "#3b3128", cuff: "#85725e" },
-} as const;
-
-export type Hand = keyof typeof SKIN;
+// glass, and cards and phones in their own colours (the hands are in `hands.ts`). Everything here paints at the
+// scene's own units around a fixed origin, so the rig caches each part once and only moves it.
 
 const roundRect = (context: Canvas2DContext, x: number, y: number, width: number, height: number, radius: number) => {
   const r = Math.min(radius, width / 2, height / 2);
@@ -30,14 +18,6 @@ const roundRect = (context: Canvas2DContext, x: number, y: number, width: number
   context.arcTo(x, y + height, x, y, r);
   context.arcTo(x, y, x + width, y, r);
   context.closePath();
-};
-
-const capsule = (context: Canvas2DContext, x: number, y: number, length: number, thickness: number, angle: number) => {
-  context.save();
-  context.translate(x, y);
-  context.rotate(angle);
-  roundRect(context, 0, -thickness / 2, length, thickness, thickness / 2);
-  context.restore();
 };
 
 const linear = (context: Canvas2DContext, x0: number, y0: number, x1: number, y1: number, stops: Array<[number, string]>) => {
@@ -159,10 +139,12 @@ export const paintReceipt = (context: Canvas2DContext) => {
 export const paintBody = (context: Canvas2DContext, accent: string) => {
   const { x, y, width, height, radius } = BODY;
 
+  const pixels = typeof context.getTransform === "function" ? context.getTransform().a || 1 : 1;
+
   context.save();
   context.shadowColor = "rgba(0, 0, 0, 0.55)";
-  context.shadowBlur = 14;
-  context.shadowOffsetY = 6;
+  context.shadowBlur = 14 * pixels;
+  context.shadowOffsetY = 6 * pixels;
   context.fillStyle = linear(context, 0, y, 0, y + height, [[0, "#38393f"], [0.55, "#26272c"], [1, "#1a1b1f"]]);
   roundRect(context, x, y, width, height, radius);
   context.fill();
@@ -486,7 +468,7 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
   context.restore();
 };
 
-// The contactless sign's glow, pulsing out from the top of the screen while a card or a phone is held to it.
+// The contactless sign's glow, pulsing out round the card or phone held to the sign in the middle of the screen.
 export const paintWaves = (context: Canvas2DContext, accent: string, strength: number) => {
   if (strength <= 0) {
     return;
@@ -498,7 +480,7 @@ export const paintWaves = (context: Canvas2DContext, accent: string, strength: n
     context.strokeStyle = withAlpha(accent, 0.5 * strength * (1 - grow));
     context.lineWidth = 1.6;
     context.beginPath();
-    context.arc(150, SCREEN.y + 22, 10 + grow * 26, Math.PI * 1.05, Math.PI * 1.95);
+    context.arc(153, SCREEN.y + 50, 14 + grow * 26, Math.PI * 1.08, Math.PI * 1.92);
     context.stroke();
   });
 };
@@ -632,105 +614,24 @@ export const paintSweep = (context: Canvas2DContext, accent: string, sweep: numb
   context.fillRect(-size / 2, y, size, 1.4);
 };
 
-const skinShapes = (context: Canvas2DContext, hand: Hand, top: number, bottom: number, draw: () => void) => {
-  const tone = SKIN[hand];
+// The corners of the view darkened a little, as a lens does, whatever the camera does.
+export const paintVignette = (context: Canvas2DContext) => {
+  const glow = context.createRadialGradient(150, 96, 60, 150, 96, 190);
 
-  context.fillStyle = linear(context, 0, top, 0, bottom, [[0, tone.light], [1, tone.dark]]);
-  context.strokeStyle = tone.line;
-  context.lineWidth = 0.7;
-  draw();
+  glow.addColorStop(0, "rgba(0, 0, 0, 0)");
+  glow.addColorStop(1, "rgba(0, 0, 0, 0.42)");
+  context.fillStyle = glow;
+  context.fillRect(0, 0, 300, 210);
 };
 
-const sleeve = (context: Canvas2DContext, hand: Hand, x: number, y: number, width: number, height: number, cuffAt: number) => {
-  const cloth = SLEEVE[hand];
+// The soft shadow a card or a phone throws on the terminal, the card on its long side or upright.
+export const paintItemShadow = (context: Canvas2DContext, isPhone: boolean, isUpright: boolean) => {
+  const width = isPhone ? PHONE.width : isUpright ? CARD.short : CARD.long;
+  const height = isPhone ? PHONE.height : isUpright ? CARD.long : CARD.short;
+  const radius = isPhone ? PHONE.radius : CARD.radius;
 
-  context.fillStyle = linear(context, 0, y, 0, y + height, [[0, cloth.light], [1, cloth.dark]]);
-  roundRect(context, x, y, width, height, 6);
-  context.fill();
-  context.fillStyle = cloth.cuff;
-  roundRect(context, cuffAt, y + 1, 5, height - 2, 2);
-  context.fill();
-};
-
-// A hand pointing, the fingertip at the origin and the finger along the x axis, the arm behind it: the cashier
-// keying on the screen, or the customer keying a PIN.
-export const paintPointingHand = (context: Canvas2DContext, hand: Hand) => {
-  context.save();
-  context.shadowColor = "rgba(0, 0, 0, 0.35)";
-  context.shadowBlur = 6;
-  context.shadowOffsetY = 3;
-  sleeve(context, hand, -118, -17, 62, 34, -62);
-  context.restore();
-
-  skinShapes(context, hand, -17, 17, () => {
-    // The back of the hand.
-    context.beginPath();
-    context.moveTo(-60, -12);
-    context.bezierCurveTo(-47, -16, -31, -15, -21, -9);
-    context.bezierCurveTo(-15, -5, -15, 7, -22, 11);
-    context.bezierCurveTo(-33, 16, -49, 15, -60, 12);
-    context.closePath();
-    context.fill();
-    context.stroke();
-    // The curled fingers, knuckles showing.
-    [[-27, 2.5], [-29, 7.5], [-32, 12]].forEach(([x, y]) => {
-      roundRect(context, x, y - 3.4, 11, 6.8, 3.4);
-      context.fill();
-      context.stroke();
-    });
-    // The thumb along the top.
-    capsule(context, -44, -14, 19, 7.4, 0.3);
-    context.fill();
-    context.stroke();
-    // The pointing finger.
-    capsule(context, -26, -1.5, 26.5, 8.2, 0.06);
-    context.fill();
-    context.stroke();
-  });
-
-  // The nail, and a crease at the knuckle.
-  context.fillStyle = "rgba(255, 236, 220, 0.55)";
-  roundRect(context, -7.2, -3.4, 6.2, 5.2, 2.4);
-  context.fill();
-  context.strokeStyle = SKIN[hand].line;
-  context.lineWidth = 0.6;
-  context.beginPath();
-  context.moveTo(-14, -3.5);
-  context.lineTo(-13.3, 1.5);
-  context.stroke();
-};
-
-// A hand gripping what it holds by its edge, the grip at the origin and the arm out to the right: fingers over
-// the edge in front, the thumb along the top.
-export const paintGrippingHand = (context: Canvas2DContext, hand: Hand) => {
-  context.save();
-  context.shadowColor = "rgba(0, 0, 0, 0.35)";
-  context.shadowBlur = 6;
-  context.shadowOffsetY = 3;
-  sleeve(context, hand, 30, -15, 66, 32, 30);
-  context.restore();
-
-  skinShapes(context, hand, -16, 18, () => {
-    // The palm.
-    context.beginPath();
-    context.ellipse(17, 2, 17, 13, 0, 0, Math.PI * 2);
-    context.fill();
-    context.stroke();
-    // Four fingers wrapped over the edge.
-    [-9.5, -3.3, 2.9, 9].forEach((y, index) => {
-      roundRect(context, -7 + index * 0.8, y - 3, 17, 6, 3);
-      context.fill();
-      context.stroke();
-    });
-    // The thumb along the top, its tip over the face.
-    capsule(context, 10, -11, 19, 7.2, Math.PI + 0.42);
-    context.fill();
-    context.stroke();
-  });
-
-  context.fillStyle = "rgba(255, 236, 220, 0.4)";
-  [-9.5, -3.3, 2.9, 9].forEach((y, index) => {
-    roundRect(context, -6 + index * 0.8, y - 2, 4, 4, 1.8);
-    context.fill();
+  paintSoftShadow(context, { x: -width / 2 - 2, y: -height / 2 - 2, width: width + 4, height: height + 4 }, (target) => {
+    roundRect(target, -width / 2, -height / 2, width, height, radius);
+    target.fill();
   });
 };

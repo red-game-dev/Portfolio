@@ -1,6 +1,6 @@
 export { createCheckoutModel } from "./core/checkoutModel";
 export { amountShown, keysFor, SCENE as CHECKOUT_SCENE } from "./core/geometry";
-export { approvedAt, checkoutAt } from "./core/story";
+export { approvedAt, checkoutAt, QUICK_STORY_MS, storyMs } from "./core/story";
 export type {
-  CheckoutFrame, CheckoutGesture, CheckoutLook, CheckoutSkin, CheckoutVariant, MarkPart, MarkShape, Pose, ScreenState,
+  CheckoutCamera, CheckoutFrame, CheckoutGesture, CheckoutLook, CheckoutSkin, CheckoutVariant, MarkPart, MarkShape, Pose, ScreenState, CheckoutTrail,
 } from "./domain/types";

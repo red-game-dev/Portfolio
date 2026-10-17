@@ -6,15 +6,16 @@ import { approvedMsOf, payMsOf, RESET_MS } from "@/components/Payments/config";
 import { PayTerminal } from "@/components/Payments/PayTerminal";
 import { PaymentLayer } from "@/components/Payments/scene/PaymentLayer";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
-import { isPaymentEffect, PaymentEffect, ZONE_EFFECTS } from "@/components/SwitchStage/config";
+import { isPaymentEffect, PAYMENT_SWITCH_MS, PaymentEffect, ZONE_EFFECTS } from "@/components/SwitchStage/config";
 import {
-  CARD_METHODS, isOnPhone, methodForSwitch, PAY_APPS, PAY_GESTURES, PAY_SEQUENCE, payAppOf, PAYMENT_DRAWING_ANCHORS, PAYMENT_GROUPS,
+  CARD_METHODS, isOnPhone, methodForSwitch, PAY_GESTURES, PAY_SEQUENCE, payAppOf, PAYMENT_DRAWING_ANCHORS, PAYMENT_GROUPS,
   PAYMENT_METHODS,
 } from "@/config/payments";
 import { audienceForHash, PAYMENT_CASES_ANCHOR, SECTION_IDS } from "@/config/sections";
 import payments from "@/data/blueprints/payments";
 import { portfolioData } from "@/data/resume";
 import { MOTION_ATTRIBUTE } from "@/packages/accessibility/motion";
+import { QUICK_STORY_MS } from "@/packages/graphics/checkout";
 
 const PAYMENT_EFFECTS: PaymentEffect[] = ["pay", "tap", "sync", "route", "authorise", "split"];
 
@@ -124,8 +125,8 @@ describe("the payments section's links", () => {
 describe("PayTerminal", () => {
   const content = portfolioData.payments.terminal;
   const visa = `Pay with ${content.methods.visa}`;
-  const visaApprovedMs = approvedMsOf(PAY_GESTURES.visa, PAY_APPS.indexOf(payAppOf("visa")), content.amount);
-  const visaMs = payMsOf(PAY_GESTURES.visa);
+  const visaApprovedMs = approvedMsOf("visa", content.amount);
+  const visaMs = payMsOf("visa", content.amount);
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -278,5 +279,11 @@ describe("BlueprintTabs", () => {
       await import("@/components/Payments/scene/PaymentLayer");
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
+  });
+});
+
+describe("the checkout in a drawing's switch", () => {
+  it("tells its payment in exactly the time the switch takes", () => {
+    expect(QUICK_STORY_MS).toBe(PAYMENT_SWITCH_MS);
   });
 });

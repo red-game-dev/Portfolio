@@ -1,4 +1,4 @@
-import { amountShown, approvedAt, checkoutAt, keysFor } from "@/packages/graphics/checkout";
+import { amountShown, approvedAt, checkoutAt, keysFor, QUICK_STORY_MS, storyMs } from "@/packages/graphics/checkout";
 import { CheckoutGesture } from "@/packages/graphics/checkout";
 
 const GESTURES: CheckoutGesture[] = ["insert", "tap", "swipe", "wallet", "scan"];
@@ -61,5 +61,40 @@ describe("the checkout's story", () => {
 
     expect(checkoutAt(at - 0.01, "full", "wallet", 0, keys).receipt).toBe(0);
     expect(checkoutAt(1, "full", "wallet", 0, keys).receipt).toBe(1);
+  });
+
+  it("runs at a real counter's pace: a tap approved within 2.5s and over by 3.5s, chip and PIN within 3.6s and 4.6s", () => {
+    const tapMs = storyMs("full", "tap", 0, keys);
+    const chipMs = storyMs("full", "insert", 0, keys);
+
+    expect(approvedAt("full", "tap", 0, keys) * tapMs).toBeLessThan(2500);
+    expect(tapMs).toBeLessThan(3500);
+    expect(approvedAt("full", "insert", 0, keys) * chipMs).toBeLessThan(3600);
+    expect(chipMs).toBeLessThan(4600);
+    GESTURES.forEach((gesture) => expect(storyMs("quick", gesture, 0, keys)).toBe(QUICK_STORY_MS));
+  });
+
+  it("pushes the camera in while the cashier keys and pulls back to the whole counter by the end", () => {
+    const zooms = Array.from({ length: 101 }, (_, step) => checkoutAt(step / 100, "full", "tap", 0, keys).camera.zoom);
+
+    expect(zooms[0]).toBe(1);
+    expect(Math.max(...zooms)).toBeGreaterThan(1.4);
+    expect(checkoutAt(1, "full", "tap", 0, keys).camera).toEqual({ x: 150, y: 105, zoom: 1 });
+    expect(checkoutAt(null, "full", "tap", 0, keys).camera.zoom).toBe(1);
+  });
+
+  it("lifts a fingertip towards the camera over a key and presses it into the glass", () => {
+    const scales = Array.from({ length: 401 }, (_, step) => checkoutAt(step / 400, "full", "tap", 0, keys).cashier?.scale)
+      .filter((scale): scale is number => scale !== undefined);
+
+    expect(Math.min(...scales)).toBeLessThan(1);
+    expect(Math.max(...scales)).toBeGreaterThan(1.03);
+  });
+
+  it("keeps where each part was a frame and two frames ago, for its motion blur", () => {
+    const frame = checkoutAt(0.4, "full", "tap", 0, keys);
+
+    expect(frame.trail).toHaveLength(2);
+    expect(frame.trail[0].item).not.toBeNull();
   });
 });

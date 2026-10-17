@@ -6,7 +6,7 @@ import { approvedMsOf, payMsOf, RESET_MS, TERMINAL_SCALE } from "@/components/Pa
 import { CheckoutScene } from "@/components/Payments/scene/CheckoutScene";
 import { PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
 import { Mark } from "@/components/Payments/scene/Mark";
-import { PAY_APPS, PAY_GESTURES, payAppOf, PAYMENT_GROUP_ORDER, PAYMENT_GROUPS, PaymentMethodId } from "@/config/payments";
+import { PAYMENT_GROUP_ORDER, PAYMENT_GROUPS, PaymentMethodId } from "@/config/payments";
 import { THEME_ACCENTS } from "@/config/sectionThemes";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { CHECKOUT_SCENE } from "@/packages/graphics/checkout";
@@ -52,11 +52,6 @@ const SceneBox = styled.div(() => [
 
     ${media.xl} {
       --scale: ${TERMINAL_SCALE.wide};
-    }
-
-    & > * {
-      transform: scale(var(--scale));
-      transform-origin: top left;
     }
   `,
 ]);
@@ -141,15 +136,14 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
     presses.current += 1;
 
     const press = presses.current;
-    const gesture = PAY_GESTURES[method];
-    const approvedMs = approvedMsOf(gesture, PAY_APPS.indexOf(payAppOf(method)), content.amount);
+    const approvedMs = approvedMsOf(method, content.amount);
 
     const approve = () => {
       setPhase({ kind: "approved", method, press });
       setLine({ text: fill(content.approvedLine, { method: content.methods[method] }), press });
       onPaid();
       // Waits for the story to end (the receipt printed, the hands gone), then for the next customer.
-      timers.current.push(window.setTimeout(() => setPhase({ kind: "idle" }), isStill ? RESET_MS : payMsOf(gesture) - approvedMs + RESET_MS));
+      timers.current.push(window.setTimeout(() => setPhase({ kind: "idle" }), isStill ? RESET_MS : payMsOf(method, content.amount) - approvedMs + RESET_MS));
     };
 
     if (isStill) {
@@ -175,7 +169,7 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
           method={shown?.method ?? PAYMENT_GROUPS.cards[0]}
           variant="full"
           mode={mode}
-          durationMs={payMsOf(PAY_GESTURES[shown?.method ?? PAYMENT_GROUPS.cards[0]])}
+          durationMs={payMsOf(shown?.method ?? PAYMENT_GROUPS.cards[0], content.amount)}
           amount={content.amount}
           accent={THEME_ACCENTS.payments}
         />

@@ -1,19 +1,17 @@
-import { approvedAt, CheckoutGesture, keysFor } from "@/packages/graphics/checkout";
+import { PAY_APPS, PAY_GESTURES, payAppOf, PaymentMethodId } from "@/config/payments";
+import { approvedAt, keysFor, storyMs } from "@/packages/graphics/checkout";
 
-// How long a payment at the reader's counter takes: the cashier keys the amount and opens the app, then the
-// customer pays; a chip card also keys its PIN, so its story runs longer. The counter waits for the next payment
-// `RESET_MS` after the story ends.
-export const TERMINAL_PAY_MS = 4600;
+// The counter waits for the next payment this long after a story ends.
+export const RESET_MS = 600;
 
-export const TERMINAL_PIN_PAY_MS = 6000;
+const storyOf = (method: PaymentMethodId, amount: string) => [PAY_GESTURES[method], PAY_APPS.indexOf(payAppOf(method)), keysFor(amount)] as const;
 
-export const RESET_MS = 900;
+// How long a payment at the reader's counter takes, read from its story at a real counter's pace: the cashier keys
+// the amount and opens the app, then the customer pays (a chip card also keys its PIN).
+export const payMsOf = (method: PaymentMethodId, amount: string) => storyMs("full", ...storyOf(method, amount));
 
-export const payMsOf = (gesture: CheckoutGesture) => (gesture === "insert" ? TERMINAL_PIN_PAY_MS : TERMINAL_PAY_MS);
-
-// When, in milliseconds, the terminal approves a payment in the full story, for the page to say so then.
-export const approvedMsOf = (gesture: CheckoutGesture, app: number, amount: string) =>
-  approvedAt("full", gesture, app, keysFor(amount)) * payMsOf(gesture);
+// When, in milliseconds, the terminal approves the payment, for the page to say so then.
+export const approvedMsOf = (method: PaymentMethodId, amount: string) => approvedAt("full", ...storyOf(method, amount)) * payMsOf(method, amount);
 
 // The counter drawn larger where there is room beside the ways to pay, and smaller on the narrowest phones, where
 // the room inside the section is less than the counter is wide.

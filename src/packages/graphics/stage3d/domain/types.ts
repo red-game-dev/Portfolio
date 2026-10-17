@@ -179,6 +179,9 @@ export interface ActorState {
   rotation: Quat;
   joints?: JointTurns;
   flat?: FlatPlacement;
+  // A camera reading it (a face paid by): a band of light sweeping its skin as `progress` runs from 0 to 1, the points
+  // read lit across the front of it, in `colour`.
+  scan?: { progress: number; colour: string };
 }
 
 export interface StageFrame {

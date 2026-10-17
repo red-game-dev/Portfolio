@@ -27,6 +27,8 @@ interface MountedActor {
   group: Group;
   // Each skinned model part's own bones, by part.
   bones: Bone[][];
+  // Its skins, for a camera's read of it.
+  skins: SkinUniforms[];
 }
 
 interface MountedScene {
@@ -162,7 +164,7 @@ export class ThreeStage extends Stage {
   private readonly pictures = new Map<string, { texture: CanvasTexture; version: number; users: number }>();
   private readonly scenes = new Map<number, MountedScene>();
   private readonly camera = new PerspectiveCamera(30, 1, 1, 4000);
-  private readonly scratch = { centre: new Vector3(), towards: new Vector3() };
+  private readonly scratch = { centre: new Vector3(), towards: new Vector3(), colour: new Color() };
   private bufferWidth = 0;
   private bufferHeight = 0;
   private nextId = 1;
@@ -422,7 +424,7 @@ export class ThreeStage extends Stage {
     }
   }
 
-  private materialOf(spec: MaterialSpec, tint: string | undefined, mounted: MountedScene, textures?: Map<string, DataTexture>): Material {
+  private materialOf(spec: MaterialSpec, tint: string | undefined, mounted: MountedScene, textures?: Map<string, DataTexture>, skins?: SkinUniforms[]): Material {
     const colour = new Color(tint ?? spec.colour ?? "#ffffff");
     const isRich = this.level >= RICH;
     let material: Material;
@@ -436,7 +438,10 @@ export class ThreeStage extends Stage {
         ...(isRich ? { sheen: 0.55, sheenColor: new Color("#ffc6b2"), sheenRoughness: 0.45, clearcoat: 0.12, clearcoatRoughness: 0.38 } : {}),
       });
 
-      mounted.skins.push(makeSkin(skin, (spec.detail && textures?.get(spec.detail)) || null));
+      const uniforms = makeSkin(skin, (spec.detail && textures?.get(spec.detail)) || null);
+
+      mounted.skins.push(uniforms);
+      skins?.push(uniforms);
       material = skin;
     } else if (spec.kind === "nail") {
       material = new MeshPhysicalMaterial({ vertexColors: true, roughness: 0.24, side: DoubleSide, ...(isRich ? { clearcoat: 0.85, clearcoatRoughness: 0.12 } : {}) });
@@ -471,6 +476,7 @@ export class ThreeStage extends Stage {
   private build(spec: ActorSpec, assets: Map<string, ModelAsset>, mounted: MountedScene): MountedActor {
     const group = new Group();
     const bones: Bone[][] = [];
+    const skins: SkinUniforms[] = [];
     const cut = spec.hiddenInside ? cutOf(spec.hiddenInside) : null;
     // Its materials, cut where the actor passes into its part of the picture.
     const dressed = (material: Material): Material => {
@@ -539,8 +545,18 @@ export class ThreeStage extends Stage {
         }
 
         asset.parts.forEach((assetPart, index) => {
-          const material = dressed(this.materialOf(assetPart.material, tints?.[assetPart.name], mounted, uploaded?.textures));
+          const skinsBefore = skins.length;
+          const material = dressed(this.materialOf(assetPart.material, tints?.[assetPart.name], mounted, uploaded?.textures, skins));
           const geometry = geometries[index];
+
+          // A skin's read sweeps its own height.
+          if (skins.length > skinsBefore) {
+            geometry.computeBoundingBox();
+
+            const box = geometry.boundingBox;
+
+            skins[skins.length - 1].scanRange.value = { x: box?.min.y ?? 0, y: box?.max.y ?? 1 };
+          }
           const mesh = skeleton && geometry.getAttribute("skinIndex") ? new SkinnedMesh(geometry, material) : new Mesh(geometry, material);
 
           mesh.castShadow = Boolean(spec.castsShadow);
@@ -572,7 +588,7 @@ export class ThreeStage extends Stage {
 
     mounted.scene.add(group);
 
-    return { spec, group, bones };
+    return { spec, group, bones, skins };
   }
 
   private frame(mounted: MountedScene, frame: StageFrame): void {
@@ -591,6 +607,17 @@ export class ThreeStage extends Stage {
 
       actor.group.position.set(state.position.x, state.position.y, state.position.z);
       actor.group.quaternion.set(state.rotation.x, state.rotation.y, state.rotation.z, state.rotation.w);
+
+      actor.skins.forEach((skin) => {
+        skin.scan.value = state.scan ? state.scan.progress : -1;
+
+        if (state.scan) {
+          this.scratch.colour.set(state.scan.colour);
+          skin.scanColour.value.r = this.scratch.colour.r;
+          skin.scanColour.value.g = this.scratch.colour.g;
+          skin.scanColour.value.b = this.scratch.colour.b;
+        }
+      });
 
       if (state.joints) {
         const turns = state.joints;

@@ -22,7 +22,7 @@ export interface PaymentLook {
 
 // The counter's cards, one of each finish: the holder's own red card with his portrait (the contactless one, so its
 // face is held up to be seen), brushed space grey and midnight blue metal, velvet matte black, frosted clear, a
-// laminated gloss, and a black metal corporate card with its issuer's own mark.
+// laminated gloss, and a lemongrass corporate card with its issuer's own mark.
 const CARDS: Record<"visa" | "mastercard" | "amex" | "discover" | "jcb" | "diners" | "ramp", Omit<CardDesign, "holder">> = {
   mastercard: { finish: "gloss", face: ["#e3262f", "#9e0d18"], ink: "#ffffff", issuer: "portrait", lastFour: "4580" },
   visa: { finish: "metal", face: ["#6a6d75", "#2b2d33"], ink: "#eef0f3", issuer: "monogram", lastFour: "0217" },
@@ -30,7 +30,7 @@ const CARDS: Record<"visa" | "mastercard" | "amex" | "discover" | "jcb" | "diner
   discover: { finish: "matte", face: ["#232529", "#121316"], ink: "#ff8a2b", issuer: "monogram", lastFour: "6011" },
   jcb: { finish: "frosted", face: ["#eef6ff", "#d6e9ff"], ink: "#0e4c96", issuer: "monogram", lastFour: "3530" },
   diners: { finish: "gloss", face: ["#0079be", "#00467a"], ink: "#ffffff", issuer: "monogram", lastFour: "3056" },
-  ramp: { finish: "metal", face: ["#2b2c2f", "#0c0c0e"], ink: "#e9eaec", issuer: "mark", lastFour: "7261" },
+  ramp: { finish: "gloss", face: ["#e6ef6a", "#b8cc34"], ink: "#141414", issuer: "mark", lastFour: "7261" },
 };
 
 export const PAYMENT_LOOKS: Record<PaymentMethodId, PaymentLook> = {
@@ -40,7 +40,7 @@ export const PAYMENT_LOOKS: Record<PaymentMethodId, PaymentLook> = {
   discover: { face: ["#f7f7f7", "#d9d9d9"], mark: "#1d1d1b", icon: faCcDiscover, card: CARDS.discover },
   jcb: { face: ["#0e4c96", "#127a3d"], mark: "#ffffff", icon: faCcJcb, card: CARDS.jcb },
   diners: { face: ["#0079be", "#00467a"], mark: "#ffffff", icon: faCcDinersClub, card: CARDS.diners },
-  ramp: { face: ["#141416", "#2c2d30"], mark: "#ffffff", card: CARDS.ramp, network: "visa" },
+  ramp: { face: ["#e6ef6a", "#c2d43c"], mark: "#141414", card: CARDS.ramp, network: "visa" },
   applePay: { face: ["#0a0a0a", "#1f1f21"], mark: "#ffffff", icon: faApplePay },
   googlePay: { face: ["#202124", "#3c4043"], mark: "#ffffff", icon: faGooglePay },
   paypal: { face: ["#ffffff", "#e6edf7"], mark: "#003087", icon: faPaypal },

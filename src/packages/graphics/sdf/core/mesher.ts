@@ -1,17 +1,11 @@
 import { Vec3 } from "@/packages/math/space";
 
+import { Field, SurfaceMesh } from "../domain/types";
+
 // Turns a signed distance field into a mesh with surface nets: the field is sampled on a grid, a vertex goes in every
 // cell the surface passes through (where its edges cross zero, on average), and every grid edge the surface crosses
 // joins the four cells round it in a quad. Each vertex is then pulled onto the surface itself along the field's
 // gradient, and faces it with that gradient, so the mesh is smooth and true to the shape at any grid size.
-
-export type Field = (x: number, y: number, z: number) => number;
-
-export interface SurfaceMesh {
-  positions: Float32Array;
-  normals: Float32Array;
-  indices: Uint32Array;
-}
 
 // Corner offsets of a cell, numbered 1 along x, 2 along y, 4 along z.
 const CORNERS = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]];

@@ -343,12 +343,12 @@ export interface ScreenView {
   scan: number;
 }
 
-// The terminal's camera reading the customer's face to pay by it: what the camera sees, inside a guide the face is
-// lined up in, its points mapped one by one into a mesh as a line sweeps it, the guide turning the accent once it
-// matches. Asking, only the guide, and the button to tap.
+// The terminal's camera reading the customer's face to pay by it: the face in fine lines inside a guide it is lined up
+// in, its points mapped one by one into a mesh as a line sweeps it, the guide turning the accent once it matches.
+// Asking, only the guide, and the button to tap.
 const FACE = { offset: 44, rx: 17, ry: 22 } as const;
 
-const paintFaceCamera = (context: Canvas2DContext, accent: string, centre: number, top: number, scan: number | null, portrait?: CanvasImageSource | null) => {
+const paintFaceCamera = (context: Canvas2DContext, accent: string, centre: number, top: number, scan: number | null) => {
   const cy = top + FACE.offset;
   const { rx, ry } = FACE;
   const progress = scan ?? 0;
@@ -360,31 +360,23 @@ const paintFaceCamera = (context: Canvas2DContext, accent: string, centre: numbe
     context.ellipse(centre, cy, rx, ry, 0, 0, Math.PI * 2);
     context.clip();
 
-    const size = portrait as { width?: number; height?: number } | null | undefined;
-
-    if (portrait && size?.width && size.height) {
-      // The face as the camera frames it, filling the guide, a little above the picture's middle.
-      const fit = Math.max((rx * 2) / size.width, (ry * 2) / size.height) * 1.08;
-      const width = size.width * fit;
-      const height = size.height * fit;
-
-      context.drawImage(portrait, centre - width / 2, cy - height * 0.44, width, height);
-    } else {
-      context.fillStyle = "#1c2a26";
-      context.fillRect(centre - rx, cy - ry, rx * 2, ry * 2);
-      context.fillStyle = "rgba(213, 236, 228, 0.55)";
-      [-5, 5].forEach((dx) => {
-        context.beginPath();
-        context.arc(centre + dx, cy - 4, 1.4, 0, Math.PI * 2);
-        context.fill();
-      });
-      context.strokeStyle = "rgba(213, 236, 228, 0.55)";
-      context.lineWidth = 1.2;
-      context.beginPath();
-      context.arc(centre, cy + 3, 6, Math.PI * 0.2, Math.PI * 0.8);
-      context.stroke();
-    }
-
+    // The face as the camera reads it: its outline, eyes, nose and mouth in fine lines over the camera's dark.
+    context.fillStyle = "#0d1714";
+    context.fillRect(centre - rx, cy - ry, rx * 2, ry * 2);
+    context.strokeStyle = "rgba(213, 236, 228, 0.5)";
+    context.lineWidth = 0.6;
+    context.beginPath();
+    context.ellipse(centre, cy + 1, rx * 0.72, ry * 0.86, 0, 0, Math.PI * 2);
+    [-1, 1].forEach((side) => {
+      context.moveTo(centre + side * 3.2 + 2.6, cy - 4);
+      context.ellipse(centre + side * 4.4, cy - 4, 2.6, 1.1, 0, 0, Math.PI * 2);
+    });
+    context.moveTo(centre, cy - 3);
+    context.lineTo(centre - 1.4, cy + 4);
+    context.lineTo(centre + 1.4, cy + 4.6);
+    context.moveTo(centre - 4.5, cy + 9);
+    context.quadraticCurveTo(centre, cy + 11.5 + progress * 1.5, centre + 4.5, cy + 9);
+    context.stroke();
     // The camera's cast, and the dark round its edge.
     const shade = context.createRadialGradient(centre, cy, rx * 0.4, centre, cy, ry * 1.05);
 
@@ -591,7 +583,7 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
     paintKeypad(context, accent, pressed);
   } else if (state === "face") {
     total(context, amount, centre, y + 12, 9, "rgba(234, 255, 247, 0.85)", accent);
-    paintFaceCamera(context, accent, centre, y + 6, view.scan, look.portrait);
+    paintFaceCamera(context, accent, centre, y + 6, view.scan);
   } else if (state === "processing") {
     total(context, amount, centre, y + 18, 11, "rgba(234, 255, 247, 0.8)", accent);
     context.strokeStyle = withAlpha(accent, 0.18);

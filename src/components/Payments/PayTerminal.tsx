@@ -170,8 +170,9 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
   return (
     <Wrap role="group" aria-label={content.label}>
       <SceneBox>
+        {/* One counter kept for every payment, so the last frame stays up while the next way to pay is set up. */}
         <CheckoutScene
-          key={shown?.press ?? 0}
+          run={shown?.press ?? 0}
           method={shown?.method ?? PAYMENT_GROUPS.cards[0]}
           variant="full"
           mode={mode}

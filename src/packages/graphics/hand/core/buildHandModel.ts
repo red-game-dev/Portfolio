@@ -1,10 +1,10 @@
+import { meshSurface } from "@/packages/graphics/sdf";
 import type { ModelAsset } from "@/packages/graphics/stage3d";
 
 import { RIGHT_HAND } from "../config/anatomy";
 import { HandAnatomy, HandPose } from "../domain/types";
 import { skinDetails } from "./details";
 import { handField } from "./field";
-import { meshSurface } from "./mesher";
 import { nailMeshes } from "./nails";
 import { createHandPoser } from "./poser";
 import { handSkeleton } from "./skeleton";

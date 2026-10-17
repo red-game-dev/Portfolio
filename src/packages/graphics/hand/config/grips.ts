@@ -6,8 +6,9 @@ import { HAND_POSES } from "./poses";
 // How the right hand holds what it holds. Each was found by searching the pose and the thing's place in the hand
 // together, scored by sampling the thing's whole volume against the hand's flesh: no flesh inside it anywhere, the
 // thumb's pad on its face (towards the viewer), a finger on its back, most of it showing, and the arm running the way
-// the picture needs (a phone's top kept clear of the hand, for its camera and NFC). A test holds each to that, so a change to the hand's anatomy or a pose that would let a finger
-// pass through a card fails there. Places are in the hand's millimetres, the hand in the grip's pose.
+// the picture needs (a phone's top kept clear of the hand, for its camera and NFC). A test holds each to that, so a
+// change to the hand's anatomy or a pose that would let a finger pass through a card fails there. Places are in the
+// hand's millimetres, the hand in the grip's pose.
 export const HAND_GRIPS = {
   // A card held to a screen by its corner, between the thumb and the side of the curled index finger.
   card: {

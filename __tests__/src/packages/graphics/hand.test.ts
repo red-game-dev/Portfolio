@@ -6,8 +6,8 @@ import {
 } from "@/packages/graphics/hand";
 import type { HandGrip } from "@/packages/graphics/hand";
 import { skinDetails } from "@/packages/graphics/hand/core/details";
-import { meshSurface } from "@/packages/graphics/hand/core/mesher";
 import { mapPlace, skinMap, skinMapArea } from "@/packages/graphics/hand/core/skinMap";
+import { meshSurface } from "@/packages/graphics/sdf";
 import { jointIndex, poseSkeleton, socketAt } from "@/packages/graphics/stage3d";
 import { add, cross, distance, normalize, scale, sub, vec3 } from "@/packages/math/space";
 

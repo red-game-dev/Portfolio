@@ -2,7 +2,7 @@ export { RIGHT_HAND } from "./config/anatomy";
 export { HAND_GRIPS } from "./config/grips";
 export { HAND_POSES } from "./config/poses";
 export { buildHandModel, LIGHT_SKIN } from "./core/buildHandModel";
-export { handField, smoothMin } from "./core/field";
+export { handField } from "./core/field";
 export { gripSocket } from "./core/grips";
 export { blendTurns, createHandPoser, mixPoses } from "./core/poser";
 export { buildHandSlot, HAND_MODELS, isHandModel } from "./core/slots";

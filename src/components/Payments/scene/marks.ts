@@ -82,7 +82,7 @@ const DRAWN: Partial<Record<PaymentMethodId, MarkShape>> = {
       strokeWidth: 2.2,
     }],
   },
-  // Ramp's lowercase wordmark in white.
+  // Ramp's lowercase wordmark, dark on its lemongrass.
   ramp: {
     width: 43,
     height: 24,
@@ -91,7 +91,7 @@ const DRAWN: Partial<Record<PaymentMethodId, MarkShape>> = {
         "M17.2 13.25A3.6 3.6 0 1 1 10 13.25A3.6 3.6 0 1 1 17.2 13.25M17.2 9.5V17" +
         "M20 17V9.5M20 12.5A2.5 2.5 0 0 1 25 12.5V17M25 12.5A2.5 2.5 0 0 1 30 12.5V17" +
         "M33 9.5V21M39.8 13.25A3.4 3.4 0 1 1 33 13.25A3.4 3.4 0 1 1 39.8 13.25",
-      stroke: "#ffffff",
+      stroke: "#141414",
       strokeWidth: 2.2,
     }],
   },

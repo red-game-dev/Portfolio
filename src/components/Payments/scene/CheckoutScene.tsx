@@ -24,6 +24,8 @@ interface CheckoutSceneProps {
   gesture?: PayGesture;
   // Who the counter's cards are issued to, and the picture the red card prints; a switch shows them plain.
   cardholder?: { name: string; portrait: string };
+  // Which payment this is: a new one plays again even for the same way to pay.
+  run?: number;
 }
 
 // How long a new counter waits for its 3D hands before it starts flat (they come within it once the page has them).
@@ -42,7 +44,7 @@ const Canvas = tw.canvas`block w-full h-full`;
 // The checkout on canvas: the terminal and its screen drawn by the rig engine, the hands and what the customer holds
 // drawn in 3D on the page's stage (or flat where there is none), the code loaded only once the scene is near. A
 // payment plays once and the scene rests after it; nothing runs while it waits.
-export const CheckoutScene: FC<CheckoutSceneProps> = ({ method, variant, mode, durationMs, amount, accent, gesture, cardholder }: CheckoutSceneProps) => {
+export const CheckoutScene: FC<CheckoutSceneProps> = ({ method, variant, mode, durationMs, amount, accent, gesture, cardholder, run = 0 }: CheckoutSceneProps) => {
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const skin = useMemo<CheckoutSkin>(() => {
@@ -62,8 +64,7 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({ method, variant, mode, d
       accent,
     };
   }, [method, gesture, amount, accent, cardholder]);
-  // The holder's portrait, for the red card that prints it and the camera that reads a face to pay by.
-  const portrait = skin.look.card?.issuer === "portrait" || skin.look.gesture === "face" ? cardholder?.portrait : undefined;
+  const portrait = skin.look.card?.issuer === "portrait" ? cardholder?.portrait : undefined;
   // A still counter shows no hands, so it never needs the 3D stage.
   const isStill = useReducedMotion();
   const actor = useCanvasEngine<CheckoutActor>(canvasRef, {
@@ -129,7 +130,7 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({ method, variant, mode, d
     }, durationMs + 60);
 
     return () => window.clearTimeout(rest);
-  }, [actor, mode, durationMs]);
+  }, [actor, mode, durationMs, run]);
 
   return (
     <Box ref={boxRef} aria-hidden="true">

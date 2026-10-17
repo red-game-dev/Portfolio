@@ -1,5 +1,6 @@
 import { RENDERING } from "@/config/rendering";
 import { HAND_MODELS } from "@/packages/graphics/hand";
+import { HEAD_MODELS } from "@/packages/graphics/head";
 import { ModelRegistry, Stage, StageService, WorkerModelSource } from "@/packages/graphics/stage3d";
 
 // The site's 3D stage and its models, made once for the page. The models are slots: each id is registered with the
@@ -13,7 +14,7 @@ const inWorker = new WorkerModelSource(
 
 export const models = new ModelRegistry();
 
-Object.values(HAND_MODELS).forEach((model) => models.register(model, inWorker));
+[...Object.values(HAND_MODELS), ...Object.values(HEAD_MODELS)].forEach((model) => models.register(model, inWorker));
 
 const stages = new StageService(RENDERING.mode === "2d" ? [] : [
   async () => new (await import("@/packages/graphics/stage3d-three")).ThreeStage(models),
@@ -45,13 +46,13 @@ export const stageReady = async (): Promise<Stage | null> => {
 };
 
 // What the payments counter needs, started as it comes near so its first payment never waits: the stage, the hands,
-// and every material the counter shows, compiled once.
+// the customer's head, and every material the counter shows, compiled once.
 export const preloadCheckout = (): void => {
   if (RENDERING.mode === "2d") {
     return;
   }
 
-  models.preload(...Object.values(HAND_MODELS));
+  models.preload(...Object.values(HAND_MODELS), ...Object.values(HEAD_MODELS));
   stageReady()
     .then(async (stage) => {
       if (stage) {

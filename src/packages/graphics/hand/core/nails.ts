@@ -1,9 +1,9 @@
+import { faceOutwards } from "@/packages/graphics/sdf";
 import type { MeshData, Skeleton } from "@/packages/graphics/stage3d";
 import { add, scale, Vec3 } from "@/packages/math/space";
 
 import { DigitName, HandAnatomy } from "../domain/types";
 import { fieldNormal, HandField } from "./field";
-import { faceOutwards } from "./mesher";
 import { DIGITS, jointNamesOf } from "./skeleton";
 
 // The nails, each a thin curved plate laid on its digit's last phalanx: found by dropping a grid of points onto the

@@ -247,7 +247,8 @@ const MEET_CAMERA: Record<CheckoutGesture, CheckoutCamera> = {
   scan: { x: 182, y: 86, zoom: 1.28 },
   swipe: { x: 178, y: 98, zoom: 1.3 },
   insert: { x: 150, y: 132, zoom: 1.32 },
-  face: { x: 150, y: 78, zoom: 1.45 },
+  // The screen and the customer looking into its camera beside it.
+  face: { x: 200, y: 88, zoom: 1.25 },
 };
 
 // The most the camera zooms in, for the rig to cache its frames sharp enough.

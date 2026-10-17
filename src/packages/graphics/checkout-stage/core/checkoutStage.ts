@@ -5,6 +5,7 @@ import {
   blendTurns, createHandPoser, gripSocket, HAND_GRIPS, HAND_MODELS, HAND_POSES, handField, handSkeleton, handSockets, RIGHT_HAND,
 } from "@/packages/graphics/hand";
 import type { HandGrip } from "@/packages/graphics/hand";
+import { HEAD_MODELS } from "@/packages/graphics/head";
 import { keepCamera } from "@/packages/graphics/rig";
 import type { ActorPart, ActorSpec, ActorState, Finish, JointTurns, SceneHandle, Stage, StageFrame, StageScene } from "@/packages/graphics/stage3d";
 import { attachBy, poseSkeleton, socketAt } from "@/packages/graphics/stage3d";
@@ -90,6 +91,26 @@ const WATCH: ActorPart[] = [
 
 const CLOTH = { cashier: ["#2d3653", "#3a4566"], customer: ["#5d4c3b", "#6e5c48"] } as const;
 
+// The customer paying by face: their head and shoulders to the right of the terminal and a step back from it, turned to
+// look into its camera, so their face is seen as it is read. In the head's millimetres: the chin at the origin.
+const CUSTOMER = { position: vec3(262, -152, -170), turn: fromAxisAngle(vec3(0, 1, 0), -0.95) } as const;
+
+const customerActor = (): ActorSpec => ({
+  id: "customer",
+  unit: HAND_UNIT,
+  castsShadow: true,
+  parts: [
+    { shape: { kind: "model", model: HEAD_MODELS.customer } },
+    // Their shoulders in the jacket the hand's sleeve is.
+    {
+      shape: { kind: "cylinder", radiusTop: 95, radiusBottom: 150, length: 230 },
+      material: { kind: "cloth", colour: CLOTH.customer[0] },
+      offset: vec3(0, -170, -22),
+      scale: vec3(1, 1, 0.55),
+    },
+  ],
+});
+
 const handActor = (id: string, model: string, who: keyof typeof CLOTH, extra: ActorPart[] = []): ActorSpec => ({
   id,
   unit: HAND_UNIT,
@@ -109,6 +130,7 @@ export const checkoutScene = (skin: CheckoutSkin): StageScene => {
 
   return {
     actors: [
+      ...(skin.look.gesture === "face" ? [customerActor()] : []),
       handActor("cashier", CHECKOUT_MODELS.point, "cashier", WATCH),
       handActor("pin", CHECKOUT_MODELS.point, "customer"),
       handActor("grip", isPhone ? CHECKOUT_MODELS.phone : CHECKOUT_MODELS.card, "customer"),
@@ -278,6 +300,15 @@ export const checkoutStageMap = (skin: CheckoutSkin): CheckoutStageMap => {
     return [thing, other, { id: "grip", isShown: true, position: add(placed.position, away), rotation: placed.rotation, joints: gripTurns }];
   };
 
+  // The customer at the counter while a payment is under way, their face read while the screen scans it.
+  const customerAt = (frame: CheckoutFrame): ActorState => ({
+    id: "customer",
+    isShown: frame.screen.state !== "idle",
+    position: CUSTOMER.position,
+    rotation: CUSTOMER.turn,
+    ...(frame.screen.state === "face" ? { scan: { progress: frame.sweep, colour: skin.accent } } : {}),
+  });
+
   return {
     scene: checkoutScene(skin),
     frameOf: (frame) => {
@@ -290,6 +321,7 @@ export const checkoutStageMap = (skin: CheckoutSkin): CheckoutStageMap => {
           pointing("cashier", frame.cashier),
           pointing("pin", frame.customerPoint),
           ...held(frame),
+          ...(gesture === "face" ? [customerAt(frame)] : []),
         ],
         lights: { glow: { intensity: GLOW[frame.screen.state] } },
       };
@@ -356,7 +388,7 @@ const warmScene = (): StageScene => {
     parts: [{ shape: { kind: "plate", width: CARD.long, height: CARD.short, depth: 0.76, radius: CARD.radius }, material: { kind: "picture", picture: "warm", finish } }],
   })));
 
-  return { ...base, actors: [...base.actors.filter((actor) => actor.id !== "card"), ...cards] };
+  return { ...base, actors: [...base.actors.filter((actor) => actor.id !== "card"), ...cards, customerActor()] };
 };
 
 const warmed = new WeakSet<Stage>();

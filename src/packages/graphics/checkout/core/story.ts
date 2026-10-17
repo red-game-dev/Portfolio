@@ -127,7 +127,7 @@ export const POINT_ANGLE = Math.PI + 0.66;
 // What the customer holds, by its centre, through each way to pay: where it waits, where it meets the terminal,
 // and, for a swipe, where the swipe ends.
 const ITEM_REST: Record<CheckoutGesture, Pose> = {
-  tap: { x: 375, y: 160, angle: 0.35, scale: 1.1 },
+  tap: { x: 375, y: 160, angle: -0.15, scale: 1.1 },
   wallet: { x: 370, y: 175, angle: 0.3, scale: 1.1 },
   scan: { x: 370, y: 185, angle: 0.3, scale: 1.1 },
   insert: { x: 330, y: 280, angle: 0.4, scale: 1.1 },
@@ -137,8 +137,9 @@ const ITEM_REST: Record<CheckoutGesture, Pose> = {
 const portraitHalf = CARD.long / 2;
 
 const ITEM_AT: Record<CheckoutGesture, Pose[]> = {
-  // Over the contactless sign in the middle of the screen, then pressed to the glass.
-  tap: [{ x: 153, y: 77, angle: -0.06, scale: 1.02 }, { x: 153, y: 79, angle: -0.04, scale: 0.99 }],
+  // Over the contactless sign in the middle of the screen, then pressed to the glass, tilted as a hand coming from the
+  // lower right holds it.
+  tap: [{ x: 153, y: 77, angle: -0.4, scale: 1.02 }, { x: 153, y: 79, angle: -0.38, scale: 0.99 }],
   wallet: [{ x: 152, y: 82, angle: -0.08, scale: 1.02 }, { x: 152, y: 84, angle: -0.06, scale: 0.99 }],
   // Held up beside the screen, its camera on the QR code.
   scan: [{ x: 214, y: 70, angle: -0.2, scale: 1.04 }, { x: 213, y: 71, angle: -0.19, scale: 1.03 }],

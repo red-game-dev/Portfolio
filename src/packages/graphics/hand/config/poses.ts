@@ -1,8 +1,7 @@
 import { HandPose } from "../domain/types";
 
 // Hands at work, each joint's bend in degrees: relaxed, pointing with the index finger (the others curled, the thumb
-// tucked against the middle finger), pressing (the pointing fingertip giving a little), and pinching a card or a phone
-// between the thumb's pad and the index fingertip's.
+// tucked against the middle finger), pressing (the pointing fingertip giving a little), and holding a card or a phone.
 export const HAND_POSES = {
   relaxed: {
     fingers: { index: { curl: [10, 16, 8] }, middle: { curl: [14, 20, 10] }, ring: { curl: [17, 23, 11] }, pinky: { curl: [20, 25, 12] } },
@@ -26,26 +25,26 @@ export const HAND_POSES = {
     },
     thumb: { curl: [8, 18, 16], across: 10 },
   },
-  // The thumb's pad and the index fingertip's facing each other a card's thickness apart (found by searching the
-  // joints for the pinch), the other fingers curled behind.
+  // Holding a card, the pose its grips were found in (see grips.ts): the card between the thumb's pad and the side of
+  // the curled index finger, as a key is held, the other fingers curled into the palm out of its way.
   card: {
     fingers: {
-      index: { curl: [38, 79, 33] },
-      middle: { curl: [52, 89, 39], splay: -2 },
-      ring: { curl: [58, 93, 39], splay: -3 },
-      pinky: { curl: [64, 95, 35], splay: -4 },
+      index: { curl: [50, 51, 10] },
+      middle: { curl: [90, 100, 60], splay: -2 },
+      ring: { curl: [98, 103, 62], splay: -3 },
+      pinky: { curl: [103.6, 104, 62], splay: -4 },
     },
-    thumb: { curl: [8, 25, 12], across: 1 },
+    thumb: { curl: [15.5, 16, 6], across: 26, roll: 0 },
   },
-  // The same pinch opened to a phone's thickness, found the same way.
+  // Holding a phone from above, its screen to the viewer: the fingers flat behind it, the thumb on its face.
   phone: {
     fingers: {
-      index: { curl: [40, 64, 34] },
-      middle: { curl: [54, 74, 40], splay: -2 },
-      ring: { curl: [60, 78, 40], splay: -3 },
-      pinky: { curl: [66, 80, 36], splay: -4 },
+      index: { curl: [26, 34, 13.75] },
+      middle: { curl: [30, 30, 15], splay: -2 },
+      ring: { curl: [54, 33, 17], splay: -3 },
+      pinky: { curl: [66, 34, 17], splay: -4 },
     },
-    thumb: { curl: [12, 14, 21], across: 2 },
+    thumb: { curl: [11, 24, 13], across: 25, roll: 0 },
   },
 } satisfies Record<string, HandPose>;
 

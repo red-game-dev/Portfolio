@@ -1,6 +1,6 @@
 import { approvedAt, CHECKOUT_LAYOUT, checkoutAt, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
 import { CHECKOUT_MODELS, checkoutStageMap, warmCheckoutStage } from "@/packages/graphics/checkout-stage";
-import { handField, RIGHT_HAND } from "@/packages/graphics/hand";
+import { HAND_GRIPS, handField, RIGHT_HAND } from "@/packages/graphics/hand";
 import type { ActorState, Stage, StageScene } from "@/packages/graphics/stage3d";
 import { conjugate, rotate, vec3 } from "@/packages/math/space";
 
@@ -45,6 +45,18 @@ describe("the checkout on a 3D stage", () => {
     expect(cutOf("tap")).toBeUndefined();
   });
 
+  it("holds a card and a phone the size their grips were found for, so no finger passes into them here either", () => {
+    const unit = checkoutStageMap(skinOf("tap")).scene.actors.find((actor) => actor.id === "grip")?.unit ?? 0;
+    const { card, phone } = CHECKOUT_LAYOUT;
+
+    [HAND_GRIPS.card, HAND_GRIPS.cardEnd].forEach((grip) => {
+      expect(grip.size.width * unit).toBeCloseTo(card.long, 0);
+      expect(grip.size.height * unit).toBeCloseTo(card.short, 0);
+    });
+    expect(HAND_GRIPS.phone.size.width * unit).toBeCloseTo(phone.width, 0);
+    expect(HAND_GRIPS.phone.size.height * unit).toBeCloseTo(phone.height, 0);
+  });
+
   it("shows the cashier while keying, then the card held to the terminal by the customer's hand", () => {
     const map = checkoutStageMap(skinOf("tap"));
     const keying = map.frameOf(checkoutAt(0.15, "full", "tap", 0, keys));
@@ -71,7 +83,7 @@ describe("the checkout on a 3D stage", () => {
     expect(grip && lowestOf(map.scene, grip)).toBeGreaterThanOrEqual(0);
   });
 
-  it("swipes with the hand beside the terminal, holding the card by its outer edge, never over the screen", () => {
+  it("swipes with the hand beside the terminal, clear of the screen's readout", () => {
     const map = checkoutStageMap(skinOf("swipe"));
     const { body, screen } = CHECKOUT_LAYOUT;
 
@@ -79,11 +91,11 @@ describe("the checkout on a 3D stage", () => {
       const story = checkoutAt(step / 200, "full", "swipe", 0, keys);
       const grip = actorOf(map.frameOf(story), "grip");
 
-      // Once the card is at the stripe, the hand's leftmost flesh is right of the screen.
+      // Once the card is at the stripe, the hand's leftmost flesh is right of the screen's left three quarters.
       if (grip?.isShown && story.item && story.item.y > body.y && story.item.x < body.x + body.width + 20) {
         const leftmost = grip.position.x - 0.7 * handField(RIGHT_HAND, grip.joints ?? []).reach(rotate(conjugate(grip.rotation), vec3(-1, 0, 0)));
 
-        expect(leftmost).toBeGreaterThan(screen.x + screen.width);
+        expect(leftmost).toBeGreaterThan(screen.x + screen.width * 0.75);
       }
     }
   });

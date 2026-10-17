@@ -57,3 +57,14 @@ export interface HandPose {
   fingers: Record<FingerName, DigitPose>;
   thumb: ThumbPose;
 }
+
+// How the hand holds a thing: the pose it holds it in, and where the thing sits in the hand's space (millimetres, the
+// hand in that pose): its middle, the way its own x axis runs and the way its face looks (towards the viewer, the side
+// the thumb is on), and its size, which the grip was found for.
+export interface HandGrip {
+  pose: HandPose;
+  centre: Vec3;
+  along: Vec3;
+  face: Vec3;
+  size: { width: number; height: number; thickness: number };
+}

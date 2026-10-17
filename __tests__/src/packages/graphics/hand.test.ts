@@ -1,13 +1,15 @@
 import { writeFileSync } from "fs";
 
 import {
-  buildHandModel, buildHandSlot, createHandPoser, HAND_MODELS, HAND_POSES, handField, handSkeleton, handSockets, isHandModel, jointNamesOf, RIGHT_HAND,
+  buildHandModel, buildHandSlot, createHandPoser, HAND_GRIPS, HAND_MODELS, HAND_POSES, handField, handSkeleton, handSockets, isHandModel, jointNamesOf,
+  RIGHT_HAND,
 } from "@/packages/graphics/hand";
+import type { HandGrip } from "@/packages/graphics/hand";
 import { skinDetails } from "@/packages/graphics/hand/core/details";
 import { meshSurface } from "@/packages/graphics/hand/core/mesher";
 import { mapPlace, skinMap, skinMapArea } from "@/packages/graphics/hand/core/skinMap";
 import { jointIndex, poseSkeleton, socketAt } from "@/packages/graphics/stage3d";
-import { add, distance, normalize, scale, vec3 } from "@/packages/math/space";
+import { add, cross, distance, normalize, scale, sub, vec3 } from "@/packages/math/space";
 
 const skeleton = handSkeleton(RIGHT_HAND);
 const poser = createHandPoser(RIGHT_HAND, skeleton);
@@ -148,14 +150,61 @@ describe("graphics/hand", () => {
       });
   });
 
-  it("holds things by the index fingertip's pad and the thumb's, which pinch a card's thickness apart", () => {
-    const sockets = handSockets(RIGHT_HAND, skeleton);
-    const card = poseSkeleton(skeleton, poser.turnsOf(HAND_POSES.card));
-    const point = poseSkeleton(skeleton, poser.turnsOf(HAND_POSES.point));
-    const gap = distance(socketAt(card, sockets["thumb-pad"]).position, socketAt(card, sockets["index-pad"]).position);
+  // A grip's thing sampled through its whole volume against the hand in the grip's pose: how much of the hand is
+  // inside it, and how near the thumb comes to its face and the nearest finger to its back.
+  const heldBy = (grip: HandGrip) => {
+    const held = handField(RIGHT_HAND, poser.turnsOf(grip.pose));
+    const { width, height, thickness } = grip.size;
+    const towardsBack = scale(grip.face, -1);
+    const across = normalize(cross(grip.along, towardsBack));
+    const layers = thickness > 3 ? [-0.5, -0.25, 0, 0.25, 0.5] : [0];
+    const limit = thickness > 3 ? 0 : thickness / 2;
+    const groups = new Float64Array(held.groups.length);
+    const thumb = held.groups.findIndex((group) => group.name === "thumb");
+    const fingers = held.groups.flatMap((group, index) => (["palm", "index", "middle", "ring", "pinky"].includes(group.name) ? [index] : []));
+    let inside = 0;
+    let thumbGap = Number.POSITIVE_INFINITY;
+    let fingerGap = Number.POSITIVE_INFINITY;
 
-    expect(gap).toBeGreaterThan(6);
-    expect(gap).toBeLessThan(14);
+    for (let a = -width / 2; a <= width / 2; a += 1.5) {
+      for (let b = -height / 2; b <= height / 2; b += 1.5) {
+        const middle = add(grip.centre, add(scale(grip.along, a), scale(across, b)));
+
+        layers.forEach((layer) => {
+          const point = add(middle, scale(towardsBack, layer * thickness));
+
+          inside += held.evaluate(point.x, point.y, point.z) < limit ? 1 : 0;
+        });
+
+        const front = sub(middle, scale(towardsBack, thickness / 2));
+        const back = add(middle, scale(towardsBack, thickness / 2));
+
+        held.groupDistances(front.x, front.y, front.z, groups);
+        thumbGap = Math.min(thumbGap, groups[thumb]);
+        held.groupDistances(back.x, back.y, back.z, groups);
+        fingers.forEach((finger) => {
+          fingerGap = Math.min(fingerGap, groups[finger]);
+        });
+      }
+    }
+
+    return { inside, thumbGap, fingerGap };
+  };
+
+  it("holds a card and a phone with no flesh inside them, the thumb on the face and a finger on the back", () => {
+    Object.values(HAND_GRIPS).forEach((grip) => {
+      const { inside, thumbGap, fingerGap } = heldBy(grip);
+
+      expect(inside).toBe(0);
+      expect(thumbGap).toBeLessThan(1.2);
+      expect(fingerGap).toBeLessThan(1.6);
+    });
+  });
+
+  it("presses keys with the index fingertip's pad", () => {
+    const sockets = handSockets(RIGHT_HAND, skeleton);
+    const point = poseSkeleton(skeleton, poser.turnsOf(HAND_POSES.point));
+
     expect(distance(socketAt(point, sockets["index-pad"]).position, point.positions[jointIndex(skeleton, "index-finger-tip")])).toBeLessThan(8);
   });
 

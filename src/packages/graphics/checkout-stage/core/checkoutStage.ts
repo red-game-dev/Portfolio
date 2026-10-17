@@ -1,22 +1,26 @@
 import { createDrawableSurface } from "@/packages/graphics/canvas";
 import { CHECKOUT_LAYOUT, paintCardPicture, paintPhone, paintSweep } from "@/packages/graphics/checkout";
 import type { CheckoutFrame, CheckoutSkin, CheckoutStage, Pose, ScreenState } from "@/packages/graphics/checkout";
-import { blendTurns, createHandPoser, HAND_MODELS, HAND_POSES, handField, handSkeleton, handSockets, RIGHT_HAND } from "@/packages/graphics/hand";
+import {
+  blendTurns, createHandPoser, gripSocket, HAND_GRIPS, HAND_MODELS, HAND_POSES, handField, handSkeleton, handSockets, RIGHT_HAND,
+} from "@/packages/graphics/hand";
+import type { HandGrip } from "@/packages/graphics/hand";
 import { keepCamera } from "@/packages/graphics/rig";
 import type { ActorPart, ActorSpec, ActorState, Finish, JointTurns, SceneHandle, Stage, StageFrame, StageScene } from "@/packages/graphics/stage3d";
-import { attachBy, poseSkeleton, socketAt, socketBetween } from "@/packages/graphics/stage3d";
+import { attachBy, poseSkeleton, socketAt } from "@/packages/graphics/stage3d";
 import { clamp01 } from "@/packages/math/clamp";
 import { add, conjugate, dot, fromAxisAngle, IDENTITY, multiply, normalize, Quat, rotate, scale, sub, Vec3, vec3 } from "@/packages/math/space";
 
 // The checkout on a 3D stage: the story's moments as actors. The cashier's and the customer's hands are the hand model
-// in the pose they hold (pointing, or pinching a card or a phone), placed by their sockets: a fingertip's pad on the
-// key it presses, pitched into the glass and lifted as the story lifts it; the pinch on what is held. What the customer
+// in the pose they hold (pointing, or holding a card or a phone), placed by their sockets: a fingertip's pad on the
+// key it presses, pitched into the glass and lifted as the story lifts it; the grip on what is held, found so that no
+// flesh passes into it. What the customer
 // holds is a real card in its issuer's finish or a phone with its screen, held off the glass far enough that the hand
-// pinching it never passes behind the terminal's face, and pressed nearer as it is read; going into a reader, the end
+// holding it never passes behind the terminal's face, and pressed nearer as it is read; going into a reader, the end
 // inside the terminal's body is cut away. The screen's glow lights the hands and brightens as the payment is approved.
 // The 2D terminal is drawn under it all.
 
-// The models the scene fills its slots with: the hand meshed pointing, pinching a card and pinching a phone.
+// The models the scene fills its slots with: the hand meshed pointing, holding a card and holding a phone.
 export const CHECKOUT_MODELS = HAND_MODELS;
 
 // Picture units per millimetre of the hand: a card is 60 units for its 85.6 millimetres.
@@ -139,15 +143,19 @@ export const checkoutScene = (skin: CheckoutSkin): StageScene => {
 
 const HIDDEN = (id: string): ActorState => ({ id, isShown: false, position: vec3(), rotation: IDENTITY });
 
-// How what the customer holds is pinched, in its own frame: a card near its top right corner; on its end going up into
-// the chip reader, by its lower end; on its end down the stripe, by its outer edge, so the hand stays beside the
-// terminal; a phone by its right edge; always the thumb behind and the index fingertip over the front.
-const PINCH = {
-  card: { at: vec3(21, 13, 0), forward: vec3(-1, -0.35, 0) },
-  upright: { at: vec3(-20, 6, 0), forward: vec3(1, 0.3, 0) },
-  swipe: { at: vec3(6, -16, 0), forward: vec3(0.35, 1, 0) },
-  phone: { at: vec3(12, -14, 0), forward: vec3(-1, 0.3, 0) },
-} as const;
+// The grip the customer's hand holds each thing in, each found so that no flesh passes into it: a card held to the
+// screen by its corner; a card going into a reader (up into the chip reader, down the stripe) by its lower end, the arm
+// below and to the right; a phone from above.
+const gripOf = (gesture: CheckoutSkin["look"]["gesture"]): HandGrip => {
+  if (isPhoneGesture(gesture)) {
+    return HAND_GRIPS.phone;
+  }
+
+  return isReaderGesture(gesture) ? HAND_GRIPS.cardEnd : HAND_GRIPS.card;
+};
+
+// A held thing's own x axis.
+const ALONG = vec3(1, 0, 0);
 
 // Where a hand that has let go of what it holds goes, at full let go: down, to the right and off the glass.
 const LET_GO = vec3(40, -40, 30);
@@ -167,22 +175,22 @@ export const checkoutStageMap = (skin: CheckoutSkin): CheckoutStageMap => {
   const { gesture } = skin.look;
   const isPhone = isPhoneGesture(gesture);
   const isUpright = isReaderGesture(gesture);
-  const pinchTurns = isPhone ? turnsOf("phone") : turnsOf("card");
-  const pinchPosed = poseSkeleton(skeleton, pinchTurns);
-  const pinch = socketBetween(socketAt(pinchPosed, sockets["thumb-pad"]), socketAt(pinchPosed, sockets["index-pad"]));
-  const way = isPhone ? PINCH.phone : gesture === "swipe" ? PINCH.swipe : isUpright ? PINCH.upright : PINCH.card;
+  const grip = gripOf(gesture);
+  const gripTurns = poser.turnsOf(grip.pose);
+  const hold = socketAt(poseSkeleton(skeleton, gripTurns), gripSocket(grip));
   const upright = isUpright ? fromAxisAngle(TOWARD_VIEWER, Math.PI / 2) : IDENTITY;
-  // Where the hand pinches what it holds, held at `centre` and turned by `rotation`.
-  const gripOn = (centre: Vec3, rotation: Quat) => attachBy(pinch, HAND_UNIT, {
-    position: add(centre, rotate(rotation, way.at)),
-    forward: rotate(rotation, way.forward),
-    up: rotate(rotation, AWAY_Z),
+  // The hand stood so its grip meets what it holds, held at `centre` and turned by `rotation`: the thing's own x axis
+  // forward and its face, towards the viewer, up.
+  const gripOn = (centre: Vec3, rotation: Quat) => attachBy(hold, HAND_UNIT, {
+    position: centre,
+    forward: rotate(rotation, ALONG),
+    up: rotate(rotation, TOWARD_VIEWER),
   });
-  // How far the pinching hand reaches behind the middle of what it holds. A turn in the picture's plane changes
+  // How far the holding hand reaches behind the middle of what it holds. A turn in the picture's plane changes
   // nothing, so it is worked out once, from the hand's flesh in that pose: what it holds is never nearer the glass than
-  // that, so the thumb behind it never goes into the terminal.
+  // that, so the fingers behind it never go into the terminal.
   const atRest = gripOn(vec3(), upright);
-  const behind = HAND_UNIT * handField(RIGHT_HAND, pinchTurns).reach(rotate(conjugate(atRest.rotation), AWAY_Z)) - atRest.position.z;
+  const behind = HAND_UNIT * handField(RIGHT_HAND, gripTurns).reach(rotate(conjugate(atRest.rotation), AWAY_Z)) - atRest.position.z;
   const nearest = Math.max(HELD.at, behind + HELD.clearance);
 
   // The two held poses worked out once; only a press partway between them is blended each frame.
@@ -267,7 +275,7 @@ export const checkoutStageMap = (skin: CheckoutSkin): CheckoutStageMap => {
     const placed = gripOn(centre, rotation);
     const away = scale(LET_GO, 1 - frame.hold);
 
-    return [thing, other, { id: "grip", isShown: true, position: add(placed.position, away), rotation: placed.rotation, joints: pinchTurns }];
+    return [thing, other, { id: "grip", isShown: true, position: add(placed.position, away), rotation: placed.rotation, joints: gripTurns }];
   };
 
   return {

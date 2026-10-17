@@ -70,9 +70,9 @@ const FRAGMENT_DECLARATIONS = /* glsl */ `
   // The furrows that cross the skin in a net of small rhombs: three sets of fine lines, each wandering a little.
   float skinFurrows(vec3 p) {
     vec3 q = p + (vec3(skinNoise(p * 0.7), skinNoise(p * 0.7 + 3.1), skinNoise(p * 0.7 + 6.2)) - 0.5) * 0.9;
-    float a = 1.0 - abs(sin(dot(q, vec3(1.9, 1.1, 0.6))));
-    float b = 1.0 - abs(sin(dot(q, vec3(-1.2, 1.8, 0.5))));
-    float c = 1.0 - abs(sin(dot(q, vec3(0.4, -0.6, 2.1))));
+    float a = clamp(1.0 - abs(sin(dot(q, vec3(1.9, 1.1, 0.6)))), 0.0, 1.0);
+    float b = clamp(1.0 - abs(sin(dot(q, vec3(-1.2, 1.8, 0.5)))), 0.0, 1.0);
+    float c = clamp(1.0 - abs(sin(dot(q, vec3(0.4, -0.6, 2.1)))), 0.0, 1.0);
     return pow(a, 6.0) + pow(b, 6.0) + pow(c, 6.0) * 0.6;
   }
 
@@ -84,7 +84,7 @@ const FRAGMENT_DECLARATIONS = /* glsl */ `
     float height = (skinNoise(vSkinPosition * 3.4) - 0.5) * 0.012 * uDetail;
     height += (skinNoise(vSkinPosition * 9.1) - 0.5) * 0.006 * fine;
     height -= skinFurrows(vSkinPosition) * 0.018 * fine;
-    height += skinMapValue.r * 0.42;
+    height += skinMapValue.r * 0.15;
 
     float depth = vCrease.x;
     float along = vCrease.y;
@@ -97,7 +97,8 @@ const FRAGMENT_DECLARATIONS = /* glsl */ `
       float ring = sqrt(along * along + vCrease.z * vCrease.z * 1.44);
       float phase = ring + (skinNoise(vSkinPosition * 0.9) - 0.5) * 0.6;
       float sharpness = clamp(1.0 / (12.0 * alongWidth * alongWidth), 1.5, 8.0);
-      float valley = pow(0.5 + 0.5 * cos(phase * 6.2831853), sharpness);
+      // Clamped: rounding can take the base a hair below 0, where pow is undefined and draws a black pixel.
+      float valley = pow(clamp(0.5 + 0.5 * cos(phase * 6.2831853), 0.0, 1.0), sharpness);
       float broken = 0.4 + 0.8 * skinNoise(vSkinPosition * 0.7 + 7.0);
       height -= depth * valley * broken * 0.09;
     } else {
@@ -124,7 +125,9 @@ const FRAGMENT_DECLARATIONS = /* glsl */ `
     vec3 r2 = cross(normal, sigmaX);
     float determinant = dot(sigmaX, r1);
     vec3 gradient = sign(determinant) * (slope.x * r1 + slope.y * r2);
-    return normalize(abs(determinant) * normal - gradient);
+    vec3 bent = abs(determinant) * normal - gradient;
+    // Where the surface is seen edge on there is nothing to bend.
+    return dot(bent, bent) > 1e-12 ? normalize(bent) : normal;
   }
 `;
 
@@ -133,7 +136,7 @@ const FRAGMENT_COLOUR = /* glsl */ `
   #ifdef SKIN_DETAIL
     skinMapValue = texture2D(uSkinDetail, vSkinUv) * vMapped;
     // A vein's blue, through light skin.
-    diffuseColor.rgb *= mix(vec3(1.0), vec3(0.8, 0.87, 1.0), skinMapValue.g * 0.6);
+    diffuseColor.rgb *= mix(vec3(1.0), vec3(0.78, 0.86, 1.0), skinMapValue.g * 0.7);
   #else
     skinMapValue = vec4(0.0);
   #endif
@@ -154,7 +157,7 @@ const FRAGMENT_LIGHT = /* glsl */ `
     float wrapped = max(0.0, (facing + 0.5) / 1.5) - max(0.0, facing);
     reflectedLight.directDiffuse += skinScatter * wrapped * uKeyColour * diffuseColor.rgb * 0.75;
     // A warm glow where the skin turns away from the eye.
-    float turned = 1.0 - max(dot(normal, normalize(vViewPosition)), 0.0);
+    float turned = clamp(1.0 - dot(normal, normalize(vViewPosition)), 0.0, 1.0);
     reflectedLight.indirectDiffuse += skinScatter * pow(turned, 3.0) * diffuseColor.rgb * 0.18;
     // The fine hair, too fine to see one by one, catching the light where the skin turns away.
     vec3 fuzz = vec3(1.0, 0.92, 0.84) * skinMapValue.b * turned * turned * uDetail;

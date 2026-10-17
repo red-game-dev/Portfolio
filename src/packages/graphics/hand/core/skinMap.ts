@@ -5,9 +5,9 @@ import { FingerAnatomy, HandAnatomy } from "../domain/types";
 
 // The back of the hand as a map looked straight down on it, which the skin's shader reads: in red, how far a vein
 // under the skin raises it; in green, how much of the vein's blue shows through; in blue, how thick its fine hair
-// grows. The veins follow the hand's anatomy: one up each gap between the metacarpals, joining the arch across the
+// grows. The veins follow the hand's anatomy: one up each gap between the metacarpals, joining the arch low across the
 // back of the hand, which drains into the vein up the thumb's side of the wrist and the one up the little finger's,
-// each wandering a little as real veins do. The hair is thickest on the forearm, thinning over the back of the hand
+// each soft, broad and wandering a little as real veins are. The hair is thickest on the forearm, thinning over the back of the hand
 // to almost none at the knuckles. The palm and wrist do not move between poses, so one map serves every pose.
 
 export interface SkinMapArea {
@@ -52,21 +52,19 @@ const veinsOf = (anatomy: HandAnatomy): Vein[] => {
     return [base[0] + (knuckle[0] - base[0]) * share, base[1] + (knuckle[1] - base[1]) * share];
   };
   const { index, middle, ring, pinky } = fingers;
-  const radial: [number, number] = [index.base.x - 13, index.base.y + 8];
-  const ulnar: [number, number] = [pinky.base.x + 10, pinky.base.y + 12];
+  const radial: [number, number] = [index.base.x - 13, index.base.y + 2];
+  const ulnar: [number, number] = [pinky.base.x + 10, pinky.base.y + 4];
 
   return [
-    // Up each gap from just short of the knuckles to the arch.
-    { points: [gap(index, middle, 0.82), gap(index, middle, 0.55), gap(index, middle, 0.27)], radius: [0.9, 1.3], showing: 0.8 },
-    { points: [gap(middle, ring, 0.84), gap(middle, ring, 0.58), gap(middle, ring, 0.3)], radius: [0.9, 1.3], showing: 0.8 },
-    { points: [gap(ring, pinky, 0.8), gap(ring, pinky, 0.52), gap(ring, pinky, 0.25)], radius: [0.85, 1.25], showing: 0.75 },
-    // A branch across between two of them.
-    { points: [gap(middle, ring, 0.6), gap(index, middle, 0.42)], radius: [0.75, 0.85], showing: 0.6 },
-    // The arch across the back of the hand.
-    { points: [ulnar, gap(ring, pinky, 0.25), gap(middle, ring, 0.3), gap(index, middle, 0.27), radial], radius: [1.4, 1.5], showing: 0.9 },
+    // Up each gap from short of the knuckles, bending into the arch.
+    { points: [gap(index, middle, 0.78), gap(index, middle, 0.45), gap(index, middle, 0.14)], radius: [1.6, 2.2], showing: 0.75 },
+    { points: [gap(middle, ring, 0.8), gap(middle, ring, 0.48), gap(middle, ring, 0.16)], radius: [1.6, 2.2], showing: 0.7 },
+    { points: [gap(ring, pinky, 0.74), gap(ring, pinky, 0.42), gap(ring, pinky, 0.12)], radius: [1.5, 2.1], showing: 0.7 },
+    // The arch across the back of the hand, low, near the wrist.
+    { points: [ulnar, gap(ring, pinky, 0.12), gap(middle, ring, 0.16), gap(index, middle, 0.14), radial], radius: [2.2, 2.4], showing: 0.85 },
     // Up the thumb's side of the wrist and on up the forearm, and up the little finger's.
-    { points: [radial, [-wrist.width / 2 + 5, 10], [-wrist.width / 2 + 3, -20], [-forearm.width / 2 + 9, -forearm.length - 6]], radius: [1.6, 2], showing: 1 },
-    { points: [ulnar, [wrist.width / 2 - 6, 8], [wrist.width / 2 - 9, -25], [forearm.width / 2 - 15, -forearm.length - 6]], radius: [1.5, 1.8], showing: 0.9 },
+    { points: [radial, [-wrist.width / 2 + 5, 6], [-wrist.width / 2 + 3, -22], [-forearm.width / 2 + 9, -forearm.length - 6]], radius: [2.6, 3], showing: 1 },
+    { points: [ulnar, [wrist.width / 2 - 6, 4], [wrist.width / 2 - 9, -27], [forearm.width / 2 - 15, -forearm.length - 6]], radius: [2.4, 2.8], showing: 0.9 },
   ];
 };
 
@@ -144,8 +142,8 @@ export const skinMap = (anatomy: HandAnatomy): TextureData => {
           const at = row * width + column;
           const across = (distance / radius) ** 2;
 
-          raise[at] = Math.max(raise[at], Math.exp(-1.6 * across));
-          blue[at] = Math.max(blue[at], vein.showing * Math.exp(-2.2 * across));
+          raise[at] = Math.max(raise[at], Math.exp(-1.2 * across));
+          blue[at] = Math.max(blue[at], vein.showing * Math.exp(-1.6 * across));
         }
       }
     });

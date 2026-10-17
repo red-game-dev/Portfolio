@@ -134,8 +134,12 @@ describe("graphics/stage3d", () => {
     await expect(source.load("thing")).resolves.toMatchObject({ id: "thing" });
   });
 
-  it("hands every array of a model over rather than copying it", () => {
+  it("hands every array of a model over rather than copying it, its textures' too", () => {
+    const textured: ModelAsset = { ...asset("thing"), textures: { skin: { width: 1, height: 1, data: new Uint8Array(4) } } };
+
+    textured.parts[0].mesh.uvs = new Float32Array(6);
     expect(transferablesOf(asset("thing"))).toHaveLength(4);
+    expect(transferablesOf(textured)).toHaveLength(6);
   });
 
   it("uses the first stage that can draw, and moves on when one loses its GPU", async () => {

@@ -10,6 +10,8 @@ export interface MeshData {
   indices: Uint32Array;
   // A colour per vertex (linear red, green and blue) that the material's own colour is multiplied by.
   colors?: Float32Array;
+  // Two per vertex: where it falls on the textures its model carries.
+  uvs?: Float32Array;
   // Four joints per vertex and how much each moves it, the four summing to 1.
   skinIndices?: Uint16Array;
   skinWeights?: Float32Array;
@@ -69,6 +71,9 @@ export interface MaterialSpec {
   kind: MaterialKind;
   colour?: string;
   roughness?: number;
+  // The id of a texture its model carries, read as the kind reads it: for skin, red how far the skin stands up (a vein
+  // under it), green how much a vein's blue shows through, blue how thick its fine hair grows.
+  detail?: string;
   // The id of a picture the host paints and hands the stage with `setPicture`, and how its surface is finished.
   picture?: string;
   finish?: Finish;
@@ -91,9 +96,18 @@ export interface ModelSocket {
   up: Vec3;
 }
 
+// A texture a model carries for its materials, four channels to a texel (each 0 to 255, not a colour space's), in rows
+// from the bottom up.
+export interface TextureData {
+  width: number;
+  height: number;
+  data: Uint8Array;
+}
+
 export interface ModelAsset {
   id: string;
   parts: ModelPart[];
+  textures?: Record<string, TextureData>;
   skeleton?: Skeleton;
   // The turns the skeleton's joints have in the pose the mesh was made in, which the skin is bound at.
   bindTurns?: JointTurns;
@@ -118,12 +132,21 @@ export interface ActorPart {
   turn?: Quat;
 }
 
+// A rectangle of the picture, in its units (y down).
+export interface PictureRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface ActorSpec {
   id: string;
   parts: ActorPart[];
   castsShadow?: boolean;
-  // Writes depth and nothing else, so it hides what passes behind it (the 2D terminal a card goes into).
-  isOccluder?: boolean;
+  // Not drawn where it passes into this part of the picture, whatever its depth: the end of a card inside the
+  // terminal's reader, with the hand that holds it still drawn in front.
+  hiddenInside?: PictureRect;
   // Picture units per model unit, for a model built in its own (millimetres, metres).
   unit?: number;
 }
@@ -156,9 +179,6 @@ export interface ActorState {
   rotation: Quat;
   joints?: JointTurns;
   flat?: FlatPlacement;
-  // Behind the picture's occluders (a card going into the terminal's reader): a 3D stage places it behind them, a 2D
-  // one leaves them uncovered.
-  isBehind?: boolean;
 }
 
 export interface StageFrame {

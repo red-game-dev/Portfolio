@@ -20,6 +20,8 @@ interface Box {
 interface Primitive extends Box {
   owner: number;
   distance(x: number, y: number, z: number): number;
+  // How far it reaches along a direction (a unit vector) from the origin.
+  reach(direction: Vec3): number;
 }
 
 // A part blended from its own shapes (a finger, the palm), then blended into the hand with its own softness.
@@ -42,6 +44,9 @@ export interface HandField extends Box {
   // Every shape's joint, in the order of the groups and their shapes.
   owners: Int32Array;
   evaluate: (x: number, y: number, z: number) => number;
+  // How far the hand's flesh reaches along a direction (a unit vector) from its origin, or only some of its parts': the
+  // furthest of their shapes, and the most the palm's blend rounds out past them.
+  reach: (direction: Vec3, parts?: Array<FieldGroup["name"]>) => number;
   // Each group's own distance at a point, in the order of `groups`.
   groupDistances: (x: number, y: number, z: number, out: Float64Array) => Float64Array;
   // Each shape's own distance at a point, in the order of `owners`.
@@ -83,6 +88,7 @@ export const roundCone = (a: Vec3, b: Vec3, ra: number, rb: number, owner = 0): 
   return {
     ...boxOf([a, b], Math.max(ra, rb)),
     owner,
+    reach: (d) => Math.max(a.x * d.x + a.y * d.y + a.z * d.z + ra, b.x * d.x + b.y * d.y + b.z * d.z + rb),
     distance: (x, y, z) => {
       const pax = x - a.x;
       const pay = y - a.y;
@@ -120,6 +126,8 @@ export const ellipsoid = (centre: Vec3, axes: [Vec3, Vec3, Vec3], radii: [number
     min: vec3(centre.x - reach, centre.y - reach, centre.z - reach),
     max: vec3(centre.x + reach, centre.y + reach, centre.z + reach),
     owner,
+    reach: (d) => centre.x * d.x + centre.y * d.y + centre.z * d.z
+      + Math.hypot(ru * (u.x * d.x + u.y * d.y + u.z * d.z), rv * (v.x * d.x + v.y * d.y + v.z * d.z), rw * (w.x * d.x + w.y * d.y + w.z * d.z)),
     distance: (x, y, z) => {
       const dx = x - centre.x;
       const dy = y - centre.y;
@@ -296,6 +304,12 @@ const posedShape = (shape: Primitive, rest: Vec3, posed: Vec3, turn: Quat): Prim
   return {
     ...boxOf(corners, 0),
     owner: shape.owner,
+    // The direction taken back into the rest frame, measured there, and the move from rest to the pose added.
+    reach: (d) => {
+      const local = vec3(ex.x * d.x + ey.x * d.y + ez.x * d.z, ex.y * d.x + ey.y * d.y + ez.y * d.z, ex.z * d.x + ey.z * d.y + ez.z * d.z);
+
+      return shape.reach(local) - (rest.x * local.x + rest.y * local.y + rest.z * local.z) + (posed.x * d.x + posed.y * d.y + posed.z * d.z);
+    },
     distance: (x, y, z) => {
       const dx = x - posed.x;
       const dy = y - posed.y;
@@ -360,6 +374,11 @@ export const handField = (anatomy: HandAnatomy, turns: JointTurns = []): HandFie
 
       return distance;
     },
+    // A smooth union rounds out by at most a quarter of its softness.
+    reach: (direction, parts) => groups
+      .filter((group) => !parts || parts.includes(group.name))
+      .reduce((furthest, group) => group.primitives.reduce((most, shape) => Math.max(most, shape.reach(direction)), furthest), Number.NEGATIVE_INFINITY)
+      + BLEND.palm / 4,
     groupDistances: (x, y, z, out) => {
       for (let index = 0; index < groups.length; index += 1) {
         out[index] = groupDistance(groups[index], x, y, z, Number.POSITIVE_INFINITY);

@@ -3,9 +3,11 @@ import { writeFileSync } from "fs";
 import {
   buildHandModel, buildHandSlot, createHandPoser, HAND_MODELS, HAND_POSES, handField, handSkeleton, handSockets, isHandModel, jointNamesOf, RIGHT_HAND,
 } from "@/packages/graphics/hand";
+import { skinDetails } from "@/packages/graphics/hand/core/details";
 import { meshSurface } from "@/packages/graphics/hand/core/mesher";
+import { mapPlace, skinMap, skinMapArea } from "@/packages/graphics/hand/core/skinMap";
 import { jointIndex, poseSkeleton, socketAt } from "@/packages/graphics/stage3d";
-import { distance } from "@/packages/math/space";
+import { add, distance, normalize, scale, vec3 } from "@/packages/math/space";
 
 const skeleton = handSkeleton(RIGHT_HAND);
 const poser = createHandPoser(RIGHT_HAND, skeleton);
@@ -76,9 +78,74 @@ describe("graphics/hand", () => {
       expect(joints[vertex]).toBeLessThan(25);
     }
 
-    expect(skin.mesh.extras?.crease.data.every((value, index) => index % 3 !== 0 || (value >= 0 && value <= 1))).toBe(true);
+    const vertices = skin.mesh.positions.length / 3;
+
+    expect(skin.mesh.extras?.crease.data.every((value, index) => index % 4 !== 0 || (value >= 0 && value <= 1))).toBe(true);
+    expect(skin.mesh.uvs).toHaveLength(vertices * 2);
+    expect(skin.mesh.extras?.mapped.data.every((value) => value >= 0 && value <= 1)).toBe(true);
+    expect(skin.material.detail && model.textures?.[skin.material.detail]).toBeTruthy();
     expect(nails.mesh.positions.length).toBeGreaterThan(0);
     expect([...(nails.mesh.skinIndices as Uint16Array)].filter((_, index) => index % 4 === 0).every((joint) => distal.has(joint))).toBe(true);
+  });
+
+  it("maps veins up the gaps between the metacarpals and across the back of the hand, none past the knuckles, and hair thinning towards them", () => {
+    const area = skinMapArea(RIGHT_HAND);
+    const map = skinMap(RIGHT_HAND);
+    const texelAt = (x: number, y: number) => {
+      const [u, v] = mapPlace(area, x, y);
+      const at = (Math.floor(v * map.height) * map.width + Math.floor(u * map.width)) * 4;
+
+      return { raise: map.data[at], blue: map.data[at + 1], hair: map.data[at + 2] };
+    };
+    const { index, middle } = RIGHT_HAND.fingers;
+    // Up the gap between the index and middle metacarpals, and over the middle metacarpal beside it.
+    const halfway = (a: number, b: number, c: number, d: number) => (a + b + c + d) / 4;
+    const inGap = texelAt(
+      halfway(index.base.x, middle.base.x, index.knuckle.x, middle.knuckle.x),
+      halfway(index.base.y, middle.base.y, index.knuckle.y, middle.knuckle.y),
+    );
+    const overBone = texelAt((middle.base.x + middle.knuckle.x) / 2 + 3, (middle.base.y + middle.knuckle.y) / 2);
+
+    expect(map.data).toHaveLength(map.width * map.height * 4);
+    expect(inGap.raise).toBeGreaterThan(80);
+    expect(inGap.blue).toBeGreaterThan(50);
+    expect(overBone.raise).toBeLessThan(40);
+    expect(texelAt(middle.knuckle.x, middle.knuckle.y + 4).raise).toBe(0);
+    expect(texelAt(0, -60).hair).toBeGreaterThan(texelAt(0, middle.knuckle.y - 4).hair * 3);
+  });
+
+  it("wrinkles the back of a joint held straight, and smooths it as the joint bends and the skin stretches", () => {
+    const depthOver = (turns: ReturnType<typeof poser.turnsOf>) => {
+      const posed = handField(RIGHT_HAND, turns);
+      const frame = posed.frames.index;
+      const back = normalize(add(frame.backs[1], frame.backs[2]));
+      const point = add(frame.joints[2], scale(back, frame.radii[2] - 0.3));
+
+      return skinDetails(new Float32Array([point.x, point.y, point.z]), new Float32Array([back.x, back.y, back.z]), posed, skinMapArea(RIGHT_HAND)).creases;
+    };
+    const straight = depthOver(poser.turnsOf(HAND_POSES.point));
+    const bent = depthOver(poser.turnsOf(HAND_POSES.card));
+
+    expect(straight[3]).toBe(1);
+    expect(straight[0]).toBeGreaterThan(0.6);
+    expect(bent[0]).toBeLessThan(straight[0] * 0.5);
+  });
+
+  it("knows how far its flesh reaches in a pose, so what it holds can keep it clear of a surface", () => {
+    const posed = handField(RIGHT_HAND, poser.turnsOf(HAND_POSES.card));
+    const mesh = meshSurface(posed.evaluate, posed, 3);
+
+    [vec3(1, 0, 0), vec3(-1, 0, 0), vec3(0, 1, 0), vec3(0, -1, 0), vec3(0, 0, 1), vec3(0, 0, -1), normalize(vec3(1, 1, -1)), normalize(vec3(-1, 0.5, 1))]
+      .forEach((direction) => {
+        let furthest = Number.NEGATIVE_INFINITY;
+
+        for (let vertex = 0; vertex < mesh.positions.length; vertex += 3) {
+          furthest = Math.max(furthest, mesh.positions[vertex] * direction.x + mesh.positions[vertex + 1] * direction.y + mesh.positions[vertex + 2] * direction.z);
+        }
+
+        expect(posed.reach(direction)).toBeGreaterThan(furthest - 0.5);
+        expect(posed.reach(direction)).toBeLessThan(furthest + 4);
+      });
   });
 
   it("holds things by the index fingertip's pad and the thumb's, which pinch a card's thickness apart", () => {

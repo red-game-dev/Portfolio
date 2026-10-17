@@ -188,14 +188,14 @@ interface Pace {
 }
 
 const FULL: Pace = {
-  reach: 360,
-  hold: { tap: 420, wallet: 480, scan: 560 },
-  answer: { tap: 460, wallet: 420, scan: 520, swipe: 700, insert: 800 },
-  insert: 200,
-  swipe: 200,
-  back: 380,
-  print: 480,
-  linger: 950,
+  reach: 760,
+  hold: { tap: 720, wallet: 820, scan: 900 },
+  answer: { tap: 650, wallet: 600, scan: 700, swipe: 900, insert: 1100 },
+  insert: 420,
+  swipe: 480,
+  back: 620,
+  print: 700,
+  linger: 1100,
 };
 
 const QUICK: Pace = {
@@ -214,13 +214,13 @@ export const QUICK_STORY_MS = 1400;
 
 // The cashier's keying, in milliseconds: the first key, the gap between keys, over a key before pressing it, a key
 // held down, the app after OK, the hand gone after the app, and the screen asking after the app.
-const KEYING = { first: 200, gap: 150, hover: 25, pressed: 45, app: 180, away: 320, ask: 90 } as const;
+const KEYING = { first: 420, gap: 290, hover: 70, pressed: 90, app: 420, away: 520, ask: 140 } as const;
 
 // The customer's PIN, a little slower than the cashier's keying, and the hand away after OK.
-const PIN = { first: 360, gap: 170, away: 340 } as const;
+const PIN = { first: 600, gap: 330, away: 520 } as const;
 
 // How long the customer's hand takes to let go of a card in the reader, or to come back for it.
-const LET_GO = 200;
+const LET_GO = 320;
 
 // The camera: the whole counter, pushed in on the screen while the cashier keys, and on each way of paying.
 const WIDE: CheckoutCamera = { x: SCENE.width / 2, y: SCENE.height / 2, zoom: 1 };
@@ -379,8 +379,8 @@ const build = (variant: CheckoutVariant, gesture: CheckoutGesture, app: number, 
       approved = inserted + pace.answer.insert;
     }
 
-    const out = approved + (isFull ? 200 : 100);
-    const pulled = out + (isFull ? 160 : 100);
+    const out = approved + (isFull ? 320 : 100);
+    const pulled = out + (isFull ? 360 : 100);
 
     settled = pulled + pace.back;
     built.item = [[0, rest], [start, rest], [reach, first], [inserted, second], [out, second], [pulled, first], [settled, rest]];
@@ -414,7 +414,7 @@ const build = (variant: CheckoutVariant, gesture: CheckoutGesture, app: number, 
   built.screen.sort((one, two) => one[0] - two[0]);
   built.approved = approved;
   built.printed = [approved + 60, approved + 60 + pace.print];
-  built.camera.push([approved, built.camera[built.camera.length - 1][1]], [approved + (isFull ? 750 : 420), WIDE]);
+  built.camera.push([approved, built.camera[built.camera.length - 1][1]], [approved + (isFull ? 1000 : 420), WIDE]);
   built.end = isFull ? Math.max(approved + pace.linger, settled + 200, built.printed[1] + 300) : QUICK_STORY_MS;
   built.cashier.push([built.end, REST.cashier]);
   built.point.push([built.end, REST.point]);

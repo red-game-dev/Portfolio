@@ -63,14 +63,17 @@ describe("the checkout's story", () => {
     expect(checkoutAt(1, "full", "wallet", 0, keys).receipt).toBe(1);
   });
 
-  it("runs at a real counter's pace: a tap approved within 2.5s and over by 3.5s, chip and PIN within 3.6s and 4.6s", () => {
+  it("runs at a person's pace, neither rushed nor slow: a tap approved in 3.5 to 5s and over by 6.5s, chip and PIN in 6 to 8s", () => {
     const tapMs = storyMs("full", "tap", 0, keys);
     const chipMs = storyMs("full", "insert", 0, keys);
+    const tapApproved = approvedAt("full", "tap", 0, keys) * tapMs;
+    const chipApproved = approvedAt("full", "insert", 0, keys) * chipMs;
 
-    expect(approvedAt("full", "tap", 0, keys) * tapMs).toBeLessThan(2500);
-    expect(tapMs).toBeLessThan(3500);
-    expect(approvedAt("full", "insert", 0, keys) * chipMs).toBeLessThan(3600);
-    expect(chipMs).toBeLessThan(4600);
+    expect(tapApproved).toBeGreaterThan(3500);
+    expect(tapApproved).toBeLessThan(5000);
+    expect(tapMs).toBeLessThan(6500);
+    expect(chipApproved).toBeGreaterThan(6000);
+    expect(chipApproved).toBeLessThan(8000);
     GESTURES.forEach((gesture) => expect(storyMs("quick", gesture, 0, keys)).toBe(QUICK_STORY_MS));
   });
 
@@ -92,7 +95,7 @@ describe("the checkout's story", () => {
   });
 
   it("keeps where each part was a frame and two frames ago, for its motion blur", () => {
-    const frame = checkoutAt(0.4, "full", "tap", 0, keys);
+    const frame = checkoutAt(approvedAt("full", "tap", 0, keys) - 0.1, "full", "tap", 0, keys);
 
     expect(frame.trail).toHaveLength(2);
     expect(frame.trail[0].item).not.toBeNull();

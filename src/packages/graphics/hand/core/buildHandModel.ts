@@ -8,6 +8,7 @@ import { meshSurface } from "./mesher";
 import { nailMeshes } from "./nails";
 import { createHandPoser } from "./poser";
 import { handSkeleton } from "./skeleton";
+import { skinMap, skinMapArea } from "./skinMap";
 import { skinWeights } from "./skinning";
 
 export interface HandModelOptions {
@@ -24,30 +25,33 @@ export interface HandModelOptions {
 export const LIGHT_SKIN = "#f0c3a3";
 
 // The whole hand as a slot's model, built from its anatomy in millimetres and meshed in a pose: the skin (from its
-// field, rigged to the WebXR joints from the shapes it is made of, with its creases and colour shifts for the shader)
-// and the nails, on one skeleton whose bones rest in that pose.
+// field, rigged to the WebXR joints from the shapes it is made of, with its joints' lines, colour shifts and place on
+// the map of its veins and hair for the shader) and the nails, on one skeleton whose bones rest in that pose.
 export const buildHandModel = (id: string, anatomy: HandAnatomy = RIGHT_HAND, { spacing = 1.6, skin = LIGHT_SKIN, pose }: HandModelOptions = {}): ModelAsset => {
   const skeleton = handSkeleton(anatomy);
   const bindTurns = pose ? createHandPoser(anatomy, skeleton).turnsOf(pose) : [];
   const field = handField(anatomy, bindTurns);
   const surface = meshSurface(field.evaluate, field, spacing);
   const weights = skinWeights(surface.positions, field);
-  const details = skinDetails(surface.positions, surface.normals, field);
+  const area = skinMapArea(anatomy);
+  const details = skinDetails(surface.positions, surface.normals, field, area);
 
   return {
     id,
     skeleton,
     bindTurns,
+    textures: { skin: skinMap(anatomy) },
     parts: [
       {
         name: "skin",
-        material: { kind: "skin", colour: skin },
+        material: { kind: "skin", colour: skin, detail: "skin" },
         mesh: {
           ...surface,
           colors: details.colours,
+          uvs: details.uvs,
           skinIndices: weights.indices,
           skinWeights: weights.weights,
-          extras: { crease: { size: 3, data: details.creases } },
+          extras: { crease: { size: 4, data: details.creases }, mapped: { size: 1, data: details.mapped } },
         },
       },
       { name: "nails", material: { kind: "nail" }, mesh: nailMeshes(field, anatomy, skeleton) },

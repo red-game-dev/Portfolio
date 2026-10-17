@@ -10,5 +10,5 @@ export type { StageFactory } from "./services/StageService";
 export type { PosedSkeleton, Socketed } from "./utils/kinematics";
 export type {
   ActorPart, ActorSpec, ActorState, Finish, FlatPlacement, JointTurns, LightKind, LightSpec, MaterialKind, MaterialSpec, MeshData, ModelAsset,
-  ModelPart, ModelSocket, ShapeSpec, Skeleton, SkeletonJoint, StageFrame, StageScene, StageTarget, StageView,
+  ModelPart, ModelSocket, PictureRect, ShapeSpec, Skeleton, SkeletonJoint, StageFrame, StageScene, StageTarget, StageView, TextureData,
 } from "./domain/types";

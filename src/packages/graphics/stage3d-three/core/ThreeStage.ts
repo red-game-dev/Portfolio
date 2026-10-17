@@ -1,14 +1,15 @@
 import {
-  ACESFilmicToneMapping, Bone, BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, Color, CylinderGeometry, DirectionalLight, DoubleSide,
-  ExtrudeGeometry, Group, HemisphereLight, Material, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, PCFShadowMap, PerspectiveCamera,
-  PlaneGeometry, PMREMGenerator, PointLight, Scene, ShadowMaterial, Shape, Skeleton as ThreeSkeleton, SkinnedMesh, SRGBColorSpace, Texture,
-  Vector3, WebGLRenderer,
+  ACESFilmicToneMapping, Bone, BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, Color, CylinderGeometry, DataTexture, DirectionalLight,
+  DoubleSide, ExtrudeGeometry, Group, HemisphereLight, LinearFilter, LinearMipmapLinearFilter, Material, Mesh, MeshPhysicalMaterial,
+  MeshStandardMaterial, PCFShadowMap, PerspectiveCamera, Plane, PlaneGeometry, PMREMGenerator, PointLight, RGBAFormat, Scene, ShadowMaterial, Shape,
+  Skeleton as ThreeSkeleton, SkinnedMesh, SRGBColorSpace, Texture, Vector3, WebGLRenderer,
 } from "three";
 
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 import {
-  ActorSpec, Finish, MaterialSpec, MeshData, ModelAsset, ModelRegistry, SceneHandle, Stage, StageBox, StageFrame, StageScene, StageTarget, StageView,
+  ActorSpec, Finish, MaterialSpec, MeshData, ModelAsset, ModelRegistry, PictureRect, SceneHandle, Stage, StageBox, StageFrame, StageScene, StageTarget,
+  StageView, TextureData,
 } from "@/packages/graphics/stage3d";
 
 import { makeSkin, SkinUniforms } from "./skinShader";
@@ -17,8 +18,9 @@ import { makeSkin, SkinUniforms } from "./skinShader";
 // has drawn and each frame rendered into its corner at the size it is drawn at, then copied into the 2D target. Each
 // model's geometry is uploaded once and shared by every actor and scene that shows it (each actor with a skeleton of
 // its own); a room's light gives skin and metal something to reflect; the key light throws soft shadows on a catcher
-// at the picture's plane, so a hand's shadow falls on the 2D drawing behind it. A scene's shaders are compiled as it
-// is set up, so its first frame never stalls, and taking it down gives back everything it made.
+// at the picture's plane, so a hand's shadow falls on the 2D drawing behind it. An actor can be cut where it passes into
+// part of the picture (a card's end inside the terminal's reader). A scene's shaders are compiled as it is set up, so
+// its first frame never stalls, and taking it down gives back everything it made.
 
 interface MountedActor {
   spec: ActorSpec;
@@ -83,6 +85,10 @@ const geometryOf = (mesh: MeshData): BufferGeometry => {
     geometry.setAttribute("color", new BufferAttribute(mesh.colors, 3));
   }
 
+  if (mesh.uvs) {
+    geometry.setAttribute("uv", new BufferAttribute(mesh.uvs, 2));
+  }
+
   if (mesh.skinIndices && mesh.skinWeights) {
     geometry.setAttribute("skinIndex", new BufferAttribute(mesh.skinIndices, 4));
     geometry.setAttribute("skinWeight", new BufferAttribute(mesh.skinWeights, 4));
@@ -93,6 +99,27 @@ const geometryOf = (mesh: MeshData): BufferGeometry => {
 
   return geometry;
 };
+
+// A model's texture as the GPU takes it: its values as they are (no colour space), smooth from near and far.
+const textureOf = (data: TextureData): DataTexture => {
+  const texture = new DataTexture(data.data, data.width, data.height, RGBAFormat);
+
+  texture.magFilter = LinearFilter;
+  texture.minFilter = LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.anisotropy = 4;
+  texture.needsUpdate = true;
+
+  return texture;
+};
+
+// The planes whose inside together is a rectangle of the picture, deep as the stage: what lies inside all four is cut.
+const cutOf = (rect: PictureRect): Plane[] => [
+  new Plane(new Vector3(-1, 0, 0), rect.x),
+  new Plane(new Vector3(1, 0, 0), -(rect.x + rect.width)),
+  new Plane(new Vector3(0, -1, 0), -(rect.y + rect.height)),
+  new Plane(new Vector3(0, 1, 0), rect.y),
+];
 
 // A thin plate with round corners of any radius (a card, a phone), its picture laid across its face edge to edge.
 const plateGeometry = (width: number, height: number, depth: number, radius: number): BufferGeometry => {
@@ -131,7 +158,7 @@ export class ThreeStage extends Stage {
   private renderer: WebGLRenderer | null = null;
   private environment: Texture | null = null;
   private level = QUALITY.length - 1;
-  private readonly geometries = new Map<string, { parts: BufferGeometry[]; users: number }>();
+  private readonly geometries = new Map<string, { parts: BufferGeometry[]; textures: Map<string, DataTexture>; users: number }>();
   private readonly pictures = new Map<string, { texture: CanvasTexture; version: number; users: number }>();
   private readonly scenes = new Map<number, MountedScene>();
   private readonly camera = new PerspectiveCamera(30, 1, 1, 4000);
@@ -162,6 +189,7 @@ export class ThreeStage extends Stage {
       renderer.toneMappingExposure = 1.05;
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = PCFShadowMap;
+      renderer.localClippingEnabled = true;
       renderer.setClearColor(0x000000, 0);
       canvas.addEventListener("webglcontextlost", (event) => {
         event.preventDefault();
@@ -371,7 +399,11 @@ export class ThreeStage extends Stage {
       return;
     }
 
-    this.geometries.set(model, { parts: (asset?.parts ?? []).map((part) => geometryOf(part.mesh)), users: 1 });
+    this.geometries.set(model, {
+      parts: (asset?.parts ?? []).map((part) => geometryOf(part.mesh)),
+      textures: new Map(Object.entries(asset?.textures ?? {}).map(([id, data]) => [id, textureOf(data)])),
+      users: 1,
+    });
   }
 
   private release(model: string): void {
@@ -385,11 +417,12 @@ export class ThreeStage extends Stage {
 
     if (known.users <= 0) {
       known.parts.forEach((geometry) => geometry.dispose());
+      known.textures.forEach((texture) => texture.dispose());
       this.geometries.delete(model);
     }
   }
 
-  private materialOf(spec: MaterialSpec, tint: string | undefined, mounted: MountedScene): Material {
+  private materialOf(spec: MaterialSpec, tint: string | undefined, mounted: MountedScene, textures?: Map<string, DataTexture>): Material {
     const colour = new Color(tint ?? spec.colour ?? "#ffffff");
     const isRich = this.level >= RICH;
     let material: Material;
@@ -403,7 +436,7 @@ export class ThreeStage extends Stage {
         ...(isRich ? { sheen: 0.55, sheenColor: new Color("#ffc6b2"), sheenRoughness: 0.45, clearcoat: 0.12, clearcoatRoughness: 0.38 } : {}),
       });
 
-      mounted.skins.push(makeSkin(skin));
+      mounted.skins.push(makeSkin(skin, (spec.detail && textures?.get(spec.detail)) || null));
       material = skin;
     } else if (spec.kind === "nail") {
       material = new MeshPhysicalMaterial({ vertexColors: true, roughness: 0.24, side: DoubleSide, ...(isRich ? { clearcoat: 0.85, clearcoatRoughness: 0.12 } : {}) });
@@ -438,6 +471,17 @@ export class ThreeStage extends Stage {
   private build(spec: ActorSpec, assets: Map<string, ModelAsset>, mounted: MountedScene): MountedActor {
     const group = new Group();
     const bones: Bone[][] = [];
+    const cut = spec.hiddenInside ? cutOf(spec.hiddenInside) : null;
+    // Its materials, cut where the actor passes into its part of the picture.
+    const dressed = (material: Material): Material => {
+      if (cut) {
+        material.clippingPlanes = cut;
+        material.clipIntersection = true;
+        material.clipShadows = true;
+      }
+
+      return material;
+    };
 
     group.scale.setScalar(spec.unit ?? 1);
     group.visible = false;
@@ -461,7 +505,8 @@ export class ThreeStage extends Stage {
 
       if (part.shape.kind === "model") {
         const asset = assets.get(part.shape.model);
-        const geometries = this.geometries.get(part.shape.model)?.parts ?? [];
+        const uploaded = this.geometries.get(part.shape.model);
+        const geometries = uploaded?.parts ?? [];
         const tints = part.shape.tints;
 
         if (!asset) {
@@ -494,7 +539,7 @@ export class ThreeStage extends Stage {
         }
 
         asset.parts.forEach((assetPart, index) => {
-          const material = spec.isOccluder ? this.occluder(mounted) : this.materialOf(assetPart.material, tints?.[assetPart.name], mounted);
+          const material = dressed(this.materialOf(assetPart.material, tints?.[assetPart.name], mounted, uploaded?.textures));
           const geometry = geometries[index];
           const mesh = skeleton && geometry.getAttribute("skinIndex") ? new SkinnedMesh(geometry, material) : new Mesh(geometry, material);
 
@@ -517,12 +562,9 @@ export class ThreeStage extends Stage {
         : shape.kind === "plate"
           ? plateGeometry(shape.width, shape.height, shape.depth, shape.radius)
           : new CylinderGeometry(shape.radiusTop, shape.radiusBottom, shape.length, 28);
-      const material = spec.isOccluder ? this.occluder(mounted) : this.materialOf(part.material ?? { kind: "matte" }, undefined, mounted);
+      const material = dressed(this.materialOf(part.material ?? { kind: "matte" }, undefined, mounted));
       const mesh = new Mesh(geometry, material);
 
-      // An occluder's depth goes down before anything else is drawn, or what is nearer than its middle would be drawn
-      // first and not hidden.
-      mesh.renderOrder = spec.isOccluder ? -1 : 0;
       mesh.castShadow = Boolean(spec.castsShadow);
       holder.add(mesh);
       mounted.disposables.push(geometry);
@@ -531,15 +573,6 @@ export class ThreeStage extends Stage {
     mounted.scene.add(group);
 
     return { spec, group, bones };
-  }
-
-  // Writes depth and nothing else, so what passes behind it is hidden and the 2D drawing shows through.
-  private occluder(mounted: MountedScene): Material {
-    const material = new MeshStandardMaterial({ colorWrite: false });
-
-    mounted.disposables.push(material);
-
-    return material;
   }
 
   private frame(mounted: MountedScene, frame: StageFrame): void {

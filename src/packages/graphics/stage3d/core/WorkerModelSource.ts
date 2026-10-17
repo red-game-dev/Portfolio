@@ -81,12 +81,16 @@ export class WorkerModelSource extends ModelSource {
 }
 
 // Every array a model holds, to hand over to the page instead of copying.
-export const transferablesOf = (asset: ModelAsset): ArrayBuffer[] => asset.parts.flatMap(({ mesh }) => [
-  mesh.positions.buffer,
-  mesh.normals.buffer,
-  mesh.indices.buffer,
-  ...(mesh.colors ? [mesh.colors.buffer] : []),
-  ...(mesh.skinIndices ? [mesh.skinIndices.buffer] : []),
-  ...(mesh.skinWeights ? [mesh.skinWeights.buffer] : []),
-  ...Object.values(mesh.extras ?? {}).map(({ data }) => data.buffer),
-]).filter((buffer, index, all): buffer is ArrayBuffer => buffer instanceof ArrayBuffer && all.indexOf(buffer) === index);
+export const transferablesOf = (asset: ModelAsset): ArrayBuffer[] => [
+  ...asset.parts.flatMap(({ mesh }) => [
+    mesh.positions.buffer,
+    mesh.normals.buffer,
+    mesh.indices.buffer,
+    ...(mesh.colors ? [mesh.colors.buffer] : []),
+    ...(mesh.uvs ? [mesh.uvs.buffer] : []),
+    ...(mesh.skinIndices ? [mesh.skinIndices.buffer] : []),
+    ...(mesh.skinWeights ? [mesh.skinWeights.buffer] : []),
+    ...Object.values(mesh.extras ?? {}).map(({ data }) => data.buffer),
+  ]),
+  ...Object.values(asset.textures ?? {}).map(({ data }) => data.buffer),
+].filter((buffer, index, all): buffer is ArrayBuffer => buffer instanceof ArrayBuffer && all.indexOf(buffer) === index);

@@ -1,5 +1,8 @@
-import { approvedAt, checkoutAt, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
+import { approvedAt, CHECKOUT_LAYOUT, checkoutAt, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
 import { CHECKOUT_MODELS, checkoutStageMap } from "@/packages/graphics/checkout-stage";
+import { handField, RIGHT_HAND } from "@/packages/graphics/hand";
+import type { ActorState, StageScene } from "@/packages/graphics/stage3d";
+import { conjugate, rotate, vec3 } from "@/packages/math/space";
 
 const keys = keysFor("€18.40");
 
@@ -12,8 +15,18 @@ const skinOf = (gesture: CheckoutSkin["look"]["gesture"]): CheckoutSkin => ({
 
 const actorOf = (frame: ReturnType<ReturnType<typeof checkoutStageMap>["frameOf"]>, id: string) => frame.actors.find((actor) => actor.id === id);
 
+const GESTURES = ["tap", "wallet", "scan", "insert", "swipe"] as const;
+
+// How near the glass a hand's flesh comes: its lowest point in stage space, from the hand's field in the pose it holds.
+const lowestOf = (scene: StageScene, state: ActorState): number => {
+  const unit = scene.actors.find((actor) => actor.id === state.id)?.unit ?? 1;
+  const towardsGlass = rotate(conjugate(state.rotation), vec3(0, 0, -1));
+
+  return state.position.z - unit * handField(RIGHT_HAND, state.joints ?? []).reach(towardsGlass);
+};
+
 describe("the checkout on a 3D stage", () => {
-  it("holds a card with the hand meshed pinching one, a phone with the hand meshed pinching that, and hides the readers' insides", () => {
+  it("holds a card with the hand meshed pinching one and a phone with the hand meshed pinching that, and cuts away only a card's end in a reader", () => {
     const card = checkoutStageMap(skinOf("tap")).scene;
     const phone = checkoutStageMap(skinOf("wallet")).scene;
     const gripModel = (scene: typeof card) => {
@@ -24,7 +37,12 @@ describe("the checkout on a 3D stage", () => {
 
     expect(gripModel(card)).toBe(CHECKOUT_MODELS.card);
     expect(gripModel(phone)).toBe(CHECKOUT_MODELS.phone);
-    expect(card.actors.find((actor) => actor.id === "reader")?.isOccluder).toBe(true);
+    const { body } = CHECKOUT_LAYOUT;
+    const cutOf = (gesture: CheckoutSkin["look"]["gesture"]) => checkoutStageMap(skinOf(gesture)).scene.actors.find((actor) => actor.id === "card")?.hiddenInside;
+
+    expect(cutOf("insert")).toEqual({ x: body.x, y: body.y, width: body.width, height: body.height });
+    expect(cutOf("swipe")).toEqual(cutOf("insert"));
+    expect(cutOf("tap")).toBeUndefined();
   });
 
   it("shows the cashier while keying, then the card held to the terminal by the customer's hand", () => {
@@ -40,11 +58,29 @@ describe("the checkout on a 3D stage", () => {
     expect(actorOf(paying, "card")?.position.z).toBeGreaterThan(5);
   });
 
-  it("puts a card going into the reader behind the terminal's face", () => {
-    const map = checkoutStageMap(skinOf("insert"));
-    const inserted = map.frameOf(checkoutAt(approvedAt("full", "insert", 0, keys) - 0.05, "full", "insert", 0, keys));
+  it("keeps a card going into the reader in front of the glass, with the hand that holds it", () => {
+    const map = checkoutStageMap(skinOf("swipe"));
+    // Halfway down the stripe.
+    const frames = Array.from({ length: 200 }, (_, step) => checkoutAt(step / 200, "full", "swipe", 0, keys));
+    const halfway = frames.find((frame) => frame.item && frame.item.x < 205 && frame.item.y > 90) ?? frames[0];
+    const swiping = map.frameOf(halfway);
+    const grip = actorOf(swiping, "grip");
 
-    expect(actorOf(inserted, "card")?.position.z).toBeLessThan(0);
+    expect(actorOf(swiping, "card")?.position.z).toBeGreaterThan(0);
+    expect(grip?.isShown).toBe(true);
+    expect(grip && lowestOf(map.scene, grip)).toBeGreaterThanOrEqual(0);
+  });
+
+  it("never lets a hand pass behind the terminal's glass, whatever the way to pay", () => {
+    GESTURES.forEach((gesture) => {
+      const map = checkoutStageMap(skinOf(gesture));
+
+      for (let step = 0; step <= 80; step += 1) {
+        map.frameOf(checkoutAt(step / 80, "full", gesture, 0, keys)).actors
+          .filter((actor) => actor.isShown && ["cashier", "pin", "grip"].includes(actor.id))
+          .forEach((actor) => expect({ gesture, step, id: actor.id, lowest: lowestOf(map.scene, actor) >= 0 }).toEqual({ gesture, step, id: actor.id, lowest: true }));
+      }
+    });
   });
 
   it("frames what the story's camera frames, and brightens the screen's glow as the payment is approved", () => {

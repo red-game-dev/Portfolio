@@ -19,7 +19,7 @@ const STATES: ScreenState[] = ["idle", "keying", "apps", "ask", "pin", "processi
 const HIDDEN: RigMotion = { opacity: 0 };
 
 // The room each moving part is cached in, around its own origin.
-const ITEM_BOUNDS = { x: -46, y: -46, width: 92, height: 92 };
+const ITEM_BOUNDS = { x: -60, y: -60, width: 120, height: 120 };
 
 // The receipt is drawn printed out of the top, and pushed back into the printer until it prints.
 const RECEIPT_TRAVEL = 34;

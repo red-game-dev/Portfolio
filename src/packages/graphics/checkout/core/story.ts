@@ -162,7 +162,7 @@ const SWIPED_AWAY: Pose = { x: 250, y: 290, angle: 0.3, scale: 1.1 };
 const gripOf = (gesture: CheckoutGesture, item: Pose): Pose => {
   const isPortrait = gesture === "insert" || gesture === "swipe";
   const isPhone = gesture === "wallet" || gesture === "scan";
-  const offset = isPortrait ? { x: 2, y: portraitHalf - 5 } : isPhone ? { x: 8, y: 17 } : { x: CARD.long / 2 - 7, y: 2 };
+  const offset = isPortrait ? { x: 2, y: portraitHalf - 5 } : isPhone ? { x: 13, y: 30 } : { x: CARD.long / 2 - 7, y: 2 };
   const turn = isPortrait ? 1.2 : isPhone ? 0.55 : 0;
   const cos = Math.cos(item.angle);
   const sin = Math.sin(item.angle);

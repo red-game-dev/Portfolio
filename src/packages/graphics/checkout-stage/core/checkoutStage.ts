@@ -126,7 +126,7 @@ export const checkoutScene = (skin: CheckoutSkin): StageScene => {
         id: "phone",
         castsShadow: true,
         parts: [{
-          shape: { kind: "plate", width: PHONE.width, height: PHONE.height, depth: 7.6, radius: PHONE.radius },
+          shape: { kind: "plate", width: PHONE.width, height: PHONE.height, depth: PHONE.depth, radius: PHONE.radius },
           material: { kind: "picture", picture: pictureOf("phone", skin), finish: "gloss" },
         }],
       },

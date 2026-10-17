@@ -31,7 +31,8 @@ export const appCentre = (index: number) => ({ x: KEYPAD.left + KEYPAD.width / 2
 
 export const CARD = { long: 60, short: 38, radius: 4 } as const;
 
-export const PHONE = { width: 30, height: 58, radius: 6 } as const;
+// A phone the size of a real one (about 71 by 147 by 8 millimetres), at the hand's scale: a card is 60 for its 85.6.
+export const PHONE = { width: 50, height: 103, radius: 7, depth: 5.5 } as const;
 
 // The key a character of the amount is keyed on, or null for one the keypad has no key for (the currency).
 export const keyFor = (character: string): number | null => {

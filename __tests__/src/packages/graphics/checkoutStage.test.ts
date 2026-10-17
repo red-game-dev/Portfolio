@@ -55,6 +55,7 @@ describe("the checkout on a 3D stage", () => {
     });
     expect(HAND_GRIPS.phone.size.width * unit).toBeCloseTo(phone.width, 0);
     expect(HAND_GRIPS.phone.size.height * unit).toBeCloseTo(phone.height, 0);
+    expect(HAND_GRIPS.phone.size.thickness * unit).toBeCloseTo(phone.depth, 0);
   });
 
   it("shows the cashier while keying, then the card held to the terminal by the customer's hand", () => {

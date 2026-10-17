@@ -101,7 +101,7 @@ const CLOTH = { cashier: ["#2d3653", "#3a4566"], customer: ["#5d4c3b", "#6e5c48"
 // see her face from the side and her screen shows it from the front. The model's origin is between her eyes, in
 // millimetres.
 const CUSTOMER = {
-  position: vec3(275, -45, 40),
+  position: vec3(293, -45, 40),
   turn: multiply(fromAxisAngle(vec3(0, 1, 0), -1.966), fromAxisAngle(vec3(1, 0, 0), -0.226)),
   // Her head turns, nods and tilts about the base of her neck, behind and below her eyes.
   neck: vec3(0, -120, -30),

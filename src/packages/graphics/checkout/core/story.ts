@@ -2,7 +2,7 @@ import { clamp01 } from "@/packages/math/clamp";
 
 import { CheckoutCamera, CheckoutFrame, CheckoutGesture, CheckoutTrail, CheckoutVariant, CustomerMoments, Pose, ScreenState } from "../domain/types";
 import { customerPoseAt, STILL_CUSTOMER } from "./customer";
-import { appCentre, BODY, CARD, keyCentre, OK_KEY, SCENE, SMILE_BUTTON, STRIPE } from "./geometry";
+import { appCentre, BODY, CARD, keyCentre, OK_KEY, SCENE, SMILE_KEY, STRIPE } from "./geometry";
 
 // The story of one payment, timed in milliseconds at a real counter's pace and read as a share of its length (0
 // to 1): where each hand and what the customer holds stand, what the terminal's screen shows, and where the camera
@@ -292,8 +292,9 @@ interface Built {
   camera: Array<Key<CheckoutCamera>>;
   // How much the camera follows the fingertip on the screen, 0 to 1.
   follow: Array<Key<number>>;
-  // What the story asks of the customer paying by face, and when.
+  // What the story asks of the customer paying by face, and when, and when she taps Pay with Smile.
   customer: CustomerMoments | null;
+  smileTap: number | null;
 }
 
 // A key pressed: the fingertip over it, pressed into the glass, then lifted a little on its way to the next.
@@ -369,6 +370,7 @@ const build = (variant: CheckoutVariant, gesture: CheckoutGesture, app: number, 
     camera: [[0, WIDE]],
     follow: [[0, 0]],
     customer: null,
+    smileTap: null,
   };
   // The customer moves as the app opens; the quick story starts with the screen already asking.
   const start = isFull ? keyIn(built, app, keys) + 40 : 0;
@@ -382,14 +384,12 @@ const build = (variant: CheckoutVariant, gesture: CheckoutGesture, app: number, 
   built.camera.push([reach, isFull ? MEET_CAMERA[gesture] : { ...MEET_CAMERA[gesture], zoom: QUICK_ZOOM }]);
 
   if (gesture === "face") {
-    // Nothing is held: the customer taps to pay with their face, the terminal's camera turns on and reads it, and the
-    // bank answers.
+    // Nothing is held and no hand shows: the customer taps Pay with Smile (the button lights as it is pressed), the
+    // terminal's camera turns on and reads her face, and the bank answers.
     const looked = reach + (isFull ? 300 : 120);
     const matched = looked + pace.face;
 
-    built.point.push([start, REST.point]);
-    pressKey(built.point, SMILE_BUTTON, POINT_ANGLE, reach, -HOVER.lift);
-    built.point.push([reach + (isFull ? PIN.away : 260), REST.point]);
+    built.smileTap = reach;
     built.screen.push([reach + (isFull ? 120 : 60), "face"]);
     built.sweep = [looked, matched];
     built.item = [[0, rest]];
@@ -485,8 +485,8 @@ const isOffScene = (pose: Pose) => pose.x < -60 || pose.x > 360 || pose.y < -60 
 
 const shown = (pose: Pose) => (isOffScene(pose) ? null : pose);
 
-// How far back the motion blur looks, a frame at a time.
-const TRAIL_MS = [16, 32];
+// How far back the motion blur looks: a few milliseconds a step, close enough to smear rather than repeat.
+const TRAIL_MS = [6, 12];
 
 // A card going into a reader passes behind the terminal's body.
 const isBehind = (gesture: CheckoutGesture) => gesture === "insert" || gesture === "swipe";
@@ -531,6 +531,7 @@ export const checkoutAt = (t: number | null, variant: CheckoutVariant, gesture: 
   const keyPressed = story.keyTaps.find(({ at }) => within(ms, at, at + KEYING.pressed));
   const pinPressed = story.pinTaps.findIndex((at) => within(ms, at, at + KEYING.pressed));
   const isAppPressed = story.appTap !== null && within(ms, story.appTap.at, story.appTap.at + KEYING.pressed);
+  const isSmilePressed = story.smileTap !== null && within(ms, story.smileTap, story.smileTap + KEYING.pressed * 2);
   const span = (range: [number, number] | null) => (range && ms >= range[0] && ms < range[1] ? (ms - range[0]) / (range[1] - range[0]) : 0);
   const processingFrom = story.screen.find(([, next]) => next === "processing")?.[0] ?? story.approved;
   const base = cameraAt(story.camera, ms);
@@ -544,7 +545,7 @@ export const checkoutAt = (t: number | null, variant: CheckoutVariant, gesture: 
       state,
       typed: story.keyTaps.filter(({ at }) => ms >= at).length,
       pin: story.pinTaps.filter((at) => ms >= at).length,
-      pressed: keyPressed ? keyPressed.key : pinPressed >= 0 ? PIN_KEYS[pinPressed] : isAppPressed ? story.appTap?.app ?? null : null,
+      pressed: keyPressed ? keyPressed.key : pinPressed >= 0 ? PIN_KEYS[pinPressed] : isAppPressed ? story.appTap?.app ?? null : isSmilePressed ? SMILE_KEY : null,
       spinner: state === "processing" ? (ms - processingFrom) / Math.max(story.approved - processingFrom, 1e-6) : 0,
     },
     waves: story.waves ? Math.sin(Math.PI * span(story.waves)) : 0,

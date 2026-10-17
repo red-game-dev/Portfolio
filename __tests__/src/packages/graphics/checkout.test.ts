@@ -110,10 +110,13 @@ describe("the checkout's story", () => {
     expect(scanning.length).toBeGreaterThan(10);
     expect(Math.max(...scanning.map((frame) => frame.sweep))).toBeGreaterThan(0.8);
     expect(states.every((frame) => frame.item === null && frame.customerGrip === null)).toBe(true);
+    // No hand shows: the button lights as she taps it.
+    expect(states.every((frame) => frame.customerPoint === null)).toBe(true);
+    expect(states.some((frame) => frame.screen.state === "ask" && frame.screen.pressed !== null)).toBe(true);
     expect(states[states.length - 1].screen.state).toBe("approved");
   });
 
-  it("keeps where each part was a frame and two frames ago, for its motion blur", () => {
+  it("keeps where each part was a moment and two moments ago, for its motion blur", () => {
     const frame = checkoutAt(approvedAt("full", "tap", 0, keys) - 0.1, "full", "tap", 0, keys);
 
     expect(frame.trail).toHaveLength(2);
@@ -164,7 +167,7 @@ describe("the customer paying by face", () => {
   });
 
   it("leans in to the screen as it asks, holds still while her face is read, and nods as it is approved", () => {
-    expect(mean(sample(3600, 4200).map((pose) => pose.lean))).toBeGreaterThan(mean(sample(1000, 2900).map((pose) => pose.lean)) + 10);
+    expect(mean(sample(3600, 4200).map((pose) => pose.lean))).toBeGreaterThan(mean(sample(1000, 2900).map((pose) => pose.lean)) + 6);
     expect(spread(sample(5200, 6300).map((pose) => pose.side))).toBeLessThan(spread(sample(0, 2900).map((pose) => pose.side)) / 2);
     expect(Math.max(...sample(6850, 7550).map((pose) => pose.nod))).toBeGreaterThan(Math.max(...sample(5200, 6300).map((pose) => pose.nod)) + 0.05);
   });

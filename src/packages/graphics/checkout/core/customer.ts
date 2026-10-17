@@ -29,8 +29,8 @@ const HEAD = {
 const WEIGHT = { period: 14000, side: 12, roll: 0.015 } as const;
 
 // Looking down at the screen as it asks, leaning in to tap, the nod on approval.
-const ATTENTION = { ease: 500, lean: 18, nod: 0.06, relax: 900 } as const;
-const TAP = { before: 350, after: 450, lean: 15, roll: 0.04, turn: -0.05 } as const;
+const ATTENTION = { ease: 500, lean: 10, nod: 0.06, relax: 900 } as const;
+const TAP = { before: 350, after: 450, lean: 8, roll: 0.04, turn: -0.05 } as const;
 const NOD = { ms: 700, angle: 0.09 } as const;
 // How still she holds while her face is read, 0 to 1 of her sway taken away.
 const HOLD = { sway: 0.85, head: 0.85, ease: 250 } as const;

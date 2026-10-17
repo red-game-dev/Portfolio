@@ -34,13 +34,14 @@ type Part = typeof PARTS[number];
 const poseOf = (parts: CheckoutTrail, part: Part): Pose | null =>
   ({ cashier: parts.cashier, grip: parts.customerGrip, point: parts.customerPoint, item: parts.item })[part];
 
-// How faint each step of a motion blur is at its strongest, nearest first.
-const TRAIL_ALPHA = [0.34, 0.17];
+// How faint each step of a motion blur is at its strongest, nearest first: faint and close behind, so a fast hand or
+// card reads as smeared, never as a second one.
+const TRAIL_ALPHA = [0.2, 0.09];
 
-// Below this many units a frame, nothing blurs; the blur is at its strongest this many further on.
-const BLUR_FROM = 1.5;
+// Below this many units between steps, nothing blurs; the blur is at its strongest this many further on.
+const BLUR_FROM = 0.6;
 
-const BLUR_RANGE = 8;
+const BLUR_RANGE = 3;
 
 const encodePose = (channels: RigChannels, prefix: string, pose: Pose | null) => {
   channels[`${prefix}On`] = pose ? 1 : 0;

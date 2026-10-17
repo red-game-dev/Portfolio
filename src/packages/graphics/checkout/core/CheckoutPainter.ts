@@ -3,7 +3,7 @@ import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { CheckoutLook, CheckoutSkin, CustomerPose, CustomerSprite, MarkShape, ScreenState } from "../domain/types";
 import { paintCardFace } from "./cardFace";
 import {
-  amountShown, APP_TILE, appCentre, BODY, CAMERA, CARD, COUNTER_TOP, KEYPAD, keyCentre, OK_KEY, PHONE, SCREEN, SMILE_BUTTON, STAND, STRIPE,
+  amountShown, APP_TILE, appCentre, BODY, CAMERA, CARD, COUNTER_TOP, KEYPAD, keyCentre, OK_KEY, PHONE, SCREEN, SMILE_BUTTON, SMILE_KEY, STAND, STRIPE,
 } from "./geometry";
 import { paintSoftShadow } from "./hands";
 
@@ -481,11 +481,14 @@ const paintFaceCamera = (
   context.setLineDash([]);
 };
 
-// The button the customer taps to pay with their face: a smile in the accent.
-const paintSmileButton = (context: Canvas2DContext, accent: string) => {
-  const { x, y, width, height } = SMILE_BUTTON;
+// The button the customer taps to pay with their face: a smile in the accent, brighter and a touch smaller as it is
+// pressed.
+const paintSmileButton = (context: Canvas2DContext, accent: string, isPressed = false) => {
+  const { x, y } = SMILE_BUTTON;
+  const width = SMILE_BUTTON.width * (isPressed ? 0.94 : 1);
+  const height = SMILE_BUTTON.height * (isPressed ? 0.94 : 1);
 
-  context.fillStyle = accent;
+  context.fillStyle = isPressed ? "#eafff7" : accent;
   roundRect(context, x - width / 2, y - height / 2, width, height, height / 2);
   context.fill();
   context.strokeStyle = "#04110d";
@@ -597,7 +600,7 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
       paintQr(context, centre - 19, y + 34, 38);
     } else if (look.gesture === "face") {
       paintFaceCamera(context, accent, centre, y, null);
-      paintSmileButton(context, accent);
+      paintSmileButton(context, accent, view.pressed === SMILE_KEY);
     } else {
       contactless(context, centre + 4, y + 48, 18, accent, 2);
       // A card in the chip reader, for the ways in that need no phone.

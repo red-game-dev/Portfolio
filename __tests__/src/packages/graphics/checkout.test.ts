@@ -1,23 +1,36 @@
-import { amountShown, approvedAt, checkoutAt, customerPoseAt, keysFor, QUICK_STORY_MS, STILL_CUSTOMER, storyMs } from "@/packages/graphics/checkout";
+import { amountOf, amountShown, approvedAt, checkoutAt, customerPoseAt, decimalOf, keysFor, QUICK_STORY_MS, STILL_CUSTOMER, storyMs } from "@/packages/graphics/checkout";
 import { CheckoutGesture } from "@/packages/graphics/checkout";
 
 const GESTURES: CheckoutGesture[] = ["insert", "tap", "swipe", "wallet", "scan", "face"];
 
 describe("the checkout's keypad", () => {
-  it("keys the digits and the separator of an amount, never its currency", () => {
-    expect(keysFor("€18.40")).toEqual([0, 7, 9, 3, 10]);
-    expect(keysFor("12,05 €")).toEqual([0, 1, 9, 10, 4]);
+  it("keys the digits and the decimal mark of an amount, never its currency or its grouping", () => {
+    expect(keysFor(amountOf("€18.40"))).toEqual([0, 7, 9, 3, 10]);
+    expect(keysFor(amountOf("12,05 €"))).toEqual([0, 1, 9, 10, 4]);
+    expect(keysFor({ text: "₱1,250.00", prefix: "₱", suffix: "", keyed: "1250.00" })).toEqual([0, 1, 4, 10, 9, 10, 10]);
   });
 
-  it("shows the currency, then each character as it is keyed", () => {
-    expect(amountShown("€18.40", 0)).toBe("€");
-    expect(amountShown("€18.40", 3)).toBe("€18.");
-    expect(amountShown("€18.40", 5)).toBe("€18.40");
+  it("shows the currency where its language puts it, each character as it is keyed, then the amount as it is written", () => {
+    expect(amountShown(amountOf("€18.40"), 0)).toBe("€");
+    expect(amountShown(amountOf("€18.40"), 3)).toBe("€18.");
+    expect(amountShown(amountOf("€18.40"), 5)).toBe("€18.40");
+    expect(amountShown(amountOf("18,40 €"), 2)).toBe("18 €");
+
+    const grouped = { text: "₱1,250.00", prefix: "₱", suffix: "", keyed: "1250.00" };
+
+    expect(amountShown(grouped, 4)).toBe("₱1250");
+    expect(amountShown(grouped, 7)).toBe("₱1,250.00");
+  });
+
+  it("marks the decimal key as the amount's language does", () => {
+    expect(decimalOf(amountOf("18,40 €"))).toBe(",");
+    expect(decimalOf(amountOf("$18.40"))).toBe(".");
+    expect(decimalOf({ text: "¥1,280", prefix: "¥", suffix: "", keyed: "1280" })).toBe(".");
   });
 });
 
 describe("the checkout's story", () => {
-  const keys = keysFor("€18.40");
+  const keys = keysFor(amountOf("€18.40"));
 
   it.each(GESTURES)("approves a %s payment once, after the customer reaches the terminal, in both stories", (gesture) => {
     ["full", "quick"].forEach((variant) => {
@@ -183,7 +196,7 @@ describe("the customer paying by face", () => {
   });
 
   it("moves through the face story, and stands still in no other", () => {
-    const keys = keysFor("€18.40");
+    const keys = keysFor(amountOf("€18.40"));
     const poses = [0.3, 0.31, 0.6].map((t) => checkoutAt(t, "full", "face", 0, keys).customer);
 
     expect(poses[0]).not.toEqual(poses[1]);

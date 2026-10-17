@@ -240,7 +240,8 @@ export const createCheckoutModel = (skin: CheckoutSkin, variant: CheckoutVariant
       {
         id: "screen",
         cache: false,
-        paint: (context, dressed, channels) => paintScreen(context, dressed, {
+        // The total this model was told, whatever the actor's skin was first dressed with.
+        paint: (context, dressed, channels) => paintScreen(context, { ...dressed, amount: skin.amount }, {
           state: STATES[channels.screen] ?? "idle",
           typed: channels.typed,
           pin: channels.pin,

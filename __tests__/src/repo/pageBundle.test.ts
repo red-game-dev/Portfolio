@@ -129,4 +129,10 @@ describe("the home page's first load", () => {
     expect(externals.has("three")).toBe(false);
     expect(modules.filter((module) => onDemand.some((prefix) => module.startsWith(prefix)))).toEqual([]);
   });
+
+  test("carries no till: the currencies and prices load with the payments counter", () => {
+    const { modules } = firstLoad();
+
+    expect(modules.filter((module) => module.startsWith("src/packages/finance/money/") || module.startsWith("src/services/payments/"))).toEqual([]);
+  });
 });

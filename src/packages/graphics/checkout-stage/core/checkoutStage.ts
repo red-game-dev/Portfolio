@@ -1,5 +1,5 @@
 import { createDrawableSurface } from "@/packages/graphics/canvas";
-import { CHECKOUT_LAYOUT, paintCardPicture, paintPhone, paintSweep } from "@/packages/graphics/checkout";
+import { amountOf, CHECKOUT_LAYOUT, paintCardPicture, paintPhone, paintSweep } from "@/packages/graphics/checkout";
 import type { CheckoutFrame, CheckoutSkin, CheckoutStage, CustomerPose, Pose, ScreenState } from "@/packages/graphics/checkout";
 import {
   blendTurns, createHandPoser, gripSocket, HAND_GRIPS, HAND_MODELS, HAND_POSES, handField, handSkeleton, handSockets, RIGHT_HAND,
@@ -396,7 +396,7 @@ const FINISHES: Finish[] = ["metal", "gloss", "matte", "frosted"];
 // and as a reader cuts it) and a phone.
 const warmScene = (): StageScene => {
   const look: CheckoutSkin["look"] = { gesture: "tap", app: 0, face: ["#000000", "#000000"], mark: { width: 1, height: 1, parts: [] } };
-  const base = checkoutScene({ id: "warm", look, amount: "", accent: "#ffffff" });
+  const base = checkoutScene({ id: "warm", look, amount: amountOf(""), accent: "#ffffff" });
   const cards = FINISHES.flatMap((finish) => [false, true].map((isCut): ActorSpec => ({
     id: `card-${finish}-${isCut ? "cut" : "whole"}`,
     castsShadow: true,

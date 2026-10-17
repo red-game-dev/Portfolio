@@ -118,3 +118,7 @@ export const PAYMENT_DRAWING_ANCHORS: Record<PaymentDrawingKey, string> = {
 };
 
 export const PAYMENT_DRAWINGS = Object.keys(PAYMENT_DRAWING_ANCHORS) as PaymentDrawingKey[];
+
+// The till's currency where nothing says where the visitor is, and the language its amounts are written in where the
+// browser names none.
+export const TILL = { fallback: "EUR", locale: "en" } as const;

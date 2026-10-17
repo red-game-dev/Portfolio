@@ -9,8 +9,10 @@ import { Mark } from "@/components/Payments/scene/Mark";
 import { PAYMENT_GROUP_ORDER, PAYMENT_GROUPS, PaymentMethodId } from "@/config/payments";
 import { THEME_ACCENTS } from "@/config/sectionThemes";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { CHECKOUT_SCENE } from "@/packages/graphics/checkout";
+import { amountOf, CHECKOUT_SCENE } from "@/packages/graphics/checkout";
+import type { CheckoutAmount } from "@/packages/graphics/checkout";
 import { fill } from "@/packages/text/format";
+import { browserClues, tillService } from "@/services/payments/till";
 import { focusRing, media } from "@/styles/mixins";
 import { PaymentTerminalContent } from "@/types/payments";
 
@@ -22,7 +24,7 @@ interface PayTerminalProps {
 
 type Phase =
   | { kind: "idle" }
-  | { kind: "paying" | "approved"; method: PaymentMethodId; press: number };
+  | { kind: "paying" | "approved"; method: PaymentMethodId; press: number; amount: CheckoutAmount };
 
 const Wrap = styled.div(() => [
   tw`flex flex-col items-center gap-[18px] p-[18px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
@@ -134,6 +136,16 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
   // counter that takes a moment to set up still says approved when its screen does.
   const started = useRef<{ press: number; begin: () => void } | null>(null);
   const cardholder = useMemo(() => ({ name: content.cardholder, portrait: content.portrait }), [content.cardholder, content.portrait]);
+  // The till this visitor pays at, in their currency; a new total is rung up for every payment.
+  const [till] = useState(() => tillService.tillFor(browserClues()));
+  const fallback = useMemo(() => amountOf(content.amount), [content.amount]);
+  const ringUp = useCallback((): CheckoutAmount => {
+    try {
+      return tillService.parts(till, tillService.bill(till, Math.random));
+    } catch {
+      return fallback;
+    }
+  }, [till, fallback]);
 
   useEffect(() => {
     const pending = timers.current;
@@ -155,14 +167,15 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
     presses.current += 1;
 
     const press = presses.current;
-    const approvedMs = approvedMsOf(method, content.amount);
+    const amount = ringUp();
+    const approvedMs = approvedMsOf(method, amount);
 
     const approve = () => {
-      setPhase({ kind: "approved", method, press });
+      setPhase({ kind: "approved", method, press, amount });
       setLine({ text: fill(content.approvedLine, { method: content.methods[method] }), press });
       onPaid();
       // Waits for the story to end (the receipt printed, the hands gone), then for the next customer.
-      timers.current.push(window.setTimeout(() => setPhase({ kind: "idle" }), isStill ? RESET_MS : payMsOf(method, content.amount) - approvedMs + RESET_MS));
+      timers.current.push(window.setTimeout(() => setPhase({ kind: "idle" }), isStill ? RESET_MS : payMsOf(method, amount) - approvedMs + RESET_MS));
     };
 
     if (isStill) {
@@ -171,7 +184,7 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
       return;
     }
 
-    setPhase({ kind: "paying", method, press });
+    setPhase({ kind: "paying", method, press, amount });
 
     let isCounting = false;
     const begin = () => {
@@ -186,7 +199,7 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
     started.current = { press, begin };
     // Counted from the press after all, should the counter never start.
     timers.current.push(window.setTimeout(begin, START_WAIT_MS));
-  }, [content, isStill, onPaid, phase.kind]);
+  }, [content, isStill, onPaid, phase.kind, ringUp]);
 
   const onStart = useCallback(() => {
     if (started.current && started.current.press === presses.current) {
@@ -208,8 +221,8 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
           method={shown?.method ?? PAYMENT_GROUPS.cards[0]}
           variant="full"
           mode={mode}
-          durationMs={payMsOf(shown?.method ?? PAYMENT_GROUPS.cards[0], content.amount)}
-          amount={content.amount}
+          durationMs={payMsOf(shown?.method ?? PAYMENT_GROUPS.cards[0], shown?.amount ?? fallback)}
+          amount={shown?.amount ?? fallback}
           accent={THEME_ACCENTS.payments}
           cardholder={cardholder}
           customerFace={content.customerFace}

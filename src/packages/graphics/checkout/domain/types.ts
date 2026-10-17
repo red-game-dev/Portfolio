@@ -81,11 +81,21 @@ export interface CustomerPose {
   blink: number;
 }
 
+// The total as the terminal shows it: the whole text, what stands before and after the figure (the currency's sign
+// where its language puts it), and the characters the cashier keys for it (its digits and its decimal mark, never a
+// grouping mark). Empty text draws a bar in its place, for a story told without words.
+export interface CheckoutAmount {
+  text: string;
+  prefix: string;
+  suffix: string;
+  keyed: string;
+}
+
 // A skin dresses the scene for one way to pay: what the customer holds, the app, the total on the screen, and
 // the accent the screen glows in.
 export interface CheckoutSkin extends RigSkin {
   look: CheckoutLook;
-  amount: string;
+  amount: CheckoutAmount;
   accent: string;
 }
 

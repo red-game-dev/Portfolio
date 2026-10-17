@@ -1,15 +1,15 @@
-import { approvedAt, CHECKOUT_LAYOUT, checkoutAt, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
+import { amountOf, approvedAt, CHECKOUT_LAYOUT, checkoutAt, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
 import { CHECKOUT_MODELS, checkoutStageMap, warmCheckoutStage } from "@/packages/graphics/checkout-stage";
 import { HAND_GRIPS, handField, RIGHT_HAND } from "@/packages/graphics/hand";
 import type { ActorState, Stage, StageScene } from "@/packages/graphics/stage3d";
 import { conjugate, dot, normalize, rotate, sub, vec3 } from "@/packages/math/space";
 
-const keys = keysFor("€18.40");
+const keys = keysFor(amountOf("€18.40"));
 
 const skinOf = (gesture: CheckoutSkin["look"]["gesture"]): CheckoutSkin => ({
   id: `test-${gesture}`,
   look: { gesture, app: 0, face: ["#000000", "#111111"], mark: { width: 1, height: 1, parts: [] } },
-  amount: "€18.40",
+  amount: amountOf("€18.40"),
   accent: "#36e3c4",
 });
 

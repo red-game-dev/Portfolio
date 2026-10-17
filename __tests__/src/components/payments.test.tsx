@@ -16,6 +16,7 @@ import payments from "@/data/blueprints/payments";
 import { portfolioData } from "@/data/resume";
 import { MOTION_ATTRIBUTE } from "@/packages/accessibility/motion";
 import { QUICK_STORY_MS } from "@/packages/graphics/checkout";
+import { browserClues, tillService } from "@/services/payments/till";
 
 const PAYMENT_EFFECTS: PaymentEffect[] = ["pay", "tap", "sync", "route", "authorise", "split"];
 
@@ -128,12 +129,16 @@ describe("the payments section's links", () => {
 describe("PayTerminal", () => {
   const content = portfolioData.payments.terminal;
   const visa = `Pay with ${content.methods.visa}`;
+  // Each payment rings up a random total in the visitor's currency; the test holds the draw still to know it.
+  const till = tillService.tillFor(browserClues());
+  const amount = tillService.parts(till, tillService.bill(till, () => 0.5));
   // jsdom draws no counter, so it never says it started: the approval is counted from the press after the wait.
-  const visaApprovedMs = START_WAIT_MS + approvedMsOf("visa", content.amount);
-  const visaMs = payMsOf("visa", content.amount);
+  const visaApprovedMs = START_WAIT_MS + approvedMsOf("visa", amount);
+  const visaMs = payMsOf("visa", amount);
 
   beforeEach(() => {
     jest.useFakeTimers();
+    jest.spyOn(Math, "random").mockReturnValue(0.5);
   });
 
   afterEach(() => {
@@ -141,6 +146,7 @@ describe("PayTerminal", () => {
       jest.runOnlyPendingTimers();
     });
     jest.useRealTimers();
+    jest.restoreAllMocks();
     // Unmounted first, so the terminal does not hear the page's motion setting change back.
     cleanup();
     document.documentElement.removeAttribute(MOTION_ATTRIBUTE);
@@ -170,7 +176,7 @@ describe("PayTerminal", () => {
     expect(screen.getByRole("status")).toHaveTextContent(`${content.methods.visa}: approved.`);
 
     act(() => {
-      jest.advanceTimersByTime(visaMs - approvedMsOf("visa", content.amount) + RESET_MS);
+      jest.advanceTimersByTime(visaMs - approvedMsOf("visa", amount) + RESET_MS);
     });
 
     // Back to waiting for the next customer: no method is being paid with.

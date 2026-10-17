@@ -3,6 +3,7 @@ import { CSSProperties, FC, useLayoutEffect, useRef, useState } from "react";
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
+import { NO_AMOUNT } from "@/components/Payments/config";
 import { CheckoutScene } from "@/components/Payments/scene/CheckoutScene";
 import { STORIES } from "@/components/Payments/scene/Stories";
 import { PAYMENT_SWITCH_MS, PaymentEffect } from "@/components/SwitchStage/config";
@@ -65,7 +66,7 @@ export const PaymentLayer: FC<{ effect: PaymentEffect; count: number }> = ({ eff
           mode="playing"
           gesture={effect === "tap" ? "tap" : undefined}
           durationMs={PAYMENT_SWITCH_MS}
-          amount=""
+          amount={NO_AMOUNT}
           accent={THEME_ACCENTS.payments}
         />
       </Panel>

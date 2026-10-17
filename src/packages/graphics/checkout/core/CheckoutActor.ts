@@ -1,17 +1,19 @@
 import { QualityGovernor } from "@/packages/animation/frame-loop";
 import { RigActor, RigActorOptions, RigModel } from "@/packages/graphics/rig";
 
-import { CheckoutSkin, CheckoutStage } from "../domain/types";
+import { CheckoutAmount, CheckoutSkin, CheckoutStage, CheckoutVariant } from "../domain/types";
+import { createCheckoutModel } from "./checkoutModel";
 
 // The finest quality a stage draws at; the governor counts down from it.
 const FINEST = 3;
 
 // The checkout's actor: drawn flat from the start, so the counter is there at once, and taking up a 3D stage's model
-// once that is ready (between payments, never in the middle of one). Its frames tell the stage's quality when to step
-// down; a stage that loses its GPU hands the counter back to the flat drawing; and retired, it gives the stage's scene
-// back.
+// once that is ready (between payments, never in the middle of one). Each payment can ring up a new total, told to its
+// models in place (the stage kept). Its frames tell the stage's quality when to step down; a stage that loses its GPU
+// hands the counter back to the flat drawing; and retired, it gives the stage's scene back.
 export class CheckoutActor extends RigActor<CheckoutSkin> {
-  private readonly flat: RigModel<CheckoutSkin>;
+  private readonly dressed: CheckoutSkin | undefined;
+  private flat: RigModel<CheckoutSkin>;
   private stage: CheckoutStage | null = null;
   private waiting: { stage: CheckoutStage; model: RigModel<CheckoutSkin> } | null = null;
   private governor: QualityGovernor | null = null;
@@ -21,10 +23,29 @@ export class CheckoutActor extends RigActor<CheckoutSkin> {
   constructor(context: CanvasRenderingContext2D, options: RigActorOptions<CheckoutSkin>) {
     super(context, options);
     this.flat = options.model;
+    this.dressed = options.skins[0];
   }
 
   public get hasStage(): boolean {
     return this.stage !== null;
+  }
+
+  // Rings up a new total: the drawing, and the stage's where it has one or one is waiting, told the amount, so the
+  // cashier keys it and the screen shows it.
+  public rebill(amount: CheckoutAmount, variant: CheckoutVariant): void {
+    if (!this.dressed) {
+      return;
+    }
+
+    const skin = { ...this.dressed, amount };
+
+    this.flat = createCheckoutModel(skin, variant);
+
+    if (this.waiting) {
+      this.waiting = { ...this.waiting, model: createCheckoutModel(skin, variant, this.waiting.stage) };
+    }
+
+    this.replaceModel(this.stage ? createCheckoutModel(skin, variant, this.stage) : this.flat);
   }
 
   // Takes up a stage's model: at once while still, otherwise as soon as the payment playing ends.

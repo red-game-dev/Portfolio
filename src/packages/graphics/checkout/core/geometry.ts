@@ -1,3 +1,5 @@
+import { CheckoutAmount } from "../domain/types";
+
 // Where everything stands in the scene, in its own units: a smart terminal on a stand on the counter, its screen,
 // the keys and apps the screen offers, and the size of what the customer holds.
 
@@ -56,33 +58,36 @@ export const keyFor = (character: string): number | null => {
   return character === "." || character === "," ? 9 : null;
 };
 
-// The keys the cashier presses to key an amount, in order, without the OK that confirms it.
-export const keysFor = (amount: string): number[] => {
-  const keys = Array.from(amount).map(keyFor);
+// An amount from text written plainly ("€18.40", "18,40 €"): what comes before its first digit and after its last,
+// and every digit and mark between them keyed. For text with no grouping marks; a till's own amounts come split.
+export const amountOf = (text: string): CheckoutAmount => {
+  const first = text.search(/\d/);
+  const last = text.length - Array.from(text).reverse()
+.join("")
+.search(/\d/);
 
-  return keys.filter((key): key is number => key !== null);
-};
-
-// The amount as the screen shows it once `typed` of its keyable characters are in: anything before the first of
-// them (the currency) always shows.
-export const amountShown = (amount: string, typed: number): string => {
-  let count = 0;
-  let shown = "";
-
-  for (const character of Array.from(amount)) {
-    if (keyFor(character) !== null) {
-      if (count === typed) {
-        break;
-      }
-
-      count += 1;
-    }
-
-    shown += character;
+  if (first < 0) {
+    return { text, prefix: text, suffix: "", keyed: "" };
   }
 
-  return shown;
+  return { text, prefix: text.slice(0, first), suffix: text.slice(last), keyed: text.slice(first, last) };
 };
+
+// The keys the cashier presses to key an amount, in order, without the OK that confirms it.
+export const keysFor = (amount: CheckoutAmount): number[] =>
+  Array.from(amount.keyed).map(keyFor)
+.filter((key): key is number => key !== null);
+
+// The amount as the screen shows it once `typed` of its keys are in: the currency's sign always, the figure as keyed so
+// far, and once it is all in, the amount as its language writes it (grouped).
+export const amountShown = (amount: CheckoutAmount, typed: number): string => {
+  const keyed = Array.from(amount.keyed).filter((character) => keyFor(character) !== null);
+
+  return typed >= keyed.length ? amount.text : `${amount.prefix}${keyed.slice(0, typed).join("")}${amount.suffix}`;
+};
+
+// The mark the keypad's decimal key carries: the amount's own, a point where it has none.
+export const decimalOf = (amount: CheckoutAmount): string => (amount.keyed.includes(",") ? "," : ".");
 
 // The parts a 3D stage lines its actors up with: the terminal's body and screen, a card, a phone and the scene.
 export const CHECKOUT_LAYOUT = { body: BODY, screen: SCREEN, camera: CAMERA, card: CARD, phone: PHONE, scene: SCENE } as const;

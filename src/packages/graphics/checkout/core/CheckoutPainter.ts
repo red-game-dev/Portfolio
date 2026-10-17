@@ -3,7 +3,7 @@ import type { Canvas2DContext } from "@/packages/graphics/canvas";
 import { CheckoutLook, CheckoutSkin, CustomerPose, CustomerSprite, MarkShape, ScreenState } from "../domain/types";
 import { paintCardFace } from "./cardFace";
 import {
-  amountShown, APP_TILE, appCentre, BODY, CAMERA, CARD, COUNTER_TOP, KEYPAD, keyCentre, OK_KEY, PHONE, SCREEN, SMILE_BUTTON, SMILE_KEY, STAND, STRIPE,
+  amountShown, APP_TILE, appCentre, BODY, CAMERA, CARD, COUNTER_TOP, decimalOf, KEYPAD, keyCentre, OK_KEY, PHONE, SCREEN, SMILE_BUTTON, SMILE_KEY, STAND, STRIPE,
 } from "./geometry";
 import { paintSoftShadow } from "./hands";
 
@@ -253,8 +253,9 @@ const total = (context: Canvas2DContext, value: string, x: number, y: number, si
 
 const KEY_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", ""];
 
-const paintKeypad = (context: Canvas2DContext, accent: string, pressed: number | null) => {
-  KEY_LABELS.forEach((label, index) => {
+// The keypad, its decimal key in the amount's own mark.
+const paintKeypad = (context: Canvas2DContext, accent: string, pressed: number | null, decimal: string) => {
+  KEY_LABELS.map((label, index) => (index === 9 ? decimal : label)).forEach((label, index) => {
     const { x, y } = keyCentre(index);
     const isOk = index === OK_KEY;
     const isPressed = pressed === index;
@@ -555,6 +556,7 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
 
   const { state, typed, pin, pressed, spinner } = view;
   const keyed = amountShown(amount, typed);
+  const shownTotal = amount.text;
 
   if (state === "idle") {
     context.strokeStyle = withAlpha(accent, 0.85);
@@ -581,7 +583,7 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
 
       context.fillStyle = withAlpha(accent, 0.9);
       context.fillRect(centre + after + 1.5, y + 9.5, 1, 11);
-      paintKeypad(context, accent, pressed);
+      paintKeypad(context, accent, pressed, decimalOf(amount));
     } else {
       [0, 1, 2].forEach((app) => {
         const tile = appCentre(app);
@@ -594,7 +596,7 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
       });
     }
   } else if (state === "ask") {
-    total(context, amount, centre, y + 18, 13, "#eafff7", accent);
+    total(context, shownTotal, centre, y + 18, 13, "#eafff7", accent);
 
     if (look.gesture === "scan") {
       paintQr(context, centre - 19, y + 34, 38);
@@ -629,12 +631,12 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
         context.stroke();
       }
     });
-    paintKeypad(context, accent, pressed);
+    paintKeypad(context, accent, pressed, decimalOf(amount));
   } else if (state === "face") {
     paintFaceCamera(context, accent, centre, y + 6, view.scan, look.customer, view.customer);
-    total(context, amount, centre, y + 12, 9, "rgba(234, 255, 247, 0.85)", accent);
+    total(context, shownTotal, centre, y + 12, 9, "rgba(234, 255, 247, 0.85)", accent);
   } else if (state === "processing") {
-    total(context, amount, centre, y + 18, 11, "rgba(234, 255, 247, 0.8)", accent);
+    total(context, shownTotal, centre, y + 18, 11, "rgba(234, 255, 247, 0.8)", accent);
     context.strokeStyle = withAlpha(accent, 0.18);
     context.lineWidth = 3;
     context.beginPath();
@@ -661,7 +663,7 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
     context.lineTo(centre - 1.5, y + 48.5);
     context.lineTo(centre + 6.5, y + 39.5);
     context.stroke();
-    total(context, amount, centre, y + 72, 11, "#eafff7", accent);
+    total(context, shownTotal, centre, y + 72, 11, "#eafff7", accent);
   }
 
   context.restore();

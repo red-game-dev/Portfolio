@@ -7,7 +7,7 @@ import { markOf } from "@/components/Payments/scene/marks";
 import { PAY_APPS, PAY_GESTURES, payAppOf, PayGesture, PaymentMethodId } from "@/config/payments";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import type { CheckoutActor, CheckoutSkin, CheckoutVariant } from "@/packages/graphics/checkout";
+import type { CheckoutActor, CheckoutAmount, CheckoutSkin, CheckoutVariant } from "@/packages/graphics/checkout";
 
 export type CheckoutMode = "idle" | "playing" | "approved";
 
@@ -17,8 +17,9 @@ interface CheckoutSceneProps {
   // Waiting for a payment, telling one, or showing one approved without moving (with less motion asked for).
   mode: CheckoutMode;
   durationMs: number;
-  // The total the screen shows; a switch, which carries no words, passes none and the screen shows a bar.
-  amount: string;
+  // The total the screen shows, rung up afresh for each payment; a switch, which carries no words, passes none and the
+  // screen shows a bar.
+  amount: CheckoutAmount;
   accent: string;
   // How the method meets the terminal, where a story asks for another way than its own (the POS taps every card).
   gesture?: PayGesture;
@@ -53,6 +54,11 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
 }: CheckoutSceneProps) => {
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // The total is told to the counter as each payment starts, never rebuilding it: the counter is built per way to pay.
+  const amountRef = useRef(amount);
+
+  amountRef.current = amount;
+
   const skin = useMemo<CheckoutSkin>(() => {
     const design = PAYMENT_LOOKS[method].card;
 
@@ -66,10 +72,10 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
         mark: markOf(PAYMENT_LOOKS[method].network ?? method, design?.ink),
         card: design ? { ...design, holder: cardholder?.name ?? "", issuerMark: design.issuer === "mark" ? markOf(method) : undefined } : undefined,
       },
-      amount,
+      amount: amountRef.current,
       accent,
     };
-  }, [method, gesture, amount, accent, cardholder]);
+  }, [method, gesture, accent, cardholder]);
   const portrait = skin.look.card?.issuer === "portrait" ? cardholder?.portrait : undefined;
   const seen = skin.look.gesture === "face" ? customerFace : undefined;
   // A still counter shows no hands, so it never needs the 3D stage.
@@ -115,6 +121,7 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
     }
 
     if (mode === "approved") {
+      actor.rebill(amountRef.current, variant);
       actor.play("approved", Number.MAX_SAFE_INTEGER);
       actor.renderStill();
 
@@ -128,6 +135,7 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
       return undefined;
     }
 
+    actor.rebill(amountRef.current, variant);
     actor.play("pay", durationMs);
     actor.start();
     onStart?.();
@@ -139,7 +147,7 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
     }, durationMs + 60);
 
     return () => window.clearTimeout(rest);
-  }, [actor, mode, durationMs, run, onStart]);
+  }, [actor, mode, durationMs, run, onStart, variant]);
 
   return (
     <Box ref={boxRef} aria-hidden="true">

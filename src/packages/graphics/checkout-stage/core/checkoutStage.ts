@@ -17,11 +17,11 @@ import { add, conjugate, dot, fromAxisAngle, IDENTITY, multiply, normalize, Quat
 // flesh passes into it. What the customer
 // holds is a real card in its issuer's finish or a phone with its screen, held off the glass far enough that the hand
 // holding it never passes behind the terminal's face, and pressed nearer as it is read; going into a reader, the end
-// inside the terminal's body is cut away. The screen's glow lights the hands and brightens as the payment is approved.
-// The 2D terminal is drawn under it all.
+// inside the terminal's body is cut away. Paying by face, the customer stands between us and the terminal, her back to
+// us. The screen's glow lights the hands and brightens as the payment is approved. The 2D terminal is drawn under it all.
 
 // The models the scene fills its slots with: the hand meshed pointing, holding a card and holding a phone, and the
-// customer who pays by face, a scanned head and shoulders the host registers from a file.
+// customer who pays by face, a head and shoulders the host registers from a file.
 export const CUSTOMER_MODEL = "head.customer";
 
 export const CHECKOUT_MODELS = { ...HAND_MODELS, customer: CUSTOMER_MODEL } as const;
@@ -93,10 +93,13 @@ const WATCH: ActorPart[] = [
 
 const CLOTH = { cashier: ["#2d3653", "#3a4566"], customer: ["#5d4c3b", "#6e5c48"] } as const;
 
-// The customer paying by face: their head and shoulders to the right of the terminal and a step back from it, turned to
-// look into its camera, so their face is seen as it is read. The scan's middle (about the base of the neck) at the
-// origin, in millimetres.
-const CUSTOMER = { position: vec3(300, -150, -380), turn: fromAxisAngle(vec3(0, 1, 0), -0.95) } as const;
+// The customer paying by face, seen over her shoulder: between us and the terminal at the right of the picture, her back
+// to us, turned to look into its camera, so her face is what its screen shows. The model's origin is between her
+// eyes, in millimetres.
+const CUSTOMER = {
+  position: vec3(275, -45, 40),
+  turn: multiply(fromAxisAngle(vec3(0, 1, 0), -1.966), fromAxisAngle(vec3(1, 0, 0), -0.226)),
+} as const;
 
 const customerActor = (): ActorSpec => ({
   id: "customer",
@@ -294,13 +297,12 @@ export const checkoutStageMap = (skin: CheckoutSkin): CheckoutStageMap => {
     return [thing, other, { id: "grip", isShown: true, position: add(placed.position, away), rotation: placed.rotation, joints: gripTurns }];
   };
 
-  // The customer at the counter while a payment is under way, their face read while the screen scans it.
+  // The customer at the counter while a payment is under way.
   const customerAt = (frame: CheckoutFrame): ActorState => ({
     id: "customer",
     isShown: frame.screen.state !== "idle",
     position: CUSTOMER.position,
     rotation: CUSTOMER.turn,
-    ...(frame.screen.state === "face" ? { scan: { progress: frame.sweep, colour: skin.accent } } : {}),
   });
 
   return {

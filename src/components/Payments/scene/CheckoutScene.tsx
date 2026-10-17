@@ -24,6 +24,8 @@ interface CheckoutSceneProps {
   gesture?: PayGesture;
   // Who the counter's cards are issued to, and the picture the red card prints; a switch shows them plain.
   cardholder?: { name: string; portrait: string };
+  // The picture of the customer paying by face as the terminal's camera sees her.
+  customerFace?: string;
   // Which payment this is: a new one plays again even for the same way to pay.
   run?: number;
   // Told when a payment starts playing, so the page counts its approval from then.
@@ -47,7 +49,7 @@ const Canvas = tw.canvas`block w-full h-full`;
 // drawn in 3D on the page's stage (or flat where there is none), the code loaded only once the scene is near. A
 // payment plays once and the scene rests after it; nothing runs while it waits.
 export const CheckoutScene: FC<CheckoutSceneProps> = ({
-  method, variant, mode, durationMs, amount, accent, gesture, cardholder, run = 0, onStart,
+  method, variant, mode, durationMs, amount, accent, gesture, cardholder, customerFace, run = 0, onStart,
 }: CheckoutSceneProps) => {
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -69,6 +71,7 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
     };
   }, [method, gesture, amount, accent, cardholder]);
   const portrait = skin.look.card?.issuer === "portrait" ? cardholder?.portrait : undefined;
+  const seen = skin.look.gesture === "face" ? customerFace : undefined;
   // A still counter shows no hands, so it never needs the 3D stage.
   const isStill = useReducedMotion();
   const actor = useCanvasEngine<CheckoutActor>(canvasRef, {
@@ -76,8 +79,8 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
     nearMargin: "100% 0px",
     create: async (context) => {
       const [checkout, { decodeImage }] = await Promise.all([import("@/packages/graphics/checkout"), import("@/packages/browser/images")]);
-      const picture = portrait ? await decodeImage(portrait).catch(() => null) : null;
-      const dressed: CheckoutSkin = picture ? { ...skin, look: { ...skin.look, portrait: picture } } : skin;
+      const [picture, customer] = await Promise.all([portrait, seen].map((url) => (url ? decodeImage(url).catch(() => null) : null)));
+      const dressed: CheckoutSkin = { ...skin, look: { ...skin.look, ...(picture ? { portrait: picture } : {}), ...(customer ? { customer } : {}) } };
       const flat = new checkout.CheckoutActor(context, { model: checkout.createCheckoutModel(dressed, variant), skins: [dressed], framesPerSecond: 60 });
 
       if (isStill) {
@@ -103,7 +106,7 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
       return flat;
     },
     resize: (engine, { width, pixelRatio }) => engine.resize(width, pixelRatio),
-  }, [skin, variant, portrait, isStill]);
+  }, [skin, variant, portrait, seen, isStill]);
 
   useEffect(() => {
     if (!actor) {

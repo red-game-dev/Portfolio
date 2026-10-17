@@ -212,6 +212,7 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
           amount={content.amount}
           accent={THEME_ACCENTS.payments}
           cardholder={cardholder}
+          customerFace={content.customerFace}
           onStart={onStart}
         />
       </SceneBox>

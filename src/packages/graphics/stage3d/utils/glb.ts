@@ -1,12 +1,17 @@
-// A binary glTF (.glb) read into plain arrays: its first mesh, every primitive of it joined into one, with each
-// vertex's place, the way it faces and where it falls on its pictures. Only what a model of one mesh needs is read
-// (no scenes, skins or animation), so it stays small and has no renderer behind it.
+// A binary glTF (.glb) read into plain arrays: each mesh by its name, its primitives joined into one, with each
+// vertex's place, the way it faces and where it falls on its pictures. Only what a still model needs is read (no
+// scenes, skins or animation), so it stays small and has no renderer behind it.
 
 export interface GlbMesh {
   positions: Float32Array;
   normals: Float32Array;
   uvs?: Float32Array;
   indices: Uint32Array;
+}
+
+export interface GlbPart {
+  name: string;
+  mesh: GlbMesh;
 }
 
 interface Accessor {
@@ -25,7 +30,7 @@ interface BufferView {
 interface Gltf {
   accessors: Accessor[];
   bufferViews: BufferView[];
-  meshes: Array<{ primitives: Array<{ attributes: Record<string, number>; indices?: number }> }>;
+  meshes: Array<{ name?: string; primitives: Array<{ attributes: Record<string, number>; indices?: number }> }>;
 }
 
 const MAGIC = 0x46546c67;
@@ -42,7 +47,7 @@ const COMPONENTS: Record<number, { size: number; read: (view: DataView, at: numb
   5126: { size: 4, read: (view, at) => view.getFloat32(at, true) },
 };
 
-export const parseGlb = (buffer: ArrayBuffer): GlbMesh => {
+export const parseGlb = (buffer: ArrayBuffer): GlbPart[] => {
   const view = new DataView(buffer);
 
   if (view.getUint32(0, true) !== MAGIC) {
@@ -88,37 +93,42 @@ export const parseGlb = (buffer: ArrayBuffer): GlbMesh => {
 
     return values;
   };
-  const positions: number[] = [];
-  const normals: number[] = [];
-  const uvs: number[] = [];
-  const indices: number[] = [];
-  let hasUvs = true;
+  // Added a value at a time: a big mesh has more values than a call can take as arguments.
+  const append = (target: number[], values: number[]) => values.forEach((value) => target.push(value));
 
-  gltf.meshes[0].primitives.forEach((primitive) => {
-    const base = positions.length / 3;
-    const place = read(primitive.attributes.POSITION);
-    const count = place.length / 3;
+  return gltf.meshes.map((mesh, meshIndex) => {
+    const positions: number[] = [];
+    const normals: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
+    let hasUvs = true;
 
-    // Added a value at a time: a big mesh has more values than a call can take as arguments.
-    const append = (target: number[], values: number[]) => values.forEach((value) => target.push(value));
+    mesh.primitives.forEach((primitive) => {
+      const base = positions.length / 3;
+      const place = read(primitive.attributes.POSITION);
+      const count = place.length / 3;
 
-    append(positions, place);
-    append(normals, primitive.attributes.NORMAL === undefined ? new Array<number>(count * 3).fill(0) : read(primitive.attributes.NORMAL));
+      append(positions, place);
+      append(normals, primitive.attributes.NORMAL === undefined ? new Array<number>(count * 3).fill(0) : read(primitive.attributes.NORMAL));
 
-    if (primitive.attributes.TEXCOORD_0 === undefined) {
-      hasUvs = false;
-    } else {
-      append(uvs, read(primitive.attributes.TEXCOORD_0));
-    }
+      if (primitive.attributes.TEXCOORD_0 === undefined) {
+        hasUvs = false;
+      } else {
+        append(uvs, read(primitive.attributes.TEXCOORD_0));
+      }
 
-    (primitive.indices === undefined ? Array.from({ length: count }, (_, index) => index) : read(primitive.indices))
-      .forEach((index) => indices.push(index + base));
+      (primitive.indices === undefined ? Array.from({ length: count }, (_, index) => index) : read(primitive.indices))
+        .forEach((index) => indices.push(index + base));
+    });
+
+    return {
+      name: mesh.name ?? `mesh${meshIndex}`,
+      mesh: {
+        positions: Float32Array.from(positions),
+        normals: Float32Array.from(normals),
+        ...(hasUvs ? { uvs: Float32Array.from(uvs) } : {}),
+        indices: Uint32Array.from(indices),
+      },
+    };
   });
-
-  return {
-    positions: Float32Array.from(positions),
-    normals: Float32Array.from(normals),
-    ...(hasUvs ? { uvs: Float32Array.from(uvs) } : {}),
-    indices: Uint32Array.from(indices),
-  };
 };

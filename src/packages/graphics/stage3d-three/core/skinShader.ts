@@ -16,10 +16,6 @@ export interface SkinUniforms {
   // 0 to 1: how much fine detail (pores, furrows, hair) is drawn, less on a weaker device.
   detail: { value: number };
   detailMap: { value: Texture | null };
-  // A camera's read of the skin, 0 to 1 (below 0 when none), its colour, and the height in the model's units it sweeps.
-  scan: { value: number };
-  scanColour: { value: { r: number; g: number; b: number } };
-  scanRange: { value: { x: number; y: number } };
 }
 
 const NOISE = /* glsl */ `
@@ -64,9 +60,6 @@ const FRAGMENT_DECLARATIONS = /* glsl */ `
   uniform vec3 uKeyDirection;
   uniform vec3 uKeyColour;
   uniform float uDetail;
-  uniform float uScan;
-  uniform vec3 uScanColour;
-  uniform vec2 uScanRange;
   #ifdef SKIN_DETAIL
     uniform sampler2D uSkinDetail;
   #endif
@@ -170,22 +163,6 @@ const FRAGMENT_LIGHT = /* glsl */ `
     vec3 fuzz = vec3(1.0, 0.92, 0.84) * skinMapValue.b * turned * turned * uDetail;
     reflectedLight.directSpecular += fuzz * uKeyColour * max(facing + 0.35, 0.0) * 0.1;
     reflectedLight.indirectDiffuse += fuzz * 0.04;
-
-    // A camera reading the face: a band of light sweeping it up and down, and across its front a faint mesh with the
-    // points read so far lit, more of them as the read goes on.
-    if (uScan >= 0.0) {
-      float span = max(uScanRange.y - uScanRange.x, 1.0);
-      float level = uScanRange.x + span * (0.5 - 0.5 * cos(uScan * 9.424778));
-      float away = (vSkinPosition.y - level) / (span * 0.012);
-      float band = exp(-away * away);
-      vec2 cell = fract(vSkinPosition.xy / 7.0) - 0.5;
-      vec2 cellId = floor(vSkinPosition.xy / 7.0);
-      float chance = fract(sin(dot(cellId, vec2(12.9898, 78.233))) * 43758.5453);
-      float point = (1.0 - smoothstep(0.07, 0.13, length(cell))) * step(chance, uScan);
-      float lines = 1.0 - smoothstep(0.0, 0.05, min(abs(cell.x), abs(cell.y)));
-      float front = smoothstep(20.0, 50.0, vSkinPosition.z);
-      reflectedLight.indirectDiffuse += uScanColour * (band * 1.4 + (point * 0.9 + lines * 0.18 * uScan) * front);
-    }
   }
 `;
 
@@ -195,9 +172,6 @@ export const makeSkin = (material: MeshPhysicalMaterial, detailMap: Texture | nu
     keyColour: { value: { r: 1, g: 0.95, b: 0.9 } },
     detail: { value: 1 },
     detailMap: { value: detailMap },
-    scan: { value: -1 },
-    scanColour: { value: { r: 0.2, g: 0.9, b: 0.75 } },
-    scanRange: { value: { x: 0, y: 1 } },
   };
 
   if (detailMap) {
@@ -209,9 +183,6 @@ export const makeSkin = (material: MeshPhysicalMaterial, detailMap: Texture | nu
     shader.uniforms.uKeyColour = uniforms.keyColour;
     shader.uniforms.uDetail = uniforms.detail;
     shader.uniforms.uSkinDetail = uniforms.detailMap;
-    shader.uniforms.uScan = uniforms.scan;
-    shader.uniforms.uScanColour = uniforms.scanColour;
-    shader.uniforms.uScanRange = uniforms.scanRange;
     shader.vertexShader = shader.vertexShader
       .replace("#include <common>", `#include <common>\n${VERTEX_DECLARATIONS}`)
       .replace("#include <begin_vertex>", `#include <begin_vertex>\n${VERTEX_BODY}`);

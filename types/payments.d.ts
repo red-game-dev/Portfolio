@@ -17,7 +17,9 @@ export interface PaymentTerminalContent {
   // The name and the picture the counter's own red card is printed with.
   cardholder: string;
   portrait: string;
-  // The credit the scanned head of the customer paying by face is used under, its licence named and linked.
+  // The customer paying by face as the terminal's camera sees her, and the credit her model is used under, its licence
+  // named and linked.
+  customerFace: string;
   credit: { text: string; licence: string; url: string };
 }
 

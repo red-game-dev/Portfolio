@@ -10,7 +10,7 @@ export { attachBy, jointIndex, poseSkeleton, socketAt, socketBetween } from "./u
 export type { SceneHandle, StageBox } from "./core/Stage";
 export type { GlbModel } from "./core/GlbModelSource";
 export type { StageFactory } from "./services/StageService";
-export type { GlbMesh } from "./utils/glb";
+export type { GlbMesh, GlbPart } from "./utils/glb";
 export type { PosedSkeleton, Socketed } from "./utils/kinematics";
 export type {
   ActorPart, ActorSpec, ActorState, Finish, FlatPlacement, JointTurns, LightKind, LightSpec, MaterialKind, MaterialSpec, MeshData, ModelAsset,

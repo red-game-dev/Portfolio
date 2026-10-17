@@ -2,15 +2,14 @@ import { MaterialSpec, ModelAsset } from "../domain/types";
 import { parseGlb } from "../utils/glb";
 import { ModelSource } from "./ModelSource";
 
-// A model made elsewhere, as a binary glTF file: fetched when a scene first asks for it, its mesh scaled into the units
-// the scene places models in, and drawn in the material it is given (pictures by their address).
+// A model made elsewhere, as a binary glTF file: fetched when a scene first asks for it, its meshes scaled into the
+// units the scene places models in, each drawn in the material named for it (pictures by their address). A mesh with no
+// material named is left out.
 export interface GlbModel {
   url: string;
-  material: MaterialSpec;
+  parts: Record<string, MaterialSpec>;
   // Model units per unit of the file.
   scale?: number;
-  // The part's name, for tinting it.
-  name?: string;
 }
 
 export class GlbModelSource extends ModelSource {
@@ -37,15 +36,15 @@ export class GlbModelSource extends ModelSource {
       throw new Error(`No model file for "${model}"`);
     }
 
-    const mesh = parseGlb(await this.fetcher(file.url));
     const scale = file.scale ?? 1;
+    const parts = parseGlb(await this.fetcher(file.url)).filter((part) => file.parts[part.name]);
 
     if (scale !== 1) {
-      mesh.positions.forEach((value, index) => {
+      parts.forEach(({ mesh }) => mesh.positions.forEach((value, index) => {
         mesh.positions[index] = value * scale;
-      });
+      }));
     }
 
-    return { id: model, parts: [{ name: file.name ?? "body", material: file.material, mesh }] };
+    return { id: model, parts: parts.map(({ name, mesh }) => ({ name, material: file.parts[name], mesh })) };
   }
 }

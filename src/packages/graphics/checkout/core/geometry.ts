@@ -82,4 +82,4 @@ export const amountShown = (amount: string, typed: number): string => {
 };
 
 // The parts a 3D stage lines its actors up with: the terminal's body and screen, a card, a phone and the scene.
-export const CHECKOUT_LAYOUT = { body: BODY, screen: SCREEN, card: CARD, phone: PHONE, scene: SCENE } as const;
+export const CHECKOUT_LAYOUT = { body: BODY, screen: SCREEN, camera: CAMERA, card: CARD, phone: PHONE, scene: SCENE } as const;

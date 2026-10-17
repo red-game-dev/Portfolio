@@ -2,7 +2,7 @@ import { approvedAt, CHECKOUT_LAYOUT, checkoutAt, CheckoutSkin, keysFor } from "
 import { CHECKOUT_MODELS, checkoutStageMap, warmCheckoutStage } from "@/packages/graphics/checkout-stage";
 import { HAND_GRIPS, handField, RIGHT_HAND } from "@/packages/graphics/hand";
 import type { ActorState, Stage, StageScene } from "@/packages/graphics/stage3d";
-import { conjugate, rotate, vec3 } from "@/packages/math/space";
+import { conjugate, dot, normalize, rotate, sub, vec3 } from "@/packages/math/space";
 
 const keys = keysFor("€18.40");
 
@@ -133,15 +133,30 @@ describe("the checkout on a 3D stage", () => {
     expect(cards.filter((card) => card.hiddenInside)).toHaveLength(4);
   });
 
-  it("puts a customer beside the terminal to pay by face, and reads their face while the screen scans it", () => {
+  it("puts the customer paying by face between us and the terminal, at its right, her back to us and her face to its camera", () => {
     const map = checkoutStageMap(skinOf("face"));
     const customer = map.scene.actors.find((actor) => actor.id === "customer");
     const frames = Array.from({ length: 101 }, (_, step) => checkoutAt(step / 100, "full", "face", 0, keys));
     const scanning = frames.filter((frame) => frame.screen.state === "face").map((frame) => actorOf(map.frameOf(frame), "customer"));
+    const standing = scanning[0];
+    const { body, camera: lens } = CHECKOUT_LAYOUT;
 
     expect(customer?.parts[0].shape).toEqual({ kind: "model", model: CHECKOUT_MODELS.customer });
     expect(scanning.length).toBeGreaterThan(5);
-    expect(scanning.every((state) => state?.isShown && state.scan)).toBe(true);
+    expect(scanning.every((state) => state?.isShown)).toBe(true);
+
+    if (!standing) {
+      throw new Error("No customer while her face is read");
+    }
+
+    const facing = rotate(standing.rotation, vec3(0, 0, 1));
+    const camera = vec3(lens.x, -lens.y, 0);
+    const towardCamera = normalize(sub(camera, standing.position));
+
+    expect(standing.position.z).toBeGreaterThan(0);
+    expect(standing.position.x).toBeGreaterThan(body.x + body.width);
+    expect(facing.z).toBeLessThan(0);
+    expect(dot(facing, towardCamera)).toBeGreaterThan(0.97);
     expect(actorOf(map.frameOf(checkoutAt(null, "full", "face", 0, keys)), "customer")?.isShown).toBe(false);
     expect(checkoutStageMap(skinOf("tap")).scene.actors.some((actor) => actor.id === "customer")).toBe(false);
   });

@@ -4,7 +4,8 @@
 // Node, for the TextEncoder and TextDecoder a browser has and jsdom lacks.
 import { GlbModelSource, parseGlb } from "@/packages/graphics/stage3d";
 
-// A one triangle binary glTF, built here: three corners, their normals and picture places, and its indices.
+// A binary glTF of two one triangle meshes, built here (three corners, their normals and picture places, and its
+// indices), named "skin" and "spare".
 const triangleGlb = (): ArrayBuffer => {
   const positions = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]);
   const normals = new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]);
@@ -30,7 +31,7 @@ const triangleGlb = (): ArrayBuffer => {
       { bufferView: 2, componentType: 5126, count: 3, type: "VEC2" },
       { bufferView: 3, componentType: 5123, count: 3, type: "SCALAR" },
     ],
-    meshes: [{ primitives: [{ attributes: { POSITION: 0, NORMAL: 1, TEXCOORD_0: 2 }, indices: 3 }] }],
+    meshes: ["skin", "spare"].map((name) => ({ name, primitives: [{ attributes: { POSITION: 0, NORMAL: 1, TEXCOORD_0: 2 }, indices: 3 }] })),
   };
   let text = new TextEncoder().encode(JSON.stringify(json));
 
@@ -56,9 +57,11 @@ const triangleGlb = (): ArrayBuffer => {
 };
 
 describe("a binary glTF", () => {
-  it("reads its mesh: places, normals, picture places and indices", () => {
-    const mesh = parseGlb(triangleGlb());
+  it("reads each mesh by its name: places, normals, picture places and indices", () => {
+    const parts = parseGlb(triangleGlb());
+    const { mesh } = parts[0];
 
+    expect(parts.map((part) => part.name)).toEqual(["skin", "spare"]);
     expect(Array.from(mesh.positions)).toEqual([0, 0, 0, 1, 0, 0, 0, 1, 0]);
     expect(Array.from(mesh.normals.slice(0, 3))).toEqual([0, 0, 1]);
     expect(Array.from(mesh.uvs ?? [])).toEqual([0, 0, 1, 0, 0, 1]);
@@ -66,14 +69,15 @@ describe("a binary glTF", () => {
     expect(() => parseGlb(new ArrayBuffer(16))).toThrow("Not a binary glTF");
   });
 
-  it("is fetched as a model when a scene asks for it, scaled into the scene's units and drawn in its material", async () => {
+  it("is fetched as a model when a scene asks for it, scaled into the scene's units, each part in its own material", async () => {
     const source = new GlbModelSource(
-      { "thing.scan": { url: "/thing.glb", scale: 10, name: "skin", material: { kind: "skin", image: "/thing.jpg" } } },
+      { "thing.scan": { url: "/thing.glb", scale: 10, parts: { skin: { kind: "skin", image: "/thing.jpg" } } } },
       () => Promise.resolve(triangleGlb()),
     );
     const asset = await source.load("thing.scan");
 
-    expect(asset.parts[0].name).toBe("skin");
+    // The mesh with no material named is left out.
+    expect(asset.parts.map((part) => part.name)).toEqual(["skin"]);
     expect(asset.parts[0].material.image).toBe("/thing.jpg");
     expect(Array.from(asset.parts[0].mesh.positions)).toEqual([0, 0, 0, 10, 0, 0, 0, 10, 0]);
     await expect(source.load("other")).rejects.toThrow("No model file");

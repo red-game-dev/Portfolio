@@ -48,6 +48,8 @@ export interface CheckoutLook {
   // A card's own design, and the holder's portrait for one that prints it; a card without one is printed plainly.
   card?: CardDesign;
   portrait?: CanvasImageSource | null;
+  // Paying by face: the customer as the terminal's front camera sees them.
+  customer?: CanvasImageSource | null;
 }
 
 // A skin dresses the scene for one way to pay: what the customer holds, the app, the total on the screen, and

@@ -77,6 +77,9 @@ export interface MaterialSpec {
   // Pictures by their address, for a model made elsewhere: its colour, and the way its surface faces in fine detail.
   image?: string;
   normalImage?: string;
+  // Where its picture is clearer than this (0 to 1), the surface is cut away: hair drawn as strands on cards.
+  cutout?: number;
+  isDoubleSided?: boolean;
   // The id of a picture the host paints and hands the stage with `setPicture`, and how its surface is finished.
   picture?: string;
   finish?: Finish;
@@ -182,9 +185,6 @@ export interface ActorState {
   rotation: Quat;
   joints?: JointTurns;
   flat?: FlatPlacement;
-  // A camera reading it (a face paid by): a band of light sweeping its skin as `progress` runs from 0 to 1, the points
-  // read lit across the front of it, in `colour`.
-  scan?: { progress: number; colour: string };
 }
 
 export interface StageFrame {

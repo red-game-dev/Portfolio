@@ -16,14 +16,18 @@ export const models = new ModelRegistry();
 
 Object.values(HAND_MODELS).forEach((model) => models.register(model, inWorker));
 
-// The customer who pays by face: a scanned head and shoulders made elsewhere ("Infinite", a 3D head scan by Lee
-// Perry-Smith, CC BY 3.0, credited where it shows), fetched as a file with its pictures, in millimetres.
+// The customer who pays by face: Female_Adult_15 from Microsoft's Rocketbox avatars (MIT, its notice beside the file
+// and credited where she shows), cut to her head and shoulders, fetched as a file with its pictures, in millimetres.
+const CUSTOMER_FILES = "/models/customer";
+
 const fromFiles = new GlbModelSource({
   [CUSTOMER_MODEL]: {
-    url: "/models/head/head.glb",
-    scale: 58,
-    name: "skin",
-    material: { kind: "skin", image: "/models/head/colour.jpg", normalImage: "/models/head/normal.jpg", roughness: 0.55 },
+    url: `${CUSTOMER_FILES}/customer.glb`,
+    parts: {
+      head: { kind: "cloth", image: `${CUSTOMER_FILES}/head.jpg`, roughness: 0.6 },
+      hair: { kind: "cloth", image: `${CUSTOMER_FILES}/hair.webp`, cutout: 0.4, isDoubleSided: true, roughness: 0.55 },
+      body: { kind: "cloth", image: `${CUSTOMER_FILES}/body.jpg`, roughness: 0.85 },
+    },
   },
 });
 

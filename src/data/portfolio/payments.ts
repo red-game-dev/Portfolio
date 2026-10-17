@@ -17,10 +17,11 @@ export const paymentsContent: Pick<PortfolioData, "payments"> = {
       groups: { new: "New at the counter", cards: "Cards", wallets: "Phone wallets", qr: "QR apps", crypto: "Crypto" },
       payWith: "Pay with {method}",
       approvedLine: "{method}: approved. The next drawing is open.",
+      customerFace: "/images/payments/customer-face.webp",
       credit: {
-        text: "The customer paying by face is \"Infinite\", a 3D head scan by Lee Perry-Smith, based on a work at triplegangers.com, used under",
-        licence: "CC BY 3.0",
-        url: "https://creativecommons.org/licenses/by/3.0/",
+        text: "The customer paying by face is Female_Adult_15 from Microsoft's Rocketbox avatars, her hair made blonde, used under the",
+        licence: "MIT licence",
+        url: "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md",
       },
       methods: {
         visa: "Visa, by chip and PIN",

@@ -44,12 +44,21 @@ export const stageReady = async (): Promise<Stage | null> => {
   return stage;
 };
 
-// What the payments counter needs, started as it comes near so its first payment never waits.
+// What the payments counter needs, started as it comes near so its first payment never waits: the stage, the hands,
+// and every material the counter shows, compiled once.
 export const preloadCheckout = (): void => {
   if (RENDERING.mode === "2d") {
     return;
   }
 
-  stageReady().catch(() => undefined);
   models.preload(...Object.values(HAND_MODELS));
+  stageReady()
+    .then(async (stage) => {
+      if (stage) {
+        const { warmCheckoutStage } = await import("@/packages/graphics/checkout-stage");
+
+        await warmCheckoutStage(stage);
+      }
+    })
+    .catch(() => undefined);
 };

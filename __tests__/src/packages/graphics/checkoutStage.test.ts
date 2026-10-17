@@ -1,7 +1,7 @@
 import { approvedAt, CHECKOUT_LAYOUT, checkoutAt, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
-import { CHECKOUT_MODELS, checkoutStageMap } from "@/packages/graphics/checkout-stage";
+import { CHECKOUT_MODELS, checkoutStageMap, warmCheckoutStage } from "@/packages/graphics/checkout-stage";
 import { handField, RIGHT_HAND } from "@/packages/graphics/hand";
-import type { ActorState, StageScene } from "@/packages/graphics/stage3d";
+import type { ActorState, Stage, StageScene } from "@/packages/graphics/stage3d";
 import { conjugate, rotate, vec3 } from "@/packages/math/space";
 
 const keys = keysFor("€18.40");
@@ -98,6 +98,26 @@ describe("the checkout on a 3D stage", () => {
           .forEach((actor) => expect({ gesture, step, id: actor.id, lowest: lowestOf(map.scene, actor) >= 0 }).toEqual({ gesture, step, id: actor.id, lowest: true }));
       }
     });
+  });
+
+  it("compiles every material a payment can show once per stage, in a scene the stage keeps", async () => {
+    const mounted: StageScene[] = [];
+    const stage = { mount: (scene: StageScene) => Promise.resolve(mounted.push(scene)).then(() => ({ id: mounted.length })) } as unknown as Stage;
+
+    await warmCheckoutStage(stage);
+    await warmCheckoutStage(stage);
+
+    expect(mounted).toHaveLength(1);
+
+    const [scene] = mounted;
+    const models = scene.actors.flatMap((actor) => actor.parts.flatMap((part) => (part.shape.kind === "model" ? [part.shape.model] : [])));
+    const cards = scene.actors.filter((actor) => actor.id.startsWith("card-"));
+
+    // Every hand wears the same skin, so the pointing hand and one holding hand cover it.
+    expect(new Set(models)).toEqual(new Set([CHECKOUT_MODELS.point, CHECKOUT_MODELS.card]));
+    expect(scene.actors.some((actor) => actor.id === "phone")).toBe(true);
+    expect(new Set(cards.map((card) => card.parts[0].material?.finish))).toEqual(new Set(["metal", "gloss", "matte", "frosted"]));
+    expect(cards.filter((card) => card.hiddenInside)).toHaveLength(4);
   });
 
   it("frames what the story's camera frames, and brightens the screen's glow as the payment is approved", () => {

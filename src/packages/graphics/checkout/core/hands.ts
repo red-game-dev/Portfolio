@@ -36,7 +36,7 @@ const SKINS: Record<Hand, Skin> = {
     light: "#f7d6b8", base: "#e2ae88", shade: "#b67b55", edge: "#8a4d33", crease: "rgba(118, 62, 38, 0.45)", nail: "#efc5b8", nailTip: "#fbeee6",
   },
   customer: {
-    light: "#cf9f77", base: "#a26e4a", shade: "#6c4228", edge: "#452515", crease: "rgba(44, 20, 9, 0.55)", nail: "#d6a893", nailTip: "#f2dccf",
+    light: "#f6d3b4", base: "#e0aa84", shade: "#b47853", edge: "#884c32", crease: "rgba(116, 60, 36, 0.45)", nail: "#eec3b5", nailTip: "#fbede5",
   },
 };
 

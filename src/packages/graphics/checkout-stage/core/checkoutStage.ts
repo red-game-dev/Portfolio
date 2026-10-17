@@ -3,7 +3,7 @@ import { CHECKOUT_LAYOUT, paintCardPicture, paintPhone, paintSweep } from "@/pac
 import type { CheckoutFrame, CheckoutSkin, CheckoutStage, Pose, ScreenState } from "@/packages/graphics/checkout";
 import { blendTurns, createHandPoser, HAND_MODELS, HAND_POSES, handField, handSkeleton, handSockets, RIGHT_HAND } from "@/packages/graphics/hand";
 import { keepCamera } from "@/packages/graphics/rig";
-import type { ActorPart, ActorSpec, ActorState, JointTurns, SceneHandle, Stage, StageFrame, StageScene } from "@/packages/graphics/stage3d";
+import type { ActorPart, ActorSpec, ActorState, Finish, JointTurns, SceneHandle, Stage, StageFrame, StageScene } from "@/packages/graphics/stage3d";
 import { attachBy, poseSkeleton, socketAt, socketBetween } from "@/packages/graphics/stage3d";
 import { clamp01 } from "@/packages/math/clamp";
 import { add, conjugate, dot, fromAxisAngle, IDENTITY, multiply, normalize, Quat, rotate, scale, sub, Vec3, vec3 } from "@/packages/math/space";
@@ -320,10 +320,54 @@ const phonePainter = (skin: CheckoutSkin) => {
   };
 };
 
+// Each card's face once painted, by its skin and whether it prints the portrait, so a payment never waits to paint it
+// again.
+const cardPictures = new Map<string, ReturnType<typeof paintCardPicture>>();
+
+const cardPictureOf = (skin: CheckoutSkin) => {
+  const key = `${skin.id}:${skin.look.portrait ? "portrait" : "plain"}`;
+
+  if (!cardPictures.has(key)) {
+    cardPictures.set(key, skin.look.card ? paintCardPicture(skin.look, skin.look.card) : null);
+  }
+
+  return cardPictures.get(key) ?? null;
+};
+
+const FINISHES: Finish[] = ["metal", "gloss", "matte", "frosted"];
+
+// Every material a payment's scene can hold, with the same lights: the hands, a card in each finish (as it is held
+// and as a reader cuts it) and a phone.
+const warmScene = (): StageScene => {
+  const look: CheckoutSkin["look"] = { gesture: "tap", app: 0, face: ["#000000", "#000000"], mark: { width: 1, height: 1, parts: [] } };
+  const base = checkoutScene({ id: "warm", look, amount: "", accent: "#ffffff" });
+  const cards = FINISHES.flatMap((finish) => [false, true].map((isCut): ActorSpec => ({
+    id: `card-${finish}-${isCut ? "cut" : "whole"}`,
+    castsShadow: true,
+    ...(isCut ? { hiddenInside: { x: BODY.x, y: BODY.y, width: BODY.width, height: BODY.height } } : {}),
+    parts: [{ shape: { kind: "plate", width: CARD.long, height: CARD.short, depth: 0.76, radius: CARD.radius }, material: { kind: "picture", picture: "warm", finish } }],
+  })));
+
+  return { ...base, actors: [...base.actors.filter((actor) => actor.id !== "card"), ...cards] };
+};
+
+const warmed = new WeakSet<Stage>();
+
+// Sets every material the counter can show up on the stage once and keeps it there, never drawn, so their shaders are
+// compiled and stay compiled: a payment's own scene then compiles nothing and is ready at once.
+export const warmCheckoutStage = async (stage: Stage): Promise<void> => {
+  if (warmed.has(stage)) {
+    return;
+  }
+
+  warmed.add(stage);
+  await stage.mount(warmScene());
+};
+
 // Sets the checkout's scene up on a stage and hands back what draws it each frame.
 export const bindCheckoutStage = async (stage: Stage, skin: CheckoutSkin): Promise<CheckoutStage> => {
   const map = checkoutStageMap(skin);
-  const card = skin.look.card ? paintCardPicture(skin.look, skin.look.card) : null;
+  const card = cardPictureOf(skin);
   const isPhone = skin.look.gesture === "scan" || skin.look.gesture === "wallet";
   const paintScreen = isPhone ? phonePainter(skin) : null;
   let sweepShown = -1;

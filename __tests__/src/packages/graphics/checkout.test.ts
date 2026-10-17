@@ -1,4 +1,4 @@
-import { amountShown, approvedAt, checkoutAt, keysFor, QUICK_STORY_MS, storyMs } from "@/packages/graphics/checkout";
+import { amountShown, approvedAt, checkoutAt, customerPoseAt, keysFor, QUICK_STORY_MS, STILL_CUSTOMER, storyMs } from "@/packages/graphics/checkout";
 import { CheckoutGesture } from "@/packages/graphics/checkout";
 
 const GESTURES: CheckoutGesture[] = ["insert", "tap", "swipe", "wallet", "scan", "face"];
@@ -126,5 +126,64 @@ describe("the checkout's story", () => {
     expect(keying.customerPoint).toBeNull();
     expect(Math.abs(keying.camera.x - 150)).toBeLessThan(6);
     expect(Math.abs(keying.camera.y - 80)).toBeLessThan(6);
+  });
+});
+
+describe("the customer paying by face", () => {
+  const moments = { asked: 3000, press: 4300, looked: 4900, matched: 6400, approved: 6850 };
+  const sample = (from: number, to: number, step = 20) =>
+    Array.from({ length: Math.floor((to - from) / step) + 1 }, (_, index) => customerPoseAt(from + index * step, moments));
+  const spread = (values: number[]) => Math.max(...values) - Math.min(...values);
+  const mean = (values: number[]) => values.reduce((total, value) => total + value, 0) / values.length;
+
+  it("is never still, yet moves as a person standing does: millimetres and degrees, never a jolt", () => {
+    const idle = sample(0, 2900);
+
+    expect(spread(idle.map((pose) => pose.side))).toBeGreaterThan(2);
+    expect(spread(idle.map((pose) => pose.lean))).toBeGreaterThan(2);
+    expect(spread(idle.map((pose) => pose.turn))).toBeGreaterThan(0.005);
+
+    const whole = sample(0, 9000, 10);
+
+    whole.forEach((pose) => {
+      expect(Math.abs(pose.side)).toBeLessThan(30);
+      expect(Math.abs(pose.lean)).toBeLessThan(50);
+      expect(Math.abs(pose.turn) + Math.abs(pose.nod) + Math.abs(pose.roll)).toBeLessThan(0.3);
+    });
+    // Ten milliseconds apart, no part of her moves more than a person can.
+    whole.slice(1).forEach((pose, index) => {
+      expect(Math.hypot(pose.side - whole[index].side, pose.lean - whole[index].lean, pose.rise - whole[index].rise)).toBeLessThan(1.5);
+    });
+  });
+
+  it("breathes about fifteen times a minute", () => {
+    const rises = sample(0, 8400, 10).map((pose) => pose.rise);
+    const peaks = rises.filter((rise, index) => index > 0 && index < rises.length - 1 && rise > rises[index - 1] && rise >= rises[index + 1]);
+
+    expect(peaks.length).toBe(2);
+  });
+
+  it("leans in to the screen as it asks, holds still while her face is read, and nods as it is approved", () => {
+    expect(mean(sample(3600, 4200).map((pose) => pose.lean))).toBeGreaterThan(mean(sample(1000, 2900).map((pose) => pose.lean)) + 10);
+    expect(spread(sample(5200, 6300).map((pose) => pose.side))).toBeLessThan(spread(sample(0, 2900).map((pose) => pose.side)) / 2);
+    expect(Math.max(...sample(6850, 7550).map((pose) => pose.nod))).toBeGreaterThan(Math.max(...sample(5200, 6300).map((pose) => pose.nod)) + 0.05);
+  });
+
+  it("blinks every few seconds, each blink over in a fifth of a second", () => {
+    const blinks = sample(0, 20000, 10).map((pose) => pose.blink);
+    const shut = blinks.filter((blink) => blink > 0.5).length * 10;
+    const starts = blinks.filter((blink, index) => blink > 0 && index > 0 && blinks[index - 1] === 0).length;
+
+    expect(starts).toBeGreaterThanOrEqual(4);
+    expect(starts).toBeLessThanOrEqual(8);
+    expect(shut / starts).toBeLessThan(200);
+  });
+
+  it("moves through the face story, and stands still in no other", () => {
+    const keys = keysFor("€18.40");
+    const poses = [0.3, 0.31, 0.6].map((t) => checkoutAt(t, "full", "face", 0, keys).customer);
+
+    expect(poses[0]).not.toEqual(poses[1]);
+    expect(checkoutAt(0.5, "full", "tap", 0, keys).customer).toEqual(STILL_CUSTOMER);
   });
 });

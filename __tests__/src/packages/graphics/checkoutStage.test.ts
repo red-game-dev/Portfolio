@@ -127,13 +127,13 @@ describe("the checkout on a 3D stage", () => {
     const cards = scene.actors.filter((actor) => actor.id.startsWith("card-"));
 
     // Every hand wears the same skin, so the pointing hand and one holding hand cover it; the customer's head too.
-    expect(new Set(models)).toEqual(new Set([CHECKOUT_MODELS.point, CHECKOUT_MODELS.card, CHECKOUT_MODELS.customer]));
+    expect(new Set(models)).toEqual(new Set([CHECKOUT_MODELS.point, CHECKOUT_MODELS.card, CHECKOUT_MODELS.customer, CHECKOUT_MODELS.customerBlink]));
     expect(scene.actors.some((actor) => actor.id === "phone")).toBe(true);
     expect(new Set(cards.map((card) => card.parts[0].material?.finish))).toEqual(new Set(["metal", "gloss", "matte", "frosted"]));
     expect(cards.filter((card) => card.hiddenInside)).toHaveLength(4);
   });
 
-  it("puts the customer paying by face between us and the terminal, at its right, her back to us and her face to its camera", () => {
+  it("puts the customer paying by face beside the terminal, her face to its camera, moving as she stands", () => {
     const map = checkoutStageMap(skinOf("face"));
     const customer = map.scene.actors.find((actor) => actor.id === "customer");
     const frames = Array.from({ length: 101 }, (_, step) => checkoutAt(step / 100, "full", "face", 0, keys));
@@ -150,13 +150,19 @@ describe("the checkout on a 3D stage", () => {
     }
 
     const facing = rotate(standing.rotation, vec3(0, 0, 1));
-    const camera = vec3(lens.x, -lens.y, 0);
-    const towardCamera = normalize(sub(camera, standing.position));
+    const towardCamera = normalize(sub(vec3(lens.x, -lens.y, 0), standing.position));
 
-    expect(standing.position.z).toBeGreaterThan(0);
     expect(standing.position.x).toBeGreaterThan(body.x + body.width);
-    expect(facing.z).toBeLessThan(0);
-    expect(dot(facing, towardCamera)).toBeGreaterThan(0.97);
+    expect(dot(facing, towardCamera)).toBeGreaterThan(0.95);
+    // Never still: she moves between frames, and blinks, her shut eyed head shown in her place for it.
+    expect(scanning.some((state) => state?.position.x !== standing.position.x)).toBe(true);
+
+    const story = Array.from({ length: 401 }, (_, step) => checkoutAt(step / 400, "full", "face", 0, keys)).filter((frame) => frame.screen.state !== "idle");
+    const heads = story.map((frame) => [actorOf(map.frameOf(frame), "customer")?.isShown, actorOf(map.frameOf(frame), "customer-blink")?.isShown]);
+
+    expect(heads.every(([open, shut]) => open !== shut)).toBe(true);
+    expect(story.filter((frame, index) => heads[index][1]).every((frame) => frame.customer.blink > 0.5)).toBe(true);
+    expect(heads.some(([, shut]) => shut)).toBe(true);
     expect(actorOf(map.frameOf(checkoutAt(null, "full", "face", 0, keys)), "customer")?.isShown).toBe(false);
     expect(checkoutStageMap(skinOf("tap")).scene.actors.some((actor) => actor.id === "customer")).toBe(false);
   });

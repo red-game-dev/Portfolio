@@ -1,6 +1,7 @@
 import { clamp01 } from "@/packages/math/clamp";
 
-import { CheckoutCamera, CheckoutFrame, CheckoutGesture, CheckoutTrail, CheckoutVariant, Pose, ScreenState } from "../domain/types";
+import { CheckoutCamera, CheckoutFrame, CheckoutGesture, CheckoutTrail, CheckoutVariant, CustomerMoments, Pose, ScreenState } from "../domain/types";
+import { customerPoseAt, STILL_CUSTOMER } from "./customer";
 import { appCentre, BODY, CARD, keyCentre, OK_KEY, SCENE, SMILE_BUTTON, STRIPE } from "./geometry";
 
 // The story of one payment, timed in milliseconds at a real counter's pace and read as a share of its length (0
@@ -291,6 +292,8 @@ interface Built {
   camera: Array<Key<CheckoutCamera>>;
   // How much the camera follows the fingertip on the screen, 0 to 1.
   follow: Array<Key<number>>;
+  // What the story asks of the customer paying by face, and when.
+  customer: CustomerMoments | null;
 }
 
 // A key pressed: the fingertip over it, pressed into the glass, then lifted a little on its way to the next.
@@ -365,6 +368,7 @@ const build = (variant: CheckoutVariant, gesture: CheckoutGesture, app: number, 
     printed: [0, 0],
     camera: [[0, WIDE]],
     follow: [[0, 0]],
+    customer: null,
   };
   // The customer moves as the app opens; the quick story starts with the screen already asking.
   const start = isFull ? keyIn(built, app, keys) + 40 : 0;
@@ -392,6 +396,7 @@ const build = (variant: CheckoutVariant, gesture: CheckoutGesture, app: number, 
     processing = matched;
     approved = matched + pace.answer.face;
     settled = approved;
+    built.customer = { asked: start, press: reach, looked, matched, approved };
   } else if (gesture === "insert") {
     // Into the reader, then (in the full story) the PIN on the screen with the other hand, then out again.
     const inserted = reach + pace.insert;
@@ -509,6 +514,7 @@ const WAITING: Omit<CheckoutFrame, "screen"> = {
   camera: WIDE,
   trail: [],
   hold: 0,
+  customer: STILL_CUSTOMER,
 };
 
 // The scene at a share of the story (null for waiting, before or after a payment).
@@ -547,5 +553,6 @@ export const checkoutAt = (t: number | null, variant: CheckoutVariant, gesture: 
     camera: fingertip ? { ...base, x: base.x + (fingertip.x - base.x) * follow, y: base.y + (fingertip.y - base.y) * follow } : base,
     trail: TRAIL_MS.map((back) => partsAt(story, gesture, Math.max(0, ms - back))),
     hold: holdOf(story.gripFollows, ms),
+    customer: story.customer ? customerPoseAt(ms, story.customer) : STILL_CUSTOMER,
   };
 };

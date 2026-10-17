@@ -80,7 +80,8 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
     create: async (context) => {
       const [checkout, { decodeImage }] = await Promise.all([import("@/packages/graphics/checkout"), import("@/packages/browser/images")]);
       const [picture, customer] = await Promise.all([portrait, seen].map((url) => (url ? decodeImage(url).catch(() => null) : null)));
-      const dressed: CheckoutSkin = { ...skin, look: { ...skin.look, ...(picture ? { portrait: picture } : {}), ...(customer ? { customer } : {}) } };
+      const sprite = customer ? { picture: customer, width: customer.naturalWidth, height: customer.naturalHeight } : null;
+      const dressed: CheckoutSkin = { ...skin, look: { ...skin.look, ...(picture ? { portrait: picture } : {}), ...(sprite ? { customer: sprite } : {}) } };
       const flat = new checkout.CheckoutActor(context, { model: checkout.createCheckoutModel(dressed, variant), skins: [dressed], framesPerSecond: 60 });
 
       if (isStill) {

@@ -64,6 +64,12 @@ const encode = (frame: CheckoutFrame): RigChannels => {
     cameraX: frame.camera.x,
     cameraY: frame.camera.y,
     cameraZoom: frame.camera.zoom,
+    customerLean: frame.customer.lean,
+    customerSide: frame.customer.side,
+    customerRise: frame.customer.rise,
+    customerTurn: frame.customer.turn,
+    customerNod: frame.customer.nod,
+    customerBlink: frame.customer.blink,
   };
 
   PARTS.forEach((part) => {
@@ -240,6 +246,15 @@ export const createCheckoutModel = (skin: CheckoutSkin, variant: CheckoutVariant
           pressed: channels.pressed >= 0 ? channels.pressed : null,
           spinner: channels.spinner,
           scan: channels.sweep,
+          customer: {
+            lean: channels.customerLean,
+            side: channels.customerSide,
+            rise: channels.customerRise,
+            turn: channels.customerTurn,
+            nod: channels.customerNod,
+            roll: 0,
+            blink: channels.customerBlink,
+          },
         }),
       },
       { id: "glass", bounds: SCREEN, paint: (context) => paintGlass(context) },

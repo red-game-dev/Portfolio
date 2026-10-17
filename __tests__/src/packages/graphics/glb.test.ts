@@ -82,4 +82,17 @@ describe("a binary glTF", () => {
     expect(Array.from(asset.parts[0].mesh.positions)).toEqual([0, 0, 0, 10, 0, 0, 0, 10, 0]);
     await expect(source.load("other")).rejects.toThrow("No model file");
   });
+
+  it("fetches a file once for every model it holds", async () => {
+    const fetcher = jest.fn(() => Promise.resolve(triangleGlb()));
+    const source = new GlbModelSource({
+      open: { url: "/one.glb", parts: { skin: { kind: "skin" } } },
+      shut: { url: "/one.glb", parts: { spare: { kind: "skin" } } },
+    }, fetcher);
+    const [open, shut] = await Promise.all([source.load("open"), source.load("shut")]);
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(open.parts.map((part) => part.name)).toEqual(["skin"]);
+    expect(shut.parts.map((part) => part.name)).toEqual(["spare"]);
+  });
 });

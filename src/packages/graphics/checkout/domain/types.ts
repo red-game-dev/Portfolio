@@ -48,8 +48,37 @@ export interface CheckoutLook {
   // A card's own design, and the holder's portrait for one that prints it; a card without one is printed plainly.
   card?: CardDesign;
   portrait?: CanvasImageSource | null;
-  // Paying by face: the customer as the terminal's front camera sees them.
-  customer?: CanvasImageSource | null;
+  // Paying by face: the customer as the terminal's front camera sees her.
+  customer?: CustomerSprite | null;
+}
+
+// A picture of the customer in frames side by side: her eyes open, then shut.
+export interface CustomerSprite {
+  picture: CanvasImageSource;
+  width: number;
+  height: number;
+}
+
+// When the story asks things of the customer paying by face (milliseconds into it): the screen asking her to pay, her
+// tap, the read of her face from start to match, and the approval.
+export interface CustomerMoments {
+  asked: number;
+  press: number;
+  looked: number;
+  matched: number;
+  approved: number;
+}
+
+// How she stands at a moment, from where she stands: leaning towards what she faces, to her side and up (millimetres);
+// her head turned, nodded down and tilted (radians); her eyes 0 open to 1 shut.
+export interface CustomerPose {
+  lean: number;
+  side: number;
+  rise: number;
+  turn: number;
+  nod: number;
+  roll: number;
+  blink: number;
 }
 
 // A skin dresses the scene for one way to pay: what the customer holds, the app, the total on the screen, and
@@ -116,6 +145,8 @@ export interface CheckoutFrame {
   trail: CheckoutTrail[];
   // How much the customer's hand holds what it carries: 1 holding, 0 let go (a card left in the reader).
   hold: number;
+  // The customer paying by face, never quite still.
+  customer: CustomerPose;
 }
 
 // What draws the checkout's hands and what the customer holds on a 3D stage, from outside this package: each frame

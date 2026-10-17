@@ -1,6 +1,6 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 
-import { CheckoutLook, CheckoutSkin, MarkShape, ScreenState } from "../domain/types";
+import { CheckoutLook, CheckoutSkin, CustomerPose, CustomerSprite, MarkShape, ScreenState } from "../domain/types";
 import { paintCardFace } from "./cardFace";
 import {
   amountShown, APP_TILE, appCentre, BODY, CAMERA, CARD, COUNTER_TOP, KEYPAD, keyCentre, OK_KEY, PHONE, SCREEN, SMILE_BUTTON, STAND, STRIPE,
@@ -339,8 +339,9 @@ export interface ScreenView {
   pin: number;
   pressed: number | null;
   spinner: number;
-  // How far the camera has got matching a face, 0 to 1.
+  // How far the camera has got matching a face, 0 to 1, and the customer it sees, as she moves.
   scan: number;
+  customer?: CustomerPose;
 }
 
 // The terminal's camera reading the customer's face to pay by it: what it sees across the screen, darkened outside the
@@ -371,7 +372,28 @@ const paintLineFace = (context: Canvas2DContext, centre: number, cy: number, pro
   context.stroke();
 };
 
-const paintFaceCamera = (context: Canvas2DContext, accent: string, centre: number, top: number, scan: number | null, seen?: CanvasImageSource | null) => {
+// How the customer's movements move her in the front camera's view: picture units on the screen per millimetre she moves
+// across it or up, per radian she turns or nods, and the growth per millimetre she leans in.
+const SEEN_SHIFT = { perMm: 0.23, perTurn: 34, perNod: 18, perLean: 0.004 } as const;
+
+const paintSeen = (context: Canvas2DContext, seen: CustomerSprite, pose: CustomerPose | undefined) => {
+  const { x, y, width, height } = SCREEN;
+  const frame = (pose?.blink ?? 0) > 0.5 ? 1 : 0;
+  const frameWidth = seen.width / 2;
+  // As she sees herself: the picture is mirrored, so moving to her side moves her the same way on the screen.
+  const dx = pose ? pose.side * SEEN_SHIFT.perMm + pose.turn * SEEN_SHIFT.perTurn : 0;
+  const dy = pose ? -pose.rise * SEEN_SHIFT.perMm + pose.nod * SEEN_SHIFT.perNod : 0;
+  const grow = pose ? 1 + pose.lean * SEEN_SHIFT.perLean : 1;
+  const drawnWidth = width * grow;
+  const drawnHeight = height * grow;
+
+  context.drawImage(seen.picture, frame * frameWidth, 0, frameWidth, seen.height,
+    x + (width - drawnWidth) / 2 + dx, y + (height - drawnHeight) / 2 + dy, drawnWidth, drawnHeight);
+};
+
+const paintFaceCamera = (
+  context: Canvas2DContext, accent: string, centre: number, top: number, scan: number | null, seen?: CustomerSprite | null, pose?: CustomerPose,
+) => {
   const cy = top + FACE.offset;
   const { rx, ry } = FACE;
   const progress = scan ?? 0;
@@ -380,9 +402,11 @@ const paintFaceCamera = (context: Canvas2DContext, accent: string, centre: numbe
   if (scan !== null && seen) {
     const { x, y, width, height } = SCREEN;
 
-    // The front camera's view, the customer as they see themselves, dark outside the guide.
-    context.drawImage(seen, x, y, width, height);
-    context.fillStyle = "rgba(4, 12, 10, 0.62)";
+    // The front camera's view, the customer as she sees herself, moving as she does, dark outside the guide.
+    context.fillStyle = "#0a1411";
+    context.fillRect(x, y, width, height);
+    paintSeen(context, seen, pose);
+    context.fillStyle = "rgba(4, 12, 10, 0.42)";
     context.beginPath();
     context.rect(x, y, width, height);
     context.ellipse(centre, cy, rx, ry, 0, 0, Math.PI * 2);
@@ -604,7 +628,7 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
     });
     paintKeypad(context, accent, pressed);
   } else if (state === "face") {
-    paintFaceCamera(context, accent, centre, y + 6, view.scan, look.customer);
+    paintFaceCamera(context, accent, centre, y + 6, view.scan, look.customer, view.customer);
     total(context, amount, centre, y + 12, 9, "rgba(234, 255, 247, 0.85)", accent);
   } else if (state === "processing") {
     total(context, amount, centre, y + 18, 11, "rgba(234, 255, 247, 0.8)", accent);

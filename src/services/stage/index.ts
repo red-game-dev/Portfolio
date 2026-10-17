@@ -1,5 +1,5 @@
 import { RENDERING } from "@/config/rendering";
-import { CUSTOMER_MODEL } from "@/packages/graphics/checkout-stage";
+import { CUSTOMER_BLINK_MODEL, CUSTOMER_MODEL } from "@/packages/graphics/checkout-stage";
 import { HAND_MODELS } from "@/packages/graphics/hand";
 import { GlbModelSource, ModelRegistry, Stage, StageService, WorkerModelSource } from "@/packages/graphics/stage3d";
 
@@ -20,18 +20,19 @@ Object.values(HAND_MODELS).forEach((model) => models.register(model, inWorker));
 // and credited where she shows), cut to her head and shoulders, fetched as a file with its pictures, in millimetres.
 const CUSTOMER_FILES = "/models/customer";
 
+const CUSTOMER_LOOK = {
+  head: { kind: "cloth", image: `${CUSTOMER_FILES}/head.jpg`, roughness: 0.6 },
+  hair: { kind: "cloth", image: `${CUSTOMER_FILES}/hair.webp`, cutout: 0.4, isDoubleSided: true, roughness: 0.55 },
+  body: { kind: "cloth", image: `${CUSTOMER_FILES}/body.jpg`, roughness: 0.85 },
+} as const;
+
+// One file holds her with her eyes open and shut (its head again as `headBlink`), fetched once for both.
 const fromFiles = new GlbModelSource({
-  [CUSTOMER_MODEL]: {
-    url: `${CUSTOMER_FILES}/customer.glb`,
-    parts: {
-      head: { kind: "cloth", image: `${CUSTOMER_FILES}/head.jpg`, roughness: 0.6 },
-      hair: { kind: "cloth", image: `${CUSTOMER_FILES}/hair.webp`, cutout: 0.4, isDoubleSided: true, roughness: 0.55 },
-      body: { kind: "cloth", image: `${CUSTOMER_FILES}/body.jpg`, roughness: 0.85 },
-    },
-  },
+  [CUSTOMER_MODEL]: { url: `${CUSTOMER_FILES}/customer.glb`, parts: CUSTOMER_LOOK },
+  [CUSTOMER_BLINK_MODEL]: { url: `${CUSTOMER_FILES}/customer.glb`, parts: { headBlink: CUSTOMER_LOOK.head, hair: CUSTOMER_LOOK.hair, body: CUSTOMER_LOOK.body } },
 });
 
-models.register(CUSTOMER_MODEL, fromFiles);
+[CUSTOMER_MODEL, CUSTOMER_BLINK_MODEL].forEach((model) => models.register(model, fromFiles));
 
 const stages = new StageService(RENDERING.mode === "2d" ? [] : [
   async () => new (await import("@/packages/graphics/stage3d-three")).ThreeStage(models),
@@ -69,7 +70,7 @@ export const preloadCheckout = (): void => {
     return;
   }
 
-  models.preload(...Object.values(HAND_MODELS), CUSTOMER_MODEL);
+  models.preload(...Object.values(HAND_MODELS), CUSTOMER_MODEL, CUSTOMER_BLINK_MODEL);
   stageReady()
     .then(async (stage) => {
       if (stage) {

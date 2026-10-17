@@ -36,15 +36,16 @@ export const HAND_POSES = {
     },
     thumb: { curl: [15.5, 16, 6], across: 26, roll: 0 },
   },
-  // Holding a phone by its top corner, its screen to the viewer: the fingers behind it, the thumb on its face.
+  // Holding a phone from the bottom, its screen to the viewer and its top left free for the camera and NFC: the
+  // fingers behind it, the thumb on its face low down.
   phone: {
     fingers: {
-      index: { curl: [39.5, 34, 13.75] },
-      middle: { curl: [18, 30, 15], splay: -2 },
-      ring: { curl: [42, 33, 17], splay: -3 },
-      pinky: { curl: [54, 34, 17], splay: -4 },
+      index: { curl: [21.875, 41.25, 23.25] },
+      middle: { curl: [37.75, 34.25, 21.75], splay: -2 },
+      ring: { curl: [51.75, 37.25, 23.75], splay: -3 },
+      pinky: { curl: [59.75, 38.25, 23.75], splay: -4 },
     },
-    thumb: { curl: [-7.25, 36.5, 16], across: 23, roll: 0 },
+    thumb: { curl: [7.5, 17, 11.25], across: 25, roll: 3.375 },
   },
 } satisfies Record<string, HandPose>;
 

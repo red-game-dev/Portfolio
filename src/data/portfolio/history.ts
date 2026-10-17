@@ -843,7 +843,7 @@ export const historyContent: Pick<PortfolioData, "historyLabels" | "experience" 
         "Tables, tabs, split bills and tips, one stock across outlets and the online store, and fiscal receipts where the law asks",
         "Selling on through an outage: sales synced once each, and cards taken offline under a floor limit and sent on later",
         "My own gateway in front of PSPs and an acquirer: routing with fail over, PSP and network tokens, a double entry ledger",
-        "Visa, Mastercard, Amex, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Alipay, WeChat Pay and crypto",
+        "Visa, Mastercard, Amex, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Alipay, WeChat Pay, GCash, Maya and crypto",
         "SDKs for .NET, Vue, Angular, PHP frameworks and more, for the developers building on it",
         "The first core in C/C++, with bindings to Python, PHP and JavaScript for speed",
       ],

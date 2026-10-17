@@ -15,7 +15,7 @@ const skinOf = (gesture: CheckoutSkin["look"]["gesture"]): CheckoutSkin => ({
 
 const actorOf = (frame: ReturnType<ReturnType<typeof checkoutStageMap>["frameOf"]>, id: string) => frame.actors.find((actor) => actor.id === id);
 
-const GESTURES = ["tap", "wallet", "scan", "insert", "swipe"] as const;
+const GESTURES = ["tap", "wallet", "scan", "insert", "swipe", "face"] as const;
 
 // How near the glass a hand's flesh comes: its lowest point in stage space, from the hand's field in the pose it holds.
 const lowestOf = (scene: StageScene, state: ActorState): number => {

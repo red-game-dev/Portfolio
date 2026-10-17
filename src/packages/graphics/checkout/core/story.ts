@@ -132,6 +132,8 @@ const ITEM_REST: Record<CheckoutGesture, Pose> = {
   scan: { x: 370, y: 185, angle: 0.3, scale: 1.1 },
   insert: { x: 330, y: 280, angle: 0.4, scale: 1.1 },
   swipe: { x: 240, y: -70, angle: 0.15, scale: 1.1 },
+  // Nothing is held to pay by face.
+  face: { x: 375, y: 300, angle: 0, scale: 1.1 },
 };
 
 const portraitHalf = CARD.long / 2;
@@ -140,7 +142,8 @@ const ITEM_AT: Record<CheckoutGesture, Pose[]> = {
   // Over the contactless sign in the middle of the screen, then pressed to the glass, tilted as a hand coming from the
   // lower right holds it.
   tap: [{ x: 153, y: 77, angle: -0.4, scale: 1.02 }, { x: 153, y: 79, angle: -0.38, scale: 0.99 }],
-  wallet: [{ x: 152, y: 82, angle: -0.08, scale: 1.02 }, { x: 152, y: 84, angle: -0.06, scale: 0.99 }],
+  // A phone's top, where its NFC is, over the contactless sign, the hand holding it from below.
+  wallet: [{ x: 152, y: 112, angle: -0.08, scale: 1.02 }, { x: 152, y: 114, angle: -0.06, scale: 0.99 }],
   // Held up beside the screen, its camera on the QR code, low enough that the whole phone and the hand at its top show.
   scan: [{ x: 214, y: 94, angle: -0.2, scale: 1.04 }, { x: 213, y: 95, angle: -0.19, scale: 1.03 }],
   // Under the chip reader at the foot, then pushed up into it.
@@ -153,6 +156,7 @@ const ITEM_AT: Record<CheckoutGesture, Pose[]> = {
     { x: STRIPE.x + 13, y: STRIPE.top - 4, angle: 0, scale: 1, isGuided: true },
     { x: STRIPE.x + 13, y: STRIPE.bottom + 4, angle: 0, scale: 1, isGuided: true },
   ],
+  face: [{ x: 375, y: 300, angle: 0, scale: 1.1 }, { x: 375, y: 300, angle: 0, scale: 1.1 }],
 };
 
 const SWIPED_AWAY: Pose = { x: 250, y: 290, angle: 0.3, scale: 1.1 };
@@ -162,7 +166,7 @@ const SWIPED_AWAY: Pose = { x: 250, y: 290, angle: 0.3, scale: 1.1 };
 const gripOf = (gesture: CheckoutGesture, item: Pose): Pose => {
   const isPortrait = gesture === "insert" || gesture === "swipe";
   const isPhone = gesture === "wallet" || gesture === "scan";
-  const offset = isPortrait ? { x: 2, y: portraitHalf - 5 } : isPhone ? { x: 13, y: 30 } : { x: CARD.long / 2 - 7, y: 2 };
+  const offset = isPortrait ? { x: 2, y: portraitHalf - 5 } : isPhone ? { x: 16, y: 40 } : { x: CARD.long / 2 - 7, y: 2 };
   const turn = isPortrait ? 1.2 : isPhone ? 0.55 : 0;
   const cos = Math.cos(item.angle);
   const sin = Math.sin(item.angle);
@@ -182,9 +186,10 @@ interface Pace {
   hold: Record<"tap" | "wallet" | "scan", number>;
   // From the card read (or the PIN confirmed) to the bank's answer.
   answer: Record<CheckoutGesture, number>;
-  // Pushing a card into the reader, and swiping it down the stripe.
+  // Pushing a card into the reader, swiping it down the stripe, and the terminal's camera matching a face.
   insert: number;
   swipe: number;
+  face: number;
   // What the customer holds, back off the scene.
   back: number;
   print: number;
@@ -195,9 +200,10 @@ interface Pace {
 const FULL: Pace = {
   reach: 760,
   hold: { tap: 720, wallet: 820, scan: 900 },
-  answer: { tap: 650, wallet: 600, scan: 700, swipe: 900, insert: 1100 },
+  answer: { tap: 650, wallet: 600, scan: 700, swipe: 900, insert: 1100, face: 450 },
   insert: 420,
   swipe: 480,
+  face: 1500,
   back: 620,
   print: 700,
   linger: 1100,
@@ -206,9 +212,10 @@ const FULL: Pace = {
 const QUICK: Pace = {
   reach: 300,
   hold: { tap: 260, wallet: 280, scan: 300 },
-  answer: { tap: 150, wallet: 150, scan: 170, swipe: 220, insert: 260 },
+  answer: { tap: 150, wallet: 150, scan: 170, swipe: 220, insert: 260, face: 150 },
   insert: 120,
   swipe: 150,
+  face: 500,
   back: 320,
   print: 300,
   linger: 0,
@@ -236,10 +243,11 @@ const ON_PIN: CheckoutCamera = { x: 150, y: 84, zoom: 1.45 };
 
 const MEET_CAMERA: Record<CheckoutGesture, CheckoutCamera> = {
   tap: { x: 160, y: 80, zoom: 1.38 },
-  wallet: { x: 160, y: 84, zoom: 1.36 },
+  wallet: { x: 160, y: 100, zoom: 1.36 },
   scan: { x: 182, y: 86, zoom: 1.28 },
   swipe: { x: 178, y: 98, zoom: 1.3 },
   insert: { x: 150, y: 132, zoom: 1.32 },
+  face: { x: 150, y: 78, zoom: 1.45 },
 };
 
 // The most the camera zooms in, for the rig to cache its frames sharp enough.
@@ -368,7 +376,17 @@ const build = (variant: CheckoutVariant, gesture: CheckoutGesture, app: number, 
 
   built.camera.push([reach, isFull ? MEET_CAMERA[gesture] : { ...MEET_CAMERA[gesture], zoom: QUICK_ZOOM }]);
 
-  if (gesture === "insert") {
+  if (gesture === "face") {
+    // Nothing is held: the customer looks at the terminal's camera, which matches their face, and the bank answers.
+    const matched = reach + pace.face;
+
+    built.screen.push([reach, "face"]);
+    built.sweep = [reach, matched];
+    built.item = [[0, rest]];
+    processing = matched;
+    approved = matched + pace.answer.face;
+    settled = approved;
+  } else if (gesture === "insert") {
     // Into the reader, then (in the full story) the PIN on the screen with the other hand, then out again.
     const inserted = reach + pace.insert;
 

@@ -194,17 +194,21 @@ export const paintCardFace = (context: Canvas2DContext, look: CheckoutLook, desi
   paintChip(context, 6.5, 13);
   paintContactless(context, 22, 16.5, design.ink);
 
-  // The issuer's monogram at the top, its letter in a fine ring.
-  context.strokeStyle = design.ink;
-  context.fillStyle = design.ink;
-  context.lineWidth = 0.4;
-  context.beginPath();
-  context.arc(9, 6.5, 3.2, 0, Math.PI * 2);
-  context.stroke();
-  context.font = `700 4.4px ${FONT}`;
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.fillText("R", 9, 6.7);
+  // The issuer at the top: its own mark, or a monogram, its letter in a fine ring.
+  if (design.issuer === "mark" && design.issuerMark) {
+    paintMark(context, design.issuerMark, { x: 5.5, y: 3.5, width: 15, height: 6.5 });
+  } else {
+    context.strokeStyle = design.ink;
+    context.fillStyle = design.ink;
+    context.lineWidth = 0.4;
+    context.beginPath();
+    context.arc(9, 6.5, 3.2, 0, Math.PI * 2);
+    context.stroke();
+    context.font = `700 4.4px ${FONT}`;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText("R", 9, 6.7);
+  }
 
   // The number's last four and the holder, etched (a darker cut with a lit edge) on metal, printed otherwise.
   const write = (text: string, x: number, y: number, size: number, weight: number) => {

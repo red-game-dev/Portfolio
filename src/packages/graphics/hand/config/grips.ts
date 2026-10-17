@@ -6,7 +6,7 @@ import { HAND_POSES } from "./poses";
 // How the right hand holds what it holds. Each was found by searching the pose and the thing's place in the hand
 // together, scored by sampling the thing's whole volume against the hand's flesh: no flesh inside it anywhere, the
 // thumb's pad on its face (towards the viewer), a finger on its back, most of it showing, and the arm running the way
-// the picture needs. A test holds each to that, so a change to the hand's anatomy or a pose that would let a finger
+// the picture needs (a phone's top kept clear of the hand, for its camera and NFC). A test holds each to that, so a change to the hand's anatomy or a pose that would let a finger
 // pass through a card fails there. Places are in the hand's millimetres, the hand in the grip's pose.
 export const HAND_GRIPS = {
   // A card held to a screen by its corner, between the thumb and the side of the curled index finger.
@@ -25,12 +25,12 @@ export const HAND_GRIPS = {
     face: vec3(0.9838, -0.1119, -0.1399),
     size: { width: 85.7, height: 54.3, thickness: 1.09 },
   },
-  // A phone the size of a real one, held by its top corner, its screen showing.
+  // A phone the size of a real one, held from the bottom, its screen showing and its top half clear of the hand.
   phone: {
     pose: HAND_POSES.phone,
-    centre: vec3(6.26, 66.7, -82.92),
-    along: vec3(-0.2176, -0.6161, 0.757),
-    face: vec3(-0.9251, -0.1171, -0.3613),
+    centre: vec3(-10.54, 142.47, -85.67),
+    along: vec3(-0.6981, 0.1332, 0.7035),
+    face: vec3(-0.686, -0.4058, -0.6039),
     size: { width: 71.4, height: 147.1, thickness: 7.9 },
   },
 } satisfies Record<string, HandGrip>;

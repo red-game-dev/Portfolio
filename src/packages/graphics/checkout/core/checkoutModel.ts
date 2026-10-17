@@ -13,7 +13,7 @@ import {
 } from "./hands";
 import { CASHIER_ANGLE, checkoutAt, MAX_ZOOM, POINT_ANGLE } from "./story";
 
-const STATES: ScreenState[] = ["idle", "keying", "apps", "ask", "pin", "processing", "approved"];
+const STATES: ScreenState[] = ["idle", "keying", "apps", "ask", "pin", "processing", "approved", "face"];
 
 // Not drawn at all while it is not in the story.
 const HIDDEN: RigMotion = { opacity: 0 };
@@ -25,7 +25,7 @@ const ITEM_BOUNDS = { x: -60, y: -60, width: 120, height: 120 };
 const RECEIPT_TRAVEL = 34;
 
 // The turn the holding hand is mostly drawn at for each way to pay, for its light.
-const GRIP_ANGLE: Record<CheckoutGesture, number> = { tap: -0.05, wallet: 0.47, scan: 0.36, insert: 1.2, swipe: 1.2 };
+const GRIP_ANGLE: Record<CheckoutGesture, number> = { tap: -0.05, wallet: 0.47, scan: 0.36, insert: 1.2, swipe: 1.2, face: 0 };
 
 const PARTS = ["cashier", "grip", "point", "item"] as const;
 
@@ -239,6 +239,7 @@ export const createCheckoutModel = (skin: CheckoutSkin, variant: CheckoutVariant
           pin: channels.pin,
           pressed: channels.pressed >= 0 ? channels.pressed : null,
           spinner: channels.spinner,
+          scan: channels.sweep,
         }),
       },
       { id: "glass", bounds: SCREEN, paint: (context) => paintGlass(context) },

@@ -14,7 +14,7 @@ export const paymentsContent: Pick<PortfolioData, "payments"> = {
       hint: "You are the customer: pick how to pay. The cashier rings it up and opens the app for it, you pay at the terminal, " +
         "and each payment opens the next drawing.",
       amount: "€18.40",
-      groups: { cards: "Cards", wallets: "Phone wallets", qr: "QR apps", crypto: "Crypto" },
+      groups: { new: "New at the counter", cards: "Cards", wallets: "Phone wallets", qr: "QR apps", crypto: "Crypto" },
       payWith: "Pay with {method}",
       approvedLine: "{method}: approved. The next drawing is open.",
       methods: {
@@ -24,11 +24,14 @@ export const paymentsContent: Pick<PortfolioData, "payments"> = {
         discover: "Discover, contactless",
         jcb: "JCB, by chip and PIN",
         diners: "Diners Club, swiped",
+        ramp: "Ramp, contactless",
         applePay: "Apple Pay",
         googlePay: "Google Pay",
         paypal: "PayPal, by QR code",
         alipay: "Alipay, by QR code",
         wechat: "WeChat Pay, by QR code",
+        gcash: "GCash, by QR code",
+        maya: "Maya, by QR code",
         bitcoin: "Bitcoin, by QR code",
         ethereum: "Ethereum, by QR code",
         solana: "Solana, by QR code",
@@ -37,6 +40,7 @@ export const paymentsContent: Pick<PortfolioData, "payments"> = {
         bnb: "BNB Chain, by QR code",
         usdc: "USDC, by QR code",
         usdt: "USDT, by QR code",
+        revolut: "Revolut, by face",
       },
     },
     caseStudies: {

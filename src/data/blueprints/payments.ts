@@ -337,7 +337,7 @@ const blueprints: Blueprint[] = [
       "settlement files read back and reconciled, and chargebacks booked.",
     summary: {
       role: "Founder, CEO and CTO of my own payments company: designed and built the gateway, its API and SDKs, and the money behind it",
-      scale: "Visa, Mastercard, Amex, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Alipay, WeChat Pay and crypto, for " +
+      scale: "Visa, Mastercard, Amex, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Alipay, WeChat Pay, GCash, Maya and crypto, for " +
         "merchants in Malta, across the EU and beyond",
       stack: ["C/C++", "Python", "PHP", "JavaScript", "TypeScript", "Node.js", "PostgreSQL", "Redis", ".NET", "Vue", "Angular"],
     },

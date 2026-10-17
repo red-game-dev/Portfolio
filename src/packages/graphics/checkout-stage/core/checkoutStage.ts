@@ -38,7 +38,7 @@ const LIFT = { at: 1.5, perScale: 400 } as const;
 const HELD = { at: 10, perScale: 700, clearance: 2 } as const;
 
 // The screen's glow for each of its states.
-const GLOW: Record<ScreenState, number> = { idle: 160, keying: 200, apps: 200, ask: 240, pin: 220, processing: 300, approved: 480 };
+const GLOW: Record<ScreenState, number> = { idle: 160, keying: 200, apps: 200, ask: 240, pin: 220, face: 280, processing: 300, approved: 480 };
 
 const TOWARD_VIEWER = vec3(0, 0, 1);
 
@@ -145,7 +145,7 @@ const HIDDEN = (id: string): ActorState => ({ id, isShown: false, position: vec3
 
 // The grip the customer's hand holds each thing in, each found so that no flesh passes into it: a card held to the
 // screen by its corner; a card going into a reader (up into the chip reader, down the stripe) by its lower end, the arm
-// below and to the right; a phone from above.
+// below and to the right; a phone from the bottom, its top left clear for the camera and NFC.
 const gripOf = (gesture: CheckoutSkin["look"]["gesture"]): HandGrip => {
   if (isPhoneGesture(gesture)) {
     return HAND_GRIPS.phone;

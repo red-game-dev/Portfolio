@@ -5,7 +5,7 @@ import type { MarkShape } from "@/packages/graphics/checkout";
 
 // Every way to pay's mark as path data, so the buttons (as SVG) and the checkout (on canvas) draw the same one: the
 // free Font Awesome brand icon in the mark's colour, or, where the free set has none, one drawn here in its own
-// colours on a 24 unit grid (Mastercard's on a 40 by 24 one).
+// colours on a 24 unit grid (Mastercard's on a 40 by 24 one, Maya's wordmark on a 45 by 24 one).
 
 const circle = (cx: number, cy: number, r: number) => `M${cx - r},${cy}a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 ${-r * 2},0Z`;
 
@@ -61,6 +61,47 @@ const DRAWN: Partial<Record<PaymentMethodId, MarkShape>> = {
       { d: "M12 22L8.8 18.8L10.4 17.2L12 18.8L13.6 17.2L15.2 18.8Z", fill: "#f3ba2f" },
       { d: "M2 12L4.2 9.8L6.4 12L4.2 14.2Z", fill: "#f3ba2f" },
       { d: "M22 12L19.8 14.2L17.6 12L19.8 9.8Z", fill: "#f3ba2f" },
+    ],
+  },
+  // GCash's white G, its bar reaching in from the right.
+  gcash: {
+    width: 24,
+    height: 24,
+    parts: [{ d: "M17.3 6.7A7.5 7.5 0 1 0 19.5 12H13", stroke: "#ffffff", strokeWidth: 3 }],
+  },
+  // Maya's lowercase wordmark in white: its m's two arches, a round a, the y and the a again.
+  maya: {
+    width: 45,
+    height: 24,
+    parts: [{
+      d: "M4 17V9.5M4 12.5A2.5 2.5 0 0 1 9 12.5V17M9 12.5A2.5 2.5 0 0 1 14 12.5V17" +
+        "M23.1 13.25A3.6 3.6 0 1 1 15.9 13.25A3.6 3.6 0 1 1 23.1 13.25M23.1 9.5V17" +
+        "M25.5 9.5L29 16.5M32.5 9.5L28 20.5" +
+        "M41.1 13.25A3.6 3.6 0 1 1 33.9 13.25A3.6 3.6 0 1 1 41.1 13.25M41.1 9.5V17",
+      stroke: "#ffffff",
+      strokeWidth: 2.2,
+    }],
+  },
+  // Ramp's lowercase wordmark in white.
+  ramp: {
+    width: 43,
+    height: 24,
+    parts: [{
+      d: "M4 17V9.5M4 12.5A3 3 0 0 1 8.5 9.8" +
+        "M17.2 13.25A3.6 3.6 0 1 1 10 13.25A3.6 3.6 0 1 1 17.2 13.25M17.2 9.5V17" +
+        "M20 17V9.5M20 12.5A2.5 2.5 0 0 1 25 12.5V17M25 12.5A2.5 2.5 0 0 1 30 12.5V17" +
+        "M33 9.5V21M39.8 13.25A3.4 3.4 0 1 1 33 13.25A3.4 3.4 0 1 1 39.8 13.25",
+      stroke: "#ffffff",
+      strokeWidth: 2.2,
+    }],
+  },
+  // Revolut's R in white, and the smile its face checkout is paid with.
+  revolut: {
+    width: 24,
+    height: 24,
+    parts: [
+      { d: "M7 18V4H12.5A4 4 0 0 1 12.5 12H7M11.5 12L16.5 18", stroke: "#ffffff", strokeWidth: 2.6 },
+      { d: "M15.5 20.5Q18.5 22.5 21.5 20.5", stroke: "#ffffff", strokeWidth: 1.4 },
     ],
   },
   // A blue coin with its dollar sign between two arcs.

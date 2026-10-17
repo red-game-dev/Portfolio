@@ -5,7 +5,7 @@ import type { Finish } from "@/packages/graphics/stage3d";
 // How a way to pay meets the terminal: a chip card inserted into the reader at the foot, a card tapped on the
 // contactless sign, a card swiped down the stripe reader at the side, a phone wallet held to it, or a QR code on
 // the terminal's screen scanned by a phone.
-export type CheckoutGesture = "insert" | "tap" | "swipe" | "wallet" | "scan";
+export type CheckoutGesture = "insert" | "tap" | "swipe" | "wallet" | "scan" | "face";
 
 // The full story, for a terminal the reader pays at: the cashier keys the amount and opens the app, then the
 // customer pays. The quick one, for a switch, starts with the amount already asked for.
@@ -25,13 +25,15 @@ export interface MarkShape {
   parts: MarkPart[];
 }
 
-// A card as its issuer made it: its finish, its print and the ink its marks are in, the issuer's mark (a monogram, or
-// the holder's portrait as a halftone across it), the holder and the number's last four.
+// A card as its issuer made it: its finish, its print and the ink its marks are in, the issuer's mark (a monogram, the
+// holder's portrait as a halftone across it, or the issuer's own mark), the holder and the number's last four.
 export interface CardDesign {
   finish: Finish;
   face: [string, string];
   ink: string;
-  issuer: "monogram" | "portrait";
+  issuer: "monogram" | "portrait" | "mark";
+  // The issuer's own mark, printed where a monogram would be.
+  issuerMark?: MarkShape;
   holder: string;
   lastFour: string;
 }
@@ -83,7 +85,7 @@ export interface CheckoutTrail {
   item: Pose | null;
 }
 
-export type ScreenState = "idle" | "keying" | "apps" | "ask" | "pin" | "processing" | "approved";
+export type ScreenState = "idle" | "keying" | "apps" | "ask" | "pin" | "face" | "processing" | "approved";
 
 export interface CheckoutFrame {
   // Each hand by its fingertip (the pointing hands) or its grip (the holding hand); null while off the scene.

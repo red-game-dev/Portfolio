@@ -54,8 +54,9 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({ method, variant, mode, d
         gesture: gesture ?? PAY_GESTURES[method],
         app: PAY_APPS.indexOf(payAppOf(method)),
         face: PAYMENT_LOOKS[method].face,
-        mark: markOf(method, design?.ink),
-        card: design ? { ...design, holder: cardholder?.name ?? "" } : undefined,
+        // A card carries its network's mark (a Ramp card, Visa's), and where its issuer prints its own, that too.
+        mark: markOf(PAYMENT_LOOKS[method].network ?? method, design?.ink),
+        card: design ? { ...design, holder: cardholder?.name ?? "", issuerMark: design.issuer === "mark" ? markOf(method) : undefined } : undefined,
       },
       amount,
       accent,

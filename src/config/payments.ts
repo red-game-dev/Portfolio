@@ -1,9 +1,10 @@
 // The ways to pay the payments section shows, each meeting the terminal the way it does at a real counter.
-// Only the methods my own systems took are listed. Their names are content (payments.terminal.methods).
+// The methods my own systems took are listed in their groups; the new group shows the newest checkout at real counters
+// as it works, not as one my systems took. Their names are content (payments.terminal.methods).
 
 // How a way to pay meets the terminal: a chip card inserted, a card tapped, a card swiped through the
-// stripe reader, a phone wallet held to it, or a QR code scanned.
-export type PayGesture = "insert" | "tap" | "swipe" | "wallet" | "scan";
+// stripe reader, a phone wallet held to it, a QR code scanned, or the customer's face matched by its camera.
+export type PayGesture = "insert" | "tap" | "swipe" | "wallet" | "scan" | "face";
 
 export type PaymentMethodId =
   | "visa"
@@ -12,11 +13,14 @@ export type PaymentMethodId =
   | "discover"
   | "jcb"
   | "diners"
+  | "ramp"
   | "applePay"
   | "googlePay"
   | "paypal"
   | "alipay"
   | "wechat"
+  | "gcash"
+  | "maya"
   | "bitcoin"
   | "ethereum"
   | "solana"
@@ -24,7 +28,8 @@ export type PaymentMethodId =
   | "polygon"
   | "bnb"
   | "usdc"
-  | "usdt";
+  | "usdt"
+  | "revolut";
 
 export const PAY_GESTURES: Record<PaymentMethodId, PayGesture> = {
   visa: "insert",
@@ -33,11 +38,14 @@ export const PAY_GESTURES: Record<PaymentMethodId, PayGesture> = {
   discover: "tap",
   jcb: "insert",
   diners: "swipe",
+  ramp: "tap",
   applePay: "wallet",
   googlePay: "wallet",
   paypal: "scan",
   alipay: "scan",
   wechat: "scan",
+  gcash: "scan",
+  maya: "scan",
   bitcoin: "scan",
   ethereum: "scan",
   solana: "scan",
@@ -46,24 +54,27 @@ export const PAY_GESTURES: Record<PaymentMethodId, PayGesture> = {
   bnb: "scan",
   usdc: "scan",
   usdt: "scan",
+  revolut: "face",
 };
 
 // The groups the terminal offers them in, each with its name in the content (payments.terminal.groups).
-export type PaymentGroupId = "cards" | "wallets" | "qr" | "crypto";
+// The new group holds the newest checkout at real counters: Revolut's face payment on its own terminal, in its pilot.
+export type PaymentGroupId = "new" | "cards" | "wallets" | "qr" | "crypto";
 
 export const PAYMENT_GROUPS: Record<PaymentGroupId, PaymentMethodId[]> = {
-  cards: ["visa", "mastercard", "amex", "discover", "jcb", "diners"],
+  new: ["revolut"],
+  cards: ["visa", "mastercard", "amex", "discover", "jcb", "diners", "ramp"],
   wallets: ["applePay", "googlePay"],
-  qr: ["paypal", "alipay", "wechat"],
+  qr: ["paypal", "alipay", "wechat", "gcash", "maya"],
   crypto: ["bitcoin", "ethereum", "solana", "arbitrum", "polygon", "bnb", "usdc", "usdt"],
 };
 
-export const PAYMENT_GROUP_ORDER: PaymentGroupId[] = ["cards", "wallets", "qr", "crypto"];
+export const PAYMENT_GROUP_ORDER: PaymentGroupId[] = ["new", "cards", "wallets", "qr", "crypto"];
 
 export const PAYMENT_METHODS: PaymentMethodId[] = PAYMENT_GROUP_ORDER.flatMap((group) => PAYMENT_GROUPS[group]);
 
 // The app the cashier opens on the till for each way to pay, as a smart terminal runs several: the card app for
-// cards and phone wallets, QR pay for the QR wallets, and the crypto app for every coin and chain.
+// cards, phone wallets and paying by face, QR pay for the QR wallets, and the crypto app for every coin and chain.
 export type PayApp = "card" | "qr" | "crypto";
 
 export const PAY_APPS: PayApp[] = ["card", "qr", "crypto"];
@@ -81,14 +92,14 @@ export const payAppOf = (method: PaymentMethodId): PayApp => {
 // consecutive switches never look alike.
 export const PAY_SEQUENCE: PaymentMethodId[] = [
   "visa", "mastercard", "alipay", "applePay", "amex", "solana", "jcb", "googlePay", "usdc", "discover", "wechat", "diners",
-  "bitcoin", "mastercard", "arbitrum", "applePay", "paypal", "visa", "ethereum",
+  "bitcoin", "mastercard", "arbitrum", "applePay", "paypal", "visa", "revolut", "gcash", "ramp", "maya", "jcb", "ethereum",
 ];
 
 // A card is held in the hand; a wallet or a QR code is on a phone.
 export const isOnPhone = (method: PaymentMethodId): boolean => ["wallet", "scan"].includes(PAY_GESTURES[method]);
 
 // The cards, for the POS drawing's own switch: a card tapped and a receipt printed, its network changing each time.
-export const CARD_METHODS: PaymentMethodId[] = PAYMENT_METHODS.filter((method) => !isOnPhone(method));
+export const CARD_METHODS: PaymentMethodId[] = PAYMENT_METHODS.filter((method) => ["insert", "tap", "swipe"].includes(PAY_GESTURES[method]));
 
 // The method for the nth switch (counted from 1, as the switch counts them).
 export const methodForSwitch = (sequence: PaymentMethodId[], count: number): PaymentMethodId =>

@@ -45,6 +45,9 @@ describe("the ways to pay", () => {
     expect(CARD_METHODS.length).toBeGreaterThan(1);
     expect(CARD_METHODS.filter(isOnPhone)).toEqual([]);
     expect(PAYMENT_METHODS.filter((method) => PAY_GESTURES[method] === "wallet").every(isOnPhone)).toBe(true);
+    // Paying by face holds neither a card nor a phone, and is never one of the POS drawing's cards.
+    expect(PAYMENT_GROUPS.new.some(isOnPhone)).toBe(false);
+    expect(CARD_METHODS.some((method) => PAY_GESTURES[method] === "face")).toBe(false);
   });
 
   it("names every method and group in the content, and lists each method in one group only", () => {

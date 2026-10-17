@@ -1,7 +1,7 @@
 import { amountShown, approvedAt, checkoutAt, keysFor, QUICK_STORY_MS, storyMs } from "@/packages/graphics/checkout";
 import { CheckoutGesture } from "@/packages/graphics/checkout";
 
-const GESTURES: CheckoutGesture[] = ["insert", "tap", "swipe", "wallet", "scan"];
+const GESTURES: CheckoutGesture[] = ["insert", "tap", "swipe", "wallet", "scan", "face"];
 
 describe("the checkout's keypad", () => {
   it("keys the digits and the separator of an amount, never its currency", () => {
@@ -101,6 +101,16 @@ describe("the checkout's story", () => {
 
     expect(xs.length).toBeGreaterThan(10);
     expect(Math.min(...xs)).toBeGreaterThan(198);
+  });
+
+  it("pays by face with nothing held: the screen frames the face, the camera matches it, and the payment is approved", () => {
+    const states = Array.from({ length: 201 }, (_, step) => checkoutAt(step / 200, "full", "face", 0, keys));
+    const scanning = states.filter((frame) => frame.screen.state === "face");
+
+    expect(scanning.length).toBeGreaterThan(10);
+    expect(Math.max(...scanning.map((frame) => frame.sweep))).toBeGreaterThan(0.8);
+    expect(states.every((frame) => frame.item === null && frame.customerGrip === null)).toBe(true);
+    expect(states[states.length - 1].screen.state).toBe("approved");
   });
 
   it("keeps where each part was a frame and two frames ago, for its motion blur", () => {

@@ -329,7 +329,75 @@ export interface ScreenView {
   pin: number;
   pressed: number | null;
   spinner: number;
+  // How far the camera has got matching a face, 0 to 1.
+  scan: number;
 }
+
+// The terminal's camera looking at the customer to pay by face: a frame with the face in it, then, as it matches, its
+// landmarks lit one by one, a line sweeping up and down it and the smile widening; asking, only the frame and the face.
+const paintFaceScan = (context: Canvas2DContext, accent: string, centre: number, top: number, scan: number | null) => {
+  const cy = top + 54;
+  const half = { x: 16, y: 20 };
+  const corner = 6;
+  const progress = scan ?? 0;
+
+  context.strokeStyle = withAlpha(accent, 0.9);
+  context.lineWidth = 1.4;
+  context.lineCap = "round";
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
+    const px = centre + sx * half.x;
+    const py = cy + sy * half.y;
+
+    context.beginPath();
+    context.moveTo(px, py - sy * corner);
+    context.lineTo(px, py);
+    context.lineTo(px - sx * corner, py);
+    context.stroke();
+  });
+
+  context.strokeStyle = "rgba(213, 236, 228, 0.4)";
+  context.lineWidth = 0.9;
+  context.beginPath();
+  context.ellipse(centre, cy, 10.5, 13.5, 0, 0, Math.PI * 2);
+  context.stroke();
+  context.fillStyle = "rgba(213, 236, 228, 0.65)";
+  [-4, 4].forEach((dx) => {
+    context.beginPath();
+    context.arc(centre + dx, cy - 3, 1.1, 0, Math.PI * 2);
+    context.fill();
+  });
+
+  const smile = 0.3 + 0.7 * progress;
+
+  context.strokeStyle = progress > 0.92 ? accent : "rgba(213, 236, 228, 0.65)";
+  context.lineWidth = 1.1;
+  context.beginPath();
+  context.arc(centre, cy + 1.5, 5, Math.PI * (0.5 - 0.32 * smile), Math.PI * (0.5 + 0.32 * smile));
+  context.stroke();
+
+  if (scan === null) {
+    return;
+  }
+
+  // Its landmarks round the face, each lit as the match reaches it.
+  context.fillStyle = withAlpha(accent, 0.85);
+  Array.from({ length: 10 }, (_, index) => index).forEach((index) => {
+    if (index / 10 < progress) {
+      const angle = (index / 10) * Math.PI * 2 - Math.PI / 2;
+
+      context.beginPath();
+      context.arc(centre + Math.cos(angle) * 10.5, cy + Math.sin(angle) * 13.5, 0.75, 0, Math.PI * 2);
+      context.fill();
+    }
+  });
+
+  if (progress > 0 && progress < 1) {
+    const line = cy - half.y + half.y * 2 * (0.5 - 0.5 * Math.cos(progress * Math.PI * 3));
+
+    context.fillStyle = linear(context, centre - half.x, 0, centre + half.x, 0, [[0, withAlpha(accent, 0)], [0.5, withAlpha(accent, 0.95)], [1, withAlpha(accent, 0)]]);
+    context.fillRect(centre - half.x, line - 0.6, half.x * 2, 1.2);
+  }
+};
 
 export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: ScreenView) => {
   const { accent, amount, look } = skin;
@@ -406,6 +474,8 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
 
     if (look.gesture === "scan") {
       paintQr(context, centre - 19, y + 34, 38);
+    } else if (look.gesture === "face") {
+      paintFaceScan(context, accent, centre, y, null);
     } else {
       contactless(context, centre + 4, y + 48, 18, accent, 2);
       // A card in the chip reader, for the ways in that need no phone.
@@ -435,6 +505,9 @@ export const paintScreen = (context: Canvas2DContext, skin: CheckoutSkin, view: 
       }
     });
     paintKeypad(context, accent, pressed);
+  } else if (state === "face") {
+    total(context, amount, centre, y + 14, 10, "rgba(234, 255, 247, 0.85)", accent);
+    paintFaceScan(context, accent, centre, y, view.scan);
   } else if (state === "processing") {
     total(context, amount, centre, y + 18, 11, "rgba(234, 255, 247, 0.8)", accent);
     context.strokeStyle = withAlpha(accent, 0.18);

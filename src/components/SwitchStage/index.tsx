@@ -25,6 +25,7 @@ export const SwitchStage: FC<SwitchStageProps> = ({ switcher, children, style, p
     "--from-right": direction === 1 ? "100%" : "0",
     "--beam-from": direction === 1 ? "0" : "calc(100cqw - 3px)",
     "--beam-to": direction === 1 ? "calc(100cqw - 3px)" : "0",
+    "--assemble-y": direction === 1 ? "12px" : "-12px",
     "containerType": "inline-size",
     ...style,
   } as CSSProperties;

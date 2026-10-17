@@ -4,7 +4,7 @@ import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
 
 import {
-  BLOCK_GRID, isPaymentEffect, isThemeEffect, PAYMENT_SWITCH_MS, PIXEL_GRID, SWITCH_MS, SwitchEffect, THEME_SWITCH_MS, ThemeEffect, ZoneEffect,
+  BLOCK_GRID, isPaymentEffect, isThemeEffect, PAYMENT_SWITCH_MS, PIXEL_GRID, SWITCH_MS, SwitchEffect, ThemeEffect, ZoneEffect,
 } from "@/components/SwitchStage/config";
 import { media } from "@/styles/mixins";
 
@@ -66,44 +66,49 @@ const paySettle = keyframes`
   100% { opacity: 1; }
 `;
 
-// What I have built: the new content comes up from a blueprint's pale lines into its own colours.
-const draftIn = keyframes`
-  0% { opacity: 0; filter: saturate(0) brightness(1.5); }
-  55% { opacity: 0.9; filter: saturate(0.4) brightness(1.15); }
+// More Skills by Area: the open area's title and skills snap into place one after another, from the side of the tab
+// the reader came from, like tiles going into a toolbox. Each item carries its place as --i (data-switch-item).
+const assembleIn = keyframes`
+  0% { opacity: 0; transform: translateY(var(--assemble-y)) scale(0.9); }
+  60% { opacity: 1; transform: translateY(calc(var(--assemble-y) * -0.15)) scale(1.03); }
+  100% { opacity: 1; transform: none; }
+`;
+
+// What I have built: each tile is drafted in turn, a pen tracing its frame from the top left corner over a drafting
+// grid, the tile coming up from a blueprint's pale lines into its own colours.
+const tileDrafted = keyframes`
+  0% { opacity: 0.15; filter: saturate(0) brightness(1.5); }
+  45% { opacity: 0.65; }
   100% { opacity: 1; filter: none; }
 `;
 
-// The drafting grid laid over it, fading as the content takes over.
-const gridIn = keyframes`
-  0% { opacity: 0; transform: scale(1.03); }
-  25% { opacity: 1; }
-  70% { opacity: 0.6; }
-  100% { opacity: 0; transform: scale(1); }
-`;
-
-// The frame traced round the new content from its top left corner, like a plotter's pen.
-const traceIn = keyframes`
+const tileTraced = keyframes`
   0% { clip-path: inset(0 100% 100% 0); opacity: 1; }
-  55% { clip-path: inset(0 0 0 0); opacity: 1; }
+  32% { clip-path: inset(0 0 100% 0); }
+  62% { clip-path: inset(0 0 0 0); opacity: 1; }
   100% { clip-path: inset(0 0 0 0); opacity: 0; }
 `;
 
-// The pipeline's progress filling, and each stage lighting as it is reached.
-const pipelineFill = keyframes`
-  0% { transform: scaleX(0); }
-  80%, 100% { transform: scaleX(1); }
+const penStroke = keyframes`
+  0% { transform: scaleX(0); opacity: 1; }
+  32% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
 `;
 
-const stageLit = keyframes`
-  0% { background: #0d0d0d; transform: scale(1); }
-  40% { background: var(--accent); transform: scale(1.3); }
-  100% { background: var(--accent); transform: scale(1); }
+// A dimension line measured across the first tile, the way a plan gives its sizes.
+const dimensioned = keyframes`
+  0%, 18% { opacity: 0; transform: scaleX(0); }
+  40% { opacity: 1; transform: scaleX(1); }
+  78% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
 `;
 
-const trackOut = keyframes`
-  0%, 82% { opacity: 1; }
-  100% { opacity: 0; }
-`;
+// How long each item's part of a theme's switch takes, and the step between items.
+const ASSEMBLE = { ms: 360, stepMs: 16, most: 24 } as const;
+
+const DRAFT = { ms: 560, stepMs: 70, most: 11 } as const;
+
+const ITEM = "& > :not([data-switch-fx]) [data-switch-item]";
 
 // A 2px line, so moving it by top costs nothing worth measuring.
 const scanLine = keyframes`
@@ -149,19 +154,58 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
       animation: ${paySettle} ${PAYMENT_SWITCH_MS}ms ease-out both;
     }
   `,
-  effect === "draft" && css`
-    ${CONTENT} {
-      animation: ${draftIn} ${THEME_SWITCH_MS}ms ease-out both;
+  effect === "assemble" && css`
+    ${ITEM} {
+      animation: ${assembleIn} ${ASSEMBLE.ms}ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
+      animation-delay: calc(min(var(--i, 0), ${ASSEMBLE.most}) * ${ASSEMBLE.stepMs}ms);
     }
   `,
-  effect === "pipeline" && css`
-    ${CONTENT} {
-      animation: ${settle} ${THEME_SWITCH_MS}ms ease-out both;
+  effect === "draft" && css`
+    ${ITEM} {
+      position: relative;
+      animation: ${tileDrafted} ${DRAFT.ms}ms ease-out both;
+      animation-delay: calc(min(var(--i, 0), ${DRAFT.most}) * ${DRAFT.stepMs}ms);
+    }
+
+    ${ITEM}::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      pointer-events: none;
+      border: 1px dashed var(--accent);
+      background-image: linear-gradient(rgba(var(--accent-rgb), 0.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--accent-rgb), 0.22) 1px, transparent 1px);
+      background-size: 16px 16px;
+      animation: ${tileTraced} ${DRAFT.ms}ms ease-in-out both;
+      animation-delay: inherit;
+    }
+
+    ${ITEM}::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      right: -1px;
+      height: 2px;
+      pointer-events: none;
+      transform-origin: left center;
+      background: var(--accent);
+      box-shadow: 0 0 8px 1px rgba(var(--accent-rgb), 0.8);
+      animation: ${penStroke} ${DRAFT.ms}ms ease-in-out both;
+      animation-delay: inherit;
+    }
+
+    & > :not([data-switch-fx]) [data-switch-dimension] {
+      animation: ${dimensioned} ${DRAFT.ms + DRAFT.stepMs * 2}ms ease-out both;
     }
   `,
   css`
     ${media.reducedMotion} {
-      ${CONTENT} {
+      ${CONTENT},
+      ${ITEM},
+      ${ITEM}::before,
+      ${ITEM}::after,
+      & > :not([data-switch-fx]) [data-switch-dimension] {
         animation: none !important;
       }
 
@@ -219,78 +263,11 @@ const Pixel = styled.span(({ delay, isLit }: { delay: number; isLit: boolean }) 
   `,
 ]);
 
-// What I have built: a drafting grid in the accent, and a dashed frame traced round the content.
-const Grid = styled.div(() => [
-  tw`absolute inset-0 z-[3] pointer-events-none`,
-  css`
-    background-image: linear-gradient(rgba(var(--accent-rgb), 0.28) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--accent-rgb), 0.28) 1px, transparent 1px);
-    background-size: 22px 22px;
-    animation: ${gridIn} ${THEME_SWITCH_MS}ms ease-out both;
-  `,
-]);
-
-const Trace = styled.div(() => [
-  tw`absolute inset-[6px] z-[3] pointer-events-none border-[1px] border-dashed border-[var(--accent)]`,
-  css`
-    animation: ${traceIn} ${THEME_SWITCH_MS}ms ease-in-out both;
-  `,
-]);
-
-// The skills by area: a delivery pipeline across the top, its stages lighting in turn (build, test, deploy,
-// observe) as the progress fills.
-const PIPELINE_STAGES = 4;
-
-const Track = styled.div(() => [
-  tw`absolute z-[3] top-[10px] left-[14px] right-[14px] h-[12px] pointer-events-none`,
-  css`
-    animation: ${trackOut} ${THEME_SWITCH_MS}ms linear both;
-  `,
-]);
-
-const TrackLine = tw.span`absolute left-0 right-0 top-[5px] h-[2px] bg-[var(--accent-muted)]`;
-
-const TrackFill = styled.span(() => [
-  tw`absolute left-0 right-0 top-[5px] h-[2px] bg-[var(--accent)] origin-left`,
-  css`
-    animation: ${pipelineFill} ${THEME_SWITCH_MS}ms ease-in-out both;
-  `,
-]);
-
-const PipelineStage = styled.span(({ index }: { index: number }) => [
-  tw`absolute top-0 w-[12px] h-[12px] rounded-full border-[2px] border-solid border-[var(--accent)]`,
-  css`
-    left: ${(index / (PIPELINE_STAGES - 1)) * 100}%;
-    margin-left: -6px;
-    background: #0d0d0d;
-    animation: ${stageLit} ${THEME_SWITCH_MS * 0.3}ms ease-out ${(index / (PIPELINE_STAGES - 1)) * THEME_SWITCH_MS * 0.8}ms both;
-  `,
-]);
-
-// The layer a theme's switch draws over the content.
-const ThemeLayer: FC<{ effect: ThemeEffect }> = ({ effect }) => {
-  if (effect === "draft") {
-    return (
-      <>
-        <Grid data-switch-fx aria-hidden="true" />
-        <Trace data-switch-fx aria-hidden="true" />
-      </>
-    );
-  }
-
-  return (
-    <Track data-switch-fx aria-hidden="true">
-      <TrackLine />
-      <TrackFill />
-      {Array.from({ length: PIPELINE_STAGES }, (_, index) => <PipelineStage key={index} index={index} />)}
-    </Track>
-  );
-};
-
 // The layer an effect draws over the content, if it has one.
 export const SwitchLayer: FC<{ effect: ZoneEffect | ThemeEffect }> = ({ effect }) => {
+  // A theme's switch animates the content's own items, with no layer over them.
   if (isThemeEffect(effect)) {
-    return <ThemeLayer effect={effect} />;
+    return null;
   }
 
   if (effect === "beam" || effect === "scan") {

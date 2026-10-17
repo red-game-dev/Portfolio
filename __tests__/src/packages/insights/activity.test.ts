@@ -1,4 +1,4 @@
-import { activityStats } from "@/packages/insights/activity";
+import { activityStats, monthlyActivity } from "@/packages/insights/activity";
 
 const quiet = (length: number) => "0".repeat(length);
 
@@ -44,5 +44,23 @@ describe("insights/activity", () => {
     expect(stats.longestDayStreak).toBe(0);
     expect(stats.busiestMonth).toBeNull();
     expect(stats.yearStreaks[2025]).toBeNull();
+  });
+});
+
+describe("monthlyActivity", () => {
+  it("sums each month's levels in order, across years, leaving out months not reached", () => {
+    // 2023 starts on a Sunday: January has 31 days, February 28.
+    const january = "1".repeat(31);
+    const february = "2".repeat(28);
+    const months = monthlyActivity([
+      { year: 2024, levels: "4" },
+      { year: 2023, levels: january + february },
+    ]);
+
+    expect(months).toEqual([
+      { year: 2023, month: 0, total: 31 },
+      { year: 2023, month: 1, total: 56 },
+      { year: 2024, month: 0, total: 4 },
+    ]);
   });
 });

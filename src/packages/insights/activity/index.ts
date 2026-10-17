@@ -114,3 +114,26 @@ export const activityStats = (years: ActivityYear[]): ActivityStats => {
     yearStreaks: Object.fromEntries(years.map(({ year }) => [year, longestRange(days.filter((day) => day.year === year))])),
   };
 };
+
+// The activity of each month, in order: the sum of its days' levels, for a chart of how busy each month was. Months
+// a year's calendar does not reach yet are left out.
+export interface MonthActivity {
+  year: number;
+  month: number;
+  total: number;
+}
+
+export const monthlyActivity = (years: ActivityYear[]): MonthActivity[] => years
+  .slice()
+  .sort((first, second) => first.year - second.year)
+  .flatMap(({ year, levels }) => {
+    const months = new Map<number, number>();
+
+    Array.from(levels).forEach((level, day) => {
+      const month = new Date(Date.UTC(year, 0, 1) + day * DAY_MS).getUTCMonth();
+
+      months.set(month, (months.get(month) ?? 0) + Number(level));
+    });
+
+    return [...months.entries()].map(([month, total]) => ({ year, month, total }));
+  });

@@ -6,9 +6,10 @@ import tw, { css, styled } from "twin.macro";
 import { faBolt, faCalendarCheck, faCrown, faFire, faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 
+import { ActivityChart } from "@/components/CodeReview/ActivityChart";
 import useAnimationProgress from "@/hooks/useAnimationProgress";
 import useInView from "@/hooks/useInView";
-import { activityStats, ActivityStats, DayRange } from "@/packages/insights/activity";
+import { activityStats, ActivityStats, DayRange, monthlyActivity } from "@/packages/insights/activity";
 import { fill } from "@/packages/text/format";
 import { hiddenWhenReduced, media } from "@/styles/mixins";
 import { CodeReviewContent, GithubActivity } from "@/types/code-review";
@@ -53,12 +54,13 @@ interface RunProps {
   delay: number;
 }
 
-// The row reveals left to right behind a glowing scan head, like a level being loaded.
+// The row lights week by week behind a column of glowing dots, one per day of the week, like a level being loaded.
 const Row = styled.div(({ isShown, delay }: RunProps) => [
   tw`relative`,
   css`
+    container-type: inline-size;
     clip-path: inset(0 ${isShown ? 0 : 100}% 0 0);
-    transition: clip-path ${SWEEP_MS}ms cubic-bezier(0.45, 0, 0.25, 1) ${delay}ms;
+    transition: clip-path ${SWEEP_MS}ms steps(${WEEKS}, end) ${delay}ms;
 
     ${media.reducedMotion} {
       clip-path: none;
@@ -68,15 +70,33 @@ const Row = styled.div(({ isShown, delay }: RunProps) => [
 ]);
 
 const Head = styled.span(({ isShown, delay }: RunProps) => [
-  tw`absolute top-[-3px] bottom-[-3px] w-[2px] bg-[var(--accent)] pointer-events-none`,
+  tw`absolute top-0 bottom-0 left-0 w-[6px] pointer-events-none`,
   css`
-    left: ${isShown ? 100 : 0}%;
+    background: radial-gradient(circle, var(--accent) 2.2px, rgba(var(--accent-rgb), 0.35) 3.2px, transparent 3.6px) center top / 6px
+      calc(100% / 7) repeat-y;
+    transform: translateX(${isShown ? "100cqw" : "0"});
     opacity: ${isShown ? 0 : 1};
-    box-shadow: 0 0 10px 2px rgba(var(--accent-rgb), 0.7);
-    transition: left ${SWEEP_MS}ms cubic-bezier(0.45, 0, 0.25, 1) ${delay}ms, opacity 0.25s ease ${delay + SWEEP_MS}ms;
+    transition: transform ${SWEEP_MS}ms steps(${WEEKS}, end) ${delay}ms, opacity 0.25s ease ${delay + SWEEP_MS}ms;
 
     ${hiddenWhenReduced}
   `,
+]);
+
+const glint = keyframes`
+  0%, 100% { opacity: 0; }
+  45% { opacity: 0.75; }
+`;
+
+// The busiest days catch the light once, as their row finishes loading.
+const Glint = styled.path(({ isShown, delay }: RunProps) => [
+  css`
+    fill: #ffffff;
+    opacity: 0;
+  `,
+  isShown && css`
+    animation: ${glint} 700ms ease-out ${delay}ms both;
+  `,
+  hiddenWhenReduced,
 ]);
 
 const Grid = tw.svg`block w-full h-auto overflow-visible`;
@@ -276,6 +296,7 @@ export const Activity: FC<ActivityProps> = ({ activity, title, description, year
     paths: toPaths(year, levels),
     streak: toStreakPath(year, stats.yearStreaks[year] ?? null),
   })), [activity.years, stats]);
+  const months = useMemo(() => monthlyActivity(activity.years), [activity.years]);
   const unlockAt = (rows.length - 1) * ROW_STAGGER_MS + SWEEP_MS;
 
   return (
@@ -283,6 +304,7 @@ export const Activity: FC<ActivityProps> = ({ activity, title, description, year
       <Title>{title}</Title>
       <Description>{description}</Description>
       <div ref={listRef}>
+        <ActivityChart months={months} isShown={isShown} />
         <Years>
           {rows.map(({ year, paths, streak }, order) => {
             const delay = order * ROW_STAGGER_MS;
@@ -295,6 +317,7 @@ export const Activity: FC<ActivityProps> = ({ activity, title, description, year
                     {paths.map((d, level) => (
                       <path key={level} d={d} fill={level === 0 ? "#1c1c1c" : "var(--accent)"} fillOpacity={level === 0 ? 1 : LEVEL_OPACITY[level]} />
                     ))}
+                    <Glint d={paths[4]} isShown={isShown} delay={delay + SWEEP_MS} />
                     {streak && <Streak d={streak} isShown={isShown} delay={delay + SWEEP_MS} data-shown={isShown ? "" : undefined} />}
                   </Grid>
                   <Head isShown={isShown} delay={delay} aria-hidden="true" />

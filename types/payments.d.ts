@@ -14,6 +14,9 @@ export interface PaymentTerminalContent {
   // Read out once a payment goes through: "{method}" is replaced with the method's name.
   approvedLine: string;
   methods: Record<PaymentMethodId, string>;
+  // The name and the picture the counter's own red card is printed with.
+  cardholder: string;
+  portrait: string;
 }
 
 export interface PaymentsContent {

@@ -6,6 +6,7 @@ import {
   paintBody, paintCard, paintCounter, paintGlass, paintItemShadow, paintPhone, paintReceipt, paintScreen, paintStand, paintSweep, paintVignette,
   paintWaves,
 } from "./CheckoutPainter";
+import type { CheckoutStage } from "./checkoutStage";
 import { BODY, COUNTER_TOP, keysFor, SCENE, SCREEN, STAND } from "./geometry";
 import {
   GRIPPING_BOUNDS, GRIPPING_SHADOW_BOUNDS, paintGrippingHand, paintGrippingShadow, paintPointingHand, paintPointingShadow, POINTING_BOUNDS,
@@ -122,71 +123,34 @@ const withTrail = (layer: RigLayer<CheckoutSkin>, part: Part, isShown: (channels
   layer,
 ];
 
-// The checkout as a rig model for one way to pay: the counter, the stand and the terminal cached once; the screen,
-// the contactless glow and a phone's scan line painted live; the receipt, what the customer holds, the hands and
-// their shadows cached once and moved by the story, with a blur behind whatever moves fast; the camera pushing in
-// and following; and the lens's vignette over it all. "pay" plays a payment; "approved", held, shows one approved
-// without moving.
-export const createCheckoutModel = (skin: CheckoutSkin, variant: CheckoutVariant): RigModel<CheckoutSkin> => {
+// The checkout as a rig model for one way to pay: the counter, the stand and the terminal cached once; the screen
+// and the contactless glow painted live; the hands and what the customer holds drawn by a 3D stage where there is one
+// (real hands, a card in its finish, soft shadows), and otherwise flat: cached once and moved by the story, with their
+// shadows and a blur behind whatever moves fast; the camera pushing in and following; and the lens's vignette over it
+// all. "pay" plays a payment; "approved", held, shows one approved without moving.
+export const createCheckoutModel = (skin: CheckoutSkin, variant: CheckoutVariant, stage: CheckoutStage | null = null): RigModel<CheckoutSkin> => {
   const { gesture, app } = skin.look;
   const keys = keysFor(skin.amount);
   const isPhone = gesture === "wallet" || gesture === "scan";
   const isUpright = gesture === "insert" || gesture === "swipe";
   const paintItem = (context: Parameters<typeof paintCard>[0]) => (isPhone ? paintPhone(context, skin.look) : paintCard(context, skin.look, isUpright));
   const isInFront = (channels: RigChannels) => channels.behind === 0;
+  // The frame the channels were last read from, for the 3D stage to draw.
+  let current: CheckoutFrame = checkoutAt(null, variant, gesture, app, keys);
 
-  return {
-    id: `checkout-${variant}`,
-    width: SCENE.width,
-    height: SCENE.height,
-    maxZoom: MAX_ZOOM,
-    camera: (channels) => ({ x: channels.cameraX, y: channels.cameraY, zoom: channels.cameraZoom }),
-    layers: [
-      {
-        id: "counter",
-        bounds: { x: 0, y: COUNTER_TOP - 2, width: SCENE.width, height: SCENE.height - COUNTER_TOP + 2 },
-        paint: (context, dressed) => paintCounter(context, dressed.accent),
-      },
-      {
-        id: "stand",
-        bounds: {
-          x: STAND.foot.x - STAND.foot.rx - 16,
-          y: BODY.y + BODY.height - 8,
-          width: (STAND.foot.rx + 16) * 2,
-          height: STAND.foot.y + STAND.foot.ry + 6 - (BODY.y + BODY.height - 8),
-        },
-        paint: (context) => paintStand(context),
-      },
-      {
-        id: "receipt",
-        bounds: { x: 130, y: BODY.y - RECEIPT_TRAVEL - 4, width: 40, height: 56 },
-        paint: (context) => paintReceipt(context),
-        motion: (channels) => ({ y: RECEIPT_TRAVEL * (1 - channels.receipt) }),
-      },
-      {
-        id: "item-behind",
-        bounds: ITEM_BOUNDS,
-        paint: (context) => paintItem(context),
-        motion: (channels) => (isInFront(channels) ? HIDDEN : motionOf(channels, "item")),
-      },
-      {
-        id: "body",
-        bounds: { x: BODY.x - 22, y: BODY.y - 16, width: BODY.width + 44, height: BODY.height + 44 },
-        paint: (context, dressed) => paintBody(context, dressed.accent),
-      },
-      {
-        id: "screen",
-        cache: false,
-        paint: (context, dressed, channels) => paintScreen(context, dressed, {
-          state: STATES[channels.screen] ?? "idle",
-          typed: channels.typed,
-          pin: channels.pin,
-          pressed: channels.pressed >= 0 ? channels.pressed : null,
-          spinner: channels.spinner,
-        }),
-      },
-      { id: "glass", bounds: SCREEN, paint: (context) => paintGlass(context) },
-      { id: "waves", cache: false, paint: (context, dressed, channels) => paintWaves(context, dressed.accent, channels.waves) },
+  // Behind the terminal, a card going into a reader (the 3D stage hides it behind the terminal's body itself).
+  const behind: Array<RigLayer<CheckoutSkin>> = stage ? [] : [
+    {
+      id: "item-behind",
+      bounds: ITEM_BOUNDS,
+      paint: (context) => paintItem(context),
+      motion: (channels) => (isInFront(channels) ? HIDDEN : motionOf(channels, "item")),
+    },
+  ];
+  // In front of it: the stage's hands and what they hold, or the flat ones with their shadows and blur.
+  const front: Array<RigLayer<CheckoutSkin>> = stage
+    ? [{ id: "stage", cache: false, isFixed: true, paint: (context) => stage.draw(context, current) }]
+    : [
       {
         id: "item-shadow",
         bounds: widenForShadow(ITEM_BOUNDS),
@@ -231,13 +195,65 @@ export const createCheckoutModel = (skin: CheckoutSkin, variant: CheckoutVariant
         paint: (context) => paintPointingHand(context, "cashier", CASHIER_ANGLE),
         motion: (channels) => motionOf(channels, "cashier"),
       }, "cashier"),
+    ];
+
+  return {
+    id: `checkout-${variant}`,
+    width: SCENE.width,
+    height: SCENE.height,
+    maxZoom: MAX_ZOOM,
+    camera: (channels) => ({ x: channels.cameraX, y: channels.cameraY, zoom: channels.cameraZoom }),
+    layers: [
+      {
+        id: "counter",
+        bounds: { x: 0, y: COUNTER_TOP - 2, width: SCENE.width, height: SCENE.height - COUNTER_TOP + 2 },
+        paint: (context, dressed) => paintCounter(context, dressed.accent),
+      },
+      {
+        id: "stand",
+        bounds: {
+          x: STAND.foot.x - STAND.foot.rx - 16,
+          y: BODY.y + BODY.height - 8,
+          width: (STAND.foot.rx + 16) * 2,
+          height: STAND.foot.y + STAND.foot.ry + 6 - (BODY.y + BODY.height - 8),
+        },
+        paint: (context) => paintStand(context),
+      },
+      {
+        id: "receipt",
+        bounds: { x: 130, y: BODY.y - RECEIPT_TRAVEL - 4, width: 40, height: 56 },
+        paint: (context) => paintReceipt(context),
+        motion: (channels) => ({ y: RECEIPT_TRAVEL * (1 - channels.receipt) }),
+      },
+      ...behind,
+      {
+        id: "body",
+        bounds: { x: BODY.x - 22, y: BODY.y - 16, width: BODY.width + 44, height: BODY.height + 44 },
+        paint: (context, dressed) => paintBody(context, dressed.accent),
+      },
+      {
+        id: "screen",
+        cache: false,
+        paint: (context, dressed, channels) => paintScreen(context, dressed, {
+          state: STATES[channels.screen] ?? "idle",
+          typed: channels.typed,
+          pin: channels.pin,
+          pressed: channels.pressed >= 0 ? channels.pressed : null,
+          spinner: channels.spinner,
+        }),
+      },
+      { id: "glass", bounds: SCREEN, paint: (context) => paintGlass(context) },
+      { id: "waves", cache: false, paint: (context, dressed, channels) => paintWaves(context, dressed.accent, channels.waves) },
+      ...front,
       { id: "vignette", isFixed: true, paint: (context) => paintVignette(context) },
     ],
     channels: (_timeMs, cues) => {
       const isHeldApproved = cues.progress("approved") !== null;
       const progress = isHeldApproved ? 1 : cues.progress("pay");
 
-      return encode(checkoutAt(progress, variant, gesture, app, keys));
+      current = checkoutAt(progress, variant, gesture, app, keys);
+
+      return encode(current);
     },
   };
 };

@@ -1,6 +1,7 @@
 import type { Canvas2DContext } from "@/packages/graphics/canvas";
 
 import { CheckoutLook, CheckoutSkin, MarkShape, ScreenState } from "../domain/types";
+import { paintCardFace } from "./cardFace";
 import { amountShown, APP_TILE, appCentre, BODY, CARD, COUNTER_TOP, KEYPAD, keyCentre, OK_KEY, PHONE, SCREEN, STAND, STRIPE } from "./geometry";
 import { paintSoftShadow } from "./hands";
 
@@ -491,6 +492,29 @@ export const paintCard = (context: Canvas2DContext, look: CheckoutLook, isUprigh
   const height = isUpright ? CARD.long : CARD.short;
   const left = -width / 2;
   const top = -height / 2;
+
+  // A card with its own design prints that face, turned on its side going into a reader.
+  if (look.card) {
+    context.save();
+    context.shadowColor = "rgba(0, 0, 0, 0.5)";
+    context.shadowBlur = 7;
+    context.shadowOffsetY = 3;
+    context.fillStyle = look.card.face[1];
+    roundRect(context, left, top, width, height, CARD.radius);
+    context.fill();
+    context.restore();
+    context.save();
+
+    if (isUpright) {
+      context.rotate(-Math.PI / 2);
+    }
+
+    context.translate(-CARD.long / 2, -CARD.short / 2);
+    paintCardFace(context, look, look.card);
+    context.restore();
+
+    return;
+  }
 
   context.save();
   context.shadowColor = "rgba(0, 0, 0, 0.5)";

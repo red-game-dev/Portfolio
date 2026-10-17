@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useCallback, useEffect, useId, useRef, useState } from "react";
+import { CSSProperties, FC, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -120,11 +120,17 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
   const groupId = useId();
   const presses = useRef(0);
   const timers = useRef<number[]>([]);
+  const cardholder = useMemo(() => ({ name: content.cardholder, portrait: content.portrait }), [content.cardholder, content.portrait]);
 
   useEffect(() => {
     const pending = timers.current;
 
     return () => clearAll(pending);
+  }, []);
+
+  // The 3D stage and the hands it shows start loading now, so the first payment never waits for them.
+  useEffect(() => {
+    import("@/services/stage").then(({ preloadCheckout }) => preloadCheckout()).catch(() => undefined);
   }, []);
 
   const pay = useCallback((method: PaymentMethodId) => {
@@ -172,6 +178,7 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
           durationMs={payMsOf(shown?.method ?? PAYMENT_GROUPS.cards[0], content.amount)}
           amount={content.amount}
           accent={THEME_ACCENTS.payments}
+          cardholder={cardholder}
         />
       </SceneBox>
       <Side>

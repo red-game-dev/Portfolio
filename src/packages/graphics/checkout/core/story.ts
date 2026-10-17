@@ -479,6 +479,7 @@ const WAITING: Omit<CheckoutFrame, "screen"> = {
   receipt: 0,
   camera: WIDE,
   trail: [],
+  hold: 0,
 };
 
 // The scene at a share of the story (null for waiting, before or after a payment).
@@ -516,5 +517,6 @@ export const checkoutAt = (t: number | null, variant: CheckoutVariant, gesture: 
     receipt: span(story.printed) || (ms >= story.printed[1] ? 1 : 0),
     camera: fingertip ? { ...base, x: base.x + (fingertip.x - base.x) * follow, y: base.y + (fingertip.y - base.y) * follow } : base,
     trail: TRAIL_MS.map((back) => partsAt(story, gesture, Math.max(0, ms - back))),
+    hold: holdOf(story.gripFollows, ms),
   };
 };

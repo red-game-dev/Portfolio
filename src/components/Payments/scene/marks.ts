@@ -90,9 +90,11 @@ const DRAWN: Partial<Record<PaymentMethodId, MarkShape>> = {
   },
 };
 
-export const markOf = (method: PaymentMethodId): MarkShape => {
+// A method's mark; one from Font Awesome can be printed in another ink (on a card whose print it would vanish on).
+export const markOf = (method: PaymentMethodId, ink?: string): MarkShape => {
   const drawn = DRAWN[method];
-  const { icon, mark } = PAYMENT_LOOKS[method];
+  const { icon, mark: own } = PAYMENT_LOOKS[method];
+  const mark = ink ?? own;
 
   if (drawn) {
     return drawn;

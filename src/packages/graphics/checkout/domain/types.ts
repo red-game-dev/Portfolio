@@ -1,4 +1,5 @@
 import type { RigSkin } from "@/packages/graphics/rig";
+import type { Finish } from "@/packages/graphics/stage3d";
 
 // How a way to pay meets the terminal: a chip card inserted into the reader at the foot, a card tapped on the
 // contactless sign, a card swiped down the stripe reader at the side, a phone wallet held to it, or a QR code on
@@ -23,6 +24,17 @@ export interface MarkShape {
   parts: MarkPart[];
 }
 
+// A card as its issuer made it: its finish, its print and the ink its marks are in, the issuer's mark (a monogram, or
+// the holder's portrait as a halftone across it), the holder and the number's last four.
+export interface CardDesign {
+  finish: Finish;
+  face: [string, string];
+  ink: string;
+  issuer: "monogram" | "portrait";
+  holder: string;
+  lastFour: string;
+}
+
 export interface CheckoutLook {
   gesture: CheckoutGesture;
   // Which of the terminal's three apps takes it: 0 the card app, 1 QR pay, 2 the crypto app.
@@ -30,6 +42,9 @@ export interface CheckoutLook {
   // A card's print or a phone's screen, top left to bottom right.
   face: [string, string];
   mark: MarkShape;
+  // A card's own design, and the holder's portrait for one that prints it; a card without one is printed plainly.
+  card?: CardDesign;
+  portrait?: CanvasImageSource | null;
 }
 
 // A skin dresses the scene for one way to pay: what the customer holds, the app, the total on the screen, and
@@ -91,4 +106,6 @@ export interface CheckoutFrame {
   camera: CheckoutCamera;
   // The parts as they were a frame and two frames ago, nearest first.
   trail: CheckoutTrail[];
+  // How much the customer's hand holds what it carries: 1 holding, 0 let go (a card left in the reader).
+  hold: number;
 }

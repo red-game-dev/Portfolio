@@ -1,10 +1,15 @@
 import { PortfolioData } from "@/types/portfolio";
 
+import { profileContent } from "./profile";
+
 // The payments section's own words: the terminal a reader pays at, and the way on to the case studies. The
 // drawings below it are in src/data/blueprints/payments.ts.
 export const paymentsContent: Pick<PortfolioData, "payments"> = {
   payments: {
     terminal: {
+      // The red card prints the holder's name and portrait: the profile's own.
+      cardholder: profileContent.details.name.toUpperCase(),
+      portrait: profileContent.details.image,
       label: "A shop counter with a card terminal",
       hint: "You are the customer: pick how to pay. The cashier rings it up and opens the app for it, you pay at the terminal, " +
         "and each payment opens the next drawing.",

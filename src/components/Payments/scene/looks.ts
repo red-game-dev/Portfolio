@@ -4,6 +4,7 @@ import {
 } from "@fortawesome/free-brands-svg-icons";
 
 import { PaymentMethodId } from "@/config/payments";
+import type { CardDesign } from "@/packages/graphics/checkout";
 
 // How each way to pay looks: a card in its network's own colours, or a phone whose screen carries the wallet's or
 // the method's mark. A mark is the free Font Awesome brand icon in the mark's colour, or, where the free set has
@@ -13,15 +14,29 @@ export interface PaymentLook {
   face: [string, string];
   mark: string;
   icon?: IconDefinition;
+  // A card as its issuer made it (the holder's name comes from the content).
+  card?: Omit<CardDesign, "holder">;
 }
 
+// The counter's cards, one of each finish: the holder's own red card with his portrait (the contactless one, so its
+// face is held up to be seen), brushed space grey and midnight blue metal, velvet matte black, frosted clear, and a
+// laminated gloss.
+const CARDS: Record<"visa" | "mastercard" | "amex" | "discover" | "jcb" | "diners", Omit<CardDesign, "holder">> = {
+  mastercard: { finish: "gloss", face: ["#e3262f", "#9e0d18"], ink: "#ffffff", issuer: "portrait", lastFour: "4580" },
+  visa: { finish: "metal", face: ["#6a6d75", "#2b2d33"], ink: "#eef0f3", issuer: "monogram", lastFour: "0217" },
+  amex: { finish: "metal", face: ["#2d5689", "#122a4d"], ink: "#e8eef7", issuer: "monogram", lastFour: "1009" },
+  discover: { finish: "matte", face: ["#232529", "#121316"], ink: "#ff8a2b", issuer: "monogram", lastFour: "6011" },
+  jcb: { finish: "frosted", face: ["#eef6ff", "#d6e9ff"], ink: "#0e4c96", issuer: "monogram", lastFour: "3530" },
+  diners: { finish: "gloss", face: ["#0079be", "#00467a"], ink: "#ffffff", issuer: "monogram", lastFour: "3056" },
+};
+
 export const PAYMENT_LOOKS: Record<PaymentMethodId, PaymentLook> = {
-  visa: { face: ["#1a1f71", "#2c3fa8"], mark: "#ffffff", icon: faCcVisa },
-  mastercard: { face: ["#151515", "#3b3b3b"], mark: "#ffffff" },
-  amex: { face: ["#0a8be0", "#0657a8"], mark: "#ffffff", icon: faCcAmex },
-  discover: { face: ["#f7f7f7", "#d9d9d9"], mark: "#1d1d1b", icon: faCcDiscover },
-  jcb: { face: ["#0e4c96", "#127a3d"], mark: "#ffffff", icon: faCcJcb },
-  diners: { face: ["#0079be", "#00467a"], mark: "#ffffff", icon: faCcDinersClub },
+  visa: { face: ["#1a1f71", "#2c3fa8"], mark: "#ffffff", icon: faCcVisa, card: CARDS.visa },
+  mastercard: { face: ["#151515", "#3b3b3b"], mark: "#ffffff", card: CARDS.mastercard },
+  amex: { face: ["#0a8be0", "#0657a8"], mark: "#ffffff", icon: faCcAmex, card: CARDS.amex },
+  discover: { face: ["#f7f7f7", "#d9d9d9"], mark: "#1d1d1b", icon: faCcDiscover, card: CARDS.discover },
+  jcb: { face: ["#0e4c96", "#127a3d"], mark: "#ffffff", icon: faCcJcb, card: CARDS.jcb },
+  diners: { face: ["#0079be", "#00467a"], mark: "#ffffff", icon: faCcDinersClub, card: CARDS.diners },
   applePay: { face: ["#0a0a0a", "#1f1f21"], mark: "#ffffff", icon: faApplePay },
   googlePay: { face: ["#202124", "#3c4043"], mark: "#ffffff", icon: faGooglePay },
   paypal: { face: ["#ffffff", "#e6edf7"], mark: "#003087", icon: faPaypal },

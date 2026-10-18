@@ -41,8 +41,10 @@ interface GltfMesh {
   primitives: GltfPrimitive[];
 }
 
+// Accessors stay unread until a mesh names one, then each is checked as it is read: a model may hold some (sparse ones,
+// a skin's) that a still model never reads, and those must not keep it from loading.
 interface Gltf {
-  accessors: Accessor[];
+  accessors: unknown[];
   bufferViews: BufferView[];
   meshes: GltfMesh[];
 }
@@ -67,7 +69,7 @@ const isMesh = (value: unknown): value is GltfMesh => isRecord(value) && (value.
   Array.isArray(value.primitives) && value.primitives.every(isPrimitive);
 
 // The parts of a glTF this reads, checked before it is trusted.
-const isGltf = (value: unknown): value is Gltf => isRecord(value) && Array.isArray(value.accessors) && value.accessors.every(isAccessor) &&
+const isGltf = (value: unknown): value is Gltf => isRecord(value) && Array.isArray(value.accessors) &&
   Array.isArray(value.bufferViews) && value.bufferViews.every(isBufferView) && Array.isArray(value.meshes) && value.meshes.every(isMesh);
 
 const MAGIC = 0x46546c67;
@@ -110,13 +112,17 @@ export const parseGlb = (buffer: ArrayBuffer): GlbPart[] => {
   }
 
   if (!gltf || !binary || !gltf.meshes?.length) {
-    throw new Error("A binary glTF with no mesh");
+    throw new Error("A binary glTF with no mesh it can read");
   }
 
   const data = binary;
   const { accessors, bufferViews } = gltf;
   const read = (index: number): number[] => {
     const accessor = accessors[index];
+
+    if (!isAccessor(accessor)) {
+      throw new Error(`A glTF accessor that cannot be read: ${index}`);
+    }
     const bufferView = bufferViews[accessor.bufferView];
     const component = COMPONENTS[accessor.componentType];
     const kind = accessor.type;

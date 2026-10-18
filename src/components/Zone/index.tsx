@@ -18,9 +18,9 @@ export const Zone: FC<ZoneProps> = ({ zone, children }) => (
 );
 
 // What lies outside every run and takes the zone the reader is in (the root's data-journey, set by the Journey), its
-// accent animating across: the header, the page's end and footer, the journey's bars, trail and HUD. Only these are
-// restyled at a crossing; the root itself takes nothing from the zone, or every element of the page would be. It draws
-// no box of its own either.
+// accent animating across: the skip link, the header, the page's end and footer, the journey's bars, trail and HUD.
+// Only these are restyled at a crossing; the root itself takes nothing from the zone, or every element of the page
+// would be. It draws no box of its own either.
 export const FollowsJourney: FC<{ children: ReactNode }> = ({ children }) => (
   <div data-follows-journey="" style={{ display: "contents" }}>
     {children}

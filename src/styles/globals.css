@@ -29,7 +29,7 @@
    Each run of sections carries its zone's accent (data-zone on the run, components/Zone), so it keeps its colour
    however far the reader has gone and a crossing never restyles the page's sections. The zone the reader is in is the
    root's data-journey (set by the Journey), which no rule styles on the root itself: only what is marked
-   data-follows-journey (FollowsJourney: the header, the page's end and footer, the journey's bars, trail and HUD)
+   data-follows-journey (FollowsJourney: the skip link, the header, the page's end and footer, the bars, trail and HUD)
    takes that zone's accent, and there the colour animates across. A value the root took from it would be inherited by
    every element of the page, restyling all of them at each crossing and every frame of the transition. Registered
    properties are what let a custom property transition; browsers without them switch instantly. */
@@ -131,6 +131,11 @@
 :root[data-motion="reduced"] body {
   transition: none;
   scroll-behavior: auto;
+}
+
+/* What follows the journey switches its accent at a crossing rather than fading it. */
+:root[data-motion="reduced"] [data-follows-journey] {
+  transition: none;
 }
 
 /* - Basic */

@@ -100,7 +100,9 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
 
   return (
     <>
-      <SkipLink href={`#${MAIN_ID}`}>{portfolioData.menu.skip}</SkipLink>
+      <FollowsJourney>
+        <SkipLink href={`#${MAIN_ID}`}>{portfolioData.menu.skip}</SkipLink>
+      </FollowsJourney>
       <AppLoader />
       <LensGate content={portfolioData.lens} counts={LENS_COUNTS} candidate={LENS_CANDIDATE} />
       <Container>

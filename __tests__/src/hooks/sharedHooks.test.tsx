@@ -253,7 +253,7 @@ describe("useSettledAnchors", () => {
   const settles = (listen: jest.SpyInstance) => listen.mock.calls.some(([type]) => type === "scroll");
 
   it("settles the target of a same page link however deep inside it the click lands, and of no other link", () => {
-    const { unmount } = renderHook(() => useSettledAnchors());
+    const { unmount } = renderHook(() => useSettledAnchors({ isReadable: true, canLand: false }));
     const target = document.createElement("section");
     const local = document.createElement("a");
     const inner = document.createElement("span");
@@ -277,6 +277,71 @@ describe("useSettledAnchors", () => {
     listen.mockRestore();
     jest.runOnlyPendingTimers();
     unmount();
+  });
+
+  it("lands a page opened at a link to a place on it, once it may and only once", () => {
+    const target = document.createElement("section");
+    const scroll = jest.fn();
+
+    target.id = "for-payments";
+    target.getBoundingClientRect = () => ({ top: 640 } as DOMRect);
+    target.scrollIntoView = scroll;
+    document.body.append(target);
+    window.history.replaceState(null, "", "#for-payments");
+
+    const { rerender, unmount } = renderHook(({ canLand }) => useSettledAnchors({ isReadable: true, canLand }), { initialProps: { canLand: false } });
+
+    expect(scroll).not.toHaveBeenCalled();
+
+    rerender({ canLand: true });
+    expect(scroll).toHaveBeenCalledWith({ behavior: "instant", block: "start" });
+
+    scroll.mockClear();
+    rerender({ canLand: false });
+    rerender({ canLand: true });
+    expect(scroll).not.toHaveBeenCalled();
+
+    unmount();
+    window.history.replaceState(null, "", window.location.pathname);
+  });
+
+  it("leaves the page where the reader took it, but not for picking a view before it was readable", () => {
+    const target = document.createElement("section");
+    const scroll = jest.fn();
+
+    target.id = "for-payments";
+    target.getBoundingClientRect = () => ({ top: 640 } as DOMRect);
+    target.scrollIntoView = scroll;
+    document.body.append(target);
+    window.history.replaceState(null, "", "#for-payments");
+
+    // Picking a view on the character select, before the page can be read, does not count.
+    const picked = renderHook((props) => useSettledAnchors(props), { initialProps: { isReadable: false, canLand: false } });
+
+    window.dispatchEvent(new Event("pointerdown"));
+    picked.rerender({ isReadable: true, canLand: true });
+    expect(scroll).toHaveBeenCalled();
+    picked.unmount();
+
+    // Scrolling once the page can be read does.
+    scroll.mockClear();
+    const read = renderHook((props) => useSettledAnchors(props), { initialProps: { isReadable: true, canLand: false } });
+
+    window.dispatchEvent(new Event("wheel"));
+    read.rerender({ isReadable: true, canLand: true });
+    expect(scroll).not.toHaveBeenCalled();
+    read.unmount();
+    window.history.replaceState(null, "", window.location.pathname);
+  });
+
+  it("never throws on a hash with a broken escape", () => {
+    window.history.replaceState(null, "", "#100%");
+
+    const { rerender, unmount } = renderHook(({ canLand }) => useSettledAnchors({ isReadable: true, canLand }), { initialProps: { canLand: false } });
+
+    expect(() => rerender({ canLand: true })).not.toThrow();
+    unmount();
+    window.history.replaceState(null, "", window.location.pathname);
   });
 });
 

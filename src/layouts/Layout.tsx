@@ -90,7 +90,6 @@ const hasPilot = (hash: string): true | null => (hash.startsWith("#pilot=") ? tr
 const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   const { isLoading, isReady } = useAppLoaderStateHook();
 
-  useSettledAnchors();
   // The sections off the screen are skipped by the browser from here on (Section), once every one has been laid out
   // and its size is known.
   useEffect(() => {
@@ -99,6 +98,9 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
     }
   }, [isReady]);
   const { status } = useLensStatusHook();
+
+  // A page opened at a link to a place on it lands there once every section has its size and a view is chosen.
+  useSettledAnchors({ isReadable: !isLoading && status === "chosen", canLand: isReady && status === "chosen" });
   // The world starts once the reader has picked a view, so it is built with that view's settings, and runs
   // under the entrance so it is already moving when the page opens.
   const isWorldLive = !isLoading && (status === "entering" || status === "chosen");

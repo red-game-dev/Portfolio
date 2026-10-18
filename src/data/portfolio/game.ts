@@ -846,6 +846,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           matrix: { name: "The Matrix", note: "Code rains through it. Code shards are found only here." },
           neural: { name: "AI", note: "Neurons fire between its stars. Synapse gel is found only here." },
           blocks: { name: "Chain", note: "Blocks confirm across it. Hash crystals are found only here." },
+          racks: { name: "DevOps", note: "Racks in rows, running every universe you have crossed, and containers moving between them." },
           chips: { name: "Casino", note: "Chips spin through the dark. Lucky chips are found only here." },
           pixels: { name: "Game world", note: "Every star a pixel. Pixel dust is found only here." },
           nebula: { name: "Nebula", note: "Glowing gas, home of stardust." },

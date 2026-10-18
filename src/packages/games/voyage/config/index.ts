@@ -399,7 +399,7 @@ export const DEFAULT_VOYAGE_CONFIG: VoyageConfig = {
   pickups: { magnet: 1.1, repair: 150, shield: 200, fuel: 35 },
   scoring: { perUnit: 6, pickup: 25, universe: 500, landing: 150, discovery: 100 },
   units: { kmPerSecond: 7, kmPerAu: 149597870.7 },
-  universes: 5,
+  universes: 6,
   isSolarSafe: true,
 };
 
@@ -450,6 +450,7 @@ export const DEFAULT_VOYAGE_THEME: VoyageTheme = {
     { style: "matrix", accent: "#4bffa5", deep: "#020a06", hazard: "#ff4d5e" },
     { style: "neural", accent: "#4fd8ff", deep: "#020812", hazard: "#d17bff" },
     { style: "blocks", accent: "#b896ff", deep: "#07040f", hazard: "#b896ff" },
+    { style: "racks", accent: "#ff6b4a", deep: "#0d0504", hazard: "#ff6b4a" },
     { style: "chips", accent: "#ff5fa2", deep: "#0f0309", hazard: "#ff5fa2" },
     { style: "pixels", accent: "#ffc45c", deep: "#0c0802", hazard: "#ffc45c" },
   ],

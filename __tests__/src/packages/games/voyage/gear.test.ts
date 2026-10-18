@@ -233,6 +233,33 @@ describe("voyage gear", () => {
     expect(profile.armory.gear.length).toBe(7);
     expect(new Hangar(profile).view().bar.length).toBe(6);
   });
+
+  test("a profile from before the DevOps universe moves its story and stars past it, so nothing it won shifts", async () => {
+    const adapter = new MemoryAdapter();
+    const older = newProfile();
+    // Under way in the Casino chapter (fourth of the universes then), with stars won in the first five universes.
+    const story = { chapter: 4, progress: [4, 1, 0] };
+    const stars = { "u:0": 3, "u:2": 2, "u:3": 1, "u:4": 2, "d:2026-10-18": 3 };
+
+    await adapter.set("pilot", { version: 4, data: { ...older, career: { ...older.career, story }, progress: { ...older.progress, stars } } });
+
+    const profile = await new PilotRepository(adapter).load();
+
+    expect(isPilotProfile(profile)).toBe(true);
+    expect(profile.career.story).toEqual({ chapter: 5, progress: [4, 1, 0] });
+    expect(profile.progress.stars).toEqual({ "u:0": 3, "u:2": 2, "u:4": 1, "u:5": 2, "d:2026-10-18": 3 });
+  });
+
+  test("a profile from before the DevOps universe still short of it keeps its story where it was", async () => {
+    const adapter = new MemoryAdapter();
+    const older = newProfile();
+
+    await adapter.set("pilot", { version: 4, data: { ...older, career: { ...older.career, story: { chapter: 3, progress: [0, 1, 0] } } } });
+
+    const profile = await new PilotRepository(adapter).load();
+
+    expect(profile.career.story).toEqual({ chapter: 3, progress: [0, 1, 0] });
+  });
 });
 
 describe("voyage weapons in a run", () => {

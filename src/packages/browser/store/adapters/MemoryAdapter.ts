@@ -32,4 +32,12 @@ export class MemoryAdapter implements StoreAdapter {
 }
 
 // A deep copy, so a caller changing what it saved does not change what is kept, as with the other adapters.
-const structuredCopy = (value: unknown): unknown => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)) as unknown);
+const structuredCopy = (value: unknown): unknown => {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const copied: unknown = JSON.parse(JSON.stringify(value));
+
+  return copied;
+};

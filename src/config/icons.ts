@@ -2,9 +2,9 @@ import { IconDefinition, IconName } from "@fortawesome/fontawesome-svg-core";
 
 // Icons the free Font Awesome set has no match for, drawn here on its 512 unit grid so they sit beside the
 // free icons at the same size and weight. Everything else comes from @fortawesome/free-solid-svg-icons.
-const icon = (iconName: string, path: string, width = 512): IconDefinition => ({
+const icon = (iconName: IconName, path: string, width = 512): IconDefinition => ({
   prefix: "fas",
-  iconName: iconName as IconName,
+  iconName,
   icon: [width, 512, [], "", path],
 });
 

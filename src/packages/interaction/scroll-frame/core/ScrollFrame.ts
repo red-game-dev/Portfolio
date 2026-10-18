@@ -31,14 +31,22 @@ export interface FrameEnvironment {
   rect(id: string): FrameRect | null;
 }
 
-type AnyTask = FrameTask<unknown>;
+// A task as the frame keeps it: its read, handing back its write, so each keeps its own type for what it measured
+// and the frame never needs to know it.
+type Runner = (reading: FrameReading) => () => void;
+
+const runnerOf = <T>(task: FrameTask<T>): Runner => (reading) => {
+  const value = task.read(reading);
+
+  return () => task.write(value);
+};
 
 // Every scroll driven reader on the page shares one frame: one listener, at most one measurement pass per
 // display frame, all reads before all writes (so the browser lays the page out once, not once per reader),
 // and each section measured once even when the menu, the trail and the journey all want it.
 export class ScrollFrame {
   private readonly environment: FrameEnvironment;
-  private readonly tasks = new Set<AnyTask>();
+  private readonly tasks = new Set<Runner>();
   private handle: number | null = null;
   private stopListening: (() => void) | null = null;
 
@@ -51,7 +59,9 @@ export class ScrollFrame {
   }
 
   public subscribe<T>(task: FrameTask<T>): () => void {
-    this.tasks.add(task as AnyTask);
+    const runner = runnerOf(task);
+
+    this.tasks.add(runner);
 
     if (!this.stopListening) {
       this.stopListening = this.environment.listen(() => this.schedule());
@@ -60,7 +70,7 @@ export class ScrollFrame {
     this.schedule();
 
     return () => {
-      this.tasks.delete(task as AnyTask);
+      this.tasks.delete(runner);
 
       if (this.tasks.size === 0) {
         this.stopListening?.();
@@ -97,10 +107,9 @@ export class ScrollFrame {
         return rects.get(id) ?? null;
       },
     };
-    const tasks = [...this.tasks];
-    const values = tasks.map((task) => task.read(reading));
+    const writes = [...this.tasks].map((run) => run(reading));
 
-    tasks.forEach((task, index) => task.write(values[index]));
+    writes.forEach((write) => write());
   };
 }
 

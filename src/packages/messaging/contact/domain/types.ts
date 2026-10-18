@@ -1,3 +1,5 @@
+import { keysOf } from "@/packages/core/domain";
+
 // A message to the site's owner, to be answered, or feedback, which may stay anonymous.
 export type ContactKind = "message" | "feedback";
 
@@ -26,6 +28,9 @@ export type ContactOutcome = { ok: true } | { error: ContactRefusal; problems?: 
 
 // The HTTP status for each refusal, one map for the server and the client.
 export const CONTACT_STATUS: Record<ContactRefusal, number> = { invalid: 400, limited: 429, full: 503, unavailable: 503, failed: 502 };
+
+// Every refusal, so a value can be checked to be one.
+export const CONTACT_REFUSALS: readonly ContactRefusal[] = keysOf(CONTACT_STATUS);
 
 // Whether the site can send a message now (it has a way to send, and the day's sends are not used up).
 export interface ContactStatus {

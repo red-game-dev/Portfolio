@@ -23,12 +23,12 @@ const EMPTY: EdgeLayout = { width: 0, height: 0, edges: [] };
 const boxWithin = (element: HTMLElement, container: HTMLElement): Box | null => {
   let left = element.offsetLeft;
   let top = element.offsetTop;
-  let parent = element.offsetParent as HTMLElement | null;
+  let parent = element.offsetParent instanceof HTMLElement ? element.offsetParent : null;
 
   while (parent && parent !== container) {
     left += parent.offsetLeft + parent.clientLeft;
     top += parent.offsetTop + parent.clientTop;
-    parent = parent.offsetParent as HTMLElement | null;
+    parent = parent.offsetParent instanceof HTMLElement ? parent.offsetParent : null;
   }
 
   if (parent !== container) {

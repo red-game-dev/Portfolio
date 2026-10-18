@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useId, useMemo, useRef, useState } from "react";
+import { FC, useId, useMemo, useRef, useState } from "react";
 
 import { faDatabase, faMagnifyingGlassMinus, faMagnifyingGlassPlus, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -49,13 +49,13 @@ const placementStyle = (group: BlueprintGroup) => {
     "--bp-row": `${row} / span ${rowSpan}`,
     "--bp-inner": columns,
     "--bp-narrow": narrowColumns(columns),
-  } as React.CSSProperties;
+  };
 };
 
 const nodeStyle = (node: BlueprintNode, columns: number) => ({
   "--bp-span": Math.min(node.span ?? 1, columns),
   "--bp-span-narrow": Math.min(node.span ?? 1, narrowColumns(columns)),
-} as React.CSSProperties);
+});
 
 const KIND_ICONS = { store: faDatabase, actor: faUser };
 
@@ -102,7 +102,7 @@ export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edg
         "width": isTight ? needed : undefined,
         "transform": scale < 1 ? `scale(${scale})` : undefined,
         "transformOrigin": "top left",
-      } as React.CSSProperties}
+      }}
     >
       <Wires isMoving={isMoving} width={layout.width} height={layout.height} aria-hidden="true">
         <defs>
@@ -158,7 +158,7 @@ export const Architecture: FC<ArchitectureProps> = ({ zone, columns, groups, edg
                     data-switch-item
                     zone={zone}
                     kind={node.kind}
-                    style={{ ...nodeStyle(node, groupColumns), "--i": before + nodeIndex } as CSSProperties}
+                    style={{ ...nodeStyle(node, groupColumns), "--i": before + nodeIndex }}
                   >
                     <NodeLabel>
                       {icon && <KindIcon aria-hidden="true"><FontAwesomeIcon icon={icon} /></KindIcon>}

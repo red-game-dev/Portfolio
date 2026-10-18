@@ -1,3 +1,4 @@
+import { recordOf } from "@/packages/core/domain";
 import type { JointTurns, Skeleton } from "@/packages/graphics/stage3d";
 import { DEG } from "@/packages/math/angles";
 import { cross, fromAxisAngle, IDENTITY, multiply, normalize, scale, slerp, vec3 } from "@/packages/math/space";
@@ -72,14 +73,15 @@ export const blendTurns = (from: JointTurns, to: JointTurns, t: number): JointTu
   from.map((turn, index) => slerp(turn ?? IDENTITY, to[index] ?? IDENTITY, t));
 
 export const mixPoses = (from: HandPose, to: HandPose, t: number): HandPose => {
+  const mixAngle = (a: number, b: number) => a + (b - a) * t;
   const mixDigit = <T extends { curl: [number, number, number]; splay?: number }>(a: T, b: T): T => ({
     ...a,
-    curl: a.curl.map((angle, index) => angle + (b.curl[index] - angle) * t) as [number, number, number],
+    curl: [mixAngle(a.curl[0], b.curl[0]), mixAngle(a.curl[1], b.curl[1]), mixAngle(a.curl[2], b.curl[2])],
     splay: (a.splay ?? 0) + ((b.splay ?? 0) - (a.splay ?? 0)) * t,
   });
 
   return {
-    fingers: Object.fromEntries(FINGERS.map((finger) => [finger, mixDigit(from.fingers[finger], to.fingers[finger])])) as HandPose["fingers"],
+    fingers: recordOf(FINGERS, (finger) => mixDigit(from.fingers[finger], to.fingers[finger])),
     thumb: {
       ...mixDigit(from.thumb, to.thumb),
       across: (from.thumb.across ?? 0) + ((to.thumb.across ?? 0) - (from.thumb.across ?? 0)) * t,

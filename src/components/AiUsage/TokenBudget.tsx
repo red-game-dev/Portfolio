@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useRef } from "react";
+import { FC, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -66,7 +66,7 @@ const Practice = styled.li(() => [
 
 const Notes = tw.ul`list-none m-0 mt-[22px] p-0 flex flex-col gap-[6px] text-sm text-[#888]`;
 
-const strength = (index: number) => ({ "--strength": TIER_STRENGTHS[index] ?? TIER_STRENGTHS[TIER_STRENGTHS.length - 1] }) as CSSProperties;
+const strength = (index: number) => ({ "--strength": TIER_STRENGTHS[index] ?? TIER_STRENGTHS[TIER_STRENGTHS.length - 1] });
 
 // Token spend as a budget: the measured cache rate and volume, the model mix by output, and the habits
 // that keep both where they are.

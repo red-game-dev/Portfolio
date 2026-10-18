@@ -1,4 +1,4 @@
-import { CSSProperties, FC, Fragment } from "react";
+import { FC, Fragment } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -221,7 +221,7 @@ export const Wireframe: FC<WireframeProps> = ({ device, screens, decision, outco
           <Fragment key={screen.title}>
             {index > 0 && <Arrow aria-hidden="true">→</Arrow>}
             {/* A step is a switch's item in its place, for a section theme's switch that takes the screens in turn. */}
-            <Step data-switch-item style={{ "--i": index } as CSSProperties}>
+            <Step data-switch-item style={{ "--i": index }}>
               <StepTitle>
                 <StepNumber aria-hidden="true">{index + 1}</StepNumber>
                 {screen.title}

@@ -1,3 +1,4 @@
+import { keysOf } from "@/packages/core/domain";
 import { Audience } from "@/types/case-studies";
 import { Industry } from "@/types/industry";
 
@@ -53,7 +54,7 @@ export const audienceForHash = (hash: string): Audience | null => {
     return "payments";
   }
 
-  return (Object.keys(AUDIENCE_ANCHORS) as Audience[]).find((audience) => AUDIENCE_ANCHORS[audience] === anchor) ?? null;
+  return keysOf(AUDIENCE_ANCHORS).find((audience) => AUDIENCE_ANCHORS[audience] === anchor) ?? null;
 };
 
 // More role links from the first screen, each landing on the section that backs the role.

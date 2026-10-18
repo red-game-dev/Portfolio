@@ -280,8 +280,11 @@ export interface WarmMessage {
   isFull: boolean;
 }
 
-export const isWarmMessage = (value: unknown): value is WarmMessage => typeof value === "object" && value !== null &&
-  (value as WarmMessage).type === "warm" && Array.isArray((value as WarmMessage).urls) && typeof (value as WarmMessage).isFull === "boolean";
+// An object read field by field, for the checks here (the worker has no imports, so it keeps its own).
+const isFields = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
+
+export const isWarmMessage = (value: unknown): value is WarmMessage => isFields(value) && value.type === "warm" && Array.isArray(value.urls) &&
+  typeof value.isFull === "boolean";
 
 // Below here, the worker itself: wired only where it runs as one.
 
@@ -307,11 +310,13 @@ interface WorkerScope {
   addEventListener(type: "message", listener: (event: Messaged) => void): void;
 }
 
-const isWorker = typeof self !== "undefined" && typeof (self as unknown as { registration?: unknown }).registration === "object" &&
-  typeof (self as unknown as { document?: unknown }).document === "undefined";
+// Running as a service worker: a registration and no document (a page has the other way round, and tests neither).
+const isWorkerScope = (value: unknown): value is WorkerScope => isFields(value) && isFields(value.registration) && !("document" in value);
 
-if (isWorker) {
-  const scope = self as unknown as WorkerScope;
+const workerScope: unknown = typeof self === "undefined" ? undefined : self;
+
+if (isWorkerScope(workerScope)) {
+  const scope = workerScope;
   const names = cacheNames(VERSION);
   const { origin } = scope.location;
   const fetcher: Fetcher = (request) => fetch(readable(request));
@@ -418,7 +423,7 @@ if (isWorker) {
     event.waitUntil((async () => {
       const meta = await caches.open(names.meta);
       const listed = await meta.match(VERSIONS_KEY);
-      const known = listed ? await listed.json() as unknown : [];
+      const known: unknown = listed ? await listed.json() : [];
       const kept = versionsKept(VERSION, Array.isArray(known) ? known.filter((name): name is string => typeof name === "string") : []);
 
       await meta.put(VERSIONS_KEY, new Response(JSON.stringify(kept), { headers: { "content-type": "application/json" } }));
@@ -436,12 +441,12 @@ if (isWorker) {
     const { urls, isFull } = event.data;
 
     event.waitUntil((async () => {
-      const listed: { files?: unknown } = isFull
+      const listed: unknown = isFull
         ? await fetch(PRECACHE_LIST, { cache: "no-store" })
-          .then(async (response) => (response.ok ? await response.json() as { files?: unknown } : {}))
+          .then(async (response): Promise<unknown> => (response.ok ? await response.json() : {}))
           .catch(() => ({}))
         : {};
-      const files = Array.isArray(listed.files) ? listed.files.filter((file: unknown): file is string => typeof file === "string") : [];
+      const files = isFields(listed) && Array.isArray(listed.files) ? listed.files.filter((file: unknown): file is string => typeof file === "string") : [];
 
       await warm([...urls.filter((url) => typeof url === "string"), ...files]);
     })());

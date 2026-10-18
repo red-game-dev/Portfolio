@@ -160,7 +160,7 @@ export class ThreeStage extends Stage {
   private environment: Texture | null = null;
   private level = QUALITY.length - 1;
   private readonly geometries = new Map<string, { parts: BufferGeometry[]; textures: Map<string, DataTexture>; users: number }>();
-  private readonly pictures = new Map<string, { texture: CanvasTexture; version: number; users: number }>();
+  private readonly pictures = new Map<string, { texture: CanvasTexture<TexImageSource>; version: number; users: number }>();
   private readonly images = new Map<string, { texture: Texture; users: number }>();
   private readonly scenes = new Map<number, MountedScene>();
   private readonly camera = new PerspectiveCamera(30, 1, 1, 4000);
@@ -293,7 +293,7 @@ export class ThreeStage extends Stage {
       return;
     }
 
-    picture.texture.image = source as HTMLCanvasElement;
+    picture.texture.image = source;
     picture.texture.needsUpdate = true;
     picture.version = version;
   }
@@ -357,7 +357,7 @@ export class ThreeStage extends Stage {
   }
 
   // A picture's texture, made blank the first time a material or the host asks for it and filled when it is handed.
-  private pictureOf(id: string): { texture: CanvasTexture; version: number; users: number } {
+  private pictureOf(id: string): { texture: CanvasTexture<TexImageSource>; version: number; users: number } {
     const known = this.pictures.get(id);
 
     if (known) {
@@ -369,7 +369,7 @@ export class ThreeStage extends Stage {
     blank.width = 1;
     blank.height = 1;
 
-    const texture = new CanvasTexture(blank);
+    const texture = new CanvasTexture<TexImageSource>(blank);
     const picture = { texture, version: -1, users: 0 };
 
     texture.colorSpace = SRGBColorSpace;

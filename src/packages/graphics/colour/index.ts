@@ -12,7 +12,9 @@ export const hexToRgb = (hex: string): Rgb => {
   const digits = hex.replace(/^#/, "");
   const full = digits.length === 3 ? Array.from(digits, (digit) => digit + digit).join("") : digits;
 
-  return [0, 2, 4].map((start) => parseInt(full.slice(start, start + 2), 16)) as Rgb;
+  const channel = (start: number) => parseInt(full.slice(start, start + 2), 16);
+
+  return [channel(0), channel(2), channel(4)];
 };
 
 // [75, 255, 165] as "#4bffa5".
@@ -24,7 +26,11 @@ export const hexWithAlpha = (hex: string, alpha: number): string => `${hex}${hex
 // "75, 255, 165": the channels as CSS custom properties hold them, for rgba(var(--x-rgb), 0.5).
 export const rgbChannels = (hex: string) => hexToRgb(hex).join(", ");
 
-export const mixRgb = (from: Rgb, to: Rgb, amount: number): Rgb => [0, 1, 2].map((index) => Math.round(lerp(from[index], to[index], amount))) as Rgb;
+export const mixRgb = (from: Rgb, to: Rgb, amount: number): Rgb => {
+  const mix = (index: 0 | 1 | 2) => Math.round(lerp(from[index], to[index], amount));
+
+  return [mix(0), mix(1), mix(2)];
+};
 
 export const rgba = ([red, green, blue]: Rgb, alpha: number) => `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(3)})`;
 

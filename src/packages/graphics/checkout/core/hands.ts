@@ -309,7 +309,7 @@ const watch = (context: Canvas2DContext, centre: Point, angle: number, width: nu
 
 // The pointing hand's parts, the fingertip at the origin and the finger along the x axis: the index straight, the
 // other three curled under, the thumb along the near side, a right hand seen from its back.
-const INDEX = { knuckle: { x: -50, y: 0 }, tip: { x: -4.8, y: 0 }, widths: [11, 9.6] as [number, number] };
+const INDEX = { knuckle: { x: -50, y: 0 }, tip: { x: -4.8, y: 0 }, widths: [11, 9.6] satisfies [number, number] };
 
 const CURLED = [
   { knuckle: { x: -60, y: 29.5 }, bend: { x: -51, y: 31 }, width: 9 },
@@ -317,7 +317,7 @@ const CURLED = [
   { knuckle: { x: -54, y: 11 }, bend: { x: -40, y: 13 }, width: 11 },
 ];
 
-const THUMB = { base: { x: -88, y: -2 }, tip: { x: -47, y: -11 }, widths: [14, 10] as [number, number] };
+const THUMB = { base: { x: -88, y: -2 }, tip: { x: -47, y: -11 }, widths: [14, 10] satisfies [number, number] };
 
 const WRIST = { x: -96, y: 16 };
 
@@ -444,7 +444,7 @@ const pointingSilhouette = (context: Canvas2DContext) => {
 
 // The holding hand's parts, the thumb's pad on what it holds at the origin and the arm out along the x axis: the
 // thumb across the face, the index finger curled round the edge behind, a right hand seen from its thumb side.
-const GRIP_THUMB = { base: { x: 26, y: -3 }, tip: { x: -1, y: -2.5 }, widths: [13, 10.6] as [number, number] };
+const GRIP_THUMB = { base: { x: 26, y: -3 }, tip: { x: -1, y: -2.5 }, widths: [13, 10.6] satisfies [number, number] };
 
 const GRIP_INDEX = { knuckle: { x: 27, y: 8 }, edge: { x: 8, y: 12.5 }, width: 11 };
 

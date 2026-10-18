@@ -581,7 +581,7 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       touches.delete(event.pointerId);
     };
     const onWheel = (event: WheelEvent) => {
-      if (!event.ctrlKey && !stage.current?.contains(event.target as Node)) {
+      if (!event.ctrlKey && !(event.target instanceof Node && stage.current?.contains(event.target))) {
         return;
       }
 
@@ -596,21 +596,25 @@ export const useVoyage = ({ stage, back, front, lens }: VoyageCanvasRefs, { labe
       isGesture = event.type !== "gestureend";
 
       if (event.type !== "gestureend" && touches.size === 0) {
-        game.zoomBy(zoom.gesture((event as Event & { scale?: number }).scale ?? 1, event.type === "gesturestart"));
+        // Safari's gesture events carry how far the pinch has gone.
+        const scale = "scale" in event && typeof event.scale === "number" ? event.scale : 1;
+
+        game.zoomBy(zoom.gesture(scale, event.type === "gesturestart"));
       }
     };
     const gestures = ["gesturestart", "gesturechange", "gestureend"];
-    const lifts = ["pointerup", "pointercancel"];
 
     element.addEventListener("wheel", onWheel, { passive: false });
     element.addEventListener("pointerdown", onTouchDown, true);
-    lifts.forEach((type) => element.addEventListener(type, onTouchUp as EventListener, true));
+    element.addEventListener("pointerup", onTouchUp, true);
+    element.addEventListener("pointercancel", onTouchUp, true);
     gestures.forEach((type) => element.addEventListener(type, onGesture));
 
     return () => {
       element.removeEventListener("wheel", onWheel);
       element.removeEventListener("pointerdown", onTouchDown, true);
-      lifts.forEach((type) => element.removeEventListener(type, onTouchUp as EventListener, true));
+      element.removeEventListener("pointerup", onTouchUp, true);
+      element.removeEventListener("pointercancel", onTouchUp, true);
       gestures.forEach((type) => element.removeEventListener(type, onGesture));
     };
   }, [game, stage, zoom]);

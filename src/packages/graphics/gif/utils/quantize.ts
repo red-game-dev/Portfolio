@@ -108,8 +108,11 @@ export const quantize = (frames: readonly Uint8Array[], { colours = 256, fixed =
     boxes.splice(boxes.indexOf(box), 1, ...split(box, counts));
   }
 
-  const averageOf = ({ bins, count }: Box): GifColour => [0, 1, 2]
-    .map((channel) => Math.round(bins.reduce((total, bin) => total + sums[bin * 3 + channel], 0) / count)) as unknown as GifColour;
+  const averageOf = ({ bins, count }: Box): GifColour => {
+    const average = (channel: number) => Math.round(bins.reduce((total, bin) => total + sums[bin * 3 + channel], 0) / count);
+
+    return [average(0), average(1), average(2)];
+  };
   const palette: GifColour[] = [...fixed, ...boxes.map(averageOf)];
   const nearest = new Int16Array(LEVELS ** 3).fill(-1);
 

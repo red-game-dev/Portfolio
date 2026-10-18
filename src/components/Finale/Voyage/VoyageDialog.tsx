@@ -1,4 +1,4 @@
-import { CSSProperties, FC, SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FC, SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   faAnchor,
@@ -1147,7 +1147,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
             data-hud-area="message"
             data-held={isLineHeld ? "" : undefined}
             isCard={Boolean(message.card)}
-            style={{ "--message-ms": `${lineMs(message)}ms` } as CSSProperties}
+            style={{ "--message-ms": `${lineMs(message)}ms` }}
           >
             {message.card ? (
               <CardText>

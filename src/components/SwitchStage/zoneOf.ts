@@ -1,5 +1,6 @@
-import type { SectionThemeId } from "@/config/sectionThemes";
+import { SECTION_THEMES, SectionThemeId } from "@/config/sectionThemes";
 import { ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
+import { isOneOf } from "@/packages/core/domain";
 
 // The zone an element sits in: the last zone whose first section starts at or before it in the page.
 // Read from document order, not from the scroll position, so it is right wherever the reader is.
@@ -25,5 +26,8 @@ export const zoneOf = (element: Element | null): ZoneId => {
 };
 
 // The section theme an element sits in (components/Theme), if any.
-export const themeOf = (element: Element | null): SectionThemeId | null =>
-  (element?.closest("[data-theme]")?.getAttribute("data-theme") as SectionThemeId | null | undefined) ?? null;
+export const themeOf = (element: Element | null): SectionThemeId | null => {
+  const theme = element?.closest("[data-theme]")?.getAttribute("data-theme");
+
+  return isOneOf(SECTION_THEMES, theme) ? theme : null;
+};

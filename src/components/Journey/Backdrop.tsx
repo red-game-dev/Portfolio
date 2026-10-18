@@ -109,7 +109,7 @@ export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled }: BackdropProps) 
       return;
     }
 
-    let cancel = () => undefined as void;
+    let cancel: () => void = () => undefined;
     let isGone = false;
 
     void import("@/packages/animation/frame-loop").then(({ AnimationFrameScheduler, watchFrameBudget }) => {

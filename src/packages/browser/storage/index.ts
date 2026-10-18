@@ -4,7 +4,9 @@
 // Values are stored as JSON; one written as a plain string before that still reads back as that string.
 const parseStored = (raw: string): unknown => {
   try {
-    return JSON.parse(raw) as unknown;
+    const parsed: unknown = JSON.parse(raw);
+
+    return parsed;
   } catch {
     return raw;
   }

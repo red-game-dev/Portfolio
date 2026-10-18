@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useLayoutEffect, useRef, useState } from "react";
+import { FC, useLayoutEffect, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
 import tw, { css, styled } from "twin.macro";
@@ -53,7 +53,7 @@ export const PaymentLayer: FC<{ effect: PaymentEffect; count: number }> = ({ eff
     }
   }, []);
 
-  const style = { "--pay-ms": `${PAYMENT_SWITCH_MS}ms`, "--fit": fit } as CSSProperties;
+  const style = { "--pay-ms": `${PAYMENT_SWITCH_MS}ms`, "--fit": fit };
 
   if (effect === "pay" || effect === "tap") {
     const method = effect === "pay" ? methodForSwitch(PAY_SEQUENCE, count) : methodForSwitch(CARD_METHODS, count);

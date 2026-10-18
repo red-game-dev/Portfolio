@@ -381,10 +381,12 @@ export class HeroPainter {
         context.strokeStyle = hero.shade;
         context.lineWidth = 1;
         context.stroke();
-        [[CX, 34, hero.cape ?? hero.aura], [86, 40, hero.aura], [114, 40, hero.aura]].forEach(([x, y, colour]) => {
-          context.fillStyle = colour as string;
+        const gems: Array<[number, number, string]> = [[CX, 34, hero.cape ?? hero.aura], [86, 40, hero.aura], [114, 40, hero.aura]];
+
+        gems.forEach(([x, y, colour]) => {
+          context.fillStyle = colour;
           context.beginPath();
-          context.arc(x as number, y as number, 2.6, 0, TAU);
+          context.arc(x, y, 2.6, 0, TAU);
           context.fill();
         });
         break;

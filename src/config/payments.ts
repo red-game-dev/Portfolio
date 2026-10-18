@@ -1,3 +1,5 @@
+import { keysOf } from "@/packages/core/domain";
+
 // The ways to pay the payments section shows, each meeting the terminal the way it does at a real counter.
 // The methods my own systems took are listed in their groups; the new group shows the newest checkout at real counters
 // as it works, not as one my systems took. Their names are content (payments.terminal.methods).
@@ -117,7 +119,7 @@ export const PAYMENT_DRAWING_ANCHORS: Record<PaymentDrawingKey, string> = {
   payouts: "payments-payouts",
 };
 
-export const PAYMENT_DRAWINGS = Object.keys(PAYMENT_DRAWING_ANCHORS) as PaymentDrawingKey[];
+export const PAYMENT_DRAWINGS: PaymentDrawingKey[] = keysOf(PAYMENT_DRAWING_ANCHORS);
 
 // The till's currency where nothing says where the visitor is, and the language its amounts are written in where the
 // browser names none.

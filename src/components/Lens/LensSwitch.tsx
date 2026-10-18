@@ -1,4 +1,4 @@
-import { CSSProperties, FC, KeyboardEvent, MouseEvent, useCallback, useId, useMemo, useRef, useState } from "react";
+import { FC, KeyboardEvent, MouseEvent, useCallback, useId, useMemo, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -88,7 +88,7 @@ const OptionText = tw.span`flex flex-col`;
 
 const OptionHint = tw.span`text-xs text-[#888]`;
 
-const accentStyle = (lens: Lens) => ({ "--lens-accent": LENS_ACCENTS[lens].color, "--lens-rgb": LENS_ACCENTS[lens].rgb } as CSSProperties);
+const accentStyle = (lens: Lens) => ({ "--lens-accent": LENS_ACCENTS[lens].color, "--lens-rgb": LENS_ACCENTS[lens].rgb });
 
 // Escape closes the switch, and only the switch.
 const CLOSE_KEYS = new KeyMap({ Escape: "close" });

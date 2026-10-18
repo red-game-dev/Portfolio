@@ -1,8 +1,8 @@
+import { entriesOf } from "@/packages/core/domain";
 import { formatPeriod, toMonthIndex } from "@/packages/insights/career";
 import { Command, error, heading, output, system } from "@/packages/interaction/terminal";
 import { collapseWhitespace } from "@/packages/text/format";
 import { CommandContext, GROUPS, matches, PERIOD, PRESENT } from "@/services/terminal/commands/shared";
-import { SkillGroup } from "@/types/skills";
 
 // Get to know me.
 export const createMeCommands = (context: CommandContext): Command[] => {
@@ -67,7 +67,7 @@ export const createMeCommands = (context: CommandContext): Command[] => {
       usage: "skills [group]",
       summary: "Skill groups, or every skill in one group",
       run: (args) => {
-        const groups = (Object.entries(data.skills) as Array<[SkillGroup, string[]]>).map(([key, names]) => ({
+        const groups = entriesOf(data.skills).map(([key, names]) => ({
           key,
           title: data.sections[key].title,
           names,

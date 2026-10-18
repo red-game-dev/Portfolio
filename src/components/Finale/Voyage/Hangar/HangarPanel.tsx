@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useEffect, useId, useRef, useState } from "react";
+import { FC, useEffect, useId, useRef, useState } from "react";
 
 import tw from "twin.macro";
 
@@ -231,7 +231,7 @@ export const HangarPanel: FC<HangarPanelProps> = ({ content, settings, economy, 
   })();
 
   return (
-    <Panel aria-labelledby="hangar-heading" data-hud-surface="drawer" style={{ "--tab-accent": tabSpec.accent } as CSSProperties}>
+    <Panel aria-labelledby="hangar-heading" data-hud-surface="drawer" style={{ "--tab-accent": tabSpec.accent }}>
       <Header>
         <Heading id="hangar-heading" ref={headingRef} tabIndex={-1}>{copy.hangar}</Heading>
         <Purse>

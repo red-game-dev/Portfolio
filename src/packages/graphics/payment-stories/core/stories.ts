@@ -1,5 +1,5 @@
 import {
-  Point, StoryCoin, StoryFrame, StoryId, StoryNode, StoryPacket, StoryReceipt, StoryWire, Tone,
+  Point, StoryBurst, StoryCoin, StoryFrame, StoryId, StoryNode, StoryPacket, StoryReceipt, StoryWire, Tone,
 } from "../domain/types";
 import { along, flash, glide, settle, span } from "./motion";
 
@@ -13,6 +13,8 @@ const node = (id: string, at: Point, icon: StoryNode["icon"], extra: Partial<Sto
 const wire = (from: Point, to: Point, bend: number, lit = 0, tone: Tone = "lit"): StoryWire => ({ from, to, bend, lit, tone });
 
 const packet = (on: StoryWire, at: number, tone: Tone = "lit", size = 1, heading: 1 | -1 = 1): StoryPacket => ({ wire: on, at, heading, tone, size });
+
+const burstAt = (at: Point, progress: number, tone: Tone): StoryBurst => ({ at, progress, tone });
 
 const EMPTY: Omit<StoryFrame, "wires" | "nodes"> = { packets: [], bursts: [], receipts: [], coins: [], signal: null };
 
@@ -68,8 +70,8 @@ export const routeAt = (t: number): StoryFrame => {
       node("third", providers[2], "bank"),
     ],
     bursts: [
-      ...(isFailing ? [{ at: providers[0], progress: span(t, ROUTE.failed[0], ROUTE.failed[0] + 0.14), tone: "failed" as Tone }] : []),
-      ...(isApproved ? [{ at: providers[1], progress: span(t, ROUTE.approved[0], ROUTE.approved[0] + 0.16), tone: "approved" as Tone }] : []),
+      ...(isFailing ? [burstAt(providers[0], span(t, ROUTE.failed[0], ROUTE.failed[0] + 0.14), "failed")] : []),
+      ...(isApproved ? [burstAt(providers[1], span(t, ROUTE.approved[0], ROUTE.approved[0] + 0.16), "approved")] : []),
     ],
   };
 };
@@ -127,8 +129,8 @@ export const authoriseAt = (t: number): StoryFrame => {
       });
     }),
     bursts: [
-      ...(isApproved ? [{ at: stops[3], progress: span(t, AUTHORISE.approved[0], AUTHORISE.approved[0] + 0.16), tone: "approved" as Tone }] : []),
-      ...(isHome ? [{ at: stops[0], progress: span(t, AUTHORISE.home[0], AUTHORISE.home[0] + 0.14), tone: "approved" as Tone }] : []),
+      ...(isApproved ? [burstAt(stops[3], span(t, AUTHORISE.approved[0], AUTHORISE.approved[0] + 0.16), "approved")] : []),
+      ...(isHome ? [burstAt(stops[0], span(t, AUTHORISE.home[0], AUTHORISE.home[0] + 0.14), "approved")] : []),
     ],
   };
 };
@@ -187,7 +189,7 @@ export const syncAt = (t: number): StoryFrame => {
     bursts: Array.from({ length: landed }, (_, index) => {
       const lands = SYNC.flights[0] + index * each + each * SYNC.flight;
 
-      return { at: cloud, progress: span(t, lands, lands + 0.1), tone: "lit" as Tone };
+      return burstAt(cloud, span(t, lands, lands + 0.1), "lit");
     }).filter((burst) => burst.progress < 1),
     signal: { at: { x: till.x, y: till.y - 36 }, isLost: signalBack === 0, bars: Math.round(signalBack * 4) },
   };
@@ -246,8 +248,8 @@ export const splitAt = (t: number): StoryFrame => {
     ],
     coins,
     bursts: [
-      ...(isSplit ? [{ at: hub, progress: span(t, SPLIT.burst[0], SPLIT.burst[0] + 0.14), tone: "approved" as Tone }] : []),
-      ...shares.map((share, index) => ({ at: share as Point, progress: span(t, landedAt(index), landedAt(index) + 0.12), tone: "approved" as Tone }))
+      ...(isSplit ? [burstAt(hub, span(t, SPLIT.burst[0], SPLIT.burst[0] + 0.14), "approved")] : []),
+      ...shares.map((share, index) => burstAt(share, span(t, landedAt(index), landedAt(index) + 0.12), "approved"))
         .filter((burst, index) => t >= landedAt(index) && burst.progress < 1),
     ],
   };

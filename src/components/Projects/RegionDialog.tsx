@@ -1,4 +1,4 @@
-import { CSSProperties, FC, KeyboardEvent, useRef } from "react";
+import { FC, KeyboardEvent, useRef } from "react";
 
 import { faArrowLeft, faArrowRight, faArrowUpRightFromSquare, faCodeBranch, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -82,7 +82,7 @@ export const RegionDialog: FC<RegionDialogProps> = ({
     }
   });
 
-  const style = { "--kind": project ? KIND_COLOURS[project.kind] : "var(--accent)" } as CSSProperties;
+  const style = { "--kind": project ? KIND_COLOURS[project.kind] : "var(--accent)" };
 
   return (
     <Dialog ref={dialogRef} style={style} onClose={onClose} onClick={onClick} onKeyDown={onKeyDown} aria-labelledby="region-dialog-title">

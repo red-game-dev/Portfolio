@@ -5,8 +5,9 @@ import { switchEffectFor, SwitchEffect } from "@/components/SwitchStage/config";
 import { zoneOf } from "@/components/SwitchStage/zoneOf";
 import useInView from "@/hooks/useInView";
 import { useOnline } from "@/hooks/useOnline";
+import { isOneOf } from "@/packages/core/domain";
 import {
-  CONTACT_LIMITS, ContactDelivery, ContactKind, ContactProblem, contactProblems, ContactRefusal, ContactRequest, DeliveryStatus,
+  CONTACT_LIMITS, CONTACT_REFUSALS, ContactDelivery, ContactKind, ContactProblem, contactProblems, ContactRefusal, ContactRequest, DeliveryStatus,
 } from "@/packages/messaging/contact";
 import { fill } from "@/packages/text/format";
 import { contactFallback } from "@/services/contact/fallback";
@@ -217,8 +218,10 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   const problemText = (problem: ContactProblem) =>
     fill(shared.problems[problem], { least: CONTACT_LIMITS.messageLeast, most: problem === "nameLong" ? CONTACT_LIMITS.nameMost : CONTACT_LIMITS.messageMost });
   const describedBy = (name: FieldName) => (problemsOf(name).length > 0 ? `${fieldId(name)}-problem` : undefined);
-  const refusal = ({ full: shared.full, unavailable: shared.closed, limited: shared.limited, invalid: shared.failed, failed: shared.failed } as const)[
-    state as ContactRefusal] ?? null;
+  const refusalWords: Record<ContactRefusal, string> = {
+    full: shared.full, unavailable: shared.closed, limited: shared.limited, invalid: shared.failed, failed: shared.failed,
+  };
+  const refusal = isOneOf(CONTACT_REFUSALS, state) ? refusalWords[state] : null;
   // Said as it changes: sent, sending, what to fix (the fields say what, the line says so), or that the site cannot send.
   const status = state === "sent"
     ? fill(words.sent, { time: contactTime.toLowerCase() })

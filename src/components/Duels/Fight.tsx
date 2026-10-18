@@ -5,7 +5,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { PixelSprite } from "@/components/PixelSprite";
 import { AGENT_SPRITE, WARRIOR_SPRITE } from "@/config/sprites";
-import { media, svgFill } from "@/styles/mixins";
+import { media, noTransitionWhenReduced, svgFill } from "@/styles/mixins";
 
 interface FightProps {
   played: number;
@@ -101,6 +101,8 @@ const Fill = styled.span(({ isAgent }: { isAgent: boolean }) => [
     transform-origin: ${isAgent ? "left" : "right"} center;
     transition: transform 0.5s ease ${CLASH_MS * 0.6}ms;
   `,
+  // Kept still, the bar stands at what is left at once.
+  noTransitionWhenReduced,
 ]);
 
 const Ring = tw.div`relative mx-auto h-[110px] md:h-[120px] max-w-[380px]`;

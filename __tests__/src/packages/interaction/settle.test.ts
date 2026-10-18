@@ -1,4 +1,4 @@
-import { scrollToElement, settleAtTop, SettleView } from "@/packages/interaction/scroll-frame";
+import { holdAtTop, HoldView, scrollToElement, settleAtTop, SettleView } from "@/packages/interaction/scroll-frame";
 
 // A page that fires events on demand and runs timers when told.
 const fakeView = (withScrollEnd = true) => {
@@ -149,5 +149,100 @@ describe("scrollToElement", () => {
     scrollToElement(element, "smooth", view);
     expect(scroll).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
     expect(view.count("scrollend")).toBe(1);
+  });
+});
+
+describe("holdAtTop", () => {
+  // A page that runs its frames when told, at the given times.
+  const framedView = () => {
+    const base = fakeView();
+    let pending: ((time: number) => void) | null = null;
+    const view: HoldView & typeof base & { frame(time: number): void; hasFrame(): boolean } = Object.assign(base, {
+      requestAnimationFrame: (callback: (time: number) => void) => {
+        pending = callback;
+
+        return 1;
+      },
+      cancelAnimationFrame: () => {
+        pending = null;
+      },
+      frame: (time: number) => {
+        const next = pending;
+
+        pending = null;
+        next?.(time);
+      },
+      hasFrame: () => pending !== null,
+    });
+
+    return view;
+  };
+
+  // A target whose place the test moves, as sections above it load.
+  const drifting = (top: number) => {
+    const element = document.createElement("section");
+    const place = { top };
+    const scroll = jest.fn(() => {
+      place.top = 0;
+    });
+
+    element.getBoundingClientRect = () => ({ top: place.top } as DOMRect);
+    element.scrollIntoView = scroll;
+
+    return { element, place, scroll };
+  };
+
+  it("lands the target at once and puts it back each time what is above it moves it", () => {
+    const view = framedView();
+    const { element, place, scroll } = drifting(-900);
+
+    holdAtTop(element, view);
+    expect(scroll).toHaveBeenCalledTimes(1);
+
+    view.frame(0);
+    place.top = 240;
+    view.frame(400);
+    expect(scroll).toHaveBeenCalledTimes(2);
+    expect(scroll).toHaveBeenLastCalledWith({ behavior: "instant", block: "start" });
+  });
+
+  it("lets go once the target has stayed where it belongs for the quiet time", () => {
+    const view = framedView();
+    const { element } = drifting(0);
+
+    holdAtTop(element, view, { quiet: 1000 });
+    view.frame(0);
+    view.frame(500);
+    expect(view.hasFrame()).toBe(true);
+
+    view.frame(1000);
+    expect(view.hasFrame()).toBe(false);
+  });
+
+  it("lets go after the longest it holds, even while things still move", () => {
+    const view = framedView();
+    const { element, place } = drifting(0);
+
+    holdAtTop(element, view, { most: 2000, quiet: 5000 });
+    view.frame(0);
+    place.top = 50;
+    view.frame(1000);
+    place.top = 50;
+    view.frame(2000);
+    expect(view.hasFrame()).toBe(false);
+  });
+
+  it("stops as soon as the reader takes over the scroll", () => {
+    const view = framedView();
+    const { element, place, scroll } = drifting(0);
+
+    holdAtTop(element, view);
+    view.frame(0);
+    view.fire("wheel");
+    place.top = 300;
+    view.frame(100);
+
+    expect(scroll).not.toHaveBeenCalled();
+    expect(view.count("wheel")).toBe(0);
   });
 });

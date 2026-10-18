@@ -253,7 +253,7 @@ describe("useSettledAnchors", () => {
   const settles = (listen: jest.SpyInstance) => listen.mock.calls.some(([type]) => type === "scroll");
 
   it("settles the target of a same page link however deep inside it the click lands, and of no other link", () => {
-    const { unmount } = renderHook(() => useSettledAnchors());
+    const { unmount } = renderHook(() => useSettledAnchors(false));
     const target = document.createElement("section");
     const local = document.createElement("a");
     const inner = document.createElement("span");
@@ -277,6 +277,32 @@ describe("useSettledAnchors", () => {
     listen.mockRestore();
     jest.runOnlyPendingTimers();
     unmount();
+  });
+
+  it("lands a page opened at a link to a place on it, once it may and only once", () => {
+    const target = document.createElement("section");
+    const scroll = jest.fn();
+
+    target.id = "for-payments";
+    target.getBoundingClientRect = () => ({ top: 640 } as DOMRect);
+    target.scrollIntoView = scroll;
+    document.body.append(target);
+    window.history.replaceState(null, "", "#for-payments");
+
+    const { rerender, unmount } = renderHook(({ canLand }) => useSettledAnchors(canLand), { initialProps: { canLand: false } });
+
+    expect(scroll).not.toHaveBeenCalled();
+
+    rerender({ canLand: true });
+    expect(scroll).toHaveBeenCalledWith({ behavior: "instant", block: "start" });
+
+    scroll.mockClear();
+    rerender({ canLand: false });
+    rerender({ canLand: true });
+    expect(scroll).not.toHaveBeenCalled();
+
+    unmount();
+    window.history.replaceState(null, "", window.location.pathname);
   });
 });
 

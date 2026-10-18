@@ -84,6 +84,83 @@ export const settleAtTop = (
   return stop;
 };
 
+// What holding a target in place needs besides a settle's: a frame to look again on.
+export interface HoldView extends SettleView {
+  requestAnimationFrame(callback: (time: number) => void): number;
+  cancelAnimationFrame(id: number): void;
+}
+
+interface HoldOptions {
+  // The longest it holds (ms).
+  most?: number;
+  // How long the target has to stay where it belongs before the hold lets go early (ms).
+  quiet?: number;
+  tolerance?: number;
+}
+
+// A page opened at a link to somewhere on it: puts the target at the top of the screen at once, then looks again
+// every frame and puts it back while the sections above it finish loading and change size, until it has stayed put
+// for `quiet` ms or `most` have passed. The reader taking over the scroll ends it, as it ends a settle. Returns a
+// cancel.
+export const holdAtTop = (
+  element: Element,
+  view: HoldView = window,
+  { most = 4000, quiet = 1200, tolerance = 2 }: HoldOptions = {},
+  root: Element | null = typeof document === "undefined" ? null : document.documentElement,
+) => {
+  cancelActive?.();
+
+  let frame = 0;
+  let started: number | null = null;
+  let lastMoved = 0;
+
+  const stop = () => {
+    view.cancelAnimationFrame(frame);
+    TAKE_OVER.forEach((type) => view.removeEventListener(type, stop));
+
+    if (cancelActive === stop) {
+      cancelActive = null;
+    }
+  };
+
+  // Whether the target had moved and was put back.
+  const place = () => {
+    const margin = parseFloat(view.getComputedStyle(element).scrollMarginTop ?? "") || 0;
+    const padding = root ? parseFloat(view.getComputedStyle(root).scrollPaddingTop ?? "") || 0 : 0;
+
+    if (Math.abs(element.getBoundingClientRect().top - padding - margin) <= tolerance) {
+      return false;
+    }
+
+    element.scrollIntoView({ behavior: "instant", block: "start" });
+
+    return true;
+  };
+
+  const look = (time: number) => {
+    started ??= time;
+
+    if (place()) {
+      lastMoved = time;
+    }
+
+    if (time - started >= most || time - Math.max(lastMoved, started) >= quiet) {
+      stop();
+
+      return;
+    }
+
+    frame = view.requestAnimationFrame(look);
+  };
+
+  place();
+  TAKE_OVER.forEach((type) => view.addEventListener(type, stop, { passive: true }));
+  frame = view.requestAnimationFrame(look);
+  cancelActive = stop;
+
+  return stop;
+};
+
 // Scrolls an element to the top of the screen and makes sure it stays the target of a smooth scroll.
 export const scrollToElement = (element: Element, behavior: ScrollBehavior, view: SettleView = window) => {
   element.scrollIntoView({ behavior, block: "start" });

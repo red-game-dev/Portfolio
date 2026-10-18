@@ -87,11 +87,18 @@ export class RigActor<TSkin extends RigSkin> extends FrameLoop {
   }
 
   // Draws another model of the same size from now on, its cues carrying on where they were: a richer model taken up
-  // once it is ready, or a plainer one when the richer cannot go on.
-  protected replaceModel(model: RigModel<TSkin>): void {
+  // once it is ready, or a plainer one when the richer cannot go on. One with the same parts, told a new value only its
+  // live layers show, keeps the frames already cached (`hasSameParts`).
+  protected replaceModel(model: RigModel<TSkin>, hasSameParts = false): void {
     this.model = model;
-    this.renderer = new RigRenderer(model);
-    this.renderer.rescale(this.scale);
+
+    if (hasSameParts) {
+      this.renderer.adopt(model);
+    } else {
+      this.renderer = new RigRenderer(model);
+      this.renderer.rescale(this.scale);
+    }
+
     this.render();
   }
 

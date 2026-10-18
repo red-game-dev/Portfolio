@@ -17,9 +17,9 @@ export const keepCamera = (camera: RigCamera, width: number, height: number): Ri
 // camera's closest zoom), and then only blitted, with its motion applied as a transform and the camera's
 // over it. Many actors share one renderer per model and size.
 export class RigRenderer<TSkin extends RigSkin> {
-  private readonly model: RigModel<TSkin>;
+  private model: RigModel<TSkin>;
   private readonly sprites: SpriteCache;
-  private readonly layersById: Map<string, RigLayer<TSkin>>;
+  private layersById: Map<string, RigLayer<TSkin>>;
   private scale = 1;
 
   constructor(model: RigModel<TSkin>, options: Pick<SpriteCacheOptions, "maxEntries" | "createSurface"> = {}) {
@@ -30,6 +30,13 @@ export class RigRenderer<TSkin extends RigSkin> {
 
   public get cachedFrames(): number {
     return this.sprites.size;
+  }
+
+  // Draws another model with the same parts from now on, keeping every frame it has cached: one told a new value
+  // that only its live layers show (a counter's new total), so nothing cached is painted again.
+  public adopt(model: RigModel<TSkin>): void {
+    this.model = model;
+    this.layersById = new Map(model.layers.map((layer) => [layer.id, layer]));
   }
 
   // Device pixels per model unit.

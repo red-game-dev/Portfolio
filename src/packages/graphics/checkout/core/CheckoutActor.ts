@@ -30,10 +30,15 @@ export class CheckoutActor extends RigActor<CheckoutSkin> {
     return this.stage !== null;
   }
 
+  // Given back: it never runs or takes a total again (a counter rebuilt for another way to pay replaces it).
+  public get isGone(): boolean {
+    return this.isRetired;
+  }
+
   // Rings up a new total: the drawing, and the stage's where it has one or one is waiting, told the amount, so the
   // cashier keys it and the screen shows it.
   public rebill(amount: CheckoutAmount, variant: CheckoutVariant): void {
-    if (!this.dressed) {
+    if (!this.dressed || this.isRetired) {
       return;
     }
 
@@ -45,7 +50,8 @@ export class CheckoutActor extends RigActor<CheckoutSkin> {
       this.waiting = { ...this.waiting, model: createCheckoutModel(skin, variant, this.waiting.stage) };
     }
 
-    this.replaceModel(this.stage ? createCheckoutModel(skin, variant, this.stage) : this.flat);
+    // The same counter told a new total: its cached frames (the counter, the stand, the terminal) still hold.
+    this.replaceModel(this.stage ? createCheckoutModel(skin, variant, this.stage) : this.flat, true);
   }
 
   // Takes up a stage's model: at once while still, otherwise as soon as the payment playing ends.
@@ -85,6 +91,10 @@ export class CheckoutActor extends RigActor<CheckoutSkin> {
     this.waiting?.stage.release();
     this.stage = null;
     this.waiting = null;
+  }
+
+  protected canStart(): boolean {
+    return !this.isRetired && super.canStart();
   }
 
   protected update(deltaMs: number, now = 0): void {

@@ -116,7 +116,9 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
   }, [skin, variant, portrait, seen, isStill]);
 
   useEffect(() => {
-    if (!actor) {
+    // A counter just rebuilt for another way to pay hands its retired one to this render: it is never driven, and the
+    // payment waits for the new one, which tells the page as it starts.
+    if (!actor || actor.isGone) {
       return undefined;
     }
 
@@ -138,7 +140,10 @@ export const CheckoutScene: FC<CheckoutSceneProps> = ({
     actor.rebill(amountRef.current, variant);
     actor.play("pay", durationMs);
     actor.start();
-    onStart?.();
+
+    if (actor.isRunning) {
+      onStart?.();
+    }
 
     // Rests once the payment has played, drawn as it ends.
     const rest = window.setTimeout(() => {

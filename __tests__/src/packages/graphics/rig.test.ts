@@ -145,6 +145,20 @@ describe("graphics/rig", () => {
     expect(rescale).toHaveBeenLastCalledWith(1);
   });
 
+  test("a renderer that adopts a model with the same parts keeps the frames it cached", () => {
+    const renderer = new RigRenderer(model, { createSurface: fakeSurface });
+    const { context } = recordingContext();
+
+    renderer.rescale(2);
+    renderer.draw(context, SKINS[0], { breath: 0, blink: 0 });
+
+    const cached = renderer.cachedFrames;
+
+    renderer.adopt({ ...model });
+    renderer.draw(context, SKINS[0], { breath: 0, blink: 0 });
+    expect(renderer.cachedFrames).toBe(cached);
+  });
+
   test("the camera never zooms out past the whole box, nor looks past its edges", () => {
     expect(keepCamera({ x: 0, y: 0, zoom: 2 }, 100, 120)).toEqual({ x: 25, y: 30, zoom: 2 });
     expect(keepCamera({ x: 90, y: 10, zoom: 0.5 }, 100, 120)).toEqual({ x: 50, y: 60, zoom: 1 });

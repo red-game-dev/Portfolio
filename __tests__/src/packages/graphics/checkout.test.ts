@@ -1,4 +1,6 @@
-import { amountOf, amountShown, approvedAt, checkoutAt, customerPoseAt, decimalOf, keysFor, QUICK_STORY_MS, STILL_CUSTOMER, storyMs } from "@/packages/graphics/checkout";
+import {
+  amountOf, amountShown, approvedAt, CheckoutActor, checkoutAt, createCheckoutModel, customerPoseAt, decimalOf, keysFor, QUICK_STORY_MS, STILL_CUSTOMER, storyMs,
+} from "@/packages/graphics/checkout";
 import { CheckoutGesture } from "@/packages/graphics/checkout";
 
 const GESTURES: CheckoutGesture[] = ["insert", "tap", "swipe", "wallet", "scan", "face"];
@@ -201,5 +203,26 @@ describe("the customer paying by face", () => {
 
     expect(poses[0]).not.toEqual(poses[1]);
     expect(checkoutAt(0.5, "full", "tap", 0, keys).customer).toEqual(STILL_CUSTOMER);
+  });
+});
+
+describe("the checkout's actor", () => {
+  it("never runs or takes a total again once given back, so a counter rebuilt for another way to pay leaves no loop behind", () => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    const skin = {
+      id: "test",
+      look: { gesture: "tap" as const, app: 0, face: ["#000000", "#111111"] as [string, string], mark: { width: 1, height: 1, parts: [] } },
+      amount: amountOf("€18.40"),
+      accent: "#36e3c4",
+    };
+    const actor = new CheckoutActor(context, { model: createCheckoutModel(skin, "full"), skins: [skin], framesPerSecond: 60 });
+
+    actor.dispose();
+    actor.rebill(amountOf("€5.00"), "full");
+    actor.start();
+
+    expect(actor.isGone).toBe(true);
+    expect(actor.isRunning).toBe(false);
   });
 });

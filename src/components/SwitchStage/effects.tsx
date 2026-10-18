@@ -81,7 +81,7 @@ const blockMined = keyframes`
 const linkLit = keyframes`
   0%, 30% { opacity: 0; transform: scaleX(0); }
   50% { opacity: 1; transform: scaleX(1); }
-  100% { opacity: 0.35; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
 `;
 
 const chipRevealed = keyframes`
@@ -161,11 +161,12 @@ const typedOut = keyframes`
   100% { clip-path: inset(0 0 0 0); }
 `;
 
+// The cursor's layer spans the skill, the cursor painted at its left edge, so it runs across by transform.
 const cursorRan = keyframes`
-  0% { left: -0.5em; opacity: 1; }
-  80% { left: calc(100% - 0.5em); opacity: 1; }
+  0% { transform: translateX(-0.5em); opacity: 1; }
+  80% { transform: translateX(calc(100% - 0.5em)); opacity: 1; }
   90% { opacity: 0; }
-  100% { left: calc(100% - 0.5em); opacity: 0; }
+  100% { transform: translateX(calc(100% - 0.5em)); opacity: 0; }
 `;
 
 // Beyond: dropped out of warp, stretched along the way it came and bright, settling, a streak of light left behind.
@@ -440,11 +441,8 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
 
     ${ITEM}::after {
       ${OVER}
-      top: 18%;
-      bottom: 18%;
-      width: 0.5em;
-      background: var(--accent);
-      box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.8);
+      inset: 18% 0;
+      background: linear-gradient(var(--accent), var(--accent)) left center / 0.5em 100% no-repeat;
       animation: ${cursorRan} ${AREA.typed.ms}ms steps(12, end) both;
       animation-delay: inherit;
     }
@@ -539,6 +537,13 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
       & > :not([data-switch-fx]) .wire,
       & > :not([data-switch-fx]) [data-switch-dimension] {
         animation: none !important;
+      }
+
+      /* With nothing moving, the layers a switch lays over each item (a block, a card's back, pixels, a cursor) are
+         never drawn, so the item shows as it is. */
+      ${ITEM}::before,
+      ${ITEM}::after {
+        content: none !important;
       }
 
       & > [data-switch-fx] {

@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -88,9 +88,16 @@ const LENS_CANDIDATE = {
 const hasPilot = (hash: string): true | null => (hash.startsWith("#pilot=") ? true : null);
 
 const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
-  const { isLoading } = useAppLoaderStateHook();
+  const { isLoading, isReady } = useAppLoaderStateHook();
 
   useSettledAnchors();
+  // The sections off the screen are skipped by the browser from here on (Section), once every one has been laid out
+  // and its size is known.
+  useEffect(() => {
+    if (isReady) {
+      document.body.dataset.skipSections = "";
+    }
+  }, [isReady]);
   const { status } = useLensStatusHook();
   // The world starts once the reader has picked a view, so it is built with that view's settings, and runs
   // under the entrance so it is already moving when the page opens.

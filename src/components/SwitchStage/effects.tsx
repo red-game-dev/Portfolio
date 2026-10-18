@@ -6,6 +6,7 @@ import tw, { css, styled } from "twin.macro";
 import {
   BLOCK_GRID, isPaymentEffect, isThemeEffect, PAYMENT_SWITCH_MS, PIXEL_GRID, SWITCH_MS, SwitchEffect, ThemeEffect, ZoneEffect,
 } from "@/components/SwitchStage/config";
+import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
 import { media } from "@/styles/mixins";
 
 const wipeIn = keyframes`
@@ -58,6 +59,14 @@ const warpIn = keyframes`
   0% { opacity: 0; transform: scale(0.94); filter: blur(4px) brightness(1.8); }
   60% { opacity: 1; filter: blur(0) brightness(1.15); }
   100% { opacity: 1; transform: none; filter: none; }
+`;
+
+// DevOps: an image layer drops onto the one below and holds while the rest stack up, then the stack clears.
+const layerLanded = keyframes`
+  0% { opacity: 0; transform: translateY(-160%); }
+  22% { opacity: 1; transform: translateY(0); }
+  70% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
 `;
 
 // Under a payment's story the new content waits dimmed, then comes up as the payment is approved.
@@ -235,6 +244,15 @@ const dimensioned = keyframes`
   100% { opacity: 0; transform: scaleX(1); }
 `;
 
+// DevOps, in an area: the skill is shipped in as a container, landing from above with its universe's stripe, then
+// opening on the skill.
+const containerShipped = keyframes`
+  0% { opacity: 0; transform: translateY(-18px); }
+  30% { opacity: 1; transform: translateY(0); }
+  62% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
+`;
+
 // How long each item's part of a theme's switch takes, and the step between items (none past `most`).
 const DRAFT = { ms: 560, stepMs: 70, most: 11 } as const;
 
@@ -244,6 +262,7 @@ const AREA = {
   pixel: { ms: 360, stepMs: 28 },
   printed: { ms: 440, stepMs: 55 },
   typed: { ms: 420, stepMs: 60 },
+  shipped: { ms: 560, stepMs: 40 },
   warped: { ms: 520, stepMs: 26 },
   most: 16,
 } as const;
@@ -265,10 +284,18 @@ const ITEM_LAYERS: Partial<Record<SwitchEffect, Array<"::before" | "::after">>> 
   beamed: ["::after"],
   printed: ["::after"],
   typed: ["::after"],
+  shipped: ["::before"],
   warped: ["::after"],
   boot: ["::after"],
   draft: ["::before", "::after"],
 };
+
+// The universes the data centre runs, whose colours DevOps' layers and containers arrive in.
+const SHIPPED_ZONES: ZoneId[] = ["matrix", "ai", "chain", "casino", "mmo", "beyond"];
+
+// Each container shipped in from one universe after another, by its place among the items.
+const SHIPPED_FROM = SHIPPED_ZONES.map((zone, index) =>
+  `${ITEM}:nth-of-type(${SHIPPED_ZONES.length}n + ${index + 1}) { --layer: ${ZONE_ACCENTS[zone]}; }`).join("\n");
 
 // A skill rather than an area's heading: only skills are linked into the chain.
 const SKILL = `${ITEM}:not(h3)`;
@@ -301,7 +328,7 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
       animation: ${wipeIn} ${SWITCH_MS}ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
     }
   `,
-  (effect === "blocks" || effect === "pixels") && css`
+  (effect === "blocks" || effect === "pixels" || effect === "layers") && css`
     ${CONTENT} {
       animation: ${settle} ${SWITCH_MS}ms ease-out both;
     }
@@ -461,6 +488,27 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
       animation: ${cursorRan} ${AREA.typed.ms}ms steps(12, end) both;
       animation-delay: inherit;
     }
+  `,
+  effect === "shipped" && css`
+    ${ITEM} {
+      position: relative;
+      animation: ${chipRevealed} ${AREA.shipped.ms}ms ease-out both;
+      animation-delay: ${itemDelay(AREA.shipped.stepMs, AREA.most)};
+    }
+
+    ${ITEM}::before {
+      ${OVER}
+      inset: -1px;
+      z-index: 1;
+      border-radius: inherit;
+      border: 1px solid #2a2a2a;
+      border-top: 3px solid var(--layer, var(--accent));
+      background: #0b0b0b repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 9px);
+      animation: ${containerShipped} ${AREA.shipped.ms}ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
+      animation-delay: inherit;
+    }
+
+    ${SHIPPED_FROM}
   `,
   effect === "warped" && css`
     ${ITEM} {
@@ -626,6 +674,31 @@ const Block = styled.span(({ delay }: { delay: number }) => [
   `,
 ]);
 
+// DevOps' image layers: one band per universe, stacked bottom up across the new content, each with its digest.
+const Layers = tw.div`absolute inset-0 z-[3] flex flex-col-reverse pointer-events-none overflow-hidden`;
+
+const Layer = styled.span(({ delay, colour }: { delay: number; colour: string }) => [
+  tw`relative flex-1 m-[1px] bg-[#0d0d0d] border-[1px] border-solid border-[#222]`,
+  css`
+    border-left: 4px solid ${colour};
+    animation: ${layerLanded} 560ms cubic-bezier(0.2, 0.8, 0.25, 1) ${delay}ms both;
+
+    &::after {
+      content: attr(data-digest);
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font: 10px/1 ui-monospace, monospace;
+      color: ${colour};
+      opacity: 0.8;
+    }
+  `,
+]);
+
+// A short digest per layer, the same on every switch.
+const digestOf = (index: number) => `sha256:${((index + 1) * 2654435761 >>> 0).toString(16).padStart(8, "0").slice(0, 8)}`;
+
 const Pixel = styled.span(({ delay, isLit }: { delay: number; isLit: boolean }) => [
   tw`block`,
   isLit ? tw`bg-[var(--accent-muted)]` : tw`bg-[#0d0d0d]`,
@@ -662,6 +735,16 @@ export const SwitchLayer: FC<{ effect: ZoneEffect | ThemeEffect }> = ({ effect }
           <Block key={index} delay={((index % columns) + Math.floor(index / columns)) * 40} />
         ))}
       </Overlay>
+    );
+  }
+
+  if (effect === "layers") {
+    return (
+      <Layers data-switch-fx aria-hidden="true">
+        {SHIPPED_ZONES.map((zone, index) => (
+          <Layer key={zone} delay={index * 55} colour={ZONE_ACCENTS[zone]} data-digest={digestOf(index)} />
+        ))}
+      </Layers>
     );
   }
 

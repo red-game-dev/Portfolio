@@ -91,6 +91,7 @@ const VOYAGE_UNIVERSES: Record<Exclude<ZoneId, "beyond">, { style: VoyageStyle; 
   matrix: { style: "matrix", deep: "#020a06", hazard: "#ff4d5e" },
   ai: { style: "neural", deep: "#020812", hazard: "#d17bff" },
   chain: { style: "blocks", deep: "#07040f" },
+  devops: { style: "racks", deep: "#0d0504" },
   casino: { style: "chips", deep: "#0f0309" },
   mmo: { style: "pixels", deep: "#0c0802" },
 };

@@ -5,6 +5,7 @@ import { BlueprintLabelsProvider } from "@/components/Blueprint/context";
 import { CaseStudies } from "@/components/CaseStudies";
 import { CodeReview } from "@/components/CodeReview";
 import { Cover } from "@/components/Cover";
+import { DevOps } from "@/components/DevOps";
 import { Duels } from "@/components/Duels";
 import { EngineRoom } from "@/components/EngineRoom";
 import { Finale } from "@/components/Finale";
@@ -138,6 +139,9 @@ export default function Home() {
           <Theme theme="codeReview">
             <CodeReview intro={portfolioData.sections.codeReview} content={portfolioData.codeReview} />
           </Theme>
+        </Zone>
+        <Zone zone="devops">
+          <DevOps intro={portfolioData.sections.devops} content={portfolioData.devops} />
         </Zone>
         <Zone zone="casino">
           <IGaming

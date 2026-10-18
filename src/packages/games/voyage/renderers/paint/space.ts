@@ -2,6 +2,7 @@ import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { TAU } from "@/packages/math/angles";
 import { createSeededRandom } from "@/packages/math/random";
 
+import { BOOST_COLOURS } from "../../config/boosts";
 import { VoyageStyle } from "../../domain/theme";
 
 // One layer of stars in a square tile, repeated across the screen and scrolled: faint and many far away, fewer
@@ -206,6 +207,60 @@ const blockLattice = (context: Canvas2DContext, width: number, height: number, a
   context.globalAlpha = 1;
 };
 
+// The DevOps data centre: racks in rows, each unit a thin line, status lights in its own coral and in the colours of
+// the universes it runs, some cells left empty for the racks still to come.
+const serverRacks = (context: Canvas2DContext, width: number, height: number, accent: string, pixelRatio: number) => {
+  const random = createSeededRandom(61);
+  const columns = Math.max(1, Math.round(width / (110 * pixelRatio)));
+  const rows = Math.max(1, Math.round(height / (190 * pixelRatio)));
+  const stepX = width / columns;
+  const stepY = height / rows;
+  const rackWidth = stepX * 0.46;
+  const rackHeight = stepY * 0.8;
+  const units = 12;
+  const unit = rackHeight / units;
+  const lights = [accent, BOOST_COLOURS.matrix, BOOST_COLOURS.neural, BOOST_COLOURS.blocks, BOOST_COLOURS.chips, BOOST_COLOURS.pixels];
+  const led = 2 * pixelRatio;
+
+  context.lineWidth = pixelRatio;
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      if (random() > 0.6) {
+        continue;
+      }
+
+      const x = column * stepX + (stepX - rackWidth) / 2;
+      const y = row * stepY + (stepY - rackHeight) / 2;
+
+      context.strokeStyle = accent;
+      context.globalAlpha = 0.2;
+      context.strokeRect(x, y, rackWidth, rackHeight);
+      context.globalAlpha = 0.07;
+      context.beginPath();
+
+      for (let index = 1; index < units; index += 1) {
+        context.moveTo(x, y + index * unit);
+        context.lineTo(x + rackWidth, y + index * unit);
+      }
+
+      context.stroke();
+
+      for (let index = 0; index < units; index += 1) {
+        if (random() > 0.55) {
+          continue;
+        }
+
+        context.globalAlpha = 0.3 + random() * 0.35;
+        context.fillStyle = lights[Math.floor(random() * lights.length)];
+        context.fillRect(x + rackWidth * 0.12, y + index * unit + (unit - led) / 2, led, led);
+      }
+    }
+  }
+
+  context.globalAlpha = 1;
+};
+
 const suits = (context: Canvas2DContext, width: number, height: number, accent: string, pixelRatio: number) => {
   const random = createSeededRandom(51);
   const marks = ["\u2660", "\u2665", "\u2666", "\u2663"];
@@ -371,6 +426,7 @@ export const paintUniverse = (style: VoyageStyle, accent: string, pixelRatio: nu
     matrix: () => matrixRain(context, width, height, accent, pixelRatio),
     neural: () => neuralNet(context, width, height, accent, pixelRatio),
     blocks: () => blockLattice(context, width, height, accent, pixelRatio),
+    racks: () => serverRacks(context, width, height, accent, pixelRatio),
     chips: () => suits(context, width, height, accent, pixelRatio),
     pixels: () => pixelSky(context, width, height, accent, pixelRatio),
     nebula: () => nebula(context, width, height, accent, 91),

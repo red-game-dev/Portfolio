@@ -59,6 +59,7 @@ export const BOOST_COLOURS: Readonly<Record<BoostOrigin, string>> = {
   matrix: "#4bffa5",
   neural: "#4fd8ff",
   blocks: "#b48cff",
+  racks: "#ff6b4a",
   chips: "#ff5c9a",
   pixels: "#ffc857",
   nebula: "#ff9df0",

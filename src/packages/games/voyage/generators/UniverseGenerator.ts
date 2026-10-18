@@ -88,9 +88,9 @@ const HUGGING = 1.6;
 // The share of worlds life could arise on that a faction lives on.
 const INHABITED = 0.5;
 
-// From the fifth universe on, this share are mazes; each system of one is made from the universe's seed and this
+// From the seventh universe on (past the six of the site's zones), this share are mazes; each system of one is made from the universe's seed and this
 // much more for each place along the network.
-const MAZE_FROM = 5;
+const MAZE_FROM = 6;
 const MAZE_CHANCE = 0.4;
 const NODE_SEED = 7919;
 

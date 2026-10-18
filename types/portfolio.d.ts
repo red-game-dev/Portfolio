@@ -15,6 +15,7 @@ import { Headline } from "@/types/headline";
 import { HistoryLabels } from "@/types/history";
 import { LensContent } from "@/types/lens";
 import { MenuContent } from "@/types/menu";
+import { DevOpsContent } from "@/types/devops";
 import { PaymentsContent } from "@/types/payments";
 import { PreferencesContent } from "@/types/preferences";
 import { ProjectDetail, ProjectMapContent } from "@/types/projects";
@@ -83,6 +84,7 @@ export interface PortfolioData {
   web3: Web3Content;
   igaming: IGamingContent;
   payments: PaymentsContent;
+  devops: DevOpsContent;
   recommendations: Recommendation[];
   aiUsage: PortfolioAiUsage;
   timelapse: TimelapseContent;

@@ -3,7 +3,7 @@ import { MissionGoal, StoryChapter, StoryProgress, StoryStep } from "../domain/c
 const step = (id: string, goal: MissionGoal, xp: number, coin: number): StoryStep => ({ id, goal, xp, coin });
 
 // The story, a chapter at a time: out of our solar system to the singularity, then one chapter for each universe of
-// the site's zones in the order the voyage reaches them, and the sixth universe past them. A universe's chapter opens
+// the site's zones in the order the voyage reaches them, and the seventh universe past them. A universe's chapter opens
 // on reaching it, and its other steps count in any order after that; the launch's steps count in any order from the
 // start. Steps pay as missions do, more the deeper the chapter.
 export const STORY: readonly StoryChapter[] = [
@@ -39,9 +39,17 @@ export const STORY: readonly StoryChapter[] = [
     ],
   },
   {
+    id: "devops",
+    steps: [
+      step("devopsReach", { kind: "universe", count: 4 }, 350, 220),
+      step("devopsSalvage", { kind: "salvage", count: 2 }, 220, 140),
+      step("devopsRescue", { kind: "rescue", count: 1 }, 250, 150),
+    ],
+  },
+  {
     id: "casino",
     steps: [
-      step("casinoReach", { kind: "universe", count: 4 }, 400, 250),
+      step("casinoReach", { kind: "universe", count: 5 }, 400, 250),
       step("casinoSurvive", { kind: "survive", hazard: "any" }, 250, 150),
       step("casinoBoss", { kind: "boss", count: 1 }, 400, 300),
     ],
@@ -49,14 +57,14 @@ export const STORY: readonly StoryChapter[] = [
   {
     id: "mmo",
     steps: [
-      step("mmoReach", { kind: "universe", count: 5 }, 500, 300),
+      step("mmoReach", { kind: "universe", count: 6 }, 500, 300),
       step("mmoBoss", { kind: "boss", count: 1 }, 500, 350),
       step("mmoLand", { kind: "landAway" }, 300, 200),
     ],
   },
   {
     id: "beyond",
-    steps: [step("beyondReach", { kind: "universe", count: 6 }, 800, 600)],
+    steps: [step("beyondReach", { kind: "universe", count: 7 }, 800, 600)],
   },
 ];
 

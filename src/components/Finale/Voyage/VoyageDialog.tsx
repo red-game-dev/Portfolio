@@ -964,14 +964,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 <ReadingName><CurrencyIcon code="RED" label={copy.currencies.RED} /></ReadingName>
                 <Coin>
                   {formatNumber(economy.purse.RED)}
-                  {redGain && <Gain key={redGain.id} aria-hidden="true">{`+${redGain.amount}`}</Gain>}
+                  {redGain && <Gain key={redGain.id} aria-hidden="true">{`+${formatNumber(redGain.amount)}`}</Gain>}
                 </Coin>
               </Reading>
               <Reading>
                 <ReadingName><CurrencyIcon code="VOID" label={copy.currencies.VOID} /></ReadingName>
                 <Coin isShards>
-                  {economy.purse.VOID}
-                  {voidGain && <Gain key={voidGain.id} aria-hidden="true">{`+${voidGain.amount}`}</Gain>}
+                  {formatNumber(economy.purse.VOID)}
+                  {voidGain && <Gain key={voidGain.id} aria-hidden="true">{`+${formatNumber(voidGain.amount)}`}</Gain>}
                 </Coin>
               </Reading>
             </>

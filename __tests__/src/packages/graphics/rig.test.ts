@@ -130,6 +130,21 @@ describe("graphics/rig", () => {
     expect(paints).toContain("head:blue:1");
   });
 
+  test("an actor draws at the size its canvas is, should something size the canvas after it", () => {
+    const { context } = recordingContext();
+    const renderer = new RigRenderer(model, { createSurface: fakeSurface });
+    const actor = new RigActor(context, { model, skins: SKINS, scheduler: new ManualScheduler(), renderer });
+    const rescale = jest.spyOn(renderer, "rescale");
+
+    actor.resize(model.width, 2);
+    expect(rescale).toHaveBeenLastCalledWith(2);
+
+    // Halved under it, as a move to a screen of half the density would.
+    context.canvas.width = model.width;
+    actor.renderStill();
+    expect(rescale).toHaveBeenLastCalledWith(1);
+  });
+
   test("the camera never zooms out past the whole box, nor looks past its edges", () => {
     expect(keepCamera({ x: 0, y: 0, zoom: 2 }, 100, 120)).toEqual({ x: 25, y: 30, zoom: 2 });
     expect(keepCamera({ x: 90, y: 10, zoom: 0.5 }, 100, 120)).toEqual({ x: 50, y: 60, zoom: 1 });

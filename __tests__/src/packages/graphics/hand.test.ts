@@ -164,7 +164,8 @@ describe("graphics/hand", () => {
     const thumb = held.groups.findIndex((group) => group.name === "thumb");
     const fingers = held.groups.flatMap((group, index) => (["palm", "index", "middle", "ring", "pinky"].includes(group.name) ? [index] : []));
     let inside = 0;
-    let thumbGap = Number.POSITIVE_INFINITY;
+    let thumbFront = Number.POSITIVE_INFINITY;
+    let thumbBack = Number.POSITIVE_INFINITY;
     let fingerGap = Number.POSITIVE_INFINITY;
 
     for (let a = -width / 2; a <= width / 2; a += 1.5) {
@@ -181,16 +182,16 @@ describe("graphics/hand", () => {
         const back = add(middle, scale(towardsBack, thickness / 2));
 
         held.groupDistances(front.x, front.y, front.z, groups);
-        thumbGap = Math.min(thumbGap, groups[thumb]);
+        thumbFront = Math.min(thumbFront, groups[thumb]);
         held.groupDistances(back.x, back.y, back.z, groups);
-        thumbGap = Math.min(thumbGap, groups[thumb]);
+        thumbBack = Math.min(thumbBack, groups[thumb]);
         fingers.forEach((finger) => {
           fingerGap = Math.min(fingerGap, groups[finger]);
         });
       }
     }
 
-    return { inside, thumbGap, fingerGap };
+    return { inside, thumbGap: Math.min(thumbFront, thumbBack), thumbFront, thumbBack, fingerGap };
   };
 
   it("holds a card and a phone with no flesh inside them, the thumb against them and a finger on the back", () => {
@@ -201,6 +202,13 @@ describe("graphics/hand", () => {
       expect(thumbGap).toBeLessThan(1.5);
       expect(fingerGap).toBeLessThan(1.6);
     });
+  });
+
+  it("holds a phone with the thumb on its screen, where it shows, and never round its back", () => {
+    const { thumbFront, thumbBack } = heldBy(HAND_GRIPS.phone);
+
+    expect(thumbFront).toBeLessThan(1);
+    expect(thumbBack).toBeGreaterThan(4);
   });
 
   it("presses keys with the index fingertip's pad", () => {

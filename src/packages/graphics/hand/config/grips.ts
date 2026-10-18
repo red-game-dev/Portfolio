@@ -26,12 +26,13 @@ export const HAND_GRIPS = {
     face: vec3(0.9838, -0.1119, -0.1399),
     size: { width: 85.7, height: 54.3, thickness: 1.09 },
   },
-  // A phone the size of a real one, held from the bottom, its screen showing and its top half clear of the hand.
+  // A phone the size of a real one, held from the bottom, the thumb across the lower part of its screen and its top
+  // half clear of the hand.
   phone: {
     pose: HAND_POSES.phone,
-    centre: vec3(-10.54, 142.47, -85.67),
-    along: vec3(-0.6981, 0.1332, 0.7035),
-    face: vec3(-0.686, -0.4058, -0.6039),
+    centre: vec3(-6.893, 120.644, -77.749),
+    along: vec3(-0.8246, 0.2033, 0.528),
+    face: vec3(-0.5494, -0.5105, -0.6615),
     size: { width: 71.4, height: 147.1, thickness: 7.9 },
   },
 } satisfies Record<string, HandGrip>;

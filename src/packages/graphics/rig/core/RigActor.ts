@@ -105,6 +105,13 @@ export class RigActor<TSkin extends RigSkin> extends FrameLoop {
     }
 
     const { context } = this;
+    const pixels = context.canvas.width;
+
+    // Something sized the canvas since (another screen, a zoom): drawn at the size it is now, never at a stale scale.
+    if (pixels > 0 && pixels !== Math.ceil(this.model.width * this.scale)) {
+      this.scale = pixels / this.model.width;
+      this.renderer.rescale(this.scale);
+    }
 
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);

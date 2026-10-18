@@ -4,8 +4,10 @@ import tw, { css, styled } from "twin.macro";
 // lands it at the top of the screen: its scroll margin cancels the page's scroll padding, which is there to keep
 // focused controls clear of the fixed bars.
 // Once the page has laid out every section (the body's data-skip-sections, set by Layout as the intro lifts), the
-// browser skips the sections off the screen, held at the size each last had (contain-intrinsic-size: auto, remembered
-// from that first layout, so nothing moves and every jump lands where it did). A style change then costs only what is
+// browser skips the sections off the screen, each held at the size it had when last drawn (contain-intrinsic-size:
+// auto; the first layout gives every section its real size, so nothing moves and every jump lands where it did; after a
+// view switch or a turn of the phone, one off the screen keeps its old size until it comes near, and the browser's scroll
+// anchoring keeps what is on the screen in place as it changes). A style change then costs only what is
 // on or near the screen: the rules a section's code adds as it loads (each @media or @keyframes rule restyles the whole
 // page) cost a sixth of what they did. A section whose painting reaches past its own box (the cover's fixed picture)
 // carries data-always-painted and is never skipped.

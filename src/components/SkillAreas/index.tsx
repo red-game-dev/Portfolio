@@ -8,6 +8,7 @@ import { Panel as Intro, PanelText, PanelTitle } from "@/components/Panel";
 import { Section } from "@/components/Section";
 import { aimBurst } from "@/components/SkillAreas/burst";
 import { SwitchStage, useSwitch } from "@/components/SwitchStage";
+import { AREA_EFFECTS } from "@/components/SwitchStage/config";
 import { Tab, TabCount, TabList } from "@/components/Tabs";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
@@ -46,8 +47,9 @@ const ExamplesIntro = styled(Intro)(() => [tw`ml-[-1px] border-r-[0px]`]);
 
 const Drawings = tw.div`mt-[22px]`;
 
-// An item's place in the area, for the switch that snaps them into place one after another.
-const placeOf = (index: number) => ({ "--i": index } as CSSProperties);
+// An item's place in the area, for a switch that brings them in one after another, and a scattered place (a stride
+// coprime with the count) for one that brings them in at random, the same way every time.
+const placeOf = (index: number, count: number) => ({ "--i": index, "--s": (index * 7) % Math.max(count, 1) } as CSSProperties);
 
 // Too many areas to read as one wall of tags, so one area is open at a time. Every area stays in the page,
 // the closed ones hidden, so search engines and find in page still reach them. The drawings after them show
@@ -55,20 +57,25 @@ const placeOf = (index: number) => ({ "--i": index } as CSSProperties);
 export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas, examples, blueprintSection }: SkillAreasProps) => {
   const switcher = useSwitch();
   const { play } = switcher;
-  const onSelect = useCallback((next: number, previous: number) => play(next > previous ? 1 : -1), [play]);
+  const direction = useRef<1 | -1>(1);
+  // Each area opens in the way of the universe it belongs to on the journey.
+  const onSelect = useCallback((next: number, previous: number) => {
+    direction.current = next > previous ? 1 : -1;
+    play(direction.current, undefined, AREA_EFFECTS[areas[next].universe]);
+  }, [play, areas]);
   const { active, listProps, tabProps, panelProps } = useTabs({ count: areas.length, onSelect });
   const tabId = tabProps(active).id;
   const panelId = panelProps(active).id;
   const hasSwitched = useRef(false);
 
-  // Before paint on every switch (not the first render, which plays nothing): aim the opening area's skills back at
-  // the tab picked, so they burst out of it.
+  // Before paint on every switch (not the first render, which plays nothing): measure the opening area's skills for
+  // its switch, where each stands from the tab picked and across the panel.
   useLayoutEffect(() => {
     const tab = document.getElementById(tabId);
     const panel = document.getElementById(panelId);
 
     if (hasSwitched.current && tab && panel) {
-      aimBurst(tab, panel);
+      aimBurst(tab, panel, direction.current);
     }
 
     hasSwitched.current = true;
@@ -90,9 +97,11 @@ export const SkillAreas: FC<SkillAreasProps> = ({ intro, areas, examples, bluepr
           <Panels switcher={switcher}>
             {areas.map((area, index) => (
               <Panel key={area.label} {...panelProps(index)}>
-                <AreaTitle data-switch-item style={placeOf(0)}>{area.label}</AreaTitle>
+                <AreaTitle data-switch-item style={placeOf(0, area.items.length + 1)}>{area.label}</AreaTitle>
                 <Tags>
-                  {area.items.map((item, place) => <Tag isWrapping key={item} data-switch-item style={placeOf(place + 1)}>{item}</Tag>)}
+                  {area.items.map((item, place) => (
+                    <Tag isWrapping key={item} data-switch-item style={placeOf(place + 1, area.items.length + 1)}>{item}</Tag>
+                  ))}
                 </Tags>
               </Panel>
             ))}

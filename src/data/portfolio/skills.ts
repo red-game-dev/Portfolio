@@ -268,6 +268,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
   skillAreas: [
     {
       label: "Payments & Fintech",
+      universe: "payments",
       items: [
         "Stripe, including Connect payouts",
         "PayPal for purchases and donations",
@@ -295,6 +296,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "Web3 & Blockchain",
+      universe: "chain",
       items: [
         "Ethereum and EVM chains, Solana, Bitcoin and Polkadot parachains",
         "A chain of our own on Substrate, with bridges",
@@ -313,6 +315,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "iGaming",
+      universe: "casino",
       items: [
         "Live dealer UIs on every screen",
         "Slots with outcomes decided on the server",
@@ -327,6 +330,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "Game Development",
+      universe: "mmo",
       items: [
         "An MMORPG engine and servers built from scratch in C/C++",
         "My own physics engine and framework",
@@ -343,6 +347,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "Algorithms & Recommendations",
+      universe: "ai",
       items: [
         "Feed suggestions ranked by affinity, freshness and engagement",
         "Product suggestions from views, baskets and similar items",
@@ -357,6 +362,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "Search",
+      universe: "ai",
       items: [
         "Elasticsearch for product search",
         "Facets, filters and sorting over large catalogues",
@@ -367,6 +373,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "Commerce & CMS",
+      universe: "matrix",
       items: [
         "Adobe Experience Manager",
         "Contentful for client sites",
@@ -382,6 +389,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "CRM & Marketing",
+      universe: "matrix",
       items: [
         "CRM integrations with HubSpot and Salesforce",
         "Email marketing with Mailchimp and Klaviyo",
@@ -397,6 +405,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "Auth & Identity",
+      universe: "matrix",
       items: [
         "OAuth 2",
         "Running an OIDC provider",
@@ -410,6 +419,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "Security, SecOps & Anti Cheat",
+      universe: "matrix",
       items: [
         "Custom cryptography and compression for game client and server traffic",
         "Anti cheat in my game: anti tamper on accounts and inventory",
@@ -427,6 +437,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "DevOps & Infrastructure",
+      universe: "beyond",
       items: [
         "CI/CD with audit logs, permission controls and rollback",
         "Kubernetes on GKE, Helm and Istio canary rollout per market",
@@ -443,6 +454,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "Backend & Data",
+      universe: "matrix",
       items: [
         "Express",
         "AdonisJS",
@@ -458,6 +470,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "Compliance & Web Standards",
+      universe: "matrix",
       items: [
         "PCI scope (SAQ-A)",
         "KYC and AML",
@@ -473,6 +486,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "Observability",
+      universe: "matrix",
       items: [
         "Structured logging with Pino",
         "StatsD metrics",
@@ -482,6 +496,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "CI/CD & Release",
+      universe: "beyond",
       items: [
         "GitHub Actions",
         "GitLab CI",
@@ -494,6 +509,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "AI & Machine Learning",
+      universe: "ai",
       items: [
         "Recommendation, ads and feed ranking models",
         "LLM APIs (GPT, Claude, Gemini)",
@@ -505,6 +521,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "MCP Servers",
+      universe: "ai",
       items: [
         "Playwright and Chrome DevTools, to check the deployed build",
         "Supabase, with staging and production kept apart",

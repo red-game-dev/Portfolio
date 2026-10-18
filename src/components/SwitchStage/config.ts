@@ -1,6 +1,7 @@
 import type { SectionThemeId } from "@/config/sectionThemes";
 import { ZoneId } from "@/config/zones";
 import { BlueprintMotion } from "@/types/blueprints";
+import { SkillAreaUniverse } from "@/types/skills";
 
 // How long a switch plays.
 export const SWITCH_MS = 650;
@@ -24,10 +25,27 @@ export type ZoneEffect = "beam" | "blocks" | "deal" | "pixels" | "scan" | "warp"
 export type PaymentEffect = BlueprintMotion | "pay";
 
 // A section with a theme of its own (config/sectionThemes.ts) switches by its subject where its content switches: what
-// I have built is drafted item by item like a plan, and the skills by area burst out of the tab picked. Both animate
-// the content's own items (marked data-switch-item, each with its place as --i): tiles and skills, and a drawing's
-// boxes, overview rows, screens and journeys.
-export type ThemeEffect = "draft" | "burst";
+// I have built is drafted item by item like a plan; More Skills by Area's drawings boot up like a live system, each
+// box powering on in turn and its wires after; and each skill area switches in the way of the universe it belongs to
+// on the journey (AREA_EFFECTS). All of them animate the content's own items (marked data-switch-item, each with its
+// place as --i): tiles and skills, and a drawing's boxes, overview rows, screens and journeys.
+export type ThemeEffect = "draft" | "boot" | AreaEffect;
+
+// The skill areas' switches, one per universe: mined as blocks into a chain (Web3), dealt face down from the tab and
+// flipped (the casino), popped in as 8-bit pixels (the game world), lit by the neural beam as it passes (AI), printed
+// out of a till's slot (payments), typed out behind a block cursor (the engineering terminal), and dropped out of warp
+// (beyond).
+export type AreaEffect = "mined" | "dealt" | "pixel" | "beamed" | "printed" | "typed" | "warped";
+
+export const AREA_EFFECTS: Record<SkillAreaUniverse, AreaEffect> = {
+  chain: "mined",
+  casino: "dealt",
+  mmo: "pixel",
+  ai: "beamed",
+  payments: "printed",
+  matrix: "typed",
+  beyond: "warped",
+};
 
 export type SwitchEffect = ZoneEffect | PaymentEffect | ThemeEffect;
 
@@ -35,11 +53,11 @@ export type SwitchEffect = ZoneEffect | PaymentEffect | ThemeEffect;
 // bring theirs (their `motion`).
 export const THEME_EFFECTS: Partial<Record<SectionThemeId, ZoneEffect | ThemeEffect>> = {
   web3: "blocks",
-  skillAreas: "burst",
+  skillAreas: "boot",
   platform: "draft",
 };
 
-const THEME_EFFECT_SET: ReadonlySet<SwitchEffect> = new Set<SwitchEffect>(["draft", "burst"]);
+const THEME_EFFECT_SET: ReadonlySet<SwitchEffect> = new Set<SwitchEffect>(["draft", "boot", ...Object.values(AREA_EFFECTS)]);
 
 export const isThemeEffect = (effect: SwitchEffect): effect is ThemeEffect => THEME_EFFECT_SET.has(effect);
 

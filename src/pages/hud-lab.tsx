@@ -48,9 +48,9 @@ const LAYOUTS = ["auto", "compact", "full"] as const;
 
 // The voyage's HUD held still with every panel it can show at once, for a browser to measure at every screen size and
 // fail on any two that overlap (e2e/hud.spec.ts). `?moment=` picks what is shown (flight, descent, or one of the things
-// that lie over the HUD: ready, paused, over, perk, hangar, station, photo, map), `?hud=auto|compact|full`
-// the HUD's layout (setting this browser's voyage-hud setting, as the hangar would, only when it is given). Kept out of
-// search, and linked from nowhere.
+// that lie over the HUD: ready, paused, over, daily (a daily run's end, with the day's board), perk, hangar, station,
+// photo, map), `?hud=auto|compact|full` the HUD's layout (setting this browser's voyage-hud setting, as the hangar
+// would, only when it is given). Kept out of search, and linked from nowhere.
 export default function HudLab() {
   const { query, isReady } = useRouter();
   const { set } = usePreferencesStateHook();

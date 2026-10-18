@@ -22,6 +22,9 @@ const LAB_SUMMARY: RunSummary = {
   isDaily: false,
 };
 
+// The same end, of a daily run.
+const LAB_DAILY_SUMMARY: RunSummary = { ...LAB_SUMMARY, isDaily: true };
+
 // The station round Earth, as a port the ship is docked at, as deep as the lab's universe so every good is on sale.
 const LAB_PORT = { kind: "station" as const, id: "lab-earth", anchor: "earth", faction: -1, seed: 7, depth: 6 };
 
@@ -34,6 +37,13 @@ const LAB_SKY = [
 
 // Noon UTC on a fixed day, so the lab shows the same sky every time.
 const EPOCH = Date.parse("2026-10-09T12:00:00Z");
+
+// The day of a daily run's board: the lab's own, long past, so the board takes no run from it (it takes today's and
+// yesterday's only) and a run sent from the lab is refused.
+const LAB_DAY = "2026-10-09";
+
+// Whether a moment is a run's end, a daily one's among them.
+const isRunOver = (moment: LabMoment) => moment === "over" || moment === "daily";
 
 // A run just begun from Earth, as the simulation itself describes it.
 const startingSnapshot = (): VoyageSnapshot => {
@@ -97,7 +107,10 @@ const noop = () => undefined;
 // longest), the largest thing the line's place shows and the one that stays longest, said once.
 export const labVoyage = (moment: LabMoment, chapter: string): VoyageSource => function useLabVoyage(): ReturnType<VoyageSource> {
   const stickRef = useRef<HTMLDivElement>(null);
-  const notices = useMemo<VoyageNotice[]>(() => [{ kind: "storyChapter", chapter }], []);
+  const notices = useMemo<VoyageNotice[]>(() => [
+    { kind: "storyChapter", chapter },
+    ...(moment === "daily" ? [{ kind: "daily" as const, day: LAB_DAY, score: LAB_SUMMARY.score, isBest: true }] : []),
+  ], []);
   const views = useMemo(() => {
     const profile = newProfile();
     const armory = new Armory(profile.armory);
@@ -109,7 +122,7 @@ export const labVoyage = (moment: LabMoment, chapter: string): VoyageSource => f
     const snapshot: VoyageSnapshot = {
       ...flying,
       ...(moment === "ready" ? { status: "ready" } : {}),
-      ...(moment === "over" ? { status: "over" } : {}),
+      ...(isRunOver(moment) ? { status: "over" } : {}),
       ...(moment === "perk" ? { perkOffer: ["hotBarrels", "heavyRounds", "thickPlating"], perks: ["hotBarrels", "thickPlating"] } : {}),
       ...(moment === "station" ? { docked: { kind: "station", anchor: "earth", anchorName: null, faction: null } } : {}),
     };
@@ -141,7 +154,7 @@ export const labVoyage = (moment: LabMoment, chapter: string): VoyageSource => f
     setCovered: noop,
     transfer: { link: async () => null, file: async () => null, read: async () => null, adopt: noop },
     landing: { time: "compressed", control: "auto" },
-    summary: moment === "over" ? LAB_SUMMARY : null,
+    summary: moment === "daily" ? LAB_DAILY_SUMMARY : moment === "over" ? LAB_SUMMARY : null,
     isManual: false,
     stickRef,
     drawShip: noop,

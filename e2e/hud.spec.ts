@@ -44,6 +44,14 @@ const SLACK = 1;
 // How long the lab has to show its HUD before a case gives up (ms).
 const SHOWN_MS = 15_000;
 
+// The day's board at its fullest for a daily run's end card, ten runs with the widest scores, answered in place of the
+// real board so the card is measured at its longest whatever the day's board holds.
+const FULL_BOARD = {
+  day: "2026-10-09",
+  entries: Array.from({ length: 10 }, (_, index) => ({ initials: "WWW", score: 9_999_999 - index })),
+  rank: null,
+};
+
 // Where the line the voyage says becomes a strip across the top, drawn over the place and the readout for its moment
 // as designed: the same query as STRIP in Finale/Voyage/VoyageDialog.styles.ts.
 const STRIP = "(max-width: 767px) and (max-height: 720px), (orientation: portrait) and (max-width: 479px), (orientation: landscape) and (max-height: 500px)";
@@ -166,6 +174,11 @@ for (const screen of SCREENS) {
 
     test(`the HUD's panels never overlap or leave the screen: ${name}`, async ({ page }) => {
       await page.setViewportSize({ width: screen.width, height: screen.height });
+
+      if (moment === "daily") {
+        await page.route(/\/api\/voyage\/board\//, (route) => route.fulfill({ json: FULL_BOARD }));
+      }
+
       await page.goto(`/hud-lab/?moment=${moment}&hud=${layout}`, { waitUntil: "domcontentloaded" });
 
       if (isHudMoment) {

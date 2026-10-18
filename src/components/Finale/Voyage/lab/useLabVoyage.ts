@@ -109,6 +109,8 @@ export const labVoyage = (moment: LabMoment, chapter: string): VoyageSource => f
   const stickRef = useRef<HTMLDivElement>(null);
   const notices = useMemo<VoyageNotice[]>(() => [
     { kind: "storyChapter", chapter },
+    // A run's end is paid, as every run is; a daily one's then goes to the day's board.
+    ...(isRunOver(moment) ? [{ kind: "paid" as const, coin: LAB_SUMMARY.coin }] : []),
     ...(moment === "daily" ? [{ kind: "daily" as const, day: LAB_DAY, score: LAB_SUMMARY.score, isBest: true }] : []),
   ], []);
   const views = useMemo(() => {

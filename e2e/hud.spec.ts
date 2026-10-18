@@ -1,6 +1,7 @@
 import { expect, Page, test } from "@playwright/test";
 
 import { HUD_MOMENTS, LAB_MOMENTS } from "../src/components/Finale/Voyage/lab/moments";
+import { BOARD } from "../src/packages/games/daily-board/config/board";
 import known from "./hud-known.json";
 
 interface Rect {
@@ -44,11 +45,12 @@ const SLACK = 1;
 // How long the lab has to show its HUD before a case gives up (ms).
 const SHOWN_MS = 15_000;
 
-// The day's board at its fullest for a daily run's end card, ten runs with the widest scores, answered in place of the
-// real board so the card is measured at its longest whatever the day's board holds.
+// The day's board at its fullest for a daily run's end card, as many runs as it shows with the widest initials and the
+// highest scores it takes, answered in place of the real board so the card is measured at its longest whatever the
+// day's board holds.
 const FULL_BOARD = {
   day: "2026-10-09",
-  entries: Array.from({ length: 10 }, (_, index) => ({ initials: "WWW", score: 9_999_999 - index })),
+  entries: Array.from({ length: BOARD.size }, (_, index) => ({ initials: "WWW", score: BOARD.maxScore - index })),
   rank: null,
 };
 
@@ -187,6 +189,10 @@ for (const screen of SCREENS) {
       } else {
         await page.locator("[data-hud-surface]").first()
           .waitFor({ timeout: SHOWN_MS });
+      }
+
+      if (moment === "daily") {
+        await expect(page.locator("[data-hud-surface] ol li"), "the full board is on the card").toHaveCount(BOARD.size, { timeout: SHOWN_MS });
       }
 
       // Measured in the site's own font once it has loaded, and once the line has settled in from its entrance.

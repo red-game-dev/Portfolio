@@ -38,6 +38,7 @@ const createEngine = async (context: CanvasRenderingContext2D, { zone, isStatic 
       (random) => new backdrop.RainScene(random, BACKDROP_THEME.rain),
       (random) => new backdrop.NeuralScene(random, BACKDROP_THEME.neural),
       (random) => new backdrop.ChainScene(random, BACKDROP_THEME.chain),
+      (random) => new backdrop.DevopsScene(random, BACKDROP_THEME.devops),
       (random) => new backdrop.CasinoScene(random, BACKDROP_THEME.casino),
       (random) => new backdrop.EmberScene(random, BACKDROP_THEME.ember),
       (random) => new backdrop.StarfieldScene(random, BACKDROP_THEME.stars),

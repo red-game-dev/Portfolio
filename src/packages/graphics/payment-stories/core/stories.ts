@@ -196,7 +196,7 @@ export const syncAt = (t: number): StoryFrame => {
 // One payment comes in and splits three ways: the platform's fee, the seller's share and the developer's, each coin
 // as large as its share.
 const SPLIT = {
-  from: { x: -12, y: 105 },
+  from: { x: 22, y: 105 },
   hub: { x: 104, y: 105 },
   shares: [{ x: 238, y: 48, icon: "platform", share: 0.1 }, { x: 238, y: 105, icon: "seller", share: 0.7 }, { x: 238, y: 162, icon: "developer", share: 0.2 }],
   arrive: [0.06, 0.28], burst: [0.28, 0.36], flights: [0.36, 0.7], landed: 0.7,
@@ -217,7 +217,7 @@ export const splitAt = (t: number): StoryFrame => {
   const coins: StoryCoin[] = [];
 
   if (!isSplit) {
-    coins.push({ at: along(incoming, glide(arrive)), radius: 9, spin: t * 26, opacity: span(t, 0.05, 0.09) });
+    coins.push({ at: along(incoming, glide(arrive)), radius: 9, spin: t * 26, opacity: span(t, 0, 0.05) });
   } else if (t < SPLIT.flights[0]) {
     coins.push({ at: hub, radius: 9 + flash(t, ...SPLIT.burst) * 3, spin: t * 30, opacity: 1 - span(t, SPLIT.burst[1] - 0.02, SPLIT.burst[1]) });
   }

@@ -573,7 +573,7 @@ const Line = styled.span(({ effect }: { effect: "beam" | "sweep" | "scan" | "slo
   effect === "slot" && css`
     left: 0;
     right: 0;
-    top: 0;
+    top: -9px;
     height: 3px;
     background: linear-gradient(90deg, transparent, #f2f0ea 12%, #f2f0ea 88%, transparent);
     box-shadow: 0 0 14px 2px rgba(242, 240, 234, 0.35);

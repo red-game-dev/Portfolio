@@ -220,6 +220,16 @@ export const networkFirst = async (
 export const readable = (request: Request): Request =>
   (request.mode === "no-cors" && FONT_HOSTS.has(new URL(request.url).hostname) ? new Request(request.url, { mode: "cors", credentials: "omit" }) : request);
 
+// The subsets of Google's fonts the site's words are written in, saved ahead with the stylesheet that names them.
+const FONT_SUBSETS: ReadonlySet<string> = new Set(["latin", "latin-ext"]);
+
+// The font files Google's stylesheet names for those subsets, once each. On a first visit the fonts load before the
+// worker is there and leave no trace the page can name, so the worker reads them from the stylesheet it saved.
+export const fontFilesIn = (css: string): string[] => [...new Set([...css.matchAll(/\/\* ([a-z-]+) \*\/\s*@font-face\s*\{([^}]*)\}/g)]
+  .filter(([, subset]) => FONT_SUBSETS.has(subset))
+  .map(([, , body]) => /url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/.exec(body)?.[1])
+  .filter((url): url is string => url !== undefined))];
+
 // What the page asks the worker to save once it has loaded: what it fetched before the worker could see it, and, unless
 // the connection asks to save data, the rest of the build.
 export interface WarmMessage {
@@ -325,12 +335,15 @@ if (isWorker) {
         const url = new URL(address, origin);
         const name = cacheFor(routeOf(url, new Request(url.href), origin));
 
-        if (name && !await storeOf(name).match(url.href)) {
-          const response = await fetcher(askedLikeThePage(url));
+        const saved = name ? await storeOf(name).match(url.href) : undefined;
+        const response = name && !saved ? await fetcher(askedLikeThePage(url)) : saved;
 
-          if (isKeepable(response)) {
-            await (await caches.open(name)).put(url.href, stamped(response, Date.now()));
-          }
+        if (name && response && !saved && isKeepable(response)) {
+          await (await caches.open(name)).put(url.href, stamped(response.clone(), Date.now()));
+        }
+
+        if (url.hostname === "fonts.googleapis.com" && response && isKeepable(response)) {
+          queue.push(...fontFilesIn(await response.text()));
         }
       } catch {
         // Not saved now; saved when it is next used.

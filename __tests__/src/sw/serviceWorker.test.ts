@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import {
-  assetsIn, cacheFirst, cachesToDelete, cacheNames, Fetcher, isKeepable, isStale, isWarmMessage, networkFirst, pageKey, readable, routeOf,
+  assetsIn, cacheFirst, cachesToDelete, cacheNames, Fetcher, fontFilesIn, isKeepable, isStale, isWarmMessage, networkFirst, pageKey, readable, routeOf,
   stamped, staleWhileRevalidate, Store, Strategy, versionsKept,
 } from "@/sw/service-worker";
 
@@ -223,6 +223,16 @@ describe("the offline copy's strategies", () => {
     expect(readable(sheet).mode).toBe("cors");
     expect(readable(sheet).credentials).toBe("omit");
     expect(readable(picture)).toBe(picture);
+  });
+
+  it("reads the font files the site's words need from Google's stylesheet, once each, leaving the other scripts' subsets", () => {
+    const face = (subset: string, weight: number, file: string) => `/* ${subset} */\n@font-face {\n  font-family: 'Roboto';\n  font-weight: ${weight};\n` +
+      `  src: url(https://fonts.gstatic.com/s/roboto/v51/${file}.woff2) format('woff2');\n  unicode-range: U+0000-00FF;\n}\n`;
+    const css = face("cyrillic", 400, "cy") + face("latin-ext", 400, "le") + face("latin", 400, "la") + face("greek", 700, "gr") +
+      face("latin-ext", 700, "le") + face("latin", 700, "la");
+
+    expect(fontFilesIn(css)).toEqual(["https://fonts.gstatic.com/s/roboto/v51/le.woff2", "https://fonts.gstatic.com/s/roboto/v51/la.woff2"]);
+    expect(fontFilesIn("body { color: red }")).toEqual([]);
   });
 
   it("takes only a warm message of the right shape from the page", () => {

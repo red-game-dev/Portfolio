@@ -29,6 +29,7 @@ export const formsContent: Pick<PortfolioData, "forms"> = {
       ownApp: "Write it in your own email app",
       trap: "Leave this empty",
       closed: "The site cannot send messages right now. Your own email app can, with what you wrote already in it.",
+      offline: "Sending from the site needs a connection. Your own email app can send it once you are back online, with what you wrote already in it.",
       check: "Some fields need fixing, marked above.",
       full: "The site has sent all it can today. Your own email app can still send it, with what you wrote already in it.",
       limited: "That is a lot of messages in a short time. Try again later, or send it from your own email app.",

@@ -7,6 +7,30 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   openAnalyzer: false,
 })
 
+// The largest a script, style or font may be to be saved for offline on the first visit; anything larger (three.js,
+// the voyage's biggest parts) is saved the first time it is used.
+const PRECACHE_MOST_BYTES = 512 * 1024
+const PRECACHED = /^static\/(chunks|css|media)\/.+\.(js|css|woff2?|svg|png|jpe?g|webp|avif|gif)$/
+
+// Writes the build's list of its scripts, styles and fonts to /_next/static/offline/precache.json, which the service
+// worker (src/sw/service-worker.ts) saves once the page has loaded, so every part the page may load later opens offline.
+class OfflinePrecachePlugin {
+  apply(compiler) {
+    const { Compilation, sources } = compiler.webpack
+
+    compiler.hooks.thisCompilation.tap('OfflinePrecache', (compilation) => {
+      compilation.hooks.processAssets.tap({ name: 'OfflinePrecache', stage: Compilation.PROCESS_ASSETS_STAGE_REPORT }, (assets) => {
+        const files = Object.entries(assets)
+          .filter(([name, source]) => PRECACHED.test(name) && source.size() <= PRECACHE_MOST_BYTES)
+          .map(([name]) => `/_next/${name}`)
+          .sort()
+
+        compilation.emitAsset('static/offline/precache.json', new sources.RawSource(JSON.stringify({ files })))
+      })
+    })
+  }
+}
+
 module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   trailingSlash: true,
@@ -28,6 +52,13 @@ module.exports = withBundleAnalyzer({
   },
   env: {
     DEBUG: process.env.DEBUG ?? 'false',
+  },
+  webpack(config, { isServer, dev }) {
+    if (!isServer && !dev) {
+      config.plugins.push(new OfflinePrecachePlugin())
+    }
+
+    return config
   },
   // The text files for language models are written from the content by API routes, which answer with plain
   // text rather than a page.

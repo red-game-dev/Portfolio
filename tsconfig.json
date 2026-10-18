@@ -47,6 +47,9 @@
       "@/services/*": [
         "src/services/*"
       ],
+      "@/sw/*": [
+        "src/sw/*"
+      ],
       "@/types/*": [
         "types/*"
       ]

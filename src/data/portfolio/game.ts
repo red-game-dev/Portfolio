@@ -1332,6 +1332,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
         loading: "Reading today's board",
         empty: "No runs on today's board yet. Be the first.",
         resting: "The board could not be reached just now.",
+        offline: "The board needs a connection, to read it or to put a run on it. Both come back once you are online again.",
         initials: "Your initials",
         submit: "Put it on the board",
         sent: "You are number {rank} today",

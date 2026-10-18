@@ -107,6 +107,30 @@ describe("the message and feedback form", () => {
     expect(screen.getByRole("button", { name: forms.feedback.send })).toBeInTheDocument();
   });
 
+  it("with no connection, says the site needs one and offers the visitor's own email app, the send button back once online", async () => {
+    const online = jest.spyOn(window.navigator, "onLine", "get").mockReturnValue(false);
+
+    try {
+      renderForm("message");
+
+      await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(forms.shared.offline));
+      expect(screen.queryByRole("button", { name: forms.message.send })).toBeNull();
+      expect(screen.getByRole("link", { name: forms.shared.ownApp })).toBeInTheDocument();
+
+      fireEvent.submit(screen.getByRole("form", { name: forms.message.heading }));
+      expect(client.sendContact).not.toHaveBeenCalled();
+
+      online.mockReturnValue(true);
+      act(() => {
+        window.dispatchEvent(new Event("online"));
+      });
+      expect(screen.getByRole("button", { name: forms.message.send })).toBeInTheDocument();
+      expect(screen.getByRole("status")).not.toHaveTextContent(forms.shared.offline);
+    } finally {
+      online.mockRestore();
+    }
+  });
+
   it("with no answer about whether the site can send, or code that cannot load, keeps the send button, the send's answer deciding", async () => {
     client.contactIsOpen.mockResolvedValue("unknown");
     const { unmount } = renderForm("feedback");

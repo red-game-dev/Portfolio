@@ -1,5 +1,7 @@
 import "@/styles/globals.css";
 
+import { useEffect } from "react";
+
 import { createGlobalStyle } from "styled-components";
 import tw, { GlobalStyles as BaseStyles } from "twin.macro";
 
@@ -14,6 +16,7 @@ import { GameProvider } from "@/components/Game/context/GameContext";
 import { LensProvider } from "@/components/Lens/context/LensContext";
 import { PreferencesProvider } from "@/components/Preferences/context/PreferencesContext";
 import { SEO } from "@/components/SEO";
+import { keepOfflineCopy } from "@/services/offline";
 
 config.autoAddCss = false;
 
@@ -33,6 +36,11 @@ const GlobalStyles = () => (
 );
 
 export default function App({ Component, pageProps }: AppProps) {
+  // The site's offline copy, kept from the first visit on.
+  useEffect(() => {
+    keepOfflineCopy();
+  }, []);
+
   return (
     <>
       <SEO />

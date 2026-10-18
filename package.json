@@ -5,6 +5,7 @@
   },
   "scripts": {
     "dev": "next dev --webpack",
+    "prebuild": "node scripts/build-sw.mjs",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint src __tests__/src e2e --fix",

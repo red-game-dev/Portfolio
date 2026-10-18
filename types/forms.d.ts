@@ -34,6 +34,8 @@ export interface FormsSharedContent {
   trap: string;
   // The site cannot send now: no way to send set up, the day's sends used up, or the mail service refusing.
   closed: string;
+  // The visitor has no connection: the site cannot send, their own email app can once they are back online.
+  offline: string;
   // Said when fields need fixing, while each says what.
   check: string;
   // The day's sends are used up.

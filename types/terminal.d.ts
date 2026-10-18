@@ -63,6 +63,8 @@ export interface TerminalAsk {
   sourcesLabel: string;
   answeringLabel: string;
   errors: Record<AskErrorCode, string>;
+  // Printed instead of asking when the reader has no connection.
+  offline: string;
   // The name each source is shown under, as a link to its section.
   sources: Record<AskSourceKey, string>;
 }

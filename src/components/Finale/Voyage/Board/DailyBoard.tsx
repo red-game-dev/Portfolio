@@ -4,6 +4,7 @@ import { ActionButton } from "@/components/Controls";
 import {
   BoardBlock, BoardForm, BoardLabel, BoardList, BoardNote, BoardRow, BoardTitle, InitialsInput,
 } from "@/components/Finale/Voyage/Board/DailyBoard.styles";
+import { useOnline } from "@/hooks/useOnline";
 import { readStored, writeStored } from "@/packages/browser/storage";
 import type { BoardView } from "@/packages/games/daily-board";
 import { BOARD } from "@/packages/games/daily-board";
@@ -35,14 +36,28 @@ export const DailyBoard: FC<DailyBoardProps> = ({ content, day, score }) => {
   const [sentScore, setSentScore] = useState(0);
   // Where focus goes once the run is on the board and the form is gone: the board itself.
   const listRef = useRef<HTMLOListElement>(null);
+  // The board needs a connection: offline it says so, and is read again once the pilot is back online.
+  const isOnline = useOnline();
+  // The day whose board is shown, so it is read once a day and not again as the connection comes and goes.
+  const readFor = useRef<string | null>(null);
 
   useEffect(() => {
-    let isLive = true;
     const sent = readStored(SENT_KEY, isSent);
 
     setSentScore(sent?.day === day ? sent.score : 0);
+  }, [day]);
+
+  useEffect(() => {
+    if (!isOnline || readFor.current === day) {
+      return undefined;
+    }
+
+    let isLive = true;
+
+    setBoard("loading");
     void fetchBoard(day).then((view) => {
       if (isLive) {
+        readFor.current = view ? day : null;
         setBoard(view);
       }
     });
@@ -50,7 +65,7 @@ export const DailyBoard: FC<DailyBoardProps> = ({ content, day, score }) => {
     return () => {
       isLive = false;
     };
-  }, [day]);
+  }, [day, isOnline]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -83,13 +98,14 @@ export const DailyBoard: FC<DailyBoardProps> = ({ content, day, score }) => {
     window.requestAnimationFrame(() => listRef.current?.focus());
   };
 
-  const canSend = score > 0 && score > sentScore && rank === null;
+  const canSend = score > 0 && score > sentScore && rank === null && isOnline;
 
   return (
     <BoardBlock aria-labelledby="board-title">
       <BoardTitle id="board-title">{copy.title}</BoardTitle>
-      {board === "loading" && <BoardNote>{copy.loading}</BoardNote>}
-      {board === null && <BoardNote>{copy.resting}</BoardNote>}
+      {!isOnline && <BoardNote>{copy.offline}</BoardNote>}
+      {isOnline && board === "loading" && <BoardNote>{copy.loading}</BoardNote>}
+      {isOnline && board === null && <BoardNote>{copy.resting}</BoardNote>}
       {board !== "loading" && board !== null && (board.entries.length === 0 ? <BoardNote>{copy.empty}</BoardNote> : (
         <BoardList ref={listRef} tabIndex={-1} aria-label={copy.title}>
           {board.entries.map((entry, index) => (

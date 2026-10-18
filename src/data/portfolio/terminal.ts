@@ -156,6 +156,7 @@ export const terminalContent: Pick<PortfolioData, "terminal"> = {
         unavailable: "The agent is resting right now. Try help, or email me.",
         failed: "The agent lost its train of thought. Try again in a moment.",
       },
+      offline: "Asking needs a connection, and you are offline. Ask again once you are back online. Everything else here works offline.",
       sources: {
         about: "Who I am",
         services: "What I offer",

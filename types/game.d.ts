@@ -722,6 +722,8 @@ export interface VoyageBoardCopy {
   loading: string;
   empty: string;
   resting: string;
+  // The pilot has no connection: reading the board, and putting a run on it, wait until they are back online.
+  offline: string;
   initials: string;
   submit: string;
   // "{rank}" and "{size}" are replaced.

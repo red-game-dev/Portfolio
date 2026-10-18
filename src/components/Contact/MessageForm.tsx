@@ -4,6 +4,7 @@ import { ActionLink } from "@/components/Controls";
 import { switchEffectFor, SwitchEffect } from "@/components/SwitchStage/config";
 import { zoneOf } from "@/components/SwitchStage/zoneOf";
 import useInView from "@/hooks/useInView";
+import { useOnline } from "@/hooks/useOnline";
 import {
   CONTACT_LIMITS, ContactDelivery, ContactKind, ContactProblem, contactProblems, ContactRefusal, ContactRequest, DeliveryStatus,
 } from "@/packages/messaging/contact";
@@ -75,6 +76,9 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   // Whether the site can send: not asked yet (null), open, closed, or no answer, when the send button stays.
   const [isOpen, setIsOpen] = useState<DeliveryStatus | null>(null);
   const isNear = useInView(formRef, { once: true, threshold: 0 });
+  // With no connection the site cannot send, so the visitor's own email app is the way until they are back online.
+  const isOnline = useOnline();
+  const canSend = isOpen !== "closed" && isOnline;
   // The zone the form sits in, read after mount (the server cannot know), for its focus, sending and sent to play as the
   // zone's switches do.
   const [effect, setEffect] = useState<SwitchEffect | null>(null);
@@ -167,7 +171,8 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (state === "sending") {
+    // Offline the send button is gone and the line says why; a submit by key changes nothing.
+    if (state === "sending" || !isOnline) {
       return;
     }
 
@@ -217,7 +222,7 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
   // Said as it changes: sent, sending, what to fix (the fields say what, the line says so), or that the site cannot send.
   const status = state === "sent"
     ? fill(words.sent, { time: contactTime.toLowerCase() })
-    : state === "sending" ? shared.sending : problems.length > 0 ? shared.check : isOpen === "closed" ? shared.closed : "";
+    : state === "sending" ? shared.sending : problems.length > 0 ? shared.check : !isOnline ? shared.offline : isOpen === "closed" ? shared.closed : "";
 
   const field = (name: FieldName, label: string, isRequired: boolean, isLong = false) => (
     <Field>
@@ -260,12 +265,12 @@ export const MessageForm: FC<MessageFormProps> = ({ kind, subject, email, contac
             </label>
           </Trap>
           <Row>
-            {isOpen !== "closed" && (
+            {canSend && (
               <SendButton type="submit" isPrimary aria-disabled={state === "sending"}>
                 {state === "sending" ? shared.sending : words.send}
               </SendButton>
             )}
-            <ActionLink href={mailto} isPrimary={isOpen === "closed"}>{shared.ownApp}</ActionLink>
+            <ActionLink href={mailto} isPrimary={!canSend}>{shared.ownApp}</ActionLink>
           </Row>
           {refusal && <Problem role="alert">{refusal}</Problem>}
           <Note>{shared.privacy}</Note>

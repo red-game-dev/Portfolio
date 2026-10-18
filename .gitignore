@@ -13,6 +13,8 @@
 /out/
 
 # production
+# the service worker, built from src/sw/ before every build
+/public/sw.js
 /build
 
 # misc

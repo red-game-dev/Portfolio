@@ -15,6 +15,7 @@ import { ASK_HISTORY_TURNS, type AskSourceKey } from "@/config/ask";
 import { SECTION_IDS } from "@/config/sections";
 import { prefersReducedMotion, scrollBehavior } from "@/packages/accessibility/motion";
 import type { AskDepth, AskErrorCode, AskTurn } from "@/packages/ai/ask";
+import { isOffline } from "@/packages/browser/network";
 import { isTypingTarget } from "@/packages/interaction/focus";
 import { KeyMap } from "@/packages/interaction/keys";
 import { scrollToElement, settleAtTop } from "@/packages/interaction/scroll-frame";
@@ -240,6 +241,16 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession, mes
   const ask = async (question: string, depth: AskDepth) => {
     askController.current?.abort();
 
+    // Asking needs a connection: offline, the line says so rather than waiting on a request that cannot go.
+    if (isOffline()) {
+      askController.current = null;
+      setAsking(null);
+      setFollowUp(null);
+      printNow([error(content.ask.offline)]);
+
+      return;
+    }
+
     const controller = new AbortController();
 
     askController.current = controller;
@@ -284,7 +295,7 @@ export const Terminal: FC<TerminalProps> = ({ intro, content, createSession, mes
     printNow([
       ...(answer ? [output(answer)] : []),
       ...(answer && model ? [system(fill(content.ask.answeredBy, { model }))] : []),
-      ...(failure ? [error(content.ask.errors[failure])] : []),
+      ...(failure ? [error(isOffline() ? content.ask.offline : content.ask.errors[failure])] : []),
     ]);
 
     if (answer && !failure) {

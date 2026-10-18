@@ -1,4 +1,4 @@
-import { questCard } from "@/components/Finale/Voyage/career";
+import { dailyNote, dailyResult, questCard } from "@/components/Finale/Voyage/career";
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { ledgerMemo } from "@/components/Finale/Voyage/economy";
 import {
@@ -355,5 +355,13 @@ describe("the voyage's cards", () => {
     // A card stays long enough for what it paid to be seen, even when its words are short.
     expect(lineMs({ text: "Mission complete", card: null })).toBe(MESSAGE_MS.least);
     expect(lineMs({ text: "Mission complete", card: { title: "", name: "", xp: 1, coin: 1, line: null } })).toBe(CARD_MS);
+  });
+});
+
+describe("the daily voyage's words", () => {
+  test("write the day's scores grouped, as the card writes the run's own", () => {
+    expect(dailyResult(voyage, 1234567)).toBe("Daily voyage: 1,234,567");
+    expect(dailyNote(voyage, 1234567)).toBe(`${voyage.career.daily.note} Today's best: 1,234,567`);
+    expect(dailyNote(voyage, 0)).toBe(voyage.career.daily.note);
   });
 });

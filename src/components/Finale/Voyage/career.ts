@@ -9,6 +9,14 @@ export { chapterTitle, missionName, storyStepName };
 
 export const rankName = (content: FinaleVoyage, id: string): string => content.career.ranks[id] ?? id;
 
+// What the cards say of the daily voyage: a run's result at its end, and today's best before a run, each score written
+// as the card writes the run's own.
+export const dailyResult = (content: FinaleVoyage, score: number): string => fill(content.career.daily.result, { score: formatNumber(score) });
+
+export const dailyNote = (content: FinaleVoyage, best: number): string => (best > 0
+  ? `${content.career.daily.note} ${fill(content.career.daily.best, { score: formatNumber(best) })}`
+  : content.career.daily.note);
+
 // What a codex entry is called, from whichever part of the content names its subject.
 export const codexName = (content: FinaleVoyage, { category, subject }: Pick<CodexEntry, "category" | "subject">): string => {
   const copy = content.career;

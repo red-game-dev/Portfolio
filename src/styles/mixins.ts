@@ -26,8 +26,10 @@ export const media = {
   voyageWide: "@media (min-width: 1024px), (min-width: 768px) and (orientation: landscape)",
   // Not a media query: the root's data-motion, set from the reader's switch on the page or their device's reduced
   // motion setting (packages/accessibility/motion), so the page can be kept still from the page itself. Written the
-  // same way, `${media.reducedMotion} { ... }`.
-  reducedMotion: ':root[data-motion="reduced"] &',
+  // same way, `${media.reducedMotion} { ... }`. It starts with html: a nested selector that starts with a colon is read
+  // as a pseudo-class of the component and glued onto it (`.abc:root[...]`), which no element can match. :root stays
+  // after it for the weight, so the still rule outranks any prop rule on the same property.
+  reducedMotion: 'html:root[data-motion="reduced"] &',
 };
 
 // For a reader who asked for less motion: no animation, no transition, or not shown at all (a purely

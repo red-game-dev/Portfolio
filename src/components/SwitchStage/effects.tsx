@@ -255,6 +255,21 @@ const BOOT = { ms: 760, stepMs: 55, most: 14 } as const;
 
 const ITEM = "& > :not([data-switch-fx]) [data-switch-item]";
 
+// The layers an effect lays over each item on its pseudo-elements (a block, a card's back, pixels, a cursor, a beam's
+// glow, a drafting frame): with nothing moving they are never drawn, so the item shows as it is. Only these, so an item
+// that draws its own (a chain node's block hash) keeps it.
+const ITEM_LAYERS: Partial<Record<SwitchEffect, Array<"::before" | "::after">>> = {
+  mined: ["::before"],
+  dealt: ["::before", "::after"],
+  pixel: ["::before"],
+  beamed: ["::after"],
+  printed: ["::after"],
+  typed: ["::after"],
+  warped: ["::after"],
+  boot: ["::after"],
+  draft: ["::before", "::after"],
+};
+
 // A skill rather than an area's heading: only skills are linked into the chain.
 const SKILL = `${ITEM}:not(h3)`;
 
@@ -539,15 +554,15 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
         animation: none !important;
       }
 
-      /* With nothing moving, the layers a switch lays over each item (a block, a card's back, pixels, a cursor) are
-         never drawn, so the item shows as it is. */
-      ${ITEM}::before,
-      ${ITEM}::after {
-        content: none !important;
-      }
-
       & > [data-switch-fx] {
         display: none;
+      }
+    }
+  `,
+  effect && ITEM_LAYERS[effect] && css`
+    ${media.reducedMotion} {
+      ${ITEM_LAYERS[effect]?.map((pseudo) => `${ITEM}${pseudo}`).join(", ")} {
+        content: none !important;
       }
     }
   `,

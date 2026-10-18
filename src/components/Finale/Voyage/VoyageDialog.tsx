@@ -32,7 +32,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ActionButton } from "@/components/Controls";
 import { AbilityBar } from "@/components/Finale/Voyage/AbilityBar/AbilityBar";
 import { DailyBoard } from "@/components/Finale/Voyage/Board/DailyBoard";
-import { chapterTitle, missionName, QuestCard, questCard, rankName, storyStepName } from "@/components/Finale/Voyage/career";
+import { chapterTitle, dailyNote, dailyResult, missionName, QuestCard, questCard, rankName, storyStepName } from "@/components/Finale/Voyage/career";
 import { descentHint, descentMethod, descentRows } from "@/components/Finale/Voyage/descent";
 import { shipName, stacksText, suggestionText } from "@/components/Finale/Voyage/economy";
 import { portName } from "@/components/Finale/Voyage/encounters";
@@ -351,7 +351,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
   const today = new Date().toISOString()
 .slice(0, 10);
   const todayBest = career?.daily?.day === today ? career.daily.best : 0;
-  const dailyNote = todayBest > 0 ? `${content.career.daily.note} ${fill(content.career.daily.best, { score: todayBest })}` : content.career.daily.note;
+  const todayNote = dailyNote(content, todayBest);
   const ship = economy ? shipName(content.economy, economy.tier, economy.mark) : "";
   // Coin and shards as they come in, each shown rising off its count.
   const redGain = useGains(economy ? economy.purse.RED : null);
@@ -1242,7 +1242,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                     <SettingsPanel copy={settings} names={voyageSettings.setupNames} onPick={voyageSettings.onPick} />
                   </Setup>
                 )}
-                {career && <Text>{dailyNote}</Text>}
+                {career && <Text>{todayNote}</Text>}
                 {skyToday.length > 0 && (
                   <Setup aria-labelledby="voyage-sky-title">
                     <SetupTitle id="voyage-sky-title">{content.sky.title}</SetupTitle>
@@ -1305,7 +1305,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                   {snapshot.score > bestBefore.current && <Badge>{content.newBest}</Badge>}
                 </ScoreRow>
                 {pay !== null && pay > 0 && <Pay>{fill(content.pay, { coin: pay })}</Pay>}
-                {daily && <Text>{fill(content.career.daily.result, { score: daily.score })}</Text>}
+                {daily && <Text>{dailyResult(content, daily.score)}</Text>}
                 {summary && (
                   <StatGrid aria-label={content.progress.summary.title}>
                     {summaryRows(content, summary).map((row) => (

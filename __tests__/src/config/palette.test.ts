@@ -10,7 +10,7 @@ import { rgbChannels } from "@/packages/graphics/colour";
 const css = readFileSync(join(process.cwd(), "src/styles/globals.css"), "utf8");
 
 const blockOf = (zone: ZoneId) => {
-  const selector = `[data-zone="${zone}"] {`;
+  const selector = `[data-zone="${zone}"]`;
   const start = css.indexOf(selector);
 
   return css.slice(start, css.indexOf("}", start));

@@ -7,6 +7,7 @@ import { Hud, HudContent } from "@/components/Journey/Hud";
 import { JourneyProgress } from "@/components/Journey/JourneyProgress";
 import { ZoneTrail } from "@/components/Journey/ZoneTrail";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
+import { FollowsJourney } from "@/components/Zone";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 import { TrailSection } from "@/services/journey/trail";
 import { JourneyTrailContent } from "@/types/game";
@@ -19,7 +20,8 @@ interface JourneyProps {
 
 // The page as a journey through its zones. Crossing into one changes the world itself: the backdrop plays a
 // transition into the next scene, and what lies outside the sections (the header, the trail, the HUD) takes on the
-// zone's accent, each run of sections keeping its own (components/Zone). No labels needed.
+// zone's accent through the root's data-journey (FollowsJourney), each run of sections keeping its own
+// (components/Zone). No labels needed.
 export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProps) => {
   const progressRef = useRef<HTMLDivElement>(null);
   const hudRef = useRef<HTMLDivElement>(null);
@@ -29,7 +31,7 @@ export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProp
   const { settings } = useLensStateHook();
 
   useEffect(() => {
-    document.documentElement.dataset.zone = zone;
+    document.documentElement.dataset.journey = zone;
   }, [zone]);
 
   // Reaching a zone means passing every zone before it, even when a menu link jumped over them.
@@ -38,7 +40,7 @@ export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProp
   }, [visitZone, zoneIndex]);
 
   return (
-    <>
+    <FollowsJourney>
       <Backdrop zone={zone} isEnabled={isEnabled} />
       <JourneyProgress ref={progressRef} starts={starts} zoneIndex={zoneIndex} />
       <ZoneTrail
@@ -50,6 +52,6 @@ export const Journey: FC<JourneyProps> = ({ isEnabled, hud, trail }: JourneyProp
         isEnabled={isEnabled}
       />
       <Hud ref={hudRef} {...hud} isVisible={settings.gameLayer && zone === "mmo"} />
-    </>
+    </FollowsJourney>
   );
 };

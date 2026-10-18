@@ -16,7 +16,7 @@ module.exports = {
       // be the Tailwind sans stack or it never applies. next/font is not an
       // option here: it requires SWC, and twin.macro forces Babel.
       fontFamily: {
-        sans: ['Roboto', ...defaultTheme.fontFamily.sans],
+        sans: ['Roboto', '"Roboto Fallback"', ...defaultTheme.fontFamily.sans],
       },
       height: {
         'endless-width': '1000%',

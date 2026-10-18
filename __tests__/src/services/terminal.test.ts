@@ -41,6 +41,24 @@ describe("portfolio terminal", () => {
     expect(session.execute("deeper")).toEqual({ type: "ask", question: "what did red build at kpmg?", depth: "deep" });
   });
 
+  test("offline, ask and deeper say at once that asking needs a connection, and hand nothing to the page", () => {
+    const session = createPortfolioTerminal();
+    const onLine = jest.spyOn(window.navigator, "onLine", "get").mockReturnValue(false);
+
+    try {
+      expect(session.execute("ask what did red build at kpmg?")).toBeUndefined();
+      expect(session.output[session.output.length - 1]).toMatchObject({ kind: "error", text: portfolioData.terminal.ask.offline });
+      expect(session.output.map((line) => line.text)).not.toContain(portfolioData.terminal.ask.thinking);
+      expect(session.execute("deeper")).toBeUndefined();
+      expect(session.output[session.output.length - 1]).toMatchObject({ kind: "error", text: portfolioData.terminal.ask.offline });
+
+      onLine.mockReturnValue(true);
+      expect(session.execute("deeper")).toEqual({ type: "ask", question: "what did red build at kpmg?", depth: "deep" });
+    } finally {
+      onLine.mockRestore();
+    }
+  });
+
   test("an answer printed later joins the output", () => {
     const session = createPortfolioTerminal();
     const before = session.output.length;

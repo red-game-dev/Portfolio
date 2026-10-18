@@ -1,3 +1,4 @@
+import { isOffline } from "@/packages/browser/network";
 import { Command, error, heading, output, system } from "@/packages/interaction/terminal";
 import { CommandContext, GROUPS } from "@/services/terminal/commands/shared";
 
@@ -22,6 +23,11 @@ export const createAskCommands = ({ data }: CommandContext): Command[] => {
 
         lastQuestion = question;
 
+        // Asking needs a connection: offline it says so at once, rather than reading the site for nothing.
+        if (isOffline()) {
+          return { lines: [error(ask.offline)] };
+        }
+
         return { lines: [system(ask.thinking)], effect: { type: "ask", question, depth: "quick" } };
       },
     },
@@ -29,9 +35,17 @@ export const createAskCommands = ({ data }: CommandContext): Command[] => {
       name: "deeper",
       group: GROUPS.ask,
       summary: ask.deeperSummary,
-      run: () => (lastQuestion
-        ? { lines: [system(ask.thinkingDeeper)], effect: { type: "ask", question: lastQuestion, depth: "deep" } }
-        : { lines: [error(ask.nothingToDeepen)] }),
+      run: () => {
+        if (!lastQuestion) {
+          return { lines: [error(ask.nothingToDeepen)] };
+        }
+
+        if (isOffline()) {
+          return { lines: [error(ask.offline)] };
+        }
+
+        return { lines: [system(ask.thinkingDeeper)], effect: { type: "ask", question: lastQuestion, depth: "deep" } };
+      },
     },
   ];
 };

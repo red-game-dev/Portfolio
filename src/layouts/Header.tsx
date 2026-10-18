@@ -12,7 +12,7 @@ import { MobileMenu } from "@/components/Menu/MobileMenu";
 import { MotionSwitch } from "@/components/Motion/MotionSwitch";
 import { JOURNEY_STOPS } from "@/config/journey";
 import useScrolledPast from "@/hooks/useScrolledPast";
-import { focusRing } from "@/styles/mixins";
+import { focusRing, noTransitionWhenReduced } from "@/styles/mixins";
 import { LensContent } from "@/types/lens";
 import { MenuContent } from "@/types/menu";
 
@@ -28,6 +28,8 @@ const HeaderContainer = styled.header(({ isScrolled }: HeaderContainerProps) => 
   css`
     transition: top 0.7s cubic-bezier(0.165, 0.85, 0.45, 1), padding 0.7s cubic-bezier(0.165, 0.85, 0.45, 1), background-color 0.3s ease;
   `,
+  // Kept still, it takes its place on the bar at once rather than easing into it.
+  noTransitionWhenReduced,
   // Past the first screen the menu sits on a dark bar, so it never reads over the content. Nearly opaque
   // rather than blurred: a backdrop blur re-samples everything under the bar on every scrolled frame.
   isScrolled && tw`top-0 py-[14px] lg:py-[14px]`,

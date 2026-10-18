@@ -30,7 +30,7 @@ const Host = styled.li(() => [
 
 const HostName = tw.h4`m-0 text-base font-semibold text-white`;
 
-const Kind = tw.p`m-0 -mt-[6px] text-xs uppercase tracking-wide text-[var(--accent)]`;
+const Kind = tw.p`m-0 mt-[-6px] text-xs uppercase tracking-wide text-[var(--accent)]`;
 
 const Facts = tw.dl`m-0 flex flex-col gap-[8px]`;
 

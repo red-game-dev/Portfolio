@@ -123,7 +123,7 @@ export const Cover = ({ intro, image, typingsTitles, headline, cvUrl, email }: C
   const isReady = isLoaded && status === "chosen";
 
   return (
-    <Section id={SECTION_IDS.cover}>
+    <Section id={SECTION_IDS.cover} data-always-painted="">
       <CoverContainer className="cover-container">
         <CoverContent>
           <CoverImage

@@ -29,7 +29,7 @@ export const DEFAULT_LAUNCH_CONFIG: LaunchConfig = {
   autoChargeMs: 650,
   drainMs: 500,
   ascentMs: 8500,
-  markers: 5,
+  markers: 6,
   stars: 110,
   countdownMs: 3000,
   explodeMs: 1300,
@@ -63,17 +63,17 @@ export const VEHICLES: Readonly<Record<LaunchVehicle, VehicleSpec>> = {
   booster: {
     heightM: 70,
     towerM: 82,
-    milestones: [["maxQ", 0.2], ["meco", 0.42], ["stageSeparation", 0.46], ["fairing", 0.62], ["seco", 0.92]],
+    milestones: [["maxQ", 0.2], ["meco", 0.42], ["stageSeparation", 0.46], ["secondIgnition", 0.5], ["fairing", 0.62], ["seco", 0.92]],
   },
   heavy: {
     heightM: 98,
     towerM: 118,
-    milestones: [["maxQ", 0.2], ["boosterSeparation", 0.34], ["meco", 0.55], ["stageSeparation", 0.59], ["seco", 0.92]],
+    milestones: [["maxQ", 0.2], ["boosterSeparation", 0.34], ["meco", 0.55], ["stageSeparation", 0.59], ["fairing", 0.7], ["seco", 0.92]],
   },
   steel: {
     heightM: 121,
     towerM: 146,
-    milestones: [["maxQ", 0.2], ["meco", 0.4], ["hotStaging", 0.43], ["boostback", 0.52], ["seco", 0.92]],
+    milestones: [["maxQ", 0.2], ["meco", 0.4], ["hotStaging", 0.43], ["boostback", 0.52], ["landingBurn", 0.66], ["seco", 0.92]],
   },
 };
 

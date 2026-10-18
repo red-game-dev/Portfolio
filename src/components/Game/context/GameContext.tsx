@@ -11,12 +11,15 @@ export interface GameState {
   defeatedBosses: number;
   zonesVisited: number;
   duelsWon: number;
+  // Deploys shipped from the DevOps universe's console this visit.
+  deploysShipped: number;
   selectCharacter: (characterClass: string) => void;
   recordScore: (score: number) => void;
   recordVoyage: (score: number) => void;
   defeatBoss: (boss: string) => void;
   visitZone: (zone: string) => void;
   recordDuels: (won: number) => void;
+  shipDeploy: () => void;
 }
 
 interface GameProviderProps {
@@ -32,6 +35,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   const [bosses, setBosses] = useState<ReadonlySet<string>>(() => new Set());
   const [zones, setZones] = useState<ReadonlySet<string>>(() => new Set());
   const [duelsWon, setDuelsWon] = useState(0);
+  const [deploysShipped, setDeploysShipped] = useState(0);
   // The first pass holds the defaults, not a choice, so it is never written over what is stored.
   const isFirstPassRef = useRef(true);
 
@@ -70,6 +74,8 @@ export const GameProvider = ({ children }: GameProviderProps) => {
 
   const recordDuels = useCallback((won: number) => setDuelsWon((current) => Math.max(current, won)), []);
 
+  const shipDeploy = useCallback(() => setDeploysShipped((current) => current + 1), []);
+
   const value = useMemo(
     () => ({
       characterClass,
@@ -78,14 +84,16 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       defeatedBosses: bosses.size,
       zonesVisited: zones.size,
       duelsWon,
+      deploysShipped,
       selectCharacter: setCharacterClass,
       recordScore,
       recordVoyage,
       defeatBoss,
       visitZone,
       recordDuels,
+      shipDeploy,
     }),
-    [characterClass, bestScore, voyageBest, bosses, zones, duelsWon, recordScore, recordVoyage, defeatBoss, visitZone, recordDuels]
+    [characterClass, bestScore, voyageBest, bosses, zones, duelsWon, deploysShipped, recordScore, recordVoyage, defeatBoss, visitZone, recordDuels, shipDeploy]
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

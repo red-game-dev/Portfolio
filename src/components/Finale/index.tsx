@@ -236,7 +236,7 @@ export const Finale: FC<FinaleProps> = ({
   const isBoardInView = useInView(boardRef, { threshold: 0.6, once: true });
   const { snapshot, site, isReady, press, selfDestruct } = useLaunch(boardRef, canvasRef, isBoardInView, content.launch.sites, content.launch.readout);
   const isReached = useInView(sectionRef, { threshold: 0.2 });
-  const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
+  const { zonesVisited, defeatedBosses, duelsWon, deploysShipped, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
   const [isVoyaging, setIsVoyaging] = useState(false);
   const [runMs, setRunMs] = useState<number | null>(null);
   const openVoyage = useCallback(() => setIsVoyaging(true), []);
@@ -397,6 +397,15 @@ export const Finale: FC<FinaleProps> = ({
               {content.stats.time}
             </StatName>
             <StatValue isDone={false}>{formatDuration((runMs ?? 0) / 1000)}</StatValue>
+          </Stat>
+          <Stat isDone={deploysShipped > 0}>
+            <StatName>
+              <StarMark isLit={isLit(6)} aria-hidden="true">
+                <FontAwesomeIcon icon={faStar} />
+              </StarMark>
+              {content.stats.deploys}
+            </StatName>
+            <StatValue isDone={deploysShipped > 0}>{deploysShipped}</StatValue>
           </Stat>
         </Stats>
         <Rank>

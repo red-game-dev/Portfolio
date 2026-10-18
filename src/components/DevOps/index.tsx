@@ -1,13 +1,16 @@
-import { FC } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
+import { Console } from "@/components/DevOps/Console";
+import { Guide } from "@/components/DevOps/Guide";
 import { Panel, PanelTitle } from "@/components/Panel";
 import { Anchor, Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { DEVOPS_SCREENERS_ANCHOR, SECTION_IDS } from "@/config/sections";
+import { DEFAULT_GUIDE_ANSWERS, recommendHosts } from "@/services/devops";
 import { squareBullet } from "@/styles/mixins";
-import { DevOpsContent } from "@/types/devops";
+import { DevOpsContent, GuideAnswers, GuideQuestion } from "@/types/devops";
 import { SectionIntros } from "@/types/sections-intros";
 
 interface DevOpsProps {
@@ -57,12 +60,34 @@ const Answer = styled.article(() => [
 
 const Question = tw.h4`m-0 text-base font-semibold text-white`;
 
-// The DevOps universe's section: the hosts I run on and when each pays, the stacks I set up from scratch and the CLI
-// that moved them, then the questions screeners ask, answered from what the page shows. It holds no words of its own.
-export const DevOps: FC<DevOpsProps> = ({ intro, content }: DevOpsProps) => (
+// The DevOps universe's section: where a product should run, worked out from four answers, and a console that ships
+// each universe to that plan; then the hosts I run on and when each pays, the stacks I set up from scratch and the CLI
+// that moved them, and the questions screeners ask, answered from what the page shows. It holds no words of its own.
+export const DevOps: FC<DevOpsProps> = ({ intro, content }: DevOpsProps) => {
+  const [answers, setAnswers] = useState<GuideAnswers>(DEFAULT_GUIDE_ANSWERS);
+  const plan = useMemo(() => recommendHosts(answers), [answers]);
+  const choose = useCallback(<Q extends GuideQuestion>(question: Q, value: GuideAnswers[Q]) => setAnswers((current) => {
+    const next = { ...current };
+
+    next[question] = value;
+
+    return next;
+  }), []);
+
+  return (
   <Section id={SECTION_IDS.devops}>
     <SectionText intro={intro} />
     <Stack>
+      <Panel>
+        <PanelTitle>{content.guide.title}</PanelTitle>
+        <Lead>{content.guide.intro}</Lead>
+        <Guide content={content.guide} hosts={content.hosts.items} answers={answers} plan={plan} onChoose={choose} />
+      </Panel>
+      <Panel>
+        <PanelTitle>{content.console.title}</PanelTitle>
+        <Lead>{content.console.intro}</Lead>
+        <Console content={content.console} hosts={content.hosts.items} plan={plan} />
+      </Panel>
       <Panel>
         <PanelTitle>{content.hosts.title}</PanelTitle>
         <Lead>{content.hosts.intro}</Lead>
@@ -126,4 +151,5 @@ export const DevOps: FC<DevOpsProps> = ({ intro, content }: DevOpsProps) => (
       </Panel>
     </Stack>
   </Section>
-);
+  );
+};

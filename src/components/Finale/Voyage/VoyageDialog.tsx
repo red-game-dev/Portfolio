@@ -952,11 +952,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         <Readout data-hud-area="readout" data-covers="">
           <Reading>
             <ReadingName>{content.score}</ReadingName>
-            <ReadingValue>{snapshot?.score ?? 0}</ReadingValue>
+            <ReadingValue>{formatNumber(snapshot?.score ?? 0)}</ReadingValue>
           </Reading>
           <Reading>
             <ReadingName>{content.best}</ReadingName>
-            <ReadingValue>{Math.max(best, status === "over" ? snapshot?.score ?? 0 : 0)}</ReadingValue>
+            <ReadingValue>{formatNumber(Math.max(best, status === "over" ? snapshot?.score ?? 0 : 0))}</ReadingValue>
           </Reading>
           {economy && (
             <>
@@ -1304,7 +1304,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                   <Score role="status">{fill(content.finalScore, { score: formatNumber(snapshot.score) })}</Score>
                   {snapshot.score > bestBefore.current && <Badge>{content.newBest}</Badge>}
                 </ScoreRow>
-                {pay !== null && pay > 0 && <Pay>{fill(content.pay, { coin: pay })}</Pay>}
+                {pay !== null && pay > 0 && <Pay>{fill(content.pay, { coin: formatNumber(pay) })}</Pay>}
                 {daily && <Text>{dailyResult(content, daily.score)}</Text>}
                 {summary && (
                   <StatGrid aria-label={content.progress.summary.title}>

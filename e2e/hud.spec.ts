@@ -1,6 +1,7 @@
 import { expect, Page, test } from "@playwright/test";
 
 import { HUD_MOMENTS, LAB_MOMENTS } from "../src/components/Finale/Voyage/lab/moments";
+import { BOARD } from "../src/packages/games/daily-board/config/board";
 import known from "./hud-known.json";
 
 interface Rect {
@@ -43,6 +44,15 @@ const CASES = LAB_MOMENTS.flatMap((moment) => LAYOUTS.map((layout) => ({ moment,
 const SLACK = 1;
 // How long the lab has to show its HUD before a case gives up (ms).
 const SHOWN_MS = 15_000;
+
+// The day's board at its fullest for a daily run's end card, as many runs as it shows with the widest initials and the
+// highest scores it takes, answered in place of the real board so the card is measured at its longest whatever the
+// day's board holds.
+const FULL_BOARD = {
+  day: "2026-10-09",
+  entries: Array.from({ length: BOARD.size }, (_, index) => ({ initials: "WWW", score: BOARD.maxScore - index })),
+  rank: null,
+};
 
 // Where the line the voyage says becomes a strip across the top, drawn over the place and the readout for its moment
 // as designed: the same query as STRIP in Finale/Voyage/VoyageDialog.styles.ts.
@@ -166,6 +176,11 @@ for (const screen of SCREENS) {
 
     test(`the HUD's panels never overlap or leave the screen: ${name}`, async ({ page }) => {
       await page.setViewportSize({ width: screen.width, height: screen.height });
+
+      if (moment === "daily") {
+        await page.route(/\/api\/voyage\/board\//, (route) => route.fulfill({ json: FULL_BOARD }));
+      }
+
       await page.goto(`/hud-lab/?moment=${moment}&hud=${layout}`, { waitUntil: "domcontentloaded" });
 
       if (isHudMoment) {
@@ -174,6 +189,10 @@ for (const screen of SCREENS) {
       } else {
         await page.locator("[data-hud-surface]").first()
           .waitFor({ timeout: SHOWN_MS });
+      }
+
+      if (moment === "daily") {
+        await expect(page.locator("[data-hud-surface] ol li"), "the full board is on the card").toHaveCount(BOARD.size, { timeout: SHOWN_MS });
       }
 
       // Measured in the site's own font once it has loaded, and once the line has settled in from its entrance.

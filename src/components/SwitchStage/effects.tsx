@@ -7,6 +7,7 @@ import {
   BLOCK_GRID, isPaymentEffect, isThemeEffect, PAYMENT_SWITCH_MS, PIXEL_GRID, SWITCH_MS, SwitchEffect, ThemeEffect, ZoneEffect,
 } from "@/components/SwitchStage/config";
 import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
+import { hexHash } from "@/packages/encoding/hash";
 import { media } from "@/styles/mixins";
 
 const wipeIn = keyframes`
@@ -697,7 +698,7 @@ const Layer = styled.span(({ delay, colour }: { delay: number; colour: string })
 ]);
 
 // A short digest per layer, the same on every switch.
-const digestOf = (index: number) => `sha256:${((index + 1) * 2654435761 >>> 0).toString(16).padStart(8, "0").slice(0, 8)}`;
+const digestOf = (index: number) => `sha256:${hexHash(`layer-${index}`, 8)}`;
 
 const Pixel = styled.span(({ delay, isLit }: { delay: number; isLit: boolean }) => [
   tw`block`,

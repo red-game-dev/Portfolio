@@ -71,8 +71,10 @@ export const devopsContent: Pick<PortfolioData, "devops"> = {
     scratch: {
       title: "From scratch, many times",
       points: [
-        "The social network and the game ran on servers I set up from scratch on OVH and DigitalOcean, with no AWS: servers per region, switched by hand before load balancers were common.",
-        "Every service in Docker, the same containers on every server and in every environment: a bit more costly back then, but tuned, with no vendor lock-in and an easy move to another host.",
+        "The social network and the game ran on servers I set up from scratch on OVH and DigitalOcean, with no AWS: servers per region, switched by " +
+          "hand before load balancers were common.",
+        "Every service in Docker, the same containers on every server and in every environment: a bit more costly back then, but tuned, with no vendor " +
+          "lock-in and an easy move to another host.",
         "Databases, Redis and every other service in containers, started, backed up and moved with the same tools.",
         "My own build runners and shell scripts that build, migrate, deploy, check health and roll back, so I never paid for build minutes.",
       ],
@@ -80,8 +82,10 @@ export const devopsContent: Pick<PortfolioData, "devops"> = {
     cli: {
       title: "The CLI my startups ran on",
       points: [
-        "A CLI of my own that most of my startups ran on: it set up servers, started the containers, databases and Redis among them, kept every environment the same across hosts, and moved a whole stack from one host to another.",
-        "On the platform I build now it is an infrastructure package: one CLI where a new host is one adapter, designed through 84 recorded decisions covering provisioning, moving between hosts with a cost comparison, build runners and secrets.",
+        "A CLI of my own that most of my startups ran on: it set up servers, started the containers, databases and Redis among them, kept every " +
+          "environment the same across hosts, and moved a whole stack from one host to another.",
+        "On the platform I build now it is an infrastructure package: one CLI where a new host is one adapter, designed through 84 recorded decisions " +
+          "covering provisioning, moving between hosts with a cost comparison, build runners and secrets.",
         "The same cut over for any host: add it, run both, switch, retire.",
       ],
     },
@@ -105,7 +109,8 @@ export const devopsContent: Pick<PortfolioData, "devops"> = {
           answer: [
             "CI/CD with audit logs, permission controls and rollback, and database migrations verified on staging and production first.",
             "On Kubernetes, canary rollouts per market through Istio, so one market moves at a time under monitoring and rolls back alone.",
-            "Workers deployed by build id with no downtime, so rolling back is deploying the last good build again; on servers of my own, shell scripts that deploy, check health and roll back.",
+            "Workers deployed by build id with no downtime, so rolling back is deploying the last good build again; on servers of my own, shell scripts" +
+              " that deploy, check health and roll back.",
           ],
         },
         {
@@ -120,7 +125,8 @@ export const devopsContent: Pick<PortfolioData, "devops"> = {
           id: "agent",
           question: "Which AI agent or workflow of yours runs in production?",
           answer: [
-            "Freight Delay Notifications: Temporal workflows fetch traffic, check a delay threshold, have a model write the message and send it by email or SMS, with a fallback for every provider.",
+            "Freight Delay Notifications: Temporal workflows fetch traffic, check a delay threshold, have a model write the message and send it by " +
+              "email or SMS, with a fallback for every provider.",
             "Ask Red, on this site: answers streamed from the site's own content across several AI providers, behind limits, a cache and a daily budget.",
           ],
         },

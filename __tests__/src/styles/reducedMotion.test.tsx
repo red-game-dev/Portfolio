@@ -2,6 +2,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { render } from "@testing-library/react";
 
+import { Stage } from "@/components/SwitchStage/effects";
 import { media, noAnimationWhenReduced } from "@/styles/mixins";
 
 // The page is kept still through the root's data-motion, and every component reaches it with media.reducedMotion. A rule
@@ -68,5 +69,23 @@ describe("a rule for a page kept still", () => {
     render(<TopLevel />);
 
     expect(reducedSelectors().filter((selector) => /\.[\w-]+:root/.test(selector))).toEqual([]);
+  });
+
+  test("blanks only the layers a switch's own effect lays over its items", () => {
+    const blanked = () => [...document.styleSheets].flatMap((sheet) => [...sheet.cssRules])
+      .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule && rule.selectorText.includes("data-switch-item")
+        && rule.style.getPropertyValue("content") === "none")
+      .map((rule) => rule.selectorText);
+    const item = <div><span data-switch-item="" /></div>;
+
+    // A stage that lays nothing over its items (Web3's blocks, or none yet) leaves their own pseudo-elements alone, as
+    // a chain node's block hash.
+    render(<Stage effect={null}>{item}</Stage>);
+    render(<Stage effect="blocks">{item}</Stage>);
+    expect(blanked()).toEqual([]);
+
+    render(<Stage effect="beamed">{item}</Stage>);
+    expect(blanked().some((selector) => selector.endsWith("[data-switch-item]::after"))).toBe(true);
+    expect(blanked().some((selector) => selector.endsWith("[data-switch-item]::before"))).toBe(false);
   });
 });

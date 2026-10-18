@@ -5,7 +5,7 @@ import tw, { css, styled } from "twin.macro";
 
 import { NO_AMOUNT } from "@/components/Payments/config";
 import { CheckoutScene } from "@/components/Payments/scene/CheckoutScene";
-import { STORIES } from "@/components/Payments/scene/Stories";
+import { StoryCanvas } from "@/components/Payments/scene/StoryCanvas";
 import { PAYMENT_SWITCH_MS, PaymentEffect } from "@/components/SwitchStage/config";
 import { CARD_METHODS, methodForSwitch, PAY_SEQUENCE } from "@/config/payments";
 import { THEME_ACCENTS } from "@/config/sectionThemes";
@@ -73,11 +73,9 @@ export const PaymentLayer: FC<{ effect: PaymentEffect; count: number }> = ({ eff
     );
   }
 
-  const Story = STORIES[effect];
-
   return (
     <Panel ref={panelRef} data-switch-fx aria-hidden="true" style={style}>
-      <Story />
+      <StoryCanvas story={effect} />
     </Panel>
   );
 };

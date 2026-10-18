@@ -357,7 +357,10 @@ export const Stage = styled.div(({ effect }: { effect: SwitchEffect | null }) =>
       z-index: 1;
       border-radius: inherit;
       border: 1px solid var(--accent);
-      background: #120d06 repeating-linear-gradient(45deg, rgba(var(--accent-rgb), 0.38) 0 3px, transparent 3px 8px);
+      /* A playing card's back: a diamond lattice inside a border. */
+      box-shadow: inset 0 0 0 2px #120d06, inset 0 0 0 3px rgba(var(--accent-rgb), 0.7);
+      background: #120d06 repeating-linear-gradient(45deg, rgba(var(--accent-rgb), 0.32) 0 1.5px, transparent 1.5px 7px),
+        repeating-linear-gradient(-45deg, rgba(var(--accent-rgb), 0.32) 0 1.5px, transparent 1.5px 7px);
       animation: ${cardBack} ${AREA.dealt.ms}ms linear both;
       animation-delay: inherit;
     }

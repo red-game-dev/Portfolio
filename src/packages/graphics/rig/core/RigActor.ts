@@ -21,12 +21,13 @@ export interface RigActorOptions<TSkin extends RigSkin> {
 // frame loop. The page sizes it, picks a skin and plays cues; the actor does the rest.
 export class RigActor<TSkin extends RigSkin> extends FrameLoop {
   private readonly context: Canvas2DContext;
-  private readonly model: RigModel<TSkin>;
+  private model: RigModel<TSkin>;
   private readonly skins: TSkin[];
   private readonly animator: Animator;
-  private readonly renderer: RigRenderer<TSkin>;
+  private renderer: RigRenderer<TSkin>;
   private skinIndex = 0;
   private width = 0;
+  private scale = 1;
 
   constructor(context: Canvas2DContext, { model, skins, setup, framesPerSecond = 30, scheduler, random, renderer }: RigActorOptions<TSkin>) {
     super({ framesPerSecond, scheduler });
@@ -56,6 +57,7 @@ export class RigActor<TSkin extends RigSkin> extends FrameLoop {
     const scale = (width / this.model.width) * pixelRatio;
 
     this.width = width;
+    this.scale = scale;
     this.context.canvas.width = Math.ceil(this.model.width * scale);
     this.context.canvas.height = Math.ceil(this.model.height * scale);
     this.renderer.rescale(scale);
@@ -84,6 +86,22 @@ export class RigActor<TSkin extends RigSkin> extends FrameLoop {
     this.render();
   }
 
+  // Draws another model of the same size from now on, its cues carrying on where they were: a richer model taken up
+  // once it is ready, or a plainer one when the richer cannot go on. One with the same parts, told a new value only its
+  // live layers show, keeps the frames already cached (`hasSameParts`).
+  protected replaceModel(model: RigModel<TSkin>, hasSameParts = false): void {
+    this.model = model;
+
+    if (hasSameParts) {
+      this.renderer.adopt(model);
+    } else {
+      this.renderer = new RigRenderer(model);
+      this.renderer.rescale(this.scale);
+    }
+
+    this.render();
+  }
+
   protected update(deltaMs: number): void {
     this.animator.advance(deltaMs);
   }
@@ -94,6 +112,13 @@ export class RigActor<TSkin extends RigSkin> extends FrameLoop {
     }
 
     const { context } = this;
+    const pixels = context.canvas.width;
+
+    // Something sized the canvas since (another screen, a zoom): drawn at the size it is now, never at a stale scale.
+    if (pixels > 0 && pixels !== Math.ceil(this.model.width * this.scale)) {
+      this.scale = pixels / this.model.width;
+      this.renderer.rescale(this.scale);
+    }
 
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);

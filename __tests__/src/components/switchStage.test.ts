@@ -1,5 +1,5 @@
-import { switchEffectFor, ZONE_EFFECTS } from "@/components/SwitchStage/config";
-import { zoneOf } from "@/components/SwitchStage/zoneOf";
+import { isPaymentEffect, isThemeEffect, switchEffectFor, THEME_EFFECTS, ZONE_EFFECTS } from "@/components/SwitchStage/config";
+import { themeOf, zoneOf } from "@/components/SwitchStage/zoneOf";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 
 describe("switchEffectFor", () => {
@@ -39,5 +39,27 @@ describe("zoneOf", () => {
 
     document.body.prepend(before);
     expect(zoneOf(before)).toBe(ZONE_BOUNDARIES[0].zone);
+  });
+});
+
+describe("section theme switches", () => {
+  it("give each themed subject its own switch, apart from every zone's, Web3 keeping its zone's blocks", () => {
+    const own = Object.entries(THEME_EFFECTS).filter(([theme]) => theme !== "web3")
+.map(([, effect]) => effect);
+    const zones = new Set(Object.values(ZONE_EFFECTS));
+
+    expect(THEME_EFFECTS.web3).toBe(ZONE_EFFECTS.chain);
+    expect(new Set(own).size).toBe(own.length);
+    expect(own.filter((effect) => effect && zones.has(effect as never))).toEqual([]);
+    expect(own.every((effect) => effect && isThemeEffect(effect) && !isPaymentEffect(effect))).toBe(true);
+  });
+
+  it("reads the theme an element sits in, or none", () => {
+    document.body.innerHTML = '<div data-theme="platform"><p id="inside"></p></div><p id="outside"></p>';
+
+    expect(themeOf(document.getElementById("inside"))).toBe("platform");
+    expect(themeOf(document.getElementById("outside"))).toBeNull();
+    expect(themeOf(null)).toBeNull();
+    document.body.innerHTML = "";
   });
 });

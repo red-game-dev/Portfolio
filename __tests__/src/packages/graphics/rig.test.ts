@@ -1,6 +1,6 @@
 import { ManualScheduler } from "@/packages/animation/frame-loop";
 import { DrawableSurface } from "@/packages/graphics/canvas";
-import { Animator, RigActor, RigModel, RigRenderer, RigSkin } from "@/packages/graphics/rig";
+import { Animator, keepCamera, RigActor, RigModel, RigRenderer, RigSkin } from "@/packages/graphics/rig";
 
 const fakeSurface = (width: number, height: number): DrawableSurface => {
   const surface = { width, height } as unknown as OffscreenCanvas;
@@ -128,5 +128,97 @@ describe("graphics/rig", () => {
     }
 
     expect(paints).toContain("head:blue:1");
+  });
+
+  test("an actor draws at the size its canvas is, should something size the canvas after it", () => {
+    const { context } = recordingContext();
+    const renderer = new RigRenderer(model, { createSurface: fakeSurface });
+    const actor = new RigActor(context, { model, skins: SKINS, scheduler: new ManualScheduler(), renderer });
+    const rescale = jest.spyOn(renderer, "rescale");
+
+    actor.resize(model.width, 2);
+    expect(rescale).toHaveBeenLastCalledWith(2);
+
+    // Halved under it, as a move to a screen of half the density would.
+    context.canvas.width = model.width;
+    actor.renderStill();
+    expect(rescale).toHaveBeenLastCalledWith(1);
+  });
+
+  test("a renderer that adopts a model with the same parts keeps the frames it cached", () => {
+    const renderer = new RigRenderer(model, { createSurface: fakeSurface });
+    const { context } = recordingContext();
+
+    renderer.rescale(2);
+    renderer.draw(context, SKINS[0], { breath: 0, blink: 0 });
+
+    const cached = renderer.cachedFrames;
+
+    renderer.adopt({ ...model });
+    renderer.draw(context, SKINS[0], { breath: 0, blink: 0 });
+    expect(renderer.cachedFrames).toBe(cached);
+  });
+
+  test("the camera never zooms out past the whole box, nor looks past its edges", () => {
+    expect(keepCamera({ x: 0, y: 0, zoom: 2 }, 100, 120)).toEqual({ x: 25, y: 30, zoom: 2 });
+    expect(keepCamera({ x: 90, y: 10, zoom: 0.5 }, 100, 120)).toEqual({ x: 50, y: 60, zoom: 1 });
+  });
+
+  test("a layer can draw another's cached frames, faded, and a layer faded out is not drawn", () => {
+    const shared: RigModel<Skin> = {
+      ...model,
+      layers: [
+        { id: "hand", paint: () => paints.push("hand") },
+        { id: "shadow", cacheAs: "hand", paint: () => paints.push("shadow"), motion: () => ({ opacity: 0.5 }) },
+        { id: "gone", paint: () => paints.push("gone"), motion: () => ({ opacity: 0 }) },
+      ],
+    };
+    const renderer = new RigRenderer(shared, { createSurface: fakeSurface });
+    const { context, draws } = recordingContext();
+
+    renderer.draw(context, SKINS[0], {});
+
+    expect(paints).toEqual(["hand"]);
+    expect(renderer.cachedFrames).toBe(1);
+    expect(draws).toHaveLength(2);
+  });
+
+  test("the camera moves every layer but a fixed one", () => {
+    const placed: Array<{ x: number; y: number }> = [];
+    let matrix = { scale: 1, x: 0, y: 0 };
+    const context = {
+      canvas: { width: 0, height: 0 },
+      save: () => undefined,
+      restore: () => {
+        matrix = { scale: 1, x: 0, y: 0 };
+      },
+      translate: (x: number, y: number) => {
+        matrix = { ...matrix, x: matrix.x + x * matrix.scale, y: matrix.y + y * matrix.scale };
+      },
+      scale: (by: number) => {
+        matrix = { ...matrix, scale: matrix.scale * by };
+      },
+      rotate: () => undefined,
+      drawImage: (_: unknown, x: number, y: number) => placed.push({ x: matrix.x + x * matrix.scale, y: matrix.y + y * matrix.scale }),
+    } as unknown as CanvasRenderingContext2D;
+    const filmed: RigModel<Skin> = {
+      ...model,
+      camera: () => ({ x: 25, y: 30, zoom: 2 }),
+      layers: [{ id: "scene", paint: () => undefined }, { id: "vignette", isFixed: true, paint: () => undefined }],
+    };
+    const renderer = new RigRenderer(filmed, { createSurface: fakeSurface });
+
+    renderer.draw(context, SKINS[0], {});
+
+    // Zoomed in twice on the box's top left quarter, its corner lands at the view's corner.
+    expect(placed[0]).toEqual({ x: 0, y: 0 });
+    expect(placed[1]).toEqual({ x: 0, y: 0 });
+
+    filmed.camera = () => ({ x: 75, y: 90, zoom: 2 });
+    placed.length = 0;
+    renderer.draw(context, SKINS[0], {});
+
+    expect(placed[0]).toEqual({ x: -100, y: -120 });
+    expect(placed[1]).toEqual({ x: 0, y: 0 });
   });
 });

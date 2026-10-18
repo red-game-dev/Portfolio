@@ -3,7 +3,7 @@ import { FC, useRef } from "react";
 import tw, { css, styled } from "twin.macro";
 
 import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faArrowDown, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { BitStrip } from "@/components/BitStrip";
@@ -57,7 +57,7 @@ const Action = styled.a(() => [
 ]);
 
 export const ServiceCard: FC<ServiceCardProps> = ({
-  icon, title, description, points = [], emailSubject, actions, email, linkedInUrl, order,
+  icon, title, description, points = [], emailSubject, see, actions, email, linkedInUrl, order,
 }: ServiceCardProps) => {
   const cardRef = useRef<HTMLElement>(null);
   const isInView = useInView(cardRef, { threshold: 0.2 });
@@ -91,6 +91,12 @@ export const ServiceCard: FC<ServiceCardProps> = ({
           <FontAwesomeIcon icon={faLinkedinIn} />
           {actions.linkedIn}
         </Action>
+        {see && (
+          <Action href={see.href}>
+            <FontAwesomeIcon icon={faArrowDown} />
+            {see.label}
+          </Action>
+        )}
       </Actions>
     </Card>
   );

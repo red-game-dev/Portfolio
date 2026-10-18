@@ -1,3 +1,4 @@
+import type { SectionThemeId } from "@/config/sectionThemes";
 import { ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
 
 // The zone an element sits in: the last zone whose first section starts at or before it in the page.
@@ -22,3 +23,7 @@ export const zoneOf = (element: Element | null): ZoneId => {
 
   return zone;
 };
+
+// The section theme an element sits in (components/Theme), if any.
+export const themeOf = (element: Element | null): SectionThemeId | null =>
+  (element?.closest("[data-theme]")?.getAttribute("data-theme") as SectionThemeId | null | undefined) ?? null;

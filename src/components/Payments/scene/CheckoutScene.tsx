@@ -1,0 +1,162 @@
+import { FC, useEffect, useMemo, useRef } from "react";
+
+import tw, { css, styled } from "twin.macro";
+
+import { PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
+import { markOf } from "@/components/Payments/scene/marks";
+import { PAY_APPS, PAY_GESTURES, payAppOf, PayGesture, PaymentMethodId } from "@/config/payments";
+import useCanvasEngine from "@/hooks/useCanvasEngine";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import type { CheckoutActor, CheckoutAmount, CheckoutSkin, CheckoutVariant } from "@/packages/graphics/checkout";
+
+export type CheckoutMode = "idle" | "playing" | "approved";
+
+interface CheckoutSceneProps {
+  method: PaymentMethodId;
+  variant: CheckoutVariant;
+  // Waiting for a payment, telling one, or showing one approved without moving (with less motion asked for).
+  mode: CheckoutMode;
+  durationMs: number;
+  // The total the screen shows, rung up afresh for each payment; a switch, which carries no words, passes none and the
+  // screen shows a bar.
+  amount: CheckoutAmount;
+  accent: string;
+  // How the method meets the terminal, where a story asks for another way than its own (the POS taps every card).
+  gesture?: PayGesture;
+  // Who the counter's cards are issued to, and the picture the red card prints; a switch shows them plain.
+  cardholder?: { name: string; portrait: string };
+  // The picture of the customer paying by face as the terminal's camera sees her.
+  customerFace?: string;
+  // Which payment this is: a new one plays again even for the same way to pay.
+  run?: number;
+  // Told when a payment starts playing, so the page counts its approval from then.
+  onStart?: () => void;
+}
+
+// How long a new counter waits for its 3D hands before it starts flat (they come within it once the page has them).
+const STAGE_WAIT_MS = 350;
+
+// Drawn at the scene's own proportions, as wide as it is given.
+const Box = styled.div(() => [
+  tw`relative w-full`,
+  css`
+    aspect-ratio: 300 / 210;
+  `,
+]);
+
+const Canvas = tw.canvas`block w-full h-full`;
+
+// The checkout on canvas: the terminal and its screen drawn by the rig engine, the hands and what the customer holds
+// drawn in 3D on the page's stage (or flat where there is none), the code loaded only once the scene is near. A
+// payment plays once and the scene rests after it; nothing runs while it waits.
+export const CheckoutScene: FC<CheckoutSceneProps> = ({
+  method, variant, mode, durationMs, amount, accent, gesture, cardholder, customerFace, run = 0, onStart,
+}: CheckoutSceneProps) => {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // The total is told to the counter as each payment starts, never rebuilding it: the counter is built per way to pay.
+  const amountRef = useRef(amount);
+
+  amountRef.current = amount;
+
+  const skin = useMemo<CheckoutSkin>(() => {
+    const design = PAYMENT_LOOKS[method].card;
+
+    return {
+      id: `${method}-${gesture ?? "own"}${cardholder ? "-issued" : ""}`,
+      look: {
+        gesture: gesture ?? PAY_GESTURES[method],
+        app: PAY_APPS.indexOf(payAppOf(method)),
+        face: PAYMENT_LOOKS[method].face,
+        // A card carries its network's mark (a Ramp card, Visa's), and where its issuer prints its own, that too.
+        mark: markOf(PAYMENT_LOOKS[method].network ?? method, design?.ink),
+        card: design ? { ...design, holder: cardholder?.name ?? "", issuerMark: design.issuer === "mark" ? markOf(method) : undefined } : undefined,
+      },
+      amount: amountRef.current,
+      accent,
+    };
+  }, [method, gesture, accent, cardholder]);
+  const portrait = skin.look.card?.issuer === "portrait" ? cardholder?.portrait : undefined;
+  const seen = skin.look.gesture === "face" ? customerFace : undefined;
+  // A still counter shows no hands, so it never needs the 3D stage.
+  const isStill = useReducedMotion();
+  const actor = useCanvasEngine<CheckoutActor>(canvasRef, {
+    sizeRef: boxRef,
+    nearMargin: "100% 0px",
+    create: async (context) => {
+      const [checkout, { decodeImage }] = await Promise.all([import("@/packages/graphics/checkout"), import("@/packages/browser/images")]);
+      const [picture, customer] = await Promise.all([portrait, seen].map((url) => (url ? decodeImage(url).catch(() => null) : null)));
+      const sprite = customer ? { picture: customer, width: customer.naturalWidth, height: customer.naturalHeight } : null;
+      const dressed: CheckoutSkin = { ...skin, look: { ...skin.look, ...(picture ? { portrait: picture } : {}), ...(sprite ? { customer: sprite } : {}) } };
+      const flat = new checkout.CheckoutActor(context, { model: checkout.createCheckoutModel(dressed, variant), skins: [dressed], framesPerSecond: 60 });
+
+      if (isStill) {
+        return flat;
+      }
+
+      // The 3D hands where the page has a stage: taken up at once when they are ready in time, otherwise the counter
+      // starts flat and takes them up between payments.
+      const staged = (async () => {
+        const [{ stageReady }, { bindCheckoutStage }] = await Promise.all([import("@/services/stage"), import("@/packages/graphics/checkout-stage")]);
+        const stage = await stageReady();
+
+        return stage ? bindCheckoutStage(stage, dressed) : null;
+      })().catch(() => null);
+      const quick = await Promise.race([staged, new Promise<"late">((resolve) => window.setTimeout(() => resolve("late"), STAGE_WAIT_MS))]);
+
+      if (quick && quick !== "late") {
+        flat.upgrade(quick, checkout.createCheckoutModel(dressed, variant, quick));
+      } else if (quick === "late") {
+        staged.then((bound) => bound && flat.upgrade(bound, checkout.createCheckoutModel(dressed, variant, bound))).catch(() => undefined);
+      }
+
+      return flat;
+    },
+    resize: (engine, { width, pixelRatio }) => engine.resize(width, pixelRatio),
+  }, [skin, variant, portrait, seen, isStill]);
+
+  useEffect(() => {
+    // A counter just rebuilt for another way to pay hands its retired one to this render: it is never driven, and the
+    // payment waits for the new one, which tells the page as it starts.
+    if (!actor || actor.isGone) {
+      return undefined;
+    }
+
+    if (mode === "approved") {
+      actor.rebill(amountRef.current, variant);
+      actor.play("approved", Number.MAX_SAFE_INTEGER);
+      actor.renderStill();
+
+      return undefined;
+    }
+
+    if (mode === "idle") {
+      actor.stop();
+      actor.renderStill();
+
+      return undefined;
+    }
+
+    actor.rebill(amountRef.current, variant);
+    actor.play("pay", durationMs);
+    actor.start();
+
+    if (actor.isRunning) {
+      onStart?.();
+    }
+
+    // Rests once the payment has played, drawn as it ends.
+    const rest = window.setTimeout(() => {
+      actor.stop();
+      actor.renderStill();
+    }, durationMs + 60);
+
+    return () => window.clearTimeout(rest);
+  }, [actor, mode, durationMs, run, onStart, variant]);
+
+  return (
+    <Box ref={boxRef} aria-hidden="true">
+      <Canvas ref={canvasRef} />
+    </Box>
+  );
+};

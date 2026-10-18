@@ -1,0 +1,93 @@
+import { CheckoutAmount } from "../domain/types";
+
+// Where everything stands in the scene, in its own units: a smart terminal on a stand on the counter, its screen,
+// the keys and apps the screen offers, and the size of what the customer holds.
+
+export const SCENE = { width: 300, height: 210 } as const;
+
+export const BODY = { x: 114, y: 16, width: 72, height: 136, radius: 13 } as const;
+
+export const SCREEN = { x: 120, y: 28, width: 60, height: 96, radius: 5 } as const;
+
+export const COUNTER_TOP = 168;
+
+export const STAND = { neck: { x: 141, width: 18 }, foot: { x: 150, y: 172, rx: 36, ry: 6 } } as const;
+
+// The stripe reader runs down the terminal's right side.
+export const STRIPE = { x: BODY.x + BODY.width, top: 50, bottom: 140 } as const;
+
+// The terminal's front camera, in the top of its face beside the printer's mouth, which reads a face to pay by.
+export const CAMERA = { x: BODY.x + BODY.width - 7, y: BODY.y + 5, radius: 1.7 } as const;
+
+// The button on the screen the customer taps to pay with their face.
+export const SMILE_BUTTON = { x: SCREEN.x + SCREEN.width / 2, y: SCREEN.y + 76, width: 40, height: 13 } as const;
+
+// The screen's pressed highlight for Pay with Smile, beside the keys' and the apps' own.
+export const SMILE_KEY = 20;
+
+// The keypad on the screen, three across and four down: 1 to 9, the separator, 0 and OK.
+export const KEYPAD = { left: 123, top: 58, width: 16, height: 12, gapX: 3, gapY: 3 } as const;
+
+export const OK_KEY = 11;
+
+export const keyCentre = (index: number) => ({
+  x: KEYPAD.left + KEYPAD.width / 2 + (index % 3) * (KEYPAD.width + KEYPAD.gapX),
+  y: KEYPAD.top + KEYPAD.height / 2 + Math.floor(index / 3) * (KEYPAD.height + KEYPAD.gapY),
+});
+
+// The terminal's three apps across the middle of its screen: the card app, QR pay and the crypto app.
+export const APP_TILE = { size: 16, y: 74 } as const;
+
+export const appCentre = (index: number) => ({ x: KEYPAD.left + KEYPAD.width / 2 + index * (KEYPAD.width + KEYPAD.gapX), y: APP_TILE.y + APP_TILE.size / 2 });
+
+export const CARD = { long: 60, short: 38, radius: 4 } as const;
+
+// A phone the size of a real one (about 71 by 147 by 8 millimetres), at the hand's scale: a card is 60 for its 85.6.
+export const PHONE = { width: 50, height: 103, radius: 7, depth: 5.5 } as const;
+
+// The key a character of the amount is keyed on, or null for one the keypad has no key for (the currency).
+export const keyFor = (character: string): number | null => {
+  if (character >= "1" && character <= "9") {
+    return Number(character) - 1;
+  }
+
+  if (character === "0") {
+    return 10;
+  }
+
+  return character === "." || character === "," ? 9 : null;
+};
+
+// An amount from text written plainly ("€18.40", "18,40 €"): what comes before its first digit and after its last,
+// and every digit and mark between them keyed. For text with no grouping marks; a till's own amounts come split.
+export const amountOf = (text: string): CheckoutAmount => {
+  const first = text.search(/\d/);
+  const last = text.length - Array.from(text).reverse()
+.join("")
+.search(/\d/);
+
+  if (first < 0) {
+    return { text, prefix: text, suffix: "", keyed: "" };
+  }
+
+  return { text, prefix: text.slice(0, first), suffix: text.slice(last), keyed: text.slice(first, last) };
+};
+
+// The keys the cashier presses to key an amount, in order, without the OK that confirms it.
+export const keysFor = (amount: CheckoutAmount): number[] =>
+  Array.from(amount.keyed).map(keyFor)
+.filter((key): key is number => key !== null);
+
+// The amount as the screen shows it once `typed` of its keys are in: the currency's sign always, the figure as keyed so
+// far, and once it is all in, the amount as its language writes it (grouped).
+export const amountShown = (amount: CheckoutAmount, typed: number): string => {
+  const keyed = Array.from(amount.keyed).filter((character) => keyFor(character) !== null);
+
+  return typed >= keyed.length ? amount.text : `${amount.prefix}${keyed.slice(0, typed).join("")}${amount.suffix}`;
+};
+
+// The mark the keypad's decimal key carries: the amount's own, a point where it has none.
+export const decimalOf = (amount: CheckoutAmount): string => (amount.keyed.includes(",") ? "," : ".");
+
+// The parts a 3D stage lines its actors up with: the terminal's body and screen, a card, a phone and the scene.
+export const CHECKOUT_LAYOUT = { body: BODY, screen: SCREEN, camera: CAMERA, card: CARD, phone: PHONE, scene: SCENE } as const;

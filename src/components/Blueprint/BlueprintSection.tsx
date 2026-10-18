@@ -13,6 +13,8 @@ import { BlueprintSection as Section } from "@/types/blueprints";
 
 interface BlueprintSectionProps {
   section: Section;
+  // Each change opens the showcase's next drawing, as if its next tab were chosen (the payments terminal).
+  advance?: number;
 }
 
 const loadList = () => import("@/components/Blueprint/BlueprintList");
@@ -28,7 +30,7 @@ const Slot = styled.div(({ isWaiting }: { isWaiting: boolean }) => [
 
 // A section's drawings, fetched with the code that draws them once the section comes within a screen of
 // view. Until then the page carries neither, so a visit that never scrolls this far never pays for them.
-export const BlueprintSection: FC<BlueprintSectionProps> = ({ section }: BlueprintSectionProps) => {
+export const BlueprintSection: FC<BlueprintSectionProps> = ({ section, advance }: BlueprintSectionProps) => {
   const labels = useBlueprintLabels();
   const slotRef = useRef<HTMLDivElement>(null);
   const isNear = useInView(slotRef, { once: true, threshold: 0, rootMargin: NEAR_MARGIN });
@@ -38,7 +40,7 @@ export const BlueprintSection: FC<BlueprintSectionProps> = ({ section }: Bluepri
 
   return (
     <Slot ref={slotRef} isWaiting={loaded.status === "waiting"}>
-      {loaded.status === "ready" && <BlueprintList blueprints={loaded.value} labels={labels} />}
+      {loaded.status === "ready" && <BlueprintList blueprints={loaded.value} labels={labels} advance={advance} />}
     </Slot>
   );
 };

@@ -23,6 +23,7 @@ import {
   faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
 
+import { SECTION_IDS } from "@/config/sections";
 import { PortfolioData } from "@/types/portfolio";
 
 // What I offer, grouped, and the actions under it.
@@ -63,6 +64,7 @@ export const servicesContent: Pick<PortfolioData, "serviceActions" | "serviceGro
             "KYC, AML and PCI scope designed in from the start",
           ],
           emailSubject: "Payments and ledgers",
+          see: { label: "See the payments work", href: `#${SECTION_IDS.payments}` },
         },
         {
           title: "Migration & Modernisation",

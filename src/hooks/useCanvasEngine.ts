@@ -65,11 +65,24 @@ export default function useCanvasEngine<TEngine extends StoppableEngine>(
 
     let built: TEngine | null = null;
     let isGone = false;
-    const observer = new ResizeObserver(() => {
+    const resizeBuilt = () => {
       if (built) {
         resizeRef.current(built, { width: sized.clientWidth, height: sized.clientHeight, pixelRatio: window.devicePixelRatio || 1 });
       }
-    });
+    };
+    const observer = new ResizeObserver(resizeBuilt);
+    // A move to a screen of another density, or a zoom, changes the pixel ratio without the size: sized again then.
+    let density: MediaQueryList | null = null;
+    const watchDensity = () => {
+      density?.removeEventListener("change", onDensity);
+      density = typeof window.matchMedia === "function" ? window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`) : null;
+      density?.addEventListener("change", onDensity);
+    };
+
+    function onDensity() {
+      resizeBuilt();
+      watchDensity();
+    }
 
     Promise.resolve(createRef.current(context))
       .then((next) => {
@@ -82,6 +95,7 @@ export default function useCanvasEngine<TEngine extends StoppableEngine>(
         built = next;
         resizeRef.current(next, { width: sized.clientWidth, height: sized.clientHeight, pixelRatio: window.devicePixelRatio || 1 });
         observer.observe(sized);
+        watchDensity();
         setEngine(next);
       })
       // console.error is the one console call the production build keeps; the page simply goes without it.
@@ -91,6 +105,7 @@ export default function useCanvasEngine<TEngine extends StoppableEngine>(
     return () => {
       isGone = true;
       observer.disconnect();
+      density?.removeEventListener("change", onDensity);
       if (built) {
         retire(built);
       }

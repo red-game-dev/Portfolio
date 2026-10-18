@@ -12,6 +12,7 @@ export const SECTION_IDS = {
   history: "section-history",
   aiUsage: "section-ai-usage",
   web3: "section-web3",
+  payments: "section-payments",
   skillAreas: "section-skills-areas",
   platform: "section-platform",
   codeReview: "section-code-review",
@@ -38,8 +39,19 @@ export const AUDIENCE_ANCHORS: Record<Audience, string> = {
   architecture: "for-architecture",
 };
 
+// #for-payments lands on the payments section, so the way on from there to the payments case studies has
+// an anchor of its own, which opens them on payments just the same.
+export const PAYMENT_CASES_ANCHOR = "payments-case-studies";
+
+// Where a link to the case studies for one kind of role goes (the terminal's `cases payments`).
+export const CASE_STUDY_ANCHORS: Record<Audience, string> = { ...AUDIENCE_ANCHORS, payments: PAYMENT_CASES_ANCHOR };
+
 export const audienceForHash = (hash: string): Audience | null => {
   const anchor = hash.replace(/^#/, "");
+
+  if (anchor === PAYMENT_CASES_ANCHOR) {
+    return "payments";
+  }
 
   return (Object.keys(AUDIENCE_ANCHORS) as Audience[]).find((audience) => AUDIENCE_ANCHORS[audience] === anchor) ?? null;
 };

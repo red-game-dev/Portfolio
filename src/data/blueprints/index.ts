@@ -12,6 +12,8 @@ export const loadSectionBlueprints = (section: BlueprintSection): Promise<Bluepr
       return import("@/data/blueprints/delivery").then((module) => module.default);
     case "platform":
       return import("@/data/blueprints/platform").then((module) => module.default);
+    case "payments":
+      return import("@/data/blueprints/payments").then((module) => module.default);
     case "casino":
       return import("@/data/blueprints/casino").then((module) => module.default);
     case "mmo":

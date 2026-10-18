@@ -22,9 +22,25 @@ export interface DevOpsAnswer {
   answer: string[];
 }
 
+// The terminal's DevOps commands. "{slug}", "{name}", "{kind}", "{reach}", "{stack}", "{host}" and "{input}" are replaced.
+export interface DevOpsTerminalContent {
+  hostsSummary: string;
+  deploySummary: string;
+  migrateSummary: string;
+  hostsTitle: string;
+  hostRow: string;
+  stacksTitle: string;
+  stackRow: string;
+  usage: string;
+  unknownStack: string;
+  unknownHost: string;
+  sameHost: string;
+}
+
 export interface DevOpsContent {
   guide: DevOpsGuideContent;
   console: DevOpsConsoleContent;
+  terminal: DevOpsTerminalContent;
   hosts: {
     title: string;
     intro: string;

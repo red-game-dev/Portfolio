@@ -13,6 +13,7 @@ import { Resume } from "@/types/resume";
 export const GROUPS = {
   me: "Get to know me",
   work: "See the work",
+  devops: "Ship it",
   contact: "Get in touch",
   red: "Ask me to do it",
   ask: "Ask my agent",

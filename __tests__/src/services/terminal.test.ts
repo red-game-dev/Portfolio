@@ -11,7 +11,7 @@ describe("portfolio terminal", () => {
 
     ["whoami", "about", "experience", "experience kpmg", "skills", "skills frontend", "characters", "services", "ai", "cases", "projects",
       "contact", "hire", "goto", "help", "ventures", "industries", "references", "socials", "ls", "cat about.txt", "sudo hire red", "coffee",
-      "matrix"].forEach((command) => {
+      "matrix", "hosts", "deploy", "deploy chain", "migrate ask"].forEach((command) => {
       const before = session.output.length;
 
       session.execute(command);
@@ -156,7 +156,25 @@ describe("portfolio commands", () => {
   test("help lists the groups in their order", () => {
     const order = [...new Set(commands.map((command) => command.group))];
 
-    expect(order).toEqual([GROUPS.red, GROUPS.ask, GROUPS.me, GROUPS.work, GROUPS.contact, GROUPS.around, GROUPS.fun, GROUPS.settings]);
+    expect(order).toEqual([GROUPS.red, GROUPS.ask, GROUPS.me, GROUPS.work, GROUPS.devops, GROUPS.contact, GROUPS.around, GROUPS.fun, GROUPS.settings]);
+  });
+
+  test("hosts lists where I run things, deploy ships a universe where the plan puts it, and migrate moves it on", () => {
+    const run = (name: string, args: string[]) => {
+      const command = commands.find((candidate) => candidate.name === name);
+
+      return command ? command.run(args).lines : [];
+    };
+    const text = (name: string, args: string[]) => run(name, args).map((line) => line.text).join("\n");
+
+    expect(text("hosts", [])).toContain("metal: OVH and Hetzner, Dedicated servers.");
+    expect(text("deploy", [])).toContain("game: The game servers");
+    expect(text("deploy", ["game"])).toContain("The game servers is live on OVH and Hetzner.");
+    expect(text("deploy", ["site", "vercel"])).toContain("This site is live on Vercel.");
+    expect(text("migrate", ["board", "aws"])).toContain("The daily board moved from OVH and Hetzner to AWS, with no downtime.");
+    expect(text("migrate", ["board", "metal"])).toContain("The daily board already runs on OVH and Hetzner.");
+    expect(run("deploy", ["toaster"]).map(({ kind }) => kind)).toEqual(["error"]);
+    expect(run("migrate", ["game", "mainframe"]).map(({ kind }) => kind)).toEqual(["error"]);
   });
 
   test("settings lists every setting, set changes one in the store the page reads, and reset puts them back", () => {

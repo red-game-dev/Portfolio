@@ -4,6 +4,7 @@ import { fill } from "@/packages/text/format";
 import { createAroundCommands } from "@/services/terminal/commands/around";
 import { createAskCommands } from "@/services/terminal/commands/ask";
 import { createContactCommands } from "@/services/terminal/commands/contact";
+import { createDevOpsCommands } from "@/services/terminal/commands/devops";
 import { createFunCommands } from "@/services/terminal/commands/fun";
 import { createMeCommands } from "@/services/terminal/commands/me";
 import { createSettingsCommands } from "@/services/terminal/commands/settings";
@@ -20,6 +21,7 @@ export const createPortfolioCommands = (data: PortfolioData): Command[] => {
     ...createAskCommands(context),
     ...createMeCommands(context),
     ...createWorkCommands(context),
+    ...createDevOpsCommands(context),
     ...createContactCommands(context),
     ...createAroundCommands(context),
     ...createFunCommands(context),

@@ -215,6 +215,48 @@ export const networkFirst = async (
   });
 };
 
+// The parts of the Cache API a store needs, so a store can be made over a fake one in tests.
+export interface CacheLike {
+  match(request: Request | string, options?: CacheQueryOptions): Promise<Response | undefined>;
+  put(request: Request | string, response: Response): Promise<void>;
+}
+
+export interface CachesLike {
+  open(name: string): Promise<CacheLike>;
+  match(request: Request | string, options?: CacheQueryOptions): Promise<Response | undefined>;
+}
+
+// A store over one named cache. Reads look in it first, then in every other (the deploy before's files too); writes go
+// to it, then `afterPut` runs. The build's files are matched without their query, since their names already say which
+// build they are, and one found only in another deploy's cache (a chunk no change touched) is copied into this one, so
+// it outlives that deploy's files.
+export const cacheStore = (storage: CachesLike, name: string, isBuild: boolean, afterPut?: () => Promise<void>): Store => {
+  const options: CacheQueryOptions = { ignoreVary: true, ignoreSearch: isBuild };
+
+  return {
+    match: async (request) => {
+      const own = await storage.open(name);
+      const kept = await own.match(request, options);
+
+      if (kept) {
+        return kept;
+      }
+
+      const elsewhere = await storage.match(request, options);
+
+      if (elsewhere && isBuild) {
+        await own.put(request, elsewhere.clone()).catch(() => undefined);
+      }
+
+      return elsewhere;
+    },
+    put: async (request, response) => {
+      await (await storage.open(name)).put(request, response);
+      await afterPut?.();
+    },
+  };
+};
+
 // Google's font stylesheet is asked for without CORS, which would come back opaque and could not be kept: it is asked
 // for again with CORS, which Google's font hosts allow.
 export const readable = (request: Request): Request =>
@@ -284,22 +326,15 @@ if (isWorker) {
     await Promise.all(keys.slice(0, Math.max(0, keys.length - most)).map((key) => cache.delete(key)));
   };
 
-  // Reads look in this deploy's cache first, then in every other (the deploy before's files too); writes go to this
-  // deploy's. The build's files are matched without their query, since their names already say which build they are.
-  const storeOf = (name: string): Store => {
-    const options: CacheQueryOptions = { ignoreVary: true, ignoreSearch: name === names.build };
+  const trimMedia = async () => {
+    mediaSaved += 1;
 
-    return {
-      match: async (request) => (await (await caches.open(name)).match(request, options)) ?? caches.match(request, options),
-      put: async (request, response) => {
-        await (await caches.open(name)).put(request, response);
-
-        if (name === names.media && ++mediaSaved % TRIM_EVERY === 0) {
-          await trim(name, MEDIA_MOST);
-        }
-      },
-    };
+    if (mediaSaved % TRIM_EVERY === 0) {
+      await trim(names.media, MEDIA_MOST);
+    }
   };
+
+  const storeOf = (name: string): Store => cacheStore(caches, name, name === names.build, name === names.media ? trimMedia : undefined);
 
   const strategyFor = (name: string, event: Extendable): Strategy => ({
     store: storeOf(name),

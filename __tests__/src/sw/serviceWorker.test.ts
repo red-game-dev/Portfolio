@@ -2,8 +2,8 @@
  * @jest-environment node
  */
 import {
-  assetsIn, cacheFirst, cachesToDelete, cacheNames, Fetcher, fontFilesIn, isKeepable, isStale, isWarmMessage, networkFirst, pageKey, readable, routeOf,
-  stamped, staleWhileRevalidate, Store, Strategy, versionsKept,
+  assetsIn, cacheFirst, cachesToDelete, cacheNames, CachesLike, cacheStore, Fetcher, fontFilesIn, isKeepable, isStale, isWarmMessage, networkFirst,
+  pageKey, readable, routeOf, stamped, staleWhileRevalidate, Store, Strategy, versionsKept,
 } from "@/sw/service-worker";
 
 const ORIGIN = "https://www.redgame.dev";
@@ -90,6 +90,65 @@ describe("the offline copy's deploys", () => {
     expect(cachesToDelete([
       cacheNames("a").pages, cacheNames("a").build, cacheNames("b").build, cacheNames("c").pages, "offline-media", "offline-heavy", "offline-meta", "other",
     ], kept)).toEqual([cacheNames("a").pages, cacheNames("a").build]);
+  });
+});
+
+describe("the offline copy's caches", () => {
+  // Named caches in memory, matched by address as the Cache API matches them, the query left out where asked.
+  const memoryCaches = (saved: Record<string, Record<string, string>>) => {
+    const named = new Map(Object.entries(saved).map(([name, entries]) => [name, new Map(Object.entries(entries))]));
+    const keyOf = (request: Request | string, options?: CacheQueryOptions) => {
+      const url = new URL(typeof request === "string" ? request : request.url, ORIGIN);
+
+      return options?.ignoreSearch ? url.pathname : `${url.pathname}${url.search}`;
+    };
+    const find = (entries: Map<string, string>, request: Request | string, options?: CacheQueryOptions) => {
+      const body = [...entries].find(([key]) => keyOf(key, options) === keyOf(request, options))?.[1];
+
+      return body === undefined ? undefined : answer(body);
+    };
+    const storage: CachesLike = {
+      open: (name) => {
+        const entries = named.get(name) ?? new Map<string, string>();
+
+        named.set(name, entries);
+
+        return Promise.resolve({
+          match: (request, options) => Promise.resolve(find(entries, request, options)),
+          put: async (request, response) => {
+            entries.set(keyOf(request), await response.text());
+          },
+        });
+      },
+      match: (request, options) => Promise.resolve([...named.values()].map((entries) => find(entries, request, options)).find(Boolean)),
+    };
+
+    return { storage, named };
+  };
+
+  it("serves a build file the deploy before kept and copies it into this deploy's cache, so it outlives that deploy", async () => {
+    const { storage, named } = memoryCaches({ "offline-build-a": { "/_next/static/chunks/framework-1.js": "framework" }, "offline-build-b": {} });
+    const store = cacheStore(storage, "offline-build-b", true);
+
+    await expect((await store.match("/_next/static/chunks/framework-1.js?dpl=b"))?.text()).resolves.toBe("framework");
+    expect(named.get("offline-build-b")?.size).toBe(1);
+    named.delete("offline-build-a");
+    await expect((await store.match("/_next/static/chunks/framework-1.js"))?.text()).resolves.toBe("framework");
+  });
+
+  it("reads pictures and pages from any cache without copying them, and runs what follows a save", async () => {
+    const { storage, named } = memoryCaches({ "offline-pages-a": { "/": "old home" }, "offline-media": {} });
+    const afterPut = jest.fn(() => Promise.resolve());
+    const pages = cacheStore(storage, "offline-pages-b", false);
+    const media = cacheStore(storage, "offline-media", false, afterPut);
+
+    await expect((await pages.match("/"))?.text()).resolves.toBe("old home");
+    expect(named.get("offline-pages-b")?.size).toBe(0);
+    await expect(pages.match("/?view=product")).resolves.toBeUndefined();
+
+    await media.put("/images/a.webp", answer("a"));
+    expect(afterPut).toHaveBeenCalledTimes(1);
+    await expect((await media.match("/images/a.webp"))?.text()).resolves.toBe("a");
   });
 });
 

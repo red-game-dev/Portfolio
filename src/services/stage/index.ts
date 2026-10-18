@@ -64,19 +64,42 @@ export const stageReady = async (): Promise<Stage | null> => {
 };
 
 // What the payments counter needs, started as it comes near so its first payment never waits: the stage, the hands,
-// the customer's head, and every material the counter shows, compiled once.
+// and every material the counter shows, compiled once.
 export const preloadCheckout = (): void => {
   if (RENDERING.mode === "2d") {
     return;
   }
 
-  models.preload(...Object.values(HAND_MODELS), CUSTOMER_MODEL, CUSTOMER_BLINK_MODEL);
+  models.preload(...Object.values(HAND_MODELS));
   stageReady()
     .then(async (stage) => {
       if (stage) {
         const { warmCheckoutStage } = await import("@/packages/graphics/checkout-stage");
 
         await warmCheckoutStage(stage);
+      }
+    })
+    .catch(() => undefined);
+};
+
+// The customer who pays by face (her model, face, hair and blouse, about 780 KB), loaded only once a face payment is
+// in sight: the way to pay hovered or focused, or the counter on screen a while. Her pictures are fetched too, so the
+// stage finds them ready.
+export const preloadCustomer = (): void => {
+  if (RENDERING.mode === "2d") {
+    return;
+  }
+
+  models.preload(CUSTOMER_MODEL, CUSTOMER_BLINK_MODEL);
+  Object.values(CUSTOMER_LOOK).forEach(({ image }) => {
+    fetch(image).catch(() => undefined);
+  });
+  stageReady()
+    .then(async (stage) => {
+      if (stage) {
+        const { warmCustomerStage } = await import("@/packages/graphics/checkout-stage");
+
+        await warmCustomerStage(stage);
       }
     })
     .catch(() => undefined);

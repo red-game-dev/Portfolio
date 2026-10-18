@@ -2,12 +2,13 @@ import { CSSProperties, FC, useCallback, useEffect, useId, useMemo, useRef, useS
 
 import tw, { css, styled } from "twin.macro";
 
-import { approvedMsOf, payMsOf, RESET_MS, START_WAIT_MS, TERMINAL_SCALE } from "@/components/Payments/config";
+import { approvedMsOf, CUSTOMER_HINT_MS, payMsOf, RESET_MS, START_WAIT_MS, TERMINAL_SCALE } from "@/components/Payments/config";
 import { CheckoutScene } from "@/components/Payments/scene/CheckoutScene";
 import { PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
 import { Mark } from "@/components/Payments/scene/Mark";
-import { PAYMENT_GROUP_ORDER, PAYMENT_GROUPS, PaymentMethodId } from "@/config/payments";
+import { PAY_GESTURES, PAYMENT_GROUP_ORDER, PAYMENT_GROUPS, PaymentMethodId } from "@/config/payments";
 import { THEME_ACCENTS } from "@/config/sectionThemes";
+import useInView from "@/hooks/useInView";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { amountOf, CHECKOUT_SCENE } from "@/packages/graphics/checkout";
 import type { CheckoutAmount } from "@/packages/graphics/checkout";
@@ -158,9 +159,35 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
     import("@/services/stage").then(({ preloadCheckout }) => preloadCheckout()).catch(() => undefined);
   }, []);
 
+  // The customer who pays by face loads only once that payment is in sight: its way to pay hovered, focused or pressed,
+  // or the counter on screen a while.
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const isOnScreen = useInView(wrapRef, { once: false, threshold: 0.4 });
+  const hasHinted = useRef(false);
+  const hintCustomer = useCallback(() => {
+    if (!hasHinted.current) {
+      hasHinted.current = true;
+      import("@/services/stage").then(({ preloadCustomer }) => preloadCustomer()).catch(() => undefined);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isOnScreen) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(hintCustomer, CUSTOMER_HINT_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [isOnScreen, hintCustomer]);
+
   const pay = useCallback((method: PaymentMethodId) => {
     if (phase.kind === "paying") {
       return;
+    }
+
+    if (PAY_GESTURES[method] === "face") {
+      hintCustomer();
     }
 
     clearAll(timers.current);
@@ -199,7 +226,7 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
     started.current = { press, begin };
     // Counted from the press after all, should the counter never start.
     timers.current.push(window.setTimeout(begin, START_WAIT_MS));
-  }, [content, isStill, onPaid, phase.kind, ringUp]);
+  }, [content, isStill, onPaid, phase.kind, ringUp, hintCustomer]);
 
   const onStart = useCallback(() => {
     if (started.current && started.current.press === presses.current) {
@@ -213,7 +240,7 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
   const mode = shown ? (isStill ? "approved" : "playing") : "idle";
 
   return (
-    <Wrap role="group" aria-label={content.label}>
+    <Wrap ref={wrapRef} role="group" aria-label={content.label}>
       <SceneBox>
         {/* One counter kept for every payment, so the last frame stays up while the next way to pay is set up. */}
         <CheckoutScene
@@ -244,6 +271,8 @@ export const PayTerminal: FC<PayTerminalProps> = ({ content, onPaid }: PayTermin
                     aria-label={fill(content.payWith, { method: content.methods[method] })}
                     data-current={shown?.method === method ? "" : undefined}
                     aria-disabled={phase.kind === "paying"}
+                    onPointerEnter={PAY_GESTURES[method] === "face" ? hintCustomer : undefined}
+                    onFocus={PAY_GESTURES[method] === "face" ? hintCustomer : undefined}
                     onClick={() => pay(method)}
                   >
                     <Mark method={method} size={method === "mastercard" ? 16 : 17} />

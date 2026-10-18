@@ -1,5 +1,5 @@
 import { amountOf, approvedAt, CHECKOUT_LAYOUT, checkoutAt, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
-import { CHECKOUT_MODELS, checkoutStageMap, warmCheckoutStage } from "@/packages/graphics/checkout-stage";
+import { CHECKOUT_MODELS, checkoutStageMap, warmCheckoutStage, warmCustomerStage } from "@/packages/graphics/checkout-stage";
 import { HAND_GRIPS, handField, RIGHT_HAND } from "@/packages/graphics/hand";
 import type { ActorState, Stage, StageScene } from "@/packages/graphics/stage3d";
 import { conjugate, dot, normalize, rotate, sub, vec3 } from "@/packages/math/space";
@@ -126,11 +126,25 @@ describe("the checkout on a 3D stage", () => {
     const models = scene.actors.flatMap((actor) => actor.parts.flatMap((part) => (part.shape.kind === "model" ? [part.shape.model] : [])));
     const cards = scene.actors.filter((actor) => actor.id.startsWith("card-"));
 
-    // Every hand wears the same skin, so the pointing hand and one holding hand cover it; the customer's head too.
-    expect(new Set(models)).toEqual(new Set([CHECKOUT_MODELS.point, CHECKOUT_MODELS.card, CHECKOUT_MODELS.customer, CHECKOUT_MODELS.customerBlink]));
+    // Every hand wears the same skin, so the pointing hand and one holding hand cover it. The customer is not among
+    // them: she loads only once a face payment is in sight.
+    expect(new Set(models)).toEqual(new Set([CHECKOUT_MODELS.point, CHECKOUT_MODELS.card]));
     expect(scene.actors.some((actor) => actor.id === "phone")).toBe(true);
     expect(new Set(cards.map((card) => card.parts[0].material?.finish))).toEqual(new Set(["metal", "gloss", "matte", "frosted"]));
     expect(cards.filter((card) => card.hiddenInside)).toHaveLength(4);
+  });
+
+  it("warms the customer who pays by face on her own, once", async () => {
+    const mounted: StageScene[] = [];
+    const stage = { mount: (scene: StageScene) => Promise.resolve(mounted.push(scene)).then(() => ({ id: mounted.length })) } as unknown as Stage;
+
+    await warmCustomerStage(stage);
+    await warmCustomerStage(stage);
+
+    const models = mounted.flatMap((scene) => scene.actors.flatMap((actor) => actor.parts.flatMap((part) => (part.shape.kind === "model" ? [part.shape.model] : []))));
+
+    expect(mounted).toHaveLength(1);
+    expect(new Set(models)).toEqual(new Set([CHECKOUT_MODELS.customer, CHECKOUT_MODELS.customerBlink]));
   });
 
   it("puts the customer paying by face beside the terminal, her face to its camera, moving as she stands", () => {

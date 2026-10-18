@@ -8,6 +8,9 @@ export const RESET_MS = 600;
 // How long the page waits for the counter to start a payment before counting its approval from the press anyway.
 export const START_WAIT_MS = 2500;
 
+// How long the counter stays on screen before the customer who pays by face is loaded, should nobody hint at it sooner.
+export const CUSTOMER_HINT_MS = 4000;
+
 // No total: a switch, which carries no words, shows a bar in its place.
 export const NO_AMOUNT: CheckoutAmount = { text: "", prefix: "", suffix: "", keyed: "" };
 

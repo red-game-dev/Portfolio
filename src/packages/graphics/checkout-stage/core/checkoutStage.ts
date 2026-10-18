@@ -404,10 +404,20 @@ const warmScene = (): StageScene => {
     parts: [{ shape: { kind: "plate", width: CARD.long, height: CARD.short, depth: 0.76, radius: CARD.radius }, material: { kind: "picture", picture: "warm", finish } }],
   })));
 
-  return { ...base, actors: [...base.actors.filter((actor) => actor.id !== "card"), ...cards, ...customerActors()] };
+  return { ...base, actors: [...base.actors.filter((actor) => actor.id !== "card"), ...cards] };
+};
+
+// The customer who pays by face, on her own, with the same lights: warmed only once a face payment is in sight, so
+// nobody else downloads her.
+const warmCustomerScene = (): StageScene => {
+  const look: CheckoutSkin["look"] = { gesture: "face", app: 0, face: ["#000000", "#000000"], mark: { width: 1, height: 1, parts: [] } };
+  const base = checkoutScene({ id: "warm-customer", look, amount: amountOf(""), accent: "#ffffff" });
+
+  return { ...base, actors: customerActors() };
 };
 
 const warmed = new WeakSet<Stage>();
+const customerWarmed = new WeakSet<Stage>();
 
 // Sets every material the counter can show up on the stage once and keeps it there, never drawn, so their shaders are
 // compiled and stay compiled: a payment's own scene then compiles nothing and is ready at once.
@@ -418,6 +428,16 @@ export const warmCheckoutStage = async (stage: Stage): Promise<void> => {
 
   warmed.add(stage);
   await stage.mount(warmScene());
+};
+
+// Loads the customer and compiles her materials once, kept on the stage like the counter's own.
+export const warmCustomerStage = async (stage: Stage): Promise<void> => {
+  if (customerWarmed.has(stage)) {
+    return;
+  }
+
+  customerWarmed.add(stage);
+  await stage.mount(warmCustomerScene());
 };
 
 // Sets the checkout's scene up on a stage and hands back what draws it each frame.

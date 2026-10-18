@@ -952,11 +952,11 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
         <Readout data-hud-area="readout" data-covers="">
           <Reading>
             <ReadingName>{content.score}</ReadingName>
-            <ReadingValue>{snapshot?.score ?? 0}</ReadingValue>
+            <ReadingValue>{formatNumber(snapshot?.score ?? 0)}</ReadingValue>
           </Reading>
           <Reading>
             <ReadingName>{content.best}</ReadingName>
-            <ReadingValue>{Math.max(best, status === "over" ? snapshot?.score ?? 0 : 0)}</ReadingValue>
+            <ReadingValue>{formatNumber(Math.max(best, status === "over" ? snapshot?.score ?? 0 : 0))}</ReadingValue>
           </Reading>
           {economy && (
             <>
@@ -964,14 +964,14 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                 <ReadingName><CurrencyIcon code="RED" label={copy.currencies.RED} /></ReadingName>
                 <Coin>
                   {formatNumber(economy.purse.RED)}
-                  {redGain && <Gain key={redGain.id} aria-hidden="true">{`+${redGain.amount}`}</Gain>}
+                  {redGain && <Gain key={redGain.id} aria-hidden="true">{`+${formatNumber(redGain.amount)}`}</Gain>}
                 </Coin>
               </Reading>
               <Reading>
                 <ReadingName><CurrencyIcon code="VOID" label={copy.currencies.VOID} /></ReadingName>
                 <Coin isShards>
-                  {economy.purse.VOID}
-                  {voidGain && <Gain key={voidGain.id} aria-hidden="true">{`+${voidGain.amount}`}</Gain>}
+                  {formatNumber(economy.purse.VOID)}
+                  {voidGain && <Gain key={voidGain.id} aria-hidden="true">{`+${formatNumber(voidGain.amount)}`}</Gain>}
                 </Coin>
               </Reading>
             </>
@@ -1304,7 +1304,7 @@ export const VoyageDialog: FC<VoyageDialogProps> = ({ content, universes, best, 
                   <Score role="status">{fill(content.finalScore, { score: formatNumber(snapshot.score) })}</Score>
                   {snapshot.score > bestBefore.current && <Badge>{content.newBest}</Badge>}
                 </ScoreRow>
-                {pay !== null && pay > 0 && <Pay>{fill(content.pay, { coin: pay })}</Pay>}
+                {pay !== null && pay > 0 && <Pay>{fill(content.pay, { coin: formatNumber(pay) })}</Pay>}
                 {daily && <Text>{dailyResult(content, daily.score)}</Text>}
                 {summary && (
                   <StatGrid aria-label={content.progress.summary.title}>

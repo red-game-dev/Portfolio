@@ -99,8 +99,8 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
   }, [isReady]);
   const { status } = useLensStatusHook();
 
-  // A page opened at a link to a place on it lands there once the intro has lifted and a view is chosen.
-  useSettledAnchors(isReady && status === "chosen");
+  // A page opened at a link to a place on it lands there once every section has its size and a view is chosen.
+  useSettledAnchors({ isReadable: !isLoading && status === "chosen", canLand: isReady && status === "chosen" });
   // The world starts once the reader has picked a view, so it is built with that view's settings, and runs
   // under the entrance so it is already moving when the page opens.
   const isWorldLive = !isLoading && (status === "entering" || status === "chosen");

@@ -10,7 +10,7 @@ export interface SettleView {
 }
 
 // Input that means the reader has taken over the scroll, so the target is left wherever they take it.
-const TAKE_OVER = ["wheel", "touchstart", "keydown", "pointerdown"];
+export const TAKE_OVER = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
 // A scroll that has not started by now never will (the target was already in place).
 const START_MS = 400;
 // For browsers without scrollend: long enough for a smooth scroll across the page to have finished.
@@ -123,18 +123,20 @@ export const holdAtTop = (
     }
   };
 
-  // Whether the target had moved and was put back.
+  // Whether the target had moved and was put back: a target the page cannot bring any nearer (one too near its end
+  // to reach the top) counts as still, so the hold lets it go once it has been still for the quiet time.
   const place = () => {
     const margin = parseFloat(view.getComputedStyle(element).scrollMarginTop ?? "") || 0;
     const padding = root ? parseFloat(view.getComputedStyle(root).scrollPaddingTop ?? "") || 0 : 0;
+    const top = element.getBoundingClientRect().top;
 
-    if (Math.abs(element.getBoundingClientRect().top - padding - margin) <= tolerance) {
+    if (Math.abs(top - padding - margin) <= tolerance) {
       return false;
     }
 
     element.scrollIntoView({ behavior: "instant", block: "start" });
 
-    return true;
+    return Math.abs(element.getBoundingClientRect().top - top) > tolerance;
   };
 
   const look = (time: number) => {

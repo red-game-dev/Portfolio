@@ -232,6 +232,23 @@ describe("holdAtTop", () => {
     expect(view.hasFrame()).toBe(false);
   });
 
+  it("lets go of a target the page cannot bring any nearer once it has been still for the quiet time", () => {
+    const view = framedView();
+    const element = document.createElement("section");
+    const scroll = jest.fn();
+
+    // Near the end of the page: always 300 px down, however it is scrolled.
+    element.getBoundingClientRect = () => ({ top: 300 } as DOMRect);
+    element.scrollIntoView = scroll;
+    holdAtTop(element, view, { quiet: 1000 });
+    view.frame(0);
+    view.frame(600);
+    expect(view.hasFrame()).toBe(true);
+
+    view.frame(1000);
+    expect(view.hasFrame()).toBe(false);
+  });
+
   it("stops as soon as the reader takes over the scroll", () => {
     const view = framedView();
     const { element, place, scroll } = drifting(0);

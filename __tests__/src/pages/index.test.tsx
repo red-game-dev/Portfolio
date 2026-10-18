@@ -83,9 +83,9 @@ describe("Home", () => {
     const misplaced = Object.values(SECTION_IDS).flatMap((id) => {
       zone = ZONE_BOUNDARIES.find(({ startsAt }) => startsAt === id)?.zone ?? zone;
       const section = container.querySelector(`#${id}`);
-      // The nearest run, never the root, which follows the reader and so carries a zone of its own.
+      // The nearest run (the root follows the reader in data-journey, never data-zone).
       const holder = section?.closest("[data-zone]");
-      const run = section ? (holder && holder !== document.documentElement ? holder.getAttribute("data-zone") : null) : undefined;
+      const run = section ? (holder?.getAttribute("data-zone") ?? null) : undefined;
 
       return run === undefined || run === zone ? [] : [`${id} in ${run ?? "no zone"}, not ${zone}`];
     });

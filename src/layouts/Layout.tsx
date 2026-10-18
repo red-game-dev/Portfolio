@@ -8,6 +8,7 @@ import { LazyPilotArrival } from "@/components/Finale/Voyage/LazyPilotArrival";
 import { Journey } from "@/components/Journey";
 import { LensGate } from "@/components/Lens";
 import { useLensStatusHook } from "@/components/Lens/hooks/useLensStatusHook";
+import { FollowsJourney } from "@/components/Zone";
 import { ZONE_BOUNDARIES } from "@/config/zones";
 import { portfolioData  } from "@/data/resume";
 import { useHashValue } from "@/hooks/useHashState";
@@ -99,23 +100,29 @@ const Layout: FC<LayoutProps> = ({ title, children }: LayoutProps) => {
 
   return (
     <>
-      <SkipLink href={`#${MAIN_ID}`}>{portfolioData.menu.skip}</SkipLink>
+      <FollowsJourney>
+        <SkipLink href={`#${MAIN_ID}`}>{portfolioData.menu.skip}</SkipLink>
+      </FollowsJourney>
       <AppLoader />
       <LensGate content={portfolioData.lens} counts={LENS_COUNTS} candidate={LENS_CANDIDATE} />
       <Container>
-        <Header
-          title={title}
-          lens={portfolioData.lens}
-          menu={portfolioData.menu}
-          contact={{ cv: portfolioData.cv, email: portfolioData.details.email, linkedIn: portfolioData.socialMedia.byUsername.linkedIn }}
-        />
+        <FollowsJourney>
+          <Header
+            title={title}
+            lens={portfolioData.lens}
+            menu={portfolioData.menu}
+            contact={{ cv: portfolioData.cv, email: portfolioData.details.email, linkedIn: portfolioData.socialMedia.byUsername.linkedIn }}
+          />
+        </FollowsJourney>
         <Main id={MAIN_ID} tabIndex={-1}>
           {children}
         </Main>
-        <PageEnd>
-          <PageEndLink href="/accessibility/">{portfolioData.accessibility.link}</PageEndLink>
-        </PageEnd>
-        <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
+        <FollowsJourney>
+          <PageEnd>
+            <PageEndLink href="/accessibility/">{portfolioData.accessibility.link}</PageEndLink>
+          </PageEnd>
+          <Footer linkedInUsername={portfolioData.socialMedia.byUsername.linkedIn} />
+        </FollowsJourney>
       </Container>
       <AppLoadingLines />
       {isPilotArriving && <LazyPilotArrival copy={portfolioData.finale.voyage.transfer} />}

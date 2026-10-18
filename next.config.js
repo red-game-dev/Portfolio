@@ -58,6 +58,16 @@ module.exports = withBundleAnalyzer({
       config.plugins.push(new OfflinePrecachePlugin())
     }
 
+    // twin.macro compiles tailwind.config.js into every file that uses tw or GlobalStyles, which webpack's cache does
+    // not know: a change to the config alone would otherwise ship those files built with the old one (the cache
+    // Vercel keeps between builds once kept _app.tsx's old font stack this way).
+    if (config.cache && typeof config.cache === 'object') {
+      config.cache.buildDependencies = {
+        ...config.cache.buildDependencies,
+        twin: [join(__dirname, 'tailwind.config.js'), join(__dirname, 'babel-plugin-macros.config.js')],
+      }
+    }
+
     return config
   },
   // The text files for language models are written from the content by API routes, which answer with plain

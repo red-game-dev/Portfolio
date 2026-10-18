@@ -2,12 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* - Roboto's stand-in
+   Arial sized to Roboto's own measurements (the values next/font computes for it), next after Roboto in the font
+   stack (tailwind.config.js), so text set before Roboto arrives takes the room Roboto will, and the first screen does
+   not move when it does: on a wide screen the industries row went from two lines to one, moving the whole cover. */
+@font-face {
+  font-family: "Roboto Fallback";
+  src: local("Arial"), local("ArialMT");
+  ascent-override: 92.77%;
+  descent-override: 24.41%;
+  line-gap-override: 0%;
+  size-adjust: 100.3%;
+}
+
+/* - Scroll progress
+   How far the reader is through each of History's lanes, written on the lane every frame (useScrollProgressVar) and
+   read only by the lane's own line, its ::after, which takes it with inherit. Not inherited, so a write restyles the
+   lane and its line, never the hundreds of entries inside it. */
+@property --scroll-progress {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
 /* - Zone theme
    Each run of sections carries its zone's accent (data-zone on the run, components/Zone), so it keeps its colour
-   however far the reader has gone and a crossing never restyles the page's sections. The root follows the journey
-   too (data-zone on it, set by the Journey) for what lies outside every run, the header, the trail and the game HUD,
-   and there the colour animates across: registered properties are what let a custom property transition; browsers
-   without them switch instantly. */
+   however far the reader has gone and a crossing never restyles the page's sections. The zone the reader is in is the
+   root's data-journey (set by the Journey), which no rule styles on the root itself: only what is marked
+   data-follows-journey (FollowsJourney: the skip link, the header, the page's end and footer, the bars, trail and HUD)
+   takes that zone's accent, and there the colour animates across. A value the root took from it would be inherited by
+   every element of the page, restyling all of them at each crossing and every frame of the transition. Registered
+   properties are what let a custom property transition; browsers without them switch instantly. */
 @property --accent {
   syntax: "<color>";
   inherits: true;
@@ -21,41 +46,47 @@
 }
 
 :root,
-[data-zone="matrix"] {
+[data-zone="matrix"],
+[data-journey="matrix"] [data-follows-journey] {
   --accent: #4bffa5;
   --accent-muted: #2f6b4d;
   --accent-rgb: 75, 255, 165;
 }
 
-:root {
+[data-follows-journey] {
   transition: --accent 1.4s ease, --accent-muted 1.4s ease;
 }
 
-[data-zone="ai"] {
+[data-zone="ai"],
+[data-journey="ai"] [data-follows-journey] {
   --accent: #4fd8ff;
   --accent-muted: #24596b;
   --accent-rgb: 79, 216, 255;
 }
 
-[data-zone="chain"] {
+[data-zone="chain"],
+[data-journey="chain"] [data-follows-journey] {
   --accent: #b896ff;
   --accent-muted: #4b3a6b;
   --accent-rgb: 184, 150, 255;
 }
 
-[data-zone="casino"] {
+[data-zone="casino"],
+[data-journey="casino"] [data-follows-journey] {
   --accent: #ff5fa2;
   --accent-muted: #6b2a48;
   --accent-rgb: 255, 95, 162;
 }
 
-[data-zone="mmo"] {
+[data-zone="mmo"],
+[data-journey="mmo"] [data-follows-journey] {
   --accent: #ffc45c;
   --accent-muted: #6b5226;
   --accent-rgb: 255, 196, 92;
 }
 
-[data-zone="beyond"] {
+[data-zone="beyond"],
+[data-journey="beyond"] [data-follows-journey] {
   --accent: #c4d2ff;
   --accent-muted: #3e4a6b;
   --accent-rgb: 196, 210, 255;
@@ -102,6 +133,11 @@
   scroll-behavior: auto;
 }
 
+/* What follows the journey switches its accent at a crossing rather than fading it. */
+:root[data-motion="reduced"] [data-follows-journey] {
+  transition: none;
+}
+
 /* - Basic */
 @layer base {
   html {
@@ -138,7 +174,7 @@
 		margin: 0;
 		padding: 0;
 		border: none;
-		font-family: "Roboto";
+		font-family: "Roboto", "Roboto Fallback", sans-serif;
 		font-size: 16px;
 		line-height: 1.5;
 		color: #bbb;
@@ -158,7 +194,7 @@
 	
 	/* - Blockquote */
 	blockquote {
-		font-family: "Roboto";
+		font-family: "Roboto", "Roboto Fallback", sans-serif;
 	}
 
 /* body::-webkit-scrollbar {

@@ -10,7 +10,7 @@ import { rgbChannels } from "@/packages/graphics/colour";
 const css = readFileSync(join(process.cwd(), "src/styles/globals.css"), "utf8");
 
 const blockOf = (zone: ZoneId) => {
-  const selector = `[data-zone="${zone}"] {`;
+  const selector = `[data-zone="${zone}"]`;
   const start = css.indexOf(selector);
 
   return css.slice(start, css.indexOf("}", start));
@@ -22,6 +22,18 @@ describe("zone palette", () => {
 
     expect(block).toContain(`--accent: ${ZONE_ACCENTS[zone]};`);
     expect(block).toContain(`--accent-rgb: ${rgbChannels(ZONE_ACCENTS[zone])};`);
+  });
+});
+
+describe("the zone the reader is in", () => {
+  // What lies outside every run takes the reader's zone from the root's data-journey, so each zone's accent has to
+  // reach it too, beside its runs.
+  it.each(Object.keys(ZONE_ACCENTS) as ZoneId[])("%s reaches what follows the journey", (zone) => {
+    expect(css).toMatch(new RegExp(`\\[data-zone="${zone}"\\],\\s*\\[data-journey="${zone}"\\] \\[data-follows-journey\\] \\{`));
+  });
+
+  it("switches at once when the page is kept still", () => {
+    expect(css).toMatch(/:root\[data-motion="reduced"\] \[data-follows-journey\] \{\s*transition: none;/);
   });
 });
 

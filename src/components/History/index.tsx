@@ -72,6 +72,7 @@ const Graph = styled.ol(({ lane }: GraphProps) => [
     }
 
     &::after {
+      --scroll-progress: inherit;
       background: ${lane === "venture" ? `linear-gradient(to bottom, ${VENTURE_COLOUR}, #5c4a26)` : "linear-gradient(to bottom, var(--accent), var(--accent-muted))"};
       transform-origin: top;
       transform: scaleY(var(--scroll-progress, 0));

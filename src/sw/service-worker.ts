@@ -103,11 +103,24 @@ export const cachesToDelete = (names: readonly string[], kept: readonly string[]
   return deploy !== undefined && !kept.includes(deploy);
 });
 
-// Whether a saved answer is old enough to refresh: one that does not say when it was sent always is.
-export const isStale = (response: Response, now: number, freshMs: number): boolean => {
-  const sent = Date.parse(response.headers.get("date") ?? "");
+// When an answer was saved, stamped on it as it is kept, since a font host does not let its own date be read.
+const SAVED_AT = "x-offline-saved";
 
-  return Number.isNaN(sent) || now - sent > freshMs;
+// An answer as it is kept: the moment it was saved stamped on it.
+export const stamped = (response: Response, now: number): Response => {
+  const headers = new Headers(response.headers);
+
+  headers.set(SAVED_AT, String(now));
+
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+};
+
+// Whether a saved answer is old enough to refresh: one that says neither when it was saved nor when it was sent always is.
+export const isStale = (response: Response, now: number, freshMs: number): boolean => {
+  const saved = response.headers.get(SAVED_AT);
+  const at = saved === null ? Date.parse(response.headers.get("date") ?? "") : Number(saved);
+
+  return Number.isNaN(at) || now - at > freshMs;
 };
 
 export interface Store {
@@ -117,53 +130,61 @@ export interface Store {
 
 export type Fetcher = (request: Request) => Promise<Response>;
 
+// What a strategy works with: where answers are kept, how they are fetched, how work goes on after the answer (the
+// fetch event's waitUntil), and the time.
+export interface Strategy {
+  store: Store;
+  fetcher: Fetcher;
+  later: (work: Promise<unknown>) => void;
+  now: number;
+}
+
 // Only a whole, successful answer the page can read is kept.
 export const isKeepable = (response: Response): boolean => response.status === 200 && response.type !== "opaque";
 
-const keep = async (store: Store, key: Request | string, response: Response): Promise<Response> => {
+// Saved behind the answer, never holding it up or failing it: a full store or a refused write only means it is not kept.
+const keep = (strategy: Strategy, key: Request | string, response: Response): Response => {
   if (isKeepable(response)) {
-    await store.put(key, response.clone());
+    strategy.later(strategy.store.put(key, stamped(response.clone(), strategy.now)).catch(() => undefined));
   }
 
   return response;
 };
 
 // The saved copy, else the network's (then saved).
-export const cacheFirst = async (request: Request, store: Store, fetcher: Fetcher): Promise<Response> =>
-  (await store.match(request)) ?? keep(store, request, await fetcher(request));
+export const cacheFirst = async (request: Request, strategy: Strategy): Promise<Response> =>
+  (await strategy.store.match(request)) ?? keep(strategy, request, await strategy.fetcher(request));
 
 // The saved copy at once, refreshed from the network for next time once it is `freshMs` old; the network's when
 // nothing is saved.
-export const staleWhileRevalidate = async (
-  request: Request, store: Store, fetcher: Fetcher, later: (work: Promise<unknown>) => void, now: number, freshMs: number,
-): Promise<Response> => {
-  const kept = await store.match(request);
+export const staleWhileRevalidate = async (request: Request, strategy: Strategy, freshMs: number): Promise<Response> => {
+  const kept = await strategy.store.match(request);
 
   if (!kept) {
-    return keep(store, request, await fetcher(request));
+    return keep(strategy, request, await strategy.fetcher(request));
   }
 
-  if (isStale(kept, now, freshMs)) {
-    later(fetcher(request).then((response) => keep(store, request, response))
+  if (isStale(kept, strategy.now, freshMs)) {
+    strategy.later(strategy.fetcher(request).then((response) => keep(strategy, request, response))
       .catch(() => undefined));
   }
 
   return kept;
 };
 
-// The network's answer (then saved under `key`) unless it fails or is slower than `waitMs`, when the saved copy, or
-// the fallback's, is shown; with neither, the network's answer whenever it comes.
+// The network's answer (then saved under `key`), unless it is slower than `waitMs` or fails, when the saved copy is
+// shown. With none saved, the network's answer whenever it comes, and only if it fails the fallback's.
 export const networkFirst = async (
-  request: Request, key: string, store: Store, fetcher: Fetcher, waitMs: number, fallback: () => Promise<Response | undefined>,
+  request: Request, key: string, strategy: Strategy, waitMs: number, fallback: () => Promise<Response | undefined>,
 ): Promise<Response> => {
-  const fresh = fetcher(request).then((response) => keep(store, key, response));
+  const fresh = strategy.fetcher(request).then((response) => keep(strategy, key, response));
   let timer: ReturnType<typeof setTimeout> | undefined;
   const waited = new Promise<null>((resolve) => {
     timer = setTimeout(() => resolve(null), waitMs);
   });
 
-  // A late failure, after the saved copy was shown, is no one's to hear.
-  fresh.catch(() => undefined);
+  // Kept alive past a saved copy shown first, so a late answer is still saved; a late failure is no one's to hear.
+  strategy.later(fresh.catch(() => undefined));
 
   try {
     const first = await Promise.race([fresh, waited]);
@@ -177,7 +198,21 @@ export const networkFirst = async (
     clearTimeout(timer);
   }
 
-  return (await store.match(key)) ?? (await fallback()) ?? fresh;
+  const saved = await strategy.store.match(key);
+
+  if (saved) {
+    return saved;
+  }
+
+  return fresh.catch(async (error: unknown) => {
+    const instead = await fallback();
+
+    if (instead) {
+      return instead;
+    }
+
+    throw error;
+  });
 };
 
 // Google's font stylesheet is asked for without CORS, which would come back opaque and could not be kept: it is asked
@@ -228,14 +263,39 @@ if (isWorker) {
   const names = cacheNames(VERSION);
   const { origin } = scope.location;
   const fetcher: Fetcher = (request) => fetch(readable(request));
+  // A trim of the pictures kept, every so many saved, so the cache never grows far past MEDIA_MOST between deploys.
+  const TRIM_EVERY = 40;
+  let mediaSaved = 0;
+
+  const trim = async (name: string, most: number) => {
+    const cache = await caches.open(name);
+    const keys = await cache.keys();
+
+    await Promise.all(keys.slice(0, Math.max(0, keys.length - most)).map((key) => cache.delete(key)));
+  };
 
   // Reads look in this deploy's cache first, then in every other (the deploy before's files too); writes go to this
-  // deploy's.
-  const storeOf = (name: string): Store => ({
-    match: async (request) => (await (await caches.open(name)).match(request, { ignoreVary: true })) ?? caches.match(request, { ignoreVary: true }),
-    put: async (request, response) => {
-      await (await caches.open(name)).put(request, response);
-    },
+  // deploy's. The build's files are matched without their query, since their names already say which build they are.
+  const storeOf = (name: string): Store => {
+    const options: CacheQueryOptions = { ignoreVary: true, ignoreSearch: name === names.build };
+
+    return {
+      match: async (request) => (await (await caches.open(name)).match(request, options)) ?? caches.match(request, options),
+      put: async (request, response) => {
+        await (await caches.open(name)).put(request, response);
+
+        if (name === names.media && ++mediaSaved % TRIM_EVERY === 0) {
+          await trim(name, MEDIA_MOST);
+        }
+      },
+    };
+  };
+
+  const strategyFor = (name: string, event: Extendable): Strategy => ({
+    store: storeOf(name),
+    fetcher,
+    later: (work) => event.waitUntil(work),
+    now: Date.now(),
   });
 
   const cacheFor = (route: Route | null): string | null => {
@@ -246,12 +306,10 @@ if (isWorker) {
     return route === "media" ? names.media : route === "heavy" ? names.heavy : null;
   };
 
-  const trim = async (name: string, most: number) => {
-    const cache = await caches.open(name);
-    const keys = await cache.keys();
-
-    await Promise.all(keys.slice(0, Math.max(0, keys.length - most)).map((key) => cache.delete(key)));
-  };
+  // What a browser asks for when it shows a picture, so a picture saved ahead is the format the page would be given.
+  const PICTURE_ACCEPT = "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
+  const askedLikeThePage = (url: URL) =>
+    new Request(url.href, url.pathname.startsWith("/_next/image") ? { headers: { accept: PICTURE_ACCEPT } } : {});
 
   // A list of addresses saved where each belongs, any already saved left alone, a few at a time.
   const warm = async (urls: readonly string[]) => {
@@ -267,8 +325,12 @@ if (isWorker) {
         const url = new URL(address, origin);
         const name = cacheFor(routeOf(url, new Request(url.href), origin));
 
-        if (name && !await caches.match(url.href, { ignoreVary: true })) {
-          await keep(storeOf(name), url.href, await fetcher(new Request(url.href)));
+        if (name && !await storeOf(name).match(url.href)) {
+          const response = await fetcher(askedLikeThePage(url));
+
+          if (isKeepable(response)) {
+            await (await caches.open(name)).put(url.href, stamped(response, Date.now()));
+          }
         }
       } catch {
         // Not saved now; saved when it is next used.
@@ -347,15 +409,13 @@ if (isWorker) {
     }
 
     if (route === "page") {
-      event.respondWith(networkFirst(request, pageKey(url), storeOf(names.pages), fetcher, PAGE_WAIT_MS, () => storeOf(names.pages).match("/")));
+      event.respondWith(networkFirst(request, pageKey(url), strategyFor(names.pages, event), PAGE_WAIT_MS, () => storeOf(names.pages).match("/")));
     } else if (route === "download") {
-      event.respondWith(networkFirst(request, url.pathname, storeOf(names.heavy), fetcher, PAGE_WAIT_MS, () => Promise.resolve(undefined)));
+      event.respondWith(networkFirst(request, url.pathname, strategyFor(names.heavy, event), PAGE_WAIT_MS, () => Promise.resolve(undefined)));
     } else if (route === "build") {
-      event.respondWith(cacheFirst(request, storeOf(names.build), fetcher));
+      event.respondWith(cacheFirst(request, strategyFor(names.build, event)));
     } else {
-      const name = route === "heavy" ? names.heavy : names.media;
-
-      event.respondWith(staleWhileRevalidate(request, storeOf(name), fetcher, (work) => event.waitUntil(work), Date.now(), FRESH_MS));
+      event.respondWith(staleWhileRevalidate(request, strategyFor(route === "heavy" ? names.heavy : names.media, event), FRESH_MS));
     }
   });
 }

@@ -2,8 +2,8 @@
  * @jest-environment node
  */
 import {
-  assetsIn, cacheFirst, cachesToDelete, cacheNames, isKeepable, isStale, isWarmMessage, networkFirst, pageKey, readable, routeOf,
-  staleWhileRevalidate, Store, versionsKept,
+  assetsIn, cacheFirst, cachesToDelete, cacheNames, Fetcher, isKeepable, isStale, isWarmMessage, networkFirst, pageKey, readable, routeOf,
+  stamped, staleWhileRevalidate, Store, Strategy, versionsKept,
 } from "@/sw/service-worker";
 
 const ORIGIN = "https://www.redgame.dev";
@@ -97,6 +97,14 @@ describe("the offline copy's strategies", () => {
   const NOW = Date.parse("2026-10-18T12:00:00Z");
   const DAY = 24 * 60 * 60 * 1000;
 
+  // A strategy over a store, with the work it leaves behind its answers gathered to wait on.
+  const strategyOf = (store: Store, fetcher: Fetcher) => {
+    const later: Array<Promise<unknown>> = [];
+    const strategy: Strategy = { store, fetcher, later: (work) => later.push(work), now: NOW };
+
+    return { strategy, settle: () => Promise.all(later) };
+  };
+
   it("keeps only a whole answer the page can read", () => {
     expect(isKeepable(answer("ok"))).toBe(true);
     expect(isKeepable(new Response("", { status: 404 }))).toBe(false);
@@ -106,70 +114,106 @@ describe("the offline copy's strategies", () => {
   it("serves the build's files from the copy, fetching and keeping one it has not seen", async () => {
     const store = memoryStore({ "/_next/static/chunks/a.js": answer("kept") });
     const fetcher = jest.fn(() => Promise.resolve(answer("fetched")));
+    const { strategy, settle } = strategyOf(store, fetcher);
 
-    await expect((await cacheFirst(page("/_next/static/chunks/a.js"), store, fetcher)).text()).resolves.toBe("kept");
+    await expect((await cacheFirst(page("/_next/static/chunks/a.js"), strategy)).text()).resolves.toBe("kept");
     expect(fetcher).not.toHaveBeenCalled();
-    await expect((await cacheFirst(page("/_next/static/chunks/b.js"), store, fetcher)).text()).resolves.toBe("fetched");
+    await expect((await cacheFirst(page("/_next/static/chunks/b.js"), strategy)).text()).resolves.toBe("fetched");
+    await settle();
     await expect((await store.match("/_next/static/chunks/b.js"))?.text()).resolves.toBe("fetched");
   });
 
-  it("serves a saved picture at once, refreshing it behind only once it is a day old", async () => {
-    const fresh = new Date(NOW - 1000).toUTCString();
-    const old = new Date(NOW - 2 * DAY).toUTCString();
-    const store = memoryStore({ "/images/a.webp": answer("fresh", { date: fresh }), "/images/b.webp": answer("old", { date: old }) });
-    const fetcher = jest.fn(() => Promise.resolve(answer("new", { date: new Date(NOW).toUTCString() })));
-    const later: Array<Promise<unknown>> = [];
+  it("answers from the network even when saving fails, a full store only meaning it is not kept", async () => {
+    const store = memoryStore();
 
-    await expect((await staleWhileRevalidate(page("/images/a.webp"), store, fetcher, (work) => later.push(work), NOW, DAY)).text()).resolves.toBe("fresh");
+    store.put = () => Promise.reject(new DOMException("full", "QuotaExceededError"));
+
+    const { strategy, settle } = strategyOf(store, () => Promise.resolve(answer("fetched")));
+
+    await expect((await cacheFirst(page("/_next/static/chunks/c.js"), strategy)).text()).resolves.toBe("fetched");
+    await expect((await networkFirst(page("/"), "/", strategy, 1000, () => Promise.resolve(undefined))).text()).resolves.toBe("fetched");
+    await expect(settle()).resolves.toBeDefined();
+  });
+
+  it("serves a saved picture at once, refreshing it behind only once it is a day old", async () => {
+    const store = memoryStore({ "/images/a.webp": stamped(answer("fresh"), NOW - 1000), "/images/b.webp": stamped(answer("old"), NOW - 2 * DAY) });
+    const fetcher = jest.fn(() => Promise.resolve(answer("new")));
+    const { strategy, settle } = strategyOf(store, fetcher);
+
+    await expect((await staleWhileRevalidate(page("/images/a.webp"), strategy, DAY)).text()).resolves.toBe("fresh");
     expect(fetcher).not.toHaveBeenCalled();
 
-    await expect((await staleWhileRevalidate(page("/images/b.webp"), store, fetcher, (work) => later.push(work), NOW, DAY)).text()).resolves.toBe("old");
-    await Promise.all(later);
+    await expect((await staleWhileRevalidate(page("/images/b.webp"), strategy, DAY)).text()).resolves.toBe("old");
+    await settle();
+    await settle();
     await expect((await store.match("/images/b.webp"))?.text()).resolves.toBe("new");
+  });
 
+  it("knows when a saved answer was kept from its own stamp, a font host's hidden date being no matter", () => {
+    expect(isStale(stamped(answer("font"), NOW - 1000), NOW, DAY)).toBe(false);
+    expect(isStale(answer("dated", { date: new Date(NOW - 1000).toUTCString() }), NOW, DAY)).toBe(false);
     expect(isStale(answer("no date"), NOW, DAY)).toBe(true);
   });
 
   it("fetches and keeps a picture not saved yet, and leaves a failure to the browser", async () => {
     const store = memoryStore();
+    const kept = strategyOf(store, () => Promise.resolve(answer("c")));
 
-    await expect((await staleWhileRevalidate(page("/images/c.webp"), store, () => Promise.resolve(answer("c")), jest.fn(), NOW, DAY)).text()).resolves.toBe("c");
+    await expect((await staleWhileRevalidate(page("/images/c.webp"), kept.strategy, DAY)).text()).resolves.toBe("c");
+    await kept.settle();
     expect(store.entries.size).toBe(1);
-    await expect(staleWhileRevalidate(page("/images/d.webp"), store, () => Promise.reject(new TypeError("offline")), jest.fn(), NOW, DAY)).rejects.toThrow("offline");
+
+    const offline = strategyOf(store, () => Promise.reject(new TypeError("offline")));
+
+    await expect(staleWhileRevalidate(page("/images/d.webp"), offline.strategy, DAY)).rejects.toThrow("offline");
   });
 
   it("shows a page from the network and keeps it under its key, the query left out", async () => {
     const store = memoryStore();
-    const response = await networkFirst(page("/?view=product"), "/", store, () => Promise.resolve(answer("live")), 1000, () => Promise.resolve(undefined));
+    const { strategy, settle } = strategyOf(store, () => Promise.resolve(answer("live")));
+    const response = await networkFirst(page("/?view=product"), "/", strategy, 1000, () => Promise.resolve(undefined));
 
     await expect(response.text()).resolves.toBe("live");
+    await settle();
     await expect((await store.match("/"))?.text()).resolves.toBe("live");
   });
 
   it("with no connection shows the saved page, else the home page, else lets the failure through", async () => {
     const store = memoryStore({ "/resume/": answer("saved résumé"), "/": answer("saved home") });
-    const offline = () => Promise.reject(new TypeError("Failed to fetch"));
+    const { strategy } = strategyOf(store, () => Promise.reject(new TypeError("Failed to fetch")));
     const home = () => store.match("/");
 
-    await expect((await networkFirst(page("/resume/"), "/resume/", store, offline, 1000, home)).text()).resolves.toBe("saved résumé");
-    await expect((await networkFirst(page("/hud-lab/"), "/hud-lab/", store, offline, 1000, home)).text()).resolves.toBe("saved home");
-    await expect(networkFirst(page("/x/"), "/x/", memoryStore(), offline, 1000, () => Promise.resolve(undefined))).rejects.toThrow("Failed to fetch");
+    await expect((await networkFirst(page("/resume/"), "/resume/", strategy, 1000, home)).text()).resolves.toBe("saved résumé");
+    await expect((await networkFirst(page("/hud-lab/"), "/hud-lab/", strategy, 1000, home)).text()).resolves.toBe("saved home");
+
+    const empty = strategyOf(memoryStore(), () => Promise.reject(new TypeError("Failed to fetch")));
+
+    await expect(networkFirst(page("/x/"), "/x/", empty.strategy, 1000, () => Promise.resolve(undefined))).rejects.toThrow("Failed to fetch");
   });
 
-  it("shows the saved page when the network is slower than the wait, and keeps the late answer for next time", async () => {
-    const store = memoryStore({ "/": answer("saved") });
+  it("on a slow connection shows the saved page, keeping the late answer, and waits for a page never saved rather than show home", async () => {
     let arrive: (response: Response) => void = () => undefined;
     const slow = () => new Promise<Response>((resolve) => {
       arrive = resolve;
     });
+    const store = memoryStore({ "/": answer("saved") });
+    const { strategy, settle } = strategyOf(store, slow);
 
-    await expect((await networkFirst(page("/"), "/", store, slow, 10, () => Promise.resolve(undefined))).text()).resolves.toBe("saved");
-
+    await expect((await networkFirst(page("/"), "/", strategy, 10, () => Promise.resolve(undefined))).text()).resolves.toBe("saved");
     arrive(answer("late"));
-    await new Promise((resolve) => {
-      setTimeout(resolve, 0);
-    });
+    await settle();
+    await settle();
     await expect((await store.match("/"))?.text()).resolves.toBe("late");
+
+    const home = jest.fn(() => store.match("/"));
+    const unsaved = networkFirst(page("/hud-lab/"), "/hud-lab/", strategyOf(store, slow).strategy, 10, home);
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 30);
+    });
+    arrive(answer("the lab"));
+    await expect((await unsaved).text()).resolves.toBe("the lab");
+    expect(home).not.toHaveBeenCalled();
   });
 
   it("asks Google's font stylesheet again with CORS, so it can be kept, and leaves every other request as it was", () => {

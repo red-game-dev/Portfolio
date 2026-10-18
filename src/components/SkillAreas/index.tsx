@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useCallback, useLayoutEffect, useRef } from "react";
+import { FC, useCallback, useLayoutEffect, useRef } from "react";
 
 import tw, { styled } from "twin.macro";
 
@@ -49,7 +49,7 @@ const Drawings = tw.div`mt-[22px]`;
 
 // An item's place in the area, for a switch that brings them in one after another, and a scattered place (a stride
 // coprime with the count) for one that brings them in at random, the same way every time.
-const placeOf = (index: number, count: number) => ({ "--i": index, "--s": (index * 7) % Math.max(count, 1) } as CSSProperties);
+const placeOf = (index: number, count: number) => ({ "--i": index, "--s": (index * 7) % Math.max(count, 1) });
 
 // Too many areas to read as one wall of tags, so one area is open at a time. Every area stays in the page,
 // the closed ones hidden, so search engines and find in page still reach them. The drawings after them show

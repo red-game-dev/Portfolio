@@ -139,7 +139,7 @@ export const LensCard: FC<LensCardProps> = ({
       data-lens-card={lens}
       onClick={() => onChoose(lens)}
       onKeyDown={onKeyDown}
-      style={{ "--lens-accent": accent.color, "--lens-rgb": accent.rgb } as React.CSSProperties}
+      style={{ "--lens-accent": accent.color, "--lens-rgb": accent.rgb }}
     >
       <Portrait>
         <Sprite>

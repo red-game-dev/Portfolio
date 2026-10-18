@@ -1,4 +1,4 @@
-import { CSSProperties, FC } from "react";
+import { FC } from "react";
 
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -57,7 +57,7 @@ export const AbilityBar: FC<AbilityBarProps> = ({ content, rows, boosts, weapons
               )}
               <SlotCount aria-hidden="true">{state.count}</SlotCount>
               {state.cooldown && (
-                <Cooldown aria-hidden="true" style={{ "--cool": state.cooldown.share } as CSSProperties}>{state.cooldown.seconds}</Cooldown>
+                <Cooldown aria-hidden="true" style={{ "--cool": state.cooldown.share }}>{state.cooldown.seconds}</Cooldown>
               )}
               {state.isOn && <Left aria-hidden="true" style={{ transform: `scaleX(${state.left})` }} />}
             </>

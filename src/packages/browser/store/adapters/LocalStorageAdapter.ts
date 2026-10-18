@@ -28,7 +28,9 @@ export class LocalStorageAdapter implements StoreAdapter {
     try {
       const raw = this.storage.getItem(this.full(key));
 
-      return Promise.resolve(raw === null ? undefined : JSON.parse(raw) as unknown);
+      const value: unknown = raw === null ? undefined : JSON.parse(raw);
+
+      return Promise.resolve(value);
     } catch (error) {
       return Promise.reject(error);
     }

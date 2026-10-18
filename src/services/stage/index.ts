@@ -41,8 +41,9 @@ const stages = new StageService(RENDERING.mode === "2d" ? [] : [
 // How much the stage draws on this device to begin with: less where memory or cores are few, and a step down on a
 // touch screen, whose memory a browser may not say (Safari never does); the frames then tell it to go lower or not.
 const startingQuality = (): number => {
-  const device = typeof navigator === "undefined" ? null : (navigator as Navigator & { deviceMemory?: number });
-  const memory = device?.deviceMemory;
+  const device = typeof navigator === "undefined" ? null : navigator;
+  // Only Chromium says how much memory there is.
+  const memory = device && "deviceMemory" in device && typeof device.deviceMemory === "number" ? device.deviceMemory : undefined;
   const cores = device?.hardwareConcurrency ?? 8;
   const isTouch = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
   const guess = (memory ?? 8) <= 2 || cores <= 2 ? 1 : (memory ?? 8) <= 4 || cores <= 4 ? 2 : 3;

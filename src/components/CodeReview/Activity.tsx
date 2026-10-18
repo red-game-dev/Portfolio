@@ -208,7 +208,7 @@ const cellAt = (year: number, day: number) => {
 
 // One path per level, so a year of days is five elements rather than 365.
 const toPaths = (year: number, levels: string) => {
-  const paths = LEVEL_OPACITY.map(() => [] as string[]);
+  const paths = LEVEL_OPACITY.map((): string[] => []);
 
   Array.from(levels).forEach((level, day) => {
     const { x, y } = cellAt(year, day);

@@ -1,3 +1,4 @@
+import { recordOf } from "@/packages/core/domain";
 import { boxDistance, boxOf, ellipsoid, roundCone, smoothMin, sphere } from "@/packages/graphics/sdf";
 import type { Box, Primitive } from "@/packages/graphics/sdf";
 import type { JointTurns } from "@/packages/graphics/stage3d";
@@ -251,7 +252,7 @@ export const handField = (anatomy: HandAnatomy, turns: JointTurns = []): HandFie
   ];
   const [arm, palm, ...digits] = groups;
   const shapes = groups.flatMap((group) => group.primitives);
-  const frames = Object.fromEntries(DIGITS.map((digit) => [digit, poseFrame(restFrames[digit], joints[digit], posed)])) as Record<DigitName, DigitFrame>;
+  const frames = recordOf(DIGITS, (digit) => poseFrame(restFrames[digit], joints[digit], posed));
 
   return {
     groups,

@@ -2,7 +2,9 @@
 // what the value is.
 export const parseJson = (text: string): unknown => {
   try {
-    return JSON.parse(text) as unknown;
+    const parsed: unknown = JSON.parse(text);
+
+    return parsed;
   } catch {
     return undefined;
   }

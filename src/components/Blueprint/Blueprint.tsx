@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useEffect, useId, useRef, useState } from "react";
+import { FC, useEffect, useId, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -119,7 +119,7 @@ const defaultView = (lens: Lens, hasFlow: boolean): View => {
 };
 
 // A switch's item in its place, for a section theme's switch that takes them in turn.
-const itemAt = (index: number) => ({ "data-switch-item": true, "style": { "--i": index } as CSSProperties });
+const itemAt = (index: number) => ({ "data-switch-item": true, "style": { "--i": index } });
 
 const JourneyList: FC<{ journeys: BlueprintJourney[] }> = ({ journeys }) => (
   <Journeys>

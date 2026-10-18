@@ -167,12 +167,14 @@ const within = (inner: Rect, outer: Rect) => across(inner, outer) && inner.top >
 // Overlaps the HUD is known to have, by screen, moment and layout, as CI's Linux browser measures them: none since the
 // grid, and a new one is to be fixed rather than listed. An entry that no longer happens fails there too, so the list
 // only ever shrinks (elsewhere, where fonts render a pixel apart, it is only noted).
-const KNOWN = known as Record<string, string[]>;
+const isKnown = (value: unknown): value is Record<string, string[]> => typeof value === "object" && value !== null &&
+  Object.values(value).every((pairs) => Array.isArray(pairs) && pairs.every((pair) => typeof pair === "string"));
+const KNOWN: Record<string, string[]> = isKnown(known) ? known : {};
 
 for (const screen of SCREENS) {
   for (const { moment, layout } of CASES) {
     const name = `${screen.name} ${moment} ${layout}`;
-    const isHudMoment = (HUD_MOMENTS as readonly string[]).includes(moment);
+    const isHudMoment = HUD_MOMENTS.some((hudMoment) => hudMoment === moment);
 
     test(`the HUD's panels never overlap or leave the screen: ${name}`, async ({ page }) => {
       await page.setViewportSize({ width: screen.width, height: screen.height });

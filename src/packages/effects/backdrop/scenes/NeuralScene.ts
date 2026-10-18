@@ -102,7 +102,9 @@ export class NeuralScene implements Scene {
     context.fillStyle = this.options.nodeColor;
     this.nodes.forEach((node) => context.fillRect(Math.round(node.x) - 1, Math.round(node.y) - 1, 2, 2));
 
-    if (this.glow) {
+    const glow = this.glow;
+
+    if (glow) {
       context.globalAlpha = strength;
       this.pulses.forEach((pulse) => {
         const from = this.nodes[pulse.from];
@@ -110,7 +112,7 @@ export class NeuralScene implements Scene {
         const x = lerp(from.x, to.x, pulse.progress);
         const y = lerp(from.y, to.y, pulse.progress);
 
-        context.drawImage((this.glow as DrawableSurface).surface, x - 9, y - 9, 18, 18);
+        context.drawImage(glow.surface, x - 9, y - 9, 18, 18);
       });
     }
   }

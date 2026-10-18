@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -121,7 +121,7 @@ const clearAll = (pending: number[]) => {
 };
 
 const faceOf = (method: PaymentMethodId) =>
-  ({ "--face-from": PAYMENT_LOOKS[method].face[0], "--face-to": PAYMENT_LOOKS[method].face[1] }) as CSSProperties;
+  ({ "--face-from": PAYMENT_LOOKS[method].face[0], "--face-to": PAYMENT_LOOKS[method].face[1] });
 
 // A card terminal the reader pays at: every way to pay my own systems took, each meeting the terminal its
 // own way. A payment that goes through opens the section's next drawing, which plays its own switch. With

@@ -61,7 +61,8 @@
         }
       }
     ],
-    "@typescript-eslint/consistent-type-assertions": "error",
+    "@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "never" }],
+    "@typescript-eslint/no-non-null-assertion": "error",
     "@typescript-eslint/consistent-type-definitions": "error",
     "@typescript-eslint/no-inferrable-types": "off",
     "@typescript-eslint/restrict-template-expressions": "off",
@@ -244,6 +245,13 @@
             ]
           }
         ]
+      }
+    },
+    {
+      "files": ["__tests__/**/*.ts", "__tests__/**/*.tsx"],
+      "rules": {
+        "@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "as", "objectLiteralTypeAssertions": "allow" }],
+        "@typescript-eslint/no-non-null-assertion": "off"
       }
     }
   ]

@@ -1,4 +1,4 @@
-import { CSSProperties, MouseEvent, useRef, useState } from "react";
+import { MouseEvent, useRef, useState } from "react";
 
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { faChevronRight, faEnvelope, faFileArrowDown, faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -56,9 +56,9 @@ const stopStyle = (stop: JourneyStop, next: JourneyStop) => ({
   "--zone": accentOf(stop),
   "--zone-rgb": rgbChannels(accentOf(stop)),
   "--next-zone": accentOf(next),
-} as CSSProperties);
+});
 
-const hereStyle = (stop: JourneyStop) => ({ "--here": accentOf(stop), "--here-rgb": rgbChannels(accentOf(stop)) } as CSSProperties);
+const hereStyle = (stop: JourneyStop) => ({ "--here": accentOf(stop), "--here-rgb": rgbChannels(accentOf(stop)) });
 
 // The journey on a phone, drawn as a route: a real button opens a full screen menu where every stop is a
 // node on one line in its zone's colour, the stops behind the reader filled in, the one they are at

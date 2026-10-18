@@ -1,4 +1,5 @@
 import { AUDIENCE_ANCHORS, CASE_STUDY_ANCHORS, SECTION_IDS } from "@/config/sections";
+import { keysOf } from "@/packages/core/domain";
 import { hexHash } from "@/packages/encoding/hash";
 import { activityStats } from "@/packages/insights/activity";
 import { startYear } from "@/packages/insights/career";
@@ -6,7 +7,6 @@ import { Command, error, heading, output, system } from "@/packages/interaction/
 import { clamp } from "@/packages/math/clamp";
 import { collapseWhitespace, fill } from "@/packages/text/format";
 import { CommandContext, GROUPS } from "@/services/terminal/commands/shared";
-import { Audience } from "@/types/case-studies";
 
 // See the work.
 export const createWorkCommands = (context: CommandContext): Command[] => {
@@ -47,7 +47,7 @@ export const createWorkCommands = (context: CommandContext): Command[] => {
       usage: "cases [payments|ai|architecture]",
       summary: "Case studies, optionally for one kind of role",
       run: ([audience]) => {
-        const filter = (Object.keys(AUDIENCE_ANCHORS) as Audience[]).find((key) => key === audience?.toLowerCase());
+        const filter = keysOf(AUDIENCE_ANCHORS).find((key) => key === audience?.toLowerCase());
         const list = filter ? data.caseStudies.filter((item) => item.audiences.includes(filter)) : data.caseStudies;
 
         return {

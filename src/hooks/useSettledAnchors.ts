@@ -25,9 +25,10 @@ const targetOf = (link: HTMLAnchorElement) => (link.origin === window.location.o
 // Whether this page was opened anew rather than reloaded or returned to, when the browser puts the reader back where
 // they were, which a landing must not undo.
 const isFreshVisit = () => {
-  const entry = performance.getEntriesByType?.("navigation")[0] as PerformanceNavigationTiming | undefined;
+  const entry = performance.getEntriesByType?.("navigation")[0];
+  const type = entry && "type" in entry ? entry.type : undefined;
 
-  return entry?.type !== "reload" && entry?.type !== "back_forward";
+  return type !== "reload" && type !== "back_forward";
 };
 
 // Every same page link (the menu, the first screen's chips, the scroll cue) is a smooth scroll, whether the

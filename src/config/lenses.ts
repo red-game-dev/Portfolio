@@ -1,4 +1,5 @@
 import { ZONE_ACCENTS } from "@/config/zones";
+import { isOneOf } from "@/packages/core/domain";
 import { rgbChannels } from "@/packages/graphics/colour";
 
 export type Lens = "recruiter" | "product" | "engineer";
@@ -42,7 +43,7 @@ export const LENS_ACCENTS: Record<Lens, { color: string; rgb: string }> = {
 // Character select stats run from 1 to this.
 export const LENS_STAT_MAX = 5;
 
-export const isLens = (value: unknown): value is Lens => typeof value === "string" && (LENSES as string[]).includes(value);
+export const isLens = (value: unknown): value is Lens => isOneOf(LENSES, value);
 
 // The view a link asks for (?view=recruiter), if it names one.
 export const lensFromSearch = (search: string): Lens | null => {

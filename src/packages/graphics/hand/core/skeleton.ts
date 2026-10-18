@@ -1,3 +1,4 @@
+import { recordOf } from "@/packages/core/domain";
 import type { PosedSkeleton, Skeleton, SkeletonJoint } from "@/packages/graphics/stage3d";
 import { DEG } from "@/packages/math/angles";
 import { add, cross, dot, normalize, rotate, scale, sub, Vec3, vec3 } from "@/packages/math/space";
@@ -117,7 +118,7 @@ export const handSkeleton = (anatomy: HandAnatomy): Skeleton => {
 export const digitJoints = (skeleton: Skeleton): Record<DigitName, number[]> => {
   const jointOf = new Map(skeleton.joints.map((joint, index) => [joint.name, index]));
 
-  return Object.fromEntries(DIGITS.map((digit) => [digit, jointNamesOf(digit).map((name) => jointOf.get(name) ?? 0)])) as Record<DigitName, number[]>;
+  return recordOf(DIGITS, (digit) => jointNamesOf(digit).map((name) => jointOf.get(name) ?? 0));
 };
 
 // A digit's frame once the skeleton is posed: its joints where they went, and each segment's axes turned with the bone

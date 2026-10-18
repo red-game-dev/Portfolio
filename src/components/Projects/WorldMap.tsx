@@ -167,7 +167,7 @@ export const WorldMap: FC<WorldMapProps> = ({ projects, activeKind, describe, hi
           <Region
             key={project.title}
             type="button"
-            style={{ ...place(cell, grid), "--kind": KIND_COLOURS[project.kind] } as CSSProperties}
+            style={{ ...place(cell, grid), "--kind": KIND_COLOURS[project.kind] }}
             isDim={activeKind !== null && project.kind !== activeKind}
             isCurrent={!project.to}
             aria-label={describe(project)}

@@ -2,6 +2,8 @@
 // vertex's place, the way it faces and where it falls on its pictures. Only what a still model needs is read (no
 // scenes, skins or animation), so it stays small and has no renderer behind it.
 
+import { isOneOf, isRecord } from "@/packages/core/domain";
+
 export interface GlbMesh {
   positions: Float32Array;
   normals: Float32Array;
@@ -14,12 +16,14 @@ export interface GlbPart {
   mesh: GlbMesh;
 }
 
+// What is read of an accessor; its type is checked as it is read, since a model may hold kinds (a skin's matrices) that
+// a still model never reads.
 interface Accessor {
   bufferView: number;
   byteOffset?: number;
   componentType: number;
   count: number;
-  type: "SCALAR" | "VEC2" | "VEC3" | "VEC4";
+  type: string;
 }
 
 interface BufferView {
@@ -27,17 +31,52 @@ interface BufferView {
   byteStride?: number;
 }
 
-interface Gltf {
-  accessors: Accessor[];
-  bufferViews: BufferView[];
-  meshes: Array<{ name?: string; primitives: Array<{ attributes: Record<string, number>; indices?: number }> }>;
+interface GltfPrimitive {
+  attributes: Record<string, number>;
+  indices?: number;
 }
+
+interface GltfMesh {
+  name?: string;
+  primitives: GltfPrimitive[];
+}
+
+// Accessors stay unread until a mesh names one, then each is checked as it is read: a model may hold some (sparse ones,
+// a skin's) that a still model never reads, and those must not keep it from loading.
+interface Gltf {
+  accessors: unknown[];
+  bufferViews: BufferView[];
+  meshes: GltfMesh[];
+}
+
+const ACCESSOR_TYPES = ["SCALAR", "VEC2", "VEC3", "VEC4"] as const;
+
+type AccessorType = typeof ACCESSOR_TYPES[number];
+
+const isOptionalNumber = (value: unknown): boolean => value === undefined || typeof value === "number";
+
+const isAccessor = (value: unknown): value is Accessor => isRecord(value) && typeof value.bufferView === "number" &&
+  isOptionalNumber(value.byteOffset) && typeof value.componentType === "number" && typeof value.count === "number" &&
+  typeof value.type === "string";
+
+const isBufferView = (value: unknown): value is BufferView => isRecord(value) && isOptionalNumber(value.byteOffset) &&
+  isOptionalNumber(value.byteStride);
+
+const isPrimitive = (value: unknown): value is GltfPrimitive => isRecord(value) && isRecord(value.attributes) &&
+  Object.values(value.attributes).every((index) => typeof index === "number") && isOptionalNumber(value.indices);
+
+const isMesh = (value: unknown): value is GltfMesh => isRecord(value) && (value.name === undefined || typeof value.name === "string") &&
+  Array.isArray(value.primitives) && value.primitives.every(isPrimitive);
+
+// The parts of a glTF this reads, checked before it is trusted.
+const isGltf = (value: unknown): value is Gltf => isRecord(value) && Array.isArray(value.accessors) &&
+  Array.isArray(value.bufferViews) && value.bufferViews.every(isBufferView) && Array.isArray(value.meshes) && value.meshes.every(isMesh);
 
 const MAGIC = 0x46546c67;
 
 const CHUNK = { json: 0x4e4f534a, binary: 0x004e4942 } as const;
 
-const WIDTH: Record<Accessor["type"], number> = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
+const WIDTH: Record<AccessorType, number> = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
 
 // Each component type's size in bytes, and how to read one.
 const COMPONENTS: Record<number, { size: number; read: (view: DataView, at: number) => number }> = {
@@ -62,7 +101,9 @@ export const parseGlb = (buffer: ArrayBuffer): GlbPart[] => {
     const type = view.getUint32(at + 4, true);
 
     if (type === CHUNK.json) {
-      gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, at + 8, length))) as Gltf;
+      const parsed: unknown = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, at + 8, length)));
+
+      gltf = isGltf(parsed) ? parsed : null;
     } else if (type === CHUNK.binary) {
       binary = new DataView(buffer, at + 8, length);
     }
@@ -71,16 +112,26 @@ export const parseGlb = (buffer: ArrayBuffer): GlbPart[] => {
   }
 
   if (!gltf || !binary || !gltf.meshes?.length) {
-    throw new Error("A binary glTF with no mesh");
+    throw new Error("A binary glTF with no mesh it can read");
   }
 
   const data = binary;
   const { accessors, bufferViews } = gltf;
   const read = (index: number): number[] => {
     const accessor = accessors[index];
+
+    if (!isAccessor(accessor)) {
+      throw new Error(`A glTF accessor that cannot be read: ${index}`);
+    }
     const bufferView = bufferViews[accessor.bufferView];
     const component = COMPONENTS[accessor.componentType];
-    const width = WIDTH[accessor.type];
+    const kind = accessor.type;
+
+    if (!isOneOf(ACCESSOR_TYPES, kind)) {
+      throw new Error(`A glTF accessor of a kind a still model does not read: ${kind}`);
+    }
+
+    const width = WIDTH[kind];
     const stride = bufferView.byteStride ?? component.size * width;
     const start = (bufferView.byteOffset ?? 0) + (accessor.byteOffset ?? 0);
     const values: number[] = [];

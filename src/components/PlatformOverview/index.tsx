@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useCallback } from "react";
+import { FC, useCallback } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -98,7 +98,7 @@ export const PlatformOverview: FC<PlatformOverviewProps> = ({ intro, expertise, 
         <TilePanel key={group.label} {...panelProps(index)}>
           <Tiles>
           {group.tiles.map((tile, order) => (
-            <Tile key={tile.name} data-switch-item style={{ "--i": order } as CSSProperties}>
+            <Tile key={tile.name} data-switch-item style={{ "--i": order }}>
               {order === 0 && <Dimension data-switch-dimension aria-hidden="true" />}
               <TileName>{tile.name}</TileName>
               <TileDetail>{tile.detail}</TileDetail>

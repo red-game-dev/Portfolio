@@ -1,4 +1,4 @@
-import { CSSProperties, FC, Fragment, HTMLAttributes, ReactNode } from "react";
+import { FC, Fragment, HTMLAttributes, ReactNode } from "react";
 
 import { isPaymentEffect, PaymentEffect } from "@/components/SwitchStage/config";
 import { Stage, SwitchLayer } from "@/components/SwitchStage/effects";
@@ -27,7 +27,7 @@ export const SwitchStage: FC<SwitchStageProps> = ({ switcher, children, style, p
     "--beam-to": direction === 1 ? "calc(100cqw - 3px)" : "0",
     "containerType": "inline-size",
     ...style,
-  } as CSSProperties;
+  };
 
   return (
     <Stage ref={ref} effect={effect} style={stageStyle} {...rest}>

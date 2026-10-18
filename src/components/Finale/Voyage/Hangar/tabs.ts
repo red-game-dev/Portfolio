@@ -1,4 +1,5 @@
 import { questsDone } from "@/components/Finale/Voyage/quests";
+import { isRecord } from "@/packages/core/domain";
 import type { ArmoryView, CareerView, EconomyView, ProgressView } from "@/packages/games/voyage";
 
 // The hangar's six tabs, each with its sections in the order they show, and its accent.
@@ -47,9 +48,8 @@ export interface HangarSeen {
   quests?: number;
 }
 
-export const isHangarSeen = (value: unknown): value is HangarSeen => typeof value === "object" && value !== null &&
-  typeof (value as HangarSeen).codex === "number" && typeof (value as HangarSeen).badges === "number" &&
-  ["number", "undefined"].includes(typeof (value as HangarSeen).quests);
+export const isHangarSeen = (value: unknown): value is HangarSeen => isRecord(value) && typeof value.codex === "number" &&
+  typeof value.badges === "number" && (value.quests === undefined || typeof value.quests === "number");
 
 export interface HangarViews {
   economy: EconomyView;

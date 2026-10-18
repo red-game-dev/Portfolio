@@ -4,14 +4,17 @@ import { inflateSync } from "zlib";
 import { EMAIL_THEME } from "@/config/contact";
 import { SITE_URL } from "@/config/site";
 import portrait from "@/data/email/portrait.json";
+import { isOneOf, keysOf, recordOf } from "@/packages/core/domain";
 import { encodeGif, GifImage } from "@/packages/graphics/gif";
 import type { ContactKind } from "@/packages/messaging/contact";
 import { contactArt, contactPortrait, EmailArt, EmailArtwork } from "@/packages/messaging/contact-email";
 
-const KINDS = Object.keys(EMAIL_THEME.accents) as ContactKind[];
+const KINDS: ContactKind[] = keysOf(EMAIL_THEME.accents);
 
 // The art's pieces, each kind's bar and my portrait, and their names: each moving and at rest.
-const PIECES = [...KINDS, "portrait"];
+type Piece = ContactKind | "portrait";
+
+const PIECES: Piece[] = [...KINDS, "portrait"];
 const NAME = new RegExp(`^(${PIECES.join("|")})(-still)?\\.gif$`);
 
 // The portrait as raw pixels, deflated, written by `npm run email:portrait` from the profile picture, revealed in the
@@ -22,32 +25,37 @@ const portraitArt = () => contactPortrait(
   EMAIL_THEME.panel,
 );
 
-const drawnPieces = new Map<string, { moving: GifImage; still: GifImage }>();
+const drawnPieces = new Map<Piece, { moving: GifImage; still: GifImage }>();
 const encoded = new Map<string, Uint8Array>();
 const versions = new Map<string, string>();
 
 // A piece drawn once an instance, its motion and its rest together, since the rest is the motion's last frame.
-const pieceOf = (piece: string) => {
-  if (!drawnPieces.has(piece)) {
-    drawnPieces.set(piece, piece === "portrait"
-      ? portraitArt()
-      : contactArt(EMAIL_THEME.accents[piece as ContactKind], EMAIL_THEME.journey, EMAIL_THEME.panel));
+const pieceOf = (piece: Piece) => {
+  const known = drawnPieces.get(piece);
+
+  if (known) {
+    return known;
   }
 
-  return drawnPieces.get(piece) as { moving: GifImage; still: GifImage };
+  const drawn = piece === "portrait" ? portraitArt() : contactArt(EMAIL_THEME.accents[piece], EMAIL_THEME.journey, EMAIL_THEME.panel);
+
+  drawnPieces.set(piece, drawn);
+
+  return drawn;
 };
 
 // The email's art by its name ("message.gif", "feedback-still.gif", "portrait.gif"), encoded once an instance, or null
 // for any other name.
 export const emailArt = (name: string): Uint8Array | null => {
   const match = NAME.exec(name);
+  const named = match?.[1];
 
-  if (!match) {
+  if (!match || !isOneOf(PIECES, named)) {
     return null;
   }
 
   if (!encoded.has(name)) {
-    const piece = pieceOf(match[1]);
+    const piece = pieceOf(named);
 
     encoded.set(name, encodeGif(match[2] ? piece.still : piece.moving));
   }
@@ -58,14 +66,21 @@ export const emailArt = (name: string): Uint8Array | null => {
 // A piece's version, from the bytes of its motion and its rest, so any change to the colours, the drawing, the portrait
 // or the encoder gives it new addresses, and nothing an inbox has kept hides the new art.
 export const artVersion = (piece: string): string => {
-  if (!versions.has(piece)) {
-    const hash = createHash("sha256");
+  const known = versions.get(piece);
 
-    [`${piece}.gif`, `${piece}-still.gif`].forEach((name) => hash.update(emailArt(name) ?? new Uint8Array()));
-    versions.set(piece, hash.digest("hex").slice(0, 8));
+  if (known) {
+    return known;
   }
 
-  return versions.get(piece) as string;
+  const hash = createHash("sha256");
+
+  [`${piece}.gif`, `${piece}-still.gif`].forEach((name) => hash.update(emailArt(name) ?? new Uint8Array()));
+
+  const version = hash.digest("hex").slice(0, 8);
+
+  versions.set(piece, version);
+
+  return version;
 };
 
 // Where an email's art is fetched from: this deployment while it is a preview, so a preview's emails show what it would
@@ -84,7 +99,7 @@ export const emailArtLinks = (origin = artOrigin(), versionOf = artVersion): Ema
   };
 
   try {
-    const bars = Object.fromEntries(KINDS.map((kind) => [kind, linkOf(kind)])) as Record<ContactKind, EmailArt>;
+    const bars = recordOf(KINDS, linkOf);
 
     try {
       return { bars, portrait: linkOf("portrait") };

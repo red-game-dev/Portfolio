@@ -1,3 +1,4 @@
+import { isRecord } from "@/packages/core/domain";
 import type { WarmMessage } from "@/sw/service-worker";
 
 // The site's offline copy: the service worker built from src/sw/service-worker.ts into /sw.js. It is registered once
@@ -10,7 +11,12 @@ export const SERVICE_WORKER_URL = "/sw.js";
 // How many pictures are fetched at once while the copy is made.
 const AT_ONCE = 4;
 
-const savesData = (): boolean => (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+// A browser that says its connection should save data (Chromium's navigator.connection; others say nothing).
+const savesData = (): boolean => {
+  const connection: unknown = "connection" in navigator ? navigator.connection : undefined;
+
+  return isRecord(connection) && connection.saveData === true;
+};
 
 // What the page fetched before the worker could see it: its pictures, fonts and scripts so far.
 const fetchedSoFar = (): string[] => performance.getEntriesByType("resource").map((entry) => entry.name);

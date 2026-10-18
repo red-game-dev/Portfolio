@@ -17,7 +17,7 @@ export const layoutCentreOf = (element: HTMLElement): Point => {
   while (at) {
     x += at.offsetLeft;
     y += at.offsetTop;
-    at = at.offsetParent as HTMLElement | null;
+    at = at.offsetParent instanceof HTMLElement ? at.offsetParent : null;
   }
 
   return { x, y };

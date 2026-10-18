@@ -2,7 +2,7 @@ export { MAILTO_MOST, MailtoChannel } from "./adapters/MailtoChannel";
 export { CONTACT_LIMITS } from "./config";
 export { ContactChannel } from "./core/ContactChannel";
 export { FallbackChannel } from "./core/FallbackChannel";
-export { CONTACT_PROBLEMS, CONTACT_STATUS } from "./domain/types";
+export { CONTACT_PROBLEMS, CONTACT_REFUSALS, CONTACT_STATUS } from "./domain/types";
 export { isContactRequest } from "./guards/isContactRequest";
 export { contactMail } from "./mappers/contactMail";
 export { ContactDelivery } from "./services/ContactDelivery";

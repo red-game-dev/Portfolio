@@ -356,7 +356,7 @@ export const Entrance: FC<EntranceProps> = ({ lens, content, counts, candidate, 
   }, [candidate, content, lens, onDone]);
 
   return (
-    <Frame role="status" style={{ "--lens-accent": accent.color, "--lens-rgb": accent.rgb } as React.CSSProperties}>
+    <Frame role="status" style={{ "--lens-accent": accent.color, "--lens-rgb": accent.rgb }}>
       {lens === "recruiter" && <RecruiterEntrance content={content.recruiter} candidate={candidate} />}
       {lens === "product" && <ProductEntrance content={content.product} />}
       {lens === "engineer" && <EngineerEntrance content={content.engineer} counts={counts} />}

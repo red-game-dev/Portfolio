@@ -1,4 +1,4 @@
-import { CSSProperties, FC, useRef } from "react";
+import { FC, useRef } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
@@ -139,7 +139,7 @@ export const About: FC<AboutProps> = ({
             ))}
           </Lead>
         </Top>
-        <Proof style={{ "--columns": balancedColumns(proof.length, PROOF_COLUMNS) } as CSSProperties}>
+        <Proof style={{ "--columns": balancedColumns(proof.length, PROOF_COLUMNS) }}>
           {proof.map((figure) => (
             <Figure key={figure.label}>
               <FigureLabel>{figure.label}</FigureLabel>

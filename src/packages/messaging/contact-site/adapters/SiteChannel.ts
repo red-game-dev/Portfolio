@@ -1,5 +1,6 @@
+import { isOneOf, isRecord } from "@/packages/core/domain";
 import { ApiClient, RetryPolicy } from "@/packages/http/api-client";
-import { CONTACT_PROBLEMS, CONTACT_STATUS, ContactChannel, ContactProblem, ContactRefusal, ContactRequest, Delivery } from "@/packages/messaging/contact";
+import { CONTACT_PROBLEMS, CONTACT_REFUSALS, ContactChannel, ContactProblem, ContactRefusal, ContactRequest, Delivery } from "@/packages/messaging/contact";
 
 // How long the answer to whether the site can send is kept, and how close together asks share one request, so every
 // form on a page (a card and the finale) asks once. The server's own answer is cached at the edge as long.
@@ -14,13 +15,14 @@ const SEND_TIMEOUT_MS = 25 * 1000;
 
 // The refusal and problems in a server's answer, only those it knows.
 const refusalIn = (data: unknown): { refusal: ContactRefusal; problems: ContactProblem[] } | null => {
-  if (typeof data !== "object" || data === null || !("error" in data) || !(Object.keys(CONTACT_STATUS) as unknown[]).includes(data.error)) {
+  if (!isRecord(data)) {
     return null;
   }
 
-  const listed = "problems" in data && Array.isArray(data.problems) ? data.problems as unknown[] : [];
+  const refusal = data.error;
+  const listed: unknown[] = Array.isArray(data.problems) ? data.problems : [];
 
-  return { refusal: data.error as ContactRefusal, problems: CONTACT_PROBLEMS.filter((problem) => listed.includes(problem)) };
+  return isOneOf(CONTACT_REFUSALS, refusal) ? { refusal, problems: CONTACT_PROBLEMS.filter((problem) => listed.includes(problem)) } : null;
 };
 
 // The site's own server, through an instance of the shared client: a timeout for each kind of call, and a retry for

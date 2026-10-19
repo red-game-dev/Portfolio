@@ -68,6 +68,21 @@ describe("DevOps guide and console", () => {
     expect(screen.getByRole("status")).toHaveTextContent(`${devops.console.stacks.mmo}: live on AWS.`);
   });
 
+  test("a stack on its way when the guide changes ships where the new plan puts it, not the old", () => {
+    renderSection();
+
+    fireEvent.click(screen.getByRole("button", { name: `${devops.console.deploy}: ${devops.console.stacks.matrix}` }));
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+    fireEvent.click(screen.getByLabelText(devops.guide.questions.traffic.options.spiky));
+    settle();
+
+    expect(screen.getByRole("status")).toHaveTextContent(`${devops.console.stacks.matrix}: live on Vercel.`);
+    expect(screen.getByText("Live on Vercel")).toBeInTheDocument();
+    expect(screen.getByTestId("deploys")).toHaveTextContent("1");
+  });
+
   test("a move takes a stack somewhere else with no downtime, and every universe can ship in turn", () => {
     renderSection();
 

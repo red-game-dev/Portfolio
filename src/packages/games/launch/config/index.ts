@@ -68,7 +68,7 @@ export const VEHICLES: Readonly<Record<LaunchVehicle, VehicleSpec>> = {
   heavy: {
     heightM: 98,
     towerM: 118,
-    milestones: [["maxQ", 0.2], ["boosterSeparation", 0.34], ["meco", 0.55], ["stageSeparation", 0.59], ["fairing", 0.7], ["seco", 0.92]],
+    milestones: [["maxQ", 0.2], ["boosterSeparation", 0.34], ["meco", 0.55], ["stageSeparation", 0.59], ["fairing", 0.64], ["seco", 0.92]],
   },
   steel: {
     heightM: 121,

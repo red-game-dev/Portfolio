@@ -18,8 +18,9 @@ import { newEconomyProfile } from "./Hangar";
 // the pilot's progress, 5 the DevOps universe as the fourth of a run.
 const VERSION = 5;
 
-// The DevOps universe came in fourth, after the chain: a story chapter at or past it moves on one, and so do the stars
-// won in a universe at or past it (keyed by its place in a run, from 0).
+// The DevOps universe came in fourth, after the chain: a story chapter at or past it moves on one, and so does the most
+// universes a run reached that it counts first, once that reached the old fourth; and so do the stars won in a universe
+// at or past it (keyed by its place in a run, from 0).
 const DEVOPS_CHAPTER = 4;
 const DEVOPS_UNIVERSE = 3;
 
@@ -28,8 +29,9 @@ const makeRoomForDevops = (data: Record<string, unknown>): Record<string, unknow
   const story = career && isRecord(career.story) ? career.story : null;
   const progress = isRecord(data.progress) ? data.progress : null;
   const stars = progress && isRecord(progress.stars) ? progress.stars : null;
+  const reached = (value: unknown, index: number) => (index === 0 && typeof value === "number" && value >= DEVOPS_CHAPTER ? value + 1 : value);
   const movedStory = story && typeof story.chapter === "number" && story.chapter >= DEVOPS_CHAPTER
-    ? { ...career, story: { ...story, chapter: story.chapter + 1 } }
+    ? { ...career, story: { ...story, chapter: story.chapter + 1, progress: Array.isArray(story.progress) ? story.progress.map(reached) : story.progress } }
     : career;
   const movedStars = stars
     ? Object.fromEntries(Object.entries(stars).map(([key, value]) => {

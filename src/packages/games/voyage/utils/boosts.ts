@@ -39,7 +39,9 @@ export const boostToFind = (random: RandomSource, place: "solar" | VoyageStyle |
   const origin: BoostOrigin = place !== null && roll < own ? place : isDeep && roll < own + away
     ? pick(random, DEEP_STYLES.filter((style) => style !== place))
     : "anywhere";
-  const choices = Object.values(BOOSTS).filter((spec) => spec.origin === origin);
+  const fromOrigin = Object.values(BOOSTS).filter((spec) => spec.origin === origin);
+  // A place with no boost of its own yet still drifts the ones found anywhere.
+  const choices = fromOrigin.length > 0 ? fromOrigin : Object.values(BOOSTS).filter((spec) => spec.origin === "anywhere");
 
   return pickWeighted(random, choices, (spec) => spec.weight)?.id ?? null;
 };

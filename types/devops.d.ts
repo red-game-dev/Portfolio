@@ -93,6 +93,8 @@ export interface DevOpsConsoleContent {
   move: string;
   // "{stack}" and "{host}" are replaced.
   shipped: string;
+  // A stack's host once it is live there: "{host}" is replaced.
+  liveOn: string;
   // "{stack}", "{from}" and "{to}" are replaced.
   moved: string;
   idle: string;

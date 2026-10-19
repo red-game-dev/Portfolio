@@ -27,6 +27,8 @@ interface Job {
   lines: string[];
   shown: number;
   isDone: boolean;
+  // The plan it was started under: a new one ships the stack again, to where that one puts it.
+  plan: HostPlan;
 }
 
 // A line a moment, and a beat on the last before the stack goes live.
@@ -80,7 +82,7 @@ const All = styled(Small)(() => [tw`mt-[10px] bg-[var(--accent)] text-[#101010] 
 
 const Screen = tw.div`flex flex-col min-w-0 bg-[#070707] border-[1px] border-solid border-[#1E1E1E]`;
 
-const Bar = tw.div`flex flex-row items-center gap-[6px] px-[12px] py-[8px] border-0 border-b-[1px] border-solid border-[#1E1E1E] text-xs text-[#777]`;
+const Bar = tw.div`flex flex-row items-center gap-[6px] px-[12px] py-[8px] border-0 border-b-[1px] border-solid border-[#1E1E1E] text-xs text-[#8a8a8a]`;
 
 const Dot = tw.span`w-[8px] h-[8px] rounded-full bg-[#2a2a2a]`;
 
@@ -107,7 +109,7 @@ const Crate = styled.span(() => [
   `,
 ]);
 
-const Ends = tw.div`flex flex-row justify-between px-[12px] pt-[6px] text-xs text-[#777]`;
+const Ends = tw.div`flex flex-row justify-between px-[12px] pt-[6px] text-xs text-[#8a8a8a]`;
 
 const Target = styled.span(() => [
   css`
@@ -140,13 +142,24 @@ export const Console: FC<ConsoleProps> = ({ content, hosts, plan }: ConsoleProps
   const [live, setLive] = useState<ReadonlySet<UniverseStack>>(() => new Set());
   const [queue, setQueue] = useState<ReadonlyArray<{ stack: UniverseStack; kind: JobKind }>>([]);
   const [job, setJob] = useState<Job | null>(null);
-  const [status, setStatus] = useState(content.idle);
+  // Numbered, so the same line said again is read out again.
+  const [status, setStatus] = useState({ text: content.idle, id: 0 });
 
   // A new plan puts every stack back where it says, not yet shipped there.
   useEffect(() => {
     setPlaced(placeAll(plan));
     setLive(new Set());
   }, [plan]);
+
+  // A stack on its way when the plan changes goes back to the front of the queue, to ship where the new plan says.
+  useEffect(() => {
+    if (!job || job.isDone || job.plan === plan) {
+      return;
+    }
+
+    setQueue((current) => [{ stack: job.stack, kind: job.kind }, ...current.filter((entry) => entry.stack !== job.stack || entry.kind !== job.kind)]);
+    setJob(null);
+  }, [job, plan]);
 
   // The next job in the queue starts once the last is done.
   useEffect(() => {
@@ -160,8 +173,8 @@ export const Console: FC<ConsoleProps> = ({ content, hosts, plan }: ConsoleProps
     const lines = next.kind === "move" ? moveScript(content, next.stack, from, to) : deployScript(content, next.stack, to);
 
     setQueue(rest);
-    setJob({ ...next, from, to, lines, shown: isReduced ? lines.length : 1, isDone: false });
-  }, [job, queue, placed, content, isReduced]);
+    setJob({ ...next, from, to, lines, shown: isReduced ? lines.length : 1, isDone: false, plan });
+  }, [job, queue, placed, plan, content, isReduced]);
 
   // A line at a time, then live.
   useEffect(() => {
@@ -180,9 +193,11 @@ export const Console: FC<ConsoleProps> = ({ content, hosts, plan }: ConsoleProps
 
       setPlaced((current) => ({ ...current, [job.stack]: job.to }));
       setLive((current) => new Set(current).add(job.stack));
-      setStatus(job.kind === "move"
+      const text = job.kind === "move"
         ? fill(content.moved, { stack, from: hostName(hosts, job.from), to: hostName(hosts, job.to) })
-        : fill(content.shipped, { stack, host: hostName(hosts, job.to) }));
+        : fill(content.shipped, { stack, host: hostName(hosts, job.to) });
+
+      setStatus((current) => ({ text, id: current.id + 1 }));
       setJob({ ...job, isDone: true });
       shipDeploy();
     }, isReduced ? 0 : SETTLE_MS);
@@ -210,7 +225,7 @@ export const Console: FC<ConsoleProps> = ({ content, hosts, plan }: ConsoleProps
           {UNIVERSE_STACKS.map((stack) => (
             <StackRow key={stack} isLive={live.has(stack)} style={{ "--stack": ZONE_ACCENTS[stack] }}>
               <StackName>{content.stacks[stack]}</StackName>
-              <StackHost>{hostName(hosts, placed[stack])}</StackHost>
+              <StackHost>{live.has(stack) ? fill(content.liveOn, { host: hostName(hosts, placed[stack]) }) : hostName(hosts, placed[stack])}</StackHost>
               <StackActions>
                 <Small type="button" onClick={() => ask(stack, "deploy")} aria-label={`${content.deploy}: ${content.stacks[stack]}`}>
                   {content.deploy}
@@ -250,7 +265,9 @@ export const Console: FC<ConsoleProps> = ({ content, hosts, plan }: ConsoleProps
             </Line>
           ))}
         </Log>
-        <Status role="status">{status}</Status>
+        <Status role="status">
+          <span key={status.id}>{status.text}</span>
+        </Status>
       </Screen>
     </Layout>
   );

@@ -48,6 +48,7 @@ export const devopsContent: Pick<PortfolioData, "devops"> = {
       deployAll: "Deploy every universe",
       move: "Move",
       shipped: "{stack}: live on {host}.",
+      liveOn: "Live on {host}",
       moved: "{stack}: moved from {from} to {to}, with no downtime.",
       idle: "Pick where it runs, then ship a universe.",
       steps: {

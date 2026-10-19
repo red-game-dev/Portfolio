@@ -25,12 +25,15 @@ const readTiming = (page) => page.evaluate(() => {
   return card && window.socialCard ? { ms: Number(card.getAttribute("data-card-ms")), fps: Number(card.getAttribute("data-card-fps")) } : null;
 });
 
-// Sends the card to a moment and waits, in real time, until it has drawn it.
+// Sends the card to a moment and waits, in real time, until it has drawn it and the browser has painted two frames
+// since, so the screenshot is that moment and not the last one painted (a fast machine outran the paint).
 const seek = async (page, at) => {
   await page.evaluate((moment) => window.socialCard.seek(moment), at);
 
   for (let tries = 0; tries < 200; tries += 1) {
     if (await page.evaluate((moment) => document.querySelector("[data-card-ready]")?.getAttribute("data-card-at") === String(moment), at)) {
+      await page.evaluate(() => new Promise((resolve) => window.paintedFrame(() => window.paintedFrame(resolve))));
+
       return;
     }
 
@@ -46,6 +49,10 @@ const browser = await chromium.launch();
 try {
   const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
 
+  // The browser's own frames, kept before the fake clock takes requestAnimationFrame over.
+  await page.addInitScript(() => {
+    window.paintedFrame = window.requestAnimationFrame.bind(window);
+  });
   await page.clock.install();
   await page.goto(`${BASE}/social-card/?record`, { waitUntil: "networkidle" });
   // Vercel's toolbar on a preview is not part of the card.

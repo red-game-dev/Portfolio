@@ -33,9 +33,10 @@ import {
   VoyageConfig,
   VoyageNotice,
   VoyageSimulation,
-  VoyageState,
 } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
+
+import { runOf } from "./fixtures/simulation";
 
 const defaults = DEFAULT_VOYAGE_CONFIG;
 const EPOCH = Date.parse("2026-10-09T12:00:00Z");
@@ -211,7 +212,7 @@ describe("voyage career", () => {
     link.attach();
     simulation.start(EPOCH);
     link.startRun();
-    (simulation.state as VoyageState).cosmos = spec;
+    runOf(simulation).cosmos = spec;
     simulation.events.emit("gate", { to: 1, name: "Veldara", isNew: true, isExit: false, isDeadEnd: false });
 
     expect(career.hasFound(codexId("stars", "binary"))).toBe(true);

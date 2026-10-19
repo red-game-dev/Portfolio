@@ -1,29 +1,69 @@
-import type { Redis } from "@upstash/redis";
+/**
+ * @jest-environment node
+ */
+import { Redis } from "@upstash/redis";
 
 import { KeyValueStore, MemoryStore, ResilientStore, StoreError, UpstashStore } from "@/packages/server/kv";
 
-type Command = [string, ...unknown[]];
+type Command = unknown[];
 
-// The slice of the Upstash client the store uses, recording each command and answering from a script.
-const fakeRedis = (answers: unknown[], commands: Command[] = []) => {
-  const record = <T>(name: string, result: T) => (...args: unknown[]) => {
-    commands.push([name, ...args]);
+// The answers Upstash sends with base64 encoding on, as the client asks for by default: every string encoded, but "OK".
+const encoded = (value: unknown): unknown => {
+  if (typeof value === "string") {
+    return value === "OK" ? value : Buffer.from(value).toString("base64");
+  }
 
-    return result;
-  };
-  const pipeline: Record<string, unknown> = { exec: () => Promise.resolve(answers) };
+  return Array.isArray(value) ? value.map(encoded) : value;
+};
 
-  Object.assign(pipeline, {
-    set: record("SET", pipeline), incrby: record("INCRBY", pipeline), get: record("GET", pipeline), zadd: record("ZADD", pipeline), pexpire: record("PEXPIRE", pipeline),
-    zremrangebyrank: record("ZREMRANGEBYRANK", pipeline),
+const urlOf = (input: string | URL | Request) => (input instanceof Request ? input.url : String(input));
+
+// Each fake Upstash by its address, so every client a test makes talks to its own.
+const servers = new Map<string, (target: string, init?: RequestInit) => Response>();
+
+beforeEach(() => {
+  jest.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    const target = urlOf(input);
+    const serve = [...servers].find(([url]) => target.startsWith(url))?.[1];
+
+    if (!serve) {
+      throw new Error(`No fake Upstash at ${target}`);
+    }
+
+    return serve(target, init);
+  });
+});
+
+afterEach(() => {
+  servers.clear();
+  jest.restoreAllMocks();
+});
+
+// The real Upstash client on a fake Upstash: each command it sends over HTTP (alone, or a pipeline's in one request) is
+// kept as it went on the wire, and answered with the next of `answers` (the last repeats), or with `failure` thrown.
+const fakeRedis = (answers: unknown[], commands: Command[] = [], failure?: Error) => {
+  const url = `https://kv-${servers.size + 1}.test`;
+  let next = 0;
+
+  servers.set(url, (target, init) => {
+    if (failure) {
+      throw failure;
+    }
+
+    const body: unknown = typeof init?.body === "string" ? JSON.parse(init.body) : null;
+    const isPipeline = target.endsWith("/pipeline");
+    const sent: unknown[] = isPipeline && Array.isArray(body) ? body : [body];
+    const replies = sent.map((command) => {
+      commands.push(Array.isArray(command) ? command : [command]);
+      next += 1;
+
+      return { result: encoded(answers[Math.min(next - 1, answers.length - 1)]) };
+    });
+
+    return new Response(JSON.stringify(isPipeline ? replies : replies[0]), { status: 200, headers: { "content-type": "application/json" } });
   });
 
-  return {
-    pipeline: () => pipeline,
-    get: record("GET", Promise.resolve(answers[0])),
-    set: record("SET", Promise.resolve(answers[0])),
-    zrange: record("ZRANGE", Promise.resolve(answers[0])),
-  } as unknown as Redis;
+  return new Redis({ url, token: "test", automaticDeserialization: false, retry: false, enableTelemetry: false });
 };
 
 describe("MemoryStore", () => {
@@ -55,7 +95,7 @@ describe("UpstashStore", () => {
     const store = new UpstashStore(fakeRedis(["OK", 3, "2", null], commands));
 
     expect(await store.add("k", 1, 2000, ["a", "b"])).toEqual({ value: 3, read: [2, 0] });
-    expect(commands).toEqual([["SET", "k", 0, { px: 2000, nx: true }], ["INCRBY", "k", 1], ["GET", "a"], ["GET", "b"]]);
+    expect(commands).toEqual([["set", "k", 0, "nx", "px", 2000], ["incrby", "k", 1], ["get", "a"], ["get", "b"]]);
   });
 
   test("get gives back strings as written and nothing else; claim is true only when it set the key", async () => {
@@ -66,7 +106,7 @@ describe("UpstashStore", () => {
   });
 
   test("a client failure becomes a StoreError", async () => {
-    const failing = { get: () => Promise.reject(new Error("ECONNRESET")) } as unknown as Redis;
+    const failing = fakeRedis([], [], new Error("ECONNRESET"));
 
     await expect(new UpstashStore(failing).get("k")).rejects.toEqual(new StoreError("ECONNRESET"));
   });
@@ -101,14 +141,14 @@ describe("ranked lists", () => {
     const commands: Command[] = [];
 
     await new UpstashStore(fakeRedis([1, 1, 0], commands)).rank("board", "R6", 60, 5000, 100);
-    expect(commands[2]).toEqual(["ZREMRANGEBYRANK", "board", 0, -101]);
+    expect(commands[2]).toEqual(["zremrangebyrank", "board", 0, -101]);
   });
 
   test("on Upstash, a member keeps its best (ZADD GT), the list's time is set once, and pairs are read back", async () => {
     const commands: Command[] = [];
 
     await new UpstashStore(fakeRedis([1, 1], commands)).rank("board", "ABC:1", 300, 5000);
-    expect(commands).toEqual([["ZADD", "board", { gt: true }, { score: 300, member: "ABC:1" }], ["PEXPIRE", "board", 5000, "NX"]]);
+    expect(commands).toEqual([["zadd", "board", "gt", 300, "ABC:1"], ["pexpire", "board", 5000, "NX"]]);
 
     expect(await new UpstashStore(fakeRedis([["XYZ:2", "500", "ABC:1", "300"]])).top("board", 2)).toEqual([
       { member: "XYZ:2", score: 500 },

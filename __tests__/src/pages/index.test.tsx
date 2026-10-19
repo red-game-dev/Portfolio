@@ -10,11 +10,19 @@ import { JOURNEY_STOPS } from "@/config/journey";
 import { LENSES } from "@/config/lenses";
 import { SECTION_IDS } from "@/config/sections";
 import { ZONE_BOUNDARIES, ZoneId } from "@/config/zones";
+import { isArrayOf, isFiniteNumber, isRecord } from "@/packages/core/domain";
 import Home from "@/pages/index";
 
-// The build hands next/image the images config from next.config.js; Jest does not, so it goes in here.
+// The build hands next/image the images config from next.config.js; Jest does not, so its qualities go in here.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { images } = require("../../../next.config.js") as { images: Partial<typeof imageConfigDefault> };
+const nextConfig: unknown = require("../../../next.config.js");
+const qualitiesOf = (config: unknown): number[] | undefined => {
+  const images = isRecord(config) ? config.images : null;
+  const qualities = isRecord(images) ? images.qualities : null;
+
+  return isArrayOf(isFiniteNumber)(qualities) ? qualities : undefined;
+};
+const images = { qualities: qualitiesOf(nextConfig) };
 
 // The whole page, in the providers _app gives it, as each view. Hydration mismatches still only show in a
 // browser; this catches a section that throws, loses its id, or logs an error while rendering.

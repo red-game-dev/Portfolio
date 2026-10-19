@@ -75,7 +75,7 @@ export class ControlSystem implements System<VoyageContext> {
         // pull returns in full: a short burn (a tap on a phone) clears the ground instead of falling straight back. A
         // world close by and nearly overhead (Earth, seen from the Moon's near side) tips the climb aside, so it rises
         // past that world rather than into it.
-        const up = ground ? climbDirection(context, ground, body) : { x: 0, y: -1 };
+        const up = ground ? climbDirection(context.state.system.bodies, ground, body) : { x: 0, y: -1 };
         const climb = ground ? Math.max(config.flight.liftoffFloor, escapeSpeed(ground.mu, ground.radius) * config.flight.liftoffClimb) : 0;
 
         ship.angle = Math.atan2(up.y, up.x);

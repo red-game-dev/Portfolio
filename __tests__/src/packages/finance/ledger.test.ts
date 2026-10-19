@@ -51,7 +51,7 @@ describe("finance/ledger", () => {
 
     books.transfer("income:bounties", "wallet", "RC", 75, "Rock shot down", 1);
 
-    const kept = JSON.parse(JSON.stringify(books.toSnapshot())) as unknown;
+    const kept: unknown = JSON.parse(JSON.stringify(books.toSnapshot()));
 
     expect(isLedgerSnapshot(kept)).toBe(true);
 

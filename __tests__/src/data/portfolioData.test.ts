@@ -8,9 +8,9 @@ import { FORGE_STATIONS } from "@/config/skills";
 import { loadSectionBlueprints, loadVentureBlueprint } from "@/data/blueprints";
 import { ALL_VENTURE_BLUEPRINTS, SECTION_BLUEPRINTS } from "@/data/blueprints/all";
 import { portfolioData } from "@/data/resume";
+import { keysOf } from "@/packages/core/domain";
 import { DEFAULT_HERO_CLASSES } from "@/packages/games/heroes";
 import { createForgeStations } from "@/services/skills";
-import { BlueprintSection } from "@/types/blueprints";
 
 const normalise = (name: string) => name.trim().toLowerCase();
 
@@ -157,7 +157,7 @@ describe("blueprints", () => {
   });
 
   test("each section's loader fetches that section's drawings, and each venture's loader its own", async () => {
-    const sections = Object.keys(SECTION_BLUEPRINTS) as BlueprintSection[];
+    const sections = keysOf(SECTION_BLUEPRINTS);
     const loaded = await Promise.all(sections.map((section) => loadSectionBlueprints(section)));
     const ventures = await Promise.all(ventureIds.map((id) => loadVentureBlueprint(id)));
 

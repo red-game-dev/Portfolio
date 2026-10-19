@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 import { ASK_ERROR_STATUS, askErrorForStatus, encodeAskEvent, normaliseQuestion, readAskEvents, SourceSplitter, withoutEmDashes } from "@/packages/ai/ask";
+import { keysOf } from "@/packages/core/domain";
 
 import { bodyOf } from "../fixtures/streams";
 
@@ -50,7 +51,7 @@ describe("the wire", () => {
   });
 
   test("one status map serves the server and the client", () => {
-    (Object.keys(ASK_ERROR_STATUS) as Array<keyof typeof ASK_ERROR_STATUS>).forEach((code) => expect(askErrorForStatus(ASK_ERROR_STATUS[code])).toBe(code));
+    keysOf(ASK_ERROR_STATUS).forEach((code) => expect(askErrorForStatus(ASK_ERROR_STATUS[code])).toBe(code));
     expect(askErrorForStatus(418)).toBe("failed");
   });
 

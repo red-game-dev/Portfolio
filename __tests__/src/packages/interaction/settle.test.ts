@@ -1,5 +1,7 @@
 import { holdAtTop, HoldView, scrollToElement, settleAtTop, SettleView } from "@/packages/interaction/scroll-frame";
 
+import { rect } from "../../fixtures/dom";
+
 // A page that fires events on demand and runs timers when told.
 const fakeView = (withScrollEnd = true) => {
   const listeners = new Map<string, Set<() => void>>();
@@ -37,7 +39,7 @@ const target = (top: number) => {
   const element = document.createElement("section");
   const scroll = jest.fn();
 
-  element.getBoundingClientRect = () => ({ top } as DOMRect);
+  element.getBoundingClientRect = () => rect({ top });
   element.scrollIntoView = scroll;
 
   return { element, scroll };
@@ -186,7 +188,7 @@ describe("holdAtTop", () => {
       place.top = 0;
     });
 
-    element.getBoundingClientRect = () => ({ top: place.top } as DOMRect);
+    element.getBoundingClientRect = () => rect({ top: place.top });
     element.scrollIntoView = scroll;
 
     return { element, place, scroll };
@@ -238,7 +240,7 @@ describe("holdAtTop", () => {
     const scroll = jest.fn();
 
     // Near the end of the page: always 300 px down, however it is scrolled.
-    element.getBoundingClientRect = () => ({ top: 300 } as DOMRect);
+    element.getBoundingClientRect = () => rect({ top: 300 });
     element.scrollIntoView = scroll;
     holdAtTop(element, view, { quiet: 1000 });
     view.frame(0);

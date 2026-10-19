@@ -1,6 +1,7 @@
 import { ManualScheduler } from "@/packages/animation/frame-loop";
 import { BackdropEngine, Scene } from "@/packages/effects/backdrop";
-import { Canvas2DContext } from "@/packages/graphics/canvas";
+
+import { FakeContext2D } from "../../../fixtures/canvas";
 
 interface RecordingScene extends Scene {
   draws: number[];
@@ -20,15 +21,8 @@ const createScene = (id: string): RecordingScene => ({
   },
 });
 
-// Only the calls the compositor makes; nothing is actually painted.
-const createContext = () => ({
-  canvas: { width: 0, height: 0 },
-  globalAlpha: 1,
-  fillStyle: "",
-  setTransform: jest.fn(),
-  clearRect: jest.fn(),
-  fillRect: jest.fn(),
-}) as unknown as Canvas2DContext;
+// Nothing is actually painted.
+const createContext = () => new FakeContext2D();
 
 const setup = (isStatic = false) => {
   const matrix = createScene("matrix");

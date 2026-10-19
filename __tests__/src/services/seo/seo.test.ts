@@ -4,6 +4,7 @@ import { join } from "path";
 import { SITE_URL } from "@/config/site";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
+import { isRecord, isText } from "@/packages/core/domain";
 import { createLlmsFullTxt, createLlmsTxt } from "@/services/seo/llms";
 import { createStructuredData, serializeStructuredData } from "@/services/seo/structuredData";
 
@@ -13,11 +14,16 @@ const HOST = SITE_URL;
 
 type Node = Record<string, unknown>;
 
-const graphOf = (page: "home" | "resume") => {
-  const graph = createStructuredData(portfolioData, seoDetails, HOST, page);
+// The graph's nodes, each read as the plain object schema.org JSON is.
+const graphOf = (page: "home" | "resume"): Node[] => {
+  const graph: unknown = createStructuredData(portfolioData, seoDetails, HOST, page);
+  const nodes = isRecord(graph) ? graph["@graph"] : null;
 
-  return typeof graph === "object" && graph !== null && "@graph" in graph ? (graph["@graph"] as unknown as Node[]) : [];
+  return Array.isArray(nodes) ? nodes.filter(isRecord) : [];
 };
+
+// The strings in a list, none where it is not one.
+const textsOf = (value: unknown): string[] => (Array.isArray(value) ? value.filter(isText) : []);
 
 // Every { "@id": ... } reference anywhere in a value.
 const references = (value: unknown): string[] => {
@@ -25,9 +31,10 @@ const references = (value: unknown): string[] => {
     return value.flatMap(references);
   }
 
-  if (typeof value === "object" && value !== null) {
+  if (isRecord(value)) {
     const entries = Object.entries(value);
-    const ref = entries.length === 1 && typeof (value as Node)["@id"] === "string" ? [(value as Node)["@id"] as string] : [];
+    const id = value["@id"];
+    const ref = entries.length === 1 && isText(id) ? [id] : [];
 
     return [...ref, ...entries.flatMap(([, child]) => references(child))];
   }
@@ -50,20 +57,26 @@ describe("SEO", () => {
 
   test("the person carries the facts a recruiter's search reads, with working profile links", () => {
     const person = graphOf("home").find((node) => node["@type"] === "Person") ?? {};
-    const sameAs = person.sameAs as string[];
+    const sameAs = textsOf(person.sameAs);
 
     expect(person.name).toBe(portfolioData.details.name);
     expect(person.jobTitle).toBe(portfolioData.cvDocument.headline);
     expect(person.worksFor).toEqual({ "@type": "Organization", "name": "Conrad Electronic Group" });
     expect(sameAs).toEqual(expect.arrayContaining([expect.stringContaining("linkedin.com/in/"), "https://github.com/red-game-dev"]));
     expect(sameAs.filter((url) => url.includes("/@"))).toEqual([]);
-    expect((person.knowsAbout as string[]).length).toBeGreaterThan(50);
+    expect(textsOf(person.knowsAbout).length).toBeGreaterThan(50);
   });
 
   test("every question has an answer, and every project date is an ISO month", () => {
     const nodes = graphOf("home");
     const faq = nodes.find((node) => node["@type"] === "FAQPage") ?? {};
-    const answers = (faq.mainEntity as Array<{ acceptedAnswer: { text: string } }>).map((question) => question.acceptedAnswer.text);
+    const questions: unknown[] = Array.isArray(faq.mainEntity) ? faq.mainEntity : [];
+    const answerOf = (question: unknown) => {
+      const answer = isRecord(question) ? question.acceptedAnswer : null;
+
+      return isRecord(answer) && isText(answer.text) ? answer.text : "";
+    };
+    const answers = questions.map(answerOf);
 
     expect(answers.filter((answer) => answer.trim().length < 20)).toEqual([]);
     expect(nodes.filter((node) => node["@type"] === "CreativeWork" && !/^\d{4}(-\d{2})?$/.test(String(node.dateCreated)))).toEqual([]);

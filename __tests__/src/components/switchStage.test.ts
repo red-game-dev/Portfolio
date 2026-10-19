@@ -46,11 +46,11 @@ describe("section theme switches", () => {
   it("give each themed subject its own switch, apart from every zone's, Web3 keeping its zone's blocks", () => {
     const own = Object.entries(THEME_EFFECTS).filter(([theme]) => theme !== "web3")
 .map(([, effect]) => effect);
-    const zones = new Set(Object.values(ZONE_EFFECTS));
+    const zones = new Set<string>(Object.values(ZONE_EFFECTS));
 
     expect(THEME_EFFECTS.web3).toBe(ZONE_EFFECTS.chain);
     expect(new Set(own).size).toBe(own.length);
-    expect(own.filter((effect) => effect && zones.has(effect as never))).toEqual([]);
+    expect(own.filter((effect) => effect && zones.has(effect))).toEqual([]);
     expect(own.every((effect) => effect && isThemeEffect(effect) && !isPaymentEffect(effect))).toBe(true);
   });
 

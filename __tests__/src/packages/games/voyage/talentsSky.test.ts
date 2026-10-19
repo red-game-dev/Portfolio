@@ -19,10 +19,9 @@ import {
   TALENTS,
   talentPoints,
   talentStats,
-  VoyageState,
 } from "@/packages/games/voyage";
 
-import { createFlying } from "./fixtures/simulation";
+import { createFlying, runOf } from "./fixtures/simulation";
 
 const at = (iso: string) => Date.parse(iso);
 const ids = (events: Array<{ id: string; isPeak: boolean }>) => events.map(({ id, isPeak }) => `${id}${isPeak ? "!" : ""}`);
@@ -92,7 +91,7 @@ describe("the real sky", () => {
 
   test("planets close together, or an outer one opposite the Sun, are read from where they really are", () => {
     const simulation = createFlying();
-    const { system } = simulation.state as VoyageState;
+    const { system } = runOf(simulation);
     const place = (id: string, x: number, y: number) => {
       const body = system.bodies.find((entry) => entry.id === id);
 

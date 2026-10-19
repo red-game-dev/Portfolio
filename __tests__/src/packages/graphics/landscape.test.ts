@@ -1,5 +1,7 @@
 import { Air, Frame, LandscapePainter, ridgeline, Scene, SkyBody, skyLight, sunColour } from "@/packages/graphics/landscape";
 
+import { FakeContext2D } from "../../fixtures/canvas";
+
 const EARTH: Air = { zenith: "#3b7bd0", horizon: "#b5d5f2", dusk: "#ff8d4d", night: "#0b1631", strength: 1, haze: 0 };
 const brightness = ([red, green, blue]: [number, number, number]) => red + green + blue;
 
@@ -50,19 +52,12 @@ describe("graphics/landscape", () => {
 
   test("a body its host can draw as it really looks is left to the host; one it cannot is drawn as a lit disc", () => {
     const arcs: number[] = [];
-    const context = {
-      globalAlpha: 1,
-      fillStyle: "",
-      strokeStyle: "",
-      lineWidth: 1,
-      createLinearGradient: () => ({ addColorStop: () => undefined }),
-      beginPath: () => undefined,
-      arc: (x: number) => arcs.push(x),
-      ellipse: () => undefined,
-      fill: () => undefined,
-      stroke: () => undefined,
-    };
-    const frame = { context, width: 800, height: 600, horizon: 400, fieldOfView: 70, drop: 0, density: 1, now: 0 } as unknown as Frame;
+    const context = Object.assign(new FakeContext2D(), {
+      arc: (x: number) => {
+        arcs.push(x);
+      },
+    });
+    const frame: Frame = { context, width: 800, height: 600, horizon: 400, fieldOfView: 70, drop: 0, density: 1, now: 0 };
     const body = (side: number, paint?: SkyBody["paint"]): SkyBody => ({
       elevation: 20, side, radius: 1, colour: "#3060c0", lit: 0.5, lightSide: 1, hasRings: false, paint,
     });

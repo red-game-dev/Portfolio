@@ -4,10 +4,22 @@
 import fs from "fs";
 import path from "path";
 
+import { isRecord, isTextArray } from "@/packages/core/domain";
+
 const ROOT = process.cwd();
-const ALIASES = Object.entries((JSON.parse(fs.readFileSync(path.join(ROOT, "tsconfig.json"), "utf8")) as {
-  compilerOptions: { paths: Record<string, string[]> };
-}).compilerOptions.paths).map(([alias, [target]]) => [alias.replace("/*", "/"), target.replace("/*", "/")] as const);
+// The path aliases tsconfig.json declares, each to its first target.
+const pathsOf = (config: unknown): Array<[string, string]> => {
+  const options = isRecord(config) ? config.compilerOptions : null;
+  const paths = isRecord(options) ? options.paths : null;
+
+  if (!isRecord(paths)) {
+    return [];
+  }
+
+  return Object.entries(paths).flatMap(([alias, targets]) => (isTextArray(targets) && targets[0] ? [[alias, targets[0]] satisfies [string, string]] : []));
+};
+const ALIASES = pathsOf(JSON.parse(fs.readFileSync(path.join(ROOT, "tsconfig.json"), "utf8")))
+  .map(([alias, target]) => [alias.replace("/*", "/"), target.replace("/*", "/")] as const);
 const EXTENSIONS = ["", ".ts", ".tsx", ".js", "/index.ts", "/index.tsx", "/index.js"];
 
 // What a module statically imports, as webpack would follow it: value imports, side effect imports and re-exports.
@@ -67,9 +79,7 @@ const firstLoad = () => {
   const externals = new Set<string>();
   const queue = ["src/pages/index.tsx", "src/pages/_app.tsx"].map((file) => path.join(ROOT, file));
 
-  while (queue.length > 0) {
-    const file = queue.pop() as string;
-
+  for (let file = queue.pop(); file !== undefined; file = queue.pop()) {
     if (seen.has(file)) {
       continue;
     }

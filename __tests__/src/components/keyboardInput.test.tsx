@@ -9,6 +9,8 @@ import { Terminal } from "@/components/Terminal";
 import { portfolioData } from "@/data/resume";
 import { createPortfolioTerminal } from "@/services/terminal/portfolioTerminal";
 
+import { instanceOf } from "../fixtures/guards";
+
 // jsdom neither scrolls elements nor brings them into view.
 beforeAll(() => {
   if (typeof HTMLElement.prototype.scrollTo !== "function") {
@@ -42,7 +44,7 @@ describe("RegionDialog", () => {
       </LensProvider>,
     );
 
-    const dialog = document.querySelector("dialog") as HTMLDialogElement;
+    const dialog = instanceOf(document.querySelector("dialog"), HTMLDialogElement);
 
     expect(fireEvent.keyDown(dialog, { key: "ArrowRight" })).toBe(false);
     expect(onNext).toHaveBeenCalledTimes(1);

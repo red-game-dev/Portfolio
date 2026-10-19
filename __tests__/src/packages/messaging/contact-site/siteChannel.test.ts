@@ -7,11 +7,14 @@ import { ApiClient } from "@/packages/http/api-client";
 import { SiteChannel } from "@/packages/messaging/contact-site";
 
 import { settled, useFetchClock } from "../../http/fixtures/fakeClock";
+import { SentConfig } from "../../http/fixtures/fetcher";
 
 const MESSAGE = { kind: "feedback" as const, message: "More case studies, please.", key: "msg-1234567" };
 
 // A fetcher answering each call with the next answer (the last repeats): a response, or a dropped connection.
-const fetcherAnswering = (answers: Array<{ status: number; body: unknown } | "dropped">, seen: string[]): CustomFetcher => (async (url, config) => {
+type Answer = { status: number; body: unknown } | "dropped";
+
+const fetcherAnswering = (answers: Answer[], seen: string[]): CustomFetcher => (async (url: string, config?: SentConfig | null) => {
   const answer = answers[Math.min(seen.length, answers.length - 1)];
 
   seen.push(`${typeof config?.method === "string" ? config.method : "GET"} ${url}`);
@@ -21,7 +24,7 @@ const fetcherAnswering = (answers: Array<{ status: number; body: unknown } | "dr
   }
 
   return new Response(JSON.stringify(answer.body), { status: answer.status, headers: { "content-type": "application/json" } });
-}) as CustomFetcher;
+});
 
 const channelWith = (answers: Array<{ status: number; body: unknown } | "dropped">, seen: string[] = []) =>
   new SiteChannel(`https://site.test/api/contact/${seen.length}-${Math.random().toString(36)

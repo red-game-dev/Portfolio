@@ -21,10 +21,10 @@ describe("the voyage's keys", () => {
   test("leave a field being typed in alone, but for Escape, so the daily board's initials can hold an H or an M", () => {
     const field = document.createElement("input");
 
-    expect(VOYAGE_KEYS.intentOf(keyPress("h", { target: field } as never))).toBeNull();
-    expect(VOYAGE_KEYS.intentOf(keyPress("m", { target: field } as never))).toBeNull();
-    expect(VOYAGE_KEYS.intentOf(keyPress("Escape", { target: field } as never))).toBe("back");
-    expect(VOYAGE_KEYS.intentOf(keyPress("h", { target: document.body } as never))).toBe("hangar");
+    expect(VOYAGE_KEYS.intentOf(keyPress("h", { target: field }))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress("m", { target: field }))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress("Escape", { target: field }))).toBe("back");
+    expect(VOYAGE_KEYS.intentOf(keyPress("h", { target: document.body }))).toBe("hangar");
   });
 
   test("name a command for every key the voyage answers, in either case", () => {
@@ -66,10 +66,10 @@ describe("the voyage's keys", () => {
     const tab = document.createElement("div");
 
     tab.setAttribute("role", "tab");
-    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: button } as never))).toBeNull();
-    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: tab } as never))).toBeNull();
-    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: document.body } as never))).toBe("brake");
-    expect(VOYAGE_KEYS.intentOf(keyPress("w", { target: button } as never))).toBe("up");
+    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: button }))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: tab }))).toBeNull();
+    expect(VOYAGE_KEYS.intentOf(keyPress(" ", { target: document.body }))).toBe("brake");
+    expect(VOYAGE_KEYS.intentOf(keyPress("w", { target: button }))).toBe("up");
   });
 
   test("pointing the way to fly, the arrows lean the ship that way on screen, two for a diagonal, and only Space brakes", () => {

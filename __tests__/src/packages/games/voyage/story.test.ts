@@ -17,9 +17,10 @@ import {
   targetOf,
   VoyageNotice,
   VoyageSimulation,
-  VoyageState,
 } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
+
+import { runOf } from "./fixtures/simulation";
 
 const EPOCH = Date.parse("2026-10-09T12:00:00Z");
 const told = { chapter: STORY.length, progress: [] };
@@ -153,7 +154,7 @@ describe("games/voyage story", () => {
     notices.length = 0;
 
     // Already two universes deep when the Matrix is told, the AI chapter opens at once.
-    const state = simulation.state as VoyageState;
+    const state = runOf(simulation);
 
     state.phase = "universe";
     state.universes = 2;

@@ -24,12 +24,11 @@ import {
   STARTER_AMMO,
   VoyageNotice,
   VoyageSimulation,
-  VoyageState,
   weaponBaseId,
 } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
 
-import { createFlying, defaults, partsOf } from "./fixtures/simulation";
+import { createFlying, defaults, partsOf, runOf } from "./fixtures/simulation";
 
 const always = () => 0;
 const never = () => 0.999;
@@ -49,7 +48,7 @@ const pilotWith = (cargo: Record<string, number> = {}, coin = 0) => {
 
 // Into a universe made from a seed, with its first faction made hostile; and someone of it spawned at a point.
 const intoUniverse = (simulation: VoyageSimulation) => {
-  const state = simulation.state as VoyageState;
+  const state = runOf(simulation);
 
   state.runSeed = 9000;
   state.universes = 5;
@@ -417,7 +416,7 @@ describe("the progress link", () => {
     expect(armory.ammoOf("missiles")).toBe(3);
     expect(simulation.state.ammo.missiles).toBe(3);
 
-    (simulation.state as VoyageState).status = "over";
+    runOf(simulation).status = "over";
     link.tick({ ...simulation.snapshot, status: "over", score: 1200 });
     expect(link.summary).toMatchObject({ score: 1200, gear: [{ base: "wings:1", rarity: "rare" }], achievements: ["firstFlight"] });
     expect(link.summary?.exp).toBeGreaterThan(0);

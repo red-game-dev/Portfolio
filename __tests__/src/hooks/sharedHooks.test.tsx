@@ -10,6 +10,9 @@ import useModalDialog from "@/hooks/useModalDialog";
 import useScrollLock, { usePageHeld } from "@/hooks/useScrollLock";
 import useSettledAnchors from "@/hooks/useSettledAnchors";
 
+import { OnScreenObserver, rect, stubCanvases } from "../fixtures/dom";
+import { instanceOf } from "../fixtures/guards";
+
 const root = () => document.documentElement.style.overflow;
 
 describe("useScrollLock", () => {
@@ -51,7 +54,7 @@ describe("useModalDialog", () => {
   it("opens and closes with its prop, holding the page while open", () => {
     const onClose = jest.fn();
     const { getByLabelText, rerender, unmount } = render(<Modal isOpen={false} onClose={onClose} />);
-    const dialog = getByLabelText("modal") as HTMLDialogElement;
+    const dialog = instanceOf(getByLabelText("modal"), HTMLDialogElement);
 
     expect(dialog.open).toBe(false);
 
@@ -104,39 +107,15 @@ const Canvas = ({ create, isEnabled = true, seed = 0 }: { create: () => FakeEngi
   return <canvas ref={ref} data-built={engine ? "yes" : "no"} />;
 };
 
-// Reports everything it observes as on screen, at once.
-class OnScreenObserver {
-  constructor(private readonly callback: IntersectionObserverCallback) {}
-
-  public observe(target: Element) {
-    this.callback([{ isIntersecting: true, intersectionRatio: 1, target } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
-  }
-
-  public disconnect() {
-    return undefined;
-  }
-
-  public unobserve() {
-    return undefined;
-  }
-}
-
 describe("useCanvasEngine", () => {
-  // Kept to put back afterwards, never called here.
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  const getContext = HTMLCanvasElement.prototype.getContext;
-  const Observer = window.IntersectionObserver;
+  let restoreCanvases: () => void = () => undefined;
 
   beforeAll(() => {
-    // The engines are fakes; any non-null context will do.
-    HTMLCanvasElement.prototype.getContext = (() => ({})) as unknown as typeof getContext;
-    window.IntersectionObserver = OnScreenObserver as unknown as typeof IntersectionObserver;
+    // The engines are fakes; any context will do.
+    restoreCanvases = stubCanvases();
   });
 
-  afterAll(() => {
-    HTMLCanvasElement.prototype.getContext = getContext;
-    window.IntersectionObserver = Observer;
-  });
+  afterAll(() => restoreCanvases());
 
   it("builds once near the screen, sizes it, and stops it on the way out", async () => {
     const engine = fakeEngine();
@@ -212,7 +191,7 @@ describe("useInView", () => {
   const Observer = window.IntersectionObserver;
 
   beforeAll(() => {
-    window.IntersectionObserver = OnScreenObserver as unknown as typeof IntersectionObserver;
+    window.IntersectionObserver = OnScreenObserver;
   });
 
   afterAll(() => {
@@ -284,7 +263,7 @@ describe("useSettledAnchors", () => {
     const scroll = jest.fn();
 
     target.id = "for-payments";
-    target.getBoundingClientRect = () => ({ top: 640 } as DOMRect);
+    target.getBoundingClientRect = () => rect({ top: 640 });
     target.scrollIntoView = scroll;
     document.body.append(target);
     window.history.replaceState(null, "", "#for-payments");
@@ -310,7 +289,7 @@ describe("useSettledAnchors", () => {
     const scroll = jest.fn();
 
     target.id = "for-payments";
-    target.getBoundingClientRect = () => ({ top: 640 } as DOMRect);
+    target.getBoundingClientRect = () => rect({ top: 640 });
     target.scrollIntoView = scroll;
     document.body.append(target);
     window.history.replaceState(null, "", "#for-payments");

@@ -90,7 +90,7 @@ describe("LaunchSimulation", () => {
   });
 
   test("every rocket calls out its own five moments in order, the last before orbit", () => {
-    (["booster", "heavy", "steel"] as LaunchVehicle[]).forEach((vehicle) => {
+    (["booster", "heavy", "steel"] satisfies LaunchVehicle[]).forEach((vehicle) => {
       const simulation = new LaunchSimulation({ width: 400, height: 260 }, { config, random: () => 0.5, site: { ...DEFAULT_LAUNCH_SITE, vehicle } });
       const called: string[] = [];
 

@@ -1,7 +1,7 @@
-import { BOOSTS, boostToFind, levelForFinds, NO_INPUT, VoyageEvents, VoyageSimulation, VoyageState } from "@/packages/games/voyage";
+import { BOOSTS, boostToFind, levelForFinds, NO_INPUT, VoyageEvents, VoyageSimulation } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
 
-import { createFlying, defaults, partsOf } from "./fixtures/simulation";
+import { createFlying, defaults, partsOf, runOf } from "./fixtures/simulation";
 
 const BURN = { ...NO_INPUT, thrust: 1 };
 
@@ -24,7 +24,7 @@ const outThere = (simulation: VoyageSimulation) => {
 
 // Through to a universe made from a seed, out of the solar system.
 const intoUniverse = (simulation: VoyageSimulation) => {
-  const state = simulation.state as VoyageState;
+  const state = runOf(simulation);
 
   state.runSeed = 9000;
   state.universes = 5;
@@ -265,7 +265,7 @@ describe("voyage boosts", () => {
 
     const shields = health.shields;
 
-    (simulation.state as VoyageState).storms.push({ angle: 0, width: Math.PI, radius: 19.9, speed: 2, strength: 1, hasHitShip: false, hasHitEarth: true });
+    runOf(simulation).storms.push({ angle: 0, width: Math.PI, radius: 19.9, speed: 2, strength: 1, hasHitShip: false, hasHitEarth: true });
     simulation.step(300);
     expect(storms.length).toBeGreaterThan(0);
     expect(storms[0]).toEqual({ strength: 0, isTurned: true });
@@ -277,10 +277,9 @@ describe("voyage boosts", () => {
     const far = createFlying();
     const { star } = near.state.system;
 
-    [[near, 12], [far, 40]].forEach(([simulation, out]) => {
-      const run = simulation as VoyageSimulation;
+    ([[near, 12], [far, 40]] as const).forEach(([run, out]) => {
       const { body } = partsOf(run);
-      const x = star.x + (out as number);
+      const x = star.x + out;
 
       Object.assign(body, { x, y: star.y, prevX: x, prevY: star.y, vx: 0, vy: 0 });
       run.boost("solarSail", 1);
@@ -407,7 +406,7 @@ describe("voyage boosts", () => {
     partsOf(simulation).ship.landedOn = "moon";
 
     for (let roll = 0; roll < 40; roll += 1) {
-      (simulation.state as VoyageState).boostReady.luckyRoll = 0;
+      runOf(simulation).boostReady.luckyRoll = 0;
       expect(simulation.boost("luckyRoll", 1)).toBe(true);
     }
 
@@ -425,7 +424,7 @@ describe("voyage boosts", () => {
     simulation.boost("gravityWell", 1);
 
     const decoy = simulation.state.decoy;
-    const state = simulation.state as VoyageState;
+    const state = runOf(simulation);
     const { body } = partsOf(simulation);
 
     expect(decoy).not.toBeNull();

@@ -11,6 +11,8 @@ import { meshSurface } from "@/packages/graphics/sdf";
 import { jointIndex, poseSkeleton, socketAt } from "@/packages/graphics/stage3d";
 import { add, cross, distance, normalize, scale, sub, vec3 } from "@/packages/math/space";
 
+import { instanceOf } from "../../fixtures/guards";
+
 const skeleton = handSkeleton(RIGHT_HAND);
 const poser = createHandPoser(RIGHT_HAND, skeleton);
 const field = handField(RIGHT_HAND);
@@ -65,10 +67,10 @@ describe("graphics/hand", () => {
   it("builds a model in a pose: skin rigged to real joints, creases and colour per vertex, a nail on each digit", () => {
     const model = buildHandModel("test", RIGHT_HAND, { spacing: 3.5, pose: HAND_POSES.card });
     const [skin, nails] = model.parts;
-    const weights = skin.mesh.skinWeights as Float32Array;
-    const joints = skin.mesh.skinIndices as Uint16Array;
-    const distal = new Set(["thumb", "index", "middle", "ring", "pinky"].map((digit) => {
-      const names = jointNamesOf(digit as "thumb");
+    const weights = instanceOf(skin.mesh.skinWeights, Float32Array);
+    const joints = instanceOf(skin.mesh.skinIndices, Uint16Array);
+    const distal = new Set((["thumb", "index", "middle", "ring", "pinky"] as const).map((digit) => {
+      const names = jointNamesOf(digit);
 
       return jointIndex(skeleton, names[names.length - 2]);
     }));
@@ -87,7 +89,7 @@ describe("graphics/hand", () => {
     expect(skin.mesh.extras?.mapped.data.every((value) => value >= 0 && value <= 1)).toBe(true);
     expect(skin.material.detail && model.textures?.[skin.material.detail]).toBeTruthy();
     expect(nails.mesh.positions.length).toBeGreaterThan(0);
-    expect([...(nails.mesh.skinIndices as Uint16Array)].filter((_, index) => index % 4 === 0).every((joint) => distal.has(joint))).toBe(true);
+    expect([...instanceOf(nails.mesh.skinIndices, Uint16Array)].filter((_, index) => index % 4 === 0).every((joint) => distal.has(joint))).toBe(true);
   });
 
   it("maps veins up the gaps between the metacarpals and across the back of the hand, none past the knuckles, and hair thinning towards them", () => {

@@ -1,32 +1,22 @@
 import { ManualScheduler } from "@/packages/animation/frame-loop";
-import { DrawableSurface } from "@/packages/graphics/canvas";
 import { Animator, keepCamera, RigActor, RigModel, RigRenderer, RigSkin } from "@/packages/graphics/rig";
 
-const fakeSurface = (width: number, height: number): DrawableSurface => {
-  const surface = { width, height } as unknown as OffscreenCanvas;
-  const context = { scale: () => undefined, translate: () => undefined, canvas: surface } as unknown as OffscreenCanvasRenderingContext2D;
-
-  return { surface, context };
-};
+import { FakeContext2D, fakeSurface } from "../../fixtures/canvas";
 
 const recordingContext = () => {
   const draws: Array<{ x: number; y: number }> = [];
   let translation = { x: 0, y: 0 };
-  const context = {
-    canvas: { width: 0, height: 0 },
-    save: () => undefined,
+  const context = Object.assign(new FakeContext2D(), {
     restore: () => {
       translation = { x: 0, y: 0 };
     },
     translate: (x: number, y: number) => {
       translation = { x: translation.x + x, y: translation.y + y };
     },
-    rotate: () => undefined,
-    scale: () => undefined,
-    setTransform: () => undefined,
-    clearRect: () => undefined,
-    drawImage: (_: unknown, x: number, y: number) => draws.push({ x: translation.x + x, y: translation.y + y }),
-  } as unknown as CanvasRenderingContext2D;
+    drawImage: (_: unknown, x: number, y: number) => {
+      draws.push({ x: translation.x + x, y: translation.y + y });
+    },
+  });
 
   return { context, draws };
 };
@@ -186,9 +176,7 @@ describe("graphics/rig", () => {
   test("the camera moves every layer but a fixed one", () => {
     const placed: Array<{ x: number; y: number }> = [];
     let matrix = { scale: 1, x: 0, y: 0 };
-    const context = {
-      canvas: { width: 0, height: 0 },
-      save: () => undefined,
+    const context = Object.assign(new FakeContext2D(), {
       restore: () => {
         matrix = { scale: 1, x: 0, y: 0 };
       },
@@ -198,9 +186,10 @@ describe("graphics/rig", () => {
       scale: (by: number) => {
         matrix = { ...matrix, scale: matrix.scale * by };
       },
-      rotate: () => undefined,
-      drawImage: (_: unknown, x: number, y: number) => placed.push({ x: matrix.x + x * matrix.scale, y: matrix.y + y * matrix.scale }),
-    } as unknown as CanvasRenderingContext2D;
+      drawImage: (_: unknown, x: number, y: number) => {
+        placed.push({ x: matrix.x + x * matrix.scale, y: matrix.y + y * matrix.scale });
+      },
+    });
     const filmed: RigModel<Skin> = {
       ...model,
       camera: () => ({ x: 25, y: 30, zoom: 2 }),

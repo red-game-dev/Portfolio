@@ -7,12 +7,12 @@ import { createForgeStations } from "@/services/skills";
 import { ForgeStation } from "@/services/skills";
 import { Character } from "@/types/roster";
 
-const station = (items: Array<[string, number]>) => ({
+const station = (items: Array<[string, number]>): ForgeStation => ({
   id: "s",
   title: "S",
   description: [],
   items: items.map(([name, years]) => ({ name, years, months: years * 12, rarity: "rare", places: [], isTracked: true })),
-}) as unknown as ForgeStation;
+});
 
 describe("glance helpers", () => {
   test("titles split into the role and the place it was held", () => {
@@ -45,7 +45,8 @@ describe("formatPeriod", () => {
 });
 
 describe("createRosterLevels", () => {
-  const character = (from: string, to?: string) => ({ tenures: [{ from, to }] }) as unknown as Character;
+  // A character of the roster's, held for these years alone.
+  const character = (from: string, to?: string): Character => ({ ...portfolioData.roster.characters[0], tenures: [{ company: "Somewhere", from, to }] });
   const levels = createRosterLevels({ asOf: "Jan 2025" });
 
   it("levels a character by whole years in the role, never below 1", () => {

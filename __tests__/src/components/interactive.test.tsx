@@ -13,6 +13,7 @@ import { portfolioData } from "@/data/resume";
 import useTabs from "@/hooks/useTabs";
 import { createForgeStations } from "@/services/skills";
 
+import { instanceOf } from "../fixtures/guards";
 import { installPointerEvents } from "./fixtures/pointer";
 
 const Tabs = ({ onSelect }: { onSelect: (next: number, previous: number) => void }) => {
@@ -146,7 +147,7 @@ describe("Carousel", () => {
 
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Beta" }));
 
-    fireEvent.keyDown(document.activeElement as HTMLElement, { key: "ArrowLeft" });
+    fireEvent.keyDown(instanceOf(document.activeElement, HTMLElement), { key: "ArrowLeft" });
 
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Alpha" }));
   });
@@ -155,7 +156,7 @@ describe("Carousel", () => {
     installPointerEvents();
     renderCarousel();
 
-    const stage = slides()[0].parentElement as HTMLElement;
+    const stage = instanceOf(slides()[0].parentElement, HTMLElement);
 
     fireEvent.pointerDown(stage, { pointerType: "mouse", clientX: 300 });
     fireEvent.pointerUp(stage, { pointerType: "mouse", clientX: 100 });
@@ -214,7 +215,7 @@ describe("LensGate", () => {
 
     const card = document.querySelector<HTMLButtonElement>("[data-lens-card=recruiter]");
 
-    fireEvent.click(card as HTMLButtonElement);
+    fireEvent.click(instanceOf(card, HTMLButtonElement));
     expect(screen.getByTestId("probe")).toHaveTextContent("recruiter entering");
     expect(JSON.parse(window.localStorage.getItem(LENS_STORAGE_KEY) ?? "null")).toBe("recruiter");
     // The entrance is its own chunk; let it arrive before the test ends.
@@ -271,7 +272,7 @@ describe("LensGate", () => {
     render(<Gate />);
     pastIntro();
 
-    const dialog = document.querySelector("dialog") as HTMLDialogElement;
+    const dialog = instanceOf(document.querySelector("dialog"), HTMLDialogElement);
 
     expect(dialog.open).toBe(true);
     fireEvent(dialog, new Event("cancel", { cancelable: true }));

@@ -10,7 +10,7 @@ const { voyage } = portfolioData.finale;
 describe("the voyage's encounters in words", () => {
   test("every perk, station service and boss attack has its words", () => {
     expect(PERK_IDS.filter((id) => !voyage.encounters.perks.names[id]?.name || !voyage.encounters.perks.names[id]?.note)).toEqual([]);
-    expect(["repair", "refuel", "recharge"].every((id) => voyage.encounters.station.services[id as "repair"])).toBe(true);
+    expect((["repair", "refuel", "recharge"] as const).every((id) => voyage.encounters.station.services[id])).toBe(true);
     expect(BOSS_MOVES[2].every((move) => voyage.encounters.bossMoves[move] && voyage.encounters.bossTells[move])).toBe(true);
   });
 

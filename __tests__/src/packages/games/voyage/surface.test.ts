@@ -1,9 +1,9 @@
 import { airFor, DEFAULT_VOYAGE_THEME, earthGround, groundAt, phaseOf, skyPlace, solarHours } from "@/packages/games/voyage";
-import { VoyageFrame } from "@/packages/games/voyage/renderers/frame";
 import { GlobesLayer } from "@/packages/games/voyage/renderers/layers/GlobesLayer";
-import { RenderKit } from "@/packages/games/voyage/renderers/layers/kit";
-import { GlobeDraw, globeFrame } from "@/packages/graphics/globe";
+import { globeFrame } from "@/packages/graphics/globe";
 
+import { FakeContext2D } from "../../../fixtures/canvas";
+import { frameOf, RecordingGlobes, renderKitWith } from "./fixtures/renderer";
 import { createFlying } from "./fixtures/simulation";
 
 const QUARTER = Math.PI / 2;
@@ -46,7 +46,8 @@ describe("standing on a world", () => {
     expect(groundAt("titan", undefined, null, 70, 0, true)).toMatchObject({ biome: "methaneSea", relief: "sea" });
     expect(groundAt("moon", undefined, null, 0, 0, true)).toMatchObject({ biome: "regolith", relief: "craters" });
 
-    const lava = { surface: { kind: "lava" as const, palette: ["#200000", "#ff4400", "#ff8800", "#ffcc00"] as [string, string, string, string], seed: 1 } };
+    const palette: [string, string, string, string] = ["#200000", "#ff4400", "#ff8800", "#ffcc00"];
+    const lava = { surface: { kind: "lava" as const, palette, seed: 1 } };
 
     expect(groundAt("veldara-ii", lava, null, 0, 0, false)).toMatchObject({ biome: "lava", colour: "#ff4400" });
   });
@@ -63,13 +64,13 @@ describe("standing on a world", () => {
 describe("a world in another's sky", () => {
   test("is drawn as its own globe, north up, lit at the phase it stands at, from the side its light comes; a point is left to the painter", () => {
     const simulation = createFlying();
-    const draws: GlobeDraw[] = [];
-    const kit = { globes: { isGpu: true, drawGlobe: (_: unknown, draw: GlobeDraw) => draws.push(draw) } } as unknown as RenderKit;
-    const layer = new GlobesLayer(kit);
+    const globes = new RecordingGlobes(true);
+    const { draws } = globes;
+    const layer = new GlobesLayer(renderKitWith(globes));
     const earth = simulation.state.system.bodies.find((body) => body.id === "earth");
     const moon = simulation.state.system.bodies.find((body) => body.id === "moon");
-    const frame = { state: simulation.state, now: 2000, theme: DEFAULT_VOYAGE_THEME } as unknown as VoyageFrame;
-    const target = {} as CanvasRenderingContext2D;
+    const frame = frameOf(simulation, 2000);
+    const target = new FakeContext2D();
 
     if (!earth || !moon) {
       throw new Error("no Earth or Moon");
@@ -95,7 +96,7 @@ describe("a world in another's sky", () => {
     draws.slice(2).forEach(({ pose }) => expect(globeFrame(pose, pose.phase).spin).toBeCloseTo(0));
 
     // Without the GPU there are no phases, so the painter's own lit disc is drawn instead.
-    const flat = new GlobesLayer({ globes: { isGpu: false, drawGlobe: () => undefined } } as unknown as RenderKit);
+    const flat = new GlobesLayer(renderKitWith(new RecordingGlobes(false)));
 
     expect(flat.drawInSky(frame, earth, target, 100, 80, 18, 0.5, 1)).toBe(false);
   });

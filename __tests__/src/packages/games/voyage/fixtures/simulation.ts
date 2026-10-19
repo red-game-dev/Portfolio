@@ -8,6 +8,7 @@ import {
   VoyageConfig,
   VoyageInput,
   VoyageSimulation,
+  VoyageState,
 } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
 
@@ -34,6 +35,9 @@ export const createFlying = (overrides: Partial<VoyageConfig> = {}, seed = 7, ep
 
   return simulation;
 };
+
+// The run itself, to set a scene up in: the simulation hands its state out read only, and a test writes to it on purpose.
+export const runOf = (simulation: VoyageSimulation): VoyageState => simulation.state;
 
 export const partsOf = (simulation: VoyageSimulation) => {
   const { stores } = simulation.world;

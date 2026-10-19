@@ -5,8 +5,6 @@ import tw, { styled } from "twin.macro";
 
 import { createBackdropEngine } from "@/components/Journey/backdropEngine";
 import { CARD_FPS, CARD_MS, cardAt, countUp } from "@/components/SocialCard/timeline";
-import { SITE_URL } from "@/config/site";
-import { ZONE_ACCENTS, ZONE_BOUNDARIES } from "@/config/zones";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
@@ -14,17 +12,12 @@ import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { decodeFrame, toBinaryMask } from "@/packages/encoding/binary";
 import { clamp } from "@/packages/math/clamp";
 import { createSeededRandom } from "@/packages/math/random";
+import { shareCardOf } from "@/services/seo/shareCard";
 
-const { details, headline, cvDocument, journeyTrail } = portfolioData;
+// What the card says, read the same way as for the picture the site draws (services/seo/shareCard).
+const card = shareCardOf(portfolioData);
 
-// The figures the card shows, picked by id so a changed figure changes the card when it is printed again.
-const FIGURE_IDS = ["industry", "reach", "startups"];
-
-const figures = FIGURE_IDS.flatMap((id) => details.proof.filter((figure) => figure.id === id));
-
-const domain = SITE_URL.replace(/^https?:\/\/(www\.)?/, "");
-
-const ZONES = ZONE_BOUNDARIES.map(({ zone }) => zone);
+const ZONES = card.zones.map(({ id }) => id);
 
 const CARD_SEED = 2010;
 
@@ -166,8 +159,8 @@ const decoded = (text: string, progress: number, tick: number) => decodeFrame(te
 
 // The picture shown when the site is shared (Open Graph and X), as a film of the journey: the name decodes from
 // binary, each universe lights on the band as the backdrop crosses into it, the figures count up, and it warps into
-// the stars and holds on the card. Not a page for readers: it is recorded to public/images/social-card.mp4 and its
-// last frame to social-card.png at 1200 by 630, and kept out of search.
+// the stars and holds on the card. Not a page for readers: it is recorded to public/images/social-card.mp4 at 1200 by
+// 630, the film beside the picture the site draws (/og/card.png), and kept out of search.
 export default function SocialCard() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasFonts, setHasFonts] = useState(false);
@@ -217,11 +210,11 @@ export default function SocialCard() {
       <Backdrop ref={canvasRef} aria-hidden="true" />
       <Veil aria-hidden="true" />
       <Guides aria-hidden="true" />
-      <Name>{decoded(details.name, frame.name, frame.tick)}</Name>
-      <Role>{decoded(cvDocument.headline, frame.role, frame.tick)}</Role>
-      <Availability>{decoded(headline.availability, frame.availability, frame.tick)}</Availability>
+      <Name>{decoded(card.name, frame.name, frame.tick)}</Name>
+      <Role>{decoded(card.role, frame.role, frame.tick)}</Role>
+      <Availability>{decoded(card.availability, frame.availability, frame.tick)}</Availability>
       <Figures>
-        {figures.map((figure) => (
+        {card.figures.map((figure) => (
           <Figure key={figure.id}>
             <Value>{countUp(figure.value, frame.figures)}</Value>
             <Label>{figure.label}</Label>
@@ -229,11 +222,11 @@ export default function SocialCard() {
         ))}
       </Figures>
       <Footer>
-        <Domain>{domain}</Domain>
-        <Band aria-label={Object.values(journeyTrail.zones).join(", ")}>
-          {ZONES.map((zone, index) => (
-            <Zone key={zone} style={{ "--zone": ZONE_ACCENTS[zone], "--fill": clamp(frame.lit - index, 0, 1) }}>
-              {journeyTrail.zones[zone]}
+        <Domain>{card.domain}</Domain>
+        <Band aria-label={card.zones.map(({ name }) => name).join(", ")}>
+          {card.zones.map((zone, index) => (
+            <Zone key={zone.id} style={{ "--zone": zone.accent, "--fill": clamp(frame.lit - index, 0, 1) }}>
+              {zone.name}
             </Zone>
           ))}
         </Band>

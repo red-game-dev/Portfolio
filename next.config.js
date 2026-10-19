@@ -70,6 +70,10 @@ module.exports = withBundleAnalyzer({
 
     return config
   },
+  // The fonts the share picture is drawn with, read from the repository by its route.
+  outputFileTracingIncludes: {
+    '/api/og': ['./src/assets/fonts/roboto/*.ttf'],
+  },
   // The text files for language models are written from the content by API routes, which answer with plain
   // text rather than a page.
   async rewrites() {
@@ -79,6 +83,8 @@ module.exports = withBundleAnalyzer({
       ...['', '/en'].flatMap((prefix) => [
         { source: `${prefix}/llms.txt`, destination: '/api/llms/', locale: false },
         { source: `${prefix}/llms-full.txt`, destination: '/api/llms-full/', locale: false },
+        // The share picture, drawn from the content: outside /api/, which robots.txt keeps crawlers out of.
+        { source: `${prefix}/og/card.png`, destination: '/api/og/', locale: false },
       ]),
     ]
   },

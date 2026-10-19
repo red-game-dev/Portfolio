@@ -1,13 +1,14 @@
 name: Share card
 
 # The share card recorded from a deployed /social-card/ (scripts/social-card.mjs): the journey as a looping MP4 for
-# the platforms that play one, and its last frame as the still the rest show. On a preview whose branch (in this
+# the platforms that play one, beside the still the site draws from its content (/og/card.png), which every preview
+# is checked to draw. On a preview whose branch (in this
 # repository, never a fork) changed the card, it records that preview and commits the files to the branch. Run it by
 # hand to record production again when the figures or the headline change; it commits to a new branch to open as a
 # pull request.
 #
 # The branch's code runs only in the record job, with a token that can read and nothing more. The commit job holds the
-# write token, runs nothing from the branch, and takes only the two files the recording made.
+# write token, runs nothing from the branch, and takes only the film the recording made.
 on:
   deployment_status:
   workflow_dispatch:
@@ -21,6 +22,20 @@ permissions:
   contents: read
 
 jobs:
+  # The picture every platform shows, drawn by the deployed site from its content: a 1200 by 630 PNG.
+  picture:
+    name: Share picture is drawn
+    if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && startsWith(github.event.deployment.environment, 'Preview')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch it
+        env:
+          PREVIEW: ${{ github.event.deployment_status.target_url }}
+        run: |
+          curl -sfL "$PREVIEW/og/card.png" -o card.png
+          file card.png
+          file card.png | grep -q "PNG image data, 1200 x 630"
+
   decide:
     name: Decide whether to record
     if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && startsWith(github.event.deployment.environment, 'Preview'))
@@ -62,7 +77,7 @@ jobs:
             echo "record=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          changed=$(git diff --name-only origin/main..."$SHA" -- src/pages/social-card.tsx src/components/SocialCard \
+          changed=$(git diff --name-only origin/main..."$SHA" -- src/pages/social-card.tsx src/components/SocialCard src/services/seo/shareCard.ts \
             src/components/Journey/backdropEngine.ts src/packages/effects/backdrop scripts/social-card.mjs .github/workflows/social-card.yml)
           pull=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq '[.[] | select(.head.repo.full_name == "'"$REPO"'" and .head.sha == "'"$SHA"'")][0] // empty')
           branch=$(echo "$pull" | jq -r '.head.ref // empty')
@@ -112,9 +127,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: share-card
-          path: |
-            public/images/social-card.mp4
-            public/images/social-card.png
+          path: public/images/social-card.mp4
           if-no-files-found: error
           retention-days: 3
 
@@ -141,7 +154,7 @@ jobs:
           name: share-card
           path: ${{ runner.temp }}/share-card
 
-      # Only the two files, and only if they are what they say: nothing the recording made is run here. A branch that has
+      # Only the film, and only if it is what it says: nothing the recording made is run here. A branch that has
       # moved on since the recorded commit is left alone, since its own deploy records it; the commit gets CI of its own.
       - name: Commit the card
         env:
@@ -156,12 +169,11 @@ jobs:
             exit 0
           fi
           file --brief --mime-type "$FROM/social-card.mp4" | grep -qx "video/mp4"
-          file --brief --mime-type "$FROM/social-card.png" | grep -qx "image/png"
-          cp "$FROM/social-card.mp4" "$FROM/social-card.png" public/images/
+          cp "$FROM/social-card.mp4" public/images/
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$BRANCH"
-          git add public/images/social-card.mp4 public/images/social-card.png
+          git add public/images/social-card.mp4
           if git diff --cached --quiet; then
             echo "The card is unchanged."
             exit 0

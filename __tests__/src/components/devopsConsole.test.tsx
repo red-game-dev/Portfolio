@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import { AppLoaderProvider } from "@/components/AppLoader/context/AppLoaderContext";
+import { BlueprintLabelsProvider } from "@/components/Blueprint/context";
 import { DevOps } from "@/components/DevOps";
 import { GameProvider } from "@/components/Game/context/GameContext";
 import { useDeploysStateHook } from "@/components/Game/hooks/useDeploysStateHook";
@@ -21,8 +22,10 @@ const renderSection = () => render(
     <PreferencesProvider>
       <LensProvider>
         <GameProvider>
-          <DevOps intro={portfolioData.sections.devops} content={devops} />
-          <Deploys />
+          <BlueprintLabelsProvider labels={portfolioData.blueprintLabels}>
+            <DevOps intro={portfolioData.sections.devops} content={devops} />
+            <Deploys />
+          </BlueprintLabelsProvider>
         </GameProvider>
       </LensProvider>
     </PreferencesProvider>

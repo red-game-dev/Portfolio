@@ -461,7 +461,7 @@ describe("combat", () => {
   test("in a maze, a gate carries the ship to its system, the compass leads on to somewhere new, and only the furthest holds the way on", () => {
     const simulation = create();
     const seed = Array.from({ length: 300 }, (_, index) => 61000 + index * 31).find((candidate) => {
-      const network = generator.generate(5, candidate, null).network;
+      const network = generator.generate(6, candidate, null).network;
 
       return network && network.nodes[0].links.length >= 1 && network.exit !== network.nodes[0].links[0];
     });
@@ -475,7 +475,7 @@ describe("combat", () => {
 
     simulation.events.on("gate", ({ name, isNew }) => gates.push({ name, isNew }));
     state.runSeed = seed - 6 * 7919;
-    state.universes = 5;
+    state.universes = 6;
     state.phase = "lost";
     state.phaseMs = 1e9;
     simulation.step(defaults.stepMs * 2);
@@ -512,7 +512,7 @@ describe("combat", () => {
     expect(state.explored.has(to)).toBe(true);
     expect(gates).toEqual([{ name: network.nodes[to].name, isNew: true }]);
     expect(state.cosmos?.node).toBe(to);
-    expect(state.system.bodies.every((body) => body.id.startsWith(`u5.${to}-`))).toBe(true);
+    expect(state.system.bodies.every((body) => body.id.startsWith(`u6.${to}-`))).toBe(true);
   });
 
   test("stranded with no fuel out in the universes, nobody is coming: the run ends", () => {

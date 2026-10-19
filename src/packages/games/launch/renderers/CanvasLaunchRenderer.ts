@@ -243,9 +243,10 @@ export class CanvasLaunchRenderer extends CanvasRenderer<LaunchState> {
     return this.momentAt(state, state.site.vehicle === "steel" ? "hotStaging" : "stageSeparation");
   }
 
+  // The booster's fairing, or the heavy lifter's abort tower shortly after its core, when its call comes; the steel ship
+  // has neither.
   private fairingAt(state: LaunchState): number {
-    // The heavy lifter's abort tower goes shortly after its core.
-    return state.site.vehicle === "booster" ? this.momentAt(state, "fairing") : state.site.vehicle === "heavy" ? this.separationAt(state) + 0.05 : Infinity;
+    return this.momentAt(state, "fairing");
   }
 
   private stackAt(state: LaunchState): Stack {

@@ -164,6 +164,7 @@ export const terminalContent: Pick<PortfolioData, "terminal"> = {
         aiUsage: "How I use AI",
         forge: "Skill forge",
         skillAreas: "Skills by area",
+        devops: "DevOps",
         caseStudies: "Boss fights",
         projects: "Projects",
         recommendations: "What people say",

@@ -353,6 +353,7 @@ export type MusicThemeId =
   | "matrix"
   | "neural"
   | "blocks"
+  | "racks"
   | "chips"
   | "pixels"
   | "nebula"

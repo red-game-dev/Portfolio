@@ -198,6 +198,24 @@ export const sectionsContent: Pick<PortfolioData, "sections"> = {
         ],
       },
     },
+    devops: {
+      title: "DevOps, from bare metal to the cloud",
+      description: [
+        "Where my systems run and how they get there. Servers I set up from scratch on OVH, Hetzner and DigitalOcean, AWS and " +
+          "GCP set up in full, and Vercel, Railway and Cloudflare where managed pays off. Containers everywhere, a CLI of my own to " +
+          "move them, and no host I cannot leave.",
+      ],
+      lenses: {
+        recruiter: [
+          "The infrastructure I have run in production, from dedicated servers set up by hand to AWS, GCP and Kubernetes, and how I " +
+            "deploy and roll back.",
+        ],
+        product: [
+          "Which host fits which stage of a product and why, how releases go out with no downtime, and why changing host never " +
+            "means a rewrite.",
+        ],
+      },
+    },
     codeReview: {
       title: "Code Review and Open Source",
       description: ["The work behind the work: reading other people's code closely, in teams and in the open."],

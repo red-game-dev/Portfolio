@@ -3,6 +3,7 @@ import type {
   BlockSnapTransitionOptions,
   CasinoSceneOptions,
   ChainSceneOptions,
+  DevopsSceneOptions,
   ChipFlipTransitionOptions,
   CollapseTransitionOptions,
   EmberSceneOptions,
@@ -48,6 +49,7 @@ export const BACKDROP_THEME: {
   rain: RainSceneOptions;
   neural: NeuralSceneOptions;
   chain: ChainSceneOptions;
+  devops: DevopsSceneOptions;
   casino: CasinoSceneOptions;
   ember: EmberSceneOptions;
   stars: StarfieldSceneOptions;
@@ -55,6 +57,12 @@ export const BACKDROP_THEME: {
   rain: { color: COLORS.accent, headColor: "#eafff3", glowColor: `rgba(${COLORS.accentRgb}, 0.8)`, intensity: 0.3 },
   neural: { linkRgb: COLORS.accentRgb, nodeColor: COLORS.accent, pulseColor: "rgba(234, 255, 243, 0.95)", intensity: 0.75 },
   chain: { block: rgbOf("chain"), flash: [233, 220, 255], intensity: 0.7 },
+  devops: {
+    rack: rgbOf("devops"),
+    core: [255, 222, 210],
+    universes: [rgbOf("matrix"), rgbOf("ai"), rgbOf("chain"), rgbOf("casino"), rgbOf("mmo"), rgbOf("beyond")],
+    intensity: 0.75,
+  },
   casino: {
     felt: "rgba(28, 120, 78, 0.38)",
     chipColors: [ZONE_ACCENTS.casino, ZONE_ACCENTS.mmo, ZONE_ACCENTS.ai, "#e6edf3"],
@@ -91,6 +99,7 @@ const VOYAGE_UNIVERSES: Record<Exclude<ZoneId, "beyond">, { style: VoyageStyle; 
   matrix: { style: "matrix", deep: "#020a06", hazard: "#ff4d5e" },
   ai: { style: "neural", deep: "#020812", hazard: "#d17bff" },
   chain: { style: "blocks", deep: "#07040f" },
+  devops: { style: "racks", deep: "#0d0504" },
   casino: { style: "chips", deep: "#0f0309" },
   mmo: { style: "pixels", deep: "#0c0802" },
 };

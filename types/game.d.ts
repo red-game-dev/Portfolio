@@ -854,6 +854,7 @@ export interface FinaleContent {
     character: string;
     raid: string;
     time: string;
+    deploys: string;
   };
   none: string;
   notPlayed: string;

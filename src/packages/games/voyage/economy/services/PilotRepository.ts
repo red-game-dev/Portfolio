@@ -1,4 +1,5 @@
 import { readVersioned, Repository, RepositoryOptions, StoreAdapter, Versioned } from "@/packages/browser/store";
+import { isRecord } from "@/packages/core/domain";
 
 import { isCareerProfile } from "../../career/guards/isCareerProfile";
 import { newCareer } from "../../career/services/Career";
@@ -14,8 +15,38 @@ import { isPilotProfile } from "../guards/isPilotProfile";
 import { newEconomyProfile } from "./Hangar";
 
 // The shape version this code writes: 2 added the career, 3 the boosts and the ability bar, 4 the armoury and
-// the pilot's progress.
-const VERSION = 4;
+// the pilot's progress, 5 the DevOps universe as the fourth of a run.
+const VERSION = 5;
+
+// The DevOps universe came in fourth, after the chain: a story chapter at or past it moves on one, and so does the most
+// universes a run reached that it counts first, once that reached the old fourth; and so do the stars won in a universe
+// at or past it (keyed by its place in a run, from 0).
+const DEVOPS_CHAPTER = 4;
+const DEVOPS_UNIVERSE = 3;
+
+const makeRoomForDevops = (data: Record<string, unknown>): Record<string, unknown> => {
+  const career = isRecord(data.career) ? data.career : null;
+  const story = career && isRecord(career.story) ? career.story : null;
+  const progress = isRecord(data.progress) ? data.progress : null;
+  const stars = progress && isRecord(progress.stars) ? progress.stars : null;
+  const reached = (value: unknown, index: number) => (index === 0 && typeof value === "number" && value >= DEVOPS_CHAPTER ? value + 1 : value);
+  const movedStory = story && typeof story.chapter === "number" && story.chapter >= DEVOPS_CHAPTER
+    ? { ...career, story: { ...story, chapter: story.chapter + 1, progress: Array.isArray(story.progress) ? story.progress.map(reached) : story.progress } }
+    : career;
+  const movedStars = stars
+    ? Object.fromEntries(Object.entries(stars).map(([key, value]) => {
+      const place = /^u:(\d+)$/.exec(key);
+
+      return [place && Number(place[1]) >= DEVOPS_UNIVERSE ? `u:${Number(place[1]) + 1}` : key, value];
+    }))
+    : null;
+
+  return {
+    ...data,
+    ...(movedStory ? { career: movedStory } : {}),
+    ...(movedStars ? { progress: { ...progress, stars: movedStars } } : {}),
+  };
+};
 
 // A pilot who has never flown.
 export const newProfile = (): PilotProfile => ({ ...newEconomyProfile(), career: newCareer(), armory: newArmoryProfile(), progress: newProgressProfile() });
@@ -26,14 +57,16 @@ const isGhostOrNone = (value: unknown): value is GhostRun | null => value === nu
 // found and the ability bar laid out as a new pilot's; one from before the armoury is fitted as a new pilot's
 // rocket, with no levels or stars yet (its bar grows to six slots as it is read).
 const migrate = (data: unknown, from: number): unknown => {
-  if (typeof data !== "object" || data === null) {
+  if (!isRecord(data)) {
     return data;
   }
 
   const withCareer = from < 2 ? { ...data, career: newCareer() } : data;
   const withBoosts = from < 3 ? { ...withCareer, boosts: {}, bar: newBar() } : withCareer;
 
-  return from < 4 ? { ...withBoosts, armory: newArmoryProfile(), progress: newProgressProfile() } : withBoosts;
+  const withArmory = from < 4 ? { ...withBoosts, armory: newArmoryProfile(), progress: newProgressProfile() } : withBoosts;
+
+  return from < 5 ? makeRoomForDevops(withArmory) : withArmory;
 };
 
 // A career, armoury or progress that no longer checks out is started again on its own, so the hangar's ship, hold and

@@ -6,7 +6,7 @@ import { focusRing, media } from "@/styles/mixins";
 
 export const Toggle = styled.button(() => [
   tw`absolute top-[-8px] right-[-8px] z-[11] flex flex-col items-center justify-center gap-[5px] w-[44px] h-[44px] p-0 cursor-pointer
-     bg-transparent border-0 lg:hidden`,
+     bg-transparent border-0 xl:hidden`,
   css`
     & > span {
       display: block;

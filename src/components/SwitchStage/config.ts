@@ -16,9 +16,10 @@ export const PIXEL_GRID = { columns: 16, rows: 8 } as const;
 
 // Each universe switches content its own way. AI: a neural beam scans the new content in. Web3: blocks
 // confirm one after another in a diagonal wave. Casino: the content is dealt and flipped like a card.
-// Game world: a retro pixel dissolve. Engineering: a terminal refreshes top to bottom. Beyond: the content
-// drops out of warp, a little far and bright, and settles. Reduced motion just swaps.
-export type ZoneEffect = "beam" | "blocks" | "deal" | "pixels" | "scan" | "warp";
+// Game world: a retro pixel dissolve. Engineering: a terminal refreshes top to bottom. DevOps: image layers stack up
+// as a build prints them, one from each universe the data centre runs, in its colour. Beyond: the content drops out
+// of warp, a little far and bright, and settles. Reduced motion just swaps.
+export type ZoneEffect = "beam" | "blocks" | "layers" | "deal" | "pixels" | "scan" | "warp";
 
 // The payments drawings switch their own way: a showcase opens each with its subject (its motion), and
 // inside one the tabs switch with the next way to pay at the terminal ("pay").
@@ -33,9 +34,9 @@ export type ThemeEffect = "draft" | "boot" | AreaEffect;
 
 // The skill areas' switches, one per universe: mined as blocks into a chain (Web3), dealt face down from the tab and
 // flipped (the casino), popped in as 8-bit pixels (the game world), lit by the neural beam as it passes (AI), printed
-// out of a till's slot (payments), typed out behind a block cursor (the engineering terminal), and dropped out of warp
-// (beyond).
-export type AreaEffect = "mined" | "dealt" | "pixel" | "beamed" | "printed" | "typed" | "warped";
+// out of a till's slot (payments), typed out behind a block cursor (the engineering terminal), shipped in as a
+// container from one universe or another (DevOps), and dropped out of warp (beyond).
+export type AreaEffect = "mined" | "dealt" | "pixel" | "beamed" | "printed" | "typed" | "shipped" | "warped";
 
 export const AREA_EFFECTS: Record<SkillAreaUniverse, AreaEffect> = {
   chain: "mined",
@@ -44,6 +45,7 @@ export const AREA_EFFECTS: Record<SkillAreaUniverse, AreaEffect> = {
   ai: "beamed",
   payments: "printed",
   matrix: "typed",
+  devops: "shipped",
   beyond: "warped",
 };
 
@@ -64,6 +66,7 @@ export const isThemeEffect = (effect: SwitchEffect): effect is ThemeEffect => TH
 export const ZONE_EFFECTS: Record<ZoneId, ZoneEffect> = {
   ai: "beam",
   chain: "blocks",
+  devops: "layers",
   casino: "deal",
   mmo: "pixels",
   matrix: "scan",

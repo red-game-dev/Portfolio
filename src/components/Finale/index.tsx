@@ -13,6 +13,7 @@ import { DecodedText } from "@/components/DecodedText";
 import { useInvite } from "@/components/Finale/hooks/useInvite";
 import { useLaunch } from "@/components/Finale/hooks/useLaunch";
 import { LazyVoyageDialog } from "@/components/Finale/Voyage/LazyVoyageDialog";
+import { useDeploysStateHook } from "@/components/Game/hooks/useDeploysStateHook";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
 import { Section } from "@/components/Section";
@@ -162,6 +163,29 @@ const StatValue = styled.dd(({ isDone }: { isDone: boolean }) => [
   tw`m-0 text-lg font-semibold text-white`,
   isDone && tw`text-[var(--accent)]`,
 ]);
+
+interface DeploysStatProps {
+  label: string;
+  isLit: boolean;
+}
+
+// The deploys shipped from the DevOps console, reading the count itself so a deploy re-renders this row and not the
+// whole board. A count like the run's time, never an objective, so it never turns done.
+const DeploysStat = ({ label, isLit }: DeploysStatProps) => {
+  const { deploysShipped } = useDeploysStateHook();
+
+  return (
+    <Stat isDone={false}>
+      <StatName>
+        <StarMark isLit={isLit} aria-hidden="true">
+          <FontAwesomeIcon icon={faStar} />
+        </StarMark>
+        {label}
+      </StatName>
+      <StatValue isDone={false}>{deploysShipped}</StatValue>
+    </Stat>
+  );
+};
 
 const Rank = tw.div`flex flex-row flex-wrap items-center gap-[12px] mt-[22px] p-[16px] bg-[#0d0b06] border-[1px] border-solid border-[var(--accent)]`;
 
@@ -398,6 +422,7 @@ export const Finale: FC<FinaleProps> = ({
             </StatName>
             <StatValue isDone={false}>{formatDuration((runMs ?? 0) / 1000)}</StatValue>
           </Stat>
+          <DeploysStat label={content.stats.deploys} isLit={isLit(6)} />
         </Stats>
         <Rank>
           <RankBadge aria-hidden="true">{content.rankLabel}</RankBadge>

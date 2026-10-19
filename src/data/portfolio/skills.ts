@@ -437,7 +437,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "DevOps & Infrastructure",
-      universe: "beyond",
+      universe: "devops",
       items: [
         "CI/CD with audit logs, permission controls and rollback",
         "Kubernetes on GKE, Helm and Istio canary rollout per market",
@@ -496,7 +496,7 @@ export const skillsContent: Pick<PortfolioData, "skills" | "forge" | "talents" |
     },
     {
       label: "CI/CD & Release",
-      universe: "beyond",
+      universe: "devops",
       items: [
         "GitHub Actions",
         "GitLab CI",

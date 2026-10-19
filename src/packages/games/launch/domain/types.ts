@@ -31,7 +31,8 @@ export type LaunchVehicle = "booster" | "heavy" | "steel";
 export type LaunchLand = "scrub" | "flats" | "hills";
 
 // The moments a launch is called out by, in the order they can come.
-export type LaunchMilestone = "maxQ" | "boosterSeparation" | "meco" | "stageSeparation" | "hotStaging" | "boostback" | "fairing" | "seco";
+export type LaunchMilestone = "maxQ" | "boosterSeparation" | "meco" | "stageSeparation" | "secondIgnition" | "hotStaging" | "boostback" | "landingBurn"
+  | "fairing" | "seco";
 
 // Where the rocket stands: the pad's place on Earth, what flies from it and what lies round it, and which way it
 // flies (1 out to the right of the view, -1 to the left).

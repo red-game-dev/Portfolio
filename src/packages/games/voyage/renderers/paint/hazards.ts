@@ -166,6 +166,32 @@ const invader = (context: Canvas2DContext, c: number, r: number, colour: string)
   });
 };
 
+// A shipping container gone adrift from the data centre: its doors' ribs, its end in the universe's colour.
+const container = (context: Canvas2DContext, c: number, r: number, colour: string) => {
+  const w = r * 1.5;
+  const h = r * 0.8;
+  const left = c - w / 2;
+  const top = c - h / 2;
+
+  context.fillStyle = "rgba(24, 14, 12, 0.95)";
+  context.fillRect(left, top, w, h);
+  context.strokeStyle = colour;
+  context.lineWidth = Math.max(1, r * 0.06);
+  context.strokeRect(left, top, w, h);
+  context.beginPath();
+
+  for (let rib = 1; rib < 7; rib += 1) {
+    context.moveTo(left + (w * rib) / 7, top + h * 0.12);
+    context.lineTo(left + (w * rib) / 7, top + h * 0.88);
+  }
+
+  context.globalAlpha = 0.6;
+  context.stroke();
+  context.globalAlpha = 1;
+  context.fillStyle = colour;
+  context.fillRect(left + w * 0.86, top, w * 0.14, h);
+};
+
 // What drifts through each universe, in its colour.
 export const paintHazard = (style: VoyageStyle, colour: string, accent: string) => (context: Canvas2DContext, width: number) => {
   const c = width / 2;
@@ -177,6 +203,8 @@ export const paintHazard = (style: VoyageStyle, colour: string, accent: string) 
     hallucination(context, c, r, colour);
   } else if (style === "blocks") {
     cube(context, c, r, colour);
+  } else if (style === "racks") {
+    container(context, c, r, colour);
   } else if (style === "chips") {
     chip(context, c, r, colour);
   } else {

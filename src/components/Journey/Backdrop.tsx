@@ -38,6 +38,7 @@ const createEngine = async (context: CanvasRenderingContext2D, { zone, isStatic 
       (random) => new backdrop.RainScene(random, BACKDROP_THEME.rain),
       (random) => new backdrop.NeuralScene(random, BACKDROP_THEME.neural),
       (random) => new backdrop.ChainScene(random, BACKDROP_THEME.chain),
+      (random) => new backdrop.DevopsScene(random, BACKDROP_THEME.devops),
       (random) => new backdrop.CasinoScene(random, BACKDROP_THEME.casino),
       (random) => new backdrop.EmberScene(random, BACKDROP_THEME.ember),
       (random) => new backdrop.StarfieldScene(random, BACKDROP_THEME.stars),
@@ -46,6 +47,8 @@ const createEngine = async (context: CanvasRenderingContext2D, { zone, isStatic 
       [transitionKey("matrix", "ai")]: (random) => new backdrop.CollapseTransition(random, TRANSITION_THEME.collapse),
       [transitionKey("ai", "chain")]: () => new backdrop.BlockSnapTransition(TRANSITION_THEME.snap),
       [transitionKey("chain", "casino")]: (random) => new backdrop.ChipFlipTransition(random, TRANSITION_THEME.flip),
+      // The casino deals itself in whichever universe the reader comes from, now the data centre on the way down.
+      [transitionKey("devops", "casino")]: (random) => new backdrop.ChipFlipTransition(random, TRANSITION_THEME.flip),
       [transitionKey("casino", "mmo")]: (random) => new backdrop.PortalTransition(random, TRANSITION_THEME.portal),
       [transitionKey("mmo", "beyond")]: (random) => new backdrop.WarpTransition(random, TRANSITION_THEME.warp),
     },

@@ -60,7 +60,7 @@ describe("LaunchSimulation", () => {
     }
 
     expect(passed).toEqual([...passed].sort((first, second) => first - second));
-    expect(new Set(passed)).toEqual(new Set([0, 1, 2, 3, 4, 5].filter((count) => passed.includes(count))));
+    expect(new Set(passed)).toEqual(new Set([0, 1, 2, 3, 4, 5, 6].filter((count) => passed.includes(count))));
     expect(simulation.snapshot).toEqual({ status: "orbit", passed: config.markers, countdown: 0, milestone: "seco" });
     expect(simulation.state.altitude).toBe(1);
   });

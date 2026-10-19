@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { DeploysProvider } from "@/components/Game/context/DeploysContext";
 import { GAME_STORAGE_KEY, isStoredGame } from "@/components/Game/storage";
 import { readStored, writeStored } from "@/packages/browser/storage";
 
@@ -88,5 +89,9 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     [characterClass, bestScore, voyageBest, bosses, zones, duelsWon, recordScore, recordVoyage, defeatBoss, visitZone, recordDuels]
   );
 
-  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
+  return (
+    <GameContext.Provider value={value}>
+      <DeploysProvider>{children}</DeploysProvider>
+    </GameContext.Provider>
+  );
 };

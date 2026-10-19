@@ -1,4 +1,4 @@
-import { BlockSnapTransition, CasinoScene, ChainScene, ChipFlipTransition } from "@/packages/effects/backdrop";
+import { BlockSnapTransition, CasinoScene, ChainScene, ChipFlipTransition, DevopsScene } from "@/packages/effects/backdrop";
 import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { createSeededRandom } from "@/packages/math/random";
 
@@ -31,6 +31,54 @@ const createContext = () => {
 const SIZE = { width: 1200, height: 800, pixelRatio: 1 };
 
 describe("effects/backdrop chain and casino zones", () => {
+  const devops = () => new DevopsScene(createSeededRandom(9), {
+    rack: [255, 107, 74],
+    core: [255, 222, 210],
+    universes: [[75, 255, 165], [79, 216, 255], [184, 150, 255]],
+    intensity: 1,
+  });
+
+  test("the DevOps data centre is drawn built when no frame has run, as with reduced motion", () => {
+    const scene = devops();
+    const { context, calls } = createContext();
+
+    scene.resize(SIZE);
+    scene.draw(context, 1);
+
+    expect(scene.id).toBe("devops");
+    expect(calls.filter((call) => call === "strokeRect").length).toBeGreaterThan(SIZE.width / 160 - 1);
+    expect(calls).toContain("quadraticCurveTo");
+    expect(calls).toContain("fillRect");
+  });
+
+  test("the DevOps data centre builds from bare metal as it is entered, then moves universes between its racks", () => {
+    const scene = devops();
+    const starting = createContext();
+
+    scene.resize(SIZE);
+    scene.update(16, 1000);
+    scene.draw(starting.context, 1, 1000);
+    // Just entered: the racks are still below the screen, so nothing is cabled yet.
+    expect(starting.calls).not.toContain("quadraticCurveTo");
+
+    const running = createContext();
+
+    for (let now = 1016; now < 8000; now += 33) {
+      scene.update(33, now);
+    }
+
+    scene.draw(running.context, 1, 8000);
+    expect(running.calls).toContain("quadraticCurveTo");
+    expect(running.calls.filter((call) => call === "fillRect").length).toBeGreaterThan(20);
+
+    // Left and come back: built again from scratch.
+    const back = createContext();
+
+    scene.update(33, 20000);
+    scene.draw(back.context, 1, 20000);
+    expect(back.calls).not.toContain("quadraticCurveTo");
+  });
+
   test("the chain scene draws its lanes and mines blocks over time", () => {
     const scene = new ChainScene(createSeededRandom(3), { block: [184, 150, 255], flash: [255, 255, 255], intensity: 1 });
     const { context, calls } = createContext();

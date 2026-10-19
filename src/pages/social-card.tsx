@@ -57,7 +57,7 @@ const Label = tw.dd`m-0 text-[18px] leading-[1.35] text-[#a8a8a8]`;
 
 const Footer = tw.footer`relative mt-auto flex flex-col gap-[12px]`;
 
-const Band = tw.ol`m-0 p-0 list-none grid grid-cols-6 gap-[6px]`;
+const Band = tw.ol`m-0 p-0 list-none grid grid-cols-7 gap-[6px]`;
 
 const Zone = styled.li(({ color }: { color: string }) => [
   tw`flex flex-col gap-[8px] text-[15px] font-semibold`,

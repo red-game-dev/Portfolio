@@ -3,7 +3,7 @@ import { SECTION_IDS } from "@/config/sections";
 import type { SectionThemeId } from "@/config/sectionThemes";
 import { ZoneId } from "@/config/zones";
 
-export type StopKey = "who" | "offer" | "history" | "ai" | "web3" | "payments" | "engineering" | "igaming" | "game" | "beyond";
+export type StopKey = "who" | "offer" | "history" | "ai" | "web3" | "payments" | "engineering" | "devops" | "igaming" | "game" | "beyond";
 
 export type StopPartKey = PaymentDrawingKey | "skills" | "caseStudies" | "projects" | "recommendations" | "arena";
 
@@ -51,6 +51,7 @@ export const JOURNEY_STOPS: JourneyStop[] = [
   stop("payments", "chain", SECTION_IDS.payments, SECTION_IDS.payments,
     PAYMENT_DRAWINGS.map((drawing) => part(drawing, PAYMENT_DRAWING_ANCHORS[drawing], SECTION_IDS.payments)), "payments"),
   stop("engineering", "chain", SECTION_IDS.skillAreas, SECTION_IDS.codeReview),
+  stop("devops", "devops", SECTION_IDS.devops, SECTION_IDS.devops),
   stop("igaming", "casino", SECTION_IDS.igaming, SECTION_IDS.igaming),
   // The longest stop, and the one a recruiter looks inside by name: its parts are linked from the menu too.
   stop("game", "mmo", SECTION_IDS.roster, SECTION_IDS.arena, [

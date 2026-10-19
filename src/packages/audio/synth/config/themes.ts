@@ -148,6 +148,29 @@ export const THEMES: Readonly<Record<MusicThemeId, MusicTheme>> = {
     echo: null,
     level: 0.6,
   },
+  // The data centre: a server room's hum under a steady sixteenth arpeggio in D phrygian, a deploy ticking past on the
+  // hats and a low pulse like a fan.
+  racks: {
+    root: 50,
+    mode: "phrygian",
+    tempo: 112,
+    stepsPerBeat: 4,
+    beatsPerBar: 4,
+    barsPerChord: 2,
+    progressions: [
+      [0, 1, 0, 6],
+      [0, 6, 5, 1],
+    ],
+    sevenths: false,
+    pad: pad("sawtooth", 520, 1.2, 1.8, 0.04, 4),
+    bass: bass("square", 280, 0.14, -1),
+    lead: { instrument: pluck("triangle", 1, 1600, 0.2, 0.06), density: 0.06, lengths: [1, 2], leap: 2, rest: 0.45, from: 0.25 },
+    arp: { instrument: pluck("square", 1, 2000, 0.12, 0.05), every: 1, pattern: "up", octaves: 1, from: 0 },
+    pulse: { instrument: pluck("sawtooth", -1, 500, 0.14, 0.12), pattern: "x...x...x...x...", from: 0 },
+    drums: { kick: "x.......x.......", snare: "....x.......x...", hat: "x.x.x.x.x.x.x.x.", from: 0.5 },
+    echo: { beats: 0.5, feedback: 0.25, mix: 0.15 },
+    level: 0.58,
+  },
   // The casino: playful, F major with sevenths, an oom-pah bass and a bouncing arpeggio.
   chips: {
     root: 53,

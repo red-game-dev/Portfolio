@@ -52,6 +52,13 @@ describe("voyage boosts", () => {
     expect(voids.some((id) => id && ["cloak", "prism", "heatSink", "gravityWell"].includes(id))).toBe(true);
   });
 
+  test("a universe with no boost of its own yet still drifts the ones found anywhere, never nothing", () => {
+    const random = createSeededRandom(8);
+    const racks = Array.from({ length: 200 }, () => boostToFind(random, "racks", 0.6, 0.1));
+
+    racks.forEach((id) => expect(id ? BOOSTS[id].origin : null).toBe("anywhere"));
+  });
+
   test("a core drifts in near the ship now and then, and flying through it finds it", () => {
     const simulation = createFlying({ boosts: { ...defaults.boosts, every: [1, 1] } });
     const found = heard(simulation, "boostFound");

@@ -116,7 +116,7 @@ export const ASK_KNOWLEDGE_TOKEN_BUDGET = 26000;
 // The sections an answer may cite, in the order the knowledge lists them. Each is a stop on the page the
 // terminal can take the reader to.
 export const ASK_SOURCES = [
-  "about", "services", "history", "aiUsage", "forge", "skillAreas", "caseStudies", "projects", "recommendations",
+  "about", "services", "history", "aiUsage", "forge", "skillAreas", "devops", "caseStudies", "projects", "recommendations",
 ] as const satisfies readonly SectionKey[];
 
 export type AskSourceKey = (typeof ASK_SOURCES)[number];

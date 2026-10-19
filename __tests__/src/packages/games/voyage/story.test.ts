@@ -26,8 +26,8 @@ const told = { chapter: STORY.length, progress: [] };
 const at = (id: string) => ({ chapter: STORY.findIndex((chapter) => chapter.id === id), progress: STORY.find((chapter) => chapter.id === id)?.steps.map(() => 0) ?? [] });
 
 describe("games/voyage story", () => {
-  test("it runs out of our solar system, then a chapter for each universe of the site's zones in order, then the sixth", () => {
-    expect(STORY.map(({ id }) => id)).toEqual(["launch", "matrix", "ai", "chain", "casino", "mmo", "beyond"]);
+  test("it runs out of our solar system, then a chapter for each universe of the site's zones in order, then the seventh", () => {
+    expect(STORY.map(({ id }) => id)).toEqual(["launch", "matrix", "ai", "chain", "devops", "casino", "mmo", "beyond"]);
     STORY.slice(1).forEach((chapter, index) => expect(chapter.steps[0].goal).toEqual({ kind: "universe", count: index + 1 }));
 
     const ids = STORY.flatMap(({ steps }) => steps.map(({ id }) => id));
@@ -76,7 +76,7 @@ describe("games/voyage story", () => {
 
     expect(finished.done.map(({ step }) => step.id)).toEqual(["chainSalvage"]);
     expect(finished.chapter?.id).toBe("chain");
-    expect(finished.story).toEqual(at("casino"));
+    expect(finished.story).toEqual(at("devops"));
   });
 
   test("past the singularity a landing anywhere counts, at home it does not; any danger lived through counts in the Casino", () => {
@@ -86,7 +86,7 @@ describe("games/voyage story", () => {
     story = advanceStory(story, { kind: "landed", body: "veldara-b", isAway: true }).story;
     expect(storyView(story).steps.find(({ step }) => step.id === "matrixLand")?.progress).toBe(1);
 
-    const casino = advanceStory(at("casino"), { kind: "universe", count: 4 }).story;
+    const casino = advanceStory(at("casino"), { kind: "universe", count: 5 }).story;
 
     (["supernova", "burst", "storm"] as const).forEach((hazard) => {
       expect(advanceStory(casino, { kind: "survived", hazard }).done.map(({ step }) => step.id)).toEqual(["casinoSurvive"]);
@@ -94,7 +94,7 @@ describe("games/voyage story", () => {
   });
 
   test("the last chapter told leaves nothing under way, and nothing more counts", () => {
-    const last = advanceStory(at("beyond"), { kind: "universe", count: 6 });
+    const last = advanceStory(at("beyond"), { kind: "universe", count: 7 });
 
     expect(last.chapter?.id).toBe("beyond");
     expect(last.story).toEqual(told);
@@ -127,11 +127,11 @@ describe("games/voyage story", () => {
     expect(career.isWatching("universe")).toBe(true);
     expect(career.isWatching("boss")).toBe(false);
 
-    const outcome = career.record({ kind: "universe", count: 4 });
+    const outcome = career.record({ kind: "universe", count: 5 });
 
-    expect(outcome.story.map(({ step, xp, coin }) => [step.id, xp, coin])).toEqual([["casinoReach", STORY[4].steps[0].xp, STORY[4].steps[0].coin]]);
+    expect(outcome.story.map(({ step, xp, coin }) => [step.id, xp, coin])).toEqual([["casinoReach", STORY[5].steps[0].xp, STORY[5].steps[0].coin]]);
     expect(career.isWatching("boss")).toBe(true);
-    expect(career.toProfile().story).toEqual({ chapter: 4, progress: [4, 0, 0] });
+    expect(career.toProfile().story).toEqual({ chapter: 5, progress: [5, 0, 0] });
   });
 
   test("the pilot hears each step paid, the chapter told and the next opened, and a chapter that opens where the ship is opens at once", () => {

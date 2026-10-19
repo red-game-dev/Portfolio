@@ -1,12 +1,14 @@
 import { SECTION_IDS } from "@/config/sections";
 
-export type ZoneId = "matrix" | "ai" | "chain" | "casino" | "mmo" | "beyond";
+export type ZoneId = "matrix" | "ai" | "chain" | "devops" | "casino" | "mmo" | "beyond";
 
 // The page as one journey. Each zone starts at a section and runs until the next zone starts.
 export const ZONE_BOUNDARIES: Array<{ zone: ZoneId; startsAt: string }> = [
   { zone: "matrix", startsAt: SECTION_IDS.cover },
   { zone: "ai", startsAt: SECTION_IDS.aiUsage },
   { zone: "chain", startsAt: SECTION_IDS.web3 },
+  // Where everything built in the universes before it is shipped from: the data centre that runs them all.
+  { zone: "devops", startsAt: SECTION_IDS.devops },
   { zone: "casino", startsAt: SECTION_IDS.igaming },
   { zone: "mmo", startsAt: SECTION_IDS.roster },
   // The run is over and the page lifts off: the finale is the journey's last zone, out past the game world.
@@ -22,6 +24,7 @@ export const ZONE_ACCENTS: Record<ZoneId, string> = {
   matrix: "#4bffa5",
   ai: "#4fd8ff",
   chain: "#b896ff",
+  devops: "#ff6b4a",
   casino: "#ff5fa2",
   mmo: "#ffc45c",
   beyond: "#c4d2ff",

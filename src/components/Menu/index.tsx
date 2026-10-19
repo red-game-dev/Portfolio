@@ -23,19 +23,20 @@ interface MenuItemProps {
   selected?: boolean;
 }
 
-// The journey across the top on large screens. Smaller screens use MobileMenu instead.
-const MenuContainer = tw.div`hidden lg:block lg:relative`;
+// The journey across the top where all eleven stops fit beside the name and the view switch, compact until there is
+// room for the full size. Smaller screens use MobileMenu instead.
+const MenuContainer = tw.div`hidden xl:block xl:relative`;
 
 const MenuList = styled.nav(() => [
-  tw`flex flex-col justify-evenly lg:justify-end text-center list-none p-0 m-0 lg:flex-row lg:text-right`,
+  tw`flex flex-col justify-evenly xl:justify-end text-center list-none p-0 m-0 xl:flex-row xl:text-right`,
   css`
     transition: opacity 0.35s cubic-bezier(0.165, 0.85, 0.45, 1);
   `
 ]);
 
 const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
-  tw`w-full lg:w-auto m-4 p-4 py-8 lg:p-0 lg:m-0 inline text-base lg:text-sm xl:text-base leading-loose text-white font-semibold 
-      lg:px-2 xl:px-4 border-dotted border-2 border-[#121212ed] border-[transparent] border-r-[var(--accent)]
+  tw`w-full xl:w-auto m-4 p-4 py-8 xl:p-0 xl:m-0 inline text-base xl:text-sm 2xl:text-base leading-loose text-white font-semibold 
+      xl:px-2 2xl:px-4 border-dotted border-2 border-[#121212ed] border-[transparent] border-r-[var(--accent)]
      relative align-top overflow-hidden hover:text-white`,
   selected && tw`animate-[move-text 0.75s forwards, border-transition 1s ease-in-out 0s]`,
   css`

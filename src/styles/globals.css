@@ -71,6 +71,13 @@
   --accent-rgb: 184, 150, 255;
 }
 
+[data-zone="devops"],
+[data-journey="devops"] [data-follows-journey] {
+  --accent: #ff6b4a;
+  --accent-muted: #6b3022;
+  --accent-rgb: 255, 107, 74;
+}
+
 [data-zone="casino"],
 [data-journey="casino"] [data-follows-journey] {
   --accent: #ff5fa2;

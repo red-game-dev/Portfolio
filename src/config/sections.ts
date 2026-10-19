@@ -17,6 +17,7 @@ export const SECTION_IDS = {
   skillAreas: "section-skills-areas",
   platform: "section-platform",
   codeReview: "section-code-review",
+  devops: "section-devops",
   igaming: "section-igaming",
   roster: "section-roster",
   forge: "section-skills",
@@ -32,6 +33,7 @@ export const SECTION_IDS = {
 } as const;
 
 export type SectionKey = keyof typeof SECTION_IDS;
+
 
 // Links an application can point at, for example https://redgame.dev/#for-payments.
 export const AUDIENCE_ANCHORS: Record<Audience, string> = {

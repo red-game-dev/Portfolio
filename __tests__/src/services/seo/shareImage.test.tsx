@@ -1,10 +1,12 @@
 /**
  * @jest-environment node
  */
-import { writeFileSync } from "fs";
+import { createHash } from "crypto";
+import { readFileSync, writeFileSync } from "fs";
 
+import { BACKDROP_THEME } from "@/config/theme";
 import { portfolioData } from "@/data/resume";
-import { shareCardOf, shareCardVersion } from "@/services/seo/shareCard";
+import { SHARE_CARD_DESIGN, shareCardOf, shareCardVersion } from "@/services/seo/shareCard";
 import { renderShareImage, SHARE_IMAGE } from "@/services/seo/shareImage";
 
 describe("the share picture drawn from the content", () => {
@@ -15,6 +17,22 @@ describe("the share picture drawn from the content", () => {
     expect(card.figures.map(({ id }) => id)).toEqual(["industry", "reach", "startups"]);
     expect(card.zones.map(({ id }) => id)).toEqual(["matrix", "ai", "chain", "devops", "casino", "mmo", "beyond"]);
     expect(card.domain).toBe("redgame.dev");
+  });
+
+  // What draws the picture. Change any of it and the picture changes under the same address, which platforms keep for
+  // days: so bump SHARE_CARD_DESIGN in services/seo/shareCard.ts and record the new hash here beside it.
+  const DESIGNS: Readonly<Record<number, string>> = {
+    1: "900c7f730eb04c7a",
+  };
+
+  test("its drawing is versioned: a change to what draws it bumps the design number", () => {
+    const hash = createHash("sha256");
+
+    ["src/services/seo/shareImage.tsx", ...[400, 500, 700].map((weight) => `src/assets/fonts/roboto/roboto-${weight}.ttf`)]
+      .forEach((file) => hash.update(new Uint8Array(readFileSync(file))));
+    hash.update(JSON.stringify(BACKDROP_THEME.stars));
+
+    expect(DESIGNS[SHARE_CARD_DESIGN]).toBe(hash.digest("hex").slice(0, 16));
   });
 
   test("its version changes only when what it says changes", () => {

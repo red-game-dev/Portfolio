@@ -100,9 +100,15 @@ const ShareCard = ({ card }: { card: ShareCardContent }) => {
   );
 };
 
-// The share card as a PNG, drawn from the content each time it is asked for (the route caches it at the edge).
+// The share card as a PNG, drawn from the content each time it is asked for (the route caches it at the edge). Without
+// its fonts it still draws, in the face next/og carries, rather than failing every crawler that asks.
 export const renderShareImage = async (card: ShareCardContent): Promise<Buffer> => {
-  const response = new ImageResponse(<ShareCard card={card} />, { ...SHARE_IMAGE, fonts: await fonts() });
+  const faces = await fonts().catch((error: unknown) => {
+    process.stdout.write(`${JSON.stringify({ event: "share.fonts", outcome: "fallback", error: String(error) })}\n`);
+
+    return undefined;
+  });
+  const response = new ImageResponse(<ShareCard card={card} />, { ...SHARE_IMAGE, fonts: faces });
 
   return Buffer.from(await response.arrayBuffer());
 };

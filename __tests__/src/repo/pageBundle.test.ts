@@ -101,7 +101,7 @@ describe("the home page's first load", () => {
   });
 
   test("carries none of the email's look or its drawing, which only the server needs", () => {
-    const { modules } = firstLoad();
+    const { modules, externals } = firstLoad();
     const serverOnly = [
       "src/packages/messaging/contact-email/",
       "src/packages/effects/pixel-reveal-raster/",
@@ -111,6 +111,9 @@ describe("the home page's first load", () => {
     ];
 
     expect(modules.filter((module) => serverOnly.some((prefix) => module.startsWith(prefix)))).toEqual([]);
+    // Nor the share picture's drawing: only its words and version (services/seo/shareCard) reach the page.
+    expect(modules).not.toContain("src/services/seo/shareImage.tsx");
+    expect(externals.has("next/og")).toBe(false);
     // The portrait's reveal engine loads on demand, so a page that reaches it statically has pulled it in by mistake.
     expect(modules.filter((module) => module.startsWith("src/packages/effects/pixel-reveal/"))).toEqual([]);
   });

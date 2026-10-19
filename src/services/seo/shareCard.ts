@@ -33,6 +33,10 @@ export const shareCardOf = (data: PortfolioData): ShareCardContent => ({
   domain: SITE_URL.replace(/^https?:\/\/(www\.)?/, ""),
 });
 
-// Changes only when what the card says changes, so a platform that keeps the picture by its address fetches it again
-// then, and not on every deploy.
-export const shareCardVersion = (card: ShareCardContent): string => hexHash(JSON.stringify(card), 8);
+// The picture's drawing (shareImage.tsx, its fonts, the stars' colours): bumped whenever it changes, so the version moves
+// with it; a test holds this number to those files.
+export const SHARE_CARD_DESIGN = 1;
+
+// Changes only when what the card says or how it is drawn changes, so a platform that keeps the picture by its address
+// fetches it again then, and not on every deploy.
+export const shareCardVersion = (card: ShareCardContent): string => hexHash(JSON.stringify({ design: SHARE_CARD_DESIGN, card }), 8);

@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 interface JourneyProgressProps {
   starts: number[];
@@ -14,15 +14,14 @@ interface TickProps {
 const Track = tw.div`fixed top-0 left-0 right-0 h-[3px] z-[11] pointer-events-none bg-[rgba(255, 255, 255, 0.04)]`;
 
 // Scaled, not resized, so following the scroll never triggers layout.
-const Fill = styled.div(() => [
-  tw`absolute inset-0 bg-[var(--accent)]`,
-  css`
-    transform-origin: left center;
-    transform: scaleX(var(--journey-progress, 0));
-    box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
-    will-change: transform;
-  `,
-]);
+const Fill = styled.div`
+  ${tw`absolute inset-0 bg-[var(--accent)]`}
+
+  transform-origin: left center;
+  transform: scaleX(var(--journey-progress, 0));
+  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
+  will-change: transform;
+`;
 
 const Tick = styled.span(({ isReached }: TickProps) => [
   tw`absolute top-0 w-[2px] h-[7px] bg-[var(--accent-muted)]`,

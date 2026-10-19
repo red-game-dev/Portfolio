@@ -1,6 +1,6 @@
 import { FC, useCallback, useRef, useState } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { faHeart } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -40,17 +40,16 @@ const Heart = styled.span(({ isLost }: HeartProps) => [
   isLost && tw`text-[#333]`,
 ]);
 
-const Board = styled.div(() => [
-  tw`relative w-full h-[320px] md:h-[380px] overflow-hidden border-[1px] border-solid border-[var(--accent-muted)] outline-none`,
-  css`
-    cursor: crosshair;
-    touch-action: manipulation;
+const Board = styled.div`
+  ${tw`relative w-full h-[320px] md:h-[380px] overflow-hidden border-[1px] border-solid border-[var(--accent-muted)] outline-none`}
 
-    &:focus-visible {
-      box-shadow: 0 0 0 2px var(--accent);
-    }
-  `,
-]);
+  cursor: crosshair;
+  touch-action: manipulation;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+`;
 
 const Canvas = tw.canvas`absolute inset-0 w-full h-full`;
 
@@ -62,10 +61,10 @@ const OverlayText = tw.p`m-0 text-sm text-[#bbb]`;
 
 const NewBest = tw.span`text-xs font-bold text-[#101010] bg-[var(--accent)] rounded-[2px] px-[8px] py-[3px]`;
 
-const Action = styled.button(() => [
-  tw`inline-flex flex-row items-center h-[40px] px-[18px] cursor-pointer text-sm font-semibold text-[#101010] bg-[var(--accent)] border-0 rounded-[2px]`,
-  brightenOnHover,
-]);
+const Action = styled.button`
+  ${tw`inline-flex flex-row items-center h-[40px] px-[18px] cursor-pointer text-sm font-semibold text-[#101010] bg-[var(--accent)] border-0 rounded-[2px]`}
+  ${brightenOnHover}
+`;
 
 const Hint = tw.p`m-0 mt-[12px] text-xs text-[#999] max-w-[70ch]`;
 
@@ -123,8 +122,11 @@ export const Arena: FC<ArenaProps> = ({ intro, content }: ArenaProps) => {
             <StatValue>{bestScore}</StatValue>
           </Stat>
         </Stats>
+        {/* A game played from the keyboard: the board takes focus as one group and its keys are the game's controls. */}
+        {/* eslint-disable-next-line styled-components-a11y/no-noninteractive-element-interactions */}
         <Board
           ref={boardRef}
+          // eslint-disable-next-line styled-components-a11y/no-noninteractive-tabindex
           tabIndex={0}
           role="group"
           aria-label={content.boardLabel}

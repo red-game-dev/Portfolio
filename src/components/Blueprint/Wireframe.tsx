@@ -11,20 +11,18 @@ interface WireframeProps extends WireframeContent {
 const Layout = tw.div`flex flex-col gap-[18px]`;
 
 // Screens in a flow read left to right, and scroll sideways on a phone rather than shrink to nothing.
-const Strip = styled.ol(() => [
-  tw`list-none m-0 p-0 pb-[6px] flex flex-row items-start gap-[10px] overflow-x-auto`,
-  css`
-    scroll-snap-type: x proximity;
-    scrollbar-width: thin;
-  `,
-]);
+const Strip = styled.ol`
+  ${tw`list-none m-0 p-0 pb-[6px] flex flex-row items-start gap-[10px] overflow-x-auto`}
 
-const Step = styled.li(() => [
-  tw`flex flex-col gap-[8px] flex-shrink-0`,
-  css`
-    scroll-snap-align: start;
-  `,
-]);
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+`;
+
+const Step = styled.li`
+  ${tw`flex flex-col gap-[8px] flex-shrink-0`}
+
+  scroll-snap-align: start;
+`;
 
 const StepTitle = tw.span`flex flex-row items-center gap-[6px] text-xs font-semibold text-white`;
 
@@ -32,22 +30,21 @@ const StepNumber = tw.span`inline-flex items-center justify-center w-[18px] h-[1
 
 const Arrow = tw.li`self-center flex-shrink-0 text-[var(--accent-muted)] text-lg pt-[20px]`;
 
-const Phone = styled.div(() => [
-  tw`relative flex flex-col gap-[5px] w-[160px] h-[316px] p-[8px] pt-[18px] bg-[#0b0b0b] border-[2px] border-solid border-[#2f2f2f] rounded-[20px]`,
-  css`
-    &::before {
-      content: "";
-      position: absolute;
-      top: 6px;
-      left: 50%;
-      width: 36px;
-      height: 4px;
-      border-radius: 4px;
-      background: #2f2f2f;
-      transform: translateX(-50%);
-    }
-  `,
-]);
+const Phone = styled.div`
+  ${tw`relative flex flex-col gap-[5px] w-[160px] h-[316px] p-[8px] pt-[18px] bg-[#0b0b0b] border-[2px] border-solid border-[#2f2f2f] rounded-[20px]`}
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    width: 36px;
+    height: 4px;
+    border-radius: 4px;
+    background: #2f2f2f;
+    transform: translateX(-50%);
+  }
+`;
 
 // In a flow each screen keeps a fixed width and the strip scrolls; on its own a screen takes the room it has.
 const Desktop = styled.div(({ hasAreas, isInFlow }: { hasAreas: boolean; isInFlow: boolean }) => [
@@ -103,14 +100,13 @@ const Region = styled.div(({ size, kind }: { size: number; kind: WireframeRegion
 const RegionLabel = tw.span`relative z-[1] self-start px-[2px] text-[9px] md:text-[10px] leading-tight text-[#a8a8a8] bg-[#141414]`;
 
 // The classic placeholder for an image or video: a box with its diagonals.
-const Media = styled.span(() => [
-  tw`absolute inset-0`,
-  css`
-    background:
-      linear-gradient(to top right, transparent calc(50% - 0.5px), #2e2e2e calc(50% - 0.5px), #2e2e2e calc(50% + 0.5px), transparent calc(50% + 0.5px)),
-      linear-gradient(to bottom right, transparent calc(50% - 0.5px), #2e2e2e calc(50% - 0.5px), #2e2e2e calc(50% + 0.5px), transparent calc(50% + 0.5px));
-  `,
-]);
+const Media = styled.span`
+  ${tw`absolute inset-0`}
+
+  background:
+    linear-gradient(to top right, transparent calc(50% - 0.5px), #2e2e2e calc(50% - 0.5px), #2e2e2e calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom right, transparent calc(50% - 0.5px), #2e2e2e calc(50% - 0.5px), #2e2e2e calc(50% + 0.5px), transparent calc(50% + 0.5px));
+`;
 
 const Line = styled.span(({ width }: { width: number }) => [
   tw`block h-[4px] rounded-[2px] bg-[#262626]`,
@@ -135,12 +131,11 @@ const Dot = styled.span(({ isLit }: { isLit: boolean }) => [
   isLit && tw`bg-[var(--accent)] border-[var(--accent)]`,
 ]);
 
-const Big = styled.span(() => [
-  tw`block w-[55%] h-[10px] rounded-[2px]`,
-  css`
-    background: rgba(var(--accent-rgb), 0.35);
-  `,
-]);
+const Big = styled.span`
+  ${tw`block w-[55%] h-[10px] rounded-[2px]`}
+
+  background: rgba(var(--accent-rgb), 0.35);
+`;
 
 const Notes = tw.dl`grid gap-[12px] m-0 md:grid-cols-2`;
 

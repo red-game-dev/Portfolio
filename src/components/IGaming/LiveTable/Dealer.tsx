@@ -26,29 +26,28 @@ const TALK_MS = 1100;
 
 const Root = tw.div`relative z-[1] flex flex-row items-end justify-center gap-[14px]`;
 
-const Figure = styled.button(() => [
-  tw`relative w-[120px] md:w-[160px] p-0 cursor-pointer bg-transparent border-0`,
-  css`
-    aspect-ratio: 200 / 240;
-    transition: transform 0.15s ease;
-    touch-action: manipulation;
+const Figure = styled.button`
+  ${tw`relative w-[120px] md:w-[160px] p-0 cursor-pointer bg-transparent border-0`}
 
-    ${focusRing("var(--accent)", 4)}
+  aspect-ratio: 200 / 240;
+  transition: transform 0.15s ease;
+  touch-action: manipulation;
 
-    /* A tap shows on the dealer herself, as a small press, rather than as a box over her. */
+  ${focusRing("var(--accent)", 4)}
+
+  /* A tap shows on the dealer herself, as a small press, rather than as a box over her. */
+  &:active {
+    transform: scale(0.96);
+  }
+
+  ${media.reducedMotion} {
+    transition: none;
+
     &:active {
-      transform: scale(0.96);
+      transform: none;
     }
-
-    ${media.reducedMotion} {
-      transition: none;
-
-      &:active {
-        transform: none;
-      }
-    }
-  `,
-]);
+  }
+`;
 
 const Portrait = tw.canvas`block w-full h-full`;
 

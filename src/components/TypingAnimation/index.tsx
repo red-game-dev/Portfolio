@@ -1,6 +1,6 @@
 import { FC, Fragment, useMemo, useRef } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { useTypewriter } from "@/components/TypingAnimation/hooks/useTypewriter";
 import useInView from "@/hooks/useInView";
@@ -26,17 +26,16 @@ const toSegments = (phrase: string): Segment[] => phrase
 
 // Every phrase sits in the same grid cell, invisible, so the block is always as tall as the longest one
 // and the page never jumps as phrases change.
-const Stack = styled.p(() => [
-  tw`relative grid m-auto w-full text-center text-white font-normal text-[34px] leading-[1.15] sm:text-5xl md:text-6xl`,
-  css`
-    hyphens: none;
-    overflow-wrap: normal;
+const Stack = styled.p`
+  ${tw`relative grid m-auto w-full text-center text-white font-normal text-[34px] leading-[1.15] sm:text-5xl md:text-6xl`}
 
-    & > * {
-      grid-area: 1 / 1;
-    }
-  `,
-]);
+  hyphens: none;
+  overflow-wrap: normal;
+
+  & > * {
+    grid-area: 1 / 1;
+  }
+`;
 
 const Sizer = tw.span`invisible`;
 
@@ -45,15 +44,14 @@ const Strong = tw.strong`font-bold text-[var(--accent)]`;
 // Letters not typed yet keep their place, so every word lands where it will end up and never jumps a line.
 const Pending = tw.span`invisible`;
 
-const Caret = styled.span(() => [
-  tw`inline-block w-[3px] h-[0.9em] ml-[2px] bg-[var(--accent)]`,
-  css`
-    vertical-align: -0.08em;
-    animation: ${caretBlink} 0.9s steps(1) infinite;
+const Caret = styled.span`
+  ${tw`inline-block w-[3px] h-[0.9em] ml-[2px] bg-[var(--accent)]`}
 
-    ${hiddenWhenReduced}
-  `,
-]);
+  vertical-align: -0.08em;
+  animation: ${caretBlink} 0.9s steps(1) infinite;
+
+  ${hiddenWhenReduced}
+`;
 
 const Screen = tw.span`sr-only`;
 

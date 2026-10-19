@@ -1,6 +1,6 @@
 import { FC, useRef } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
 import { faArrowDown, faEnvelope } from "@fortawesome/free-solid-svg-icons";
@@ -20,17 +20,16 @@ interface ServiceCardProps extends Service {
   order: number;
 }
 
-const Card = styled.article(() => [
-  tw`relative flex flex-col gap-[14px] p-[16px] md:p-[22px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
-  css`
-    transition: border-color 0.3s ease;
+const Card = styled.article`
+  ${tw`relative flex flex-col gap-[14px] p-[16px] md:p-[22px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`}
 
-    &:hover,
-    &:focus-within {
-      border-color: var(--accent-muted);
-    }
-  `,
-]);
+  transition: border-color 0.3s ease;
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--accent-muted);
+  }
+`;
 
 const Heading = tw.div`flex flex-row items-center gap-[14px]`;
 
@@ -43,18 +42,18 @@ const Description = tw.p`m-0 text-sm text-[#bbb] break-words`;
 
 const Points = tw.ul`list-none m-0 p-0 flex flex-col gap-[6px] text-sm text-[#999]`;
 
-const Point = styled.li(() => [
-  tw`relative pl-[16px] break-words`,
-  squareBullet({ radius: 1 }),
-]);
+const Point = styled.li`
+  ${tw`relative pl-[16px] break-words`}
+  ${squareBullet({ radius: 1 })}
+`;
 
 const Actions = tw.div`mt-auto pt-[6px] flex flex-row flex-wrap gap-[10px]`;
 
-const Action = styled.a(() => [
-  tw`inline-flex flex-row items-center gap-2 h-[36px] px-[14px] text-sm font-medium no-underline text-[var(--accent)]
-     border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`,
-  accentFillOnHover(true),
-]);
+const Action = styled.a`
+  ${tw`inline-flex flex-row items-center gap-2 h-[36px] px-[14px] text-sm font-medium no-underline text-[var(--accent)]
+     border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`}
+  ${accentFillOnHover(true)}
+`;
 
 export const ServiceCard: FC<ServiceCardProps> = ({
   icon, title, description, points = [], emailSubject, see, actions, email, linkedInUrl, order,

@@ -1,4 +1,4 @@
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { faChevronDown, faEnvelope, faFileArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -28,13 +28,12 @@ const LINE_DELAY_MS = 260;
 // The first screen as a column: the typed line centred in the room above, the essentials under it. Both are in
 // the flow, so however the line wraps they never overlap; on a screen too short for both the cover grows.
 // At least the visible height (svh), so a phone's toolbars never hide the actions.
-const Section = styled.div(() => [
-  tw`relative overflow-hidden m-0 z-[7] flex flex-col`,
-  css`
-    min-height: 100vh;
-    min-height: 100svh;
-  `,
-]);
+const Section = styled.div`
+  ${tw`relative overflow-hidden m-0 z-[7] flex flex-col`}
+
+  min-height: 100vh;
+  min-height: 100svh;
+`;
 
 // Clear of the fixed header and, below a laptop, of the zone bar under it.
 const TitleArea = tw.div`relative z-[2] flex flex-1 items-center w-full px-5 pt-[116px] pb-[20px] lg:pt-[140px] lg:pb-[40px]`;
@@ -43,9 +42,9 @@ const TitleArea = tw.div`relative z-[2] flex flex-1 items-center w-full px-5 pt-
 const Essentials = tw.div`relative z-[3] flex flex-col gap-[12px] px-5 pb-[52px] text-left lg:pr-12 lg:ml-[calc(20% + 15px)] lg:pb-[50px]
 lg:max-w-[780px]`;
 
-const Introduction = styled.h1(() => [
-  tw`m-0 text-white break-words text-base lg:text-lg [& > strong]:text-[var(--accent)]`,
-]);
+const Introduction = styled.h1`
+  ${tw`m-0 text-white break-words text-base lg:text-lg [& > strong]:text-[var(--accent)]`}
+`;
 
 const Lines = tw.div`flex flex-col gap-[4px] text-sm lg:text-base text-[#ddd]`;
 
@@ -53,56 +52,54 @@ const Availability = tw.p`m-0 text-sm text-[var(--accent)]`;
 
 const Actions = tw.div`flex flex-row flex-wrap gap-[10px]`;
 
-const Action = styled.a(() => [
-  tw`inline-flex flex-row items-center gap-2 h-[40px] px-[16px] text-sm font-medium no-underline text-[var(--accent)] bg-[rgba(16, 16, 16, 0.6)]
-     border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`,
-  accentFillOnHover(true),
-]);
+const Action = styled.a`
+  ${tw`inline-flex flex-row items-center gap-2 h-[40px] px-[16px] text-sm font-medium no-underline text-[var(--accent)] bg-[rgba(16, 16, 16, 0.6)]
+     border-[1px] border-solid border-[var(--accent-muted)] rounded-[2px]`}
+  ${accentFillOnHover(true)}
+`;
 
 const Audiences = tw.nav`flex flex-row flex-wrap items-center gap-[8px] text-xs text-[#999]`;
 
 // Only on wide, tall screens: elsewhere the cover stops at the roles, and the full industry filter waits at
 // the top of My History.
-const Industries = styled.nav(() => [
-  tw`hidden xl:flex flex-row flex-wrap items-center gap-[8px] text-xs text-[#999]`,
-  css`
-    @media (max-height: 820px) {
-      display: none;
-    }
-  `,
-]);
+const Industries = styled.nav`
+  ${tw`hidden xl:flex flex-row flex-wrap items-center gap-[8px] text-xs text-[#999]`}
 
-const AudienceLink = styled.a(() => [
-  tw`text-xs leading-none no-underline text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[7px] px-[11px] border-[1px] border-solid border-[var(--accent-muted)]`,
-  css`
-    transition: border-color 0.2s ease;
+  @media (max-height: 820px) {
+    display: none;
+  }
+`;
 
-    &:hover,
-    &:focus-visible {
-      border-color: var(--accent);
-    }
-  `,
-]);
+const AudienceLink = styled.a`
+  ${tw`text-xs leading-none no-underline text-[var(--accent)] bg-[#1d1d1d] rounded-full py-[7px] px-[11px] border-[1px] border-solid border-[var(--accent-muted)]`}
+
+  transition: border-color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--accent);
+  }
+`;
 
 // Centred under the essentials on every screen, bobbing until the page is kept still.
-const ScrollerLink = styled(Link)(() => [
-  tw`absolute block w-5 h-5 left-0 right-0 mx-auto bottom-[14px] lg:bottom-[10px] z-[2] text-[var(--accent)] text-2xl text-center
+const ScrollerLink = styled(Link)`
+  ${tw`absolute block w-5 h-5 left-0 right-0 mx-auto bottom-[14px] lg:bottom-[10px] z-[2] text-[var(--accent)] text-2xl text-center
   animate-[scroll-cue 1s ease-out 0s infinite]
-  `,
-  noAnimationWhenReduced,
-]);
+  `}
+  ${noAnimationWhenReduced}
+`;
 
-const ScrollerIcon = styled(FontAwesomeIcon)(() => [
-  tw`relative bottom-[10px]`,
-]);
+const ScrollerIcon = styled(FontAwesomeIcon)`
+  ${tw`relative bottom-[10px]`}
+`;
 
 const CoverContainer = tw.div`absolute inset-0`;
 
 const CoverContent = tw.div`fixed h-full w-full left-0 top-0`;
 
-const CoverImage = styled(Image)(() => [
-  tw`blur-sm w-full h-full object-cover`
-]);
+const CoverImage = styled(Image)`
+  ${tw`blur-sm w-full h-full object-cover`}
+`;
 
 
 const CoverBackgroundMask = tw.div`absolute top-0 left-0 w-full h-full opacity-40 z-[2] bg-[#101010]`;
@@ -110,12 +107,11 @@ const CoverBackgroundMask = tw.div`absolute top-0 left-0 w-full h-full opacity-4
 const CoverBackgroundTexture = tw.div`absolute top-0 left-0 w-full h-full z-[2]`;
 
 // Darkens the lower part of the picture so the first screen text keeps its contrast over bright clouds.
-const CoverBottomShade = styled.div(() => [
-  tw`absolute left-0 right-0 bottom-0 h-[60%] z-[2] pointer-events-none`,
-  css`
-    background: linear-gradient(to bottom, rgba(16, 16, 16, 0) 0%, rgba(16, 16, 16, 0.55) 55%, rgba(16, 16, 16, 0.85) 100%);
-  `,
-]);
+const CoverBottomShade = styled.div`
+  ${tw`absolute left-0 right-0 bottom-0 h-[60%] z-[2] pointer-events-none`}
+
+  background: linear-gradient(to bottom, rgba(16, 16, 16, 0) 0%, rgba(16, 16, 16, 0.55) 55%, rgba(16, 16, 16, 0.85) 100%);
+`;
 
 export const Cover = ({ intro, image, typingsTitles, headline, cvUrl, email }: CoverProps) => {
   const { isReady: isLoaded } = useAppLoaderStateHook();

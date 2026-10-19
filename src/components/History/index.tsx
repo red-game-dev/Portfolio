@@ -110,14 +110,13 @@ const Command = styled.span(({ characters }: { characters: number }) => [
   `,
 ]);
 
-const Answer = styled.span(() => [
-  tw`block text-[#8a948f]`,
-  css`
-    animation: ${fadeIn} 0.2s ease 0.45s both;
+const Answer = styled.span`
+  ${tw`block text-[#8a948f]`}
 
-    ${noAnimationWhenReduced}
-  `,
-]);
+  animation: ${fadeIn} 0.2s ease 0.45s both;
+
+  ${noAnimationWhenReduced}
+`;
 
 // No end opacity: each commit settles at its own, so entries outside the chosen industry stay faded.
 const commitIn = keyframes`
@@ -157,13 +156,12 @@ const More = styled.li(({ isDimmed }: { isDimmed: boolean }) => [
   `,
 ]);
 
-const MoreNode = styled.span(() => [
-  tw`absolute top-[14px] w-[13px] h-[13px] rounded-full bg-[#101010]`,
-  css`
-    left: calc(var(--lane-main) - 6px);
-    border: 2px dashed ${VENTURE_COLOUR};
-  `,
-]);
+const MoreNode = styled.span`
+  ${tw`absolute top-[14px] w-[13px] h-[13px] rounded-full bg-[#101010]`}
+
+  left: calc(var(--lane-main) - 6px);
+  border: 2px dashed ${VENTURE_COLOUR};
+`;
 
 const MoreText = tw.p`m-0 p-[14px] text-sm text-[#bbb] bg-[#0d0d0d] border-[1px] border-dashed border-[#5c4a26]`;
 

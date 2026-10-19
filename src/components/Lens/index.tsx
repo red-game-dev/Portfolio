@@ -56,14 +56,13 @@ const openDown = keyframes`
 `;
 
 // Full screen and see through: the doors inside are what hide the page, so they can open onto it.
-const Dialog = styled.dialog(() => [
-  tw`fixed inset-0 w-full h-full max-w-[none] max-h-[none] m-0 p-0 border-0 overflow-hidden bg-transparent text-[#ccc]`,
-  css`
-    &::backdrop {
-      background: transparent;
-    }
-  `,
-]);
+const Dialog = styled.dialog`
+  ${tw`fixed inset-0 w-full h-full max-w-[none] max-h-[none] m-0 p-0 border-0 overflow-hidden bg-transparent text-[#ccc]`}
+
+  &::backdrop {
+    background: transparent;
+  }
+`;
 
 const Shell = styled.div(({ lens, isLeaving }: LeavingProps) => [
   tw`absolute inset-0`,

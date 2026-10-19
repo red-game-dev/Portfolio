@@ -1,5 +1,5 @@
 import { keyframes } from "styled-components";
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { actionStyle, TagList } from "@/components/Controls";
 import { Image } from "@/components/Image";
@@ -13,41 +13,39 @@ export const unfold = keyframes`
 `;
 
 // The map screen of a region, opened like a game's map: it unfolds from a line into the full view.
-export const Dialog = styled.dialog(() => [
-  tw`w-[calc(100% - 24px)] max-w-[920px] max-h-[90vh] p-0 overflow-hidden text-left text-[#ccc] bg-[#0b0b0b]
-     border-[1px] border-solid border-[var(--kind)]`,
-  css`
-    box-shadow: 0 0 50px color-mix(in srgb, var(--kind) 25%, transparent);
-    --action: var(--kind);
-    --action-muted: #2a2a2a;
+export const Dialog = styled.dialog`
+  ${tw`w-[calc(100% - 24px)] max-w-[920px] max-h-[90vh] p-0 overflow-hidden text-left text-[#ccc] bg-[#0b0b0b]
+     border-[1px] border-solid border-[var(--kind)]`}
 
+  box-shadow: 0 0 50px color-mix(in srgb, var(--kind) 25%, transparent);
+  --action: var(--kind);
+  --action-muted: #2a2a2a;
+
+  &[open] {
+    animation: ${unfold} 0.4s cubic-bezier(0.165, 0.85, 0.45, 1);
+  }
+
+  &::backdrop {
+    background: rgba(5, 5, 5, 0.78);
+    backdrop-filter: blur(3px);
+  }
+
+  ${media.reducedMotion} {
     &[open] {
-      animation: ${unfold} 0.4s cubic-bezier(0.165, 0.85, 0.45, 1);
+      animation: none;
     }
-
-    &::backdrop {
-      background: rgba(5, 5, 5, 0.78);
-      backdrop-filter: blur(3px);
-    }
-
-    ${media.reducedMotion} {
-      &[open] {
-        animation: none;
-      }
-    }
-  `,
-]);
+  }
+`;
 
 export const Scroll = tw.div`max-h-[90vh] overflow-y-auto`;
 
 export const Header = tw.header`flex flex-row items-center gap-[14px] p-[18px] md:p-[22px] pr-[56px] border-0 border-b-[1px] border-solid border-[#1E1E1E]`;
 
-export const Badge = styled.span(() => [
-  tw`flex flex-shrink-0 items-center justify-center w-[52px] h-[58px] text-xl text-[#101010] bg-[var(--kind)]`,
-  css`
-    clip-path: ${HEX};
-  `,
-]);
+export const Badge = styled.span`
+  ${tw`flex flex-shrink-0 items-center justify-center w-[52px] h-[58px] text-xl text-[#101010] bg-[var(--kind)]`}
+
+  clip-path: ${HEX};
+`;
 
 export const Heading = tw.div`flex flex-col gap-[6px] min-w-0`;
 
@@ -63,41 +61,39 @@ export const Chip = styled.span(({ isKind }: { isKind?: boolean }) => [
 export const Close = tw.button`absolute top-[14px] right-[14px] z-[3] flex items-center justify-center w-[36px] h-[36px] cursor-pointer text-lg
 text-[#999] bg-transparent border-0 hover:text-white`;
 
-export const Body = styled.div(() => [
-  tw`grid gap-[22px] p-[18px] md:p-[22px]`,
-  css`
-    ${media.md} {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    }
-  `,
-]);
+export const Body = styled.div`
+  ${tw`grid gap-[22px] p-[18px] md:p-[22px]`}
+
+  ${media.md} {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+`;
 
 // The region's view: its screenshot under a map grid, or its own terrain when there is no picture.
-export const View = styled.div(() => [
-  tw`relative overflow-hidden min-h-[200px] md:min-h-[300px] bg-[#101010] border-[1px] border-solid border-[#1E1E1E]`,
-  css`
+export const View = styled.div`
+  ${tw`relative overflow-hidden min-h-[200px] md:min-h-[300px] bg-[#101010] border-[1px] border-solid border-[#1E1E1E]`}
+
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--kind) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--kind) 10%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
     background-image:
-      linear-gradient(color-mix(in srgb, var(--kind) 10%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--kind) 10%, transparent) 1px, transparent 1px);
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 24px 24px;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.7);
+  }
+`;
 
-    &::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-      background-size: 24px 24px;
-      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.7);
-    }
-  `,
-]);
-
-export const ViewImage = styled(Image)(() => [
-  tw`object-cover`,
-]);
+export const ViewImage = styled(Image)`
+  ${tw`object-cover`}
+`;
 
 export const ViewIcon = tw.span`absolute inset-0 flex items-center justify-center text-[96px] text-[var(--kind)] opacity-80`;
 
@@ -109,24 +105,23 @@ export const GroupHeading = tw.h4`m-0 text-xs font-semibold text-[var(--kind)]`;
 
 export const Objectives = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px] text-sm`;
 
-export const Objective = styled.li(() => [
-  tw`relative pl-[24px] break-words`,
-  css`
-    &::before {
-      content: "\\2713";
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 16px;
-      height: 16px;
-      font-size: 11px;
-      line-height: 16px;
-      text-align: center;
-      color: #101010;
-      background: var(--kind);
-    }
-  `,
-]);
+export const Objective = styled.li`
+  ${tw`relative pl-[24px] break-words`}
+
+  &::before {
+    content: "\\2713";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+    color: #101010;
+    background: var(--kind);
+  }
+`;
 
 export const Loot = TagList;
 
@@ -153,16 +148,15 @@ border-0 border-t-[1px] border-solid border-[#1E1E1E]`;
 
 export const Group = tw.div`flex flex-row flex-wrap gap-[10px]`;
 
-export const Travel = styled.button(() => [
-  ...actionStyle(false),
-  tw`max-w-full md:max-w-[220px]`,
-  // Marked rather than disabled at either end, so a reader whose focus is on it keeps it there.
-  css`
-    &[aria-disabled="true"] {
-      opacity: 0.3;
-      cursor: default;
-    }
-  `,
-]);
+export const Travel = styled.button`
+  ${actionStyle(false)}
+  ${tw`max-w-full md:max-w-[220px]`}
+  /* Marked rather than disabled at either end, so a reader whose focus is on it keeps it there. */
+
+  &[aria-disabled="true"] {
+    opacity: 0.3;
+    cursor: default;
+  }
+`;
 
 export const TravelName = tw.span`truncate`;

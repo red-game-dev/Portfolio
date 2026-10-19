@@ -85,12 +85,11 @@ const StepNumber = styled.span(({ state }: { state: StepState }) => [
 
 const Tech = tw.span`text-[11px] text-[#999]`;
 
-const Log = styled.div(() => [
-  tw`mt-[14px] p-[12px] min-h-[120px] text-[12px] leading-[1.7] text-[#bbb] bg-[#0a0f0c] border-[1px] border-solid border-[#1E1E1E]`,
-  css`
-    font-family: ${MONO};
-  `,
-]);
+const Log = styled.div`
+  ${tw`mt-[14px] p-[12px] min-h-[120px] text-[12px] leading-[1.7] text-[#bbb] bg-[#0a0f0c] border-[1px] border-solid border-[#1E1E1E]`}
+
+  font-family: ${MONO};
+`;
 
 const LogLine = styled.div(({ tone }: { tone: "plain" | "good" | "bad" }) => [
   tw`whitespace-pre-wrap break-words`,

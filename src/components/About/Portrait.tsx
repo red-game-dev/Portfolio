@@ -23,9 +23,9 @@ interface DoneProps {
 
 const Frame = tw.div`relative w-[160px] h-[213px] overflow-hidden`;
 
-const Photo = styled(Image)(() => [
-  tw`block w-full h-full object-cover`,
-]);
+const Photo = styled(Image)`
+  ${tw`block w-full h-full object-cover`}
+`;
 
 // Sits over the photo and hands it back by fading out once the reveal ends. Until the engine draws, the
 // canvas is transparent, so without script or with reduced motion the photo simply shows.

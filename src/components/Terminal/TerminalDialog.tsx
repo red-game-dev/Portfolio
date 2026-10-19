@@ -1,7 +1,7 @@
 import { FC, useId, useRef } from "react";
 
 import { keyframes } from "styled-components";
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { MessageForm } from "@/components/Contact/MessageForm";
 import { ActionButton, ActionLink } from "@/components/Controls";
@@ -28,42 +28,41 @@ const materialise = keyframes`
 // A native dialog: modal focus, Escape and the backdrop come from the browser. It keeps the browser's own
 // position: fixed, which also anchors the scan line; any other position puts it at the top of the document,
 // and opening it scrolls the page up there.
-const Dialog = styled.dialog(() => [
-  tw`w-[calc(100% - 32px)] max-w-[560px] max-h-[85vh] p-0 overflow-hidden text-left text-[#ccc] bg-[#0a0f0c]
-     border-[1px] border-solid border-[var(--accent)]`,
-  css`
-    box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.25);
+const Dialog = styled.dialog`
+  ${tw`w-[calc(100% - 32px)] max-w-[560px] max-h-[85vh] p-0 overflow-hidden text-left text-[#ccc] bg-[#0a0f0c]
+     border-[1px] border-solid border-[var(--accent)]`}
 
-    &[open] {
-      animation: ${materialise} 0.35s cubic-bezier(0.165, 0.85, 0.45, 1);
-    }
+  box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.25);
 
-    &::backdrop {
-      background: rgba(5, 8, 6, 0.75);
-      backdrop-filter: blur(3px);
+  &[open] {
+    animation: ${materialise} 0.35s cubic-bezier(0.165, 0.85, 0.45, 1);
+  }
+
+  &::backdrop {
+    background: rgba(5, 8, 6, 0.75);
+    backdrop-filter: blur(3px);
+  }
+
+  &[open]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent 0%, rgba(var(--accent-rgb), 0.12) 50%, transparent 100%);
+    animation: scan-beam 0.9s ease-out forwards;
+  }
+
+  ${media.reducedMotion} {
+    &[open],
+    &[open]::after {
+      animation: none;
     }
 
     &[open]::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(to bottom, transparent 0%, rgba(var(--accent-rgb), 0.12) 50%, transparent 100%);
-      animation: scan-beam 0.9s ease-out forwards;
+      display: none;
     }
-
-    ${media.reducedMotion} {
-      &[open],
-      &[open]::after {
-        animation: none;
-      }
-
-      &[open]::after {
-        display: none;
-      }
-    }
-  `,
-]);
+  }
+`;
 
 const Body = tw.div`flex flex-col gap-[16px] p-[22px] md:p-[28px] max-h-[85vh] overflow-y-auto`;
 
@@ -77,10 +76,10 @@ const GroupHeading = tw.h4`m-0 text-xs font-medium text-[#8a948f]`;
 
 const Items = tw.ul`list-none m-0 p-0 flex flex-col gap-[6px] text-sm`;
 
-const Item = styled.li(() => [
-  tw`relative pl-[16px] break-words`,
-  squareBullet(),
-]);
+const Item = styled.li`
+  ${tw`relative pl-[16px] break-words`}
+  ${squareBullet()}
+`;
 
 const Actions = tw.div`flex flex-row flex-wrap gap-[10px] pt-[6px]`;
 
@@ -94,6 +93,9 @@ export const TerminalDialog: FC<TerminalDialogProps> = ({ dialog, closeLabel, on
   const onClick = useModalDialog(dialogRef, dialog !== null);
 
   return (
+    // A native modal dialog: Escape closes it as the browser's cancel, and the click only closes it from its backdrop,
+    // which no keyboard reaches.
+    // eslint-disable-next-line styled-components-a11y/click-events-have-key-events, styled-components-a11y/no-noninteractive-element-interactions
     <Dialog ref={dialogRef} onClose={onClose} onClick={onClick} aria-labelledby={titleId}>
       {dialog && (
         <>

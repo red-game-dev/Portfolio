@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { useDecodedText } from "@/components/DecodedText/hooks/useDecodedText";
 import { useLensStateHook } from "@/components/Lens/hooks/useLensStateHook";
@@ -18,13 +18,12 @@ const ReadableText = tw.span`sr-only`;
 
 // The bits are drawn from an attribute rather than written as text, so the page's text, which search engines and
 // AI crawlers read from the server HTML, holds only the real words. Anything that decodes from binary uses it.
-export const Bits = styled.span(() => [
-  css`
-    &::before {
-      content: attr(data-bits);
-    }
-  `,
-]);
+export const Bits = styled.span`
+
+  &::before {
+    content: attr(data-bits);
+  }
+`;
 
 // Assistive tech and crawlers get the real text straight away; the bits are decoration. Once decoded, the text is
 // there once, plain, for everyone: a hidden copy beside it would be copied too, so a reader pasting a line got it twice.

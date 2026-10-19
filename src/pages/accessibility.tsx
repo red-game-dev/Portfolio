@@ -30,9 +30,17 @@ const underlined = css`
   text-underline-offset: 4px;
 `;
 
-const TextLink = styled.a(() => [tw`text-[#4bffa5] underline`, underlined, focusRing("#4bffa5", 2)]);
+const TextLink = styled.a`
+  ${tw`text-[#4bffa5] underline`}
+  ${underlined}
+  ${focusRing("#4bffa5", 2)}
+`;
 
-const Back = styled(Link)(() => [tw`inline-block mt-[40px] text-sm font-semibold text-[#4bffa5] underline`, underlined, focusRing("#4bffa5", 2)]);
+const Back = styled(Link)`
+  ${tw`inline-block mt-[40px] text-sm font-semibold text-[#4bffa5] underline`}
+  ${underlined}
+  ${focusRing("#4bffa5", 2)}
+`;
 
 const Reviewed = tw.p`m-0 mt-[28px] text-sm text-[#9a9a9a]`;
 

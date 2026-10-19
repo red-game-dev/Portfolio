@@ -32,9 +32,14 @@ border-[rgba(255, 255, 255, 0.07)]`;
 // A row that scrolls sideways on a phone, a column beside the open area on a desktop.
 const Layout = tw.div`mt-[22px] flex flex-col lg:flex-row gap-[16px] lg:gap-[28px]`;
 
-const Panels = styled(SwitchStage)(() => [tw`flex-1 min-w-0`]);
+const Panels = styled(SwitchStage)`
+  ${tw`flex-1 min-w-0`}
+`;
 
-const Panel = styled.section(() => [tw`min-w-0`, honourHidden]);
+const Panel = styled.section`
+  ${tw`min-w-0`}
+  ${honourHidden}
+`;
 
 const AreaTitle = tw.h3`m-[0 0 12px 0] text-base font-semibold text-white`;
 
@@ -43,7 +48,9 @@ const Tags = tw.ul`list-none m-0 p-0 flex flex-row flex-wrap gap-2`;
 const Examples = tw.div`mt-[25px]`;
 
 // Lined up with the areas' frame above it.
-const ExamplesIntro = styled(Intro)(() => [tw`ml-[-1px] border-r-[0px]`]);
+const ExamplesIntro = styled(Intro)`
+  ${tw`ml-[-1px] border-r-[0px]`}
+`;
 
 const Drawings = tw.div`mt-[22px]`;
 

@@ -37,12 +37,11 @@ const blink = keyframes`
 `;
 
 // The table: a felt glow under the cards and a rim in the zone's colour.
-const Table = styled(Panel)(() => [
-  css`
-    background: radial-gradient(ellipse at 50% 0%, rgba(28, 120, 78, 0.32), #0d0d0d 72%), #0d0d0d;
-    border-color: var(--accent-muted);
-  `,
-]);
+const Table = styled(Panel)`
+
+  background: radial-gradient(ellipse at 50% 0%, rgba(28, 120, 78, 0.32), #0d0d0d 72%), #0d0d0d;
+  border-color: var(--accent-muted);
+`;
 
 const Blueprints = tw.div`mt-[25px] lg:mt-[35px]`;
 
@@ -53,14 +52,13 @@ const Statement = tw.p`m-0 text-base md:text-lg text-white max-w-[60ch]`;
 const Live = tw.span`inline-flex flex-row items-center gap-[8px] text-xs font-semibold text-white py-[6px] px-[10px] rounded-full
 bg-[rgba(16, 16, 16, 0.7)] border-[1px] border-solid border-[var(--accent-muted)]`;
 
-const Dot = styled.span(() => [
-  tw`w-[8px] h-[8px] rounded-full bg-[#ff4d4d]`,
-  css`
-    animation: ${blink} 1.4s ease-in-out infinite;
+const Dot = styled.span`
+  ${tw`w-[8px] h-[8px] rounded-full bg-[#ff4d4d]`}
 
-    ${noAnimationWhenReduced}
-  `,
-]);
+  animation: ${blink} 1.4s ease-in-out infinite;
+
+  ${noAnimationWhenReduced}
+`;
 
 const Cards = tw.ul`list-none m-0 p-0 grid gap-[14px] sm:grid-cols-2 lg:grid-cols-3`;
 
@@ -86,12 +84,11 @@ const Proof = tw.div`flex flex-row flex-wrap items-center gap-[8px] text-sm text
 
 const ProofItem = tw.span`text-xs leading-none text-white bg-[#1d1d1d] rounded-[2px] py-[6px] px-[8px] border-[1px] border-solid border-[#2a2a2a]`;
 
-const Quote = styled.blockquote(() => [
-  tw`m-0 pl-[14px] text-sm italic text-[#ddd] max-w-[70ch]`,
-  css`
-    border-left: 2px solid var(--accent);
-  `,
-]);
+const Quote = styled.blockquote`
+  ${tw`m-0 pl-[14px] text-sm italic text-[#ddd] max-w-[70ch]`}
+
+  border-left: 2px solid var(--accent);
+`;
 
 const QuoteSource = tw.cite`block mt-[6px] text-xs not-italic text-[#999]`;
 

@@ -1,6 +1,6 @@
 import { FC, useRef } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { faLinkedinIn, faGoogleDrive, faGithub, faStackOverflow } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -32,15 +32,14 @@ const Content = tw.div`relative text-base ml-[-1px] p-[18px] md:p-[25px] lg:p-[3
 const Title = tw.h2`relative m-[0 0 30px 0] lg:m-[0 0 35px 35px] inline-block align-top text-2xl font-semibold text-white`;
 
 // The portrait beside the hook on wide screens, above it on phones.
-const Top = styled.div(() => [
-  tw`grid gap-[22px]`,
-  css`
-    ${media.md} {
-      grid-template-columns: 160px minmax(0, 1fr);
-      gap: 30px;
-    }
-  `,
-]);
+const Top = styled.div`
+  ${tw`grid gap-[22px]`}
+
+  ${media.md} {
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 30px;
+  }
+`;
 
 const Lead = tw.div`flex flex-col gap-[14px] min-w-0`;
 
@@ -54,14 +53,13 @@ const Paragraph = tw.p`m-0 text-[#ccc] break-words max-w-[70ch]`;
 const PROOF_COLUMNS = 4;
 
 // Two across on phones; from tablets, as many across as leave no figure on a row of its own (--columns).
-const Proof = styled.dl(() => [
-  tw`m-0 mt-[28px] grid grid-cols-2 gap-[10px]`,
-  css`
-    ${media.md} {
-      grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
-    }
-  `,
-]);
+const Proof = styled.dl`
+  ${tw`m-0 mt-[28px] grid grid-cols-2 gap-[10px]`}
+
+  ${media.md} {
+    grid-template-columns: repeat(var(--columns, 3), minmax(0, 1fr));
+  }
+`;
 
 const Figure = tw.div`flex flex-col gap-[6px] p-[12px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`;
 
@@ -77,10 +75,10 @@ const Contact = tw.p`m-0 mb-[22px] text-sm text-[#bbb] [& > a]:text-[var(--accen
 
 const ButtonsContainer = tw.div`flex flex-row flex-wrap text-center justify-center`;
 
-const Button = styled(Link)(() => [
-  tw`relative w-full lg:w-auto lg:px-[16px] bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
-     inline-block align-middle text-center text-sm lg:text-base leading-9 lg:leading-9`,
-  tw`h-[44px] my-[0px] mx-[0.5rem] lg:ml-0 mb-[10px] text-[var(--accent)] border-[#101010] border-r-[var(--accent)]
+const Button = styled(Link)`
+  ${tw`relative w-full lg:w-auto lg:px-[16px] bg-transparent font-medium border-2 cursor-pointer border-solid no-underline overflow-hidden 
+     inline-block align-middle text-center text-sm lg:text-base leading-9 lg:leading-9`}
+  ${tw`h-[44px] my-[0px] mx-[0.5rem] lg:ml-0 mb-[10px] text-[var(--accent)] border-[#101010] border-r-[var(--accent)]
      hover:text-white 
      before:content=['']
      before:absolute
@@ -92,14 +90,14 @@ const Button = styled(Link)(() => [
      hover:animate-[border-transition 1s ease-out 0s infinite]
      hover:before:transition-[5s all linear]
      hover:before:h-full
-     hover:before:w-full`
-]);
+     hover:before:w-full`}
+`;
 
 const InnerButtonText = tw.span`relative z-[2] pointer-events-none before:pr-2`;
 
-const InnerButtonIcon = styled(FontAwesomeIcon)(() => [
-  tw`relative z-[2] pointer-events-none before:pr-2`
-]);
+const InnerButtonIcon = styled(FontAwesomeIcon)`
+  ${tw`relative z-[2] pointer-events-none before:pr-2`}
+`;
 
 const AnimatedCircle = tw.div`absolute w-full h-full block`;
 

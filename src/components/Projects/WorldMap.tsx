@@ -60,14 +60,13 @@ const Route = styled.svg(({ isDrawn }: { isDrawn: boolean }) => [
   `,
 ]);
 
-const Terrain = styled.div(() => [
-  tw`absolute flex items-center justify-center text-[#3a3a3a] bg-[#171717]`,
-  css`
-    clip-path: ${HEX};
-    transform: scale(0.9);
-    font-size: clamp(12px, 1.8vw, 22px);
-  `,
-]);
+const Terrain = styled.div`
+  ${tw`absolute flex items-center justify-center text-[#3a3a3a] bg-[#171717]`}
+
+  clip-path: ${HEX};
+  transform: scale(0.9);
+  font-size: clamp(12px, 1.8vw, 22px);
+`;
 
 // A region: a hexagon in its kind's colour, which lifts and brightens when hovered or focused.
 const Region = styled.button(({ isDim, isCurrent }: { isDim: boolean; isCurrent: boolean }) => [
@@ -115,12 +114,11 @@ const Region = styled.button(({ isDim, isCurrent }: { isDim: boolean; isCurrent:
 
 const RegionFace = tw.span`absolute inset-[3px] flex flex-col items-center justify-center gap-[3px] text-[var(--kind)]`;
 
-const RegionIcon = styled.span(() => [
-  css`
-    font-size: clamp(14px, 2.4vw, 28px);
-    line-height: 1;
-  `,
-]);
+const RegionIcon = styled.span`
+
+  font-size: clamp(14px, 2.4vw, 28px);
+  line-height: 1;
+`;
 
 const RegionYear = tw.span`text-[10px] md:text-xs font-semibold leading-none text-[#ddd]`;
 

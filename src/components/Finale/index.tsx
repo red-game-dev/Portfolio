@@ -70,14 +70,13 @@ const Status = tw.p`absolute top-[12px] left-[14px] m-0 text-xs font-semibold te
 
 const Controls = tw.div`flex flex-row flex-wrap items-center gap-[12px] mt-[14px]`;
 
-const LaunchButton = styled.button(() => [
-  actionStyle(true),
-  css`
-    touch-action: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-  `,
-]);
+const LaunchButton = styled.button`
+  ${actionStyle(true)}
+
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+`;
 
 const Hint = tw.p`m-0 text-xs text-[#999] max-w-[60ch]`;
 
@@ -89,38 +88,35 @@ const Ask = tw.div`flex flex-col gap-[4px] mt-[18px]`;
 const AskTitle = tw.h3`m-0 text-lg font-semibold text-white`;
 
 // The big red button of every film: a domed cap on a striped hazard plate, pressed in when held.
-const RedButton = styled.button(() => [
-  tw`flex flex-row items-center gap-[12px] p-0 bg-transparent border-0 cursor-pointer text-sm font-semibold text-white`,
-  css`
-    ${focusRing("var(--accent)", 4)}
+const RedButton = styled.button`
+  ${tw`flex flex-row items-center gap-[12px] p-0 bg-transparent border-0 cursor-pointer text-sm font-semibold text-white`}
 
-    &:disabled {
-      cursor: default;
-      opacity: 0.6;
-    }
+  ${focusRing("var(--accent)", 4)}
 
-    &:active:not(:disabled) .cap {
-      transform: translateY(3px);
-      box-shadow: 0 1px 0 #5a0710;
-    }
-  `,
-]);
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
 
-const Plate = styled.span(() => [
-  tw`flex items-center justify-center w-[58px] h-[58px] rounded-[10px]`,
-  css`
-    background: repeating-linear-gradient(45deg, #ffcc33 0 6px, #1a1a1a 6px 12px);
-  `,
-]);
+  &:active:not(:disabled) .cap {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #5a0710;
+  }
+`;
 
-const Cap = styled.span(() => [
-  tw`block w-[42px] h-[42px] rounded-full`,
-  css`
-    background: radial-gradient(circle at 35% 30%, #ff9a9a, #e01b2c 55%, #7d0a14 100%);
-    box-shadow: 0 4px 0 #5a0710;
-    transition: transform 0.08s ease, box-shadow 0.08s ease;
-  `,
-]);
+const Plate = styled.span`
+  ${tw`flex items-center justify-center w-[58px] h-[58px] rounded-[10px]`}
+
+  background: repeating-linear-gradient(45deg, #ffcc33 0 6px, #1a1a1a 6px 12px);
+`;
+
+const Cap = styled.span`
+  ${tw`block w-[42px] h-[42px] rounded-full`}
+
+  background: radial-gradient(circle at 35% 30%, #ff9a9a, #e01b2c 55%, #7d0a14 100%);
+  box-shadow: 0 4px 0 #5a0710;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+`;
 
 const Mission = styled.div(({ isLit }: { isLit: boolean }) => [
   tw`flex flex-col gap-[8px] mt-[26px] p-[18px] bg-[#0b0d16] border-[1px] border-solid border-[var(--accent-muted)]`,
@@ -189,12 +185,11 @@ const DeploysStat = ({ label, isLit }: DeploysStatProps) => {
 
 const Rank = tw.div`flex flex-row flex-wrap items-center gap-[12px] mt-[22px] p-[16px] bg-[#0d0b06] border-[1px] border-solid border-[var(--accent)]`;
 
-const RankBadge = styled.span(() => [
-  tw`flex flex-shrink-0 items-center justify-center w-[60px] h-[68px] text-[#101010] bg-[var(--accent)] text-xs font-bold text-center leading-tight px-[6px]`,
-  css`
-    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  `,
-]);
+const RankBadge = styled.span`
+  ${tw`flex flex-shrink-0 items-center justify-center w-[60px] h-[68px] text-[#101010] bg-[var(--accent)] text-xs font-bold text-center leading-tight px-[6px]`}
+
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+`;
 
 const RankText = tw.div`flex flex-col gap-[4px]`;
 
@@ -218,7 +213,9 @@ const ReferralLink = tw.a`text-[#c4d2ff] underline hover:text-white`;
 // The feedback form, set apart from the ways to get in touch above it, and no wider than reads well.
 const Feedback = tw.div`mt-[10px] pt-[22px] border-0 border-t-[1px] border-solid border-[#252a3a] max-w-[640px]`;
 
-const Restart = styled.button(() => actionStyle(false));
+const Restart = styled.button`
+  ${actionStyle(false)}
+`;
 
 const rankFor = (ranks: FinaleRank[], done: number) => [...ranks].sort((first, second) => second.min - first.min).find((rank) => done >= rank.min) ?? ranks[0];
 

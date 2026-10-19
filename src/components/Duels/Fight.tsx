@@ -171,22 +171,21 @@ const Spark = styled.span(({ left, delayMs }: { left: string; delayMs: number })
   reducedMotion,
 ]);
 
-const Ko = styled.span(() => [
-  tw`absolute left-1/2 top-1/2 text-2xl font-black text-[#ff5a5a] border-[2px] border-solid border-[#ff5a5a] px-[10px] py-[2px] rounded-[2px]`,
-  css`
-    transform: translate(-50%, -50%) rotate(-8deg);
-    animation: ${stamp} 0.35s cubic-bezier(0.3, 1.6, 0.6, 1) ${CLASH_MS + 300}ms both;
-  `,
-  reducedMotion,
-]);
+const Ko = styled.span`
+  ${tw`absolute left-1/2 top-1/2 text-2xl font-black text-[#ff5a5a] border-[2px] border-solid border-[#ff5a5a] px-[10px] py-[2px] rounded-[2px]`}
 
-const Floor = styled.div(() => [
-  tw`h-[6px] mx-auto max-w-[420px]`,
-  css`
-    background: repeating-linear-gradient(90deg, var(--accent-muted) 0 8px, transparent 8px 12px);
-    opacity: 0.6;
-  `,
-]);
+  transform: translate(-50%, -50%) rotate(-8deg);
+  animation: ${stamp} 0.35s cubic-bezier(0.3, 1.6, 0.6, 1) ${CLASH_MS + 300}ms both;
+
+  ${reducedMotion}
+`;
+
+const Floor = styled.div`
+  ${tw`h-[6px] mx-auto max-w-[420px]`}
+
+  background: repeating-linear-gradient(90deg, var(--accent-muted) 0 8px, transparent 8px 12px);
+  opacity: 0.6;
+`;
 
 // The duel, played out: every round the reader reaches is one clash, and the agent's health drops a
 // quarter each time until it goes down. Remounted per round, so the clash animation replays.

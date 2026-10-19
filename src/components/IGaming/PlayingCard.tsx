@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { DomainCapability } from "@/types/domains";
 
@@ -13,24 +13,22 @@ export const SUITS = [
 
 export const suitOf = (index: number) => SUITS[index % SUITS.length];
 
-const Face = styled.div(() => [
-  tw`relative flex flex-col gap-[8px] h-full p-[18px] pt-[34px] rounded-[10px] text-[#1a1a1a] bg-[#f4efe6]`,
-  css`
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
-  `,
-]);
+const Face = styled.div`
+  ${tw`relative flex flex-col gap-[8px] h-full p-[18px] pt-[34px] rounded-[10px] text-[#1a1a1a] bg-[#f4efe6]`}
+
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+`;
 
 export const Corner = styled.span(({ isRed }: { isRed: boolean }) => [
   tw`absolute top-[10px] left-[14px] text-lg leading-none`,
   isRed ? tw`text-[#c01d44]` : tw`text-[#1a1a1a]`,
 ]);
 
-export const CornerBottom = styled(Corner)(() => [
-  tw`top-auto left-auto bottom-[10px] right-[14px]`,
-  css`
-    transform: rotate(180deg);
-  `,
-]);
+export const CornerBottom = styled(Corner)`
+  ${tw`top-auto left-auto bottom-[10px] right-[14px]`}
+
+  transform: rotate(180deg);
+`;
 
 const Name = tw.h3`m-0 text-base font-bold text-[#1a1a1a]`;
 

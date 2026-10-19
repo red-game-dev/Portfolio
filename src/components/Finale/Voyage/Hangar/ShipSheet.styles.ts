@@ -15,15 +15,14 @@ export const Total = styled.span(({ colour }: { colour: string }) => [
 ]);
 
 // The ship in the middle with its pieces round it: a column each side, and the pieces a greater ship grows below.
-export const Doll = styled.div(() => [
-  tw`grid gap-[6px]`,
-  css`
-    grid-template-columns: minmax(0, 1fr) minmax(84px, 0.9fr) minmax(0, 1fr);
-    grid-template-areas:
-      "left ship right"
-      "below below below";
-  `,
-]);
+export const Doll = styled.div`
+  ${tw`grid gap-[6px]`}
+
+  grid-template-columns: minmax(0, 1fr) minmax(84px, 0.9fr) minmax(0, 1fr);
+  grid-template-areas:
+    "left ship right"
+    "below below below";
+`;
 
 export const Column = styled.div(({ area }: { area: "left" | "right" }) => [
   tw`flex flex-col gap-[6px] min-w-0`,
@@ -32,25 +31,23 @@ export const Column = styled.div(({ area }: { area: "left" | "right" }) => [
   `,
 ]);
 
-export const Below = styled.div(() => [
-  tw`grid gap-[6px]`,
-  css`
-    grid-area: below;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+export const Below = styled.div`
+  ${tw`grid gap-[6px]`}
 
-    ${media.md} {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  `,
-]);
+  grid-area: below;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 
-export const ShipFrame = styled.div(() => [
-  tw`relative flex items-center justify-center`,
-  css`
-    grid-area: ship;
-    background: radial-gradient(circle at 50% 45%, rgba(196, 210, 255, 0.12), rgba(5, 8, 26, 0) 70%);
-  `,
-]);
+  ${media.md} {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+`;
+
+export const ShipFrame = styled.div`
+  ${tw`relative flex items-center justify-center`}
+
+  grid-area: ship;
+  background: radial-gradient(circle at 50% 45%, rgba(196, 210, 255, 0.12), rgba(5, 8, 26, 0) 70%);
+`;
 
 export const ShipCanvas = tw.canvas`w-full h-full min-h-[180px] max-h-[260px]`;
 

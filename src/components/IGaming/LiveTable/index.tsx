@@ -31,79 +31,75 @@ const Felt = tw.canvas`absolute inset-0 w-full h-full pointer-events-none`;
 const Layer = tw.div`relative z-[1] flex flex-col gap-[10px]`;
 
 // On a phone the other players' cards sit right behind the words, so the words carry a dark plate of their own.
-const Label = styled.h3(() => [
-  tw`m-0 self-start text-xs font-semibold text-[rgba(255, 255, 255, 0.7)]`,
-  css`
-    ${media.narrowTable} {
-      padding: 3px 8px;
-      border-radius: 9999px;
-      background: rgba(6, 26, 16, 0.78);
-    }
-  `,
-]);
+const Label = styled.h3`
+  ${tw`m-0 self-start text-xs font-semibold text-[rgba(255, 255, 255, 0.7)]`}
+
+  ${media.narrowTable} {
+    padding: 3px 8px;
+    border-radius: 9999px;
+    background: rgba(6, 26, 16, 0.78);
+  }
+`;
 
 const Played = tw.ul`list-none m-0 p-0 grid gap-[14px] sm:grid-cols-2 lg:grid-cols-3`;
 
 const Slot = tw.li`min-w-0`;
 
-const Empty = styled.p(() => [
-  tw`m-0 flex items-center justify-center h-[120px] text-sm text-[rgba(255, 255, 255, 0.75)] rounded-[10px]`,
-  css`
-    border: 1px dashed rgba(255, 255, 255, 0.25);
-  `,
-]);
+const Empty = styled.p`
+  ${tw`m-0 flex items-center justify-center h-[120px] text-sm text-[rgba(255, 255, 255, 0.75)] rounded-[10px]`}
 
-const Hint = styled.p(() => [
-  tw`m-0 text-sm text-[rgba(255, 255, 255, 0.75)] max-w-[60ch]`,
-  css`
-    ${media.narrowTable} {
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: rgba(6, 26, 16, 0.78);
-    }
-  `,
-]);
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+`;
+
+const Hint = styled.p`
+  ${tw`m-0 text-sm text-[rgba(255, 255, 255, 0.75)] max-w-[60ch]`}
+
+  ${media.narrowTable} {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(6, 26, 16, 0.78);
+  }
+`;
 
 // A fan where the whole hand fits with strips wide enough to read (data-fan, with --step how far each card tucks under
 // the one before), each card tilted by its --tilt; a row to swipe through everywhere else.
-const Hand = styled.ul(() => [
-  tw`list-none m-0 p-0 pt-[18px] pb-[6px] flex flex-row overflow-x-auto`,
-  css`
-    scrollbar-width: thin;
+const Hand = styled.ul`
+  ${tw`list-none m-0 p-0 pt-[18px] pb-[6px] flex flex-row overflow-x-auto`}
 
-    & > li {
-      flex-shrink: 0;
-      margin-right: 8px;
-    }
+  scrollbar-width: thin;
 
-    &[data-fan] {
-      justify-content: center;
-      overflow: visible;
-    }
+  & > li {
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
 
-    &[data-fan] > li {
-      margin-right: 0;
-      transform: rotate(var(--tilt)) translateY(var(--drop));
-    }
+  &[data-fan] {
+    justify-content: center;
+    overflow: visible;
+  }
 
-    &[data-fan] > li + li {
-      margin-left: var(--step);
-    }
+  &[data-fan] > li {
+    margin-right: 0;
+    transform: rotate(var(--tilt)) translateY(var(--drop));
+  }
 
-    /* Only a strip of each card shows under the next, so its name wraps inside that strip, or on a strip too thin for
-       that runs up it. */
-    &[data-fan] > li:not(:last-child) [data-name] {
-      max-width: calc(${CARD_WIDTH}px + var(--step) - 8px);
-    }
+  &[data-fan] > li + li {
+    margin-left: var(--step);
+  }
 
-    &[data-spine] > li:not(:last-child) [data-name] {
-      max-width: none;
-      max-height: 104px;
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-    }
-  `,
-]);
+  /* Only a strip of each card shows under the next, so its name wraps inside that strip, or on a strip too thin for
+     that runs up it. */
+  &[data-fan] > li:not(:last-child) [data-name] {
+    max-width: calc(${CARD_WIDTH}px + var(--step) - 8px);
+  }
+
+  &[data-spine] > li:not(:last-child) [data-name] {
+    max-width: none;
+    max-height: 104px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+`;
 
 const HandCard = styled.button(({ isLocked }: { isLocked: boolean }) => [
   tw`relative flex flex-col justify-start w-[112px] h-[156px] px-[10px] pt-[34px] cursor-pointer text-left text-[#1a1a1a] bg-[#f4efe6] rounded-[10px]
@@ -126,18 +122,17 @@ const HandCard = styled.button(({ isLocked }: { isLocked: boolean }) => [
 ]);
 
 // Long words break with a hyphen where the language allows, never mid syllable.
-const HandName = styled.span(() => [
-  tw`text-[12px] font-bold leading-tight`,
-  css`
-    hyphens: auto;
-    overflow-wrap: normal;
-  `,
-]);
+const HandName = styled.span`
+  ${tw`text-[12px] font-bold leading-tight`}
 
-const Redeal = styled.button(() => [
-  tw`self-center inline-flex flex-row items-center gap-[8px] h-[38px] px-[16px] cursor-pointer text-sm font-semibold text-[#101010] bg-[var(--accent)]
-     border-0 rounded-[2px]`,
-]);
+  hyphens: auto;
+  overflow-wrap: normal;
+`;
+
+const Redeal = styled.button`
+  ${tw`self-center inline-flex flex-row items-center gap-[8px] h-[38px] px-[16px] cursor-pointer text-sm font-semibold text-[#101010] bg-[var(--accent)]
+     border-0 rounded-[2px]`}
+`;
 
 const Status = tw.p`sr-only`;
 

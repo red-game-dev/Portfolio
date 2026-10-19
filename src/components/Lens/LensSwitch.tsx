@@ -20,45 +20,43 @@ interface LensSwitchProps {
 
 const Wrapper = tw.div`relative`;
 
-const Toggle = styled.button(() => [
-  tw`flex flex-row items-center gap-[8px] h-[32px] pl-[6px] pr-[10px] cursor-pointer text-xs font-semibold text-white bg-[rgba(16, 16, 16, 0.85)]
-     border-[1px] border-solid border-[#2a2a2a] rounded-[2px]`,
-  css`
-    transition: border-color 0.2s ease;
+const Toggle = styled.button`
+  ${tw`flex flex-row items-center gap-[8px] h-[32px] pl-[6px] pr-[10px] cursor-pointer text-xs font-semibold text-white bg-[rgba(16, 16, 16, 0.85)]
+     border-[1px] border-solid border-[#2a2a2a] rounded-[2px]`}
 
-    &:hover,
-    &:focus-visible,
-    &[aria-expanded="true"] {
-      border-color: var(--lens-accent);
-    }
-  `,
-]);
+  transition: border-color 0.2s ease;
 
-const Face = styled.span(() => [
-  tw`block w-[20px] h-[20px]`,
-  svgFill,
-]);
+  &:hover,
+  &:focus-visible,
+  &[aria-expanded="true"] {
+    border-color: var(--lens-accent);
+  }
+`;
+
+const Face = styled.span`
+  ${tw`block w-[20px] h-[20px]`}
+  ${svgFill}
+`;
 
 // Shown from the small breakpoint up; below it still read out, so the button's name stays whole.
 const Label = tw.span`sr-only sm:not-sr-only text-[#888] font-medium`;
 
 // The view's name, left to the face on the narrowest phones, where it would run over the name in the header, though
 // still read out as the button's name.
-const Name = styled.span(() => [
-  css`
-    ${media.narrow} {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      padding: 0;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border-width: 0;
-    }
-  `,
-]);
+const Name = styled.span`
+
+  ${media.narrow} {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+`;
 
 const Chevron = styled.span(({ isOpen }: { isOpen: boolean }) => [
   tw`block w-[6px] h-[6px] ml-[2px] border-solid border-[#888] border-t-0 border-l-0 border-r-[1.5px] border-b-[1.5px]`,

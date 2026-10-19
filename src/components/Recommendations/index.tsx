@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
@@ -15,22 +15,21 @@ interface RecommendationsProps {
 
 const Quotes = tw.div`grid gap-[18px] lg:grid-cols-3 mt-[25px] lg:mt-[35px]`;
 
-const Quote = styled.figure(() => [
-  tw`relative m-0 flex flex-col justify-between gap-[18px] p-[24px] bg-[#101010] border-[1px] border-solid border-[#1E1E1E]
-     border-l-[var(--accent)]`,
-  css`
-    &::before {
-      content: "\\201C";
-      position: absolute;
-      top: 6px;
-      right: 18px;
-      font-size: 64px;
-      line-height: 1;
-      color: var(--accent-muted);
-      pointer-events: none;
-    }
-  `,
-]);
+const Quote = styled.figure`
+  ${tw`relative m-0 flex flex-col justify-between gap-[18px] p-[24px] bg-[#101010] border-[1px] border-solid border-[#1E1E1E]
+     border-l-[var(--accent)]`}
+
+  &::before {
+    content: "\\201C";
+    position: absolute;
+    top: 6px;
+    right: 18px;
+    font-size: 64px;
+    line-height: 1;
+    color: var(--accent-muted);
+    pointer-events: none;
+  }
+`;
 
 const QuoteText = tw.blockquote`m-0 text-base text-[#eee] leading-relaxed`;
 

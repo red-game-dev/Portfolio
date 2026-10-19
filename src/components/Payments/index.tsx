@@ -1,6 +1,6 @@
 import { FC, useCallback, useRef, useState } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import dynamic from "next/dynamic";
 
@@ -32,20 +32,19 @@ const PayTerminal = dynamic(() => import("@/components/Payments/PayTerminal").th
 
 // Room held for the counter before it arrives, so the page below barely moves when it does (measured on the preview:
 // stacked on phones and tablets, the ways to pay beside it on wide screens).
-const TerminalSlot = styled.div(() => [
-  tw`mt-[25px] lg:mt-[35px]`,
-  css`
-    min-height: 780px;
+const TerminalSlot = styled.div`
+  ${tw`mt-[25px] lg:mt-[35px]`}
 
-    ${media.md} {
-      min-height: 660px;
-    }
+  min-height: 780px;
 
-    ${media.xl} {
-      min-height: 500px;
-    }
-  `,
-]);
+  ${media.md} {
+    min-height: 660px;
+  }
+
+  ${media.xl} {
+    min-height: 500px;
+  }
+`;
 
 const Drawings = tw.div`relative mt-[22px]`;
 
@@ -57,7 +56,10 @@ const Closing = tw.div`mt-[22px]`;
 
 const Cases = tw.ul`list-none m-[0 0 18px 0] p-0 flex flex-col gap-[8px]`;
 
-const Case = styled.li(() => [tw`relative pl-[16px] text-sm text-[#ddd]`, squareBullet({ radius: 1 })]);
+const Case = styled.li`
+  ${tw`relative pl-[16px] text-sm text-[#ddd]`}
+  ${squareBullet({ radius: 1 })}
+`;
 
 // Payments from the till to the bank: a terminal the reader pays at, and the drawings it opens one by one.
 // Every word is in the intro and the content; the drawings are the payments blueprints.

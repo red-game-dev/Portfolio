@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { approvedMsOf, CUSTOMER_HINT_MS, payMsOf, RESET_MS, START_WAIT_MS, TERMINAL_SCALE } from "@/components/Payments/config";
 import { CheckoutScene } from "@/components/Payments/scene/CheckoutScene";
@@ -27,37 +27,35 @@ type Phase =
   | { kind: "idle" }
   | { kind: "paying" | "approved"; method: PaymentMethodId; press: number; amount: CheckoutAmount };
 
-const Wrap = styled.div(() => [
-  tw`flex flex-col items-center gap-[18px] p-[18px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
-  css`
-    ${media.xl} {
-      flex-direction: row;
-      align-items: center;
-      gap: 32px;
-    }
-  `,
-]);
+const Wrap = styled.div`
+  ${tw`flex flex-col items-center gap-[18px] p-[18px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`}
 
-const SceneBox = styled.div(() => [
-  tw`relative flex-shrink-0`,
-  css`
-    --scale: ${TERMINAL_SCALE.narrow};
-    width: calc(${CHECKOUT_SCENE.width}px * var(--scale));
-    height: calc(${CHECKOUT_SCENE.height}px * var(--scale));
+  ${media.xl} {
+    flex-direction: row;
+    align-items: center;
+    gap: 32px;
+  }
+`;
 
-    @media (max-width: 389px) {
-      --scale: ${TERMINAL_SCALE.narrower};
-    }
+const SceneBox = styled.div`
+  ${tw`relative flex-shrink-0`}
 
-    @media (max-width: 349px) {
-      --scale: ${TERMINAL_SCALE.narrowest};
-    }
+  --scale: ${TERMINAL_SCALE.narrow};
+  width: calc(${CHECKOUT_SCENE.width}px * var(--scale));
+  height: calc(${CHECKOUT_SCENE.height}px * var(--scale));
 
-    ${media.xl} {
-      --scale: ${TERMINAL_SCALE.wide};
-    }
-  `,
-]);
+  @media (max-width: 389px) {
+    --scale: ${TERMINAL_SCALE.narrower};
+  }
+
+  @media (max-width: 349px) {
+    --scale: ${TERMINAL_SCALE.narrowest};
+  }
+
+  ${media.xl} {
+    --scale: ${TERMINAL_SCALE.wide};
+  }
+`;
 
 const Side = tw.div`flex flex-col gap-[12px] w-full`;
 
@@ -71,50 +69,49 @@ const GroupName = tw.span`text-xs font-semibold text-[#8a8a8a]`;
 
 const Methods = tw.div`flex flex-row flex-wrap gap-[8px]`;
 
-const MethodButton = styled.button(() => [
-  tw`relative flex items-center justify-center w-[58px] h-[38px] p-0 cursor-pointer rounded-[5px] border-[1px] border-solid
-  border-[rgba(255,255,255,0.16)]`,
-  css`
-    background: linear-gradient(135deg, var(--face-from), var(--face-to));
-    transition: transform 0.15s ease, border-color 0.15s ease;
+const MethodButton = styled.button`
+  ${tw`relative flex items-center justify-center w-[58px] h-[38px] p-0 cursor-pointer rounded-[5px] border-[1px] border-solid
+  border-[rgba(255,255,255,0.16)]`}
+
+  background: linear-gradient(135deg, var(--face-from), var(--face-to));
+  transition: transform 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+
+  &[data-current] {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  &[aria-disabled="true"] {
+    cursor: progress;
+  }
+
+  ${media.reducedMotion} {
+    transition: none;
 
     &:hover {
-      transform: translateY(-2px);
-      border-color: var(--accent);
+      transform: none;
     }
+  }
 
-    &[data-current] {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent);
-    }
-
-    &[aria-disabled="true"] {
-      cursor: progress;
-    }
-
-    ${media.reducedMotion} {
-      transition: none;
-
-      &:hover {
-        transform: none;
-      }
-    }
-  `,
-  focusRing("var(--accent)", 3),
-]);
+  ${focusRing("var(--accent)", 3)}
+`;
 
 // Two lines held, so the line wrapping on a phone never moves the drawings below.
 const Status = tw.p`m-0 min-h-[2.5rem] text-sm text-[var(--accent)]`;
 
-const Credit = styled.p(() => [
-  tw`m-0 text-xs text-[#8a8a8a]`,
-  css`
-    a {
-      color: inherit;
-      text-decoration: underline;
-    }
-  `,
-]);
+const Credit = styled.p`
+  ${tw`m-0 text-xs text-[#8a8a8a]`}
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+`;
 
 const clearAll = (pending: number[]) => {
   pending.splice(0).forEach((timer) => window.clearTimeout(timer));

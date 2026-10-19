@@ -1,6 +1,6 @@
 import { FC, useCallback } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { BlueprintSection } from "@/components/Blueprint";
 import { Tag, TagList } from "@/components/Controls";
@@ -26,7 +26,9 @@ interface PlatformOverviewProps {
 const Groups = tw.div`mt-[25px] lg:mt-[35px] mb-[25px] flex flex-col gap-[14px]`;
 
 // Each group's panel holds its list, so the list keeps its meaning (a list given the panel's role is no longer one).
-const TilePanel = styled.div(() => [honourHidden]);
+const TilePanel = styled.div`
+  ${honourHidden}
+`;
 
 const Tiles = tw.ul`list-none m-0 p-0 grid gap-[14px] md:grid-cols-2 xl:grid-cols-3`;
 
@@ -37,33 +39,34 @@ const TileName = tw.h3`m-0 text-base font-semibold text-white`;
 const TileDetail = tw.p`m-0 text-sm text-[#bbb] break-words`;
 
 // At the foot of the tile, so the places line up across a row.
-const Places = styled(TagList)(() => [tw`mt-auto`]);
+const Places = styled(TagList)`
+  ${tw`mt-auto`}
+`;
 
 const Example = tw.div`mt-[22px]`;
 
 // A dimension line across the first tile, shown only while the tiles are drafted (the switch animates it).
-const Dimension = styled.span(() => [
-  tw`absolute left-[18px] right-[18px] bottom-[8px] h-[1px] bg-[var(--accent)] opacity-0 pointer-events-none origin-center`,
-  css`
-    &::before,
-    &::after {
-      content: "";
-      position: absolute;
-      top: -3px;
-      width: 1px;
-      height: 7px;
-      background: var(--accent);
-    }
+const Dimension = styled.span`
+  ${tw`absolute left-[18px] right-[18px] bottom-[8px] h-[1px] bg-[var(--accent)] opacity-0 pointer-events-none origin-center`}
 
-    &::before {
-      left: 0;
-    }
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: -3px;
+    width: 1px;
+    height: 7px;
+    background: var(--accent);
+  }
 
-    &::after {
-      right: 0;
-    }
-  `,
-]);
+  &::before {
+    left: 0;
+  }
+
+  &::after {
+    right: 0;
+  }
+`;
 
 const Kinds = tw.section`flex flex-col gap-[10px] mb-[25px]`;
 

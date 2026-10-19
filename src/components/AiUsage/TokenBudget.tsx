@@ -46,12 +46,11 @@ const Legend = tw.ul`list-none m-0 mt-[12px] p-0 grid gap-[8px] md:grid-cols-2 t
 
 const LegendItem = tw.li`flex flex-row items-start gap-[10px]`;
 
-const Swatch = styled.span(() => [
-  tw`flex-shrink-0 mt-[4px] w-[12px] h-[12px] rounded-[2px]`,
-  css`
-    background: rgba(var(--accent-rgb), var(--strength));
-  `,
-]);
+const Swatch = styled.span`
+  ${tw`flex-shrink-0 mt-[4px] w-[12px] h-[12px] rounded-[2px]`}
+
+  background: rgba(var(--accent-rgb), var(--strength));
+`;
 
 const LegendText = tw.span`flex flex-col text-[#ddd] [& > small]:text-xs [& > small]:text-[#999]`;
 
@@ -59,10 +58,10 @@ const PracticesTitle = tw.h4`m-0 mt-[26px] mb-[10px] text-sm font-medium text-[#
 
 const Practices = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px] text-sm text-[#bbb]`;
 
-const Practice = styled.li(() => [
-  tw`relative pl-[16px] break-words`,
-  squareBullet(),
-]);
+const Practice = styled.li`
+  ${tw`relative pl-[16px] break-words`}
+  ${squareBullet()}
+`;
 
 const Notes = tw.ul`list-none m-0 mt-[22px] p-0 flex flex-col gap-[6px] text-sm text-[#888]`;
 

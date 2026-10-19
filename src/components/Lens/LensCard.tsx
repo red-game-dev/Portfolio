@@ -56,41 +56,39 @@ const Card = styled.button(({ order }: { order: number }) => [
 ]);
 
 // A lit pedestal under the portrait, like a character select screen.
-const Portrait = styled.span(() => [
-  tw`relative flex items-end justify-center flex-shrink-0 w-[84px] h-[96px] md:w-full md:h-[150px]`,
-  css`
-    background: radial-gradient(ellipse at 50% 92%, rgba(var(--lens-rgb), 0.28) 0, rgba(var(--lens-rgb), 0) 60%);
+const Portrait = styled.span`
+  ${tw`relative flex items-end justify-center flex-shrink-0 w-[84px] h-[96px] md:w-full md:h-[150px]`}
 
-    &::after {
-      content: "";
-      position: absolute;
-      left: 18%;
-      right: 18%;
-      bottom: 6px;
-      height: 4px;
-      background: repeating-linear-gradient(90deg, rgba(var(--lens-rgb), 0.55) 0 6px, transparent 6px 9px);
+  background: radial-gradient(ellipse at 50% 92%, rgba(var(--lens-rgb), 0.28) 0, rgba(var(--lens-rgb), 0) 60%);
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: 6px;
+    height: 4px;
+    background: repeating-linear-gradient(90deg, rgba(var(--lens-rgb), 0.55) 0 6px, transparent 6px 9px);
+  }
+`;
+
+const Sprite = styled.span`
+  ${tw`block w-[72px] h-[72px] md:w-[120px] md:h-[120px] mb-[8px]`}
+
+  filter: drop-shadow(0 0 8px rgba(var(--lens-rgb), 0.35));
+
+  ${svgFill}
+
+  /* The still rule sits inside the hover rule: the other way round, its & would put the hover inside the root. */
+  button:hover &,
+  button:focus-visible & {
+    animation: ${idle} 0.7s steps(2) infinite;
+
+    ${media.reducedMotion} {
+      animation: none;
     }
-  `,
-]);
-
-const Sprite = styled.span(() => [
-  tw`block w-[72px] h-[72px] md:w-[120px] md:h-[120px] mb-[8px]`,
-  css`
-    filter: drop-shadow(0 0 8px rgba(var(--lens-rgb), 0.35));
-
-    ${svgFill}
-
-    /* The still rule sits inside the hover rule: the other way round, its & would put the hover inside the root. */
-    button:hover &,
-    button:focus-visible & {
-      animation: ${idle} 0.7s steps(2) infinite;
-
-      ${media.reducedMotion} {
-        animation: none;
-      }
-    }
-  `,
-]);
+  }
+`;
 
 const Body = tw.span`flex flex-col gap-[10px] min-w-0 md:flex-1`;
 
@@ -112,17 +110,16 @@ const Pip = styled.span(({ isOn }: { isOn: boolean }) => [
 
 const Perks = tw.span`hidden md:flex flex-col gap-[6px] text-sm text-[#bbb]`;
 
-const Perk = styled.span(() => [
-  tw`relative block pl-[14px]`,
-  squareBullet({ size: 5, top: "0.55em", colour: "var(--lens-accent)" }),
-]);
+const Perk = styled.span`
+  ${tw`relative block pl-[14px]`}
+  ${squareBullet({ size: 5, top: "0.55em", colour: "var(--lens-accent)" })}
+`;
 
-const Select = styled.span(() => [
-  tw`hidden md:block mt-auto pt-[10px] text-sm font-semibold text-[var(--lens-accent)]`,
-  css`
-    border-top: 1px solid #1e1e1e;
-  `,
-]);
+const Select = styled.span`
+  ${tw`hidden md:block mt-auto pt-[10px] text-sm font-semibold text-[var(--lens-accent)]`}
+
+  border-top: 1px solid #1e1e1e;
+`;
 
 const STAT_STEPS = Array.from({ length: LENS_STAT_MAX }, (_, index) => index);
 

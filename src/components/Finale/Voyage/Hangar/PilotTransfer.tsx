@@ -1,6 +1,6 @@
 import { ChangeEvent, FC, useEffect, useRef, useState } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { Actions, Note, SmallButton, Subheading } from "@/components/Finale/Voyage/Hangar/HangarPanel.styles";
 import type { PilotTransfer as Transfer } from "@/components/Finale/Voyage/hooks/useVoyage";
@@ -24,28 +24,26 @@ const QR_LIMIT = 1800;
 
 const Section = tw.section`flex flex-col gap-[10px] mt-[22px] pt-[18px] border-0 border-t-[1px] border-solid border-[rgba(196, 210, 255, 0.15)]`;
 
-const Code = styled.svg(() => [
-  tw`block w-full max-w-[260px] h-auto bg-white p-[6px] rounded-[4px]`,
-  css`
-    image-rendering: pixelated;
-  `,
-]);
+const Code = styled.svg`
+  ${tw`block w-full max-w-[260px] h-auto bg-white p-[6px] rounded-[4px]`}
+
+  image-rendering: pixelated;
+`;
 
 // The file input inside is out of sight, so the label shows its focus.
-const FileLabel = styled.label(() => [
-  tw`inline-flex items-center cursor-pointer text-xs font-semibold text-[#c4d2ff] underline`,
-  css`
-    &:focus-within {
-      outline: 2px solid #c4d2ff;
-      outline-offset: 2px;
-    }
-  `,
-]);
+const FileLabel = styled.label`
+  ${tw`inline-flex items-center cursor-pointer text-xs font-semibold text-[#c4d2ff] underline`}
 
-const LinkField = styled.input(() => [
-  tw`w-full min-w-0 px-[8px] py-[6px] text-xs text-[#dfe6f7] bg-[rgba(4, 8, 20, 0.6)] border-[1px] border-solid border-[#2a3350] rounded-[2px]`,
-  focusRing("#c4d2ff", 1),
-]);
+  &:focus-within {
+    outline: 2px solid #c4d2ff;
+    outline-offset: 2px;
+  }
+`;
+
+const LinkField = styled.input`
+  ${tw`w-full min-w-0 px-[8px] py-[6px] text-xs text-[#dfe6f7] bg-[rgba(4, 8, 20, 0.6)] border-[1px] border-solid border-[#2a3350] rounded-[2px]`}
+  ${focusRing("#c4d2ff", 1)}
+`;
 
 const Hidden = tw.input`sr-only`;
 

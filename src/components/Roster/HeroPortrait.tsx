@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import useInView from "@/hooks/useInView";
@@ -33,12 +33,11 @@ const loadKit = () => {
   return kit;
 };
 
-const Frame = styled.div(() => [
-  tw`relative flex-shrink-0 w-[96px] md:w-[112px] overflow-hidden rounded-[6px] bg-[#0b0b0b] border-[1px] border-solid border-[var(--accent-muted)]`,
-  css`
-    aspect-ratio: 200 / 240;
-  `,
-]);
+const Frame = styled.div`
+  ${tw`relative flex-shrink-0 w-[96px] md:w-[112px] overflow-hidden rounded-[6px] bg-[#0b0b0b] border-[1px] border-solid border-[var(--accent-muted)]`}
+
+  aspect-ratio: 200 / 240;
+`;
 
 const Canvas = tw.canvas`block w-full h-full`;
 

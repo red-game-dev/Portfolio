@@ -1,7 +1,7 @@
 import { FC, useLayoutEffect, useRef, useState } from "react";
 
 import { keyframes } from "styled-components";
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { NO_AMOUNT } from "@/components/Payments/config";
 import { CheckoutScene } from "@/components/Payments/scene/CheckoutScene";
@@ -24,19 +24,19 @@ const panelIn = keyframes`
 const PANEL_GUTTER = 16;
 
 // Over the top of the new content, where it is on screen as the switch begins, and never in the way of a press.
-const Panel = styled.div(() => [
-  tw`absolute z-[3] left-1/2 top-[24px] pointer-events-none rounded-[8px] overflow-hidden bg-[rgba(10,10,10,0.92)]
-  border-[1px] border-solid border-[var(--accent-muted)]`,
-  css`
-    width: ${COUNTER.width}px;
-    height: ${COUNTER.height}px;
-    box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.18);
-    transform-origin: top center;
-    transform: translateX(-50%) scale(var(--fit));
-    animation: ${panelIn} var(--pay-ms) ease-out both;
-  `,
-  noAnimationWhenReduced,
-]);
+const Panel = styled.div`
+  ${tw`absolute z-[3] left-1/2 top-[24px] pointer-events-none rounded-[8px] overflow-hidden bg-[rgba(10,10,10,0.92)]
+  border-[1px] border-solid border-[var(--accent-muted)]`}
+
+  width: ${COUNTER.width}px;
+  height: ${COUNTER.height}px;
+  box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.18);
+  transform-origin: top center;
+  transform: translateX(-50%) scale(var(--fit));
+  animation: ${panelIn} var(--pay-ms) ease-out both;
+
+  ${noAnimationWhenReduced}
+`;
 
 // A payments drawing's switch: its subject as a showcase opens it, or the next way to pay at the counter
 // between its own tabs. `count` is the switch's number, so each one pays with the next method in turn.

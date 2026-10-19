@@ -164,6 +164,29 @@ const StatValue = styled.dd(({ isDone }: { isDone: boolean }) => [
   isDone && tw`text-[var(--accent)]`,
 ]);
 
+interface DeploysStatProps {
+  label: string;
+  isLit: boolean;
+}
+
+// The deploys shipped from the DevOps console, reading the count itself so a deploy re-renders this row and not the
+// whole board. A count like the run's time, never an objective, so it never turns done.
+const DeploysStat = ({ label, isLit }: DeploysStatProps) => {
+  const { deploysShipped } = useDeploysStateHook();
+
+  return (
+    <Stat isDone={false}>
+      <StatName>
+        <StarMark isLit={isLit} aria-hidden="true">
+          <FontAwesomeIcon icon={faStar} />
+        </StarMark>
+        {label}
+      </StatName>
+      <StatValue isDone={false}>{deploysShipped}</StatValue>
+    </Stat>
+  );
+};
+
 const Rank = tw.div`flex flex-row flex-wrap items-center gap-[12px] mt-[22px] p-[16px] bg-[#0d0b06] border-[1px] border-solid border-[var(--accent)]`;
 
 const RankBadge = styled.span(() => [
@@ -238,7 +261,6 @@ export const Finale: FC<FinaleProps> = ({
   const { snapshot, site, isReady, press, selfDestruct } = useLaunch(boardRef, canvasRef, isBoardInView, content.launch.sites, content.launch.readout);
   const isReached = useInView(sectionRef, { threshold: 0.2 });
   const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
-  const { deploysShipped } = useDeploysStateHook();
   const [isVoyaging, setIsVoyaging] = useState(false);
   const [runMs, setRunMs] = useState<number | null>(null);
   const openVoyage = useCallback(() => setIsVoyaging(true), []);
@@ -400,15 +422,7 @@ export const Finale: FC<FinaleProps> = ({
             </StatName>
             <StatValue isDone={false}>{formatDuration((runMs ?? 0) / 1000)}</StatValue>
           </Stat>
-          <Stat isDone={deploysShipped > 0}>
-            <StatName>
-              <StarMark isLit={isLit(6)} aria-hidden="true">
-                <FontAwesomeIcon icon={faStar} />
-              </StarMark>
-              {content.stats.deploys}
-            </StatName>
-            <StatValue isDone={deploysShipped > 0}>{deploysShipped}</StatValue>
-          </Stat>
+          <DeploysStat label={content.stats.deploys} isLit={isLit(6)} />
         </Stats>
         <Rank>
           <RankBadge aria-hidden="true">{content.rankLabel}</RankBadge>

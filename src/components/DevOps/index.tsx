@@ -1,16 +1,15 @@
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { Console } from "@/components/DevOps/Console";
-import { Guide } from "@/components/DevOps/Guide";
+import { Planner } from "@/components/DevOps/Planner";
+import { Lead } from "@/components/DevOps/styles";
 import { Panel, PanelTitle } from "@/components/Panel";
 import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
 import { SECTION_IDS } from "@/config/sections";
-import { DEFAULT_GUIDE_ANSWERS, recommendHosts } from "@/services/devops";
 import { squareBullet } from "@/styles/mixins";
-import { DevOpsContent, GuideAnswers, GuideQuestion } from "@/types/devops";
+import { DevOpsContent } from "@/types/devops";
 import { SectionIntros } from "@/types/sections-intros";
 
 interface DevOpsProps {
@@ -19,8 +18,6 @@ interface DevOpsProps {
 }
 
 const Stack = tw.div`flex flex-col gap-[18px]`;
-
-const Lead = tw.p`m-0 mb-[18px] text-sm text-[#999] max-w-[70ch]`;
 
 const Hosts = tw.ul`list-none m-0 p-0 grid gap-[14px] md:grid-cols-2 xl:grid-cols-3`;
 
@@ -63,31 +60,11 @@ const TopicTitle = tw.h4`m-0 text-base font-semibold text-white`;
 // The DevOps universe's section: where a product should run, worked out from four answers, and a console that ships
 // each universe to that plan; then the hosts I run on and when each pays, the stacks I set up from scratch and the CLI
 // that moved them, and how I run them in production. It holds no words of its own.
-export const DevOps: FC<DevOpsProps> = ({ intro, content }: DevOpsProps) => {
-  const [answers, setAnswers] = useState<GuideAnswers>(DEFAULT_GUIDE_ANSWERS);
-  const plan = useMemo(() => recommendHosts(answers), [answers]);
-  const choose = useCallback(<Q extends GuideQuestion>(question: Q, value: GuideAnswers[Q]) => setAnswers((current) => {
-    const next = { ...current };
-
-    next[question] = value;
-
-    return next;
-  }), []);
-
-  return (
+export const DevOps: FC<DevOpsProps> = ({ intro, content }: DevOpsProps) => (
   <Section id={SECTION_IDS.devops}>
     <SectionText intro={intro} />
     <Stack>
-      <Panel>
-        <PanelTitle>{content.guide.title}</PanelTitle>
-        <Lead>{content.guide.intro}</Lead>
-        <Guide content={content.guide} hosts={content.hosts.items} answers={answers} plan={plan} onChoose={choose} />
-      </Panel>
-      <Panel>
-        <PanelTitle>{content.console.title}</PanelTitle>
-        <Lead>{content.console.intro}</Lead>
-        <Console content={content.console} hosts={content.hosts.items} plan={plan} />
-      </Panel>
+      <Planner content={content} />
       <Panel>
         <PanelTitle>{content.hosts.title}</PanelTitle>
         <Lead>{content.hosts.intro}</Lead>
@@ -150,5 +127,4 @@ export const DevOps: FC<DevOpsProps> = ({ intro, content }: DevOpsProps) => {
       </Panel>
     </Stack>
   </Section>
-  );
-};
+);

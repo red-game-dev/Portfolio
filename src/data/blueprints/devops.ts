@@ -58,14 +58,13 @@ const blueprints: Blueprint[] = [
         {
           id: "sc-two",
           label: "Servers in another region",
-          place: { col: 4, row: 1 },
+          place: { col: 3, row: 2 },
           nodes: [{ id: "sc-two-app", label: "App containers", detail: "The same images" }],
         },
         {
           id: "sc-data",
           label: "Data, in containers too",
-          place: { col: 3, row: 2, colSpan: 2 },
-          columns: 2,
+          place: { col: 4, row: 1, rowSpan: 2 },
           nodes: [
             { id: "sc-db", label: "Databases", detail: "Started, backed up and moved with the same tools", kind: "store" },
             { id: "sc-cache", label: "Redis", kind: "store" },
@@ -76,7 +75,7 @@ const blueprints: Blueprint[] = [
         { from: "sc-me", to: "sc-runner", label: "push" },
         { from: "sc-runner", to: "sc-scripts" },
         { from: "sc-scripts", to: "sc-one", label: "deploy" },
-        { from: "sc-scripts", to: "sc-two", label: "deploy" },
+        { from: "sc-scripts", to: "sc-two" },
         { from: "sc-players", to: "sc-region" },
         { from: "sc-region", to: "sc-one-app" },
         { from: "sc-region", to: "sc-two-app" },

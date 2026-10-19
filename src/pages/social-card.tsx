@@ -95,18 +95,37 @@ const Zone = styled.li`
 
 const Domain = tw.p`absolute right-0 bottom-[44px] m-0 text-[20px] font-semibold text-white`;
 
+declare global {
+  interface Window {
+    // Set while the card is being recorded (`?record`): moves the film to a moment, for the recorder to capture.
+    socialCard?: { seek: (ms: number) => void };
+  }
+}
+
 // The finished card at once, with nothing moving: for a reader who asked for less motion, or `?still`.
 const isStillCard = () => prefersReducedMotion() || new URLSearchParams(window.location.search).has("still");
 
+const isRecorded = () => new URLSearchParams(window.location.search).has("record");
+
 // The share card's clock: the finished card on the server and until everything it draws with is loaded, then the
 // journey from its first frame, ending on the finished card. A reader who asked for less motion, or `?still`, gets the
-// finished card at once. Recorded frame by frame by scripts/social-card.mjs, which drives the page's clock itself.
+// finished card at once. Recorded (`?record`), it keeps no clock of its own: scripts/social-card.mjs moves it frame by
+// frame through `window.socialCard.seek`, and reads back which moment it drew (`data-card-at`).
 const useCardClock = (isReady: boolean) => {
   const [ms, setMs] = useState(CARD_MS);
 
   useEffect(() => {
     if (!isReady || isStillCard()) {
       return;
+    }
+
+    if (isRecorded()) {
+      setMs(0);
+      window.socialCard = { seek: (at) => setMs(clamp(at, 0, CARD_MS)) };
+
+      return () => {
+        window.socialCard = undefined;
+      };
     }
 
     const start = performance.now();
@@ -172,7 +191,7 @@ export default function SocialCard() {
   }, [engine, frame.zone]);
 
   return (
-    <Card data-card-ready={isReady ? "" : undefined} data-card-ms={CARD_MS} data-card-fps={CARD_FPS}>
+    <Card data-card-ready={isReady ? "" : undefined} data-card-ms={CARD_MS} data-card-fps={CARD_FPS} data-card-at={Math.round(ms)}>
       <NextSeo title={seoDetails.socialCard.alt} noindex nofollow />
       <Backdrop ref={canvasRef} aria-hidden="true" />
       <Veil aria-hidden="true" />

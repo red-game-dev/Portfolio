@@ -1,6 +1,7 @@
-// Records the share card from a deployed /social-card/: the page plays the journey on its own clock, which this script
-// takes over (Playwright's fake clock drives its animation frames and performance.now), so every frame is captured at
-// exactly its moment however slow the machine. The frames become public/images/social-card.mp4, and the last frame,
+// Records the share card from a deployed /social-card/?record: for every frame the backdrop's clock is moved on
+// (Playwright's fake clock drives its animation frames and performance.now) and the card is sent to that moment
+// (window.socialCard.seek), then captured once it says it drew it, so every frame lands at exactly its moment however
+// slow the machine. The frames become public/images/social-card.mp4, and the last frame,
 // the finished card, public/images/social-card.png. Needs ffmpeg on the path. Run by .github/workflows/social-card.yml.
 //
 //   SOCIAL_CARD_URL=https://www.redgame.dev node scripts/social-card.mjs
@@ -21,16 +22,23 @@ const HEIGHT = 630;
 const readTiming = (page) => page.evaluate(() => {
   const card = document.querySelector("[data-card-ready]");
 
-  return card ? { ms: Number(card.getAttribute("data-card-ms")), fps: Number(card.getAttribute("data-card-fps")) } : null;
+  return card && window.socialCard ? { ms: Number(card.getAttribute("data-card-ms")), fps: Number(card.getAttribute("data-card-fps")) } : null;
 });
 
-// React commits on a message, which the fake clock does not hold, so one round trip of a message lets it catch up.
-const settle = (page) => page.evaluate(() => new Promise((resolve) => {
-  const channel = new MessageChannel();
+// Sends the card to a moment and waits, in real time, until it has drawn it.
+const seek = async (page, at) => {
+  await page.evaluate((moment) => window.socialCard.seek(moment), at);
 
-  channel.port1.onmessage = () => resolve();
-  channel.port2.postMessage(0);
-}));
+  for (let tries = 0; tries < 200; tries += 1) {
+    if (await page.evaluate((moment) => document.querySelector("[data-card-ready]")?.getAttribute("data-card-at") === String(moment), at)) {
+      return;
+    }
+
+    await page.waitForTimeout(10);
+  }
+
+  throw new Error(`The card never drew ${at} ms`);
+};
 
 const frames = mkdtempSync(join(tmpdir(), "social-card-"));
 const browser = await chromium.launch();
@@ -39,7 +47,7 @@ try {
   const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
 
   await page.clock.install();
-  await page.goto(`${BASE}/social-card/`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/social-card/?record`, { waitUntil: "networkidle" });
   // Vercel's toolbar on a preview is not part of the card.
   await page.addStyleTag({ content: "vercel-live-feedback { display: none !important; }" });
 
@@ -67,7 +75,7 @@ try {
       elapsed = at;
     }
 
-    await settle(page);
+    await seek(page, at);
     await page.screenshot({ path: join(frames, `${String(index).padStart(4, "0")}.png`), clip: { x: 0, y: 0, width: WIDTH, height: HEIGHT } });
   }
 

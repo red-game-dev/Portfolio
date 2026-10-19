@@ -10,7 +10,7 @@ import { progressOf } from "@/components/Menu/config";
 import { JOURNEY_STOPS, StopPart } from "@/config/journey";
 import useFocusLeave from "@/hooks/useFocusLeave";
 import { fill } from "@/packages/text/format";
-import { focusRing, noTransitionWhenReduced, progressText } from "@/styles/mixins";
+import { focusRing, media, noTransitionWhenReduced, progressText } from "@/styles/mixins";
 import { MenuContent } from "@/types/menu";
 
 interface MenuProps {
@@ -44,6 +44,11 @@ const MenuItem = styled(Link)(({ selected = false }: MenuItemProps) => [
     &:hover,
     &:focus-visible {
       --nav-rest: #ffffff;
+    }
+
+    /* The current stop's text bob and border fill, kept still like everything else. */
+    ${media.reducedMotion} {
+      animation: none;
     }
   `
 ]);

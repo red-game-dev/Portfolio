@@ -1,22 +1,26 @@
 import { BACKDROP_THEME, COLORS, TRANSITION_THEME } from "@/config/theme";
 import { ZoneId } from "@/config/zones";
 import type { BackdropConfigOverrides } from "@/packages/effects/backdrop";
+import type { RandomSource } from "@/packages/math/random";
 
 interface BackdropEngineOptions {
   zone: ZoneId;
   isStatic: boolean;
   config?: BackdropConfigOverrides;
+  // Seeded where the same frames must come out every time, as the recorded share card's do.
+  random?: RandomSource;
 }
 
 // The journey's backdrop: every zone's scene and the moments between them. Its package loads here, on first use, so
 // neither the page nor the share card carries it until a canvas asks.
-export const createBackdropEngine = async (context: CanvasRenderingContext2D, { zone, isStatic, config }: BackdropEngineOptions) => {
+export const createBackdropEngine = async (context: CanvasRenderingContext2D, { zone, isStatic, config, random: draws }: BackdropEngineOptions) => {
   const backdrop = await import("@/packages/effects/backdrop");
   const { transitionKey } = backdrop;
 
   return new backdrop.BackdropEngine(context, {
     initialScene: zone,
     isStatic,
+    random: draws,
     config: { background: COLORS.surface, framesPerSecond: 30, ...config },
     scenes: [
       (random) => new backdrop.RainScene(random, BACKDROP_THEME.rain),

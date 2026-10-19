@@ -13,6 +13,7 @@ import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { prefersReducedMotion } from "@/packages/accessibility/motion";
 import { decodeFrame, toBinaryMask } from "@/packages/encoding/binary";
 import { clamp } from "@/packages/math/clamp";
+import { createSeededRandom } from "@/packages/math/random";
 
 const { details, headline, cvDocument, journeyTrail } = portfolioData;
 
@@ -24,6 +25,8 @@ const figures = FIGURE_IDS.flatMap((id) => details.proof.filter((figure) => figu
 const domain = SITE_URL.replace(/^https?:\/\/(www\.)?/, "");
 
 const ZONES = ZONE_BOUNDARIES.map(({ zone }) => zone);
+
+const CARD_SEED = 2010;
 
 const { width, height } = seoDetails.socialCard;
 
@@ -112,11 +115,20 @@ const isRecorded = () => new URLSearchParams(window.location.search).has("record
 // journey from its first frame, ending on the finished card. A reader who asked for less motion, or `?still`, gets the
 // finished card at once. Recorded (`?record`), it keeps no clock of its own: scripts/social-card.mjs moves it frame by
 // frame through `window.socialCard.seek`, and reads back which moment it drew (`data-card-at`).
+// It also says whether the film has started, so the backdrop follows the timeline only from then: before, the finished
+// card's last universe would cross back into the first.
 const useCardClock = (isReady: boolean) => {
   const [ms, setMs] = useState(CARD_MS);
+  const [isStarted, setIsStarted] = useState(false);
 
   useEffect(() => {
-    if (!isReady || isStillCard()) {
+    if (!isReady) {
+      return;
+    }
+
+    setIsStarted(true);
+
+    if (isStillCard()) {
       return;
     }
 
@@ -147,7 +159,7 @@ const useCardClock = (isReady: boolean) => {
     return () => cancelAnimationFrame(frame);
   }, [isReady]);
 
-  return ms;
+  return { ms, isStarted };
 };
 
 const decoded = (text: string, progress: number, tick: number) => decodeFrame(text, toBinaryMask(text), Math.floor(progress * Array.from(text).length), tick);
@@ -162,11 +174,17 @@ export default function SocialCard() {
   const engine = useCanvasEngine(canvasRef, {
     contextOptions: { alpha: false },
     nearMargin: "0px",
-    create: (context) => createBackdropEngine(context, { zone: ZONES[0], isStatic: isStillCard(), config: { background: "#0c0c0e", fadeMs: 600, maxPixelRatio: 1 } }),
+    create: (context) => createBackdropEngine(context, {
+      zone: ZONES[0],
+      isStatic: isStillCard(),
+      config: { background: "#0c0c0e", fadeMs: 600, maxPixelRatio: 1 },
+      // The same draws every time, so the same page records the same film.
+      random: createSeededRandom(CARD_SEED),
+    }),
     resize: (backdrop, size) => backdrop.resize(size.width, size.height, size.pixelRatio),
   }, []);
   const isReady = engine !== null && hasFonts;
-  const ms = useCardClock(isReady);
+  const { ms, isStarted } = useCardClock(isReady);
   const frame = cardAt(ms, ZONES);
 
   useEffect(() => {
@@ -188,8 +206,10 @@ export default function SocialCard() {
   }, [engine]);
 
   useEffect(() => {
-    engine?.setScene(frame.zone);
-  }, [engine, frame.zone]);
+    if (isStarted) {
+      engine?.setScene(frame.zone);
+    }
+  }, [engine, frame.zone, isStarted]);
 
   return (
     <Card data-card-ready={isReady ? "" : undefined} data-card-ms={CARD_MS} data-card-fps={CARD_FPS} data-card-at={Math.round(ms)}>

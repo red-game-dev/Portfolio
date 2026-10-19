@@ -62,8 +62,9 @@ jobs:
             echo "record=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          changed=$(git diff --name-only origin/main..."$SHA" -- src/pages/social-card.tsx src/components/SocialCard scripts/social-card.mjs .github/workflows/social-card.yml)
-          pull=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq '[.[] | select(.head.repo.full_name == "'"$REPO"'")][0] // empty')
+          changed=$(git diff --name-only origin/main..."$SHA" -- src/pages/social-card.tsx src/components/SocialCard \
+            src/components/Journey/backdropEngine.ts src/packages/effects/backdrop scripts/social-card.mjs .github/workflows/social-card.yml)
+          pull=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq '[.[] | select(.head.repo.full_name == "'"$REPO"'" and .head.sha == "'"$SHA"'")][0] // empty')
           branch=$(echo "$pull" | jq -r '.head.ref // empty')
           if [ -n "$changed" ] && [ -n "$branch" ]; then
             { echo "record=true"; echo "branch=$branch"; echo "url=$PREVIEW"; } >> "$GITHUB_OUTPUT"
@@ -71,10 +72,14 @@ jobs:
             echo "record=false" >> "$GITHUB_OUTPUT"
           fi
 
+  # A newer push to the same branch cancels the recording and commit still going for an older one.
   record:
     name: Record the share card
     needs: decide
     if: needs.decide.outputs.record == 'true'
+    concurrency:
+      group: share-card-${{ needs.decide.outputs.branch }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -116,9 +121,14 @@ jobs:
   commit:
     name: Commit the share card
     needs: [decide, record]
+    concurrency:
+      group: share-card-${{ needs.decide.outputs.branch }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # To start CI on the commit it makes.
+      actions: write
     steps:
       - name: Check out the branch
         uses: actions/checkout@v7
@@ -131,12 +141,20 @@ jobs:
           name: share-card
           path: ${{ runner.temp }}/share-card
 
-      # Only the two files, and only if they are what they say: nothing the recording made is run here.
+      # Only the two files, and only if they are what they say: nothing the recording made is run here. A branch that has
+      # moved on since the recorded commit is left alone, since its own deploy records it; the commit gets CI of its own.
       - name: Commit the card
         env:
           BRANCH: ${{ needs.decide.outputs.branch }}
           FROM: ${{ runner.temp }}/share-card
+          SHA: ${{ needs.decide.outputs.sha }}
+          EVENT: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
         run: |
+          if [ "$EVENT" != "workflow_dispatch" ] && [ "$(git rev-parse HEAD)" != "$SHA" ]; then
+            echo "The branch moved on since the recorded commit; its own deploy records it."
+            exit 0
+          fi
           file --brief --mime-type "$FROM/social-card.mp4" | grep -qx "video/mp4"
           file --brief --mime-type "$FROM/social-card.png" | grep -qx "image/png"
           cp "$FROM/social-card.mp4" "$FROM/social-card.png" public/images/
@@ -150,3 +168,4 @@ jobs:
           fi
           git commit -m "chore: record the share card"
           git push origin "HEAD:$BRANCH"
+          gh workflow run ci.yml --ref "$BRANCH" || echo "::warning::CI could not be started on $BRANCH; it can be dispatched once ci.yml on main allows it."

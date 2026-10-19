@@ -1,11 +1,13 @@
 name: CI
 
 # Lint, typecheck and the whole Jest suite on every pull request and every push to main,
-# so nothing is merged without them.
+# so nothing is merged without them. Dispatched too by the share card workflow after it commits to a branch, since a
+# push made with the workflow's token starts no pull request run, and its commit would otherwise head the PR unchecked.
 on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 # A newer push to a pull request cancels the run still going for the older one; every push to main runs to the end.
 concurrency:

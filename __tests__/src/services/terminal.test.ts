@@ -165,7 +165,8 @@ describe("portfolio commands", () => {
 
       return command ? command.run(args).lines : [];
     };
-    const text = (name: string, args: string[]) => run(name, args).map((line) => line.text).join("\n");
+    const text = (name: string, args: string[]) => run(name, args).map((line) => line.text)
+.join("\n");
 
     expect(text("hosts", [])).toContain("metal: OVH and Hetzner, Dedicated servers.");
     expect(text("deploy", [])).toContain("game: The game servers");

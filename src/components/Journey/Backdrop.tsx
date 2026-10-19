@@ -47,6 +47,8 @@ const createEngine = async (context: CanvasRenderingContext2D, { zone, isStatic 
       [transitionKey("matrix", "ai")]: (random) => new backdrop.CollapseTransition(random, TRANSITION_THEME.collapse),
       [transitionKey("ai", "chain")]: () => new backdrop.BlockSnapTransition(TRANSITION_THEME.snap),
       [transitionKey("chain", "casino")]: (random) => new backdrop.ChipFlipTransition(random, TRANSITION_THEME.flip),
+      // The casino deals itself in whichever universe the reader comes from, now the data centre on the way down.
+      [transitionKey("devops", "casino")]: (random) => new backdrop.ChipFlipTransition(random, TRANSITION_THEME.flip),
       [transitionKey("casino", "mmo")]: (random) => new backdrop.PortalTransition(random, TRANSITION_THEME.portal),
       [transitionKey("mmo", "beyond")]: (random) => new backdrop.WarpTransition(random, TRANSITION_THEME.warp),
     },

@@ -36,6 +36,9 @@ border-[1px] border-solid border-[#262626]`;
 
 export const Years = tw.span`text-xs text-[var(--accent)]`;
 
+// A way on to another part of the page, in the accent and underlined like a link.
+export const Link = tw.a`self-start text-sm text-[var(--accent)] underline md:pt-[6px]`;
+
 export const GroupLabel = tw.span`block text-xs text-[#8a8a8a] mb-[6px]`;
 
 export const Roles = tw.ol`list-none m-0 p-0 flex flex-col`;

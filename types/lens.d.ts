@@ -59,6 +59,9 @@ export interface RecruiterGlanceContent {
   yearsLabel: string;
   roleClasses: string[];
   workLabel: string;
+  // The way to the answers screeners ask for, in the DevOps section.
+  screeningLabel: string;
+  screeningLink: string;
   skillsLabel: string;
   skillGroups: SkillPick[];
   // "{years} yrs": the unit after a skill's years.

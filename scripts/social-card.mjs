@@ -2,7 +2,8 @@
 // before the page loads, so time passes only when this script moves it: for every frame the backdrop is moved on by
 // exactly one frame (its animation frames and performance.now) and the card is sent to that moment
 // (window.socialCard.seek), then captured once it says it drew it. Every frame lands at exactly its moment however slow
-// the machine, and with the card's seeded backdrop the same page records the same film. The frames become public/images/social-card.mp4 (the still beside
+// the machine, and the card's backdrop is seeded, so its draws repeat (the encoded film still differs a little between
+// machines). The frames become public/images/social-card.mp4 (the still beside
 // it is drawn by the site, /og/card.png). Needs ffmpeg on the path. Run by .github/workflows/social-card.yml.
 //
 //   SOCIAL_CARD_URL=https://www.redgame.dev node scripts/social-card.mjs

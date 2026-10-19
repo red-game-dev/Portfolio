@@ -374,7 +374,7 @@ export class PilotLink {
       return;
     }
 
-    this.discover(codexId("universes", cosmos.style));
+    this.discover(codexId("universes", cosmos.home));
     this.discover(codexId("galaxies", cosmos.galaxy.kind));
     this.discover(codexId("stars", cosmos.starKind ?? "none"));
     cosmos.companionKinds.forEach((kind) => this.discover(codexId("stars", kind)));

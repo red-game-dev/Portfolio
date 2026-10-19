@@ -2,6 +2,7 @@ import type { System } from "@/packages/games/engine";
 import { TAU } from "@/packages/math/angles";
 import { randomBetween } from "@/packages/math/random";
 
+import { universeSeed } from "../generators/UniverseGenerator";
 import { massOfPull, pullOfMass } from "../utils/stars";
 import { VoyageContext } from "./context";
 import { enterSystem } from "./gates";
@@ -51,7 +52,7 @@ export class PhaseSystem implements System<VoyageContext> {
     const { state, config, events, random, universes, themes } = context;
     const parts = shipOf(context);
     const index = state.universes;
-    const cosmos = universes.generate(index, state.runSeed + (index + 1) * 7919, themes[index] ?? null);
+    const cosmos = universes.generate(index, universeSeed(state.runSeed, index), themes[index] ?? null);
 
     state.network = cosmos.network;
     state.nodes = new Map();

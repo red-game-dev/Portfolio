@@ -64,6 +64,8 @@ export const enterSystem = (context: VoyageContext, spec: UniverseSpec): void =>
   state.craters = state.cosmos?.index === spec.index ? state.craters : {};
   state.cosmos = spec;
   state.system = spec.system;
+  // A rollback never reaches back into another system.
+  state.trail = [];
   state.node = spec.node;
   state.passing = null;
   state.boss = null;

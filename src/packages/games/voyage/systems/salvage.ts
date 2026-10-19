@@ -38,7 +38,7 @@ export const leaveWreck = (context: VoyageContext, kind: WreckKind, { x, y, vx, 
   world.stores.spin.set(wreck, { angle: random() * TAU, rate: randomBetween(random, -0.6, 0.6) });
   world.stores.wreck.set(wreck, {
     kind,
-    loot: loot.roll({ source: isBoss ? "boss" : SOURCE[kind], style: state.cosmos?.style ?? null, universe, level }, random),
+    loot: loot.roll({ source: isBoss ? "boss" : SOURCE[kind], style: state.cosmos?.home ?? null, universe, level }, random),
     progress: 0,
     seconds: config.salvage.seconds[kind] * (isBoss ? 2 : 1),
     isEmpty: false,

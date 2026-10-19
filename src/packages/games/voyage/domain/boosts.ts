@@ -19,7 +19,8 @@ export type BoostId =
   | "warpJump"
   | "prism"
   | "heatSink"
-  | "gravityWell";
+  | "gravityWell"
+  | "rollback";
 
 // Where a boost is found: anywhere, our solar system, or the universes of one style.
 export type BoostOrigin = "anywhere" | "solar" | VoyageStyle;

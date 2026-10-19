@@ -163,6 +163,20 @@ export interface Readings {
 // universe, open space, the haze filling a nebula universe, an asteroid belt, inside a nebula, and a giant's rings.
 export type Medium = "void" | "open" | "haze" | "belt" | "nebula" | "ring";
 
+// Where the ship was at a moment of the run (ms on its clock), and how full its hull, shields and tank were then, as
+// shares of their most, so a rollback after a refit puts back the same share of the new most.
+export interface ShipMoment {
+  at: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  angle: number;
+  hull: number;
+  shields: number;
+  fuel: number;
+}
+
 // Everything about a run that is not an entity.
 export interface VoyageState {
   status: VoyageStatus;
@@ -246,6 +260,9 @@ export interface VoyageState {
   blocks: number;
   well: { x: number; y: number; mu: number; until: number } | null;
   decoy: Entity | null;
+  // The ship's last few seconds in flight, a moment at a time, for a rollback to return to; forgotten on landing and
+  // on entering another system.
+  trail: ShipMoment[];
   nextBoostAt: number | null;
   // The weapons on the bar as the run fires them, when each can fire again (ms on the run's clock), the ammunition
   // aboard, how hard the run is (hard: no backup shot when the rounds run out) and how the guns aim.

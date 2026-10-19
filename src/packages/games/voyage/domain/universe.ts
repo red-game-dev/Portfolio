@@ -144,6 +144,8 @@ export interface UniverseSpec {
   seed: number;
   name: string;
   style: VoyageStyle;
+  // The universe's own style, which a DevOps system lent another's look keeps, so what is found there stays its own.
+  home: VoyageStyle;
   accent: string;
   deep: string;
   hazard: string;

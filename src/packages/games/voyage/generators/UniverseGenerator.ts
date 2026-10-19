@@ -93,6 +93,7 @@ const INHABITED = 0.5;
 const MAZE_FROM = 6;
 const MAZE_CHANCE = 0.4;
 const NODE_SEED = 7919;
+const HUB_SALT = 104729;
 
 // What every system of a universe shares.
 interface Shared {
@@ -110,6 +111,8 @@ interface Shared {
   universe: string;
   living: FactionSpec[];
   place: NetworkNode | null;
+  // The universe's own style, kept when a system is lent another's look.
+  home: VoyageStyle;
 }
 
 // A star keeping another company, its kind and its body in world units.
@@ -238,6 +241,25 @@ export interface UniverseTheme {
   hazard: string;
 }
 
+// An earlier universe of the run, which the DevOps universe's systems borrow their look and peoples from: its place in
+// the run, the seed it was made from and its theme.
+export interface BorrowedUniverse {
+  index: number;
+  seed: number;
+  theme: UniverseTheme;
+}
+
+// The seed a run's universe is made from, by its place in the run.
+export const universeSeed = (runSeed: number, index: number) => runSeed + (index + 1) * NODE_SEED;
+
+// Joins two systems of a web both ways, once.
+const joiner = (links: number[][]) => (first: number, second: number) => {
+  if (first !== second && !links[first].includes(second)) {
+    links[first].push(second);
+    links[second].push(first);
+  }
+};
+
 // How many links each node is from `from`, in a web of links.
 const hops = (links: number[][], from: number): number[] => {
   const depth = links.map(() => Infinity);
@@ -273,27 +295,54 @@ export class UniverseGenerator {
   // A universe, or in a maze one of its systems (`node`): what the whole universe shares (its look, galaxy, name,
   // the factions living there and the maze itself) comes from its seed, and each system from a seed of its own, so
   // every system of a maze is made the same whenever it is reached.
-  public generate(index: number, seed: number, theme: UniverseTheme | null, node = 0): UniverseSpec {
+  // The DevOps universe is always a hub of systems, its own at the hub and, out along the spokes, one in the look and
+  // with the peoples of each earlier universe (`borrowed`), as dangerous as here.
+  public generate(index: number, seed: number, theme: UniverseTheme | null, node = 0, borrowed: readonly BorrowedUniverse[] = []): UniverseSpec {
+    const shared = this.sharedOf(index, seed, theme, node);
+    // A hub's systems are salted, so none shares its stream of draws with the first system of a universe after it.
+    const salt = shared.style === "racks" ? HUB_SALT : 0;
+
+    return this.system(createWarmedRandom(seed + (node + 1) * NODE_SEED + salt), this.lent(shared, borrowed));
+  }
+
+  // What every system of a universe shares, from its seed; `danger` sets how strong its peoples are, so a universe
+  // made again to lend them can make them as strong as where they are lent.
+  private sharedOf(index: number, seed: number, theme: UniverseTheme | null, node: number, danger = 1 + index * 0.35): Shared {
     const random = createWarmedRandom(seed);
-    const danger = 1 + index * 0.35;
     const style: VoyageStyle = theme?.style ?? pick(random, DEEP_STYLES);
     const hue = random() * 360;
     const isVoid = style === "void";
     const galaxy = this.galaxy(random);
     const metals = GALAXIES[galaxy.kind].metals;
-    const network = this.network(random, index, isVoid);
+    const network = style === "racks" ? this.hub(random, index) : this.network(random, index, isVoid);
     const universe = theme?.name ?? universeName(random, this.names);
     const disposition = (): Disposition => weighted(random, [["hostile", 3 + index * 0.6], ["territorial", 2.5], ["neutral", 2], ["peaceful", 2]]);
     const living = Array.from({ length: isVoid ? 1 : randomInt(random, 1, 3) }, (_, id) => this.faction(random, id, disposition(), danger, hue));
     const place = network?.nodes[node] ?? null;
-    const shared = { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place };
 
-    return this.system(createWarmedRandom(seed + (node + 1) * NODE_SEED), shared);
+    return { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place, home: style };
+  }
+
+  // A system out along the DevOps universe's spokes takes an earlier universe's look and its peoples; the hub keeps its
+  // own, and so does any system when there is nothing earlier to borrow.
+  private lent(shared: Shared, borrowed: readonly BorrowedUniverse[]): Shared {
+    const { network, node } = shared;
+
+    if (shared.style !== "racks" || !network || node === network.start || borrowed.length === 0) {
+      return shared;
+    }
+
+    // A system beyond a spoke takes the look of the spoke it hangs from.
+    const spoke = network.nodes[node].links.includes(network.start) ? node : network.nodes[node].links[0];
+    const from = borrowed[(spoke - 1) % borrowed.length];
+    const theirs = this.sharedOf(from.index, from.seed, from.theme, 0, shared.danger);
+
+    return { ...shared, theme: from.theme, style: theirs.style, hue: theirs.hue, isVoid: theirs.isVoid, living: theirs.living };
   }
 
   // One star system of a universe: its stars, worlds and strange things.
   private system(random: RandomSource, shared: Shared): UniverseSpec {
-    const { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place } = shared;
+    const { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place, home } = shared;
     const starKind: StarKind | null = isVoid ? null : weighted(random, STAR_WEIGHTS[galaxy.kind]);
     const star = starKind ? this.starOf(starKind) : null;
     const multiplicity = starKind ? this.multiplicity(random, starKind) : "single";
@@ -365,6 +414,7 @@ export class UniverseGenerator {
       seed,
       name: universe,
       style,
+      home,
       accent: theme?.accent ?? hslToHex(hue, 0.9, 0.66),
       deep: theme?.deep ?? hslToHex(hue, 0.55, 0.035),
       hazard: theme?.hazard ?? hslToHex(hue + 180, 0.85, 0.62),
@@ -427,12 +477,7 @@ export class UniverseGenerator {
 
     const count = randomInt(random, 3, 2 + Math.min(6, 2 + index - MAZE_FROM));
     const links: number[][] = Array.from({ length: count }, () => []);
-    const join = (first: number, second: number) => {
-      if (first !== second && !links[first].includes(second)) {
-        links[first].push(second);
-        links[second].push(first);
-      }
-    };
+    const join = joiner(links);
 
     for (let node = 1; node < count; node += 1) {
       join(node, node - randomInt(random, 1, Math.min(node, 3)));
@@ -442,6 +487,28 @@ export class UniverseGenerator {
       join(randomInt(random, 0, count - 1), randomInt(random, 0, count - 1));
     }
 
+    return this.laidOut(random, links);
+  }
+
+  // The DevOps universe's web: the ship comes in at a hub joined to a system for each universe before it (two at
+  // least, five at most), and one more lies beyond a spoke, the furthest, where the way on waits.
+  private hub(random: RandomSource, index: number): UniverseNetwork {
+    const spokes = clamp(index, 2, 5);
+    const links: number[][] = Array.from({ length: spokes + 2 }, () => []);
+    const join = joiner(links);
+
+    for (let spoke = 1; spoke <= spokes; spoke += 1) {
+      join(0, spoke);
+    }
+
+    join(spokes + 1, randomInt(random, 1, spokes));
+
+    return this.laidOut(random, links);
+  }
+
+  // A web of links laid out for the map and named: systems in columns by how far they are from where the ship comes
+  // in, the way on at the furthest.
+  private laidOut(random: RandomSource, links: number[][]): UniverseNetwork {
     const depth = hops(links, 0);
     const deepest = Math.max(...depth);
     const exit = depth.indexOf(deepest);

@@ -28,6 +28,7 @@ export const ITEMS: Readonly<Record<string, ItemSpec>> = Object.fromEntries([
   item("codeShards", "material", "rare", 1, 35, ["alien", "wreck"], { style: "matrix" }),
   item("synapseGel", "material", "rare", 1, 35, ["alien", "wreck"], { style: "neural" }),
   item("hashCrystals", "material", "rare", 1, 35, ["alien", "wreck"], { style: "blocks" }),
+  item("bareMetal", "material", "rare", 1, 35, ["alien", "wreck"], { style: "racks" }),
   item("luckyChips", "material", "rare", 1, 35, ["alien", "wreck"], { style: "chips" }),
   item("pixelDust", "material", "rare", 1, 35, ["alien", "wreck"], { style: "pixels" }),
   item("stardust", "material", "rare", 1, 45, ["rock", "alien", "wreck"], { style: "nebula" }),

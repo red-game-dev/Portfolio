@@ -6,7 +6,7 @@ export { WORLD_CLASS_IDS, WORLD_CLASSES } from "./config/worlds";
 export { VoyageGame } from "./core/VoyageGame";
 export { VoyageSimulation } from "./core/VoyageSimulation";
 export { DEFAULT_UNIVERSE_NAMES } from "./config/names";
-export { UniverseGenerator } from "./generators/UniverseGenerator";
+export { UniverseGenerator, universeSeed } from "./generators/UniverseGenerator";
 export { arrivalSpeed, bindingEnergy, craterKm, impactEnergy, impactOutcome, isOnCourseNow, predictApproach } from "./systems/impacts";
 export { leadDirection } from "./systems/combat";
 export { MODULE_IDS } from "./domain/components";
@@ -203,4 +203,4 @@ export type {
   Disposition, FactionSpec, GalaxyKind, GalaxySpec, HullShape, PhenomenonKind, PhenomenonSpec, StarKind, UniverseNames, UniverseSpec, WeaponKind, WorldClass,
 } from "./domain/universe";
 export type { SystemLayout } from "./mappers/SystemMapper";
-export type { UniverseTheme } from "./generators/UniverseGenerator";
+export type { BorrowedUniverse, UniverseTheme } from "./generators/UniverseGenerator";

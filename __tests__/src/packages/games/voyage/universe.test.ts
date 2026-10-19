@@ -19,6 +19,8 @@ import {
   SolarSystemSource,
   SystemService,
   UniverseGenerator,
+  universeSeed,
+  VoyageStyle,
   VoyageConfig,
   VoyageSimulation,
   VoyageState,
@@ -30,6 +32,8 @@ import { createSeededRandom } from "@/packages/math/random";
 const defaults = DEFAULT_VOYAGE_CONFIG;
 const EPOCH = Date.parse("2026-10-09T12:00:00Z");
 const generator = new UniverseGenerator(defaults.layout, DEFAULT_UNIVERSE_NAMES);
+
+const themed = (name: string, style: VoyageStyle) => ({ name, style, accent: "#ffffff", deep: "#000000", hazard: "#ff0000" });
 const ZONE = { name: "The Matrix", style: "matrix" as const, accent: "#4bffa5", deep: "#020a06", hazard: "#ff4d5e" };
 
 // Quiet: nothing spawns, no flares, no rocks headed for worlds, no traffic, unless a test asks.
@@ -513,6 +517,38 @@ describe("combat", () => {
     expect(gates).toEqual([{ name: network.nodes[to].name, isNew: true }]);
     expect(state.cosmos?.node).toBe(to);
     expect(state.system.bodies.every((body) => body.id.startsWith(`u6.${to}-`))).toBe(true);
+  });
+
+  test("the DevOps universe is a hub: a system for each universe before it, in its look and with its peoples, the way on beyond a spoke", () => {
+    const themes = [themed("The Matrix", "matrix"), themed("AI", "neural"), themed("Chain", "blocks"), themed("DevOps", "racks")];
+    const runSeed = 4242;
+    const borrowed = themes.slice(0, 3).map((theme, index) => ({ index, seed: universeSeed(runSeed, index), theme }));
+    const seed = universeSeed(runSeed, 3);
+    const hub = generator.generate(3, seed, themes[3], 0, borrowed);
+
+    expect(hub.style).toBe("racks");
+    expect([...(hub.network?.nodes[0].links ?? [])].sort()).toEqual([1, 2, 3]);
+    expect(hub.network?.exit).toBe(4);
+
+    [1, 2, 3].forEach((node) => {
+      const system = generator.generate(3, seed, themes[3], node, borrowed);
+      const from = borrowed[node - 1];
+      const earlier = generator.generate(from.index, from.seed, from.theme);
+
+      expect(system.style).toBe(from.theme.style);
+      expect(system.accent).toBe(from.theme.accent);
+      expect(system.factions.map((faction) => faction.name)).toEqual(earlier.factions.map((faction) => faction.name));
+      // As dangerous as here, not as where they came from.
+      expect(system.danger).toBe(hub.danger);
+      // What is found there is still the DevOps universe's own.
+      expect(system.home).toBe("racks");
+    });
+
+    // The way on takes the look of the spoke it hangs from.
+    const exit = hub.network?.exit ?? 0;
+    const parent = hub.network?.nodes[exit].links[0] ?? 0;
+
+    expect(generator.generate(3, seed, themes[3], exit, borrowed).style).toBe(borrowed[parent - 1].theme.style);
   });
 
   test("stranded with no fuel out in the universes, nobody is coming: the run ends", () => {

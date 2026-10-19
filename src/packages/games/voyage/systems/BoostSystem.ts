@@ -6,6 +6,12 @@ import { activeLevel, boostToFind } from "../utils/boosts";
 import { VoyageContext } from "./context";
 import { isInSystem, shipOf, viewRadius } from "./queries";
 
+// A rollback's history: a moment every quarter second, the last six seconds kept, more than the strongest goes back.
+const TRAIL_EVERY_MS = 250;
+const TRAIL_KEEP_MS = 6000;
+
+const share = (value: number, most: number) => (most > 0 ? value / most : 0);
+
 // Boosts over time: each at work runs out when its time is up (a block shield's blocks and a decoy with it, a
 // gravity well when its own time is up), and now and then a boost core drifts in near the ship, just inside the
 // view, one of the place's own more often than not, or a cache of ammunition and gear.
@@ -39,7 +45,45 @@ export class BoostSystem implements System<VoyageContext> {
       state.well = null;
     }
 
+    this.remember(context);
     this.drift(context);
+  }
+
+  // The ship's moment every so often in flight, the last few seconds of them kept, for a rollback to return to.
+  private remember(context: VoyageContext): void {
+    const { state } = context;
+    const parts = shipOf(context);
+    const isFlying = state.status === "flying" && (state.phase === "solar" || state.phase === "universe");
+
+    if (!parts || !isFlying || parts.ship.landedOn !== null || state.descent !== null) {
+      state.trail.length = 0;
+
+      return;
+    }
+
+    const last = state.trail[state.trail.length - 1];
+
+    if (last && state.elapsedMs - last.at < TRAIL_EVERY_MS) {
+      return;
+    }
+
+    const { body, ship, health } = parts;
+
+    state.trail.push({
+      at: state.elapsedMs,
+      x: body.x,
+      y: body.y,
+      vx: body.vx,
+      vy: body.vy,
+      angle: ship.angle,
+      hull: share(health.hull, health.maxHull),
+      shields: share(health.shields, health.maxShields),
+      fuel: share(ship.fuel, ship.maxFuel),
+    });
+
+    while (state.trail.length > 0 && state.elapsedMs - state.trail[0].at > TRAIL_KEEP_MS) {
+      state.trail.shift();
+    }
   }
 
   private drift(context: VoyageContext): void {
@@ -65,7 +109,7 @@ export class BoostSystem implements System<VoyageContext> {
 
     state.nextBoostAt = state.elapsedMs + randomBetween(random, soonest, latest) * 1000;
 
-    const place = state.phase === "solar" ? "solar" : state.cosmos?.style ?? null;
+    const place = state.phase === "solar" ? "solar" : state.cosmos?.home ?? null;
     const isCache = random() < config.boosts.caches;
     const boost = isCache ? null : boostToFind(random, place, config.boosts.own, config.boosts.away);
 

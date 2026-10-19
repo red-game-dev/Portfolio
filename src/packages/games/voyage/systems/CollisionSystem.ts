@@ -74,7 +74,7 @@ export class CollisionSystem implements System<VoyageContext> {
       if (pickup && (pickup.kind === "cache" || pickup.kind === "chest")) {
         const { loot, random } = context;
         const run = context.state;
-        const situation = { source: pickup.kind, style: run.cosmos?.style ?? null, universe: run.phase === "universe" ? run.universe : -1, level: run.level };
+        const situation = { source: pickup.kind, style: run.cosmos?.home ?? null, universe: run.phase === "universe" ? run.universe : -1, level: run.level };
 
         context.events.emit("opened", { kind: pickup.kind, loot: loot.roll(situation, random), x: other.x, y: other.y });
         world.despawn(entity);

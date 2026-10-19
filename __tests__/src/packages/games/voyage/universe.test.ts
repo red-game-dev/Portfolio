@@ -540,7 +540,15 @@ describe("combat", () => {
       expect(system.factions.map((faction) => faction.name)).toEqual(earlier.factions.map((faction) => faction.name));
       // As dangerous as here, not as where they came from.
       expect(system.danger).toBe(hub.danger);
+      // What is found there is still the DevOps universe's own.
+      expect(system.home).toBe("racks");
     });
+
+    // The way on takes the look of the spoke it hangs from.
+    const exit = hub.network?.exit ?? 0;
+    const parent = hub.network?.nodes[exit].links[0] ?? 0;
+
+    expect(generator.generate(3, seed, themes[3], exit, borrowed).style).toBe(borrowed[parent - 1].theme.style);
   });
 
   test("stranded with no fuel out in the universes, nobody is coming: the run ends", () => {

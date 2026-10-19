@@ -163,8 +163,8 @@ export interface Readings {
 // universe, open space, the haze filling a nebula universe, an asteroid belt, inside a nebula, and a giant's rings.
 export type Medium = "void" | "open" | "haze" | "belt" | "nebula" | "ring";
 
-// Everything about a run that is not an entity.
-// Where the ship was and what it had at a moment of the run (ms on its clock).
+// Where the ship was at a moment of the run (ms on its clock), and how full its hull, shields and tank were then, as
+// shares of their most, so a rollback after a refit puts back the same share of the new most.
 export interface ShipMoment {
   at: number;
   x: number;
@@ -177,6 +177,7 @@ export interface ShipMoment {
   fuel: number;
 }
 
+// Everything about a run that is not an entity.
 export interface VoyageState {
   status: VoyageStatus;
   phase: VoyagePhase;

@@ -93,6 +93,7 @@ const INHABITED = 0.5;
 const MAZE_FROM = 6;
 const MAZE_CHANCE = 0.4;
 const NODE_SEED = 7919;
+const HUB_SALT = 104729;
 
 // What every system of a universe shares.
 interface Shared {
@@ -110,6 +111,8 @@ interface Shared {
   universe: string;
   living: FactionSpec[];
   place: NetworkNode | null;
+  // The universe's own style, kept when a system is lent another's look.
+  home: VoyageStyle;
 }
 
 // A star keeping another company, its kind and its body in world units.
@@ -296,8 +299,10 @@ export class UniverseGenerator {
   // with the peoples of each earlier universe (`borrowed`), as dangerous as here.
   public generate(index: number, seed: number, theme: UniverseTheme | null, node = 0, borrowed: readonly BorrowedUniverse[] = []): UniverseSpec {
     const shared = this.sharedOf(index, seed, theme, node);
+    // A hub's systems are salted, so none shares its stream of draws with the first system of a universe after it.
+    const salt = shared.style === "racks" ? HUB_SALT : 0;
 
-    return this.system(createWarmedRandom(seed + (node + 1) * NODE_SEED), this.lent(shared, borrowed));
+    return this.system(createWarmedRandom(seed + (node + 1) * NODE_SEED + salt), this.lent(shared, borrowed));
   }
 
   // What every system of a universe shares, from its seed; `danger` sets how strong its peoples are, so a universe
@@ -315,7 +320,7 @@ export class UniverseGenerator {
     const living = Array.from({ length: isVoid ? 1 : randomInt(random, 1, 3) }, (_, id) => this.faction(random, id, disposition(), danger, hue));
     const place = network?.nodes[node] ?? null;
 
-    return { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place };
+    return { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place, home: style };
   }
 
   // A system out along the DevOps universe's spokes takes an earlier universe's look and its peoples; the hub keeps its
@@ -327,7 +332,9 @@ export class UniverseGenerator {
       return shared;
     }
 
-    const from = borrowed[(node - 1) % borrowed.length];
+    // A system beyond a spoke takes the look of the spoke it hangs from.
+    const spoke = network.nodes[node].links.includes(network.start) ? node : network.nodes[node].links[0];
+    const from = borrowed[(spoke - 1) % borrowed.length];
     const theirs = this.sharedOf(from.index, from.seed, from.theme, 0, shared.danger);
 
     return { ...shared, theme: from.theme, style: theirs.style, hue: theirs.hue, isVoid: theirs.isVoid, living: theirs.living };
@@ -335,7 +342,7 @@ export class UniverseGenerator {
 
   // One star system of a universe: its stars, worlds and strange things.
   private system(random: RandomSource, shared: Shared): UniverseSpec {
-    const { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place } = shared;
+    const { index, seed, theme, node, danger, style, hue, isVoid, galaxy, metals, network, universe, living, place, home } = shared;
     const starKind: StarKind | null = isVoid ? null : weighted(random, STAR_WEIGHTS[galaxy.kind]);
     const star = starKind ? this.starOf(starKind) : null;
     const multiplicity = starKind ? this.multiplicity(random, starKind) : "single";
@@ -407,6 +414,7 @@ export class UniverseGenerator {
       seed,
       name: universe,
       style,
+      home,
       accent: theme?.accent ?? hslToHex(hue, 0.9, 0.66),
       deep: theme?.deep ?? hslToHex(hue, 0.55, 0.035),
       hazard: theme?.hazard ?? hslToHex(hue + 180, 0.85, 0.62),

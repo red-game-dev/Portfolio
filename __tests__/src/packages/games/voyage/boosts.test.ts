@@ -85,16 +85,46 @@ describe("voyage boosts", () => {
     expect(health.hull).toBeCloseTo(before.hull, 3);
   });
 
-  test("a rollback is refused standing on a world, and never reaches back into another system", () => {
+  test("a rollback never returns to a spot a world has since come over, and is refused standing on one", () => {
     const simulation = createFlying();
-    const state = simulation.state as VoyageState;
+    const { trail, system } = simulation.state;
 
     outThere(simulation);
     simulation.step(3000);
-    expect(state.trail.length).toBeGreaterThan(4);
+    expect(trail.length).toBeGreaterThan(4);
+
+    // Mars has swept over every spot the ship was at.
+    const mars = system.bodies.find((place) => place.id === "mars");
+
+    if (!mars) {
+      throw new Error("expected Mars");
+    }
+
+    trail.forEach((moment) => Object.assign(moment, { x: mars.x, y: mars.y }));
+    expect(simulation.boost("rollback", 1)).toBe(false);
 
     partsOf(simulation).ship.landedOn = "mars";
     expect(simulation.boost("rollback", 1)).toBe(false);
+  });
+
+  test("a rollback puts back the share of the ship it had, so a refit since then is kept", () => {
+    const simulation = createFlying();
+
+    outThere(simulation);
+    simulation.step(1000);
+
+    const { ship, health } = partsOf(simulation);
+    const fuelShare = ship.fuel / ship.maxFuel;
+
+    // A smaller tank fitted since.
+    ship.maxFuel /= 2;
+    ship.fuel = Math.min(ship.fuel, ship.maxFuel);
+    simulation.step(BOOSTS.rollback.strength * 1000 - 500);
+
+    expect(simulation.boost("rollback", 1)).toBe(true);
+    expect(ship.fuel).toBeLessThanOrEqual(ship.maxFuel);
+    expect(ship.fuel / ship.maxFuel).toBeCloseTo(fuelShare, 2);
+    expect(health.hull).toBeLessThanOrEqual(health.maxHull);
   });
 
   test("a core drifts in near the ship now and then, and flying through it finds it", () => {

@@ -19,20 +19,24 @@ const DECOY_DRIFT = 0.8;
 // A rollback needs at least this much flight behind the ship (ms).
 const ROLLBACK_LEAST_MS = 1000;
 
+// Whether a ship of this size could be put at a spot without being inside a star or a world as they stand now.
+const isClearAt = ({ state }: VoyageContext, x: number, y: number, radius: number): boolean => {
+  const { star, companions, bodies } = state.system;
+
+  return [star, ...companions, ...bodies].every((blocker) => Math.hypot(x - blocker.x, y - blocker.y) >= blocker.radius + radius * 3);
+};
+
 // How far ahead a jump can go before it would end inside a world or a star, along the ship's heading.
-const clearJump = ({ state }: VoyageContext, parts: ShipParts, distance: number): number => {
+const clearJump = (context: VoyageContext, parts: ShipParts, distance: number): number => {
   const { x, y, radius } = parts.body;
   const dx = Math.cos(parts.ship.angle);
   const dy = Math.sin(parts.ship.angle);
-  const blockers = [state.system.star, ...state.system.companions, ...state.system.bodies];
   let clear = 0;
 
   for (let step = 1; step <= JUMP_STEPS; step += 1) {
     const reach = (distance * step) / JUMP_STEPS;
-    const tx = x + dx * reach;
-    const ty = y + dy * reach;
 
-    if (blockers.some((blocker) => Math.hypot(tx - blocker.x, ty - blocker.y) < blocker.radius + radius * 3)) {
+    if (!isClearAt(context, x + dx * reach, y + dy * reach, radius)) {
       break;
     }
 
@@ -42,21 +46,25 @@ const clearJump = ({ state }: VoyageContext, parts: ShipParts, distance: number)
   return clear;
 };
 
-// The moment a rollback returns to: the last one at least `seconds` ago, or the oldest kept if the flight is younger,
-// so long as it is a second old; none otherwise.
-const momentBack = ({ state }: VoyageContext, seconds: number): ShipMoment | null => {
+// The moment a rollback returns to: the last one at least `seconds` ago, else (the flight younger than that) the oldest
+// at least a second old; and only where no world has since come over the spot, since the worlds kept moving.
+const momentBack = (context: VoyageContext, parts: ShipParts, seconds: number): ShipMoment | null => {
+  const { state } = context;
   const target = state.elapsedMs - seconds * 1000;
+  const youngest = state.elapsedMs - ROLLBACK_LEAST_MS;
   let back: ShipMoment | null = null;
 
   for (const moment of state.trail) {
-    if (moment.at <= target) {
+    if (moment.at > youngest || (moment.at > target && back !== null)) {
+      break;
+    }
+
+    if (isClearAt(context, moment.x, moment.y, parts.body.radius)) {
       back = moment;
     }
   }
 
-  const oldest = state.trail[0];
-
-  return back ?? (oldest && state.elapsedMs - oldest.at >= ROLLBACK_LEAST_MS ? oldest : null);
+  return back;
 };
 
 // Whether a boost can do anything where the ship is: a jump or a well not while standing on a world, a jump not
@@ -66,7 +74,7 @@ const canWorkHere = (context: VoyageContext, parts: ShipParts, id: BoostId, leve
   const isJump = id === "pixelBlink" || id === "warpJump";
 
   if (id === "rollback") {
-    return parts.ship.landedOn === null && momentBack(context, boostStrength(id, level)) !== null;
+    return parts.ship.landedOn === null && momentBack(context, parts, boostStrength(id, level)) !== null;
   }
 
   if ((isJump || id === "gravityWell") && parts.ship.landedOn !== null) {
@@ -124,15 +132,16 @@ const begin = (context: VoyageContext, parts: ShipParts, id: BoostId, level: num
 
       return state.readings.nebula > 0 ? duration * 2 : duration;
     case "rollback": {
-      const back = momentBack(context, strength);
+      const back = momentBack(context, parts, strength);
 
       if (back) {
         placeBody(body, back.x, back.y, back.vx, back.vy);
         ship.angle = back.angle;
         ship.prevAngle = back.angle;
-        health.hull = Math.min(health.maxHull, back.hull);
-        health.shields = Math.min(health.maxShields, back.shields);
-        ship.fuel = back.fuel;
+        // Kept as shares, so a refit since then puts back the same share of the ship as it is now.
+        health.hull = back.hull * health.maxHull;
+        health.shields = back.shields * health.maxShields;
+        ship.fuel = back.fuel * ship.maxFuel;
         // What came after is undone, so the next rollback reaches further back.
         state.trail = state.trail.filter((moment) => moment.at < back.at);
       }
@@ -164,7 +173,8 @@ const begin = (context: VoyageContext, parts: ShipParts, id: BoostId, level: num
       // Only a boost that can work here and now: no jump that would go nowhere or off a world. The roll is the
       // luck, so the boost it lands on need not have cooled down.
       const better = level + Math.floor(random() * (strength + 1));
-      const choices = BOOST_IDS.filter((choice) => choice !== "luckyRoll" && canWorkHere(context, parts, choice, better));
+      // Never a rollback, which would undo what the pilot has just gained rather than give anything.
+      const choices = BOOST_IDS.filter((choice) => choice !== "luckyRoll" && choice !== "rollback" && canWorkHere(context, parts, choice, better));
 
       if (choices.length === 0) {
         return 0;

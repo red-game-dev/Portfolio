@@ -1,0 +1,91 @@
+name: Share card
+
+# The share card recorded from a deployed /social-card/ (scripts/social-card.mjs): the journey as a looping MP4 for
+# the platforms that play one, and its last frame as the still the rest show. On a preview whose branch changed the
+# card, it records that preview and commits the files to the branch. Run it by hand to record production again when
+# the figures or the headline change; it commits to a new branch to open as a pull request.
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: The deployment to record
+        default: https://www.redgame.dev
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    name: Record the share card
+    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && startsWith(github.event.deployment.environment, 'Preview'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.deployment.sha || github.ref }}
+          fetch-depth: 0
+
+      # On a preview: only a branch that changed the card is recorded, and never the commit that recorded it.
+      - name: Decide whether to record
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "record=true" >> "$GITHUB_OUTPUT"
+            echo "branch=chore/share-card-${{ github.run_id }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$(git log -1 --format=%s "$SHA")" = "chore: record the share card" ]; then
+            echo "record=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed=$(git diff --name-only origin/main..."$SHA" -- src/pages/social-card.tsx src/components/SocialCard scripts/social-card.mjs .github/workflows/social-card.yml)
+          branch=$(gh api "repos/${{ github.repository }}/commits/$SHA/pulls" --jq '.[0].head.ref // empty')
+          if [ -n "$changed" ] && [ -n "$branch" ]; then
+            echo "record=true" >> "$GITHUB_OUTPUT"
+            echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          else
+            echo "record=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node
+        if: steps.decide.outputs.record == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies, Chromium and ffmpeg
+        if: steps.decide.outputs.record == 'true'
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: Record
+        if: steps.decide.outputs.record == 'true'
+        run: node scripts/social-card.mjs
+        env:
+          SOCIAL_CARD_URL: ${{ github.event.deployment_status.target_url || inputs.url }}
+
+      - name: Commit the card
+        if: steps.decide.outputs.record == 'true'
+        env:
+          BRANCH: ${{ steps.decide.outputs.branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add public/images/social-card.mp4 public/images/social-card.png
+          if git diff --cached --quiet; then
+            echo "The card is unchanged."
+            exit 0
+          fi
+          git commit -m "chore: record the share card"
+          git push origin "HEAD:$BRANCH"

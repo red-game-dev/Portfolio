@@ -2,7 +2,7 @@ import { FC, useEffect, useRef } from "react";
 
 import tw from "twin.macro";
 
-import { BACKDROP_THEME, COLORS, TRANSITION_THEME } from "@/config/theme";
+import { createBackdropEngine } from "@/components/Journey/backdropEngine";
 import { ZoneId } from "@/config/zones";
 import useCanvasEngine from "@/hooks/useCanvasEngine";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -20,40 +20,6 @@ const LOW_PIXEL_RATIO = 1;
 const START_DELAY_MS = 400;
 
 const Canvas = tw.canvas`fixed inset-0 w-full h-full z-[1] pointer-events-none`;
-
-interface EngineOptions {
-  zone: ZoneId;
-  isStatic: boolean;
-}
-
-const createEngine = async (context: CanvasRenderingContext2D, { zone, isStatic }: EngineOptions) => {
-  const backdrop = await import("@/packages/effects/backdrop");
-  const { transitionKey } = backdrop;
-
-  return new backdrop.BackdropEngine(context, {
-    initialScene: zone,
-    isStatic,
-    config: { background: COLORS.surface, framesPerSecond: 30, maxPixelRatio: FULL_PIXEL_RATIO },
-    scenes: [
-      (random) => new backdrop.RainScene(random, BACKDROP_THEME.rain),
-      (random) => new backdrop.NeuralScene(random, BACKDROP_THEME.neural),
-      (random) => new backdrop.ChainScene(random, BACKDROP_THEME.chain),
-      (random) => new backdrop.DevopsScene(random, BACKDROP_THEME.devops),
-      (random) => new backdrop.CasinoScene(random, BACKDROP_THEME.casino),
-      (random) => new backdrop.EmberScene(random, BACKDROP_THEME.ember),
-      (random) => new backdrop.StarfieldScene(random, BACKDROP_THEME.stars),
-    ],
-    transitions: {
-      [transitionKey("matrix", "ai")]: (random) => new backdrop.CollapseTransition(random, TRANSITION_THEME.collapse),
-      [transitionKey("ai", "chain")]: () => new backdrop.BlockSnapTransition(TRANSITION_THEME.snap),
-      [transitionKey("chain", "casino")]: (random) => new backdrop.ChipFlipTransition(random, TRANSITION_THEME.flip),
-      // The casino deals itself in whichever universe the reader comes from, now the data centre on the way down.
-      [transitionKey("devops", "casino")]: (random) => new backdrop.ChipFlipTransition(random, TRANSITION_THEME.flip),
-      [transitionKey("casino", "mmo")]: (random) => new backdrop.PortalTransition(random, TRANSITION_THEME.portal),
-      [transitionKey("mmo", "beyond")]: (random) => new backdrop.WarpTransition(random, TRANSITION_THEME.warp),
-    },
-  });
-};
 
 const wait = (ms: number) => new Promise((resolve) => {
   window.setTimeout(resolve, ms);
@@ -83,7 +49,7 @@ export const Backdrop: FC<BackdropProps> = ({ zone, isEnabled }: BackdropProps) 
     create: async (context) => {
       await wait(START_DELAY_MS);
 
-      return createEngine(context, { zone: zoneRef.current, isStatic: isReduced });
+      return createBackdropEngine(context, { zone: zoneRef.current, isStatic: isReduced, config: { maxPixelRatio: FULL_PIXEL_RATIO } });
     },
     resize: (backdrop, { width, height, pixelRatio }) => backdrop.resize(width, height, Math.min(pixelRatio, pixelRatioCap.current)),
   }, [isReduced]);

@@ -17,7 +17,7 @@ const seoDetails: SeoDetails = {
     title: `${name}, CV`,
     description: `The short CV of ${name}, ${cvDocument.headline}: every role with its dates, figures and skill years. ${headline.availability}`,
   },
-  socialCard: { path: "/images/social-card.png", width: 1200, height: 630, alt: `${name}, ${cvDocument.headline}` },
+  socialCard: { path: "/images/social-card.png", video: "/images/social-card.mp4", width: 1200, height: 630, alt: `${name}, ${cvDocument.headline}` },
   faq: [
     { question: `Who is ${name}?`, answer: cvDocument.summary.join(" ") },
     { question: `What roles is ${name} open to?`, answer: headline.lines.join(" ") },

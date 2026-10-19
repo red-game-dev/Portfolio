@@ -33,7 +33,7 @@ export const SEO = () => {
     [page, root],
   );
   const card = seoDetails.socialCard;
-  const [firstName, ...lastNames] = details.name.split(" ");
+  const video = absoluteUrl(root, card.video);
 
   return (
     <>
@@ -43,19 +43,16 @@ export const SEO = () => {
         description={seoDetails.description}
         canonical={canonical}
         openGraph={{
-          type: "profile",
+          // A video, so Discord plays the card's film in place (its player needs this type); every platform that plays
+          // none shows the still. The profile fields this once carried showed nowhere.
+          type: "video.other",
           locale: "en_GB",
           url: canonical,
           siteName: details.name,
           title: seoDetails.defaultTitle,
           description: seoDetails.description,
-          profile: {
-            firstName,
-            lastName: lastNames.join(" "),
-            username: socialMedia.byUsername.twitter,
-            gender: "male",
-          },
           images: [{ url: absoluteUrl(root, card.path), width: card.width, height: card.height, alt: card.alt, type: "image/png" }],
+          videos: [{ url: video, secureUrl: video, width: card.width, height: card.height, alt: card.alt, type: "video/mp4" }],
         }}
         twitter={{
           handle: socialMedia.byUsername.twitter,

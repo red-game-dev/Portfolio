@@ -207,8 +207,8 @@ export const sectionsContent: Pick<PortfolioData, "sections"> = {
       ],
       lenses: {
         recruiter: [
-          "The infrastructure I have run in production, from dedicated servers set up by hand to AWS, GCP and Kubernetes, how I " +
-            "deploy and roll back, and the questions screeners ask, answered at the end.",
+          "The infrastructure I have run in production, from dedicated servers set up by hand to AWS, GCP and Kubernetes, and how I " +
+            "deploy and roll back.",
         ],
         product: [
           "Which host fits which stage of a product and why, how releases go out with no downtime, and why changing host never " +

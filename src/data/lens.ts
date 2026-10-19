@@ -178,8 +178,6 @@ export const lensContent: LensContent = {
       roleClasses: ["Architect", "CTO", "CEO", "Product Engineer", "Blockchain Engineer", "Tech Lead", "Frontend Engineer", "Backend Engineer",
         "Game Engineer"],
       workLabel: "Work and availability",
-      screeningLabel: "Screening",
-      screeningLink: "What screeners ask about AWS, deploys, PostgreSQL and AI agents, answered",
       skillsLabel: "Skills, with years of use",
       skillGroups: [
         { label: "Languages", names: ["TypeScript", "JavaScript", "C/C++", "C#, .NET", "Python", "PHP", "Lua", "SQL", "Solidity", "Rust", "Kotlin", "Swift", "Dart"] },

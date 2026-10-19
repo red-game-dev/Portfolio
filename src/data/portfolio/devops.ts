@@ -1,7 +1,7 @@
 import { PortfolioData } from "@/types/portfolio";
 
 // The DevOps universe: the hosts I run on and when I pick each, the stacks I set up from scratch, the CLI that moved them,
-// and the questions screeners ask, each answer drawn from what the rest of the page shows. Costs are only ever relative.
+// and how I run them in production, each point drawn from what the rest of the page shows. Costs are only ever relative.
 export const devopsContent: Pick<PortfolioData, "devops"> = {
   devops: {
     guide: {
@@ -199,14 +199,14 @@ export const devopsContent: Pick<PortfolioData, "devops"> = {
         "The same cut over for any host: add it, run both, switch, retire.",
       ],
     },
-    screeners: {
-      title: "What screeners ask",
-      intro: "The questions I am asked most about infrastructure, answered from what this page shows.",
-      answers: [
+    practice: {
+      title: "In production",
+      intro: "AWS, releases, PostgreSQL and agents, as I run them.",
+      topics: [
         {
           id: "aws",
-          question: "Which AWS services have you run in production?",
-          answer: [
+          title: "AWS",
+          points: [
             "Compute: EC2, ECS and EKS, Lambda, Auto Scaling and load balancers.",
             "Data: PostgreSQL on RDS and Aurora, DynamoDB, ElastiCache for Redis, S3 and CloudFront.",
             "Integration: API Gateway, SQS and SNS, Step Functions and EventBridge.",
@@ -215,8 +215,8 @@ export const devopsContent: Pick<PortfolioData, "devops"> = {
         },
         {
           id: "deploy",
-          question: "How do you deploy and roll back?",
-          answer: [
+          title: "Releases and rollback",
+          points: [
             "CI/CD with audit logs, permission controls and rollback, and database migrations verified on staging and production first.",
             "On Kubernetes, canary rollouts per market through Istio, so one market moves at a time under monitoring and rolls back alone.",
             "Workers deployed by build id with no downtime, so rolling back is deploying the last good build again; on servers of my own, shell scripts" +
@@ -225,16 +225,16 @@ export const devopsContent: Pick<PortfolioData, "devops"> = {
         },
         {
           id: "postgres",
-          question: "Where have you owned PostgreSQL?",
-          answer: [
+          title: "PostgreSQL",
+          points: [
             "On the platform I build now: a job scheduler written over Postgres, with idempotency at three layers and no message broker or queue library.",
             "In Freight Delay Notifications, open source: Temporal workflows over PostgreSQL and Supabase, with PL/pgSQL.",
           ],
         },
         {
           id: "agent",
-          question: "Which AI agent or workflow of yours runs in production?",
-          answer: [
+          title: "Agents and workflows",
+          points: [
             "Freight Delay Notifications: Temporal workflows fetch traffic, check a delay threshold, have a model write the message and send it by " +
               "email or SMS, with a fallback for every provider.",
             "Ask Red, on this site: answers streamed from the site's own content across several AI providers, behind limits, a cache and a daily budget.",

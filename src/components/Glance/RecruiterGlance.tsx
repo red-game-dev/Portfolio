@@ -16,7 +16,6 @@ import {
   Header,
   Heading,
   HireChips,
-  Link,
   RoleName,
   RolePlace,
   RoleRange,
@@ -31,7 +30,7 @@ import {
 } from "@/components/Glance/styles";
 import { GlanceProps } from "@/components/Glance/types";
 import { pickSkillYears } from "@/components/Glance/utils";
-import { DEVOPS_SCREENERS_ANCHOR, hiringAnchor, hiringFromHash } from "@/config/sections";
+import { hiringAnchor, hiringFromHash } from "@/config/sections";
 import useHashState from "@/hooks/useHashState";
 import { formatPeriod, splitTitle } from "@/packages/insights/career";
 import { fill } from "@/packages/text/format";
@@ -111,10 +110,6 @@ export const RecruiterGlance: FC<RecruiterGlanceProps> = ({ content, details, he
           <Chips>
             {details.facts.map((fact) => <Chip key={fact}>{fact}</Chip>)}
           </Chips>
-        </Value>
-        <Term>{content.screeningLabel}</Term>
-        <Value>
-          <Link href={`#${DEVOPS_SCREENERS_ANCHOR}`}>{content.screeningLink}</Link>
         </Value>
         <Switched key={hire?.id ?? "every"}>
         <Term>{content.yearsLabel}</Term>

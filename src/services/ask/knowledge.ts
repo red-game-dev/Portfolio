@@ -90,6 +90,15 @@ const SECTIONS: Record<AskSourceKey, { title: string; build: SectionBuilder }> =
     title: "Skills by area",
     build: ({ skillAreas }) => skillAreas.map((area) => clean(`${area.label}: ${area.items.join(", ")}`)),
   },
+  devops: {
+    title: "DevOps: where Red runs things and when, built from scratch, and run in production",
+    build: ({ devops }) => lines([
+      ...devops.hosts.items.map((host) => `${host.name} (${host.kind}): ${host.reach} Stops paying: ${host.stops} Cost: ${host.cost}`),
+      ...devops.scratch.points,
+      ...devops.cli.points,
+      ...devops.practice.topics.flatMap((topic) => topic.points.map((point) => `${topic.title}: ${point}`)),
+    ]),
+  },
   caseStudies: {
     title: "Case studies: hard problems and how they were solved",
     build: ({ caseStudies }) => caseStudies.flatMap((caseStudy) => lines([

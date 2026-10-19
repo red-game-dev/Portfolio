@@ -5,9 +5,9 @@ import tw, { css, styled } from "twin.macro";
 import { Console } from "@/components/DevOps/Console";
 import { Guide } from "@/components/DevOps/Guide";
 import { Panel, PanelTitle } from "@/components/Panel";
-import { Anchor, Section } from "@/components/Section";
+import { Section } from "@/components/Section";
 import { SectionText } from "@/components/Text/SectionText";
-import { DEVOPS_SCREENERS_ANCHOR, SECTION_IDS } from "@/config/sections";
+import { SECTION_IDS } from "@/config/sections";
 import { DEFAULT_GUIDE_ANSWERS, recommendHosts } from "@/services/devops";
 import { squareBullet } from "@/styles/mixins";
 import { DevOpsContent, GuideAnswers, GuideQuestion } from "@/types/devops";
@@ -52,17 +52,17 @@ const Point = styled.li(() => [
   squareBullet({ size: 5 }),
 ]);
 
-const Answers = tw.div`grid gap-[14px] md:grid-cols-2`;
+const Topics = tw.div`grid gap-[14px] md:grid-cols-2`;
 
-const Answer = styled.article(() => [
+const Topic = styled.article(() => [
   tw`flex flex-col gap-[10px] min-w-0 p-[16px] bg-[#0d0d0d] border-[1px] border-solid border-[var(--accent-muted)]`,
 ]);
 
-const Question = tw.h4`m-0 text-base font-semibold text-white`;
+const TopicTitle = tw.h4`m-0 text-base font-semibold text-white`;
 
 // The DevOps universe's section: where a product should run, worked out from four answers, and a console that ships
 // each universe to that plan; then the hosts I run on and when each pays, the stacks I set up from scratch and the CLI
-// that moved them, and the questions screeners ask, answered from what the page shows. It holds no words of its own.
+// that moved them, and how I run them in production. It holds no words of its own.
 export const DevOps: FC<DevOpsProps> = ({ intro, content }: DevOpsProps) => {
   const [answers, setAnswers] = useState<GuideAnswers>(DEFAULT_GUIDE_ANSWERS);
   const plan = useMemo(() => recommendHosts(answers), [answers]);
@@ -133,21 +133,20 @@ export const DevOps: FC<DevOpsProps> = ({ intro, content }: DevOpsProps) => {
         </Panel>
       </Columns>
       <Panel>
-        <Anchor id={DEVOPS_SCREENERS_ANCHOR} />
-        <PanelTitle>{content.screeners.title}</PanelTitle>
-        <Lead>{content.screeners.intro}</Lead>
-        <Answers>
-          {content.screeners.answers.map((item) => (
-            <Answer key={item.id}>
-              <Question>{item.question}</Question>
+        <PanelTitle>{content.practice.title}</PanelTitle>
+        <Lead>{content.practice.intro}</Lead>
+        <Topics>
+          {content.practice.topics.map((topic) => (
+            <Topic key={topic.id}>
+              <TopicTitle>{topic.title}</TopicTitle>
               <Points>
-                {item.answer.map((line) => (
+                {topic.points.map((line) => (
                   <Point key={line}>{line}</Point>
                 ))}
               </Points>
-            </Answer>
+            </Topic>
           ))}
-        </Answers>
+        </Topics>
       </Panel>
     </Stack>
   </Section>

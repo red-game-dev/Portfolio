@@ -1,5 +1,5 @@
-// The DevOps universe's section: where I run things and why, how I built and moved them from scratch, and the
-// questions screeners ask about it, answered from what the rest of the page shows.
+// The DevOps universe's section: where I run things and why, how I built and moved them from scratch, and how I run
+// them in production.
 
 export type HostId = "dedicated" | "digitalocean" | "aws" | "gcp" | "vercel" | "railway" | "cloudflare";
 
@@ -16,10 +16,11 @@ export interface DevOpsHost {
   cost: string;
 }
 
-export interface DevOpsAnswer {
+// One part of running things in production (AWS, releases, data, agents) and what I do there.
+export interface DevOpsTopic {
   id: string;
-  question: string;
-  answer: string[];
+  title: string;
+  points: string[];
 }
 
 // The terminal's DevOps commands. "{slug}", "{name}", "{kind}", "{reach}", "{stack}", "{host}" and "{input}" are replaced.
@@ -49,7 +50,7 @@ export interface DevOpsContent {
   };
   scratch: { title: string; points: string[] };
   cli: { title: string; points: string[] };
-  screeners: { title: string; intro: string; answers: DevOpsAnswer[] };
+  practice: { title: string; intro: string; topics: DevOpsTopic[] };
 }
 
 // The guide's questions and what each may be answered with.

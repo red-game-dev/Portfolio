@@ -34,8 +34,6 @@ export const SECTION_IDS = {
 
 export type SectionKey = keyof typeof SECTION_IDS;
 
-// Where the DevOps universe answers what screeners ask about infrastructure, linked from the recruiter's fact sheet.
-export const DEVOPS_SCREENERS_ANCHOR = "devops-screeners";
 
 // Links an application can point at, for example https://redgame.dev/#for-payments.
 export const AUDIENCE_ANCHORS: Record<Audience, string> = {

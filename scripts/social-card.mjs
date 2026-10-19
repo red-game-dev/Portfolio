@@ -2,13 +2,13 @@
 // before the page loads, so time passes only when this script moves it: for every frame the backdrop is moved on by
 // exactly one frame (its animation frames and performance.now) and the card is sent to that moment
 // (window.socialCard.seek), then captured once it says it drew it. Every frame lands at exactly its moment however slow
-// the machine, and with the card's seeded backdrop the same page records the same film. The frames become public/images/social-card.mp4, and the last frame,
-// the finished card, public/images/social-card.png. Needs ffmpeg on the path. Run by .github/workflows/social-card.yml.
+// the machine, and with the card's seeded backdrop the same page records the same film. The frames become public/images/social-card.mp4 (the still beside
+// it is drawn by the site, /og/card.png). Needs ffmpeg on the path. Run by .github/workflows/social-card.yml.
 //
 //   SOCIAL_CARD_URL=https://www.redgame.dev node scripts/social-card.mjs
 
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdtempSync, rmSync, statSync } from "node:fs";
+import { mkdtempSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -95,7 +95,6 @@ try {
     throw new Error("ffmpeg could not encode the card");
   }
 
-  copyFileSync(join(frames, `${String(count).padStart(4, "0")}.png`), join(OUT, "social-card.png"));
   console.log(`social-card.mp4 ${Math.round(statSync(join(OUT, "social-card.mp4")).size / 1024)} KB, ${count + 1} frames from ${BASE}`);
 } finally {
   await browser.close();

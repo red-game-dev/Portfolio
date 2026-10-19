@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import { SITE_URL } from "@/config/site";
 import { portfolioData } from "@/data/resume";
 import seoDetails from "@/data/seo";
+import { shareCardOf, shareCardVersion } from "@/services/seo/shareCard";
 import { absoluteUrl, createStructuredData, SeoPage, serializeStructuredData, siteRoot } from "@/services/seo/structuredData";
 
 // Error pages are not pages to index, and have no canonical of their own.
@@ -22,6 +23,9 @@ const toCanonical = (root: string, pathname: string) => (pathname === "/" ? `${r
 
 const { details, socialMedia } = portfolioData;
 
+// The share picture's version: it changes only when what the card says changes, so platforms fetch it again then.
+const SHARE_CARD_VERSION = shareCardVersion(shareCardOf(portfolioData));
+
 export const SEO = () => {
   const { pathname } = useRouter();
   const root = siteRoot(SITE_URL);
@@ -34,6 +38,7 @@ export const SEO = () => {
   );
   const card = seoDetails.socialCard;
   const video = absoluteUrl(root, card.video);
+  const image = `${absoluteUrl(root, card.path)}?v=${SHARE_CARD_VERSION}`;
 
   return (
     <>
@@ -51,7 +56,7 @@ export const SEO = () => {
           siteName: details.name,
           title: seoDetails.defaultTitle,
           description: seoDetails.description,
-          images: [{ url: absoluteUrl(root, card.path), width: card.width, height: card.height, alt: card.alt, type: "image/png" }],
+          images: [{ url: image, width: card.width, height: card.height, alt: card.alt, type: "image/png" }],
           videos: [{ url: video, secureUrl: video, width: card.width, height: card.height, alt: card.alt, type: "video/mp4" }],
         }}
         twitter={{

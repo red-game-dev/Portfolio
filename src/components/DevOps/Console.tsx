@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { useDeploysStateHook } from "@/components/Game/hooks/useDeploysStateHook";
 import { ZONE_ACCENTS } from "@/config/zones";
@@ -38,31 +38,29 @@ const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 const placeAll = (plan: HostPlan) => recordOf(UNIVERSE_STACKS, (stack) => hostFor(plan, stack));
 
-const Layout = styled.div(() => [
-  tw`grid gap-[18px] items-start`,
-  css`
-    ${media.lg} {
-      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    }
-  `,
-]);
+const Layout = styled.div`
+  ${tw`grid gap-[18px] items-start`}
+
+  ${media.lg} {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+`;
 
 const Stacks = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px]`;
 
 // Live is a data attribute on one rule written with the page, not a prop, which would add a rule as the first stack
 // goes live and restyle everything on the screen.
-const StackRow = styled.li(() => [
-  tw`grid items-center gap-x-[10px] gap-y-[2px] p-[10px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
-  css`
-    grid-template-columns: minmax(0, 1fr) auto;
-    border-left: 3px solid var(--stack);
-    transition: border-color 0.3s ease;
+const StackRow = styled.li`
+  ${tw`grid items-center gap-x-[10px] gap-y-[2px] p-[10px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`}
 
-    &[data-live] {
-      border-color: var(--stack);
-    }
-  `,
-]);
+  grid-template-columns: minmax(0, 1fr) auto;
+  border-left: 3px solid var(--stack);
+  transition: border-color 0.3s ease;
+
+  &[data-live] {
+    border-color: var(--stack);
+  }
+`;
 
 const StackName = tw.span`text-sm font-semibold text-white`;
 
@@ -70,17 +68,18 @@ const StackHost = tw.span`col-start-1 text-xs text-[#999]`;
 
 const StackActions = tw.div`row-start-1 row-span-2 col-start-2 flex flex-row gap-[6px]`;
 
-const Small = styled.button(() => [
-  tw`cursor-pointer text-xs py-[7px] px-[10px] bg-transparent border-[1px] border-solid border-[var(--accent-muted)] text-[var(--accent)] rounded-[2px]`,
-  css`
-    &:hover,
-    &:focus-visible {
-      border-color: var(--accent);
-    }
-  `,
-]);
+const Small = styled.button`
+  ${tw`cursor-pointer text-xs py-[7px] px-[10px] bg-transparent border-[1px] border-solid border-[var(--accent-muted)] text-[var(--accent)] rounded-[2px]`}
 
-const All = styled(Small)(() => [tw`mt-[10px] bg-[var(--accent)] text-[#101010] border-[var(--accent)] font-semibold`]);
+  &:hover,
+  &:focus-visible {
+    border-color: var(--accent);
+  }
+`;
+
+const All = styled(Small)`
+  ${tw`mt-[10px] bg-[var(--accent)] text-[#101010] border-[var(--accent)] font-semibold`}
+`;
 
 const Screen = tw.div`flex flex-col min-w-0 bg-[#070707] border-[1px] border-solid border-[#1E1E1E]`;
 
@@ -91,50 +90,46 @@ const Dot = tw.span`w-[8px] h-[8px] rounded-full bg-[#2a2a2a]`;
 // The pipe a stack's container travels along as it ships: from the build on the left to its host on the right.
 const Track = tw.div`relative h-[34px] mx-[12px] mt-[12px] border-0 border-b-[1px] border-dashed border-[#2a2a2a]`;
 
-const Carrier = styled.div(() => [
-  tw`absolute left-0 top-0 h-full pointer-events-none`,
-  css`
-    width: calc(100% - 26px);
-    transform: translateX(calc(var(--at, 0) * 100%));
-    transition: transform 0.4s ease;
+const Carrier = styled.div`
+  ${tw`absolute left-0 top-0 h-full pointer-events-none`}
 
-    ${media.reducedMotion} {
-      transition: none;
-    }
-  `,
-]);
+  width: calc(100% - 26px);
+  transform: translateX(calc(var(--at, 0) * 100%));
+  transition: transform 0.4s ease;
 
-const Crate = styled.span(() => [
-  tw`absolute bottom-[4px] left-0 w-[26px] h-[16px] border-[1px] border-solid border-[var(--accent)] bg-[#140b09]`,
-  css`
-    border-top: 4px solid var(--stack, var(--accent));
-  `,
-]);
+  ${media.reducedMotion} {
+    transition: none;
+  }
+`;
+
+const Crate = styled.span`
+  ${tw`absolute bottom-[4px] left-0 w-[26px] h-[16px] border-[1px] border-solid border-[var(--accent)] bg-[#140b09]`}
+
+  border-top: 4px solid var(--stack, var(--accent));
+`;
 
 const Ends = tw.div`flex flex-row justify-between px-[12px] pt-[6px] text-xs text-[#8a8a8a]`;
 
-const Target = styled.span(() => [
-  css`
-    color: var(--stack, var(--accent));
-  `,
-]);
+const Target = styled.span`
+
+  color: var(--stack, var(--accent));
+`;
 
 // The lines are styled from the log, which is written with the page, so the first line printed adds no rule of its own
 // (which would restyle everything on the screen). A long command wraps rather than scrolling the log sideways on a phone.
-const Log = styled.ol(() => [
-  tw`list-none m-0 p-[12px] flex flex-col gap-[4px] min-h-[132px] text-xs text-[#bbb]`,
-  css`
-    & > li {
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      font-family: ${MONO};
-    }
+const Log = styled.ol`
+  ${tw`list-none m-0 p-[12px] flex flex-col gap-[4px] min-h-[132px] text-xs text-[#bbb]`}
 
-    & > li > span {
-      color: var(--accent);
-    }
-  `,
-]);
+  & > li {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: ${MONO};
+  }
+
+  & > li > span {
+    color: var(--accent);
+  }
+`;
 
 const Status = tw.p`m-0 px-[12px] pb-[12px] text-sm text-white`;
 

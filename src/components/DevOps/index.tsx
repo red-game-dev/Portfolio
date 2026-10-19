@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { Planner } from "@/components/DevOps/Planner";
 import { Lead } from "@/components/DevOps/styles";
@@ -21,12 +21,11 @@ const Stack = tw.div`flex flex-col gap-[18px]`;
 
 const Hosts = tw.ul`list-none m-0 p-0 grid gap-[14px] md:grid-cols-2 xl:grid-cols-3`;
 
-const Host = styled.li(() => [
-  tw`flex flex-col gap-[10px] min-w-0 p-[16px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
-  css`
-    border-top: 2px solid var(--accent);
-  `,
-]);
+const Host = styled.li`
+  ${tw`flex flex-col gap-[10px] min-w-0 p-[16px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`}
+
+  border-top: 2px solid var(--accent);
+`;
 
 const HostName = tw.h4`m-0 text-base font-semibold text-white`;
 
@@ -44,16 +43,16 @@ const Columns = tw.div`grid gap-[18px] lg:grid-cols-2 items-start`;
 
 const Points = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px] text-sm text-[#aaa]`;
 
-const Point = styled.li(() => [
-  tw`relative pl-[14px]`,
-  squareBullet({ size: 5 }),
-]);
+const Point = styled.li`
+  ${tw`relative pl-[14px]`}
+  ${squareBullet({ size: 5 })}
+`;
 
 const Topics = tw.div`grid gap-[14px] md:grid-cols-2`;
 
-const Topic = styled.article(() => [
-  tw`flex flex-col gap-[10px] min-w-0 p-[16px] bg-[#0d0d0d] border-[1px] border-solid border-[var(--accent-muted)]`,
-]);
+const Topic = styled.article`
+  ${tw`flex flex-col gap-[10px] min-w-0 p-[16px] bg-[#0d0d0d] border-[1px] border-solid border-[var(--accent-muted)]`}
+`;
 
 const TopicTitle = tw.h4`m-0 text-base font-semibold text-white`;
 

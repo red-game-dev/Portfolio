@@ -14,14 +14,13 @@ interface GuideProps {
   onChoose: <Q extends GuideQuestion>(question: Q, value: GuideAnswers[Q]) => void;
 }
 
-const Layout = styled.div(() => [
-  tw`grid gap-[18px] items-start`,
-  css`
-    ${media.lg} {
-      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    }
-  `,
-]);
+const Layout = styled.div`
+  ${tw`grid gap-[18px] items-start`}
+
+  ${media.lg} {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+`;
 
 const Questions = tw.div`flex flex-col gap-[14px]`;
 
@@ -60,15 +59,14 @@ const ResultTitle = tw.h4`m-0 text-sm font-semibold text-white`;
 
 const Plan = tw.dl`m-0 flex flex-col gap-[1px] bg-[#1E1E1E] border-[1px] border-solid border-[#1E1E1E]`;
 
-const Row = styled.div(() => [
-  tw`grid gap-[4px] p-[12px] bg-[#0d0d0d]`,
-  css`
-    ${media.md} {
-      grid-template-columns: 130px minmax(0, 1fr);
-      gap: 14px;
-    }
-  `,
-]);
+const Row = styled.div`
+  ${tw`grid gap-[4px] p-[12px] bg-[#0d0d0d]`}
+
+  ${media.md} {
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 14px;
+  }
+`;
 
 const Layer = tw.dt`text-xs uppercase tracking-wide text-[var(--accent)]`;
 

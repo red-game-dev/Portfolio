@@ -1,46 +1,30 @@
 /**
  * @jest-environment node
  */
-import type { CustomFetcher } from "fetchff";
-
 import { ApiClient } from "@/packages/http/api-client";
 import { SiteChannel } from "@/packages/messaging/contact-site";
 
 import { settled, useFetchClock } from "../../http/fixtures/fakeClock";
-import { SentConfig } from "../../http/fixtures/fetcher";
+import { FetchAnswer, recordingFetcher, SeenCall } from "../../http/fixtures/fetcher";
 
 const MESSAGE = { kind: "feedback" as const, message: "More case studies, please.", key: "msg-1234567" };
 
-// A fetcher answering each call with the next answer (the last repeats): a response, or a dropped connection.
-type Answer = { status: number; body: unknown } | "dropped";
-
-const fetcherAnswering = (answers: Answer[], seen: string[]): CustomFetcher => (async (url: string, config?: SentConfig | null) => {
-  const answer = answers[Math.min(seen.length, answers.length - 1)];
-
-  seen.push(`${typeof config?.method === "string" ? config.method : "GET"} ${url}`);
-
-  if (answer === "dropped") {
-    throw new TypeError("Failed to fetch");
-  }
-
-  return new Response(JSON.stringify(answer.body), { status: answer.status, headers: { "content-type": "application/json" } });
-});
-
-const channelWith = (answers: Array<{ status: number; body: unknown } | "dropped">, seen: string[] = []) =>
+// The site's channel on the real client, its server answering each call with the next answer (the last repeats).
+const channelWith = (answers: FetchAnswer[], seen: SeenCall[] = []) =>
   new SiteChannel(`https://site.test/api/contact/${seen.length}-${Math.random().toString(36)
-.slice(2)}`, new ApiClient({}, fetcherAnswering(answers, seen)));
+.slice(2)}`, new ApiClient({}, recordingFetcher(answers, seen)));
 
 describe("the site's channel, on the real client", () => {
   describe("reading whether it can send", () => {
     useFetchClock();
 
     test("says whether it can send, once more after a dropped connection or a busy server, and that it cannot tell when no answer comes", async () => {
-      const dropped: string[] = [];
+      const dropped: SeenCall[] = [];
 
       expect(await settled(channelWith(["dropped", { status: 200, body: { isOpen: true } }], dropped).isOpen())).toBe(true);
       expect(dropped).toHaveLength(2);
 
-      const busy: string[] = [];
+      const busy: SeenCall[] = [];
 
       expect(await settled(channelWith([{ status: 502, body: {} }, { status: 200, body: { isOpen: false } }], busy).isOpen())).toBe(false);
       expect(busy).toHaveLength(2);
@@ -49,7 +33,7 @@ describe("the site's channel, on the real client", () => {
     });
 
     test("keeps the answer a moment, so every form on a page asks once", async () => {
-      const seen: string[] = [];
+      const seen: SeenCall[] = [];
       const channel = channelWith([{ status: 200, body: { isOpen: true } }], seen);
 
       await settled(Promise.all([channel.isOpen(), channel.isOpen()]));
@@ -59,11 +43,11 @@ describe("the site's channel, on the real client", () => {
   });
 
   test("never retries a send, and answers with the server's own refusal, keeping only the problems it knows", async () => {
-    const seen: string[] = [];
+    const seen: SeenCall[] = [];
     const refused = channelWith([{ status: 502, body: { error: "failed" } }, { status: 200, body: { ok: true } }], seen);
 
     expect(await refused.deliver(MESSAGE)).toEqual({ kind: "refused", refusal: "failed", problems: [] });
-    expect(seen).toEqual([expect.stringMatching(/^POST /)]);
+    expect(seen).toEqual([expect.objectContaining({ method: "POST" })]);
 
     expect(await channelWith([{ status: 400, body: { error: "invalid", problems: ["messageShort", "made-up"] } }]).deliver(MESSAGE))
       .toEqual({ kind: "refused", refusal: "invalid", problems: ["messageShort"] });

@@ -5,7 +5,11 @@ import { Redis } from "@upstash/redis";
 
 import { KeyValueStore, MemoryStore, ResilientStore, StoreError, UpstashStore } from "@/packages/server/kv";
 
-type Command = unknown[];
+// One HTTP request the client made: a pipeline's commands together, or one command alone.
+interface SentRequest {
+  isPipeline: boolean;
+  commands: unknown[][];
+}
 
 // The answers Upstash sends with base64 encoding on, as the client asks for by default: every string encoded, but "OK".
 const encoded = (value: unknown): unknown => {
@@ -39,9 +43,10 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-// The real Upstash client on a fake Upstash: each command it sends over HTTP (alone, or a pipeline's in one request) is
-// kept as it went on the wire, and answered with the next of `answers` (the last repeats), or with `failure` thrown.
-const fakeRedis = (answers: unknown[], commands: Command[] = [], failure?: Error) => {
+// The real Upstash client on a fake Upstash: each request it sends over HTTP (a pipeline's commands together, or one
+// command alone) is kept as it went on the wire, every command answered with the next of `answers` (the last repeats),
+// or `failure` thrown.
+const fakeRedis = (answers: unknown[], requests: SentRequest[] = [], failure?: Error) => {
   const url = `https://kv-${servers.size + 1}.test`;
   let next = 0;
 
@@ -53,12 +58,14 @@ const fakeRedis = (answers: unknown[], commands: Command[] = [], failure?: Error
     const body: unknown = typeof init?.body === "string" ? JSON.parse(init.body) : null;
     const isPipeline = target.endsWith("/pipeline");
     const sent: unknown[] = isPipeline && Array.isArray(body) ? body : [body];
-    const replies = sent.map((command) => {
-      commands.push(Array.isArray(command) ? command : [command]);
+    const commands = sent.map((command) => (Array.isArray(command) ? command : [command]));
+    const replies = commands.map(() => {
       next += 1;
 
       return { result: encoded(answers[Math.min(next - 1, answers.length - 1)]) };
     });
+
+    requests.push({ isPipeline, commands });
 
     return new Response(JSON.stringify(isPipeline ? replies : replies[0]), { status: 200, headers: { "content-type": "application/json" } });
   });
@@ -91,11 +98,11 @@ describe("MemoryStore", () => {
 
 describe("UpstashStore", () => {
   test("add sets the expiry once, increments and reads the others in one pipeline", async () => {
-    const commands: Command[] = [];
-    const store = new UpstashStore(fakeRedis(["OK", 3, "2", null], commands));
+    const requests: SentRequest[] = [];
+    const store = new UpstashStore(fakeRedis(["OK", 3, "2", null], requests));
 
     expect(await store.add("k", 1, 2000, ["a", "b"])).toEqual({ value: 3, read: [2, 0] });
-    expect(commands).toEqual([["set", "k", 0, "nx", "px", 2000], ["incrby", "k", 1], ["get", "a"], ["get", "b"]]);
+    expect(requests).toEqual([{ isPipeline: true, commands: [["set", "k", 0, "nx", "px", 2000], ["incrby", "k", 1], ["get", "a"], ["get", "b"]] }]);
   });
 
   test("get gives back strings as written and nothing else; claim is true only when it set the key", async () => {
@@ -138,17 +145,19 @@ describe("ranked lists", () => {
 
     expect((await store.top("board", 10)).map(({ member }) => member)).toEqual(["R5", "R4", "R3"]);
 
-    const commands: Command[] = [];
+    const requests: SentRequest[] = [];
 
-    await new UpstashStore(fakeRedis([1, 1, 0], commands)).rank("board", "R6", 60, 5000, 100);
-    expect(commands[2]).toEqual(["zremrangebyrank", "board", 0, -101]);
+    await new UpstashStore(fakeRedis([1, 1, 0], requests)).rank("board", "R6", 60, 5000, 100);
+    expect(requests).toHaveLength(1);
+    expect(requests[0].isPipeline).toBe(true);
+    expect(requests[0].commands[2]).toEqual(["zremrangebyrank", "board", 0, -101]);
   });
 
   test("on Upstash, a member keeps its best (ZADD GT), the list's time is set once, and pairs are read back", async () => {
-    const commands: Command[] = [];
+    const requests: SentRequest[] = [];
 
-    await new UpstashStore(fakeRedis([1, 1], commands)).rank("board", "ABC:1", 300, 5000);
-    expect(commands).toEqual([["zadd", "board", "gt", 300, "ABC:1"], ["pexpire", "board", 5000, "NX"]]);
+    await new UpstashStore(fakeRedis([1, 1], requests)).rank("board", "ABC:1", 300, 5000);
+    expect(requests).toEqual([{ isPipeline: true, commands: [["zadd", "board", "gt", 300, "ABC:1"], ["pexpire", "board", 5000, "NX"]] }]);
 
     expect(await new UpstashStore(fakeRedis([["XYZ:2", "500", "ABC:1", "300"]])).top("board", 2)).toEqual([
       { member: "XYZ:2", score: 500 },

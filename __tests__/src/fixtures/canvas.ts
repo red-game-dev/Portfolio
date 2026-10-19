@@ -64,152 +64,120 @@ class FakeDrawing {
 
   public drawImage(): void {
     this.calls.push("drawImage");
-
-return undefined;
   }
 
   public beginPath(): void {
     this.calls.push("beginPath");
-
-return undefined;
   }
 
   public clip(): void {
     this.calls.push("clip");
-
-return undefined;
   }
 
   public fill(): void {
     this.calls.push("fill");
-
-return undefined;
   }
 
   public isPointInPath(): boolean {
     this.calls.push("isPointInPath");
 
-return false;
+    return false;
   }
 
   public isPointInStroke(): boolean {
     this.calls.push("isPointInStroke");
 
-return false;
+    return false;
   }
 
   public stroke(): void {
     this.calls.push("stroke");
-
-return undefined;
   }
 
   public createConicGradient(): CanvasGradient {
     this.calls.push("createConicGradient");
 
-return new FakeGradient();
+    return new FakeGradient();
   }
 
   public createLinearGradient(): CanvasGradient {
     this.calls.push("createLinearGradient");
 
-return new FakeGradient();
+    return new FakeGradient();
   }
 
   public createPattern(): CanvasPattern | null {
     this.calls.push("createPattern");
 
-return null;
+    return null;
   }
 
   public createRadialGradient(): CanvasGradient {
     this.calls.push("createRadialGradient");
 
-return new FakeGradient();
+    return new FakeGradient();
   }
 
   public createImageData(): ImageData {
     this.calls.push("createImageData");
 
-return notInTheFake("pixels");
+    return notInTheFake("pixels");
   }
 
   public getImageData(): ImageData {
     this.calls.push("getImageData");
 
-return notInTheFake("pixels");
+    return notInTheFake("pixels");
   }
 
   public putImageData(): void {
     this.calls.push("putImageData");
-
-return undefined;
   }
 
   public arc(): void {
     this.calls.push("arc");
-
-return undefined;
   }
 
   public arcTo(): void {
     this.calls.push("arcTo");
-
-return undefined;
   }
 
   public bezierCurveTo(): void {
     this.calls.push("bezierCurveTo");
-
-return undefined;
   }
 
   public closePath(): void {
     this.calls.push("closePath");
-
-return undefined;
   }
 
   public ellipse(): void {
     this.calls.push("ellipse");
-
-return undefined;
   }
 
   public lineTo(): void {
     this.calls.push("lineTo");
-
-return undefined;
   }
 
   public moveTo(): void {
     this.calls.push("moveTo");
-
-return undefined;
   }
 
   public quadraticCurveTo(): void {
     this.calls.push("quadraticCurveTo");
-
-return undefined;
   }
 
   public rect(): void {
     this.calls.push("rect");
-
-return undefined;
   }
 
   public roundRect(): void {
     this.calls.push("roundRect");
-
-return undefined;
   }
 
   public getLineDash(): number[] {
     this.calls.push("getLineDash");
 
-return [...this.dash];
+    return [...this.dash];
   }
 
   public setLineDash(segments: number[]): void {
@@ -219,104 +187,76 @@ return [...this.dash];
 
   public clearRect(): void {
     this.calls.push("clearRect");
-
-return undefined;
   }
 
   public fillRect(): void {
     this.calls.push("fillRect");
-
-return undefined;
   }
 
   public strokeRect(): void {
     this.calls.push("strokeRect");
-
-return undefined;
   }
 
   public isContextLost(): boolean {
     this.calls.push("isContextLost");
 
-return false;
+    return false;
   }
 
   public reset(): void {
     this.calls.push("reset");
-
-return undefined;
   }
 
   public restore(): void {
     this.calls.push("restore");
-
-return undefined;
   }
 
   public save(): void {
     this.calls.push("save");
-
-return undefined;
   }
 
   public fillText(): void {
     this.calls.push("fillText");
-
-return undefined;
   }
 
   public measureText(text: string): TextMetrics {
     this.calls.push("measureText");
 
-return metricsOf(text);
+    return metricsOf(text);
   }
 
   public strokeText(): void {
     this.calls.push("strokeText");
-
-return undefined;
   }
 
   public getTransform(): DOMMatrix {
     this.calls.push("getTransform");
 
-return notInTheFake("transform matrix");
+    return notInTheFake("transform matrix");
   }
 
   public resetTransform(): void {
     this.calls.push("resetTransform");
-
-return undefined;
   }
 
   public rotate(): void {
     this.calls.push("rotate");
-
-return undefined;
   }
 
   public scale(): void {
     this.calls.push("scale");
-
-return undefined;
   }
 
   public setTransform(): void {
     this.calls.push("setTransform");
-
-return undefined;
   }
 
   public transform(): void {
     this.calls.push("transform");
-
-return undefined;
   }
 
   public translate(): void {
     this.calls.push("translate");
-
-return undefined;
   }
 }
 

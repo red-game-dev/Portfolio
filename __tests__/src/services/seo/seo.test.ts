@@ -78,6 +78,8 @@ describe("SEO", () => {
     };
     const answers = questions.map(answerOf);
 
+    expect(questions).toHaveLength(seoDetails.faq.length);
+
     expect(answers.filter((answer) => answer.trim().length < 20)).toEqual([]);
     expect(nodes.filter((node) => node["@type"] === "CreativeWork" && !/^\d{4}(-\d{2})?$/.test(String(node.dateCreated)))).toEqual([]);
   });

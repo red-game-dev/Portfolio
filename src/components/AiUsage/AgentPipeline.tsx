@@ -22,23 +22,22 @@ const playState = ({ isActive }: PlayStateProps) => css`animation-play-state: ${
 
 const Flow = tw.div`relative my-[30px]`;
 
-const Track = styled.div(() => [
-  tw`absolute h-[24px] overflow-hidden pointer-events-none`,
-  css`
-    top: 50%;
-    transform: translateY(-50%);
+const Track = styled.div`
+  ${tw`absolute h-[24px] overflow-hidden pointer-events-none`}
 
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 50%;
-      height: 1px;
-      background: var(--accent-muted);
-    }
-  `,
-]);
+  top: 50%;
+  transform: translateY(-50%);
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--accent-muted);
+  }
+`;
 
 // A comet travelling along the track: a fading tail with a bright head at its right edge. Moving the
 // whole track-wide element from -100% to 0 carries the head from the first stage to the last.

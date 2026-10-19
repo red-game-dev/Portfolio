@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import useModalDialog from "@/hooks/useModalDialog";
 import type { PilotProfile } from "@/packages/games/voyage";
@@ -16,16 +16,15 @@ type Stage = "reading" | "ready" | "invalid" | "moved" | "failed";
 
 // No padding on the dialog itself: a press on it, outside its body, is the backdrop and closes it, so only a press beyond
 // the card counts as one.
-const Dialog = styled.dialog(() => [
-  tw`w-[calc(100% - 32px)] max-w-[440px] p-0 text-left text-[#ccc] bg-[#0b1020] border-[1px] border-solid border-[#c4d2ff]`,
-  css`
-    box-shadow: 0 0 40px rgba(196, 210, 255, 0.2);
+const Dialog = styled.dialog`
+  ${tw`w-[calc(100% - 32px)] max-w-[440px] p-0 text-left text-[#ccc] bg-[#0b1020] border-[1px] border-solid border-[#c4d2ff]`}
 
-    &::backdrop {
-      background: rgba(0, 0, 0, 0.6);
-    }
-  `,
-]);
+  box-shadow: 0 0 40px rgba(196, 210, 255, 0.2);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+`;
 
 const Body = tw.div`p-[22px]`;
 
@@ -100,6 +99,9 @@ export const PilotArrival: FC<PilotArrivalProps> = ({ copy }: PilotArrivalProps)
   }[stage];
 
   return (
+    // A native modal dialog: Escape closes it as the browser's cancel, and the click only closes it from its backdrop,
+    // which no keyboard reaches.
+    // eslint-disable-next-line styled-components-a11y/click-events-have-key-events, styled-components-a11y/no-noninteractive-element-interactions
     <Dialog ref={dialogRef} aria-labelledby="pilot-arrival-title" onClose={close} onClick={onBackdrop}>
       <Body>
         <Title id="pilot-arrival-title">{copy.arrival.title}</Title>

@@ -110,19 +110,22 @@ const Lead = tw.p`m-0 text-sm text-[#bbb] break-words`;
 
 const Bullets = tw.ul`list-none m-0 p-0 flex flex-col gap-[6px] text-sm text-[#aaa]`;
 
-const Bullet = styled.li(() => [
-  tw`relative pl-[16px] break-words`,
-  squareBullet({ colour: "var(--accent-muted)", radius: 1 }),
-]);
+const Bullet = styled.li`
+  ${tw`relative pl-[16px] break-words`}
+  ${squareBullet({ colour: "var(--accent-muted)", radius: 1 })}
+`;
 
 // display: flex would beat the hidden attribute, so hidden is restated here.
-const More = styled.div(() => [tw`flex flex-col gap-[10px]`, honourHidden]);
+const More = styled.div`
+  ${tw`flex flex-col gap-[10px]`}
+  ${honourHidden}
+`;
 
-const Toggle = styled.button(() => [
-  tw`self-start cursor-pointer text-xs font-medium py-[6px] px-[10px] text-[var(--accent)] bg-transparent border-[1px] border-solid border-[var(--accent-muted)]
-     rounded-[2px]`,
-  accentFillOnHover(),
-]);
+const Toggle = styled.button`
+  ${tw`self-start cursor-pointer text-xs font-medium py-[6px] px-[10px] text-[var(--accent)] bg-transparent border-[1px] border-solid border-[var(--accent-muted)]
+     rounded-[2px]`}
+  ${accentFillOnHover()}
+`;
 
 export const HistoryEntry: FC<HistoryEntryProps> = ({
   title, description, outcome, productOutcome, bullets = [], techStack = [], period, from, to, isVenture = false, labels, hasVentureLane,

@@ -80,21 +80,29 @@ const Grid = styled.div(({ isShown }: { isShown: boolean }) => [
   `,
 ]);
 
-const Rows = styled.div(() => [tw`block`, squares]);
+const Rows = styled.div`
+  ${tw`block`}
+  ${squares}
+`;
 
-const Remainder = styled.div(() => [tw`block`, squares]);
+const Remainder = styled.div`
+  ${tw`block`}
+  ${squares}
+`;
 
-const Count = styled.span(() => [tw`block text-2xl font-semibold leading-none text-[var(--accent)]`, hiddenWhenReduced]);
+const Count = styled.span`
+  ${tw`block text-2xl font-semibold leading-none text-[var(--accent)]`}
+  ${hiddenWhenReduced}
+`;
 
 // With less motion asked for, the whole count stands still.
-const StillCount = styled.span(() => [
-  tw`hidden text-2xl font-semibold leading-none text-[var(--accent)]`,
-  css`
-    ${media.reducedMotion} {
-      display: block;
-    }
-  `,
-]);
+const StillCount = styled.span`
+  ${tw`hidden text-2xl font-semibold leading-none text-[var(--accent)]`}
+
+  ${media.reducedMotion} {
+    display: block;
+  }
+`;
 
 const ReadableText = tw.span`sr-only`;
 

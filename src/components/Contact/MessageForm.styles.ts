@@ -68,112 +68,111 @@ export const FieldFrame = tw.div`relative`;
 
 // Over the field, never in the way: a sweep (`::before`) in the zone's style as it takes focus, and a line in the accent
 // (`::after`) along its foot for as long as it holds focus, coming in the zone's way.
-export const FocusTrace = styled.span(() => [
-  css`
+export const FocusTrace = styled.span`
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 2px;
+
+  &::before,
+  &::after {
+    content: "";
     position: absolute;
+    opacity: 0;
+  }
+
+  &::before {
     inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-    border-radius: 2px;
+  }
 
-    &::before,
-    &::after {
-      content: "";
-      position: absolute;
-      opacity: 0;
-    }
+  &::after {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--accent);
+    transform-origin: left;
+  }
 
+  [data-frame]:focus-within &::after {
+    opacity: 1;
+    animation: ${grow} 0.35s ease-out both;
+  }
+
+  [data-frame]:focus-within &::before {
+    animation: ${sweepDown} 0.6s ease-out both;
+    background: linear-gradient(to bottom, transparent, rgba(var(--accent-rgb), 0.22), transparent);
+  }
+
+  [data-effect="beam"] [data-frame]:focus-within &::before {
+    right: auto;
+    width: 30%;
+    animation: ${sweepAcross} 0.7s ease-out both;
+    background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.35), transparent);
+  }
+
+  [data-effect="beam"] [data-frame]:focus-within &::after {
+    transform-origin: center;
+  }
+
+  [data-effect="blocks"] [data-frame]:focus-within &::after {
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--accent) 0 10px, transparent 10px 14px);
+    animation: ${grow} 0.48s steps(8, end) both;
+  }
+
+  [data-effect="blocks"] [data-frame]:focus-within &::before {
+    animation: ${dissolve} 0.48s steps(4, end) both;
+    background: repeating-linear-gradient(90deg, rgba(var(--accent-rgb), 0.16) 0 10px, transparent 10px 14px);
+  }
+
+  [data-effect="pixels"] [data-frame]:focus-within &::after {
+    height: 3px;
+    animation: ${grow} 0.4s steps(12, end) both;
+  }
+
+  [data-effect="pixels"] [data-frame]:focus-within &::before {
+    animation: ${dissolve} 0.4s steps(4, end) both;
+    background: conic-gradient(rgba(var(--accent-rgb), 0.2) 25%, transparent 0 50%, rgba(var(--accent-rgb), 0.2) 0 75%, transparent 0) 0 0 / 8px 8px;
+  }
+
+  [data-effect="deal"] [data-frame]:focus-within &::before {
+    right: auto;
+    width: 40%;
+    animation: ${sweepAcross} 0.6s ease-out both;
+    background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.18) 50%, transparent 70%);
+  }
+
+  [data-effect="deal"] [data-frame]:focus-within &::after {
+    transform-origin: bottom;
+    animation: ${flipUp} 0.35s ease-out both;
+  }
+
+  [data-effect="warp"] [data-frame]:focus-within &::before {
+    top: auto;
+    right: auto;
+    height: 2px;
+    width: 45%;
+    animation: ${sweepAcross} 0.45s ease-in both;
+    background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.9), #ffffff, transparent);
+  }
+
+  [data-effect="warp"] [data-frame]:focus-within &::after {
+    animation: ${grow} 0.4s ease-out 0.25s both;
+  }
+
+  ${media.reducedMotion} {
     &::before {
-      inset: 0;
-    }
-
-    &::after {
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 2px;
-      background: var(--accent);
-      transform-origin: left;
+      display: none;
     }
 
     [data-frame]:focus-within &::after {
-      opacity: 1;
-      animation: ${grow} 0.35s ease-out both;
+      animation: none;
     }
-
-    [data-frame]:focus-within &::before {
-      animation: ${sweepDown} 0.6s ease-out both;
-      background: linear-gradient(to bottom, transparent, rgba(var(--accent-rgb), 0.22), transparent);
-    }
-
-    [data-effect="beam"] [data-frame]:focus-within &::before {
-      right: auto;
-      width: 30%;
-      animation: ${sweepAcross} 0.7s ease-out both;
-      background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.35), transparent);
-    }
-
-    [data-effect="beam"] [data-frame]:focus-within &::after {
-      transform-origin: center;
-    }
-
-    [data-effect="blocks"] [data-frame]:focus-within &::after {
-      height: 3px;
-      background: repeating-linear-gradient(90deg, var(--accent) 0 10px, transparent 10px 14px);
-      animation: ${grow} 0.48s steps(8, end) both;
-    }
-
-    [data-effect="blocks"] [data-frame]:focus-within &::before {
-      animation: ${dissolve} 0.48s steps(4, end) both;
-      background: repeating-linear-gradient(90deg, rgba(var(--accent-rgb), 0.16) 0 10px, transparent 10px 14px);
-    }
-
-    [data-effect="pixels"] [data-frame]:focus-within &::after {
-      height: 3px;
-      animation: ${grow} 0.4s steps(12, end) both;
-    }
-
-    [data-effect="pixels"] [data-frame]:focus-within &::before {
-      animation: ${dissolve} 0.4s steps(4, end) both;
-      background: conic-gradient(rgba(var(--accent-rgb), 0.2) 25%, transparent 0 50%, rgba(var(--accent-rgb), 0.2) 0 75%, transparent 0) 0 0 / 8px 8px;
-    }
-
-    [data-effect="deal"] [data-frame]:focus-within &::before {
-      right: auto;
-      width: 40%;
-      animation: ${sweepAcross} 0.6s ease-out both;
-      background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.18) 50%, transparent 70%);
-    }
-
-    [data-effect="deal"] [data-frame]:focus-within &::after {
-      transform-origin: bottom;
-      animation: ${flipUp} 0.35s ease-out both;
-    }
-
-    [data-effect="warp"] [data-frame]:focus-within &::before {
-      top: auto;
-      right: auto;
-      height: 2px;
-      width: 45%;
-      animation: ${sweepAcross} 0.45s ease-in both;
-      background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.9), #ffffff, transparent);
-    }
-
-    [data-effect="warp"] [data-frame]:focus-within &::after {
-      animation: ${grow} 0.4s ease-out 0.25s both;
-    }
-
-    ${media.reducedMotion} {
-      &::before {
-        display: none;
-      }
-
-      [data-frame]:focus-within &::after {
-        animation: none;
-      }
-    }
-  `,
-]);
+  }
+`;
 
 export const Label = tw.label`text-sm text-[#d6dcd9]`;
 
@@ -203,115 +202,115 @@ const control = [
   focusRing("var(--accent)", 2),
 ];
 
-export const Input = styled.input(() => control);
+export const Input = styled.input`
+  ${control}
+`;
 
-export const TextArea = styled.textarea(() => [...control, css`
+export const TextArea = styled.textarea`
+  ${control}
+
   min-height: 132px;
   resize: vertical;
-`]);
+`;
 
 export const Problem = tw.p`m-0 text-sm text-[#ff9e9e]`;
 
-export const Row = styled.div(() => [
-  tw`flex flex-col gap-[10px] items-start`,
-  css`
-    ${media.md} {
-      flex-direction: row;
-      align-items: center;
-    }
-  `,
-]);
+export const Row = styled.div`
+  ${tw`flex flex-col gap-[10px] items-start`}
+
+  ${media.md} {
+    flex-direction: row;
+    align-items: center;
+  }
+`;
 
 export const Note = tw.p`m-0 text-xs text-[#8a948f]`;
 
 // What became of the message, said as it changes; once it went, coming in the zone's way.
-export const Status = styled.p(() => [
-  tw`m-0 text-sm text-[#d6dcd9]`,
-  css`
-    &[data-sent="true"] {
-      animation: ${settleIn} 0.45s ease-out both;
-    }
+export const Status = styled.p`
+  ${tw`m-0 text-sm text-[#d6dcd9]`}
 
-    [data-effect="beam"] &[data-sent="true"],
-    [data-effect="blocks"] &[data-sent="true"] {
-      animation-name: ${slideIn};
-    }
+  &[data-sent="true"] {
+    animation: ${settleIn} 0.45s ease-out both;
+  }
 
-    [data-effect="pixels"] &[data-sent="true"] {
-      animation-timing-function: steps(5, end);
-    }
+  [data-effect="beam"] &[data-sent="true"],
+  [data-effect="blocks"] &[data-sent="true"] {
+    animation-name: ${slideIn};
+  }
 
-    [data-effect="deal"] &[data-sent="true"] {
-      animation-name: ${dealIn};
-    }
+  [data-effect="pixels"] &[data-sent="true"] {
+    animation-timing-function: steps(5, end);
+  }
 
-    [data-effect="warp"] &[data-sent="true"] {
-      animation-name: ${outOfWarp};
-    }
+  [data-effect="deal"] &[data-sent="true"] {
+    animation-name: ${dealIn};
+  }
 
-    ${media.reducedMotion} {
-      animation: none;
-    }
-  `,
-]);
+  [data-effect="warp"] &[data-sent="true"] {
+    animation-name: ${outOfWarp};
+  }
+
+  ${media.reducedMotion} {
+    animation: none;
+  }
+`;
 
 // The send button, which shows a message on its way in the zone's style: a light that runs over it while it sends.
-export const SendButton = styled(ActionButton)(() => [
-  css`
-    position: relative;
-    overflow: hidden;
+export const SendButton = styled(ActionButton)`
 
-    &::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      pointer-events: none;
-    }
+  position: relative;
+  overflow: hidden;
 
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &[aria-disabled="true"]::after {
+    opacity: 1;
+    animation: ${sweepDown} 1s linear infinite;
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.4), transparent);
+  }
+
+  [data-effect="beam"] &[aria-disabled="true"]::after,
+  [data-effect="deal"] &[aria-disabled="true"]::after,
+  [data-effect="warp"] &[aria-disabled="true"]::after {
+    right: auto;
+    width: 40%;
+    animation: ${sweepAcross} 1.1s ease-in-out infinite;
+    background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  }
+
+  [data-effect="warp"] &[aria-disabled="true"]::after {
+    animation-duration: 0.7s;
+    animation-timing-function: ease-in;
+  }
+
+  [data-effect="blocks"] &[aria-disabled="true"]::after,
+  [data-effect="pixels"] &[aria-disabled="true"]::after {
+    transform-origin: left;
+    animation: ${grow} 1.2s steps(8, end) infinite;
+    background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.3) 0 8px, transparent 8px 12px);
+  }
+
+  ${media.reducedMotion} {
     &[aria-disabled="true"]::after {
-      opacity: 1;
-      animation: ${sweepDown} 1s linear infinite;
-      background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.4), transparent);
+      animation: none;
+      opacity: 0.25;
     }
-
-    [data-effect="beam"] &[aria-disabled="true"]::after,
-    [data-effect="deal"] &[aria-disabled="true"]::after,
-    [data-effect="warp"] &[aria-disabled="true"]::after {
-      right: auto;
-      width: 40%;
-      animation: ${sweepAcross} 1.1s ease-in-out infinite;
-      background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.45), transparent);
-    }
-
-    [data-effect="warp"] &[aria-disabled="true"]::after {
-      animation-duration: 0.7s;
-      animation-timing-function: ease-in;
-    }
-
-    [data-effect="blocks"] &[aria-disabled="true"]::after,
-    [data-effect="pixels"] &[aria-disabled="true"]::after {
-      transform-origin: left;
-      animation: ${grow} 1.2s steps(8, end) infinite;
-      background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.3) 0 8px, transparent 8px 12px);
-    }
-
-    ${media.reducedMotion} {
-      &[aria-disabled="true"]::after {
-        animation: none;
-        opacity: 0.25;
-      }
-    }
-  `,
-]);
+  }
+`;
 
 // A field people never see, for a bot to fill in: off the screen rather than hidden, which a bot would notice.
-export const Trap = styled.div(() => [
-  css`
-    position: absolute;
-    left: -10000px;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-  `,
-]);
+export const Trap = styled.div`
+
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+`;

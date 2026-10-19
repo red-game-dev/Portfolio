@@ -27,21 +27,20 @@ const tint = (share: number) => css`
 // The hangar's and a port's drawer over the voyage, lit along its top edge in the open tab's accent: the whole screen
 // until the HUD has its wide layout (a tablet held upright keeps the phone's, whose rows a narrower drawer would cut in
 // two), then a column on the right beside the HUD's own.
-export const Panel = styled.section(() => [
-  tw`absolute top-0 right-0 bottom-0 flex flex-col w-full text-white`,
-  css`
-    --tab-accent: #ffd76a;
-    --accent: var(--tab-accent);
-    background: #05081a;
-    border-left: 1px solid ${RIM};
-    box-shadow: inset 0 2px 0 var(--tab-accent);
-    z-index: 2;
+export const Panel = styled.section`
+  ${tw`absolute top-0 right-0 bottom-0 flex flex-col w-full text-white`}
 
-    ${media.voyageWide} {
-      width: 460px;
-    }
-  `,
-]);
+  --tab-accent: #ffd76a;
+  --accent: var(--tab-accent);
+  background: #05081a;
+  border-left: 1px solid ${RIM};
+  box-shadow: inset 0 2px 0 var(--tab-accent);
+  z-index: 2;
+
+  ${media.voyageWide} {
+    width: 460px;
+  }
+`;
 
 export const Header = tw.div`flex flex-row items-center gap-[10px] px-[16px] pt-[14px] pb-[10px]`;
 
@@ -70,26 +69,24 @@ export const Shards = tw.span`text-[#c58bff]`;
 export const PurseText = tw.p`m-0 text-sm font-semibold tabular-nums text-[#ffd76a]`;
 
 // What a currency is, opened from the purse.
-export const PurseNote = styled.div(() => [
-  tw`flex flex-col gap-[4px] mx-[16px] mb-[10px] px-[12px] py-[10px] text-xs md:text-sm leading-relaxed text-[#c9cfdf]`,
-  css`
-    background: rgba(255, 255, 255, 0.03);
-    border-left: 2px solid var(--tab-accent);
-  `,
-]);
+export const PurseNote = styled.div`
+  ${tw`flex flex-col gap-[4px] mx-[16px] mb-[10px] px-[12px] py-[10px] text-xs md:text-sm leading-relaxed text-[#c9cfdf]`}
+
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid var(--tab-accent);
+`;
 
 export const PurseNoteTitle = tw.span`font-semibold text-white`;
 
 // The hangar's one suggestion, a tap away.
-export const NextStep = styled.div(() => [
-  tw`flex flex-row items-center gap-[10px] px-[16px] py-[8px] text-xs md:text-sm`,
-  css`
-    --tab-accent: #ffd76a;
-    background: rgba(255, 215, 106, 0.07);
-    border-top: 1px solid rgba(255, 215, 106, 0.18);
-    border-bottom: 1px solid rgba(255, 215, 106, 0.18);
-  `,
-]);
+export const NextStep = styled.div`
+  ${tw`flex flex-row items-center gap-[10px] px-[16px] py-[8px] text-xs md:text-sm`}
+
+  --tab-accent: #ffd76a;
+  background: rgba(255, 215, 106, 0.07);
+  border-top: 1px solid rgba(255, 215, 106, 0.18);
+  border-bottom: 1px solid rgba(255, 215, 106, 0.18);
+`;
 
 export const NextStepText = tw.span`flex-1 min-w-0 text-[#f4e7c2]`;
 
@@ -174,16 +171,18 @@ export const Dot = styled.span(({ colour, isCorner = false }: { colour: string; 
 export const SectionBar = tw.div`px-[16px] pt-[10px]`;
 
 // A sideways swipe across it moves between tabs, so it lets the browser scroll only up and down.
-export const Body = styled.div(() => [
-  tw`flex-1 min-h-0 overflow-y-auto px-[16px] pt-[14px] pb-[24px]`,
-  css`
-    scrollbar-width: thin;
-    overscroll-behavior: contain;
-    touch-action: pan-y;
-  `,
-]);
+export const Body = styled.div`
+  ${tw`flex-1 min-h-0 overflow-y-auto px-[16px] pt-[14px] pb-[24px]`}
 
-export const TabPanel = styled.div(() => [tw`flex flex-col gap-[16px]`, honourHidden]);
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+`;
+
+export const TabPanel = styled.div`
+  ${tw`flex flex-col gap-[16px]`}
+  ${honourHidden}
+`;
 
 export const Subheading = styled.h3(() => [
   tw`m-0 text-sm font-semibold`,
@@ -197,12 +196,11 @@ export const Note = tw.p`m-0 text-xs md:text-sm text-[#aab3c9] leading-relaxed`;
 export const ShipName = tw.p`m-0 text-xl font-semibold text-white`;
 
 // Each stat with what the next level makes it, where it changes.
-export const Stats = styled.dl(() => [
-  tw`m-0 grid gap-x-[12px] gap-y-[6px] text-xs md:text-sm tabular-nums`,
-  css`
-    grid-template-columns: 1fr auto auto;
-  `,
-]);
+export const Stats = styled.dl`
+  ${tw`m-0 grid gap-x-[12px] gap-y-[6px] text-xs md:text-sm tabular-nums`}
+
+  grid-template-columns: 1fr auto auto;
+`;
 
 // A stat's name, value and next value, laid out by the grid around it.
 export const StatRow = tw.div`contents`;
@@ -214,39 +212,37 @@ export const StatValue = tw.dd`m-0 text-right text-white`;
 export const StatNext = tw.dd`m-0 text-right text-[#6ee7a8]`;
 
 // A group of a tab: no box of its own, set off from the one before by a rule.
-export const Block = styled.section(() => [
-  tw`flex flex-col gap-[10px]`,
-  css`
-    padding-top: 16px;
-    border-top: 1px solid ${RULE};
+export const Block = styled.section`
+  ${tw`flex flex-col gap-[10px]`}
 
-    &:first-child {
-      padding-top: 0;
-      border-top: 0;
-    }
-  `,
-]);
+  padding-top: 16px;
+  border-top: 1px solid ${RULE};
+
+  &:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+`;
 
 // The one framed panel of a tab, for what matters most there: corner brackets in the tab's accent.
-export const Frame = styled.section(() => [
-  tw`relative flex flex-col gap-[10px] p-[14px]`,
-  css`
-    --corner: var(--tab-accent);
-    background:
-      linear-gradient(var(--corner), var(--corner)) left top / 14px 2px,
-      linear-gradient(var(--corner), var(--corner)) left top / 2px 14px,
-      linear-gradient(var(--corner), var(--corner)) right top / 14px 2px,
-      linear-gradient(var(--corner), var(--corner)) right top / 2px 14px,
-      linear-gradient(var(--corner), var(--corner)) left bottom / 14px 2px,
-      linear-gradient(var(--corner), var(--corner)) left bottom / 2px 14px,
-      linear-gradient(var(--corner), var(--corner)) right bottom / 14px 2px,
-      linear-gradient(var(--corner), var(--corner)) right bottom / 2px 14px,
-      rgba(255, 255, 255, 0.03);
-    background-repeat: no-repeat;
-    outline: 1px solid ${RULE};
-    outline-offset: -1px;
-  `,
-]);
+export const Frame = styled.section`
+  ${tw`relative flex flex-col gap-[10px] p-[14px]`}
+
+  --corner: var(--tab-accent);
+  background:
+    linear-gradient(var(--corner), var(--corner)) left top / 14px 2px,
+    linear-gradient(var(--corner), var(--corner)) left top / 2px 14px,
+    linear-gradient(var(--corner), var(--corner)) right top / 14px 2px,
+    linear-gradient(var(--corner), var(--corner)) right top / 2px 14px,
+    linear-gradient(var(--corner), var(--corner)) left bottom / 14px 2px,
+    linear-gradient(var(--corner), var(--corner)) left bottom / 2px 14px,
+    linear-gradient(var(--corner), var(--corner)) right bottom / 14px 2px,
+    linear-gradient(var(--corner), var(--corner)) right bottom / 2px 14px,
+    rgba(255, 255, 255, 0.03);
+  background-repeat: no-repeat;
+  outline: 1px solid ${RULE};
+  outline-offset: -1px;
+`;
 
 export const Needs = tw.ul`m-0 p-0 list-none flex flex-col gap-[6px] text-xs md:text-sm tabular-nums`;
 
@@ -256,14 +252,13 @@ export const Need = styled.li(({ isMet }: { isMet: boolean }) => [
 ]);
 
 // Rows on rules rather than boxes.
-export const Items = styled.ul(() => [
-  tw`m-0 p-0 list-none flex flex-col`,
-  css`
-    & > li + li {
-      border-top: 1px solid ${RULE};
-    }
-  `,
-]);
+export const Items = styled.ul`
+  ${tw`m-0 p-0 list-none flex flex-col`}
+
+  & > li + li {
+    border-top: 1px solid ${RULE};
+  }
+`;
 
 export const Item = tw.li`flex flex-col gap-[6px] py-[12px] first:pt-[4px]`;
 
@@ -347,24 +342,22 @@ export const Meter = styled.div(({ segments = 10 }: { segments?: number }) => {
   ];
 });
 
-export const Entries = styled.ol(() => [
-  tw`m-0 p-0 list-none flex flex-col text-xs md:text-sm`,
-  css`
-    & > li + li {
-      border-top: 1px solid ${RULE};
-    }
-  `,
-]);
+export const Entries = styled.ol`
+  ${tw`m-0 p-0 list-none flex flex-col text-xs md:text-sm`}
+
+  & > li + li {
+    border-top: 1px solid ${RULE};
+  }
+`;
 
 export const Entry = tw.li`flex flex-row items-baseline justify-between gap-[10px] py-[8px]`;
 
 // What stays at the foot of a panel, under its scrolling body (a station's way to cast off).
-export const Footer = styled.div(() => [
-  tw`flex flex-col gap-[8px] px-[16px] py-[12px]`,
-  css`
-    border-top: 1px solid ${RULE};
-  `,
-]);
+export const Footer = styled.div`
+  ${tw`flex flex-col gap-[8px] px-[16px] py-[12px]`}
+
+  border-top: 1px solid ${RULE};
+`;
 
 export const Amount = styled.span(({ isGain }: { isGain: boolean }) => [
   tw`tabular-nums whitespace-nowrap font-semibold`,
@@ -400,24 +393,22 @@ export const Tile = styled.button(({ isOn, isDim = false }: { isOn: boolean; isD
 ]);
 
 // A tile's name, kept to two lines.
-export const TileName = styled.span(() => [
-  tw`block w-full overflow-hidden`,
-  css`
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  `,
-]);
+export const TileName = styled.span`
+  ${tw`block w-full overflow-hidden`}
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+`;
 
 // Something still to find: a small dim mark for each, in a row under what is found.
 export const Unknowns = tw.ul`m-0 p-0 list-none flex flex-row flex-wrap items-center gap-[6px]`;
 
-export const Unknown = styled.li(() => [
-  tw`flex items-center justify-center w-[28px] h-[28px] text-xs font-semibold text-[#4a5270]`,
-  css`
-    border: 1px dashed rgba(196, 210, 255, 0.16);
-  `,
-]);
+export const Unknown = styled.li`
+  ${tw`flex items-center justify-center w-[28px] h-[28px] text-xs font-semibold text-[#4a5270]`}
+
+  border: 1px dashed rgba(196, 210, 255, 0.16);
+`;
 
 // A group's title with its count beside it.
 export const GroupTop = tw.div`flex flex-row items-baseline justify-between gap-[10px]`;

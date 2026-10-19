@@ -1,6 +1,6 @@
 import { ChangeEvent, FC, useCallback, useEffect, useRef, useState } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { faPause, faPlay, faRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -46,31 +46,30 @@ const City = tw.div`relative flex flex-row items-end gap-[4px] md:gap-[8px] h-[2
 
 // A full height building revealed from the ground up by its share of the tallest district, so its windows
 // never stretch; the roof line rides the reveal.
-const Building = styled.div(() => [
-  tw`relative flex-1 h-full`,
-  css`
-    clip-path: inset(calc((1 - var(--height, 0)) * 100%) 0 0 0);
-    background-color: #0b1820;
+const Building = styled.div`
+  ${tw`relative flex-1 h-full`}
 
-    &::before {
-      content: "";
-      position: absolute;
-      inset: 4px 3px 0;
-      background: repeating-linear-gradient(to right, rgba(var(--accent-rgb), 0.45) 0 3px, transparent 3px 7px);
-      mask-image: repeating-linear-gradient(to bottom, #000 0 4px, transparent 4px 8px);
-    }
+  clip-path: inset(calc((1 - var(--height, 0)) * 100%) 0 0 0);
+  background-color: #0b1820;
 
-    &::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 2px;
-      top: calc((1 - var(--height, 0)) * 100%);
-      background: var(--accent);
-    }
-  `,
-]);
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 4px 3px 0;
+    background: repeating-linear-gradient(to right, rgba(var(--accent-rgb), 0.45) 0 3px, transparent 3px 7px);
+    mask-image: repeating-linear-gradient(to bottom, #000 0 4px, transparent 4px 8px);
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    top: calc((1 - var(--height, 0)) * 100%);
+    background: var(--accent);
+  }
+`;
 
 const Labels = tw.ol`hidden md:flex flex-row gap-[8px] m-0 mt-[8px] p-0 list-none`;
 
@@ -84,14 +83,15 @@ const Count = tw.span`text-white tabular-nums`;
 
 const Controls = tw.div`flex flex-row flex-wrap items-center gap-[14px] mt-[16px]`;
 
-const PlayButton = styled.button(() => actionStyle(true));
+const PlayButton = styled.button`
+  ${actionStyle(true)}
+`;
 
-const Scrubber = styled.input(() => [
-  tw`flex-1 min-w-[160px] m-0 cursor-pointer`,
-  css`
-    accent-color: var(--accent);
-  `,
-]);
+const Scrubber = styled.input`
+  ${tw`flex-1 min-w-[160px] m-0 cursor-pointer`}
+
+  accent-color: var(--accent);
+`;
 
 const Loading = tw.p`absolute inset-0 flex items-center justify-center m-0 text-xs text-[#999]`;
 

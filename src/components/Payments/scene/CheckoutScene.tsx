@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo, useRef } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { PAYMENT_LOOKS } from "@/components/Payments/scene/looks";
 import { markOf } from "@/components/Payments/scene/marks";
@@ -37,12 +37,11 @@ interface CheckoutSceneProps {
 const STAGE_WAIT_MS = 350;
 
 // Drawn at the scene's own proportions, as wide as it is given.
-const Box = styled.div(() => [
-  tw`relative w-full`,
-  css`
-    aspect-ratio: 300 / 210;
-  `,
-]);
+const Box = styled.div`
+  ${tw`relative w-full`}
+
+  aspect-ratio: 300 / 210;
+`;
 
 const Canvas = tw.canvas`block w-full h-full`;
 

@@ -31,33 +31,32 @@ const Carousel = tw.section`flex flex-col gap-[10px]`;
 const Viewport = tw.div`relative`;
 
 // Native scroll snapping does the swiping on touch; the buttons and keys move it on desktop.
-const Track = styled.ul(() => [
-  tw`list-none m-0 p-0 flex flex-row overflow-x-auto`,
-  css`
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
+const Track = styled.ul`
+  ${tw`list-none m-0 p-0 flex flex-row overflow-x-auto`}
 
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  `,
-]);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
 
-const Slide = styled.li(() => [
-  tw`flex flex-col gap-[8px] m-0 w-full flex-shrink-0`,
-  css`
-    scroll-snap-align: start;
-  `,
-]);
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
 
-const Frame = styled.div(() => [
-  tw`relative w-full overflow-hidden bg-[#111] border-[1px] border-solid border-[#222]`,
-  css`
-    aspect-ratio: 16 / 9;
-  `,
-]);
+const Slide = styled.li`
+  ${tw`flex flex-col gap-[8px] m-0 w-full flex-shrink-0`}
 
-const Shot = styled(Image)(() => [tw`object-cover`]);
+  scroll-snap-align: start;
+`;
+
+const Frame = styled.div`
+  ${tw`relative w-full overflow-hidden bg-[#111] border-[1px] border-solid border-[#222]`}
+
+  aspect-ratio: 16 / 9;
+`;
+
+const Shot = styled(Image)`
+  ${tw`object-cover`}
+`;
 
 const Caption = tw.p`m-0 text-sm text-[#bbb]`;
 

@@ -4,28 +4,27 @@ import tw, { css, styled } from "twin.macro";
 
 import { focusRing, media } from "@/styles/mixins";
 
-export const Toggle = styled.button(() => [
-  tw`absolute top-[-8px] right-[-8px] z-[11] flex flex-col items-center justify-center gap-[5px] w-[44px] h-[44px] p-0 cursor-pointer
-     bg-transparent border-0 xl:hidden`,
-  css`
-    & > span {
-      display: block;
-      width: 24px;
-      height: 2px;
-      background: #ffffff;
-      border-radius: 2px;
-    }
+export const Toggle = styled.button`
+  ${tw`absolute top-[-8px] right-[-8px] z-[11] flex flex-col items-center justify-center gap-[5px] w-[44px] h-[44px] p-0 cursor-pointer
+     bg-transparent border-0 xl:hidden`}
 
-    & > span:nth-of-type(2) {
-      width: 16px;
-      align-self: flex-end;
-      margin-right: 10px;
-      background: var(--accent);
-    }
+  & > span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: #ffffff;
+    border-radius: 2px;
+  }
 
-    ${focusRing("var(--accent)", -4)}
-  `,
-]);
+  & > span:nth-of-type(2) {
+    width: 16px;
+    align-self: flex-end;
+    margin-right: 10px;
+    background: var(--accent);
+  }
+
+  ${focusRing("var(--accent)", -4)}
+`;
 
 export const rise = keyframes`
   from { opacity: 0; transform: translateX(-10px); }
@@ -46,35 +45,33 @@ export const pulse = keyframes`
 // the page shows through, with a glow in the colour of the zone the reader is in.
 // Pinned to the edges of what is visible (inset 0), not sized in vh: on phones whose toolbars sit over part of
 // 100vh, a menu that tall hid its last stops and actions where no scroll could reach them.
-export const Dialog = styled.dialog(() => [
-  tw`m-0 p-0 max-w-none border-0 text-white`,
-  css`
-    position: fixed;
-    inset: 0;
-    width: auto;
-    height: auto;
-    max-height: none;
-    background: radial-gradient(120% 55% at 50% 0%, rgba(var(--here-rgb), 0.2), transparent 62%), #09090b;
+export const Dialog = styled.dialog`
+  ${tw`m-0 p-0 max-w-none border-0 text-white`}
 
-    &::backdrop {
-      background: #09090b;
-    }
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-height: none;
+  background: radial-gradient(120% 55% at 50% 0%, rgba(var(--here-rgb), 0.2), transparent 62%), #09090b;
 
-    &[open] {
-      display: flex;
-    }
-  `,
-]);
+  &::backdrop {
+    background: #09090b;
+  }
+
+  &[open] {
+    display: flex;
+  }
+`;
 
 // The menu's own scroll, for screens shorter than the route: it never hands the scroll on to the page.
-export const Panel = styled.div(() => [
-  tw`flex flex-col w-full max-w-[520px] max-h-full min-h-0 mx-auto px-[22px] pt-[16px] pb-[28px] overflow-y-auto`,
-  css`
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: max(28px, env(safe-area-inset-bottom));
-  `,
-]);
+export const Panel = styled.div`
+  ${tw`flex flex-col w-full max-w-[520px] max-h-full min-h-0 mx-auto px-[22px] pt-[16px] pb-[28px] overflow-y-auto`}
+
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+`;
 
 export const Top = tw.div`flex flex-row items-start justify-between gap-[12px] mb-[22px]`;
 
@@ -84,15 +81,14 @@ export const Kicker = tw.span`text-xs font-semibold text-[var(--here)]`;
 
 export const Title = tw.h2`m-0 text-2xl font-semibold`;
 
-export const Close = styled.button(() => [
-  tw`flex flex-shrink-0 items-center justify-center w-[44px] h-[44px] cursor-pointer text-lg text-white rounded-full`,
-  css`
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+export const Close = styled.button`
+  ${tw`flex flex-shrink-0 items-center justify-center w-[44px] h-[44px] cursor-pointer text-lg text-white rounded-full`}
 
-    ${focusRing("var(--here)")}
-  `,
-]);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  ${focusRing("var(--here)")}
+`;
 
 // The journey as a route: a line down the left through every stop, each stop a node in its zone's colour.
 export const Route = tw.ol`list-none m-0 p-0 flex flex-col`;
@@ -185,18 +181,17 @@ export const StopName = tw.span`flex flex-row items-center gap-[8px] text-xl fon
 export const StopZone = tw.span`text-xs text-[#8f8f8f]`;
 
 // How far through the stop the reader is.
-export const Progress = styled.span(() => [
-  tw`block h-[2px] mt-[4px] rounded-full bg-[rgba(255, 255, 255, 0.08)] overflow-hidden`,
-  css`
-    &::after {
-      content: "";
-      display: block;
-      height: 100%;
-      width: calc(var(--nav-progress, 0) * 100%);
-      background: var(--zone);
-    }
-  `,
-]);
+export const Progress = styled.span`
+  ${tw`block h-[2px] mt-[4px] rounded-full bg-[rgba(255, 255, 255, 0.08)] overflow-hidden`}
+
+  &::after {
+    content: "";
+    display: block;
+    height: 100%;
+    width: calc(var(--nav-progress, 0) * 100%);
+    background: var(--zone);
+  }
+`;
 
 export const Here = tw.span`text-[11px] font-bold text-[#09090b] bg-[var(--zone)] rounded-full px-[7px] py-[2px]`;
 
@@ -205,41 +200,40 @@ export const Chevron = tw.span`text-sm text-[#5a5a5a]`;
 // A long stop's parts, under it as a row of chips.
 export const Parts = tw.ul`list-none m-0 mt-[2px] mb-[6px] px-[14px] py-0 flex flex-row flex-wrap gap-[8px]`;
 
-export const PartLink = styled.a(() => [
-  tw`inline-flex items-center min-h-[36px] px-[12px] text-sm font-semibold no-underline text-white rounded-full`,
-  css`
-    border: 1px solid rgba(var(--zone-rgb), 0.45);
-    background: rgba(var(--zone-rgb), 0.06);
+export const PartLink = styled.a`
+  ${tw`inline-flex items-center min-h-[36px] px-[12px] text-sm font-semibold no-underline text-white rounded-full`}
 
-    &:hover,
-    &:focus-visible {
-      background: rgba(var(--zone-rgb), 0.16);
-      outline: none;
-    }
+  border: 1px solid rgba(var(--zone-rgb), 0.45);
+  background: rgba(var(--zone-rgb), 0.06);
 
-    &:focus-visible {
-      box-shadow: 0 0 0 2px var(--zone);
-    }
-  `,
-]);
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--zone-rgb), 0.16);
+    outline: none;
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--zone);
+  }
+`;
 
 export const Actions = tw.div`grid grid-cols-3 gap-[8px] mt-[26px] pt-[20px] border-0 border-t-[1px] border-solid border-[rgba(255, 255, 255, 0.08)]`;
 
-export const Action = styled.a(() => [
-  tw`flex flex-col items-center justify-center gap-[6px] h-[64px] text-xs font-semibold no-underline text-white rounded-[8px]`,
-  css`
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(var(--here-rgb), 0.35);
+export const Action = styled.a`
+  ${tw`flex flex-col items-center justify-center gap-[6px] h-[64px] text-xs font-semibold no-underline text-white rounded-[8px]`}
 
-    & > svg {
-      font-size: 16px;
-      color: var(--here);
-    }
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(var(--here-rgb), 0.35);
 
-    &:hover,
-    &:focus-visible {
-      background: rgba(var(--here-rgb), 0.12);
-    }
-  `,
-  focusRing("var(--here)", -2),
-]);
+  & > svg {
+    font-size: 16px;
+    color: var(--here);
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--here-rgb), 0.12);
+  }
+
+  ${focusRing("var(--here)", -2)}
+`;

@@ -1,6 +1,6 @@
 import { FC, useCallback, useLayoutEffect, useRef } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { Blueprint } from "@/components/Blueprint/Blueprint";
 import { BLEED } from "@/components/Blueprint/config";
@@ -19,15 +19,14 @@ interface BlueprintTabsProps {
   advance?: number;
 }
 
-const Showcase = styled.div(() => [
-  tw`flex flex-col gap-[14px]`,
-  css`
-    ${media.lg} {
-      margin-left: ${BLEED};
-      margin-right: ${BLEED};
-    }
-  `,
-]);
+const Showcase = styled.div`
+  ${tw`flex flex-col gap-[14px]`}
+
+  ${media.lg} {
+    margin-left: ${BLEED};
+    margin-right: ${BLEED};
+  }
+`;
 
 // Several blueprints become a showcase: one tab each, and an animated switch between them, so a section
 // shows one system at a time instead of a long stack.

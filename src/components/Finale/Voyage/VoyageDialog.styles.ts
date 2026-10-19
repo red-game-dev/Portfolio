@@ -11,46 +11,43 @@ import { focusRing, honourHidden, media, voyagePanel } from "@/styles/mixins";
 // prop's variant would reach every instance. What differs per element is read from a data attribute instead.
 const COMPACT = '[data-hud="compact"] &';
 
-export const Dialog = styled.dialog(() => [
-  tw`fixed inset-0 m-0 p-0 border-0 text-white overflow-hidden`,
-  css`
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    max-width: none;
-    max-height: none;
-    background: #03050c;
+export const Dialog = styled.dialog`
+  ${tw`fixed inset-0 m-0 p-0 border-0 text-white overflow-hidden`}
 
-    &::backdrop {
-      background: #000000;
-    }
-  `,
-]);
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  background: #03050c;
 
-export const Stage = styled.div(() => [
-  tw`absolute inset-0 outline-none`,
-  css`
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-    cursor: crosshair;
+  &::backdrop {
+    background: #000000;
+  }
+`;
 
-    /* Over the radar, which opens the map. */
-    &[data-over-radar="true"] {
-      cursor: pointer;
-    }
-  `,
-]);
+export const Stage = styled.div`
+  ${tw`absolute inset-0 outline-none`}
+
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
+
+  /* Over the radar, which opens the map. */
+  &[data-over-radar="true"] {
+    cursor: pointer;
+  }
+`;
 
 export const Canvas = tw.canvas`absolute inset-0 w-full h-full`;
 
 // The GPU lens between the two 2D canvases; hidden until a black hole is on screen.
-export const LensCanvas = styled.canvas(() => [
-  tw`absolute inset-0 w-full h-full`,
-  css`
-    visibility: hidden;
-  `,
-]);
+export const LensCanvas = styled.canvas`
+  ${tw`absolute inset-0 w-full h-full`}
+
+  visibility: hidden;
+`;
 
 // How to play, always there for a screen reader, whatever card is showing.
 export const ControlsNote = tw.p`sr-only`;
@@ -70,149 +67,143 @@ const halo = "text-shadow: 0 0 2px #000000, 0 1px 3px rgba(0, 0, 0, 0.9);";
 // - a phone on its side: as wide, the readout under the buttons and the ability bar between the radar and the corner.
 // The column of bars takes the room it needs, short of the alerts' least, and cuts off what has no room; the alerts take
 // the rest. The line's strip on a phone is the one overlap by design, over the readout and the place for its moment.
-export const Hud = styled.header(() => [
-  tw`absolute inset-0 grid gap-[8px] p-[14px] md:p-[18px] pointer-events-none`,
-  css`
-    /* Its own stacking context, so the gradient below sits behind every panel rather than over them. */
-    isolation: isolate;
-    /* The radar's size as MapLayer draws it: a radius of 58, 44 on a smaller screen, 38 on the smallest. */
-    --radar: 116px;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-rows: auto auto auto minmax(0, auto) auto minmax(96px, 1fr) auto;
+export const Hud = styled.header`
+  ${tw`absolute inset-0 grid gap-[8px] p-[14px] md:p-[18px] pointer-events-none`}
+
+  /* Its own stacking context, so the gradient below sits behind every panel rather than over them. */
+  isolation: isolate;
+  /* The radar's size as MapLayer draws it: a radius of 58, 44 on a smaller screen, 38 on the smallest. */
+  --radar: 116px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-rows: auto auto auto minmax(0, auto) auto minmax(96px, 1fr) auto;
+  grid-template-areas:
+    "buttons buttons buttons"
+    "readout readout readout"
+    "place   place   place"
+    "vitals  vitals  bar"
+    "message message bar"
+    "alerts  alerts  bar"
+    "radar   side    side";
+
+  /* Static, for legibility over a bright planet; nothing behind it moves the gradient. */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  @media (max-width: 639px), (max-height: 419px) {
+    --radar: 88px;
+  }
+
+  @media (max-height: 359px), (max-width: 299px), (orientation: portrait) and (max-height: 520px) {
+    --radar: 76px;
+  }
+
+  /* Where there is room: the first column exactly the radar's width, so the ability bar spans from the radar to the
+     telemetry along the bottom; the place and the column down the left span it and a second column, together at
+     most 260px wide (as wide as the bars and the faults beside them), so a long place or a world's card wraps
+     rather than taking the room the middle needs. */
+  ${media.voyageWide} {
+    column-gap: 12px;
+    grid-template-columns: var(--radar) fit-content(calc(260px - var(--radar) - 12px)) minmax(0, 1fr) auto;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
     grid-template-areas:
-      "buttons buttons buttons"
-      "readout readout readout"
-      "place   place   place"
-      "vitals  vitals  bar"
-      "message message bar"
-      "alerts  alerts  bar"
-      "radar   side    side";
+      "place  place  readout buttons"
+      "vitals vitals message ."
+      "vitals vitals alerts  side"
+      "radar  bar    bar     side";
+  }
 
-    /* Static, for legibility over a bright planet; nothing behind it moves the gradient. */
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 200px;
-      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
-      pointer-events: none;
-      z-index: -1;
-    }
+  /* The readout's row is tall enough for the line's strip laid over it. */
+  ${media.shortLandscape} {
+    column-gap: 12px;
+    grid-template-columns: var(--radar) fit-content(calc(260px - var(--radar) - 12px)) minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(32px, auto) minmax(0, 1fr) auto;
+    grid-template-areas:
+      "place  place  buttons buttons"
+      "vitals vitals readout readout"
+      "vitals vitals alerts  side"
+      "radar  bar    bar     side";
+  }
 
-    @media (max-width: 639px), (max-height: 419px) {
-      --radar: 88px;
-    }
+  /* Beside the hangar's or a port's drawer (data-drawer) only the column down the left stays, the ship's state while it
+     is mended or refitted; the rest, inert under the drawer and cut by it, steps aside until it closes. */
+  &[data-drawer] > :not([data-hud-area="place"]):not([data-hud-area="vitals"]) {
+    visibility: hidden;
+  }
 
-    @media (max-height: 359px), (max-width: 299px), (orientation: portrait) and (max-height: 520px) {
-      --radar: 76px;
-    }
-
-    /* Where there is room: the first column exactly the radar's width, so the ability bar spans from the radar to the
-       telemetry along the bottom; the place and the column down the left span it and a second column, together at
-       most 260px wide (as wide as the bars and the faults beside them), so a long place or a world's card wraps
-       rather than taking the room the middle needs. */
-    ${media.voyageWide} {
-      column-gap: 12px;
-      grid-template-columns: var(--radar) fit-content(calc(260px - var(--radar) - 12px)) minmax(0, 1fr) auto;
-      grid-template-rows: auto auto minmax(0, 1fr) auto;
-      grid-template-areas:
-        "place  place  readout buttons"
-        "vitals vitals message ."
-        "vitals vitals alerts  side"
-        "radar  bar    bar     side";
-    }
-
-    /* The readout's row is tall enough for the line's strip laid over it. */
-    ${media.shortLandscape} {
-      column-gap: 12px;
-      grid-template-columns: var(--radar) fit-content(calc(260px - var(--radar) - 12px)) minmax(0, 1fr) auto;
-      grid-template-rows: auto minmax(32px, auto) minmax(0, 1fr) auto;
-      grid-template-areas:
-        "place  place  buttons buttons"
-        "vitals vitals readout readout"
-        "vitals vitals alerts  side"
-        "radar  bar    bar     side";
-    }
-
-    /* Beside the hangar's or a port's drawer (data-drawer) only the column down the left stays, the ship's state while it
-       is mended or refitted; the rest, inert under the drawer and cut by it, steps aside until it closes. */
-    &[data-drawer] > :not([data-hud-area="place"]):not([data-hud-area="vitals"]) {
-      visibility: hidden;
-    }
-
-    /* Hidden in photo mode and on the map. */
-    ${honourHidden}
-  `,
-]);
+  /* Hidden in photo mode and on the map. */
+  ${honourHidden}
+`;
 
 // The column of the ship and the bars, the quest followed, what is hurt and the target; what has no room in its area
 // is cut off rather than reaching another panel.
-export const Vitals = styled.div(() => [
-  tw`flex flex-col gap-[6px] min-w-0 min-h-0 overflow-hidden`,
-  css`
-    grid-area: vitals;
-    align-self: start;
-    max-height: 100%;
-    ${halo}
-  `,
-]);
+export const Vitals = styled.div`
+  ${tw`flex flex-col gap-[6px] min-w-0 min-h-0 overflow-hidden`}
+
+  grid-area: vitals;
+  align-self: start;
+  max-height: 100%;
+  ${halo}
+`;
 
 // Where the ship is, over the column (a row of its own across a phone held upright).
-export const Place = styled.p(() => [
-  tw`m-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`,
-  css`
-    grid-area: place;
-    align-self: start;
-    ${halo}
-  `,
-]);
+export const Place = styled.p`
+  ${tw`m-0 text-sm md:text-base font-semibold text-[#c4d2ff] tabular-nums`}
 
-export const Bars = styled.dl(() => [
-  tw`m-0 flex flex-col gap-[4px] w-[150px] md:w-[210px]`,
-  css`
-    ${COMPACT} {
-      gap: 3px;
-    }
-  `,
-]);
+  grid-area: place;
+  align-self: start;
+  ${halo}
+`;
+
+export const Bars = styled.dl`
+  ${tw`m-0 flex flex-col gap-[4px] w-[150px] md:w-[210px]`}
+
+  ${COMPACT} {
+    gap: 3px;
+  }
+`;
 
 // The bars and, where the HUD can be compact, the button that opens it in full or tucks it back.
 export const BarsRow = tw.div`flex flex-row items-center gap-[8px]`;
 
-export const HudToggle = styled.button(() => [
-  tw`relative flex items-center justify-center w-[30px] h-[30px] p-0 cursor-pointer text-[#c4d2ff] bg-[rgba(10,14,30,0.75)] border-[1px] border-solid
-    border-[#2a3350] rounded-full pointer-events-auto`,
-  focusRing("#c4d2ff", 2),
-]);
+export const HudToggle = styled.button`
+  ${tw`relative flex items-center justify-center w-[30px] h-[30px] p-0 cursor-pointer text-[#c4d2ff] bg-[rgba(10,14,30,0.75)] border-[1px] border-solid
+    border-[#2a3350] rounded-full pointer-events-auto`}
+  ${focusRing("#c4d2ff", 2)}
+`;
 
 // A red dot on the info button while the compact HUD keeps a hurt system or a fault behind it.
-export const HudAlert = styled.span(() => [
-  tw`absolute top-[-3px] right-[-3px] w-[10px] h-[10px] rounded-full bg-[#ff4d5e]`,
-  css`
-    border: 2px solid #03050c;
-  `,
-]);
+export const HudAlert = styled.span`
+  ${tw`absolute top-[-3px] right-[-3px] w-[10px] h-[10px] rounded-full bg-[#ff4d5e]`}
+
+  border: 2px solid #03050c;
+`;
 
 // A little tighter on the shortest upright phone, where the column has to make room for what is hurt.
-export const BarRow = styled.div(() => [
-  tw`grid items-center gap-x-[8px] gap-y-[2px] text-xs tabular-nums`,
-  css`
-    grid-template-columns: 1fr auto;
+export const BarRow = styled.div`
+  ${tw`grid items-center gap-x-[8px] gap-y-[2px] text-xs tabular-nums`}
 
-    ${media.shortestPortrait} {
-      font-size: 11px;
-      line-height: 14px;
-    }
+  grid-template-columns: 1fr auto;
 
-    ${COMPACT} {
-      grid-template-columns: 12px 1fr;
-      column-gap: 6px;
-      row-gap: 0;
-    }
-  `,
-]);
+  ${media.shortestPortrait} {
+    font-size: 11px;
+    line-height: 14px;
+  }
+
+  ${COMPACT} {
+    grid-template-columns: 12px 1fr;
+    column-gap: 6px;
+    row-gap: 0;
+  }
+`;
 
 // Beside each bar in the compact HUD, which shows the bars without their names: what each one is, in its colour, so
 // they are told apart by more than colour (WCAG 1.4.1).
@@ -228,39 +219,36 @@ export const BarIcon = styled.span(({ colour }: { colour: string }) => [
 ]);
 
 // The compact HUD shows the bars alone, told apart by colour; their names and figures are in the full HUD.
-export const BarLabel = styled.dt(() => [
-  tw`text-[#9aa3bb]`,
-  css`
-    ${COMPACT} {
-      display: none;
-    }
-  `,
-]);
+export const BarLabel = styled.dt`
+  ${tw`text-[#9aa3bb]`}
 
-export const BarValue = styled.dd(() => [
-  tw`m-0 text-right text-white`,
-  css`
-    ${COMPACT} {
-      display: none;
-    }
-  `,
-]);
+  ${COMPACT} {
+    display: none;
+  }
+`;
 
-export const BarTrack = styled.div(() => [
-  tw`relative h-[6px] overflow-hidden bg-[rgba(255,255,255,0.12)]`,
-  css`
-    grid-column: 1 / -1;
+export const BarValue = styled.dd`
+  ${tw`m-0 text-right text-white`}
 
-    ${media.shortestPortrait} {
-      height: 4px;
-    }
+  ${COMPACT} {
+    display: none;
+  }
+`;
 
-    ${COMPACT} {
-      height: 4px;
-      grid-column: 2;
-    }
-  `,
-]);
+export const BarTrack = styled.div`
+  ${tw`relative h-[6px] overflow-hidden bg-[rgba(255,255,255,0.12)]`}
+
+  grid-column: 1 / -1;
+
+  ${media.shortestPortrait} {
+    height: 4px;
+  }
+
+  ${COMPACT} {
+    height: 4px;
+    grid-column: 2;
+  }
+`;
 
 // The fill moves by transform alone, so updating it costs no layout.
 export const BarFill = styled.div(({ colour }: { colour: string }) => [
@@ -275,81 +263,77 @@ export const BarFill = styled.div(({ colour }: { colour: string }) => [
 // Where the ship stands on a world: in the corner the radar keeps in flight (as wide as the screen allows on an
 // upright phone, where the telemetry steps aside for it); on a phone on its side, in the telemetry's corner instead,
 // where it steps aside for it, clear of the column of bars on the left.
-export const SurfaceCard = styled.section(() => [
-  tw`m-0 p-[8px] md:p-[12px] flex flex-col gap-[2px] min-w-0 pointer-events-none`,
-  css`
-    grid-area: radar;
-    align-self: end;
-    justify-self: start;
-    max-width: min(100%, 300px);
-    ${voyagePanel()}
+export const SurfaceCard = styled.section`
+  ${tw`m-0 p-[8px] md:p-[12px] flex flex-col gap-[2px] min-w-0 pointer-events-none`}
 
-    /* Where there is room it takes the radar's corner and the column's width beside it (the bar keeping to the middle
-       while it shows, the HUD marked data-card). */
-    ${media.voyageWide} {
-      grid-column: 1 / 3;
-    }
+  grid-area: radar;
+  align-self: end;
+  justify-self: start;
+  max-width: min(100%, 300px);
+  ${voyagePanel()}
 
-    ${media.shortLandscape} {
-      grid-area: side;
-      justify-self: end;
-      max-width: min(28vw, 190px);
-    }
-  `,
-]);
+  /* Where there is room it takes the radar's corner and the column's width beside it (the bar keeping to the middle
+     while it shows, the HUD marked data-card). */
+  ${media.voyageWide} {
+    grid-column: 1 / 3;
+  }
+
+  ${media.shortLandscape} {
+    grid-area: side;
+    justify-self: end;
+    max-width: min(28vw, 190px);
+  }
+`;
 
 export const SurfaceTitle = tw.h3`m-0 text-xs md:text-sm font-semibold text-white`;
 
 // The card's details: left to the full HUD when the HUD is compact, which keeps the title, the phase, what to do and,
 // coming down, how high and how fast falling (marked data-slim).
-export const SurfaceLine = styled.p(() => [
-  tw`m-0 text-[11px] md:text-xs text-[#c4d2ff]`,
-  css`
-    ${COMPACT}:not([data-slim]) {
-      display: none;
-    }
-  `,
-]);
+export const SurfaceLine = styled.p`
+  ${tw`m-0 text-[11px] md:text-xs text-[#c4d2ff]`}
+
+  ${COMPACT}:not([data-slim]) {
+    display: none;
+  }
+`;
 
 // How a world is come down on: kept to two lines on a phone on its side, where the card has the corner's height only,
 // and left out on the shortest upright phone, where the title and the phase say enough.
-export const SurfaceMethod = styled.p(() => [
-  tw`m-0 text-[11px] md:text-xs text-[#c4d2ff]`,
-  css`
-    ${media.shortestPortrait} {
-      display: none;
-    }
+export const SurfaceMethod = styled.p`
+  ${tw`m-0 text-[11px] md:text-xs text-[#c4d2ff]`}
 
-    ${COMPACT} {
-      display: none;
-    }
+  ${media.shortestPortrait} {
+    display: none;
+  }
 
-    ${media.shortLandscape} {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-  `,
-]);
+  ${COMPACT} {
+    display: none;
+  }
+
+  ${media.shortLandscape} {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+`;
 
 // The hull's heat and the air, from the telemetry: shown in the card only where the telemetry steps aside for it.
-export const SurfaceReading = styled.p(() => [
-  tw`hidden m-0 text-[11px] md:text-xs text-[#c4d2ff] tabular-nums`,
-  css`
-    ${media.narrowPortrait} {
-      display: block;
-    }
+export const SurfaceReading = styled.p`
+  ${tw`hidden m-0 text-[11px] md:text-xs text-[#c4d2ff] tabular-nums`}
 
-    ${media.shortLandscape} {
-      display: block;
-    }
+  ${media.narrowPortrait} {
+    display: block;
+  }
 
-    ${COMPACT} {
-      display: none;
-    }
-  `,
-]);
+  ${media.shortLandscape} {
+    display: block;
+  }
+
+  ${COMPACT} {
+    display: none;
+  }
+`;
 
 // What the way down is doing now, the line a reader looks for first.
 export const SurfacePhase = tw.p`m-0 my-[2px] text-xs md:text-sm font-semibold text-[#ffd27a]`;
@@ -419,25 +403,24 @@ export const TelemetryValue = tw.dd`m-0 text-right text-white`;
 
 // The score and the purse: a row of its own at the right under the buttons on a phone, between the place and the
 // buttons where there is room.
-export const Readout = styled.dl(() => [
-  tw`m-0 flex flex-row flex-wrap items-center justify-end gap-x-[12px] gap-y-[2px] md:gap-x-[16px] md:gap-y-[4px] text-sm tabular-nums pointer-events-none`,
-  css`
-    grid-area: readout;
+export const Readout = styled.dl`
+  ${tw`m-0 flex flex-row flex-wrap items-center justify-end gap-x-[12px] gap-y-[2px] md:gap-x-[16px] md:gap-y-[4px] text-sm tabular-nums pointer-events-none`}
+
+  grid-area: readout;
+  justify-self: end;
+  align-self: center;
+  ${halo}
+
+  ${media.voyageWide} {
+    justify-self: center;
+    align-self: start;
+  }
+
+  ${media.shortLandscape} {
     justify-self: end;
     align-self: center;
-    ${halo}
-
-    ${media.voyageWide} {
-      justify-self: center;
-      align-self: start;
-    }
-
-    ${media.shortLandscape} {
-      justify-self: end;
-      align-self: center;
-    }
-  `,
-]);
+  }
+`;
 
 export const Reading = tw.div`flex flex-row items-baseline gap-[6px]`;
 
@@ -446,55 +429,51 @@ export const ReadingName = tw.dt`text-xs text-[#9aa3bb]`;
 export const ReadingValue = tw.dd`m-0 font-semibold text-white`;
 
 // The buttons at the top right, a little smaller where all six would not fit at full size (a foldable's cover screen).
-export const HudButtons = styled.div(() => [
-  tw`flex flex-row gap-[8px] pointer-events-auto`,
-  css`
-    grid-area: buttons;
-    justify-self: end;
-    align-self: start;
+export const HudButtons = styled.div`
+  ${tw`flex flex-row gap-[8px] pointer-events-auto`}
 
-    ${media.narrow} {
-      gap: 5px;
+  grid-area: buttons;
+  justify-self: end;
+  align-self: start;
 
-      & > button {
-        width: 36px;
-        height: 36px;
-      }
+  ${media.narrow} {
+    gap: 5px;
+
+    & > button {
+      width: 36px;
+      height: 36px;
     }
-  `,
-]);
+  }
+`;
 
 // The ship's systems, listed only once one of them is hurt, each with a small bar; a little narrower on the shortest
 // upright phone.
-export const Systems = styled.dl(() => [
-  tw`m-0 mt-[4px] flex flex-col gap-[3px] w-[150px] md:w-[210px]`,
-  css`
-    ${media.shortestPortrait} {
-      width: 120px;
-    }
+export const Systems = styled.dl`
+  ${tw`m-0 mt-[4px] flex flex-col gap-[3px] w-[150px] md:w-[210px]`}
 
-    ${COMPACT} {
-      display: none;
-    }
-  `,
-]);
+  ${media.shortestPortrait} {
+    width: 120px;
+  }
+
+  ${COMPACT} {
+    display: none;
+  }
+`;
 
 // Over the systems and over the faults; with both, behind the compact HUD's info button, whose dot says they wait.
-export const SystemsTitle = styled.p(() => [
-  tw`m-0 mt-[6px] text-[11px] md:text-xs font-semibold text-[#c4d2ff]`,
-  css`
-    ${COMPACT} {
-      display: none;
-    }
-  `,
-]);
+export const SystemsTitle = styled.p`
+  ${tw`m-0 mt-[6px] text-[11px] md:text-xs font-semibold text-[#c4d2ff]`}
 
-export const SystemRow = styled.div(() => [
-  tw`grid items-center gap-x-[8px] text-[11px] tabular-nums`,
-  css`
-    grid-template-columns: 1fr 48px;
-  `,
-]);
+  ${COMPACT} {
+    display: none;
+  }
+`;
+
+export const SystemRow = styled.div`
+  ${tw`grid items-center gap-x-[8px] text-[11px] tabular-nums`}
+
+  grid-template-columns: 1fr 48px;
+`;
 
 export const SystemName = tw.dt`text-[#9aa3bb] truncate`;
 
@@ -504,28 +483,26 @@ export const Credits = tw.p`m-0 text-[11px] text-[#7d859c] leading-snug`;
 
 // MMO frames: the target under the vitals (a little narrower on the shortest upright phone); the boss and any rock
 // headed for a world among the alerts.
-export const TargetFrame = styled.section(() => [
-  tw`mt-[6px] flex flex-col gap-[3px] w-[150px] md:w-[210px] p-[6px] bg-[rgba(5,8,18,0.7)]`,
-  css`
-    border: 1px solid rgba(255, 77, 94, 0.45);
+export const TargetFrame = styled.section`
+  ${tw`mt-[6px] flex flex-col gap-[3px] w-[150px] md:w-[210px] p-[6px] bg-[rgba(5,8,18,0.7)]`}
 
-    ${media.shortestPortrait} {
-      width: 120px;
-    }
-  `,
-]);
+  border: 1px solid rgba(255, 77, 94, 0.45);
+
+  ${media.shortestPortrait} {
+    width: 120px;
+  }
+`;
 
 // A frame's name and its standing: a long name is cut short with an ellipsis and the standing always shows beside it;
 // on the shortest upright phone, where the target's frame is narrow, the standing wraps under the name instead.
-export const FrameName = styled.p(() => [
-  tw`m-0 flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white min-w-0`,
-  css`
-    ${media.shortestPortrait} {
-      flex-wrap: wrap;
-      gap: 0 6px;
-    }
-  `,
-]);
+export const FrameName = styled.p`
+  ${tw`m-0 flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white min-w-0`}
+
+  ${media.shortestPortrait} {
+    flex-wrap: wrap;
+    gap: 0 6px;
+  }
+`;
 
 export const FrameTitle = tw.span`min-w-0 truncate`;
 
@@ -539,85 +516,80 @@ export const ALERTS_MORE_PX = 28;
 // The alerts in the room between the column and the bottom, stacked up from the bottom, nearest the ship, the most
 // urgent lowest: what has no whole room above them folds away (marked data-folded) under one line saying how many more
 // there are, which opens them all to be scrolled through in the same room (data-expanded).
-export const Frames = styled.div(() => [
-  tw`relative flex flex-col justify-end gap-[6px] w-full min-h-0 overflow-hidden pointer-events-none`,
-  css`
-    grid-area: alerts;
-    justify-self: center;
-    max-width: 420px;
+export const Frames = styled.div`
+  ${tw`relative flex flex-col justify-end gap-[6px] w-full min-h-0 overflow-hidden pointer-events-none`}
 
-    & > [data-folded] {
-      visibility: hidden;
-    }
+  grid-area: alerts;
+  justify-self: center;
+  max-width: 420px;
 
-    /* Opened, only the alerts themselves take a press (and scroll the list), never the empty room round them, where
-       the ship is steered. */
-    &[data-expanded] {
-      justify-content: flex-start;
-      overflow-y: auto;
-      scrollbar-width: thin;
-    }
+  & > [data-folded] {
+    visibility: hidden;
+  }
 
-    &[data-expanded] > * {
-      pointer-events: auto;
-    }
-  `,
-]);
+  /* Opened, only the alerts themselves take a press (and scroll the list), never the empty room round them, where
+     the ship is steered. */
+  &[data-expanded] {
+    justify-content: flex-start;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  &[data-expanded] > * {
+    pointer-events: auto;
+  }
+`;
 
 // The line standing for the folded alerts, at the top of their room: how many more, pressed to open them all.
-export const AlertsMore = styled.button(() => [
-  tw`absolute top-0 left-1/2 flex items-center justify-center h-[24px] px-[10px] text-[11px] font-semibold whitespace-nowrap text-[#c4d2ff]
-    cursor-pointer pointer-events-auto bg-[rgba(10,14,30,0.85)] border-[1px] border-solid border-[#2a3350] rounded-full`,
-  css`
-    transform: translateX(-50%);
-    ${focusRing("#c4d2ff", 2)}
+export const AlertsMore = styled.button`
+  ${tw`absolute top-0 left-1/2 flex items-center justify-center h-[24px] px-[10px] text-[11px] font-semibold whitespace-nowrap text-[#c4d2ff]
+    cursor-pointer pointer-events-auto bg-[rgba(10,14,30,0.85)] border-[1px] border-solid border-[#2a3350] rounded-full`}
 
-    [data-expanded] > & {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      align-self: center;
-      transform: none;
-    }
-  `,
-]);
+  transform: translateX(-50%);
+  ${focusRing("#c4d2ff", 2)}
+
+  [data-expanded] > & {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    align-self: center;
+    transform: none;
+  }
+`;
 
 // The room the radar is drawn in on the canvas, bottom left, kept clear of the panels: as big as MapLayer draws it
 // (the HUD's --radar, 14px in from the corner).
-export const RadarSpace = styled.div(() => [
-  tw`pointer-events-none`,
-  css`
-    grid-area: radar;
-    align-self: end;
-    justify-self: start;
-    width: var(--radar);
-    height: var(--radar);
+export const RadarSpace = styled.div`
+  ${tw`pointer-events-none`}
 
-    /* The HUD's own margin is 18px there, the radar's 14px. */
-    ${media.md} {
-      margin: 0 0 -4px -4px;
-    }
-  `,
-]);
+  grid-area: radar;
+  align-self: end;
+  justify-self: start;
+  width: var(--radar);
+  height: var(--radar);
 
-export const BossFrame = styled.section(() => [
-  tw`flex flex-col gap-[4px] p-[8px] bg-[rgba(5,8,18,0.78)]`,
-  css`
-    border: 1px solid rgba(255, 77, 94, 0.7);
-  `,
-]);
+  /* The HUD's own margin is 18px there, the radar's 14px. */
+  ${media.md} {
+    margin: 0 0 -4px -4px;
+  }
+`;
 
-export const Incoming = styled.section(() => [
-  tw`flex flex-col gap-[4px] p-[6px] text-[11px] md:text-xs font-semibold text-[#ffd0d4] bg-[rgba(40,6,10,0.75)]`,
-  css`
-    border: 1px solid rgba(255, 77, 94, 0.6);
-  `,
-]);
+export const BossFrame = styled.section`
+  ${tw`flex flex-col gap-[4px] p-[8px] bg-[rgba(5,8,18,0.78)]`}
 
-export const IconButton = styled.button(() => [
-  tw`flex items-center justify-center w-[38px] h-[38px] p-0 cursor-pointer text-white bg-[rgba(10,14,30,0.75)] border-[1px] border-solid border-[#2a3350] rounded-full`,
-  focusRing("#c4d2ff", 2),
-]);
+  border: 1px solid rgba(255, 77, 94, 0.7);
+`;
+
+export const Incoming = styled.section`
+  ${tw`flex flex-col gap-[4px] p-[6px] text-[11px] md:text-xs font-semibold text-[#ffd0d4] bg-[rgba(40,6,10,0.75)]`}
+
+  border: 1px solid rgba(255, 77, 94, 0.6);
+`;
+
+export const IconButton = styled.button`
+  ${tw`flex items-center justify-center w-[38px] h-[38px] p-0 cursor-pointer text-white bg-[rgba(10,14,30,0.75)] border-[1px] border-solid border-[#2a3350] rounded-full`}
+  ${focusRing("#c4d2ff", 2)}
+`;
 
 // Rising into its place, then fading.
 const fadeLine = keyframes`
@@ -660,24 +632,24 @@ const showLine = keyframes`
 // it decoded to. Spans, since it lives in the line's paragraph.
 export const CardText = tw.span`flex flex-col gap-[2px] min-w-0`;
 
-export const CardTitle = styled.span(() => [tw`flex flex-row items-center gap-[6px] text-[11px] font-semibold text-[#ff9f5a]`]);
+export const CardTitle = styled.span`
+  ${tw`flex flex-row items-center gap-[6px] text-[11px] font-semibold text-[#ff9f5a]`}
+`;
 
-export const CardName = styled.span(() => [
-  tw`text-[15px] md:text-base font-semibold text-white`,
-  css`
-    line-height: 1.375;
-  `,
-]);
+export const CardName = styled.span`
+  ${tw`text-[15px] md:text-base font-semibold text-white`}
+
+  line-height: 1.375;
+`;
 
 export const CardReward = tw.span`flex flex-row flex-wrap items-center gap-x-[8px] text-xs font-semibold text-[#c9cfdf] tabular-nums`;
 
-export const CardLine = styled.span(() => [
-  tw`block mt-[4px] pl-[8px] text-xs md:text-sm font-normal text-[#e6e9f2]`,
-  css`
-    line-height: 1.625;
-    border-left: 2px solid #ffd76a;
-  `,
-]);
+export const CardLine = styled.span`
+  ${tw`block mt-[4px] pl-[8px] text-xs md:text-sm font-normal text-[#e6e9f2]`}
+
+  line-height: 1.625;
+  border-left: 2px solid #ffd76a;
+`;
 
 export const Message = styled.p(({ isCard = false }: { isCard?: boolean }) => [
   tw`m-0 px-[14px] py-[8px] text-sm md:text-base font-semibold text-center text-white pointer-events-none`,
@@ -788,61 +760,59 @@ export const Tracker = styled.div(({ isYielding = false }: { isYielding?: boolea
 export const TrackerText = tw.span`flex flex-col gap-[1px] flex-1 min-w-0`;
 
 // One line in a compact HUD, the name cut short before its count.
-export const TrackerName = styled.span(() => [
-  tw`flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white leading-snug`,
-  css`
-    ${COMPACT} {
-      white-space: nowrap;
+export const TrackerName = styled.span`
+  ${tw`flex flex-row items-baseline justify-between gap-[6px] text-[11px] md:text-xs font-semibold text-white leading-snug`}
 
-      & > span:first-of-type {
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+  ${COMPACT} {
+    white-space: nowrap;
+
+    & > span:first-of-type {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-  `,
-]);
+  }
+`;
 
 export const TrackerCount = tw.span`tabular-nums text-[#ffcf9f] whitespace-nowrap`;
 
 // What the quest belongs to; left out on a short upright phone and on a phone on its side, where the column is short.
-export const TrackerSub = styled.span(() => [
-  tw`text-[10px] md:text-[11px] text-[#aab3c9] truncate`,
-  css`
-    ${media.shortPortrait} {
-      display: none;
-    }
+export const TrackerSub = styled.span`
+  ${tw`text-[10px] md:text-[11px] text-[#aab3c9] truncate`}
 
-    ${COMPACT} {
-      display: none;
-    }
+  ${media.shortPortrait} {
+    display: none;
+  }
 
-    ${media.shortLandscape} {
-      display: none;
-    }
-  `,
-]);
+  ${COMPACT} {
+    display: none;
+  }
 
-export const TrackerOpen = styled.button(() => [
-  tw`flex flex-shrink-0 items-center justify-center w-[34px] h-[34px] p-0 cursor-pointer text-[#ff9f5a] bg-[rgba(10,14,30,0.75)] border-[1px] border-solid
-     border-[#3a4566]`,
-  css`
-    pointer-events: auto;
-  `,
-  focusRing("#c4d2ff", 2),
-]);
+  ${media.shortLandscape} {
+    display: none;
+  }
+`;
+
+export const TrackerOpen = styled.button`
+  ${tw`flex flex-shrink-0 items-center justify-center w-[34px] h-[34px] p-0 cursor-pointer text-[#ff9f5a] bg-[rgba(10,14,30,0.75)] border-[1px] border-solid
+     border-[#3a4566]`}
+
+  pointer-events: auto;
+
+  ${focusRing("#c4d2ff", 2)}
+`;
 
 // The way from a line about a quest to the quest log: a small chip after its words, the only part of the line that
 // takes a press.
-export const MessageButton = styled.button(() => [
-  tw`inline-flex items-center gap-[4px] ml-[8px] px-[8px] py-[2px] cursor-pointer text-[11px] font-semibold text-[#ffcf9f] bg-transparent border-[1px]
-     border-solid border-[#ff9f5a] align-middle`,
-  css`
-    min-height: 28px;
-    pointer-events: auto;
-  `,
-  focusRing("#c4d2ff", 2),
-]);
+export const MessageButton = styled.button`
+  ${tw`inline-flex items-center gap-[4px] ml-[8px] px-[8px] py-[2px] cursor-pointer text-[11px] font-semibold text-[#ffcf9f] bg-transparent border-[1px]
+     border-solid border-[#ff9f5a] align-middle`}
+
+  min-height: 28px;
+  pointer-events: auto;
+
+  ${focusRing("#c4d2ff", 2)}
+`;
 
 // Under the HUD's buttons (so they still answer while a card is up), the card's own scrolling area: the whole of it
 // scrolls as one, so a card taller than a short phone is read to the end. Some phones will not scroll a box nested
@@ -908,57 +878,56 @@ export const Chip = styled.span(({ colour = "#c9cfdf" }: { colour?: string }) =>
 ]);
 
 // The controls, folded under a title the pilot opens (open the first time the voyage opens).
-export const HowTo = styled.details(() => [
-  tw`block`,
-  css`
-    border-top: 1px solid rgba(196, 210, 255, 0.14);
-    padding-top: 10px;
+export const HowTo = styled.details`
+  ${tw`block`}
 
-    /* Its own arrow, the same in every browser, turning as it opens. */
-    & > summary {
-      cursor: pointer;
-      min-height: 32px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      list-style: none;
-      font-size: 14px;
-      font-weight: 600;
-      color: #c4d2ff;
-    }
+  border-top: 1px solid rgba(196, 210, 255, 0.14);
+  padding-top: 10px;
 
-    & > summary::-webkit-details-marker {
-      display: none;
-    }
+  /* Its own arrow, the same in every browser, turning as it opens. */
+  & > summary {
+    cursor: pointer;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #c4d2ff;
+  }
 
+  & > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  & > summary::before {
+    content: "";
+    border-left: 6px solid currentColor;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    transition: transform 0.15s ease;
+  }
+
+  &[open] > summary::before {
+    transform: rotate(90deg);
+  }
+
+  ${media.reducedMotion} {
     & > summary::before {
-      content: "";
-      border-left: 6px solid currentColor;
-      border-top: 5px solid transparent;
-      border-bottom: 5px solid transparent;
-      transition: transform 0.15s ease;
+      transition: none;
     }
+  }
 
-    &[open] > summary::before {
-      transform: rotate(90deg);
-    }
+  & > summary:focus-visible {
+    outline: 2px solid #c4d2ff;
+    outline-offset: 2px;
+  }
 
-    ${media.reducedMotion} {
-      & > summary::before {
-        transition: none;
-      }
-    }
-
-    & > summary:focus-visible {
-      outline: 2px solid #c4d2ff;
-      outline-offset: 2px;
-    }
-
-    & > p {
-      margin-top: 4px;
-    }
-  `,
-]);
+  & > p {
+    margin-top: 4px;
+  }
+`;
 
 // A run's figures at its end, as tiles: the figure large and what it is under it; one too long for a tile spans the
 // row.
@@ -1016,36 +985,34 @@ export const SetupTitle = tw.h3`m-0 text-base font-semibold text-white`;
 export const Score = tw.p`m-0 text-4xl md:text-5xl font-bold text-[#ffd76a] tabular-nums leading-none`;
 
 // The score and what it won, side by side, the badge centred on the score.
-export const ScoreRow = styled.div(() => [
-  tw`flex flex-row flex-wrap items-center gap-[10px]`,
-  css`
-    & > p {
-      align-self: center;
-    }
-  `,
-]);
+export const ScoreRow = styled.div`
+  ${tw`flex flex-row flex-wrap items-center gap-[10px]`}
+
+  & > p {
+    align-self: center;
+  }
+`;
 
 export const Badge = tw.p`m-0 self-start px-[10px] py-[4px] text-xs font-semibold text-[#101010] bg-[#ffc45c]`;
 
 // The ship's hull and mark, under where it is.
 // The rank and the ship; left out on a short upright phone and on a phone on its side, where the column is short (the
 // hangar says both).
-export const ShipLine = styled.p(() => [
-  tw`m-0 text-[11px] md:text-xs text-[#9aa3bb]`,
-  css`
-    ${media.shortPortrait} {
-      display: none;
-    }
+export const ShipLine = styled.p`
+  ${tw`m-0 text-[11px] md:text-xs text-[#9aa3bb]`}
 
-    ${COMPACT} {
-      display: none;
-    }
+  ${media.shortPortrait} {
+    display: none;
+  }
 
-    ${media.shortLandscape} {
-      display: none;
-    }
-  `,
-]);
+  ${COMPACT} {
+    display: none;
+  }
+
+  ${media.shortLandscape} {
+    display: none;
+  }
+`;
 
 // Red Coin gold, Void Shards violet.
 export const Coin = styled.dd(({ isShards = false }: { isShards?: boolean }) => [
@@ -1060,40 +1027,37 @@ const floatGain = keyframes`
 `;
 
 // What a count just rose by, floating up off it and gone.
-export const Gain = styled.span(() => [
-  tw`absolute right-0 bottom-full text-[11px] md:text-xs font-bold whitespace-nowrap pointer-events-none`,
-  css`
-    animation: ${floatGain} 1.2s ease-out both;
+export const Gain = styled.span`
+  ${tw`absolute right-0 bottom-full text-[11px] md:text-xs font-bold whitespace-nowrap pointer-events-none`}
 
-    ${media.reducedMotion} {
-      animation-name: none;
-      opacity: 1;
-    }
-  `,
-]);
+  animation: ${floatGain} 1.2s ease-out both;
+
+  ${media.reducedMotion} {
+    animation-name: none;
+    opacity: 1;
+  }
+`;
 
 // Faults on board, each with its fix; the buttons take clicks through the HUD. On the shortest upright phone narrow
 // enough to clear the telemetry beside it.
-export const FaultList = styled.ul(() => [
-  tw`m-0 mt-[4px] p-0 list-none flex flex-col gap-[4px] w-[170px] md:w-[230px] pointer-events-auto`,
-  css`
-    ${media.shortestPortrait} {
-      width: 120px;
-    }
+export const FaultList = styled.ul`
+  ${tw`m-0 mt-[4px] p-0 list-none flex flex-col gap-[4px] w-[170px] md:w-[230px] pointer-events-auto`}
 
-    ${COMPACT} {
-      display: none;
-    }
-  `,
-]);
+  ${media.shortestPortrait} {
+    width: 120px;
+  }
 
-export const FaultRow = styled.li(() => [
-  tw`flex flex-row flex-wrap items-center justify-between gap-x-[8px] gap-y-[3px] px-[6px] py-[4px] text-[11px] md:text-xs font-semibold text-[#ffd0d4]`,
-  css`
-    background: rgba(40, 6, 10, 0.7);
-    border: 1px solid rgba(255, 77, 94, 0.5);
-  `,
-]);
+  ${COMPACT} {
+    display: none;
+  }
+`;
+
+export const FaultRow = styled.li`
+  ${tw`flex flex-row flex-wrap items-center justify-between gap-x-[8px] gap-y-[3px] px-[6px] py-[4px] text-[11px] md:text-xs font-semibold text-[#ffd0d4]`}
+
+  background: rgba(40, 6, 10, 0.7);
+  border: 1px solid rgba(255, 77, 94, 0.5);
+`;
 
 // Gold when the hold can fix it; quiet when it cannot, though a tap still says what to look for.
 export const FixButton = styled.button(({ isReady }: { isReady: boolean }) => [
@@ -1108,44 +1072,40 @@ export const FixButton = styled.button(({ isReady }: { isReady: boolean }) => [
 
 // What a fault needs, under it, when the hold has nothing that fixes it. Left to its button on the shortest upright
 // phone, whose press says the same, and still read with the button by a screen reader.
-export const FaultNeed = styled.p(() => [
-  tw`m-0 w-full text-[10px] md:text-[11px] font-normal leading-snug text-[#e3b5bb]`,
-  css`
-    ${media.shortestPortrait} {
-      display: none;
-    }
-  `,
-]);
+export const FaultNeed = styled.p`
+  ${tw`m-0 w-full text-[10px] md:text-[11px] font-normal leading-snug text-[#e3b5bb]`}
+
+  ${media.shortestPortrait} {
+    display: none;
+  }
+`;
 
 // The one thing ready to do, in one click.
-export const ReadyButton = styled.button(() => [
-  tw`flex flex-row items-center justify-center gap-[8px] px-[12px] py-[8px] text-xs md:text-sm font-semibold cursor-pointer text-[#101010] bg-[#7dffcf] border-0
-     pointer-events-auto`,
-  css`
-    box-shadow: 0 0 0 1px rgba(125, 255, 207, 0.4), 0 0 18px rgba(125, 255, 207, 0.35);
+export const ReadyButton = styled.button`
+  ${tw`flex flex-row items-center justify-center gap-[8px] px-[12px] py-[8px] text-xs md:text-sm font-semibold cursor-pointer text-[#101010] bg-[#7dffcf] border-0
+     pointer-events-auto`}
 
-    ${focusRing("#ffffff", 2)}
-  `,
-]);
+  box-shadow: 0 0 0 1px rgba(125, 255, 207, 0.4), 0 0 18px rgba(125, 255, 207, 0.35);
 
-export const Salvage = styled.section(() => [
-  tw`flex flex-col gap-[4px] p-[6px] text-[11px] md:text-xs font-semibold text-[#c9fff0] bg-[rgba(4,26,22,0.75)]`,
-  css`
-    border: 1px solid rgba(125, 255, 207, 0.5);
-  `,
-]);
+  ${focusRing("#ffffff", 2)}
+`;
+
+export const Salvage = styled.section`
+  ${tw`flex flex-col gap-[4px] p-[6px] text-[11px] md:text-xs font-semibold text-[#c9fff0] bg-[rgba(4,26,22,0.75)]`}
+
+  border: 1px solid rgba(125, 255, 207, 0.5);
+`;
 
 export const Pay = tw.p`m-0 text-sm md:text-base font-semibold text-[#ffd76a] tabular-nums`;
 
 // Photo mode's only controls, along the bottom: how to look round, save, and go back to flying.
-export const PhotoBar = styled.section(() => [
-  tw`absolute left-1/2 bottom-[16px] flex flex-row flex-wrap items-center justify-center gap-[10px] px-[14px] py-[10px]`,
-  css`
-    width: min(92vw, 560px);
-    transform: translateX(-50%);
-    ${voyagePanel(0.82, 0.35)}
-  `,
-]);
+export const PhotoBar = styled.section`
+  ${tw`absolute left-1/2 bottom-[16px] flex flex-row flex-wrap items-center justify-center gap-[10px] px-[14px] py-[10px]`}
+
+  width: min(92vw, 560px);
+  transform: translateX(-50%);
+  ${voyagePanel(0.82, 0.35)}
+`;
 
 export const PhotoHint = tw.p`m-0 w-full text-center text-xs md:text-sm text-[#c9cfdf]`;
 
@@ -1156,88 +1116,84 @@ export const PadButtons = tw.div`flex flex-row flex-wrap items-center justify-ce
 export const LiveRegion = tw.div`sr-only`;
 
 // The map's own bar in place of the HUD: its name, and the way back to flying.
-export const MapBar = styled.header(() => [
-  tw`absolute top-0 left-0 right-0 flex flex-row items-center gap-[8px] p-[14px] md:p-[18px]`,
-  css`
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+export const MapBar = styled.header`
+  ${tw`absolute top-0 left-0 right-0 flex flex-row items-center gap-[8px] p-[14px] md:p-[18px]`}
 
-    /* The name on the left, the way back on the right. */
-    & > :first-child {
-      margin-right: auto;
-    }
-  `,
-]);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+
+  /* The name on the left, the way back on the right. */
+  & > :first-child {
+    margin-right: auto;
+  }
+`;
 
 export const MapTitle = tw.h2`m-0 text-base md:text-lg font-semibold text-white`;
 
 // The guided first flight's card: a step at a time, among the frames.
-export const GuideCard = styled.section(() => [
-  tw`flex flex-col gap-[6px] p-[10px] text-xs md:text-sm text-white pointer-events-auto`,
-  css`
-    ${voyagePanel(0.88, 0.5)}
-    border-color: rgba(125, 255, 207, 0.6);
-  `,
-]);
+export const GuideCard = styled.section`
+  ${tw`flex flex-col gap-[6px] p-[10px] text-xs md:text-sm text-white pointer-events-auto`}
+
+  ${voyagePanel(0.88, 0.5)}
+  border-color: rgba(125, 255, 207, 0.6);
+`;
 
 export const GuideStep = tw.p`m-0 text-[10px] md:text-[11px] font-semibold text-[#7dffcf]`;
 
 export const GuideText = tw.p`m-0 leading-snug`;
 
-export const GuideActions = styled.div(() => [
-  tw`flex flex-row gap-[8px]`,
-  css`
-    & > button {
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      color: #101010;
-      background: #7dffcf;
-      border: 0;
-      ${focusRing("#ffffff", 2)}
-    }
+export const GuideActions = styled.div`
+  ${tw`flex flex-row gap-[8px]`}
 
-    & > button + button {
-      color: #c9cfdf;
-      background: transparent;
-      border: 1px solid #3a4566;
-    }
-  `,
-]);
+  & > button {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #101010;
+    background: #7dffcf;
+    border: 0;
+    ${focusRing("#ffffff", 2)}
+  }
+
+  & > button + button {
+    color: #c9cfdf;
+    background: transparent;
+    border: 1px solid #3a4566;
+  }
+`;
 
 // The thumb stick a touch screen steers with when aiming by hand: drawn where the thumb went down, its knob moved
 // by the hook through a variable, never by a render.
-export const TouchStick = styled.div(() => [
-  tw`absolute left-0 top-0 pointer-events-none`,
-  css`
-    width: 0;
-    height: 0;
-    opacity: 0;
-    transition: opacity 0.15s linear;
+export const TouchStick = styled.div`
+  ${tw`absolute left-0 top-0 pointer-events-none`}
 
-    &::before,
-    &::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-    }
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transition: opacity 0.15s linear;
 
-    &::before {
-      width: 112px;
-      height: 112px;
-      left: -56px;
-      top: -56px;
-      border: 2px solid rgba(196, 210, 255, 0.45);
-      background: rgba(5, 8, 18, 0.25);
-    }
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+  }
 
-    &::after {
-      width: 44px;
-      height: 44px;
-      left: -22px;
-      top: -22px;
-      background: rgba(196, 210, 255, 0.55);
-      transform: var(--knob, translate(0px, 0px));
-    }
-  `,
-]);
+  &::before {
+    width: 112px;
+    height: 112px;
+    left: -56px;
+    top: -56px;
+    border: 2px solid rgba(196, 210, 255, 0.45);
+    background: rgba(5, 8, 18, 0.25);
+  }
+
+  &::after {
+    width: 44px;
+    height: 44px;
+    left: -22px;
+    top: -22px;
+    background: rgba(196, 210, 255, 0.55);
+    transform: var(--knob, translate(0px, 0px));
+  }
+`;

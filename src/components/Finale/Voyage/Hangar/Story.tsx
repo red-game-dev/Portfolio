@@ -1,6 +1,6 @@
 import { FC, ReactNode } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { chapterTitle, storyStepName } from "@/components/Finale/Voyage/career";
 import {
@@ -29,12 +29,11 @@ const SIGNAL = "#ffd76a";
 const Fragments = tw.ol`m-0 p-0 list-none flex flex-col gap-[12px]`;
 
 // A chapter told: its title, the line the signal decoded to, edged in its gold, and what its steps paid.
-const Fragment = styled.li(() => [
-  tw`flex flex-col gap-[3px] pl-[10px] text-xs md:text-sm text-[#e6e9f2] leading-relaxed`,
-  css`
-    border-left: 2px solid ${SIGNAL};
-  `,
-]);
+const Fragment = styled.li`
+  ${tw`flex flex-col gap-[3px] pl-[10px] text-xs md:text-sm text-[#e6e9f2] leading-relaxed`}
+
+  border-left: 2px solid ${SIGNAL};
+`;
 
 const FragmentTitle = tw.span`text-[11px] md:text-xs font-semibold text-[#9aa3bb]`;
 

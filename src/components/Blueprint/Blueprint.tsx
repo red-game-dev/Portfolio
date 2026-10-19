@@ -58,7 +58,9 @@ const Toggle = styled.button(({ isOn }: { isOn: boolean }) => [
   `,
 ]);
 
-const Body = styled(SwitchStage)(() => [tw`flex flex-col gap-[14px] pt-[4px]`]);
+const Body = styled(SwitchStage)`
+  ${tw`flex flex-col gap-[14px] pt-[4px]`}
+`;
 
 const Note = tw.p`m-0 text-xs text-[#8a8a8a]`;
 
@@ -78,33 +80,32 @@ const Journey = tw.section`flex flex-col gap-[8px] p-[14px] bg-[#0b0b0b] border-
 const JourneyTitle = tw.h4`m-0 text-sm font-semibold text-white`;
 
 // Journeys are real sequences, so their steps are numbered.
-const Steps = styled.ol(() => [
-  tw`list-none m-0 p-0 flex flex-col gap-[6px] text-sm text-[#bbb]`,
-  css`
-    counter-reset: step;
+const Steps = styled.ol`
+  ${tw`list-none m-0 p-0 flex flex-col gap-[6px] text-sm text-[#bbb]`}
 
-    & > li {
-      position: relative;
-      padding-left: 26px;
-      counter-increment: step;
-    }
+  counter-reset: step;
 
-    & > li::before {
-      content: counter(step);
-      position: absolute;
-      left: 0;
-      top: 1px;
-      width: 18px;
-      height: 18px;
-      font-size: 10px;
-      line-height: 18px;
-      text-align: center;
-      color: #101010;
-      background: var(--accent);
-      border-radius: 9999px;
-    }
-  `,
-]);
+  & > li {
+    position: relative;
+    padding-left: 26px;
+    counter-increment: step;
+  }
+
+  & > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 1px;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    line-height: 18px;
+    text-align: center;
+    color: #101010;
+    background: var(--accent);
+    border-radius: 9999px;
+  }
+`;
 
 const GroupHeading = tw.h4`m-0 text-xs font-semibold text-[#8a8a8a]`;
 

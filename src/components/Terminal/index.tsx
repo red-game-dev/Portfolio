@@ -48,25 +48,23 @@ interface TerminalProps {
 const STREAM_MS = 90;
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
-const Window = styled.div(() => [
-  tw`relative mt-[25px] lg:mt-[35px] bg-[#0a0f0c] border-[1px] border-solid border-[#1E1E1E]`,
-  css`
-    box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.06);
-  `,
-]);
+const Window = styled.div`
+  ${tw`relative mt-[25px] lg:mt-[35px] bg-[#0a0f0c] border-[1px] border-solid border-[#1E1E1E]`}
+
+  box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.06);
+`;
 
 const TitleBar = tw.div`flex flex-row items-center justify-between gap-[10px] px-[16px] py-[10px] text-xs text-[#888]
 border-0 border-b-[1px] border-solid border-[#1E1E1E]`;
 
 const Hint = tw.span`hidden md:inline`;
 
-const Screen = styled.div(() => [
-  tw`relative overflow-y-auto h-[340px] px-[16px] py-[14px] text-[13px] leading-[1.6]`,
-  css`
-    font-family: ${MONO};
-    scrollbar-width: thin;
-  `,
-]);
+const Screen = styled.div`
+  ${tw`relative overflow-y-auto h-[340px] px-[16px] py-[14px] text-[13px] leading-[1.6]`}
+
+  font-family: ${MONO};
+  scrollbar-width: thin;
+`;
 
 const LINE_COLOURS: Record<TerminalLineKind, string> = {
   input: "var(--accent)",
@@ -86,29 +84,26 @@ const Line = styled.div(({ kind }: { kind: TerminalLineKind }) => [
 ]);
 
 // The prompt's row lights its edge while the input has focus, so focus is seen as more than a caret.
-const Form = styled.form(() => [
-  tw`flex flex-row items-center gap-[8px] px-[16px] py-[12px] border-0 border-t-[1px] border-solid border-[#1E1E1E]`,
-  css`
-    &:focus-within {
-      box-shadow: inset 0 0 0 2px var(--accent);
-    }
-  `,
-]);
+const Form = styled.form`
+  ${tw`flex flex-row items-center gap-[8px] px-[16px] py-[12px] border-0 border-t-[1px] border-solid border-[#1E1E1E]`}
 
-const Prompt = styled.label(() => [
-  tw`flex-shrink-0 text-[13px] text-[var(--accent)]`,
-  css`
-    font-family: ${MONO};
-  `,
-]);
+  &:focus-within {
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+`;
 
-const Input = styled.input(() => [
-  tw`flex-1 min-w-0 p-0 text-[13px] text-white bg-transparent border-0 outline-none`,
-  css`
-    font-family: ${MONO};
-    caret-color: var(--accent);
-  `,
-]);
+const Prompt = styled.label`
+  ${tw`flex-shrink-0 text-[13px] text-[var(--accent)]`}
+
+  font-family: ${MONO};
+`;
+
+const Input = styled.input`
+  ${tw`flex-1 min-w-0 p-0 text-[13px] text-white bg-transparent border-0 outline-none`}
+
+  font-family: ${MONO};
+  caret-color: var(--accent);
+`;
 
 const Suggestions = tw.div`flex flex-row flex-wrap gap-[8px] mt-[14px]`;
 
@@ -154,14 +149,13 @@ const Suggestion = styled.button(({ isFeatured }: { isFeatured: boolean }) => [
 const FeaturedLabel = tw.span`font-sans font-semibold`;
 
 // The cursor at the end of an answer still being written.
-const Caret = styled.span(() => [
-  tw`inline-block w-[7px] h-[1em] ml-[2px] align-text-bottom bg-[var(--accent)]`,
-  css`
-    animation: ${caretBlink} 1s steps(1) infinite;
+const Caret = styled.span`
+  ${tw`inline-block w-[7px] h-[1em] ml-[2px] align-text-bottom bg-[var(--accent)]`}
 
-    ${noAnimationWhenReduced}
-  `,
-]);
+  animation: ${caretBlink} 1s steps(1) infinite;
+
+  ${noAnimationWhenReduced}
+`;
 
 const FollowUps = tw.div`flex flex-row flex-wrap items-center gap-[8px] mt-[14px]`;
 

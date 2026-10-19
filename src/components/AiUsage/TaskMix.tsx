@@ -1,6 +1,6 @@
 import { FC, useRef } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { AI_USAGE_MOTION } from "@/components/AiUsage/config";
 import { DecodedText } from "@/components/DecodedText";
@@ -13,102 +13,98 @@ const { rowDelayMs, bitDelayMs } = AI_USAGE_MOTION;
 
 const Rows = tw.ol`list-none m-0 mt-[25px] p-0 flex flex-col gap-[16px]`;
 
-const RowLabel = styled.span(() => [
-  tw`text-sm lg:text-base text-[#eee] break-words`,
-  css`
-    grid-area: label;
-    transition: color 0.3s ease;
-  `,
-]);
+const RowLabel = styled.span`
+  ${tw`text-sm lg:text-base text-[#eee] break-words`}
 
-const RowValue = styled.span(() => [
-  tw`text-sm lg:text-base font-semibold text-white text-right`,
-  css`
-    grid-area: value;
-    font-variant-numeric: tabular-nums;
-  `,
-]);
+  grid-area: label;
+  transition: color 0.3s ease;
+`;
+
+const RowValue = styled.span`
+  ${tw`text-sm lg:text-base font-semibold text-white text-right`}
+
+  grid-area: value;
+  font-variant-numeric: tabular-nums;
+`;
 
 // One styled element per row; the cells are plain spans styled from here, because a styled component
 // per cell (nine rows of 32) is a real cost while the page hydrates. The lit fill is its own layer that
 // only changes opacity, so the sweep costs the compositor, not a repaint per cell.
-const Bits = styled.span(() => [
-  tw`grid gap-[1px] md:gap-[2px]`,
-  css`
-    grid-area: bits;
+const Bits = styled.span`
+  ${tw`grid gap-[1px] md:gap-[2px]`}
 
+  grid-area: bits;
+
+  & > span {
+    position: relative;
+    z-index: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+    border-radius: 2px;
+    font-size: 0;
+    line-height: 1;
+    user-select: none;
+    color: #2c2c2c;
+    background: #161616;
+    transition: color 0.3s ease-out;
+  }
+
+  & > span::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--accent);
+    box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.35);
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+    transition-delay: inherit;
+  }
+
+  & > span[data-lit="true"] {
+    color: #0b2a1b;
+  }
+
+  & > span[data-lit="true"]::before {
+    opacity: 1;
+  }
+
+  ${media.md} {
     & > span {
-      position: relative;
-      z-index: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      aspect-ratio: 1 / 1;
-      border-radius: 2px;
-      font-size: 0;
-      line-height: 1;
-      user-select: none;
-      color: #2c2c2c;
-      background: #161616;
-      transition: color 0.3s ease-out;
+      font-size: 9px;
     }
+  }
 
+  ${media.reducedMotion} {
+    & > span,
     & > span::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      border-radius: inherit;
-      background: var(--accent);
-      box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.35);
-      opacity: 0;
-      transition: opacity 0.3s ease-out;
-      transition-delay: inherit;
+      transition: none;
     }
+  }
+`;
 
-    & > span[data-lit="true"] {
-      color: #0b2a1b;
-    }
+const Row = styled.li`
+  ${tw`grid items-center gap-x-4 gap-y-2`}
 
-    & > span[data-lit="true"]::before {
-      opacity: 1;
-    }
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "label value" "bits bits";
 
-    ${media.md} {
-      & > span {
-        font-size: 9px;
-      }
-    }
+  ${media.lg} {
+    grid-template-columns: 15rem minmax(0, 1fr) 4.5rem;
+    grid-template-areas: "label bits value";
+  }
 
-    ${media.reducedMotion} {
-      & > span,
-      & > span::before {
-        transition: none;
-      }
-    }
-  `,
-]);
+  &:hover ${RowLabel} {
+    color: #fff;
+  }
 
-const Row = styled.li(() => [
-  tw`grid items-center gap-x-4 gap-y-2`,
-  css`
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "label value" "bits bits";
-
-    ${media.lg} {
-      grid-template-columns: 15rem minmax(0, 1fr) 4.5rem;
-      grid-template-areas: "label bits value";
-    }
-
-    &:hover ${RowLabel} {
-      color: #fff;
-    }
-
-    &:hover [data-lit="true"]::before {
-      box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.7);
-    }
-  `,
-]);
+  &:hover [data-lit="true"]::before {
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.7);
+  }
+`;
 
 const Notes = tw.ul`list-none m-0 mt-[25px] p-0 flex flex-col gap-[6px] text-sm text-[#888]`;
 

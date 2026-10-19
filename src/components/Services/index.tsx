@@ -29,9 +29,13 @@ interface ServicesProps {
 
 const Tabs = tw.div`mt-[25px] lg:mt-[35px]`;
 
-const Groups = styled(SwitchStage)(() => [tw`mt-[18px]`]);
+const Groups = styled(SwitchStage)`
+  ${tw`mt-[18px]`}
+`;
 
-const Group = styled(Panel)(() => [honourHidden]);
+const Group = styled(Panel)`
+  ${honourHidden}
+`;
 
 const Cards = tw.div`grid gap-[18px] lg:grid-cols-2`;
 

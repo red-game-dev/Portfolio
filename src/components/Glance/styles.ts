@@ -1,4 +1,4 @@
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { TagList } from "@/components/Controls";
 import { fadeIn } from "@/styles/keyframes";
@@ -40,17 +40,16 @@ export const GroupLabel = tw.span`block text-xs text-[#8a8a8a] mb-[6px]`;
 
 export const Roles = tw.ol`list-none m-0 p-0 flex flex-col`;
 
-export const RoleRow = styled.li(() => [
-  tw`grid gap-x-[16px] gap-y-[2px] py-[9px] md:grid-cols-[1fr auto]`,
-  css`
-    border-top: 1px solid #1e1e1e;
+export const RoleRow = styled.li`
+  ${tw`grid gap-x-[16px] gap-y-[2px] py-[9px] md:grid-cols-[1fr auto]`}
 
-    &:first-child {
-      border-top: 0;
-      padding-top: 2px;
-    }
-  `,
-]);
+  border-top: 1px solid #1e1e1e;
+
+  &:first-child {
+    border-top: 0;
+    padding-top: 2px;
+  }
+`;
 
 export const RoleName = tw.span`text-sm text-white`;
 
@@ -74,10 +73,10 @@ export const BlockTitle = tw.h3`m-0 text-sm font-semibold text-white`;
 
 export const Rows = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px]`;
 
-export const Row = styled.li(() => [
-  tw`relative pl-[16px] text-sm text-[#bbb]`,
-  squareBullet({ top: "0.55em" }),
-]);
+export const Row = styled.li`
+  ${tw`relative pl-[16px] text-sm text-[#bbb]`}
+  ${squareBullet({ top: "0.55em" })}
+`;
 
 export const Strong = tw.strong`text-white font-semibold`;
 
@@ -85,61 +84,59 @@ export const BlockNote = tw.p`m-0 text-xs text-[#9a9a9a]`;
 
 export const Road = tw.ol`relative list-none m-0 p-0 grid gap-[18px] md:grid-cols-4 md:gap-[14px]`;
 
-export const Milestone = styled.li(() => [
-  tw`relative flex flex-col gap-[6px] pl-[22px] md:pl-0 md:pt-[24px]`,
-  css`
+export const Milestone = styled.li`
+  ${tw`relative flex flex-col gap-[6px] pl-[22px] md:pl-0 md:pt-[24px]`}
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    transform: rotate(45deg);
+    background: var(--accent);
+  }
+
+  ${media.md} {
     &::before {
+      top: 0;
+    }
+
+    &::after {
       content: "";
       position: absolute;
-      left: 0;
+      left: 18px;
+      right: 0;
       top: 4px;
-      width: 10px;
-      height: 10px;
-      transform: rotate(45deg);
-      background: var(--accent);
+      height: 1px;
+      background: var(--accent-muted);
     }
 
-    ${media.md} {
-      &::before {
-        top: 0;
-      }
-
-      &::after {
-        content: "";
-        position: absolute;
-        left: 18px;
-        right: 0;
-        top: 4px;
-        height: 1px;
-        background: var(--accent-muted);
-      }
-
-      &:last-child::after {
-        display: none;
-      }
+    &:last-child::after {
+      display: none;
     }
-  `,
-]);
+  }
+`;
 
 export const StageName = tw.span`text-base font-semibold text-white`;
 
 export const StageExample = tw.span`text-sm text-[#aaa]`;
 
 // The rows that change with the role being hired for fade in on each switch.
-export const Switched = styled.div(() => [
-  tw`contents`,
-  css`
-    & > * {
-      animation: ${fadeIn} 0.3s ease-out both;
-    }
+export const Switched = styled.div`
+  ${tw`contents`}
 
-    ${media.reducedMotion} {
-      & > * {
-        animation: none;
-      }
+  & > * {
+    animation: ${fadeIn} 0.3s ease-out both;
+  }
+
+  ${media.reducedMotion} {
+    & > * {
+      animation: none;
     }
-  `,
-]);
+  }
+`;
 
 export const HireChips = tw.div`flex flex-row flex-wrap gap-[6px]`;
 

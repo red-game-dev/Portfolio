@@ -42,9 +42,14 @@ const LegendItem = styled.li(({ colour }: { colour: string }) => [
 // A row that scrolls sideways on a phone, a column beside the open station on a desktop.
 const Layout = tw.div`mt-[25px] lg:mt-[35px] flex flex-col lg:flex-row gap-[16px] lg:gap-[28px]`;
 
-const Stations = styled(SwitchStage)(() => [tw`flex-1 min-w-0`]);
+const Stations = styled(SwitchStage)`
+  ${tw`flex-1 min-w-0`}
+`;
 
-const StationPanel = styled.div(() => [tw`min-w-0`, honourHidden]);
+const StationPanel = styled.div`
+  ${tw`min-w-0`}
+  ${honourHidden}
+`;
 
 // The skills as a forge: no self ratings, only rarity earned from years of real use. One station is open at
 // a time, so the forge reads in a screen or two rather than fourteen; every station stays in the page, the

@@ -1,6 +1,6 @@
 import { FC, Fragment, ReactNode, useId } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import type { CurrencyCode, Purse } from "@/packages/games/voyage";
 import { formatNumber } from "@/packages/text/format";
@@ -17,12 +17,11 @@ const FACETS: ReadonlyArray<[string, string]> = [
   ["M12.6 6 8 14.6V7.3Z", "#7a3fc4"],
 ];
 
-const Icon = styled.svg(() => [
-  tw`inline-block flex-shrink-0 w-[1.15em] h-[1.15em]`,
-  css`
-    vertical-align: -0.2em;
-  `,
-]);
+const Icon = styled.svg`
+  ${tw`inline-block flex-shrink-0 w-[1.15em] h-[1.15em]`}
+
+  vertical-align: -0.2em;
+`;
 
 // A currency's mark: a Red Coin as the gold coins flown through in space look (a gold disc, a raised rim and an R
 // struck in it), a Void Shard as a violet crystal. Named for whoever cannot see it, and on hover, unless the words

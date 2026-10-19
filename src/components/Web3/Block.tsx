@@ -42,12 +42,11 @@ const Status = styled.span(({ isConfirmed }: ConfirmedProps) => [
   isConfirmed ? tw`text-[#101010] bg-[var(--accent)] border-[var(--accent)]` : tw`text-[#999] border-[#3a3a3a]`,
 ]);
 
-const Hashes = styled.div(() => [
-  tw`flex flex-row flex-wrap gap-x-[14px] gap-y-[2px] text-[11px] text-[#8a8a8a]`,
-  css`
-    font-family: ${MONO};
-  `,
-]);
+const Hashes = styled.div`
+  ${tw`flex flex-row flex-wrap gap-x-[14px] gap-y-[2px] text-[11px] text-[#8a8a8a]`}
+
+  font-family: ${MONO};
+`;
 
 const Name = tw.h3`m-0 text-base md:text-lg font-semibold text-white`;
 

@@ -70,28 +70,26 @@ const Face = styled.div(({ isSelected }: SelectedProps) => [
   `,
 ]);
 
-const Back = styled.div(() => [
-  tw`absolute inset-0 flex items-center justify-center bg-[#0d0d0d] border-[1px] border-solid border-[var(--accent-muted)] text-4xl text-[var(--accent-muted)]`,
-  css`
-    backface-visibility: hidden;
-    transform: rotateY(180deg);
-    background-image: repeating-linear-gradient(45deg, rgba(var(--accent-rgb), 0.05) 0, rgba(var(--accent-rgb), 0.05) 2px, transparent 2px, transparent 10px);
+const Back = styled.div`
+  ${tw`absolute inset-0 flex items-center justify-center bg-[#0d0d0d] border-[1px] border-solid border-[var(--accent-muted)] text-4xl text-[var(--accent-muted)]`}
 
-    ${hiddenWhenReduced}
-  `,
-]);
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+  background-image: repeating-linear-gradient(45deg, rgba(var(--accent-rgb), 0.05) 0, rgba(var(--accent-rgb), 0.05) 2px, transparent 2px, transparent 10px);
+
+  ${hiddenWhenReduced}
+`;
 
 const Header = tw.div`flex flex-row items-center gap-[22px]`;
 
 const Portrait = tw.div`relative flex-shrink-0`;
 
 // A hexagon badge, the shape a level takes in most MMOs, pinned to the corner of the portrait.
-const LevelBadge = styled.div(() => [
-  tw`absolute right-[-12px] bottom-[-10px] z-[1] flex flex-col items-center justify-center w-[42px] h-[46px] bg-[var(--accent)] text-[#101010]`,
-  css`
-    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  `,
-]);
+const LevelBadge = styled.div`
+  ${tw`absolute right-[-12px] bottom-[-10px] z-[1] flex flex-col items-center justify-center w-[42px] h-[46px] bg-[var(--accent)] text-[#101010]`}
+
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+`;
 
 const LevelLabel = tw.span`text-[8px] font-semibold leading-none`;
 

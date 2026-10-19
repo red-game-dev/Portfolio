@@ -20,16 +20,15 @@ export const Controls = tw.div`flex flex-row flex-wrap items-center justify-betw
 
 export const Hint = tw.p`m-0 text-xs text-[#8a8a8a]`;
 
-export const Zoom = styled.button(() => [
-  tw`inline-flex flex-row items-center gap-[8px] h-[32px] px-[12px] cursor-pointer text-xs font-semibold text-[var(--accent)] bg-transparent
-     rounded-[2px] border-[1px] border-solid border-[var(--accent-muted)]`,
-  css`
-    &:hover,
-    &:focus-visible {
-      border-color: var(--accent);
-    }
-  `,
-]);
+export const Zoom = styled.button`
+  ${tw`inline-flex flex-row items-center gap-[8px] h-[32px] px-[12px] cursor-pointer text-xs font-semibold text-[var(--accent)] bg-transparent
+     rounded-[2px] border-[1px] border-solid border-[var(--accent-muted)]`}
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--accent);
+  }
+`;
 
 // Holds the diagram: scaled to fit, its height follows the scaled drawing; zoomed in, it scrolls sideways.
 export const Viewport = styled.div(({ isPanning }: { isPanning: boolean }) => [
@@ -45,31 +44,29 @@ export const signal = keyframes`
   to { stroke-dashoffset: 0; }
 `;
 
-export const Diagram = styled.div(() => [
-  tw`relative grid grid-cols-1 gap-[26px]`,
-  css`
-    &[data-wide="true"] {
-      grid-template-columns: repeat(var(--bp-cols), minmax(0, 1fr));
-      gap: 34px;
-    }
-  `,
-]);
+export const Diagram = styled.div`
+  ${tw`relative grid grid-cols-1 gap-[26px]`}
+
+  &[data-wide="true"] {
+    grid-template-columns: repeat(var(--bp-cols), minmax(0, 1fr));
+    gap: 34px;
+  }
+`;
 
 // On a phone the boxes stack and lines would run behind them, so the wires become a short list instead.
 // On wide screens the same list stays for screen readers only.
-export const WireList = styled.ul(() => [
-  tw`list-none m-0 p-0 flex flex-col gap-[6px] text-xs text-[#aaa]`,
-  css`
-    ${WIDE} {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-    }
-  `,
-]);
+export const WireList = styled.ul`
+  ${tw`list-none m-0 p-0 flex flex-col gap-[6px] text-xs text-[#aaa]`}
+
+  ${WIDE} {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+`;
 
 export const WireItem = tw.li`break-words`;
 
@@ -115,16 +112,15 @@ export const Group = styled.div(({ zone, hasFrame, isExternal }: FlavourProps & 
 // In the flow rather than pinned, so a long label wraps instead of being cut off.
 export const GroupLabel = tw.span`block mb-[10px] text-[11px] font-semibold leading-snug text-[var(--accent)]`;
 
-export const Nodes = styled.div(() => [
-  tw`grid gap-[10px] h-full content-center`,
-  css`
-    grid-template-columns: repeat(var(--bp-narrow), minmax(0, 1fr));
+export const Nodes = styled.div`
+  ${tw`grid gap-[10px] h-full content-center`}
 
-    ${WIDE} {
-      grid-template-columns: repeat(var(--bp-inner), minmax(0, 1fr));
-    }
-  `,
-]);
+  grid-template-columns: repeat(var(--bp-narrow), minmax(0, 1fr));
+
+  ${WIDE} {
+    grid-template-columns: repeat(var(--bp-inner), minmax(0, 1fr));
+  }
+`;
 
 export const nodeFlavour = (zone: ZoneId) => {
   switch (zone) {

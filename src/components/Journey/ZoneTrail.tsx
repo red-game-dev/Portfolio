@@ -1,6 +1,6 @@
 import { FC, useMemo, useRef } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import useTrail from "@/components/Journey/hooks/useTrail";
 import { ZoneId } from "@/config/zones";
@@ -22,17 +22,19 @@ interface ZoneTrailProps {
 const progressFill = (direction: "bottom" | "right") => progressText(direction, "--trail-progress", "rgba(255, 255, 255, 0.24)");
 
 // Down the left edge on desktop, mirroring "Follow Me" on the right, reading top to bottom.
-const Vertical = styled.div(() => [
-  tw`fixed z-[7] left-[22px] top-1/2 pointer-events-none hidden lg:flex flex-col gap-[10px] whitespace-nowrap`,
-  css`
-    writing-mode: vertical-lr;
-    transform: translateY(-50%);
-  `,
-]);
+const Vertical = styled.div`
+  ${tw`fixed z-[7] left-[22px] top-1/2 pointer-events-none hidden lg:flex flex-col gap-[10px] whitespace-nowrap`}
+
+  writing-mode: vertical-lr;
+  transform: translateY(-50%);
+`;
 
 const VerticalZone = tw.span`text-xs font-semibold text-[var(--accent)]`;
 
-const VerticalTitle = styled.span(() => [tw`text-sm font-semibold`, progressFill("bottom")]);
+const VerticalTitle = styled.span`
+  ${tw`text-sm font-semibold`}
+  ${progressFill("bottom")}
+`;
 
 // A slim line under the header on phones and tablets.
 const Horizontal = tw.div`fixed z-[7] left-0 right-0 top-[72px] lg:hidden pointer-events-none flex flex-row items-baseline justify-center
@@ -41,7 +43,10 @@ border-[#1E1E1E]`;
 
 const HorizontalZone = tw.span`flex-shrink-0 font-semibold text-[var(--accent)]`;
 
-const HorizontalTitle = styled.span(() => [tw`font-semibold truncate`, progressFill("right")]);
+const HorizontalTitle = styled.span`
+  ${tw`font-semibold truncate`}
+  ${progressFill("right")}
+`;
 
 // Progress as text: the zone the reader is in and the section they are reading, its title filling with the
 // zone's colour as they scroll through it.

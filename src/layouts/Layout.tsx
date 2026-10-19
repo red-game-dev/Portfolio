@@ -1,6 +1,6 @@
 import { FC, useEffect } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { AppLoader, AppLoadingLines } from "@/components/AppLoader";
 import { useAppLoaderStateHook } from "@/components/AppLoader/hooks/useAppLoaderStateHook";
@@ -21,51 +21,48 @@ import Header from "./Header";
 
 // overflow: clip trims sideways overflow like hidden did, but without making this a scroll container,
 // which would stop position: sticky working for anything inside it.
-const Container = styled.div(() => [
-  tw`relative m-0 before:z-[8] before:pointer-events-none`,
-  css`
-    overflow: hidden;
-    overflow: clip;
-  `,
-]);
+const Container = styled.div`
+  ${tw`relative m-0 before:z-[8] before:pointer-events-none`}
+
+  overflow: hidden;
+  overflow: clip;
+`;
 
 // Where the skip link lands: past the header and its menus, at the start of the page's own content.
 const MAIN_ID = "main-content";
 
 // The first thing a keyboard reaches, out of sight until it is focused.
-const SkipLink = styled.a(() => [
-  tw`fixed top-[12px] left-[12px] z-[100] px-[14px] py-[10px] text-sm font-semibold text-[#09090b] no-underline bg-[var(--accent)] rounded-[2px]`,
-  css`
-    transform: translateY(-200%);
+const SkipLink = styled.a`
+  ${tw`fixed top-[12px] left-[12px] z-[100] px-[14px] py-[10px] text-sm font-semibold text-[#09090b] no-underline bg-[var(--accent)] rounded-[2px]`}
 
-    &:focus,
-    &:focus-visible {
-      transform: none;
-      outline: 2px solid #fff;
-      outline-offset: 2px;
-    }
-  `,
-]);
+  transform: translateY(-200%);
+
+  &:focus,
+  &:focus-visible {
+    transform: none;
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+`;
 
 // The foot of the page, past the last section: the way to the accessibility statement, clear of the game's bar along
 // the bottom on phones.
 const PageEnd = tw.div`relative z-[6] flex justify-center pt-[8px] pb-[96px] lg:pb-[32px]`;
 
-const PageEndLink = styled.a(() => [
-  tw`text-sm text-[#9a9a9a] underline hover:text-white`,
-  css`
-    text-underline-offset: 4px;
-  `,
-  focusRing("var(--accent)", 2),
-]);
+const PageEndLink = styled.a`
+  ${tw`text-sm text-[#9a9a9a] underline hover:text-white`}
 
-const Main = styled.main(() => [
-  css`
-    &:focus {
-      outline: none;
-    }
-  `,
-]);
+  text-underline-offset: 4px;
+
+  ${focusRing("var(--accent)", 2)}
+`;
+
+const Main = styled.main`
+
+  &:focus {
+    outline: none;
+  }
+`;
 
 interface LayoutProps {
   title: string;

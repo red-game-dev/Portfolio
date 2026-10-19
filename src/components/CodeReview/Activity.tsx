@@ -184,12 +184,11 @@ const Badge = styled.li(({ isShown, delay }: RunProps) => [
   `,
 ]);
 
-const Medal = styled.span(() => [
-  tw`flex flex-shrink-0 items-center justify-center w-[34px] h-[38px] text-[15px] text-[#101010] bg-[var(--accent)]`,
-  css`
-    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  `,
-]);
+const Medal = styled.span`
+  ${tw`flex flex-shrink-0 items-center justify-center w-[34px] h-[38px] text-[15px] text-[#101010] bg-[var(--accent)]`}
+
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+`;
 
 const BadgeText = tw.span`min-w-0 break-words text-xs leading-snug text-[#ddd]`;
 

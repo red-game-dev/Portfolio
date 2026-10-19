@@ -1,6 +1,6 @@
 import { NextSeo } from "next-seo";
 import { createGlobalStyle } from "styled-components";
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 
 import { SOCIAL_URLS } from "@/config/social";
@@ -41,24 +41,23 @@ const Paper = createGlobalStyle`
   }
 `;
 
-const Sheet = styled.main(() => [
-  tw`mx-auto my-[24px] bg-white text-[#141414]`,
-  css`
-    max-width: 210mm;
-    padding: 14mm 15mm;
-    font-family: "Roboto", Arial, sans-serif;
-    font-size: 10pt;
-    line-height: 1.38;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.12);
+const Sheet = styled.main`
+  ${tw`mx-auto my-[24px] bg-white text-[#141414]`}
 
-    @media print {
-      margin: 0;
-      padding: 0;
-      max-width: none;
-      box-shadow: none;
-    }
-  `,
-]);
+  max-width: 210mm;
+  padding: 14mm 15mm;
+  font-family: "Roboto", Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.38;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.12);
+
+  @media print {
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    box-shadow: none;
+  }
+`;
 
 const Name = tw.h1`m-0 text-[22pt] font-bold leading-tight text-[#0b0b0b]`;
 
@@ -71,11 +70,10 @@ const ContactLink = tw.a`text-[#444] no-underline`;
 const Block = tw.section`mt-[12px]`;
 
 // A short block printed whole, so its heading never sits alone at the foot of a page.
-const KeptBlock = styled(Block)(() => [
-  css`
-    break-inside: avoid;
-  `,
-]);
+const KeptBlock = styled(Block)`
+
+  break-inside: avoid;
+`;
 
 const Heading = tw.h2`m-0 mb-[5px] pb-[2px] text-[10.5pt] font-bold text-[#1f6b47] border-0 border-b-[1px] border-solid border-[#d8d8d8]`;
 
@@ -85,12 +83,11 @@ const List = tw.ul`m-0 pl-[16px] list-disc`;
 
 const Item = tw.li`mb-[2px]`;
 
-const Role = styled.article(() => [
-  tw`mb-[7px]`,
-  css`
-    break-inside: avoid;
-  `,
-]);
+const Role = styled.article`
+  ${tw`mb-[7px]`}
+
+  break-inside: avoid;
+`;
 
 const RoleHeader = tw.div`flex flex-row flex-wrap items-baseline justify-between gap-x-[10px]`;
 
@@ -101,14 +98,13 @@ const RoleDates = tw.span`text-[9pt] text-[#555] whitespace-nowrap`;
 const Muted = tw.p`m-0 text-[9.5pt] text-[#444]`;
 
 // On screen only: print this CV, or take the full résumé instead.
-const ScreenActions = styled.div(() => [
-  tw`fixed right-[20px] bottom-[20px] flex flex-row flex-wrap justify-end gap-[10px]`,
-  css`
-    @media print {
-      display: none;
-    }
-  `,
-]);
+const ScreenActions = styled.div`
+  ${tw`fixed right-[20px] bottom-[20px] flex flex-row flex-wrap justify-end gap-[10px]`}
+
+  @media print {
+    display: none;
+  }
+`;
 
 const PrintButton = tw.button`h-[42px] px-[18px] cursor-pointer text-sm font-semibold text-white bg-[#1f6b47] border-0 rounded-[3px]`;
 

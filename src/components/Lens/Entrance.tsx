@@ -115,14 +115,13 @@ const stampIn = keyframes`
   100% { opacity: 1; transform: rotate(-10deg) scale(1); }
 `;
 
-const Stamp = styled.span(() => [
-  tw`absolute right-[14px] top-[14px] px-[10px] py-[4px] text-sm font-bold rounded-[4px] text-[var(--lens-accent)]`,
-  css`
-    border: 2px solid var(--lens-accent);
-    background: rgba(16, 16, 16, 0.85);
-    animation: ${stampIn} 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) both;
-  `,
-]);
+const Stamp = styled.span`
+  ${tw`absolute right-[14px] top-[14px] px-[10px] py-[4px] text-sm font-bold rounded-[4px] text-[var(--lens-accent)]`}
+
+  border: 2px solid var(--lens-accent);
+  background: rgba(16, 16, 16, 0.85);
+  animation: ${stampIn} 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+`;
 
 const burst = keyframes`
   from { opacity: 1; transform: translate(0, 0) scale(1); }
@@ -270,32 +269,29 @@ const RainLayer = tw.div`absolute inset-0 opacity-70`;
 const Console = tw.div`absolute left-[16px] right-[16px] bottom-[24px] md:left-[48px] md:right-auto md:bottom-[48px] md:w-[460px] p-[16px]
 bg-[rgba(5, 10, 7, 0.85)] border-[1px] border-solid border-[var(--accent-muted)] text-left text-sm text-[#cfe]`;
 
-const Line = styled.p(() => [
-  tw`m-0 leading-relaxed`,
-  css`
-    animation: ${rise} 0.2s ease-out both;
+const Line = styled.p`
+  ${tw`m-0 leading-relaxed`}
 
-    &::before {
-      content: "> ";
-      color: var(--lens-accent);
-    }
-  `,
-]);
+  animation: ${rise} 0.2s ease-out both;
 
-const Granted = styled.p(() => [
-  tw`m-0 mt-[8px] text-base font-semibold text-[var(--lens-accent)]`,
-  css`
-    text-shadow: 0 0 12px rgba(var(--lens-rgb), 0.7);
-    animation: ${rise} 0.2s ease-out both;
-  `,
-]);
+  &::before {
+    content: "> ";
+    color: var(--lens-accent);
+  }
+`;
 
-const Caret = styled.span(() => [
-  tw`inline-block w-[8px] h-[14px] ml-[4px] align-middle bg-[var(--lens-accent)]`,
-  css`
-    animation: ${caretBlink} 1s steps(1) infinite;
-  `,
-]);
+const Granted = styled.p`
+  ${tw`m-0 mt-[8px] text-base font-semibold text-[var(--lens-accent)]`}
+
+  text-shadow: 0 0 12px rgba(var(--lens-rgb), 0.7);
+  animation: ${rise} 0.2s ease-out both;
+`;
+
+const Caret = styled.span`
+  ${tw`inline-block w-[8px] h-[14px] ml-[4px] align-middle bg-[var(--lens-accent)]`}
+
+  animation: ${caretBlink} 1s steps(1) infinite;
+`;
 
 // Engineer: a full boot in the rain, ending on access granted.
 const EngineerEntrance: FC<{ content: LensContent["entrances"]["engineer"]; counts: EntranceProps["counts"] }> = ({ content, counts }) => {

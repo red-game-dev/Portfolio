@@ -7,50 +7,49 @@ import { focusRing, media, voyagePanel } from "@/styles/mixins";
 // thumb's reach (from the top of the column where the screen is short, with smaller slots; on the shortest folded into
 // two columns of three); along the bottom between the radar and the telemetry where there is room, and on a phone on
 // its side, where a column would run the screen's whole height.
-export const Bar = styled.div(() => [
-  tw`flex flex-col gap-[6px] p-[4px] pointer-events-auto`,
-  css`
-    grid-area: bar;
-    align-self: center;
-    justify-self: end;
-    ${voyagePanel(0.55, 0.2)}
+export const Bar = styled.div`
+  ${tw`flex flex-col gap-[6px] p-[4px] pointer-events-auto`}
 
-    ${media.shortPortrait} {
-      align-self: start;
-      gap: 4px;
+  grid-area: bar;
+  align-self: center;
+  justify-self: end;
+  ${voyagePanel(0.55, 0.2)}
+
+  ${media.shortPortrait} {
+    align-self: start;
+    gap: 4px;
+  }
+
+  ${media.shortestPortrait} {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 3px;
+  }
+
+  ${media.voyageWide} {
+    align-self: end;
+    justify-self: center;
+    flex-direction: row;
+
+    /* While a world's card takes the corner beside the radar, the bar keeps to the middle. */
+    [data-card] & {
+      grid-column: 3 / 4;
     }
+  }
 
-    ${media.shortestPortrait} {
-      display: grid;
-      grid-template-columns: repeat(2, auto);
-      gap: 3px;
+  /* A phone on its side keeps a world's card in the telemetry's corner, so the bar keeps its whole span. */
+  ${media.shortLandscape} {
+    display: flex;
+    align-self: end;
+    justify-self: center;
+    flex-direction: row;
+    gap: 5px;
+
+    [data-card] & {
+      grid-column: 2 / 4;
     }
-
-    ${media.voyageWide} {
-      align-self: end;
-      justify-self: center;
-      flex-direction: row;
-
-      /* While a world's card takes the corner beside the radar, the bar keeps to the middle. */
-      [data-card] & {
-        grid-column: 3 / 4;
-      }
-    }
-
-    /* A phone on its side keeps a world's card in the telemetry's corner, so the bar keeps its whole span. */
-    ${media.shortLandscape} {
-      display: flex;
-      align-self: end;
-      justify-self: center;
-      flex-direction: row;
-      gap: 5px;
-
-      [data-card] & {
-        grid-column: 2 / 4;
-      }
-    }
-  `,
-]);
+  }
+`;
 
 // One slot: square, a touch target on a phone, edged in the colour of where its boost is from.
 export const Slot = styled.button(({ colour, isEmpty, isOn }: { colour: string; isEmpty: boolean; isOn: boolean }) => [
@@ -96,14 +95,13 @@ export const SlotIcon = styled.span(({ isSpent }: { isSpent: boolean }) => [
 ]);
 
 // The key that uses it, left out where there is no keyboard to press it with.
-export const SlotKey = styled.span(() => [
-  tw`absolute top-[2px] left-[4px] text-[9px] font-semibold text-[#9aa3bb] leading-none`,
-  css`
-    @media (hover: none) and (pointer: coarse) {
-      display: none;
-    }
-  `,
-]);
+export const SlotKey = styled.span`
+  ${tw`absolute top-[2px] left-[4px] text-[9px] font-semibold text-[#9aa3bb] leading-none`}
+
+  @media (hover: none) and (pointer: coarse) {
+    display: none;
+  }
+`;
 
 export const SlotCount = tw.span`absolute bottom-[2px] right-[4px] text-[10px] font-bold text-white leading-none tabular-nums`;
 
@@ -118,21 +116,19 @@ export const Pip = styled.span(({ isLit }: { isLit: boolean }) => [
 ]);
 
 // A cooldown sweeping round, with the seconds left over it.
-export const Cooldown = styled.span(() => [
-  tw`absolute inset-0 flex items-center justify-center text-xs font-bold text-white tabular-nums`,
-  css`
-    background: conic-gradient(rgba(0, 0, 0, 0.7) calc(var(--cool, 0) * 360deg), rgba(0, 0, 0, 0.15) 0);
-  `,
-]);
+export const Cooldown = styled.span`
+  ${tw`absolute inset-0 flex items-center justify-center text-xs font-bold text-white tabular-nums`}
+
+  background: conic-gradient(rgba(0, 0, 0, 0.7) calc(var(--cool, 0) * 360deg), rgba(0, 0, 0, 0.15) 0);
+`;
 
 // How long a boost that is on has left, along the bottom edge; it moves by transform alone.
-export const Left = styled.span(() => [
-  tw`absolute left-0 right-0 bottom-0 h-[3px]`,
-  css`
-    background: var(--slot);
-    transform-origin: left center;
-    transition: transform 0.25s linear;
-  `,
-]);
+export const Left = styled.span`
+  ${tw`absolute left-0 right-0 bottom-0 h-[3px]`}
+
+  background: var(--slot);
+  transform-origin: left center;
+  transition: transform 0.25s linear;
+`;
 
 export const Plus = tw.span`flex text-[14px] text-[#6a7aa6]`;

@@ -82,12 +82,11 @@ const Ring = styled.circle(({ isShown, delay }: { isShown: boolean; delay: numbe
 
 const Svg = tw.svg`block w-full h-auto overflow-visible mb-[12px]`;
 
-const YearText = styled.text(() => [
-  css`
-    fill: #8a8a8a;
-    font-size: 9px;
-  `,
-]);
+const YearText = styled.text`
+
+  fill: #8a8a8a;
+  font-size: 9px;
+`;
 
 // How busy each month was across the years shown, as a line with a dot per month: drawn left to right as the
 // section comes in, the busiest month's dot ringing once. The grids below say the same day by day, so this is a

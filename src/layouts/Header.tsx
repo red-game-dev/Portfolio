@@ -41,54 +41,52 @@ const HeaderContainer = styled.header(({ isScrolled }: HeaderContainerProps) => 
 
 const HeaderContent = tw.div`w-full relative`;
 
-const LogoContainer = styled.div(() => [
-  tw`relative overflow-hidden top-0 w-[150px] text-base leading-loose font-semibold text-white opacity-50 whitespace-nowrap z-[5] lg:top-8`,
-  css`
-    .mask-lnk {
-      position: relative;
-      top: 0;
-      left: 0;
-      width: 100%;
-      display: block;
-      transform: translateY(0);
-      transition: opacity 0.7s cubic-bezier(0.165, 0.85, 0.45, 1),
-        color 0.7s cubic-bezier(0.165, 0.85, 0.45, 1),
-        transform 0.7s cubic-bezier(0.165, 0.85, 0.45, 1);
+const LogoContainer = styled.div`
+  ${tw`relative overflow-hidden top-0 w-[150px] text-base leading-loose font-semibold text-white opacity-50 whitespace-nowrap z-[5] lg:top-8`}
 
-      &.mask-lnk-hover {
-        position: absolute;
-        opacity: 0;
-        transform: translateY(32px);
-      }
-      
-      strong {
-        color: #fff;
-      }
+  .mask-lnk {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: block;
+    transform: translateY(0);
+    transition: opacity 0.7s cubic-bezier(0.165, 0.85, 0.45, 1),
+      color 0.7s cubic-bezier(0.165, 0.85, 0.45, 1),
+      transform 0.7s cubic-bezier(0.165, 0.85, 0.45, 1);
+
+    &.mask-lnk-hover {
+      position: absolute;
+      opacity: 0;
+      transform: translateY(32px);
     }
-  `
-]);
+
+    strong {
+      color: #fff;
+    }
+  }
+`;
 
 // The CV link slides in on hover, and on keyboard focus too, so a reader tabbing to it sees where focus is.
-const LogoContents = styled.div(() => [
-  css`
-    /* The box clips an outline, so keyboard focus underlines the link instead. */
-    a:focus-visible {
-      outline: none;
-      text-decoration: underline;
-      text-underline-offset: 4px;
-    }
+const LogoContents = styled.div`
 
-    &:hover .mask-lnk,
-    &:has(:focus-visible) .mask-lnk {
-      opacity: 1;
-      transform: translateY(-32px);
-       
-      &.mask-lnk-hover {
-        transform: translateY(0);
-      }
+  /* The box clips an outline, so keyboard focus underlines the link instead. */
+  a:focus-visible {
+    outline: none;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  &:hover .mask-lnk,
+  &:has(:focus-visible) .mask-lnk {
+    opacity: 1;
+    transform: translateY(-32px);
+
+    &.mask-lnk-hover {
+      transform: translateY(0);
     }
-  `
-]);
+  }
+`;
 
 // Beside the hamburger on small screens, under the name on large ones.
 const SwitchSlot = styled.div(({ isScrolled }: HeaderContainerProps) => [

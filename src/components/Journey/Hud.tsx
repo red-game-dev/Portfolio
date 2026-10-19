@@ -57,12 +57,11 @@ const Frame = styled.div(({ isVisible }: VisibleProps) => [
   `,
 ]);
 
-const Avatar = styled.span(() => [
-  tw`flex flex-shrink-0 items-center justify-center w-[34px] h-[38px] text-base xl:w-[46px] xl:h-[52px] xl:text-xl text-[#101010] bg-[var(--accent)]`,
-  css`
-    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  `,
-]);
+const Avatar = styled.span`
+  ${tw`flex flex-shrink-0 items-center justify-center w-[34px] h-[38px] text-base xl:w-[46px] xl:h-[52px] xl:text-xl text-[#101010] bg-[var(--accent)]`}
+
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+`;
 
 const Stats = tw.div`flex flex-col gap-[4px] xl:gap-[6px] min-w-0 flex-1`;
 
@@ -75,14 +74,13 @@ const Row = tw.span`flex flex-row items-center justify-between gap-[8px] text-[1
 const Track = tw.span`relative block h-[5px] bg-[#1d1d1d] overflow-hidden`;
 
 // Scaled, not resized, so following the scroll never triggers layout.
-const Fill = styled.span(() => [
-  tw`absolute inset-0 bg-[var(--accent)]`,
-  css`
-    transform-origin: left center;
-    transform: scaleX(var(--journey-experience, 0));
-    will-change: transform;
-  `,
-]);
+const Fill = styled.span`
+  ${tw`absolute inset-0 bg-[var(--accent)]`}
+
+  transform-origin: left center;
+  transform: scaleX(var(--journey-experience, 0));
+  will-change: transform;
+`;
 
 const Bosses = tw.span`inline-flex flex-row items-center gap-[5px] text-[#ff8a8a]`;
 

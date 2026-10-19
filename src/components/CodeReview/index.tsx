@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -35,32 +35,30 @@ const Highlight = tw.article`flex flex-col gap-[12px] p-[18px] bg-[#0d0d0d] bord
 
 const Name = tw.h3`m-0 text-lg font-semibold text-white`;
 
-const Link = styled.a(() => [
-  tw`inline-flex flex-row items-center gap-[8px] self-start text-sm font-semibold text-[var(--accent)] no-underline`,
-  css`
-    &:hover,
-    &:focus-visible {
-      text-decoration: underline;
-    }
-  `,
-]);
+const Link = styled.a`
+  ${tw`inline-flex flex-row items-center gap-[8px] self-start text-sm font-semibold text-[var(--accent)] no-underline`}
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+`;
 
 const Muted = tw.p`m-0 text-sm text-[#aaa]`;
 
 
-const Quote = styled.blockquote(() => [
-  tw`m-0 pl-[12px] text-sm italic text-[#ddd]`,
-  css`
-    border-left: 2px solid var(--accent);
-  `,
-]);
+const Quote = styled.blockquote`
+  ${tw`m-0 pl-[12px] text-sm italic text-[#ddd]`}
+
+  border-left: 2px solid var(--accent);
+`;
 
 const Points = tw.ul`list-none m-0 p-0 flex flex-col gap-[6px] text-sm text-[#aaa]`;
 
-const Point = styled.li(() => [
-  tw`relative pl-[14px]`,
-  squareBullet({ size: 5 }),
-]);
+const Point = styled.li`
+  ${tw`relative pl-[14px]`}
+  ${squareBullet({ size: 5 })}
+`;
 
 // Pull requests merged and reviewed on my main account, drawn one square each with no totals, a year by
 // year activity chart, then a library my own platform depends on and everything else.

@@ -1,6 +1,6 @@
 import { FC, useId, useRef, useState } from "react";
 
-import tw, { css, styled } from "twin.macro";
+import tw, { styled } from "twin.macro";
 
 import { faSkull } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -27,48 +27,47 @@ const DEFEATED_AT = 0.85;
 // the rule I kept drops as loot once it is down. Scrolling back up heals it, so the fight plays again; the
 // HUD still counts it as defeated. All driven by a CSS variable
 // and a data attribute, so scrolling never re-renders the card.
-const Card = styled.article(() => [
-  tw`relative flex flex-col gap-[12px] p-[20px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#2a1d1d]`,
-  css`
-    transition: border-color 0.4s ease;
+const Card = styled.article`
+  ${tw`relative flex flex-col gap-[12px] p-[20px] md:p-[24px] bg-[#0d0d0d] border-[1px] border-solid border-[#2a1d1d]`}
 
-    &[data-done="true"] {
-      border-color: var(--accent-muted);
-    }
+  transition: border-color 0.4s ease;
 
-    &[data-done="true"] .hp-fill {
-      transform: scaleX(0);
-    }
+  &[data-done="true"] {
+    border-color: var(--accent-muted);
+  }
 
-    & .hp-fill {
-      transform-origin: left center;
-      transform: scaleX(calc(1 - var(--boss-progress, 0)));
-      transition: transform 0.15s linear;
-    }
+  &[data-done="true"] .hp-fill {
+    transform: scaleX(0);
+  }
 
+  & .hp-fill {
+    transform-origin: left center;
+    transform: scaleX(calc(1 - var(--boss-progress, 0)));
+    transition: transform 0.15s linear;
+  }
+
+  & .stamp,
+  & .loot {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  &[data-done="true"] .stamp,
+  &[data-done="true"] .loot,
+  &[data-game="false"] .loot {
+    opacity: 1;
+    transform: none;
+  }
+
+  ${media.reducedMotion} {
+    & .hp-fill,
     & .stamp,
     & .loot {
-      opacity: 0;
-      transform: scale(0.9);
-      transition: opacity 0.4s ease, transform 0.4s ease;
+      transition: none;
     }
-
-    &[data-done="true"] .stamp,
-    &[data-done="true"] .loot,
-    &[data-game="false"] .loot {
-      opacity: 1;
-      transform: none;
-    }
-
-    ${media.reducedMotion} {
-      & .hp-fill,
-      & .stamp,
-      & .loot {
-        transition: none;
-      }
-    }
-  `,
-]);
+  }
+`;
 
 const Header = tw.div`flex flex-row items-center justify-between gap-[10px] flex-wrap`;
 
@@ -90,25 +89,27 @@ const Threat = tw.p`m-0 text-sm text-[#ccc] break-words`;
 
 const Moves = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px] text-sm text-[#aaa]`;
 
-const Move = styled.li(() => [
-  tw`relative pl-[22px] break-words`,
-  css`
-    &::before {
-      content: "\\2713";
-      position: absolute;
-      left: 0;
-      top: 0;
-      font-weight: 700;
-      color: var(--accent);
-    }
-  `,
-]);
+const Move = styled.li`
+  ${tw`relative pl-[22px] break-words`}
+
+  &::before {
+    content: "\\2713";
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: 700;
+    color: var(--accent);
+  }
+`;
 
 const Heading = tw.h4`m-0 text-xs font-semibold text-[#8a8a8a]`;
 
 const Toggle = tw.button`self-start p-0 cursor-pointer text-xs font-semibold text-[var(--accent)] bg-transparent border-0 hover:underline`;
 
-const Solution = styled.div(() => [tw`flex flex-col gap-[8px]`, honourHidden]);
+const Solution = styled.div`
+  ${tw`flex flex-col gap-[8px]`}
+  ${honourHidden}
+`;
 
 const Loot = tw.div`flex flex-row items-start gap-[10px] p-[12px] text-sm text-[#ffd98c] bg-[#1a1408] border-[1px] border-solid border-[#5c4a26]`;
 

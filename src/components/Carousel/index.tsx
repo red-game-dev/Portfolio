@@ -42,24 +42,26 @@ const Slides = styled(SwitchStage)(({ perView }: { perView: number }) => [
   `,
 ]);
 
-const Slide = styled.div(() => [tw`min-w-0`, honourHidden]);
+const Slide = styled.div`
+  ${tw`min-w-0`}
+  ${honourHidden}
+`;
 
 const Controls = tw.div`flex flex-row items-center justify-between gap-[12px]`;
 
-const Arrow = styled.button(() => [
-  tw`flex items-center justify-center w-[40px] h-[40px] cursor-pointer text-[var(--accent)] bg-[#0d0d0d] rounded-[2px] border-[1px] border-solid
-     border-[var(--accent-muted)]`,
-  css`
-    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+const Arrow = styled.button`
+  ${tw`flex items-center justify-center w-[40px] h-[40px] cursor-pointer text-[var(--accent)] bg-[#0d0d0d] rounded-[2px] border-[1px] border-solid
+     border-[var(--accent-muted)]`}
 
-    &:hover,
-    &:focus-visible {
-      color: #101010;
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-  `,
-]);
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: #101010;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+`;
 
 const Middle = tw.div`flex-1 flex flex-col items-center gap-[8px] min-w-0`;
 

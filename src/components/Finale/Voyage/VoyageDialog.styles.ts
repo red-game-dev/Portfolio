@@ -369,14 +369,13 @@ export const TelemetryPanel = styled.section(({ isYielding = false }: { isYieldi
 ]);
 
 // Left out of the compact HUD's slim telemetry, whose two readings say what they are.
-export const TelemetryTitle = styled.h2(() => [
-  tw`m-0 mb-[4px] md:mb-[6px] text-[11px] md:text-xs font-semibold text-[#c4d2ff]`,
-  css`
-    ${COMPACT} {
-      display: none;
-    }
-  `,
-]);
+export const TelemetryTitle = styled.h2`
+  ${tw`m-0 mb-[4px] md:mb-[6px] text-[11px] md:text-xs font-semibold text-[#c4d2ff]`}
+
+  ${COMPACT} {
+    display: none;
+  }
+`;
 
 export const TelemetryList = tw.dl`m-0 flex flex-col gap-[2px] md:gap-[3px] text-[11px] md:text-xs tabular-nums`;
 
@@ -959,19 +958,18 @@ export const Stat = styled.div(({ isWide = false }: { isWide?: boolean }) => [
 
 // A card's actions, held at the bottom of the screen while the rest of a long card scrolls under them; always the
 // card's last part, so it reaches the card's edges (marked for the HUD check, which asks that they stay in view).
-export const CardButtons = styled.div.attrs({ "data-card-actions": "" })(() => [
-  tw`flex flex-row flex-wrap gap-[10px] mt-[6px] px-[22px] pt-[12px] pb-[18px] md:px-[28px] md:pb-[24px]`,
-  css`
-    position: sticky;
-    bottom: -16px;
-    margin: 6px -22px -22px;
-    background: linear-gradient(to bottom, rgba(5, 8, 18, 0), #05080f 14px);
+export const CardButtons = styled.div.attrs({ "data-card-actions": "" })`
+  ${tw`flex flex-row flex-wrap gap-[10px] mt-[6px] px-[22px] pt-[12px] pb-[18px] md:px-[28px] md:pb-[24px]`}
 
-    ${media.md} {
-      margin: 6px -28px -28px;
-    }
-  `,
-]);
+  position: sticky;
+  bottom: -16px;
+  margin: 6px -22px -22px;
+  background: linear-gradient(to bottom, rgba(5, 8, 18, 0), #05080f 14px);
+
+  ${media.md} {
+    margin: 6px -28px -28px;
+  }
+`;
 
 export const Title = tw.h2`m-0 text-2xl md:text-3xl font-semibold text-white`;
 

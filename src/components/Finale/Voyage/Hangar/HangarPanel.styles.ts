@@ -184,12 +184,11 @@ export const TabPanel = styled.div`
   ${honourHidden}
 `;
 
-export const Subheading = styled.h3(() => [
-  tw`m-0 text-sm font-semibold`,
-  css`
-    color: var(--tab-accent);
-  `,
-]);
+export const Subheading = styled.h3`
+  ${tw`m-0 text-sm font-semibold`}
+
+  color: var(--tab-accent);
+`;
 
 export const Note = tw.p`m-0 text-xs md:text-sm text-[#aab3c9] leading-relaxed`;
 

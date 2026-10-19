@@ -85,7 +85,8 @@ Tailwind classes are compiled at build time through `twin.macro` (a babel macro;
 ```tsx
 const Section = tw.div`relative px-[30px] py-[50px]`;              // classes only
 
-const Card = styled.div`                                            // classes and CSS, no props
+// classes and CSS, no props
+const Card = styled.div`
   ${tw`relative p-[16px]`}
 
   border-top: 2px solid var(--accent);
@@ -97,7 +98,7 @@ const List = styled.ul(({ isCircle }: ListProps) => [               // prop-driv
 ]);
 ```
 
-A component that takes no props is written as a template, never as a function returning an array. styled-components 5 treats rules that contain a function as dynamic, recomputing and hashing their CSS on every render, and computes static ones once. The array form `styled.div([...])` fails its types. The accessibility linter (`styled-components-a11y`) also reads a component's element only from the template form. A per-element difference goes in a data attribute on one static rule (`&[data-live] { ... }`), not a prop.
+A component that takes no props is written as a template, never as a function returning an array. styled-components 5 treats rules that contain a function as dynamic, recomputing and hashing their CSS on every render, and computes static ones once (in production only, so Jest never takes that path). The array form `styled.div([...])` fails its types. The accessibility linter (`styled-components-a11y`) also reads a component's element only from the template form. In a component that otherwise takes no props, a per-element difference goes in a data attribute on one static rule (`&[data-live] { ... }`), not a prop.
 
 Keyframes used from Tailwind classes (`wave`, `loading`, `border-transition`, `scroll-cue`, …) are plain CSS in `src/styles/globals.css` and referenced from arbitrary values, e.g. ``tw`animate-[wave 1s linear infinite]` ``; keyframes shared between styled components (`caretBlink`, `fadeIn`) are in `src/styles/keyframes.ts`. `tailwind.config.js` also registers custom `child`/`child-hover` variants and a `bg-wave` gradient.
 

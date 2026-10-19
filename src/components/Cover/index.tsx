@@ -42,9 +42,9 @@ const TitleArea = tw.div`relative z-[2] flex flex-1 items-center w-full px-5 pt-
 const Essentials = tw.div`relative z-[3] flex flex-col gap-[12px] px-5 pb-[52px] text-left lg:pr-12 lg:ml-[calc(20% + 15px)] lg:pb-[50px]
 lg:max-w-[780px]`;
 
-const Introduction = styled.h1(() => [
-  tw`m-0 text-white break-words text-base lg:text-lg [& > strong]:text-[var(--accent)]`,
-]);
+const Introduction = styled.h1`
+  ${tw`m-0 text-white break-words text-base lg:text-lg [& > strong]:text-[var(--accent)]`}
+`;
 
 const Lines = tw.div`flex flex-col gap-[4px] text-sm lg:text-base text-[#ddd]`;
 

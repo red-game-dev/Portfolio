@@ -31,16 +31,15 @@ const Felt = tw.canvas`absolute inset-0 w-full h-full pointer-events-none`;
 const Layer = tw.div`relative z-[1] flex flex-col gap-[10px]`;
 
 // On a phone the other players' cards sit right behind the words, so the words carry a dark plate of their own.
-const Label = styled.h3(() => [
-  tw`m-0 self-start text-xs font-semibold text-[rgba(255, 255, 255, 0.7)]`,
-  css`
-    ${media.narrowTable} {
-      padding: 3px 8px;
-      border-radius: 9999px;
-      background: rgba(6, 26, 16, 0.78);
-    }
-  `,
-]);
+const Label = styled.h3`
+  ${tw`m-0 self-start text-xs font-semibold text-[rgba(255, 255, 255, 0.7)]`}
+
+  ${media.narrowTable} {
+    padding: 3px 8px;
+    border-radius: 9999px;
+    background: rgba(6, 26, 16, 0.78);
+  }
+`;
 
 const Played = tw.ul`list-none m-0 p-0 grid gap-[14px] sm:grid-cols-2 lg:grid-cols-3`;
 

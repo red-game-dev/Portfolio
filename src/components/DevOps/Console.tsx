@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react";
 
 import tw, { css, styled } from "twin.macro";
 
-import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
+import { useDeploysStateHook } from "@/components/Game/hooks/useDeploysStateHook";
 import { ZONE_ACCENTS } from "@/config/zones";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { recordOf } from "@/packages/core/domain";
@@ -49,16 +49,18 @@ const Layout = styled.div(() => [
 
 const Stacks = tw.ul`list-none m-0 p-0 flex flex-col gap-[8px]`;
 
-const StackRow = styled.li(({ isLive }: { isLive: boolean }) => [
+// Live is a data attribute on one rule written with the page, not a prop, which would add a rule as the first stack
+// goes live and restyle everything on the screen.
+const StackRow = styled.li(() => [
   tw`grid items-center gap-x-[10px] gap-y-[2px] p-[10px] bg-[#0d0d0d] border-[1px] border-solid border-[#1E1E1E]`,
   css`
     grid-template-columns: minmax(0, 1fr) auto;
     border-left: 3px solid var(--stack);
     transition: border-color 0.3s ease;
-  `,
-  isLive && css`
-    border-color: var(--stack);
-    border-left-width: 3px;
+
+    &[data-live] {
+      border-color: var(--stack);
+    }
   `,
 ]);
 
@@ -117,18 +119,22 @@ const Target = styled.span(() => [
   `,
 ]);
 
-const Log = tw.ol`list-none m-0 p-[12px] flex flex-col gap-[4px] min-h-[132px] text-xs text-[#bbb]`;
-
-// A long command wraps rather than scrolling the log sideways on a phone.
-const Line = styled.li(() => [
-  tw`whitespace-pre-wrap`,
+// The lines are styled from the log, which is written with the page, so the first line printed adds no rule of its own
+// (which would restyle everything on the screen). A long command wraps rather than scrolling the log sideways on a phone.
+const Log = styled.ol(() => [
+  tw`list-none m-0 p-[12px] flex flex-col gap-[4px] min-h-[132px] text-xs text-[#bbb]`,
   css`
-    font-family: ${MONO};
-    overflow-wrap: anywhere;
+    & > li {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: ${MONO};
+    }
+
+    & > li > span {
+      color: var(--accent);
+    }
   `,
 ]);
-
-const Prompt = tw.span`text-[var(--accent)]`;
 
 const Status = tw.p`m-0 px-[12px] pb-[12px] text-sm text-white`;
 
@@ -136,7 +142,7 @@ const Status = tw.p`m-0 px-[12px] pb-[12px] text-sm text-white`;
 // another with no downtime, its commands printed a line at a time as its container travels the pipe, and every
 // one that goes live counted as a deploy shipped for the finale's board. Under reduced motion each lands at once.
 export const Console: FC<ConsoleProps> = ({ content, hosts, plan }: ConsoleProps) => {
-  const { shipDeploy } = useGameStateHook();
+  const { shipDeploy } = useDeploysStateHook();
   const isReduced = useReducedMotion();
   const [placed, setPlaced] = useState<Readonly<Record<UniverseStack, HostId>>>(() => placeAll(plan));
   const [live, setLive] = useState<ReadonlySet<UniverseStack>>(() => new Set());
@@ -223,7 +229,7 @@ export const Console: FC<ConsoleProps> = ({ content, hosts, plan }: ConsoleProps
       <div>
         <Stacks>
           {UNIVERSE_STACKS.map((stack) => (
-            <StackRow key={stack} isLive={live.has(stack)} style={{ "--stack": ZONE_ACCENTS[stack] }}>
+            <StackRow key={stack} data-live={live.has(stack) ? "" : undefined} style={{ "--stack": ZONE_ACCENTS[stack] }}>
               <StackName>{content.stacks[stack]}</StackName>
               <StackHost>{live.has(stack) ? fill(content.liveOn, { host: hostName(hosts, placed[stack]) }) : hostName(hosts, placed[stack])}</StackHost>
               <StackActions>
@@ -259,10 +265,10 @@ export const Console: FC<ConsoleProps> = ({ content, hosts, plan }: ConsoleProps
         </Ends>
         <Log aria-label={content.label}>
           {shown.map((line, index) => (
-            <Line key={`${job?.stack ?? ""}-${index}`}>
-              <Prompt>{`${content.prompt}$ `}</Prompt>
+            <li key={`${job?.stack ?? ""}-${index}`}>
+              <span>{`${content.prompt}$ `}</span>
               {line}
-            </Line>
+            </li>
           ))}
         </Log>
         <Status role="status">

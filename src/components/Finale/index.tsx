@@ -13,6 +13,7 @@ import { DecodedText } from "@/components/DecodedText";
 import { useInvite } from "@/components/Finale/hooks/useInvite";
 import { useLaunch } from "@/components/Finale/hooks/useLaunch";
 import { LazyVoyageDialog } from "@/components/Finale/Voyage/LazyVoyageDialog";
+import { useDeploysStateHook } from "@/components/Game/hooks/useDeploysStateHook";
 import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
 import { Panel } from "@/components/Panel";
 import { Section } from "@/components/Section";
@@ -236,7 +237,8 @@ export const Finale: FC<FinaleProps> = ({
   const isBoardInView = useInView(boardRef, { threshold: 0.6, once: true });
   const { snapshot, site, isReady, press, selfDestruct } = useLaunch(boardRef, canvasRef, isBoardInView, content.launch.sites, content.launch.readout);
   const isReached = useInView(sectionRef, { threshold: 0.2 });
-  const { zonesVisited, defeatedBosses, duelsWon, deploysShipped, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
+  const { zonesVisited, defeatedBosses, duelsWon, characterClass, bestScore, voyageBest, recordVoyage } = useGameStateHook();
+  const { deploysShipped } = useDeploysStateHook();
   const [isVoyaging, setIsVoyaging] = useState(false);
   const [runMs, setRunMs] = useState<number | null>(null);
   const openVoyage = useCallback(() => setIsVoyaging(true), []);

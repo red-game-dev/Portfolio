@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { AppLoaderProvider } from "@/components/AppLoader/context/AppLoaderContext";
 import { DevOps } from "@/components/DevOps";
 import { GameProvider } from "@/components/Game/context/GameContext";
-import { useGameStateHook } from "@/components/Game/hooks/useGameStateHook";
+import { useDeploysStateHook } from "@/components/Game/hooks/useDeploysStateHook";
 import { LensProvider } from "@/components/Lens/context/LensContext";
 import { PreferencesProvider } from "@/components/Preferences/context/PreferencesContext";
 import { portfolioData } from "@/data/resume";
@@ -11,7 +11,7 @@ import { portfolioData } from "@/data/resume";
 const { devops } = portfolioData;
 
 const Deploys = () => {
-  const { deploysShipped } = useGameStateHook();
+  const { deploysShipped } = useDeploysStateHook();
 
   return <span data-testid="deploys">{deploysShipped}</span>;
 };

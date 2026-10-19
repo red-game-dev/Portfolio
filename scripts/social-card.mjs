@@ -88,7 +88,8 @@ try {
 
   const encoded = spawnSync("ffmpeg", [
     "-y", "-loglevel", "error", "-framerate", String(timing.fps), "-i", join(frames, "%04d.png"),
-    "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an",
+    // A keyframe every second, so any player can seek it.
+    "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-g", String(timing.fps), "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an",
     join(OUT, "social-card.mp4"),
   ], { stdio: "inherit" });
 

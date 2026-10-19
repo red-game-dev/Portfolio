@@ -40,14 +40,15 @@ const Card = styled.main`
 // The journey's own backdrop behind the card, each universe's scene in turn.
 const Backdrop = tw.canvas`absolute inset-0 w-full h-full`;
 
-// Darkens the backdrop under the words and lights the corners as the still card always did.
+// Darkens the backdrop under the words on the left and leaves the right open, where each universe shows through, with
+// the corners lit as the still card always was.
 const Veil = styled.div`
   ${tw`absolute inset-0 pointer-events-none`}
 
   background:
     radial-gradient(circle at 12% 0%, rgba(75, 255, 165, 0.12), transparent 42%),
     radial-gradient(circle at 100% 100%, rgba(196, 210, 255, 0.1), transparent 45%),
-    linear-gradient(90deg, rgba(12, 12, 14, 0.82) 0%, rgba(12, 12, 14, 0.62) 55%, rgba(12, 12, 14, 0.4) 100%);
+    linear-gradient(90deg, rgba(12, 12, 14, 0.8) 0%, rgba(12, 12, 14, 0.55) 45%, rgba(12, 12, 14, 0.12) 100%);
 `;
 
 // The site's backdrop guides, a third and two thirds across.

@@ -1,5 +1,10 @@
+/**
+ * @jest-environment node
+ */
 import { ApiClient } from "@/packages/http/api-client";
 import { Mail, MailAdapter, MailAttempt, MailOutcome, MailService, ResendMailAdapter } from "@/packages/server/mail";
+
+import { recordingFetcher, SeenCall } from "../../http/fixtures/fetcher";
 
 const MAIL: Mail = {
   sender: { name: "Site", user: "site", domain: "example.test" },
@@ -9,23 +14,14 @@ const MAIL: Mail = {
   replyTo: "visitor@example.test",
 };
 
-// A client that keeps the config it was made with and the posts it was asked to make, answering with `status`.
+// The real client on a fetcher that answers with `status` (0: no answer) and keeps every request, and the config the
+// adapter made its own client with.
 const clientAnswering = (status: number, data: unknown = null) => {
-  const calls: { config: unknown; posts: Array<{ path: string; body: unknown; options: unknown }> } = { config: null, posts: [] };
-  const instance = {
-    post: async (path: string, body: unknown, options: unknown) => {
-      calls.posts.push({ path, body, options });
+  const sent: SeenCall[] = [];
+  const client = new ApiClient({}, recordingFetcher([status === 0 ? "dropped" : { status, body: status === 200 ? { id: "email-1" } : data }], sent));
+  const made = jest.spyOn(client, "withConfig");
 
-      return status === 200 ? { ok: true, status, data: { id: "email-1" } } : { ok: false, status, message: "refused", isCancelled: false, data };
-    },
-  };
-  const client = { withConfig: (config: unknown) => {
-    calls.config = config;
-
-    return instance;
-  } } as unknown as ApiClient;
-
-  return { client, calls };
+  return { client, sent, configOf: () => made.mock.calls[0]?.[0] };
 };
 
 // An adapter answering each try with the next outcome (the last repeats), counting its tries and the keys it was given.
@@ -51,23 +47,24 @@ class FakeAdapter extends MailAdapter {
 
 describe("mail adapters", () => {
   test("Resend's adapter posts to its API with its key, no retries of its own, from the domain it verified, keyed and timed", async () => {
-    const { client, calls } = clientAnswering(200);
+    const { client, sent, configOf } = clientAnswering(200);
     let now = 1000;
     const adapter = new ResendMailAdapter("re_test", { domain: "mail.example.test", client, now: () => (now += 120) });
 
     expect(await adapter.send(MAIL, "key-1")).toEqual({ adapter: "resend", outcome: "sent", status: 200, ms: 120 });
-    expect(calls.config).toMatchObject({ baseURL: "https://api.resend.com", headers: { Authorization: "Bearer re_test" }, retry: { retries: 0 } });
-    expect(calls.posts[0]).toEqual({
-      path: "/emails",
+    expect(configOf()).toMatchObject({ baseURL: "https://api.resend.com", headers: { Authorization: "Bearer re_test" }, retry: { retries: 0 } });
+    expect(sent[0]).toMatchObject({
+      url: "https://api.resend.com/emails",
+      method: "POST",
       body: { from: "Site <site@mail.example.test>", to: MAIL.to, subject: MAIL.subject, text: MAIL.text, reply_to: MAIL.replyTo },
-      options: { headers: { "Idempotency-Key": "key-1" } },
+      headers: expect.objectContaining({ "Idempotency-Key": "key-1" }),
     });
 
     await new ResendMailAdapter("re_test", { client }).send({ ...MAIL, html: "<p>Hi there</p>", replyTo: undefined });
-    expect(calls.posts[1].body).toMatchObject({ html: "<p>Hi there</p>", text: MAIL.text });
-    expect(calls.posts[1].body).toMatchObject({ from: "Site <site@example.test>" });
-    expect(calls.posts[1].body).not.toHaveProperty("reply_to");
-    expect(calls.posts[1].options).toEqual({ headers: {} });
+    expect(sent[1].body).toMatchObject({ html: "<p>Hi there</p>", text: MAIL.text });
+    expect(sent[1].body).toMatchObject({ from: "Site <site@example.test>" });
+    expect(sent[1].body).not.toHaveProperty("reply_to");
+    expect(sent[1].headers).not.toHaveProperty("Idempotency-Key");
   });
 
   test("a provider's limits read as limited, a refusal of who is sending as rejected, and anything else as maybe gone", async () => {

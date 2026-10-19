@@ -1,15 +1,19 @@
 import {
-  DEFAULT_VOYAGE_CONFIG, DEFAULT_VOYAGE_THEME, Hangar, newProfile, VoyageGame, VoyageInput, VoyageRenderer, VoyageSimulation,
+  DEFAULT_VOYAGE_CONFIG,
+  DEFAULT_VOYAGE_THEME,
+  Hangar,
+  newProfile,
+  VoyageGame,
+  VoyageInput,
+  VoyageSimulation,
 } from "@/packages/games/voyage";
-import { VoyageContext } from "@/packages/games/voyage/systems/context";
 import { bodyAhead } from "@/packages/games/voyage/systems/impacts";
 
+import { SilentRenderer } from "./fixtures/renderer";
 import { createFlying, EPOCH } from "./fixtures/simulation";
 
 // A renderer that draws nothing, with the radar where a test puts it.
-const quietRenderer = (radarAt: (x: number, y: number) => boolean = () => false): VoyageRenderer => new Proxy({}, {
-  get: (_, key) => (key === "surface" ? null : key === "radarAt" ? radarAt : () => () => undefined),
-}) as unknown as VoyageRenderer;
+const quietRenderer = (radarAt: (x: number, y: number) => boolean = () => false) => Object.assign(new SilentRenderer(), { radarAt });
 
 const hostFor = (simulation: VoyageSimulation, renderer = quietRenderer()) => {
   const scheduler = { request: () => 0, cancel: () => undefined };
@@ -21,7 +25,7 @@ const hostFor = (simulation: VoyageSimulation, renderer = quietRenderer()) => {
 };
 
 // What the game would fly with this step.
-const inputOf = (game: VoyageGame): VoyageInput => (game as unknown as { input(): VoyageInput }).input();
+const inputOf = (game: VoyageGame): VoyageInput => game["input"]();
 
 const shipOf = (simulation: VoyageSimulation) => {
   const body = simulation.world.stores.body.get(simulation.state.ship);
@@ -138,7 +142,7 @@ describe("the mission clock", () => {
 describe("rocks headed for worlds, with the clock running fast", () => {
   test("are aimed at where a moon will be round its planet, not where a straight line would put it", () => {
     const simulation = createFlying();
-    const context = (simulation as unknown as { context: VoyageContext }).context;
+    const context = simulation["context"];
 
     simulation.setClockSpeed("faster");
     simulation.step(100);

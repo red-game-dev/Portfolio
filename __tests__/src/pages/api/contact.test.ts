@@ -1,9 +1,9 @@
 /**
  * @jest-environment node
  */
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { clientAddress, firstHeader, isSameOrigin } from "@/services/http/request";
+
+import { apiRequest, apiResponse } from "../../fixtures/next";
 
 jest.mock("@/services/contact/server", () => ({
   getContactService: jest.fn(),
@@ -17,28 +17,9 @@ const handlerOf = async () => (await import("@/pages/api/contact")).default;
 
 // A request from the site itself, unless told otherwise.
 const request = (method: string, headers: Record<string, string> = { origin: "https://www.redgame.dev", host: "www.redgame.dev" }, body: unknown = {}) =>
-  ({ method, headers, body, socket: { remoteAddress: "203.0.113.9" } } as unknown as NextApiRequest);
+  apiRequest({ method, headers, body, remoteAddress: "203.0.113.9" });
 
-const response = () => {
-  const result = { status: 0, body: null as unknown, headers: {} as Record<string, string> };
-  const res = {
-    setHeader: (name: string, value: string) => {
-      result.headers[name] = value;
-    },
-    status: (code: number) => {
-      result.status = code;
-
-      return res;
-    },
-    json: (body: unknown) => {
-      result.body = body;
-
-      return res;
-    },
-  };
-
-  return { res: res as unknown as NextApiResponse, result };
-};
+const response = apiResponse;
 
 describe("the contact route", () => {
   beforeEach(() => {

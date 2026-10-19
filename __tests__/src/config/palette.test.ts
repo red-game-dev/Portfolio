@@ -3,6 +3,7 @@ import { join } from "path";
 
 import { SectionThemeId, THEME_ACCENTS } from "@/config/sectionThemes";
 import { ZONE_ACCENTS, ZoneId } from "@/config/zones";
+import { keysOf } from "@/packages/core/domain";
 import { rgbChannels } from "@/packages/graphics/colour";
 
 // globals.css sets each zone's accent for styled components; ZONE_ACCENTS holds the same colours for
@@ -17,7 +18,7 @@ const blockOf = (zone: ZoneId) => {
 };
 
 describe("zone palette", () => {
-  it.each(Object.keys(ZONE_ACCENTS) as ZoneId[])("%s matches globals.css", (zone) => {
+  it.each(keysOf(ZONE_ACCENTS))("%s matches globals.css", (zone) => {
     const block = blockOf(zone);
 
     expect(block).toContain(`--accent: ${ZONE_ACCENTS[zone]};`);
@@ -28,7 +29,7 @@ describe("zone palette", () => {
 describe("the zone the reader is in", () => {
   // What lies outside every run takes the reader's zone from the root's data-journey, so each zone's accent has to
   // reach it too, beside its runs.
-  it.each(Object.keys(ZONE_ACCENTS) as ZoneId[])("%s reaches what follows the journey", (zone) => {
+  it.each(keysOf(ZONE_ACCENTS))("%s reaches what follows the journey", (zone) => {
     expect(css).toMatch(new RegExp(`\\[data-zone="${zone}"\\],\\s*\\[data-journey="${zone}"\\] \\[data-follows-journey\\] \\{`));
   });
 
@@ -44,7 +45,7 @@ describe("section theme palette", () => {
     return css.slice(start, css.indexOf("}", start));
   };
 
-  it.each(Object.keys(THEME_ACCENTS) as SectionThemeId[])("%s matches globals.css", (theme) => {
+  it.each(keysOf(THEME_ACCENTS))("%s matches globals.css", (theme) => {
     const block = themeBlock(theme);
 
     expect(block).toContain(`--accent: ${THEME_ACCENTS[theme]};`);
@@ -56,7 +57,7 @@ describe("section theme palette", () => {
     const zoneColours = Object.entries(ZONE_ACCENTS);
 
     expect(new Set(colours).size).toBe(colours.length);
-    (Object.keys(THEME_ACCENTS) as SectionThemeId[]).forEach((theme) => {
+    keysOf(THEME_ACCENTS).forEach((theme) => {
       const sameAs = zoneColours.filter(([, colour]) => colour === THEME_ACCENTS[theme]).map(([zone]) => zone);
 
       expect(sameAs).toEqual(theme === "web3" ? ["chain"] : []);

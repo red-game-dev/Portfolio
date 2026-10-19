@@ -9,6 +9,8 @@ import {
   Armory, armoryView, Career, codexId, Hangar, newCareer, newProfile, Progress, progressView, STORY, VoyageAction,
 } from "@/packages/games/voyage";
 
+import { instanceOf } from "../fixtures/guards";
+
 const { voyage } = portfolioData.finale;
 const words = voyage.hangar;
 const transfer = { link: async () => null, file: async () => null, read: async () => null, adopt: () => undefined };
@@ -54,7 +56,7 @@ const openHangar = ({ career = new Career(), opensOn = null, onAct = () => true,
   );
 };
 
-const tabNamed = (name: string) => screen.getAllByRole("tab").find((tab) => tab.textContent?.startsWith(name)) as HTMLElement;
+const tabNamed = (name: string) => instanceOf(screen.getAllByRole("tab").find((tab) => tab.textContent?.startsWith(name)), HTMLElement);
 
 describe("the voyage's hangar", () => {
   beforeEach(() => window.localStorage.clear());
@@ -92,9 +94,9 @@ describe("the voyage's hangar", () => {
   test("money shows with a coin or a shard named for what it is, and tapping one says what it is", () => {
     openHangar();
 
-    const purse = screen.getByRole("heading", { name: voyage.economy.hangar }).parentElement as HTMLElement;
+    const purse = instanceOf(screen.getByRole("heading", { name: voyage.economy.hangar }).parentElement, HTMLElement);
     const coinMark = within(purse).getByRole("img", { name: voyage.economy.currencies.RED });
-    const coin = coinMark.closest("button") as HTMLElement;
+    const coin = instanceOf(coinMark.closest("button"), HTMLElement);
 
     expect(within(purse).getByRole("img", { name: voyage.economy.currencies.VOID })).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/\b(RC|VS)\b/);

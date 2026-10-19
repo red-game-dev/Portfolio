@@ -2,7 +2,6 @@ import { angleBetween } from "@/packages/math/angles";
 import { clamp } from "@/packages/math/clamp";
 
 import { VoyageState } from "../domain/state";
-import { VoyageContext } from "./context";
 
 // Within this far (world units) a world counts as close by on a lift off, and one within this angle of straight up
 // tips the climb aside until it is that far off. However many tip it, the climb stays within that angle of straight
@@ -12,11 +11,13 @@ const CLEAR_ANGLE = Math.PI / 3;
 
 // The way a lift off climbs from a spot on the ground: straight up, tipped aside from any world close by and nearly
 // overhead (Earth over the Moon's near side, the Moon over a run's first climb from Earth).
-export const climbDirection = (context: VoyageContext, ground: { id: string; x: number; y: number }, at: { x: number; y: number }): { x: number; y: number } => {
+export const climbDirection = (
+  bodies: ReadonlyArray<{ id: string; x: number; y: number; radius: number }>, ground: { id: string; x: number; y: number }, at: { x: number; y: number },
+): { x: number; y: number } => {
   const normal = Math.atan2(at.y - ground.y, at.x - ground.x);
   let angle = normal;
 
-  context.state.system.bodies.forEach((other) => {
+  bodies.forEach((other) => {
     const towardX = other.x - at.x;
     const towardY = other.y - at.y;
 

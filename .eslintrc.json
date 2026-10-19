@@ -246,13 +246,6 @@
           }
         ]
       }
-    },
-    {
-      "files": ["__tests__/**/*.ts", "__tests__/**/*.tsx"],
-      "rules": {
-        "@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "as", "objectLiteralTypeAssertions": "allow" }],
-        "@typescript-eslint/no-non-null-assertion": "off"
-      }
     }
   ]
 }

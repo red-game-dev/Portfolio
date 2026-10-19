@@ -1,7 +1,7 @@
 import { branchToCheckout, byStartDescending, industryMatches, matchesPerBranch, splitBranches } from "@/components/History/branches";
 import { Resume } from "@/types/resume";
 
-const entry = (title: string, from: string, extra: Partial<Resume> = {}) => ({ title, from, ...extra }) as Resume;
+const entry = (title: string, from: string, extra: Partial<Resume> = {}): Resume => ({ title, from, description: [], ...extra });
 
 const EXPERIENCE = [
   entry("Old job", "Jan 2015", { industries: ["fintech"] }),

@@ -3,6 +3,8 @@ import {
 } from "@/packages/graphics/checkout";
 import { CheckoutGesture } from "@/packages/graphics/checkout";
 
+import { FakeContext2D } from "../../fixtures/canvas";
+
 const GESTURES: CheckoutGesture[] = ["insert", "tap", "swipe", "wallet", "scan", "face"];
 
 describe("the checkout's keypad", () => {
@@ -35,13 +37,13 @@ describe("the checkout's story", () => {
   const keys = keysFor(amountOf("€18.40"));
 
   it.each(GESTURES)("approves a %s payment once, after the customer reaches the terminal, in both stories", (gesture) => {
-    ["full", "quick"].forEach((variant) => {
-      const at = approvedAt(variant as "full" | "quick", gesture, 0, keys);
+    (["full", "quick"] as const).forEach((variant) => {
+      const at = approvedAt(variant, gesture, 0, keys);
 
       expect(at).toBeGreaterThan(0.2);
       expect(at).toBeLessThan(0.95);
-      expect(checkoutAt(at - 0.01, variant as "full" | "quick", gesture, 0, keys).screen.state).not.toBe("approved");
-      expect(checkoutAt(at + 0.01, variant as "full" | "quick", gesture, 0, keys).screen.state).toBe("approved");
+      expect(checkoutAt(at - 0.01, variant, gesture, 0, keys).screen.state).not.toBe("approved");
+      expect(checkoutAt(at + 0.01, variant, gesture, 0, keys).screen.state).toBe("approved");
     });
   });
 
@@ -208,11 +210,11 @@ describe("the customer paying by face", () => {
 
 describe("the checkout's actor", () => {
   it("never runs or takes a total again once given back, so a counter rebuilt for another way to pay leaves no loop behind", () => {
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    const context = new FakeContext2D();
+    const face: [string, string] = ["#000000", "#111111"];
     const skin = {
       id: "test",
-      look: { gesture: "tap" as const, app: 0, face: ["#000000", "#111111"] as [string, string], mark: { width: 1, height: 1, parts: [] } },
+      look: { gesture: "tap" as const, app: 0, face, mark: { width: 1, height: 1, parts: [] } },
       amount: amountOf("€18.40"),
       accent: "#36e3c4",
     };

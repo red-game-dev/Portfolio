@@ -23,11 +23,12 @@ import {
   VoyageStyle,
   VoyageConfig,
   VoyageSimulation,
-  VoyageState,
   WORLD_CLASSES,
 } from "@/packages/games/voyage";
 import { flyAhead, isSoftTouchdown, planLanding } from "@/packages/games/voyage/landing";
 import { createSeededRandom } from "@/packages/math/random";
+
+import { runOf } from "./fixtures/simulation";
 
 const defaults = DEFAULT_VOYAGE_CONFIG;
 const EPOCH = Date.parse("2026-10-09T12:00:00Z");
@@ -474,7 +475,7 @@ describe("combat", () => {
       throw new Error("expected a maze");
     }
 
-    const state = simulation.state as VoyageState;
+    const state = runOf(simulation);
     const gates: Array<{ name: string; isNew: boolean }> = [];
 
     simulation.events.on("gate", ({ name, isNew }) => gates.push({ name, isNew }));

@@ -1,6 +1,7 @@
 import { BlockSnapTransition, CasinoScene, ChainScene, ChipFlipTransition, DevopsScene } from "@/packages/effects/backdrop";
-import { Canvas2DContext } from "@/packages/graphics/canvas";
 import { createSeededRandom } from "@/packages/math/random";
+
+import { FakeContext2D } from "../../../fixtures/canvas";
 
 // jsdom has no 2D canvas, so sprites are skipped; the scenes must still draw everything else.
 jest.mock("@/packages/graphics/canvas", () => ({
@@ -8,24 +9,11 @@ jest.mock("@/packages/graphics/canvas", () => ({
   createDrawableSurface: () => null,
 }));
 
-// Records every drawing call and accepts any property, like a real context would.
+// Records every drawing call, like a real context accepts them.
 const createContext = () => {
-  const calls: string[] = [];
-  const target: Record<string, unknown> = {};
-  const context = new Proxy(target, {
-    get: (object, key: string) => (key in object ? object[key] : (...args: unknown[]) => {
-      calls.push(key);
+  const context = new FakeContext2D();
 
-      return key === "createRadialGradient" || key === "createLinearGradient" ? { addColorStop: () => undefined } : args[0];
-    }),
-    set: (object, key: string, value) => {
-      object[key] = value;
-
-      return true;
-    },
-  }) as unknown as Canvas2DContext;
-
-  return { context, calls };
+  return { context, calls: context.calls };
 };
 
 const SIZE = { width: 1200, height: 800, pixelRatio: 1 };

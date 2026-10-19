@@ -1,9 +1,11 @@
 import { isMotionReduced, MOTION_ATTRIBUTE, motionScript, prefersReducedMotion, toggledMotion } from "@/packages/accessibility/motion";
 
+import { matchMediaBy } from "../../fixtures/dom";
+
 const KEY = "test.preferences";
 
 const withSystem = (reduced: boolean) => {
-  window.matchMedia = ((query: string) => ({ matches: reduced && query.includes("reduce"), media: query })) as unknown as typeof window.matchMedia;
+  window.matchMedia = matchMediaBy((query) => reduced && query.includes("reduce"));
 };
 
 describe("motion", () => {

@@ -567,7 +567,7 @@ export class VoyageSimulation {
     const ship = this.world.spawn();
     const earth = state.system.bodies.find((body) => body.id === HOME_WORLD) ?? state.system.bodies[0];
     // Up from Earth, unless the Moon (or anything close) is overhead, when the climb starts tipped aside from it.
-    const up = earth ? climbDirection(this.context, earth, { x: earth.x, y: earth.y - earth.radius * START_RADII }) : { x: 0, y: -1 };
+    const up = earth ? climbDirection(this.context.state.system.bodies, earth, { x: earth.x, y: earth.y - earth.radius * START_RADII }) : { x: 0, y: -1 };
     const x = earth ? earth.x + up.x * earth.radius * START_RADII : state.system.star.x + state.system.star.radius * 4;
     const y = earth ? earth.y + up.y * earth.radius * START_RADII : state.system.star.y;
     const isFlying = state.status === "flying";

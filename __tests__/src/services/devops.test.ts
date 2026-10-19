@@ -1,4 +1,5 @@
 import { portfolioData } from "@/data/resume";
+import { keysOf } from "@/packages/core/domain";
 import {
   DEFAULT_GUIDE_ANSWERS,
   deployScript,
@@ -61,7 +62,7 @@ describe("services/devops guide", () => {
   });
 
   test("every question offers exactly the answers it has words for", () => {
-    (Object.keys(GUIDE_OPTIONS) as Array<keyof typeof GUIDE_OPTIONS>).forEach((question) => {
+    keysOf(GUIDE_OPTIONS).forEach((question) => {
       expect([...GUIDE_OPTIONS[question]].sort()).toEqual(Object.keys(devops.guide.questions[question].options).sort());
     });
   });

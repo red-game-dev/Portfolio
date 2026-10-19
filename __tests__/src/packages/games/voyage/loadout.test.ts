@@ -16,15 +16,15 @@ import {
   PilotRepository,
   VoyageGame,
   VoyageNotice,
-  VoyageRenderer,
   VoyageSimulation,
 } from "@/packages/games/voyage";
 
+import { SilentRenderer } from "./fixtures/renderer";
 import { createFlying, EPOCH } from "./fixtures/simulation";
 
 // A renderer that draws nothing: every method a no-op (one that hands back a way to stop listening, a no-op too),
 // and no surface under the ship.
-const silentRenderer = (): VoyageRenderer => new Proxy({}, { get: (_, key) => (key === "surface" ? null : () => () => undefined) }) as unknown as VoyageRenderer;
+const silentRenderer = () => new SilentRenderer();
 
 // A host round a calm run already flying, with the pilot's hangar, its notices kept.
 const hostFor = (simulation: VoyageSimulation, hangar: Hangar) => {
@@ -61,7 +61,7 @@ describe("voyage loadout", () => {
     expect(hangar.view().boosts[0]).toMatchObject({ id: "afterburner", finds: 15, level: 5, nextAt: null, max: MAX_CHARGES });
 
     // Each new boost takes the next empty slot; once the bar is full the rest wait in the Loadout.
-    ["tractor", "decoy", "cloak", "prism"].forEach((id) => hangar.findBoost(id as Parameters<Hangar["findBoost"]>[0]));
+    (["tractor", "decoy", "cloak", "prism"] as const).forEach((id) => hangar.findBoost(id));
     expect(hangar.view().bar.map((row) => row.slot?.id ?? null)).toEqual(["fuelCell", "repairKit", "afterburner", "tractor", "decoy", "cloak"]);
     expect(hangar.view().boosts.map((row) => row.id)).toEqual(["afterburner", "tractor", "decoy", "cloak", "prism"]);
   });

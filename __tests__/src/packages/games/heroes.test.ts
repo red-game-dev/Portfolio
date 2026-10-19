@@ -1,10 +1,9 @@
 import { createHeroModel, DEFAULT_HERO_CLASSES, HeroPainter, DEFAULT_HERO_LOOK } from "@/packages/games/heroes";
 
+import { FakeContext2D } from "../../fixtures/canvas";
+
 // A context that accepts any drawing call, to prove every class paints without throwing.
-const anyContext = () => new Proxy({}, {
-  get: (_, key) => (key === "createLinearGradient" || key === "createRadialGradient" ? () => ({ addColorStop: () => undefined }) : () => undefined),
-  set: () => true,
-}) as unknown as CanvasRenderingContext2D;
+const anyContext = () => new FakeContext2D();
 
 describe("games/heroes", () => {
   test("every class has a unique id", () => {

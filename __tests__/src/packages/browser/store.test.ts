@@ -1,5 +1,7 @@
 import { createStore, IndexedDBAdapter, LocalStorageAdapter, MemoryAdapter, Repository } from "@/packages/browser/store";
 
+import { SilentIndexedDB } from "./fixtures/indexedDb";
+
 const isCount = (value: unknown): value is { count: number } => typeof value === "object" && value !== null && "count" in value && typeof value.count === "number";
 
 describe("browser/store", () => {
@@ -68,10 +70,9 @@ describe("browser/store", () => {
   });
 
   test("gives up on an IndexedDB that never answers, so nothing waits on it", async () => {
-    const silent: Pick<IDBFactory, "open"> = { open: () => ({}) as IDBOpenDBRequest };
     const started = Date.now();
 
-    expect(await IndexedDBAdapter.open(silent as IDBFactory, "never", 30)).toBeNull();
+    expect(await IndexedDBAdapter.open(new SilentIndexedDB(), "never", 30)).toBeNull();
     expect(Date.now() - started).toBeLessThan(1000);
   });
 });

@@ -6,7 +6,6 @@ import {
   cacheHitRatio,
   costMicros,
   EngineEvent,
-  EngineReport,
   estimateTokens,
   ModelChunk,
   ModelError,
@@ -14,7 +13,7 @@ import {
   ModelRequest,
   readLines,
   Route,
-  RouteValidator
+  RouteValidator,
 } from "@/packages/ai/engine";
 
 import { bodyOf } from "../fixtures/streams";
@@ -61,7 +60,11 @@ const run = async (engine: AiEngine, tier = "quick", signal?: AbortSignal) => {
 
   const end = events[events.length - 1];
 
-  return { events, report: (end.type === "end" ? end.report : null) as EngineReport };
+  if (end?.type !== "end") {
+    throw new Error("The stream ended without its report.");
+  }
+
+  return { events, report: end.report };
 };
 
 describe("AiEngine", () => {

@@ -4,13 +4,12 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 
 import { PreferencesProvider } from "@/components/Preferences/context/PreferencesContext";
 import { portfolioData } from "@/data/resume";
-import type { BugRaidGame as BugRaidGameClass } from "@/packages/games/bug-raid";
-import type { LaunchGame as LaunchGameClass, LaunchSnapshot } from "@/packages/games/launch";
-import type { EconomyView, VoyageGame as VoyageGameClass, VoyageSnapshot } from "@/packages/games/voyage";
+import { recordOf } from "@/packages/core/domain";
+import type { LaunchSnapshot } from "@/packages/games/launch";
+import type { VoyageSnapshot } from "@/packages/games/voyage";
 import { preferences } from "@/services/preferences/store";
-import type { Pilot } from "@/services/voyage/pilot";
 
-import { stubCanvases } from "./fixtures/canvas";
+import { rect, stubCanvases } from "../fixtures/dom";
 import { installPointerEvents, pointerAt } from "./fixtures/pointer";
 
 // The games and the pilot's store are fakes, and the real maps never arrive. The project's Babel does not hoist
@@ -31,10 +30,10 @@ const { VoyageGame } = jest.requireMock<{ VoyageGame: { forCanvas: jest.Mock } }
 const { openPilot } = jest.requireMock<{ openPilot: jest.Mock }>("@/services/voyage/pilot");
 
 // A game whose every method is a spy.
-const fake = <T extends string>(methods: readonly T[]) => Object.fromEntries(methods.map((name) => [name, jest.fn()])) as Record<T, jest.Mock>;
+const fake = <T extends string>(methods: readonly T[]) => recordOf(methods, () => jest.fn());
 
-// The options a mocked game was last built with, to drive it as the real one would.
-const lastOptions = <T,>(forCanvas: unknown) => (forCanvas as jest.Mock).mock.calls.at(-1)?.[1] as T;
+// The options a mocked game was last built with, to drive it as the real one would: typed by the parts the test uses.
+const lastOptions = <T,>(forCanvas: jest.Mock): T => forCanvas.mock.calls.at(-1)?.[1];
 
 let restoreCanvases: () => void = () => undefined;
 
@@ -65,7 +64,7 @@ describe("Bug Raid's controls", () => {
   const build = async () => {
     const game = { ...fake(["stop", "resize", "aim", "strike", "play", "pause", "resume"] as const), strikeAtCursor: jest.fn(() => false), isRunning: true };
 
-    BugRaidGame.forCanvas.mockReturnValue(game as unknown as BugRaidGameClass);
+    BugRaidGame.forCanvas.mockReturnValue(game);
     render(<Raid />);
     await waitFor(() => expect(game.resize).toHaveBeenCalled());
     await act(async () => undefined);
@@ -100,7 +99,7 @@ describe("Bug Raid's controls", () => {
   it("strikes where the pointer goes down on the board", async () => {
     const { game, board } = await build();
 
-    board.getBoundingClientRect = () => ({ left: 10, top: 20 } as DOMRect);
+    board.getBoundingClientRect = () => rect({ left: 10, top: 20 });
     fireEvent.pointerDown(board, { clientX: 30, clientY: 50 });
     expect(game.strike).toHaveBeenCalledWith(20, 30);
   });
@@ -133,7 +132,7 @@ describe("the launch button", () => {
   const build = async () => {
     const game = fake(["stop", "resize", "setTexture", "dispose", "press", "release", "launch", "complete", "reset", "selfDestruct"] as const);
 
-    LaunchGame.forCanvas.mockReturnValue(game as unknown as LaunchGameClass);
+    LaunchGame.forCanvas.mockReturnValue(game);
     render(<Launch />);
     await waitFor(() => expect(screen.getByRole("button", { name: "launch" })).toBeEnabled());
 
@@ -258,29 +257,33 @@ describe("the voyage's controls", () => {
       repository: { loadGhost: jest.fn(async () => null), saveGhost: jest.fn(), clearGhost: jest.fn(), close: jest.fn() },
     };
 
-    openPilot.mockResolvedValue(pilot as unknown as Pilot);
-    VoyageGame.forCanvas.mockReturnValue(game as unknown as VoyageGameClass);
+    openPilot.mockResolvedValue(pilot);
+    VoyageGame.forCanvas.mockReturnValue(game);
     render(<PreferencesProvider><Voyage /></PreferencesProvider>);
     await waitFor(() => expect(VoyageGame.forCanvas).toHaveBeenCalled());
     await act(async () => undefined);
 
-    const options = lastOptions<{ onChange: (snapshot: VoyageSnapshot) => void; onEconomy: (economy: EconomyView) => void }>(VoyageGame.forCanvas);
+    // The hook reads only these parts of what the game tells it.
+    const options = lastOptions<{
+      onChange: (snapshot: Pick<VoyageSnapshot, "status" | "autoFire">) => void;
+      onEconomy: (economy: { suggestion: unknown }) => void;
+    }>(VoyageGame.forCanvas);
     const stage = screen.getByRole("application", { name: "stage" });
     const fly = (status: VoyageSnapshot["status"] = "flying", autoFire = true) => act(() => {
-      options.onChange({ status, autoFire } as unknown as VoyageSnapshot);
+      options.onChange({ status, autoFire });
     });
     const suggest = (suggestion: unknown) => act(() => {
-      options.onEconomy({ suggestion } as unknown as EconomyView);
+      options.onEconomy({ suggestion });
     });
 
-    stage.getBoundingClientRect = () => ({ left: 10, top: 20 } as DOMRect);
+    stage.getBoundingClientRect = () => rect({ left: 10, top: 20 });
 
     return { game, stage, fly, suggest, state: () => screen.getByLabelText("state").textContent };
   };
 
   it("flies the way the arrows and WASD point in flight, two for a diagonal, each key held until it comes up", async () => {
     const { game, stage, fly } = await build();
-    const lean = () => (game.setKeys.mock.calls.at(-1) as [{ lean: { x: number; y: number } | null; thrust: number; brake: boolean }])[0];
+    const lean = (): { lean: { x: number; y: number } | null; thrust: number; brake: boolean } => game.setKeys.mock.calls.at(-1)?.[0];
 
     fly();
     expect(fireEvent.keyDown(stage, { key: "ArrowLeft" })).toBe(false);

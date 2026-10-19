@@ -30,20 +30,19 @@ import {
   TELEGRAPH_MS,
   VoyageEvents,
   VoyageGame,
-  VoyageRenderer,
   VoyageSimulation,
-  VoyageState,
   windup,
 } from "@/packages/games/voyage";
 import { createSeededRandom } from "@/packages/math/random";
 
-import { createFlying, defaults, partsOf } from "./fixtures/simulation";
+import { SilentRenderer } from "./fixtures/renderer";
+import { createFlying, defaults, partsOf, runOf } from "./fixtures/simulation";
 
 const port = (overrides: Partial<Port> = {}): Port => ({ kind: "station", id: "station:earth", anchor: "earth", faction: -1, seed: 1234, depth: -1, ...overrides });
 
 // Into a universe made from a seed, every faction there made hostile.
 const intoUniverse = (simulation: VoyageSimulation) => {
-  const state = simulation.state as VoyageState;
+  const state = runOf(simulation);
 
   state.runSeed = 9000;
   state.universes = 5;
@@ -282,7 +281,7 @@ describe("calls for help", () => {
 
     simulation.step(200);
 
-    const state = simulation.state as VoyageState;
+    const state = runOf(simulation);
     const body = atRest(simulation);
 
     Object.assign(state.distress ?? {}, { x: body.x, y: body.y, vx: 0, vy: 0, kind: "survivors" });
@@ -302,7 +301,7 @@ describe("calls for help", () => {
 
     simulation.step(200);
 
-    const state = simulation.state as VoyageState;
+    const state = runOf(simulation);
     const body = atRest(simulation);
 
     Object.assign(state.distress ?? {}, { x: body.x, y: body.y, vx: 0, vy: 0, kind: "cargo" });
@@ -320,7 +319,7 @@ describe("calls for help", () => {
 
     intoUniverse(simulation);
 
-    const state = simulation.state as VoyageState;
+    const state = runOf(simulation);
     const { body } = partsOf(simulation);
 
     state.distress = { x: body.x, y: body.y, vx: body.vx, vy: body.vy, kind: "ambush", until: state.elapsedMs + 10000, held: 0 };
@@ -355,7 +354,7 @@ describe("a boss's great attacks", () => {
 
     intoUniverse(simulation);
 
-    const state = simulation.state as VoyageState;
+    const state = runOf(simulation);
 
     state.phaseMs = 1e9;
     simulation.step(defaults.stepMs * 2);
@@ -392,7 +391,7 @@ describe("wrecks in the universes", () => {
 
     intoUniverse(simulation);
 
-    const state = simulation.state as VoyageState;
+    const state = runOf(simulation);
 
     state.hulks = [{ shape: "crystal", colours: ["#111111", "#222222", "#333333"], level: 4, origin: "Elsewhere" }];
 
@@ -412,7 +411,7 @@ describe("wrecks in the universes", () => {
 
 describe("docked at a port, through the host", () => {
   // A renderer that draws nothing, and a host round a calm run with a pilot's hangar, armoury and progress.
-  const silentRenderer = (): VoyageRenderer => new Proxy({}, { get: (_, key) => (key === "surface" ? null : () => () => undefined) }) as unknown as VoyageRenderer;
+  const silentRenderer = () => new SilentRenderer();
   const hostFor = (simulation: VoyageSimulation) => {
     const armory = new Armory();
     const progress = new Progress();
@@ -477,7 +476,7 @@ describe("docked at a port, through the host", () => {
     const hull = simulation.config.ship.hull;
 
     simulation.offerPerks();
-    (simulation.state as VoyageState).perkOffer = ["thickPlating", "vampire", "scavenger"];
+    runOf(simulation).perkOffer = ["thickPlating", "vampire", "scavenger"];
     expect(game.act({ kind: "perk", id: "thickPlating" })).toBe(true);
     expect(simulation.config.ship.hull).toBeGreaterThan(hull);
 
@@ -558,7 +557,7 @@ describe("fixes from review", () => {
       const armory = new Armory();
       const hangar = new Hangar(newProfile(), { weapons: armory.port() });
       const scheduler = { request: () => 0, cancel: () => undefined };
-      const silent = new Proxy({}, { get: (_, key) => (key === "surface" ? null : () => () => undefined) }) as unknown as VoyageRenderer;
+      const silent = new SilentRenderer();
 
       hangar.reward({ kind: "mission", id: "test", coin: 2000 });
 
@@ -604,12 +603,12 @@ describe("fixes from review", () => {
     const progress = new Progress();
     const hangar = new Hangar(newProfile(), { weapons: armory.port() });
     const scheduler = { request: () => 0, cancel: () => undefined };
-    const silent = new Proxy({}, { get: (_, key) => (key === "surface" ? null : () => () => undefined) }) as unknown as VoyageRenderer;
+    const silent = new SilentRenderer();
     const game = new VoyageGame(simulation, silent, null, null, DEFAULT_VOYAGE_THEME, { hangar, armory, progress, scheduler });
 
     armory.add({ base: "weapon:missile:0", rarity: "rare" });
     progress.gainExp(5000);
-    (simulation.state as VoyageState).status = "over";
+    runOf(simulation).status = "over";
 
     expect(game.act({ kind: "reset" })).toBe(true);
     expect(armory.pieces).toHaveLength(7);

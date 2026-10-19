@@ -3,8 +3,10 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { MessageForm } from "@/components/Contact/MessageForm";
 import { SECTION_IDS } from "@/config/sections";
 import { portfolioData } from "@/data/resume";
+import { ContactChannel, ContactDelivery, ContactRequest, Delivery, MailtoChannel } from "@/packages/messaging/contact";
 
-import { stubCanvases } from "./fixtures/canvas";
+import { stubCanvases } from "../fixtures/dom";
+import { instanceOf } from "../fixtures/guards";
 
 jest.mock("@/services/contact/client", () => {
   const contactIsOpen = jest.fn();
@@ -15,6 +17,28 @@ jest.mock("@/services/contact/client", () => {
 
 const client = jest.requireMock<{ contactIsOpen: jest.Mock; sendContact: jest.Mock }>("@/services/contact/client");
 const { forms, details } = portfolioData;
+
+// A channel that can always send and refuses every message as the server would an invalid email.
+class RefusingChannel extends ContactChannel {
+  public readonly id = "refusing";
+  public readonly asked = jest.fn();
+  public readonly given = jest.fn();
+
+  public isOpen(): Promise<boolean | null> {
+    this.asked();
+
+    return Promise.resolve(true);
+  }
+
+  public deliver(request: ContactRequest): Promise<Delivery> {
+    this.given(request);
+
+    return Promise.resolve({ kind: "refused", refusal: "invalid", problems: ["emailInvalid"] });
+  }
+}
+
+// The key each message the site was asked to send carried.
+const keyOf = (request: unknown) => (typeof request === "object" && request !== null && "key" in request ? request.key : undefined);
 
 const renderForm = (kind: "message" | "feedback") => render(
   <MessageForm kind={kind} subject={kind === "message" ? "Hiring: CTO" : forms.feedback.subject} email={details.email} contactTime={details.contactTime}
@@ -164,7 +188,7 @@ describe("the message and feedback form", () => {
     fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.email)), { target: { value: "ada@example.test" } });
     await send();
 
-    const keys = client.sendContact.mock.calls.map(([request]) => (request as { key: string }).key);
+    const keys = client.sendContact.mock.calls.map(([request]) => keyOf(request));
 
     expect(keys[0]).toBe(keys[1]);
     expect(keys[2]).not.toBe(keys[0]);
@@ -179,7 +203,7 @@ describe("the message and feedback form", () => {
     expect(trap).toHaveAttribute("tabindex", "-1");
     expect(trap?.closest("[aria-hidden='true']")).not.toBeNull();
 
-    fireEvent.change(trap as Element, { target: { value: "https://spam.example" } });
+    fireEvent.change(instanceOf(trap, HTMLInputElement), { target: { value: "https://spam.example" } });
     fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.message)), { target: { value: "Buy cheap things here now." } });
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
@@ -210,20 +234,21 @@ describe("the message and feedback form", () => {
   });
 
   it("delivers through whichever delivery it is given, the email app staying the fallback", async () => {
-    const delivery = { status: jest.fn(async () => "open"), deliver: jest.fn(async () => ({ kind: "invalid" as const, problems: ["emailInvalid" as const] })) };
+    const channel = new RefusingChannel();
+    const delivery = new ContactDelivery([channel], new MailtoChannel(details.email, forms.feedback.subject));
 
     render(
       <MessageForm kind="feedback" subject={forms.feedback.subject} email={details.email} contactTime={details.contactTime} words={forms.feedback}
-        shared={forms.shared} loadDelivery={async () => delivery as never} />,
+        shared={forms.shared} loadDelivery={async () => delivery} />,
     );
-    await waitFor(() => expect(delivery.status).toHaveBeenCalled());
+    await waitFor(() => expect(channel.asked).toHaveBeenCalled());
     fireEvent.change(screen.getByLabelText(new RegExp(forms.feedback.message)), { target: { value: "More case studies, please." } });
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: forms.feedback.send }));
     });
 
     // Feedback goes under the form's own subject too, so the inbox reads it as the form words it.
-    expect(delivery.deliver).toHaveBeenCalledWith(expect.objectContaining({ kind: "feedback", message: "More case studies, please.", subject: forms.feedback.subject }));
+    expect(channel.given).toHaveBeenCalledWith(expect.objectContaining({ kind: "feedback", message: "More case studies, please.", subject: forms.feedback.subject }));
     // What the server found wrong shows on its field, as the form's own checks would.
     expect(screen.getByText(forms.shared.problems.emailInvalid)).toBeInTheDocument();
     expect(client.sendContact).not.toHaveBeenCalled();

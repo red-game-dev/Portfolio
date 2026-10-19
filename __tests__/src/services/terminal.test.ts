@@ -149,7 +149,7 @@ describe("portfolio commands", () => {
       const effect = session.execute(`goto ${target}`);
 
       expect(effect?.type).toBe("navigate");
-      expect(sectionIds.has((effect as { target: string }).target)).toBe(true);
+      expect(effect?.type === "navigate" && sectionIds.has(effect.target)).toBe(true);
     });
   });
 

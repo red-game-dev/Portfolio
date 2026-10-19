@@ -1,12 +1,6 @@
-import { DrawableSurface, SpriteCache } from "@/packages/graphics/canvas";
+import { SpriteCache } from "@/packages/graphics/canvas";
 
-// A stand in for a canvas: records its size and the scale it was given.
-const fakeSurface = (width: number, height: number): DrawableSurface => {
-  const surface = { width, height } as unknown as OffscreenCanvas;
-  const context = { scale: jest.fn(), translate: jest.fn(), canvas: surface } as unknown as OffscreenCanvasRenderingContext2D;
-
-  return { surface, context };
-};
+import { fakeSurface } from "../../fixtures/canvas";
 
 describe("graphics/canvas SpriteCache", () => {
   test("paints a frame once, at device resolution, and reuses it", () => {

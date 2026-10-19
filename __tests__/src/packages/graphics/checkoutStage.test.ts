@@ -1,8 +1,10 @@
 import { amountOf, approvedAt, CHECKOUT_LAYOUT, checkoutAt, CheckoutSkin, keysFor } from "@/packages/graphics/checkout";
 import { CHECKOUT_MODELS, checkoutStageMap, warmCheckoutStage, warmCustomerStage } from "@/packages/graphics/checkout-stage";
 import { HAND_GRIPS, handField, RIGHT_HAND } from "@/packages/graphics/hand";
-import type { ActorState, Stage, StageScene } from "@/packages/graphics/stage3d";
+import type { ActorState, StageScene } from "@/packages/graphics/stage3d";
 import { conjugate, dot, normalize, rotate, sub, vec3 } from "@/packages/math/space";
+
+import { MountingStage } from "./fixtures/stage";
 
 const keys = keysFor(amountOf("€18.40"));
 
@@ -114,8 +116,8 @@ describe("the checkout on a 3D stage", () => {
   });
 
   it("compiles every material a payment can show once per stage, in a scene the stage keeps", async () => {
-    const mounted: StageScene[] = [];
-    const stage = { mount: (scene: StageScene) => Promise.resolve(mounted.push(scene)).then(() => ({ id: mounted.length })) } as unknown as Stage;
+    const stage = new MountingStage();
+    const { mounted } = stage;
 
     await warmCheckoutStage(stage);
     await warmCheckoutStage(stage);
@@ -135,8 +137,8 @@ describe("the checkout on a 3D stage", () => {
   });
 
   it("warms the customer who pays by face on her own, once", async () => {
-    const mounted: StageScene[] = [];
-    const stage = { mount: (scene: StageScene) => Promise.resolve(mounted.push(scene)).then(() => ({ id: mounted.length })) } as unknown as Stage;
+    const stage = new MountingStage();
+    const { mounted } = stage;
 
     await warmCustomerStage(stage);
     await warmCustomerStage(stage);

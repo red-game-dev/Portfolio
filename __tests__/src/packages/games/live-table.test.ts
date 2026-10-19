@@ -9,8 +9,9 @@ import {
   LiveTableSimulation,
   resolveLiveTableConfig
 } from "@/packages/games/live-table";
-import { DrawableSurface } from "@/packages/graphics/canvas";
 import { RigActor, RigRenderer } from "@/packages/graphics/rig";
+
+import { FakeContext2D, fakeSurface } from "../../fixtures/canvas";
 
 const CARDS = ["wallets", "bonuses", "sportsbook"];
 const config = resolveLiveTableConfig({
@@ -121,18 +122,6 @@ describe("games/live-table", () => {
 });
 
 describe("games/live-table dealer", () => {
-  const fakeSurface = (width: number, height: number): DrawableSurface => {
-    const surface = { width, height } as unknown as OffscreenCanvas;
-
-    // Accepts any drawing call, so the real painter runs against it.
-    const context = new Proxy({ canvas: surface }, {
-      get: (target, key) => (key === "canvas" ? target.canvas
-        : key === "createLinearGradient" || key === "createRadialGradient" ? () => ({ addColorStop: () => undefined }) : () => undefined),
-      set: () => true,
-    }) as unknown as OffscreenCanvasRenderingContext2D;
-
-    return { surface, context };
-  };
   const dealerActor = (context: CanvasRenderingContext2D) => new RigActor(context, {
     model: createDealerModel(),
     skins: DEFAULT_DEALER_OUTFITS,
@@ -141,20 +130,20 @@ describe("games/live-table dealer", () => {
   });
 
   const fakeContext = () => {
-    const canvas = { width: 0, height: 0 };
     const calls: string[] = [];
-    const context = {
-      canvas,
-      setTransform: () => calls.push("setTransform"),
-      clearRect: () => calls.push("clear"),
-      drawImage: () => calls.push("draw"),
-      translate: () => undefined,
-      rotate: () => undefined,
-      save: () => undefined,
-      restore: () => undefined,
-    } as unknown as CanvasRenderingContext2D;
+    const context = Object.assign(new FakeContext2D(), {
+      setTransform: () => {
+        calls.push("setTransform");
+      },
+      clearRect: () => {
+        calls.push("clear");
+      },
+      drawImage: () => {
+        calls.push("draw");
+      },
+    });
 
-    return { canvas, calls, context };
+    return { canvas: context.canvas, calls, context };
   };
 
   test("sizes the canvas from its width at the drawing's proportions and device resolution", () => {
@@ -163,7 +152,7 @@ describe("games/live-table dealer", () => {
 
     dealer.resize(150, 2);
 
-    expect(canvas).toEqual({ width: 300, height: 360 });
+    expect({ width: canvas.width, height: canvas.height }).toEqual({ width: 300, height: 360 });
   });
 
   test("outfits wrap around in both directions", () => {
@@ -197,10 +186,7 @@ describe("games/live-table dealer", () => {
 
   test("the painter draws every outfit in every pose without throwing", () => {
     const painter = new DealerPainter(DEFAULT_DEALER_LOOK);
-    const context = new Proxy({}, {
-      get: (_, key) => (key === "createLinearGradient" || key === "createRadialGradient" ? () => ({ addColorStop: () => undefined }) : () => undefined),
-      set: () => true,
-    }) as unknown as CanvasRenderingContext2D;
+    const context = new FakeContext2D();
 
     DEFAULT_DEALER_OUTFITS.forEach((outfit) => {
       [{ time: 0, isTalking: false, blink: 0 }, { time: 1.3, isTalking: true, blink: 1 }].forEach((pose) => {

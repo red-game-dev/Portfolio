@@ -47,8 +47,8 @@ export const devopsContent: Pick<PortfolioData, "devops"> = {
       deploy: "Deploy",
       deployAll: "Deploy every universe",
       move: "Move",
-      shipped: "{stack} is live on {host}.",
-      moved: "{stack} moved from {from} to {to}, with no downtime.",
+      shipped: "{stack}: live on {host}.",
+      moved: "{stack}: moved from {from} to {to}, with no downtime.",
       idle: "Pick where it runs, then ship a universe.",
       steps: {
         dedicated: [
@@ -112,7 +112,7 @@ export const devopsContent: Pick<PortfolioData, "devops"> = {
       usage: "Usage: deploy <universe> [host], migrate <universe> <host>. For example: deploy game, migrate board aws",
       unknownStack: "There is no universe called {input}. Type deploy to see them.",
       unknownHost: "There is no host called {input}. Type hosts to see them.",
-      sameHost: "{stack} already runs on {host}.",
+      sameHost: "{stack}: already runs on {host}.",
     },
     hosts: {
       title: "Where it runs, and when",

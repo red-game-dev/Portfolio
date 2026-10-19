@@ -115,12 +115,14 @@ const Target = styled.span(() => [
   `,
 ]);
 
-const Log = tw.ol`list-none m-0 p-[12px] flex flex-col gap-[4px] min-h-[132px] text-xs text-[#bbb] overflow-x-auto`;
+const Log = tw.ol`list-none m-0 p-[12px] flex flex-col gap-[4px] min-h-[132px] text-xs text-[#bbb]`;
 
+// A long command wraps rather than scrolling the log sideways on a phone.
 const Line = styled.li(() => [
-  tw`whitespace-pre`,
+  tw`whitespace-pre-wrap`,
   css`
     font-family: ${MONO};
+    overflow-wrap: anywhere;
   `,
 ]);
 

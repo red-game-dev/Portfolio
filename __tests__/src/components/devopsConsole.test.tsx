@@ -53,7 +53,7 @@ describe("DevOps guide and console", () => {
     fireEvent.click(screen.getByRole("button", { name: `${devops.console.deploy}: ${devops.console.stacks.mmo}` }));
     settle();
 
-    expect(screen.getByRole("status")).toHaveTextContent(`${devops.console.stacks.mmo} is live on OVH and Hetzner.`);
+    expect(screen.getByRole("status")).toHaveTextContent(`${devops.console.stacks.mmo}: live on OVH and Hetzner.`);
     expect(screen.getByTestId("deploys")).toHaveTextContent("1");
   });
 
@@ -65,7 +65,7 @@ describe("DevOps guide and console", () => {
     fireEvent.click(screen.getByRole("button", { name: `${devops.console.deploy}: ${devops.console.stacks.mmo}` }));
     settle();
 
-    expect(screen.getByRole("status")).toHaveTextContent(`${devops.console.stacks.mmo} is live on AWS.`);
+    expect(screen.getByRole("status")).toHaveTextContent(`${devops.console.stacks.mmo}: live on AWS.`);
   });
 
   test("a move takes a stack somewhere else with no downtime, and every universe can ship in turn", () => {
@@ -73,7 +73,7 @@ describe("DevOps guide and console", () => {
 
     fireEvent.click(screen.getByRole("button", { name: `${devops.console.move}: ${devops.console.stacks.beyond}` }));
     settle();
-    expect(screen.getByRole("status")).toHaveTextContent(`${devops.console.stacks.beyond} moved from OVH and Hetzner to AWS, with no downtime.`);
+    expect(screen.getByRole("status")).toHaveTextContent(`${devops.console.stacks.beyond}: moved from OVH and Hetzner to AWS, with no downtime.`);
 
     fireEvent.click(screen.getByRole("button", { name: devops.console.deployAll }));
 

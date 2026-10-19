@@ -170,10 +170,10 @@ describe("portfolio commands", () => {
 
     expect(text("hosts", [])).toContain("metal: OVH and Hetzner, Dedicated servers.");
     expect(text("deploy", [])).toContain("game: The game servers");
-    expect(text("deploy", ["game"])).toContain("The game servers is live on OVH and Hetzner.");
-    expect(text("deploy", ["site", "vercel"])).toContain("This site is live on Vercel.");
-    expect(text("migrate", ["board", "aws"])).toContain("The daily board moved from OVH and Hetzner to AWS, with no downtime.");
-    expect(text("migrate", ["board", "metal"])).toContain("The daily board already runs on OVH and Hetzner.");
+    expect(text("deploy", ["game"])).toContain("The game servers: live on OVH and Hetzner.");
+    expect(text("deploy", ["site", "vercel"])).toContain("This site: live on Vercel.");
+    expect(text("migrate", ["board", "aws"])).toContain("The daily board: moved from OVH and Hetzner to AWS, with no downtime.");
+    expect(text("migrate", ["board", "metal"])).toContain("The daily board: already runs on OVH and Hetzner.");
     expect(run("deploy", ["toaster"]).map(({ kind }) => kind)).toEqual(["error"]);
     expect(run("migrate", ["game", "mainframe"]).map(({ kind }) => kind)).toEqual(["error"]);
   });

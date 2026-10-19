@@ -1,9 +1,13 @@
 name: Share card
 
 # The share card recorded from a deployed /social-card/ (scripts/social-card.mjs): the journey as a looping MP4 for
-# the platforms that play one, and its last frame as the still the rest show. On a preview whose branch changed the
-# card, it records that preview and commits the files to the branch. Run it by hand to record production again when
-# the figures or the headline change; it commits to a new branch to open as a pull request.
+# the platforms that play one, and its last frame as the still the rest show. On a preview whose branch (in this
+# repository, never a fork) changed the card, it records that preview and commits the files to the branch. Run it by
+# hand to record production again when the figures or the headline change; it commits to a new branch to open as a
+# pull request.
+#
+# The branch's code runs only in the record job, with a token that can read and nothing more. The commit job holds the
+# write token, runs nothing from the branch, and takes only the two files the recording made.
 on:
   deployment_status:
   workflow_dispatch:
@@ -14,31 +18,44 @@ on:
         required: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  record:
-    name: Record the share card
+  decide:
+    name: Decide whether to record
     if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && startsWith(github.event.deployment.environment, 'Preview'))
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      record: ${{ steps.decide.outputs.record }}
+      branch: ${{ steps.decide.outputs.branch }}
+      sha: ${{ steps.decide.outputs.sha }}
+      url: ${{ steps.decide.outputs.url }}
     steps:
       - name: Check out
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.deployment.sha || github.ref }}
+          ref: ${{ github.event.deployment.sha || github.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
-      # On a preview: only a branch that changed the card is recorded, and never the commit that recorded it.
-      - name: Decide whether to record
+      # Only a branch of this repository that changed the card, never the commit that recorded it.
+      - name: Decide
         id: decide
         env:
           GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.event.deployment.sha }}
+          EVENT: ${{ github.event_name }}
+          SHA: ${{ github.event.deployment.sha || github.sha }}
+          PREVIEW: ${{ github.event.deployment_status.target_url }}
+          INPUT_URL: ${{ inputs.url }}
+          RUN: ${{ github.run_id }}
+          REPO: ${{ github.repository }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "record=true" >> "$GITHUB_OUTPUT"
-            echo "branch=chore/share-card-${{ github.run_id }}" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            { echo "record=true"; echo "branch=chore/share-card-$RUN"; echo "url=$INPUT_URL"; } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if [ "$(git log -1 --format=%s "$SHA")" = "chore: record the share card" ]; then
@@ -46,39 +63,83 @@ jobs:
             exit 0
           fi
           changed=$(git diff --name-only origin/main..."$SHA" -- src/pages/social-card.tsx src/components/SocialCard scripts/social-card.mjs .github/workflows/social-card.yml)
-          branch=$(gh api "repos/${{ github.repository }}/commits/$SHA/pulls" --jq '.[0].head.ref // empty')
+          pull=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq '[.[] | select(.head.repo.full_name == "'"$REPO"'")][0] // empty')
+          branch=$(echo "$pull" | jq -r '.head.ref // empty')
           if [ -n "$changed" ] && [ -n "$branch" ]; then
-            echo "record=true" >> "$GITHUB_OUTPUT"
-            echo "branch=$branch" >> "$GITHUB_OUTPUT"
+            { echo "record=true"; echo "branch=$branch"; echo "url=$PREVIEW"; } >> "$GITHUB_OUTPUT"
           else
             echo "record=false" >> "$GITHUB_OUTPUT"
           fi
 
+  record:
+    name: Record the share card
+    needs: decide
+    if: needs.decide.outputs.record == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the deployed commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.decide.outputs.sha }}
+          persist-credentials: false
+
       - name: Set up Node
-        if: steps.decide.outputs.record == 'true'
         uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies, Chromium and ffmpeg
-        if: steps.decide.outputs.record == 'true'
         run: |
           npm ci
           npx playwright install --with-deps chromium
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
 
       - name: Record
-        if: steps.decide.outputs.record == 'true'
         run: node scripts/social-card.mjs
         env:
-          SOCIAL_CARD_URL: ${{ github.event.deployment_status.target_url || inputs.url }}
+          SOCIAL_CARD_URL: ${{ needs.decide.outputs.url }}
 
+      - name: Keep the recording
+        uses: actions/upload-artifact@v7
+        with:
+          name: share-card
+          path: |
+            public/images/social-card.mp4
+            public/images/social-card.png
+          if-no-files-found: error
+          retention-days: 3
+
+  commit:
+    name: Commit the share card
+    needs: [decide, record]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || needs.decide.outputs.branch }}
+
+      - name: Take the recording
+        uses: actions/download-artifact@v8
+        with:
+          name: share-card
+          path: ${{ runner.temp }}/share-card
+
+      # Only the two files, and only if they are what they say: nothing the recording made is run here.
       - name: Commit the card
-        if: steps.decide.outputs.record == 'true'
         env:
-          BRANCH: ${{ steps.decide.outputs.branch }}
+          BRANCH: ${{ needs.decide.outputs.branch }}
+          FROM: ${{ runner.temp }}/share-card
         run: |
+          file --brief --mime-type "$FROM/social-card.mp4" | grep -qx "video/mp4"
+          file --brief --mime-type "$FROM/social-card.png" | grep -qx "image/png"
+          cp "$FROM/social-card.mp4" "$FROM/social-card.png" public/images/
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$BRANCH"

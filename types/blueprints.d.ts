@@ -138,4 +138,4 @@ export interface BlueprintLabels {
 export type VentureBlueprintId = "goz" | "amw" | "arcavium" | "adotta" | "punti" | "casino" | "freight";
 
 // The page sections that carry blueprints, each loaded on demand.
-export type BlueprintSection = "ai" | "chain" | "delivery" | "platform" | "payments" | "casino" | "mmo";
+export type BlueprintSection = "ai" | "chain" | "delivery" | "platform" | "payments" | "devops" | "casino" | "mmo";

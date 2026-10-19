@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import tw, { styled } from "twin.macro";
 
+import { BlueprintSection } from "@/components/Blueprint";
 import { Planner } from "@/components/DevOps/Planner";
 import { Lead } from "@/components/DevOps/styles";
 import { Panel, PanelTitle } from "@/components/Panel";
@@ -58,7 +59,8 @@ const TopicTitle = tw.h4`m-0 text-base font-semibold text-white`;
 
 // The DevOps universe's section: where a product should run, worked out from four answers, and a console that ships
 // each universe to that plan; then the hosts I run on and when each pays, the stacks I set up from scratch and the CLI
-// that moved them, and how I run them in production. It holds no words of its own.
+// that moved them, drawn as systems (its blueprints, loaded as the section nears), and how I run them in production. It
+// holds no words of its own.
 export const DevOps: FC<DevOpsProps> = ({ intro, content }: DevOpsProps) => (
   <Section id={SECTION_IDS.devops}>
     <SectionText intro={intro} />
@@ -108,6 +110,7 @@ export const DevOps: FC<DevOpsProps> = ({ intro, content }: DevOpsProps) => (
           </Points>
         </Panel>
       </Columns>
+      <BlueprintSection section="devops" />
       <Panel>
         <PanelTitle>{content.practice.title}</PanelTitle>
         <Lead>{content.practice.intro}</Lead>

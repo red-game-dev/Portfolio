@@ -72,10 +72,16 @@ export const WireItem = tw.li`break-words`;
 
 export const WireArrow = tw.span`text-[var(--accent)]`;
 
-// Each world draws its frames its own way: a terminal rule, a soft neural glow, a chain block, a neon
-// table rim, or a game UI panel with cut corners.
+// Each world draws its frames its own way: a terminal rule, a soft neural glow, a chain block, a rack with its
+// rails and units, a neon table rim, or a game UI panel with cut corners.
 export const groupFlavour = (zone: ZoneId) => {
   switch (zone) {
+    case "devops":
+      return css`
+        border-color: var(--accent-muted);
+        background: repeating-linear-gradient(180deg, transparent 0 13px, rgba(var(--accent-rgb), 0.05) 13px 14px);
+        box-shadow: inset 4px 0 0 rgba(var(--accent-rgb), 0.16), inset -4px 0 0 rgba(var(--accent-rgb), 0.16);
+      `;
     case "ai":
       return css`
         border-radius: 12px;
@@ -124,6 +130,24 @@ export const Nodes = styled.div`
 
 export const nodeFlavour = (zone: ZoneId) => {
   switch (zone) {
+    // A unit in the rack, its status light on.
+    case "devops":
+      return css`
+        padding-left: 22px;
+        border-color: var(--accent-muted);
+
+        &::before {
+          content: "";
+          position: absolute;
+          top: 13px;
+          left: 9px;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--accent);
+          box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.8);
+        }
+      `;
     case "ai":
       return css`
         border-radius: 10px;

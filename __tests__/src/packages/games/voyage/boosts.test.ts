@@ -52,11 +52,49 @@ describe("voyage boosts", () => {
     expect(voids.some((id) => id && ["cloak", "prism", "heatSink", "gravityWell"].includes(id))).toBe(true);
   });
 
-  test("a universe with no boost of its own yet still drifts the ones found anywhere, never nothing", () => {
+  test("the DevOps universe drifts its own Rollback more often than not, the rest found anywhere, never nothing", () => {
     const random = createSeededRandom(8);
-    const racks = Array.from({ length: 200 }, () => boostToFind(random, "racks", 0.6, 0.1));
+    const racks = Array.from({ length: 400 }, () => boostToFind(random, "racks", 0.6, 0.1));
 
-    racks.forEach((id) => expect(id ? BOOSTS[id].origin : null).toBe("anywhere"));
+    racks.forEach((id) => expect(["racks", "anywhere"]).toContain(id ? BOOSTS[id].origin : null));
+    expect(racks.filter((id) => id === "rollback").length).toBeGreaterThan(200);
+  });
+
+  test("a rollback returns the ship to where it was seconds ago, with the hull it had then, and needs a second of flight", () => {
+    const simulation = createFlying();
+
+    outThere(simulation);
+
+    const { body, health } = partsOf(simulation);
+
+    // Nothing behind it yet to return to.
+    expect(simulation.boost("rollback", 1)).toBe(false);
+
+    simulation.step(1000);
+
+    const before = { x: body.x, y: body.y, hull: health.hull };
+
+    // Then knocked off course and holed.
+    Object.assign(body, { x: body.x + 6, prevX: body.x + 6 });
+    health.hull = before.hull / 2;
+    // Short of the rollback's reach, so the moment it returns to is from before the knock.
+    simulation.step(BOOSTS.rollback.strength * 1000 - 500);
+
+    expect(simulation.boost("rollback", 1)).toBe(true);
+    expect(Math.hypot(body.x - before.x, body.y - before.y)).toBeLessThan(0.5);
+    expect(health.hull).toBeCloseTo(before.hull, 3);
+  });
+
+  test("a rollback is refused standing on a world, and never reaches back into another system", () => {
+    const simulation = createFlying();
+    const state = simulation.state as VoyageState;
+
+    outThere(simulation);
+    simulation.step(3000);
+    expect(state.trail.length).toBeGreaterThan(4);
+
+    partsOf(simulation).ship.landedOn = "mars";
+    expect(simulation.boost("rollback", 1)).toBe(false);
   });
 
   test("a core drifts in near the ship now and then, and flying through it finds it", () => {

@@ -550,6 +550,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           codeShards: { name: "Code shards", note: "Found only in the Matrix. A Shuttle needs them." },
           synapseGel: { name: "Synapse gel", note: "Found only in the AI universe. A Corvette needs it." },
           hashCrystals: { name: "Hash crystals", note: "Found only in the Web3 universe. A Corvette needs them." },
+          bareMetal: { name: "Bare metal", note: "Found only in the DevOps universe. A Starship needs it." },
           luckyChips: { name: "Lucky chips", note: "Found only in the casino universe. A Starship needs them." },
           pixelDust: { name: "Pixel dust", note: "Found only in the game world. A Starship needs it." },
           stardust: { name: "Stardust", note: "From the nebula universes, and rarely elsewhere in the deep." },
@@ -848,7 +849,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           matrix: { name: "The Matrix", note: "Code rains through it. Code shards are found only here." },
           neural: { name: "AI", note: "Neurons fire between its stars. Synapse gel is found only here." },
           blocks: { name: "Chain", note: "Blocks confirm across it. Hash crystals are found only here." },
-          racks: { name: "DevOps", note: "Racks in rows, running every universe you have crossed, and containers moving between them." },
+          racks: { name: "DevOps", note: "A hub of systems, each in the look of a universe you have crossed. Bare metal is found only here." },
           chips: { name: "Casino", note: "Chips spin through the dark. Lucky chips are found only here." },
           pixels: { name: "Game world", note: "Every star a pixel. Pixel dust is found only here." },
           nebula: { name: "Nebula", note: "Glowing gas, home of stardust." },
@@ -963,6 +964,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           prism: "Prism",
           heatSink: "Heat sink",
           gravityWell: "Gravity well",
+          rollback: "Rollback",
         },
         notes: {
           afterburner: "Thrust and top speed past the limit, for a few seconds.",
@@ -982,6 +984,7 @@ export const gameContent: Pick<PortfolioData, "bossLabels" | "hud" | "journeyTra
           prism: "From the crystal universes: every shot splits into a fan.",
           heatSink: "From the ember universes: the hull stays cool, and nothing wears from heat.",
           gravityWell: "From the abyss: a mass set ahead that pulls rocks and hostiles in, with real gravity.",
+          rollback: "From DevOps: back to where you were a few seconds ago, with the hull, shields and fuel you had then.",
         },
         bar: {
           label: "Ability bar",

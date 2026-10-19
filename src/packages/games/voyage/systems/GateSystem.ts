@@ -1,5 +1,6 @@
 import type { System } from "@/packages/games/engine";
 
+import { universeSeed } from "../generators/UniverseGenerator";
 import { VoyageContext } from "./context";
 import { enterSystem, GATE_RADIUS, gatePosition } from "./gates";
 import { placeBody, shipOf } from "./queries";
@@ -47,7 +48,9 @@ export class GateSystem implements System<VoyageContext> {
     }
 
     const from = state.node;
-    const spec = state.nodes.get(to) ?? universes.generate(cosmos.index, cosmos.seed, themes[cosmos.index] ?? null, to);
+    // The universes the run came through before this one, which the DevOps universe's systems borrow from.
+    const borrowed = themes.slice(0, cosmos.index).map((theme, index) => ({ index, seed: universeSeed(state.runSeed, index), theme }));
+    const spec = state.nodes.get(to) ?? universes.generate(cosmos.index, cosmos.seed, themes[cosmos.index] ?? null, to, borrowed);
     const isNew = !state.explored.has(to);
 
     state.nodes.set(from, cosmos);

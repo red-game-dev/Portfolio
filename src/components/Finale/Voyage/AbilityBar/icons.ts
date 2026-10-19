@@ -18,6 +18,7 @@ import {
   faHurricane,
   faMagnet,
   faRobot,
+  faRotateLeft,
   faShieldHalved,
   faSnowflake,
   faSun,
@@ -47,6 +48,7 @@ const BOOST_ICONS: Readonly<Record<BoostId, IconDefinition>> = {
   prism: faGem,
   heatSink: faSnowflake,
   gravityWell: faHurricane,
+  rollback: faRotateLeft,
 };
 
 // The consumables by what they do; a spare part fitted from the bar shows a spanner.

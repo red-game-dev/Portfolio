@@ -164,6 +164,19 @@ export interface Readings {
 export type Medium = "void" | "open" | "haze" | "belt" | "nebula" | "ring";
 
 // Everything about a run that is not an entity.
+// Where the ship was and what it had at a moment of the run (ms on its clock).
+export interface ShipMoment {
+  at: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  angle: number;
+  hull: number;
+  shields: number;
+  fuel: number;
+}
+
 export interface VoyageState {
   status: VoyageStatus;
   phase: VoyagePhase;
@@ -246,6 +259,9 @@ export interface VoyageState {
   blocks: number;
   well: { x: number; y: number; mu: number; until: number } | null;
   decoy: Entity | null;
+  // The ship's last few seconds in flight, a moment at a time, for a rollback to return to; forgotten on landing and
+  // on entering another system.
+  trail: ShipMoment[];
   nextBoostAt: number | null;
   // The weapons on the bar as the run fires them, when each can fire again (ms on the run's clock), the ammunition
   // aboard, how hard the run is (hard: no backup shot when the rounds run out) and how the guns aim.

@@ -693,6 +693,7 @@ export class VoyageSimulation {
       boosts: [],
       boostReady: {},
       blocks: 0,
+      trail: [],
       well: null,
       decoy: null,
       nextBoostAt: null,

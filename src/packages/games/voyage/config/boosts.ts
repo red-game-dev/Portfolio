@@ -28,7 +28,9 @@ const boost = (id: BoostId, origin: BoostSpec["origin"], weight: number, duratio
 // - warpJump (void): a jump this far ahead (world units);
 // - prism (crystal): each shot split into this many more, fanned out;
 // - heatSink (ember): the hull held at no warmer than this (Celsius), nothing wearing from heat;
-// - gravityWell (abyss): a mass this strong (mu) set ahead, pulling rocks and hostiles in, real gravity included.
+// - gravityWell (abyss): a mass this strong (mu) set ahead, pulling rocks and hostiles in, real gravity included;
+// - rollback (DevOps): back to where the ship was this many seconds ago, with the hull, shields and fuel it had then,
+//   as a bad release is rolled back to the last good one.
 export const BOOSTS: Readonly<Record<BoostId, BoostSpec>> = {
   afterburner: boost("afterburner", "anywhere", 5, 4, 12, 1.6, 0.1),
   overcharge: boost("overcharge", "anywhere", 3, 10, 25, 1.5, 0.1),
@@ -47,6 +49,7 @@ export const BOOSTS: Readonly<Record<BoostId, BoostSpec>> = {
   prism: boost("prism", "crystal", 1, 12, 30, 2),
   heatSink: boost("heatSink", "ember", 1, 12, 30, 20, -2),
   gravityWell: boost("gravityWell", "abyss", 1, 8, 30, 12, 2),
+  rollback: boost("rollback", "racks", 1, 0, 30, 3, 0.5),
 };
 
 export const BOOST_IDS: readonly BoostId[] = Object.values(BOOSTS).map((spec) => spec.id);

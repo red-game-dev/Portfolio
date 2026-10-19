@@ -3,6 +3,7 @@ import { pick } from "@/packages/math/random";
 
 import { BOOST_IDS, BOOSTS } from "../config/boosts";
 import { BoostId } from "../domain/boosts";
+import { ShipMoment } from "../domain/state";
 import { activeLevel, boostDuration, boostStrength } from "../utils/boosts";
 import { VoyageContext } from "./context";
 import { placeBody, shipOf, ShipParts } from "./queries";
@@ -15,6 +16,8 @@ const WELL_AHEAD = 3;
 const WELL_IN_VIEW = 0.6;
 // The decoy drifts back from the ship at this speed (world units a second).
 const DECOY_DRIFT = 0.8;
+// A rollback needs at least this much flight behind the ship (ms).
+const ROLLBACK_LEAST_MS = 1000;
 
 // How far ahead a jump can go before it would end inside a world or a star, along the ship's heading.
 const clearJump = ({ state }: VoyageContext, parts: ShipParts, distance: number): number => {
@@ -39,10 +42,32 @@ const clearJump = ({ state }: VoyageContext, parts: ShipParts, distance: number)
   return clear;
 };
 
-// Whether a boost can do anything where the ship is: a jump or a well not while standing on a world, and a jump not
-// when the first step ahead would end inside a world or a star, which would leave it where it is.
+// The moment a rollback returns to: the last one at least `seconds` ago, or the oldest kept if the flight is younger,
+// so long as it is a second old; none otherwise.
+const momentBack = ({ state }: VoyageContext, seconds: number): ShipMoment | null => {
+  const target = state.elapsedMs - seconds * 1000;
+  let back: ShipMoment | null = null;
+
+  for (const moment of state.trail) {
+    if (moment.at <= target) {
+      back = moment;
+    }
+  }
+
+  const oldest = state.trail[0];
+
+  return back ?? (oldest && state.elapsedMs - oldest.at >= ROLLBACK_LEAST_MS ? oldest : null);
+};
+
+// Whether a boost can do anything where the ship is: a jump or a well not while standing on a world, a jump not
+// when the first step ahead would end inside a world or a star, which would leave it where it is, and a rollback only
+// with a moment of flight behind it to return to.
 const canWorkHere = (context: VoyageContext, parts: ShipParts, id: BoostId, level: number): boolean => {
   const isJump = id === "pixelBlink" || id === "warpJump";
+
+  if (id === "rollback") {
+    return parts.ship.landedOn === null && momentBack(context, boostStrength(id, level)) !== null;
+  }
 
   if ((isJump || id === "gravityWell") && parts.ship.landedOn !== null) {
     return false;
@@ -98,6 +123,22 @@ const begin = (context: VoyageContext, parts: ShipParts, id: BoostId, level: num
       });
 
       return state.readings.nebula > 0 ? duration * 2 : duration;
+    case "rollback": {
+      const back = momentBack(context, strength);
+
+      if (back) {
+        placeBody(body, back.x, back.y, back.vx, back.vy);
+        ship.angle = back.angle;
+        ship.prevAngle = back.angle;
+        health.hull = Math.min(health.maxHull, back.hull);
+        health.shields = Math.min(health.maxShields, back.shields);
+        ship.fuel = back.fuel;
+        // What came after is undone, so the next rollback reaches further back.
+        state.trail = state.trail.filter((moment) => moment.at < back.at);
+      }
+
+      return 0;
+    }
     case "pixelBlink":
     case "warpJump": {
       const reach = clearJump(context, parts, strength);
